@@ -1,0 +1,1283 @@
+{
+  "registry_id": "living-archive-gold-standard-registry",
+  "schema_version": "1.0.0",
+  "registry_status": "RECOVERY_IN_PROGRESS",
+  "authority": "Version-controlled Git source; QA execution must pin a registry commit and report application/runtime identity.",
+  "records": [
+    {
+      "benchmark_id": "general-guide-stewardship-gold-standard-2026-10-14",
+      "status": "FROZEN_REFERENCE_ONLY",
+      "subsystem": "general-purpose-guide",
+      "query": "Explain stewardship, but do not send me to another page yet.",
+      "expected_response": "Stewardship means taking care of something entrusted to you—such as your time, relationships, shared spaces, money, or the natural world—rather than treating it as if only your immediate needs matter. In everyday life, it shows up in small choices: keeping a promise, maintaining what others rely on, using resources thoughtfully, and considering how your decisions affect people around you.\n\nIt matters because ordinary choices accumulate. Carelessness can pass costs to other people or to the future, while responsible care helps preserve trust, usefulness, and possibilities for those who come after us.\n\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for, acting responsibly within your limits, and leaving things no worse—and where possible better—than you found them.",
+      "expected_doorway": {
+        "title": "The Stewardship Age",
+        "url": "https://geralddaquila.com/2026/08/19/the-stewardship-age-why-stewardship-will-define-the-twenty-first-century/"
+      },
+      "assertions": [
+        "Answer is complete before any optional doorway.",
+        "Exactly three paragraphs.",
+        "The explicit request not to send the visitor to another page forbids direct page handoff.",
+        "A single Search submission renders the answer; a second click is not required."
+      ],
+      "provenance": {
+        "source_path": "tests/fixtures/general_guide_stewardship_gold_standard.json",
+        "source_ref": "main",
+        "source_blob_sha": "7a11e93a4688806704e3f7b388c87128cec917e0",
+        "source_status": "FROZEN_REFERENCE_ONLY"
+      },
+      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-reciprocity-gold-standard-2026-10-19",
+      "status": "FROZEN_REFERENCE_ONLY",
+      "subsystem": "general-purpose-guide",
+      "query": "What does reciprocity mean in the Living Archive?",
+      "expected_response": "Reciprocity means a relationship of mutual response: people give, receive, and support one another over time. It is not a strict tally in which every act must be repaid immediately or in exactly equal measure. For the Living Archive context, this is a useful starting definition; the linked Archive source may offer a more specific framing.\n\nFor example, neighbors might take turns checking on an older resident or helping each other with errands. One person may give more during a difficult week and receive help later; the relationship can remain reciprocal without every exchange being identical.\n\nReciprocity should not be used to demand access, obedience, or repayment from someone who cannot freely offer it. Mutual support works best when contributions respond to real circumstances rather than becoming a debt ledger.",
+      "expected_doorway": {
+        "title": "Reciprocity Before Bureaucracy: How Communities Coordinated Without Modern Institutions",
+        "url": null
+      },
+      "assertions": [
+        "Answer is complete before the optional doorway.",
+        "Exactly three paragraphs.",
+        "The answer does not claim to be the sole canonical definition of reciprocity.",
+        "A single Search submission renders the substantive answer without requiring a second click.",
+        "Answer remains useful when the general-Guide provider bank is exhausted."
+      ],
+      "provenance": {
+        "source_path": "tests/fixtures/general_guide_reciprocity_gold_standard.json",
+        "source_ref": "qa/freeze-reciprocity-gold-standard",
+        "source_blob_sha": "16bdc5338215c93be64b0d37ee99efc3fe6c25f4",
+        "source_status": "FROZEN_REFERENCE_ONLY",
+        "caveat": "Recovered from an open, unmerged historical PR branch; not yet on main."
+      },
+      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-compound-2026-10",
+      "status": "RECOVERED_HISTORICAL_RESPONSE",
+      "subsystem": "general-purpose-guide",
+      "query": "What is stewardship and why does it matter now more than ever?",
+      "expected_response": "Stewardship means taking care of something entrusted to you—such as your time, relationships, shared spaces, money, or the natural world—rather than treating it as if only your immediate needs matter. In everyday life, it shows up in small choices: keeping a promise, maintaining what others rely on, using resources thoughtfully, and considering how your decisions affect people around you.\n\nIt matters because ordinary choices accumulate. Carelessness can pass costs to other people or to the future, while responsible care helps preserve trust, usefulness, and possibilities for those who come after us.\n\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for, acting responsibly within your limits, and leaving things no worse—and where possible better—than you found them.",
+      "expected_doorway": {
+        "title": "Foundational Stewardship Cases",
+        "url": "https://geralddaquila.com/level-1-case-catalog/"
+      },
+      "assertions": [
+        "Recovered answer is exactly 861 characters and three paragraphs.",
+        "Answer composition and destination recommendation are asserted independently.",
+        "Historical E2E logs record an 861-character three-paragraph response and the expected recommendation, but do not print the answer text."
+      ],
+      "provenance": {
+        "source_path": "main.py",
+        "source_ref": "ab561433a984118b18560aa3a8a9ee6203e61de9",
+        "source_location": "lines 3872-3880",
+        "corroborating_fixture": "tests/fixtures/general_guide_stewardship_gold_standard.json",
+        "corroborating_fixture_blob_sha": "7a11e93a4688806704e3f7b388c87128cec917e0",
+        "historical_e2e_runs": [
+          "https://github.com/GeraldDaquila/living-archive-backend/actions/runs/38645881872",
+          "https://github.com/GeraldDaquila/living-archive-backend/actions/runs/38645881798"
+        ],
+        "evidence_boundary": "Historical source answer exactly matches the frozen stewardship fixture; E2E logs corroborate response length, paragraph count, and destination, but do not independently prove the exact live response text."
+      },
+      "freeze_policy": "Recovered historical benchmark. Do not silently promote its approval status or modify expected_response."
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-disagreement-protection-2026-10",
+      "status": "RECOVERED_HISTORICAL_RESPONSE",
+      "subsystem": "general-purpose-guide",
+      "query": "What does stewardship look like when people disagree about what is worth protecting?",
+      "expected_response": "When people disagree about what is worth protecting, the disagreement often reflects different values, responsibilities, or fears about what could be lost. One person may want to preserve continuity; another may believe change is necessary to protect people or keep something useful. It helps to name those underlying concerns before treating the other person as careless or unreasonable.\n\nA practical next step is to ask what each person is trying to protect, who would bear the costs of each option, and which responsibilities or rights cannot simply be traded away. Separate shared facts from judgments, and look for options that preserve the most important interests while making the unavoidable trade-offs explicit.\n\nPeople may not reach identical priorities, and stewardship does not require pretending otherwise. They can still agree on a fair process, explain their reasons, consider the people affected but not represented, and review the decision when new evidence or consequences emerge. The aim is to handle disagreement responsibly, not to erase it.",
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Exactly three paragraphs; answer wording is recovered from the historical deterministic response branch, not newly generated.",
+        "Addresses disagreement about what is worth protecting, competing values and responsibilities, trade-offs, and a fair decision process.",
+        "Any destination recommendation must be verified separately; the historical branch returns a context-derived doorway title, so this source does not establish a fixed canonical destination.",
+        "Keep this conflict-specific answer distinct from the general stewardship-definition benchmark."
+      ],
+      "provenance": {
+        "source_path": "main.py",
+        "source_ref": "537f244d6b5ad21e3b7745af518dd54d1d4c9c55",
+        "source_location": "lines 4047-4054",
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/blob/537f244d6b5ad21e3b7745af518dd54d1d4c9c55/main.py",
+        "source_status": "RECOVERED_HISTORICAL_RESPONSE",
+        "evidence_boundary": "Exact response string is present in the historical v489.286 deterministic recovery implementation. This establishes wording in source, not that the historical live response body was independently archived or that a destination was approved."
+      },
+      "freeze_policy": "Preserve recovered source wording. Do not promote to FROZEN_CONFIRMED or assign a fixed doorway without the original approval/rating record."
+    },
+    {
+      "benchmark_id": "general-guide-practical-trust-application-2026-10-22",
+      "status": "FROZEN_REFERENCE_ONLY",
+      "subsystem": "general-purpose-guide",
+      "query": "I understand the importance of trust, but what would I actually do differently in an organization trying to live by it?",
+      "expected_response": "Start with one recurring situation where trust matters, such as a decision that affects a team. Ask the people affected what they see before deciding, and separate observable facts from assumptions. Explain the reasons for the decision, name who is responsible for the next step, and follow through when promised. Then check with the people affected whether the action changed their experience; good intentions alone are not evidence that trust has improved. Where would this make the biggest difference right now: decision-making, handling disagreement, or responding when something goes wrong?",
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Behavioral reference is the accepted live response recorded as Gold Standard #20; do not treat wording as a mandatory template.",
+        "At least two concrete, observable organizational actions precede the focused follow-up.",
+        "Address what the visitor could do differently before asking a follow-up.",
+        "Do not attach an unsolicited service doorway to a practical how-to question.",
+        "Evaluate recommendation relevance separately from answer quality."
+      ],
+      "provenance": {
+        "source_path": "tests/fixtures/general_guide_practical_trust_gold_standard.json",
+        "source_ref": "qa/register-gold-standard-20",
+        "source_commit": "113039181ea810563726e48b77786de789d4aeba",
+        "source_status": "open, unmerged PR #777",
+        "approval_record": "Gold Standard #20, accepted live visitor screenshot dated 2026-10-22; rating 9/10",
+        "caveat": "Recovered from an open PR branch. This registry record does not imply the source PR is merged or present on main."
+      },
+      "freeze_policy": "Preserve the observed accepted response and behavioral invariants. Do not rewrite to accommodate regressions; this is a behavioral reference, not a rigid answer template."
+    },
+    {
+      "benchmark_id": "general-guide-conceptual-accountability-trust-harm-repair-2026-10-22",
+      "status": "FROZEN_REFERENCE_ONLY",
+      "subsystem": "general-purpose-guide",
+      "query": "How might accountability, trust, and the ability to repair harm reinforce one another?",
+      "expected_response": "Accountability, trust, and repairing harm reinforce one another when responsibility leads to visible action. Accountability starts with acknowledging what happened, who was affected, and what responsibility belongs to whom, rather than minimizing the impact or shifting blame. That makes trust more credible because people can judge what someone does, not just what they promise. When harm occurs, repair turns accountability into action: listen to the people affected, address the consequences, and change what allowed the harm to happen. Following through gives people evidence that the harm was taken seriously. Trust may then become possible again—not because the harm is forgotten, but because people can see that responsibility led to meaningful change. Are you thinking about this in an organization, a close relationship, or a wider community?",
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Behavioral reference is the accepted live response recorded as Gold Standard #21; do not treat wording as a mandatory template.",
+        "Explain the mechanism connecting the concepts, not merely their definitions.",
+        "Connect accountability to visible responsibility, trust to observable behavior, and repair to addressing consequences and preventing recurrence.",
+        "Do not imply that repair erases harm or guarantees trust will return.",
+        "End with at most one focused contextual follow-up.",
+        "Do not attach a resource doorway unless the visitor explicitly asks for one."
+      ],
+      "provenance": {
+        "source_path": "tests/fixtures/general_guide_conceptual_relationship_gold_standard.json",
+        "source_ref": "qa/register-gold-standard-21-conceptual-relationships",
+        "source_commit": "8535fc8343f7bfb45a52eb86fa83964f3729511a",
+        "source_status": "open, unmerged PR #779",
+        "approval_record": "Gold Standard #21, accepted live visitor screenshot dated 2026-10-22; rating 9.5/10",
+        "caveat": "Recovered from an open PR branch. This registry record does not imply the source PR is merged or present on main."
+      },
+      "freeze_policy": "Preserve the observed accepted response and behavioral invariants. Do not weaken invariants to accommodate regressions; this is a behavioral reference, not a rigid answer template."
+    },
+    {
+      "benchmark_id": "general-guide-hindsight-accountability-2026-10",
+      "status": "RECOVERED_HISTORICAL_RESPONSE_PENDING_APPROVAL_EVIDENCE",
+      "subsystem": "general-purpose-guide",
+      "query": "If the group made the best decision it could with the information available at the time, how should it distinguish genuine accountability from unfairly blaming people in hindsight?",
+      "expected_response": "Genuine accountability asks whether the group made a reasonable decision with the information, constraints, and alternatives available at the time. Hindsight blame assumes that because the outcome is now known, it should have been predictable all along. A harmful result, by itself, does not prove that the original decision was irresponsible.\n\nStart by reconstructing what the group knew, what remained uncertain, which alternatives were realistically available, and whether relevant warnings or dissent were taken seriously. Ask whether the group used clear criteria, considered foreseeable risks, and listened to people who would bear the consequences. Also distinguish a reasonable choice that turned out badly from a choice made carelessly or without regard for evidence the group had a duty to consider.\n\nA reasonable decision at the time does not excuse refusing to learn afterward. Accountability means acknowledging the outcome, correcting what can be corrected, and improving the decision process without rewriting the past to make blame easier.",
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Distinguishes decision quality based on what was knowable then from hindsight blame.",
+        "Reconstructs uncertainty, realistic alternatives, warnings/dissent and foreseeable risk.",
+        "Acknowledges outcome and learning without rewriting history to simplify blame.",
+        "Keep separate from ordinary policy-decision advice."
+      ],
+      "provenance": {
+        "source_pr": 750,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/750",
+        "source_path": "deterministic_answer_recovery.py",
+        "source_ref": "main",
+        "source_blob_sha": "d51817ea1c2aa940f724b61cc586faffda3bbef2",
+        "evidence_boundary": "Exact deterministic recovery response and regression assertions recovered from source. No visitor rating/approval record found yet."
+      },
+      "freeze_policy": "Do not promote to approved/frozen gold standard without recovered approval evidence."
+    },
+    {
+      "benchmark_id": "general-guide-ethical-tradeoff-2026-10",
+      "status": "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE",
+      "subsystem": "general-purpose-guide",
+      "query": "What if each person sincerely believes they are protecting something important, but protecting one person's priorities means another person will lose something they deeply value? How should we decide what to protect?",
+      "expected_response": "When protecting one important thing puts something else at risk, the decision cannot be made fairly by asking only which priority matters more. We also need to consider who depends on each choice, who has the power to decide, and who will bear the consequences.\n\nMake each person's claim visible, including the needs of people who may not have a voice in the decision. Distinguish losses that can be repaired from those that cannot, and examine whether a different approach could protect at least part of what matters to each side. Shared facts, clear criteria, and a chance for affected people to challenge assumptions make the process more defensible.\n\nSometimes a genuine trade-off remains. In that case, responsibility means explaining the reasons for the decision, acknowledging what is being sacrificed, and checking that the burden does not fall unfairly on those with the least power. The question is not only what we choose to protect, but whether we can justify that choice to the people who must live with its consequences.",
+      "expected_doorway": {
+        "title": "Leadership Case Study 01: Decision-Making Under Pressure and Resource Scarcity",
+        "url": null
+      },
+      "assertions": [
+        "Address competing values and explicit sacrifice, not generic how-to advice.",
+        "Consider who has power to decide, people with least power, and what can be repaired versus what cannot.",
+        "State defensible criteria and justify the choice.",
+        "Keep distinct from the stewardship-disagreement reference question and ordinary practical questions."
+      ],
+      "provenance": {
+        "source_pr": 749,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/749",
+        "source_path": "test_deterministic_answer_recovery.py",
+        "source_ref": "main",
+        "source_blob_sha": "d51817ea1c2aa940f724b61cc586faffda3bbef2",
+        "evidence_boundary": "Exact accepted answer, explicit user approval, displayed navigation title, and 9.0/10 rating are recovered across Issue #747 and prior calibration context. Destination URL and independent doorway relevance validation remain unrecovered.",
+        "prior_calibration_context": "Prior calibration summary records this same accepted answer as GS #18, rated 9.0/10. The Issue #747 approval comment calls it Gold Standard #2. Both labels are preserved; sequence/numbering equivalence is not proven."
+      },
+      "freeze_policy": "Preserve exact accepted response verbatim. Create a dedicated fixture and test separately from the existing October 14 stewardship fixture; do not change use_core.py or claim the deterministic production path generated this answer.",
+      "rating": null,
+      "approval_evidence": {
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747#issuecomment-6322797433",
+        "approval_date": "2026-10-22",
+        "approval": "explicitly user-approved as a gold-standard answer",
+        "numeric_rating": "not stated in recovered approval comment"
+      },
+      "rating_out_of_10": 9,
+      "original_numbering_labels": [
+        "Gold Standard #2 — Deterministic Recovery Calibration (Issue #747 comment, 2026-10-22)",
+        "GS #18 — Ethical Trade-offs and Conflicting Harms (prior calibration summary, 2026-10-21)"
+      ],
+      "numbering_conflict": "Source calls this Gold Standard #2 in Issue #747 and GS #18 in prior calibration context; it is not assigned to the original 14-sequence numbering until reconciled."
+    },
+    {
+      "benchmark_id": "general-guide-responsibility-boundary-2026-10",
+      "status": "RECOVERED_CONTRACT_PENDING_EXACT_QUESTION_AND_APPROVAL",
+      "subsystem": "general-purpose-guide",
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Explicitly distinguish responsibility for one's own contribution from accountability for the whole system.",
+        "Recognize that seeing a problem can create pressure to carry more than one's fair share.",
+        "Tie shared responsibility to authority, resources, and shared obligations.",
+        "Offer a defined contribution while naming what needs a decision, resource, or commitment from others.",
+        "Distinguish the part the visitor can influence from the part requiring shared ownership."
+      ],
+      "provenance": {
+        "source_pr": 794,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/794",
+        "source_paths": [
+          "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py",
+          "general_guide_composition.py"
+        ],
+        "source_status": "merged",
+        "evidence_boundary": "Exact contract clauses recovered from PR patch; exact original visitor question, complete approved answer and rating not found in this source."
+      },
+      "freeze_policy": "Contract/regression scenario, not a frozen verbatim answer. Continue searching for original calibration record."
+    },
+    {
+      "benchmark_id": "general-guide-practical-collective-next-step-2026-10",
+      "status": "RECOVERED_REGRESSION_SCENARIO",
+      "subsystem": "general-purpose-guide",
+      "query": "If the group agrees that something must change but its members disagree about what to do first, what would be a constructive next step?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Provide one useful, low-risk next step before asking for more context when responsible.",
+        "The final response must contain a concrete action, not analysis-only prose.",
+        "Preserve visitor agency; do not present a mandatory checklist or claim the step will resolve the conflict.",
+        "Do not rewrite unrelated questions or change the frozen stewardship benchmark."
+      ],
+      "provenance": {
+        "source_prs": [
+          755,
+          756,
+          757
+        ],
+        "source_urls": [
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/755",
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/756",
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/757"
+        ],
+        "source_status": "PRs #755, #756, and #757 merged (verified 2026-10-23)",
+        "evidence_boundary": "Exact query and behavioral contracts are recovered from PRs #755-757. PR #757's bounded fallback response is now merged into main and is recorded separately as implementation_response; no visitor approval/rating was recovered, so it is not an approved gold answer."
+      },
+      "freeze_policy": "Regression scenario, not an approved verbatim answer.",
+      "implementation_response": "Ask each person to explain what they believe is most urgent and why. Then identify the outcome everyone agrees they want, and choose one small, reversible action the group can try before deciding on a larger plan. Afterward, compare what the group learned and use that to decide what should come next.",
+      "implementation_response_provenance": {
+        "source_pr": 757,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/757",
+        "source_status": "merged to main via PR #757 merge commit fa7c575c8337a937c0f0a6bef8ef87339ce35b96 (verified 2026-10-23)",
+        "evidence_boundary": "Exact bounded fallback text is present in merged source. This is implementation evidence only, not an approved answer: no visitor approval/rating was recovered, and no independent claim is made that this exact fallback was returned in a production visitor session."
+      }
+    },
+    {
+      "benchmark_id": "general-guide-harm-reduction-outcome-evaluation-2026-10",
+      "status": "RECOVERED_REGRESSION_SCENARIO",
+      "subsystem": "general-purpose-guide",
+      "query": "How can a group tell whether its revised approach is genuinely reducing harm, rather than simply making the group feel that it has addressed the problem?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Distinguish outcome evaluation from systemic-pattern diagnosis/FSD routing.",
+        "Explain observable outcomes, baseline/starting point, comparison over time, affected people's feedback, and unintended consequences.",
+        "Reject generic next-step advice that does not say what evidence would show harm decreased.",
+        "Keep Guide routing for outcome-evaluation intent while preserving FSD for genuine recurring-pattern diagnosis."
+      ],
+      "provenance": {
+        "source_prs": [
+          763,
+          764,
+          765,
+          766,
+          768
+        ],
+        "source_urls": [
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/763",
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/764",
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/765",
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/766",
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/768"
+        ],
+        "source_status": "merged",
+        "evidence_boundary": "Exact question and shallow-answer failure pattern recovered from regression tests. Exact deterministic recovery text is now recovered from merged PR #768 and separately recorded as implementation_response; visitor approval/rating for that exact response remains unrecovered.",
+        "query_fidelity_note": "Exact observed prompt recovered from PR #765 source/tests on 2026-10-23. The previous shortened registry wording is retained as a query alias, not as the original prompt."
+      },
+      "freeze_policy": "Keep as one scenario lineage with linked PR revisions; do not count each PR as a separate gold standard.",
+      "implementation_response": "To tell whether the revised approach is reducing harm, first describe what the harm looked like before the change and choose a few observable signs to track. These might include how often the problem occurs, what affected people report, or whether people feel safer in the specific situation. Compare those observations with the starting point over time rather than relying on the group’s confidence or a single encouraging example.\n\nAsk the people most affected whether their experience has changed, and check for unintended consequences or people who may still be harmed. If the evidence is mixed, treat that as a reason to adjust and keep observing—not as proof of success or failure. The key test is whether the change improves real experiences and whether that improvement holds up when the group looks for evidence that could challenge its own belief.",
+      "implementation_response_provenance": {
+        "source_pr": 768,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/768",
+        "source_status": "merged to main via PR #768 merge commit c8badec12025e57b47024ebd7fa07666c85d4a04 (verified 2026-10-23)",
+        "evidence_boundary": "Exact deterministic fallback text is present in merged general_guide_composition.py. This is implementation evidence, not a visitor-approved gold answer; no explicit visitor approval or rating for this exact response was recovered."
+      },
+      "query_aliases": [
+        "How can we tell whether a revised approach is genuinely reducing harm?"
+      ]
+    },
+    {
+      "benchmark_id": "general-guide-fuzzy-relevance-balanced-evaluation-2026-10-22",
+      "status": "RECOVERED_EVALUATION_FIXTURE_NOT_GOLD_STANDARD",
+      "subsystem": "general-guide-relevance-shadow",
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Four human-authored evaluation cases cover ethical trade-off, harm repair, collective next step and accountability.",
+        "Each case compares direct, adjacent and unsuitable candidate resources.",
+        "Labels are authored expectations; scorer remains shadow-only and results are not independent ground truth."
+      ],
+      "provenance": {
+        "source_pr": 758,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/758",
+        "source_path": "tests/fixtures/guide_fuzzy_relevance_balanced_evaluation.json",
+        "source_ref": "main",
+        "source_status": "open PR; fixture content recovered from patch",
+        "case_ids": [
+          "ethical-tradeoff",
+          "harm-repair",
+          "collective-next-step",
+          "accountability"
+        ],
+        "case_count": 4,
+        "source_blob_sha": "508fd643768d8243136ebe1a6eb6ee88251e5843"
+      },
+      "freeze_policy": "Evaluation dataset only; never count as four approved answer gold standards."
+    },
+    {
+      "benchmark_id": "general-guide-fuzzy-relevance-heldout-paraphrases-2026-10-22",
+      "status": "RECOVERED_EVALUATION_FIXTURE_NOT_GOLD_STANDARD",
+      "subsystem": "general-guide-relevance-shadow",
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Held-out paraphrases probe transfer beyond the original wording and include plausible topical distractors.",
+        "Keep scoring shadow-only; preserve failures rather than tuning labels or thresholds to force a pass."
+      ],
+      "provenance": {
+        "source_pr": 760,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/760",
+        "source_path": "tests/fixtures/guide_fuzzy_relevance_heldout_paraphrases.json",
+        "source_ref": "main",
+        "source_status": "merged",
+        "evidence_boundary": "Exact case count to be computed from current main fixture before declaring inventory complete.",
+        "case_count": 4,
+        "source_blob_sha": "643fc07bf620d923461373628d1c3441234f702d"
+      },
+      "freeze_policy": "Evaluation dataset only; not a set of approved response texts."
+    },
+    {
+      "benchmark_id": "general-guide-fuzzy-relevance-independent-challenge-2026-10-22",
+      "status": "RECOVERED_EVALUATION_FIXTURE_NOT_GOLD_STANDARD",
+      "subsystem": "general-guide-relevance-shadow",
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Paraphrases avoid existing cue vocabulary and include plausible same-topic distractors and negative controls.",
+        "Three consultation/participation cases share the same candidate pair and must be treated as one correlated paraphrase family, not independent demonstrations.",
+        "Two procedural-lookup cases are marked candidate_set_underspecified and are not valid semantic ground truth.",
+        "Independent human review remains pending."
+      ],
+      "provenance": {
+        "source_prs": [
+          761,
+          762
+        ],
+        "source_urls": [
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/761",
+          "https://github.com/GeraldDaquila/living-archive-backend/pull/762"
+        ],
+        "source_path": "tests/fixtures/guide_fuzzy_relevance_independent_challenge_set.json",
+        "source_ref": "main",
+        "source_status": "merged",
+        "evidence_boundary": "Expanded case count to be computed from current main fixture; labels are simulated judgments, not independent human ground truth.",
+        "case_count": 16,
+        "source_blob_sha": "73e87b319076e5be809e17902a788b7951cb308f"
+      },
+      "freeze_policy": "Evaluation dataset only; report correlation and candidate-set caveats."
+    },
+    {
+      "benchmark_id": "general-guide-fuzzy-relevance-simulated-question-battery-2026-10-22",
+      "status": "RECOVERED_EVALUATION_FIXTURE_NOT_GOLD_STANDARD",
+      "subsystem": "general-guide-relevance-shadow",
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Simulated paraphrased queries and plausible hard distractors test direct-versus-adjacent relevance.",
+        "Pairwise accuracy/ties/failures are diagnostic only; authored labels are not independent ground truth."
+      ],
+      "provenance": {
+        "source_pr": 761,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/761",
+        "source_path": "tests/fixtures/guide_fuzzy_relevance_simulated_question_battery.json",
+        "source_ref": "main",
+        "source_status": "merged",
+        "evidence_boundary": "Current case count to be verified from main fixture.",
+        "case_count": 10,
+        "source_blob_sha": "7a146a44eb8a37f432d0b9e618aede151779e06a"
+      },
+      "freeze_policy": "Evaluation dataset only; not approved answer gold standards."
+    },
+    {
+      "benchmark_id": "general-guide-fuzzy-fallback-replay-simulated-2026-10-22",
+      "status": "RECOVERED_DIAGNOSTIC_FIXTURE_NOT_GOLD_STANDARD",
+      "subsystem": "general-guide-relevance-shadow",
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Replay simulated fuzzy fallback cases to inspect deterministic-selector versus shadow-scorer boundaries.",
+        "Do not treat simulated cases as human-approved gold standards or independent ground truth."
+      ],
+      "provenance": {
+        "source_pr": 762,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/762",
+        "source_path": "tests/fixtures/fuzzy_fallback_replay_simulated_cases.json",
+        "source_ref": "main",
+        "source_status": "merged",
+        "evidence_boundary": "Current case count to be verified from main fixture.",
+        "case_count": 9,
+        "source_blob_sha": "f03afa3157c683479591b67d835065f922ceeab0"
+      },
+      "freeze_policy": "Diagnostic replay only; not approved answer gold standards."
+    },
+    {
+      "benchmark_id": "general-guide-practical-trust-shadow-diagnostic-2026-10",
+      "status": "RECOVERED_SHADOW_DIAGNOSTIC_NOT_GOLD_STANDARD",
+      "subsystem": "general-guide-composition-shadow",
+      "query": "I understand the importance of trust, but what would I actually do differently in an organization trying to live by it?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Diagnostic checks whether practical-application intent produces observable organizational practices rather than generic inquiry guidance.",
+        "Includes paraphrases and conceptual-question negatives.",
+        "Evaluation-only module is not imported into production; no visitor approval implied by passing tests."
+      ],
+      "provenance": {
+        "source_pr": 772,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/772",
+        "source_status": "merged",
+        "evidence_boundary": "Keep separate from approved Gold Standard #20, whose accepted exact response and 9/10 rating are already registered."
+      },
+      "freeze_policy": "Shadow diagnostic only; Gold Standard #20 is the approved response record."
+    },
+    {
+      "benchmark_id": "general-guide-calibration-question-set-2026-09-20",
+      "status": "RECOVERED_QUESTION_SET_PENDING_PER_ITEM_APPROVAL",
+      "subsystem": "general-purpose-guide-calibration",
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "calibration_questions": [
+        "I feel lonely even when I’m around people. What might I be missing?",
+        "How do I know whether a major transition in my life is asking me to let go or to persist?",
+        "Why do I keep taking responsibility for problems that other people should handle themselves?",
+        "I’m struggling to make an important decision because every option seems to have consequences. How do I discern what matters most?",
+        "How can I tell the difference between genuine belonging and simply adapting myself to fit in?",
+        "Why do conflicts in groups sometimes become much larger than the original disagreement?",
+        "What does it mean to lead without controlling people?",
+        "How do I recognize when helping someone has become a form of interference?",
+        "I understand what I should do, but I still cannot seem to act on it. What gets in the way?",
+        "What makes a community capable of dealing with difficult change without falling apart?"
+      ],
+      "assertions": [
+        "Preserve all ten questions verbatim as calibration/regression candidates.",
+        "Evaluation dimensions: human question recognition, first-door directness, doorway diversity, catalogue grounding, explanation quality, synthesis quality.",
+        "Do not promote each question to frozen answer gold standard unless its original evaluation, rating, expected output, and approval decision are recovered."
+      ],
+      "provenance": {
+        "source_library_file": "Pasted markdown(20260920-021951).md",
+        "source_library_file_id": "libfile_05b5d9b1cf2c81919d4678c64385cc60",
+        "source_path": "docs/qa/RECOVERED_CALIBRATION_QUESTION_SET.md",
+        "case_count": 10,
+        "evidence_boundary": "Recovered question set and evaluation dimensions. Original per-question answer/rating/approval records are not in the recovered excerpt."
+      },
+      "freeze_policy": "Question set is a calibration candidate set, not ten approved answer gold standards."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-01-2026-10-21",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 1,
+      "query": "How does responsibility differ from carrying everything yourself?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Preserve this exact original numbered calibration question.",
+        "Keep answer quality and destination relevance scored independently.",
+        "Do not reconstruct the original accepted response from model attribution or response length alone.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "basic-0d9cf848b88718f0",
+        "provider_attribution": "groq/qwen/qwen3.8-27b",
+        "source_status": "matched in October 21, 2026 forensic record",
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
+      },
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
+      "rating_out_of_10": 8.5,
+      "approval_state": "answer accepted; exact response not recovered",
+      "known_theme": "Responsibility versus carrying everything; boundaries and sustainable contribution.",
+      "reconstruction_candidate_response": "Responsibility means recognizing what is yours to contribute and following through on it. Carrying everything yourself means taking on tasks, decisions, and consequences that should be shared—or that are not yours alone to manage. The two can look similar from the outside because both may involve being dependable, but one supports a workable relationship and the other can quietly make the whole arrangement depend on you.\n\nA useful distinction is whether your contribution helps others take part or allows them to remain disengaged. You can be responsible without anticipating every need, preventing every mistake, or absorbing every consequence. Name what you can reasonably do, what needs to be shared, and what belongs to someone else. Responsibility is not measured by how much you can endure; it is shown in how honestly you respond to what is actually yours.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-02-2026-10-21",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 2,
+      "query": "How can I tell when helping has turned into taking over?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": "Learning to Receive Without Feeling Guilty",
+        "url": "https://geralddaquila.com/2026/02/02/learning-to-receive-without-feeling-guilty/"
+      },
+      "assertions": [
+        "Preserve this exact original numbered calibration question.",
+        "Keep answer quality and destination relevance scored independently.",
+        "Do not reconstruct the original accepted response from model attribution or response length alone.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "basic-2102d3c92fe242ef",
+        "provider_attribution": "groq/qwen/qwen3.8-27b",
+        "source_status": "matched in October 21, 2026 forensic record",
+        "evidence_boundary": "Prior October 21 calibration context confirms approval, rating, and recommended title; exact accepted answer text remains unavailable. Canonical URL was separately verified from the public Archive runtime catalogue.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_source": "Public Archive runtime/catalogue record recovered from Library source."
+      },
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
+      "rating_out_of_10": 9,
+      "approval_state": "answer and recommendation accepted; rating 9/10; exact response not recovered",
+      "known_theme": "Observable signs that helping is becoming taking over; self-check: “Am I solving this for them, or am I helping them solve it?”",
+      "reconstruction_candidate_response": "Helping may be turning into taking over when you begin making decisions the other person could make, doing work they have not agreed to hand over, or feeling that you must keep the situation on track for them. Another sign is that your help leaves them with less room to act, while you become increasingly responsible for the outcome.\n\nA useful self-check is: “Am I solving this for them, or helping them solve it?” Ask what kind of support they actually want, agree on the boundary of your role, and leave room for them to choose—even if they choose differently than you would. There are times when urgent risk or a clear duty calls for more direct action, but outside those situations, support should strengthen the other person’s agency rather than quietly replace it.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-03-2026-10-21",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 3,
+      "query": "What does sharing responsibility look like when a team is struggling?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Preserve this exact original numbered calibration question.",
+        "Keep answer quality and destination relevance scored independently.",
+        "Do not reconstruct the original accepted response from model attribution or response length alone.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "basic-dcca201b61d915d1",
+        "provider_attribution": "groq/qwen/qwen3.8-27b",
+        "source_status": "matched in October 21, 2026 forensic record",
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
+      },
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
+      "rating_out_of_10": 8.5,
+      "approval_state": "answer accepted; exact response not recovered",
+      "known_theme": "Shared accountability, mutual support, transparency, coordination, resilience; shared responsibility does not mean equal responsibility.",
+      "reconstruction_candidate_response": "When a team is struggling, sharing responsibility means more than dividing up a list of tasks. It also means sharing the work of noticing what needs attention, raising concerns early, making decisions visible, and following through on commitments. If one person must continually spot every problem and remind everyone else, the workload may look distributed while the responsibility for the whole remains concentrated.\n\nA team can begin by naming the outcome it is trying to protect, making each person’s capacity and commitments explicit, and agreeing who will own which next steps. Shared responsibility does not mean everyone carries an equal amount: roles, authority, and capacity differ. It means those differences are acknowledged rather than allowing the most conscientious person to become the default owner of everything. Check together what is working, what has been missed, and what needs to be redistributed.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-04-2026-10-21",
+      "status": "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 4,
+      "query": "Where should I start if I want to understand trust-based systems?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": "Start Here — Where to begin and how to navigate the Living Archive",
+        "url": "https://geralddaquila.com/start-here-2/"
+      },
+      "assertions": [
+        "Preserve this exact original numbered calibration question.",
+        "Keep answer quality and destination relevance scored independently.",
+        "Do not reconstruct the original accepted response from model attribution or response length alone.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text.",
+        "The recovered route is the Guide systemic Navigator orientation handoff, not a General Guide composition event.",
+        "Do not infer that the underlying answer composition used the same provider/model as standards #1–#3 and #5–#14."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "navigator-c03843228f6a6649",
+        "provider_attribution": "navigation specialist; model composition not established",
+        "source_status": "matched in October 21, 2026 forensic record",
+        "evidence_boundary": "Issue #747 comment directly correlates the exact prompt to a navigation-specialist orientation handoff and this URL. This is not a logged General Guide composition event; exact answer, visitor rating, and approval remain unrecovered. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "forensic_comment_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747#issuecomment-6315222606"
+      },
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
+      "rating_out_of_10": 9,
+      "approval_state": "orientation answer/destination accepted; path is navigation-specialist handoff, not General Guide composition",
+      "known_theme": "Trust-based systems orientation."
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-05-2026-10-21",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 5,
+      "query": "What does accountability really mean?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": "Community Accountability Systems",
+        "url": "https://geralddaquila.com/2026/05/16/community-accountability-systems/"
+      },
+      "assertions": [
+        "Preserve this exact original numbered calibration question.",
+        "Keep answer quality and destination relevance scored independently.",
+        "Do not reconstruct the original accepted response from model attribution or response length alone.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "basic-4d01507060492335",
+        "provider_attribution": "groq/qwen/qwen3.8-27b",
+        "source_status": "matched in October 21, 2026 forensic record",
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_source": "Public Archive runtime/catalogue record recovered from Library source."
+      },
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
+      "rating_out_of_10": 9,
+      "approval_state": "answer accepted; exact response not recovered",
+      "known_theme": "Accountability as responsibility, transparency, and repair.",
+      "reconstruction_candidate_response": "Accountability means being answerable for what you did, what you decided, and the consequences that followed. It includes making your reasoning and actions visible, listening to people affected, acknowledging mistakes without hiding behind good intentions, and taking appropriate steps to repair harm or prevent it from recurring. It is more than compliance with a rule because a person can follow a procedure while avoiding responsibility for its effects.\n\nGood accountability is not simply punishment, nor does it require assuming that every bad outcome proves someone acted badly. It asks what was known at the time, what responsibility each person held, who was affected, and what needs to happen now. The aim is to make responsibility clear enough for people to learn, repair what can be repaired, and rebuild trust where possible—not to protect people from consequences or reduce the process to blame.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-06-2026-10-21",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 6,
+      "query": "Explain a concept that is not directly covered by an available Archive resource",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Preserve this exact original numbered calibration question.",
+        "Keep answer quality and destination relevance scored independently.",
+        "Do not reconstruct the original accepted response from model attribution or response length alone.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "basic-8adbd3c1e545e29f",
+        "provider_attribution": "groq/qwen/qwen3.8-27b",
+        "source_status": "matched in October 21, 2026 forensic record",
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
+      },
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
+      "rating_out_of_10": 9,
+      "approval_state": "answer accepted; exact response and doorway not recovered",
+      "known_theme": "Explain a general concept without claiming unsupported Archive-specific evidence.",
+      "reconstruction_candidate_response": "A concept can be explained using general knowledge even when the Living Archive does not have a directly matching resource. The important distinction is between offering a general explanation and claiming that the explanation is an established position of the Archive. A responsible answer should make that boundary clear, explain the concept plainly, and avoid inventing a citation or presenting a related page as if it directly substantiates the claim.\n\nThe Guide considers your question alongside the Living Archive’s ideas, themes, and pathways to help you find where to begin. From there, you can explore the Archive for yourself. That orientation is not evidence that a particular claim appears in a canonical resource; where a direct source is unavailable, the answer should say so rather than imply otherwise.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-07-2026-10-21",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 7,
+      "query": "What does the Archive specifically say about a claim for which no supporting source is retrieved?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": "Claims Without Retrieved Supporting Evidence",
+        "url": null
+      },
+      "assertions": [
+        "Preserve this exact original numbered calibration question.",
+        "Keep answer quality and destination relevance scored independently.",
+        "Do not reconstruct the original accepted response from model attribution or response length alone.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "basic-6d41f289f647a5a3",
+        "provider_attribution": "groq/qwen/qwen3.8-27b",
+        "source_status": "matched in October 21, 2026 forensic record",
+        "evidence_boundary": "Provider/model attribution and response length are logged, but the complete exact accepted response, doorway approval, and individual rating are not yet recovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_source": "Public Archive runtime/catalogue record recovered from Library source."
+      },
+      "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
+      "rating_out_of_10": 9,
+      "approval_state": "answer accepted; exact response and doorway not recovered",
+      "known_theme": "Evidence honesty when no supporting Archive source is retrieved.",
+      "reconstruction_candidate_response": "If no supporting Archive source is retrieved, the accurate conclusion is limited: the current retrieval did not provide evidence that establishes the claim as something the Archive says. That does not prove the claim is false, and it does not prove that no relevant source exists anywhere in the Archive. Retrieval can miss relevant material, and a claim may also be a reasonable general proposition without being an Archive-specific statement.\n\nThe Guide should therefore distinguish what a retrieved source explicitly says from what it does not establish. It should not invent an Archive policy, attribute a claim to an author without evidence, or use a loosely related resource as proof. The honest next step is to state the limit, offer a general explanation only if useful and clearly labelled, and identify what kind of source would be needed to substantiate the Archive-specific claim.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-08-2026-10-21",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 8,
+      "query": "Why do the same problems keep returning even when everyone involved seems to be trying their best?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": "When Experience Can Change Us: The Two Capacities of a Living System",
+        "url": "https://geralddaquila.com/when-experience-can-change-us-the-two-capacities-of-a-living-system/"
+      },
+      "known_theme": "Recurring problems despite good intentions.",
+      "assertions": [
+        "Original numbered slot is confirmed in the forensic inventory.",
+        "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
+        "Do not infer exact wording from the thematic summary.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
+        "request_hash": null,
+        "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_source": "Public Archive runtime/catalogue record recovered from Library source."
+      },
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
+      "rating_out_of_10": 8.8,
+      "approval_state": "answer accepted; exact response not recovered",
+      "reconstruction_candidate_response": "Problems can return even when everyone is trying because good intentions do not automatically change the conditions that keep producing the problem. Roles may be unclear, incentives may reward the old behavior, people may lack authority or information, or a short-term fix may relieve pressure without changing the underlying pattern. Each person can be making a reasonable local choice while the combined result remains harmful.\n\nInstead of starting with who is not trying hard enough, trace what happens before and after the problem: what triggers it, who has to respond, what gets rewarded, and where feedback fails to reach the people who could act on it. Then choose one part of that pattern the group can observe and change, and check whether the result actually changes. Good intentions matter, but the test is whether the system begins producing a different outcome.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-09-2026-10-21",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 9,
+      "query": "What if everyone understands what needs to change, but nobody has the authority to change it?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "known_theme": "Authority without agency.",
+      "assertions": [
+        "Original numbered slot is confirmed in the forensic inventory.",
+        "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
+        "Do not infer exact wording from the thematic summary.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
+        "request_hash": null,
+        "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
+      },
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
+      "rating_out_of_10": 8.6,
+      "approval_state": "answer accepted; exact response and doorway not recovered",
+      "reconstruction_candidate_response": "When everyone can see what needs to change but nobody has authority to act, the problem is not simply a lack of commitment. The group may have responsibility without decision rights, or the people closest to the problem may have the least access to the decisions that shape it. Asking them to try harder can add burden without giving them a way to make a difference.\n\nStart by separating what the group can change directly from what requires permission, resources, or a decision by someone else. Identify who holds that authority, what evidence or safeguards they would need, and what specific decision is being requested. If there is no legitimate path to approval, make that constraint visible rather than promising that a small pilot will solve it. Agency begins with an honest map of the decisions that can be made, by whom, and under what conditions.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-10-2026-10-21",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 10,
+      "query": "What if the people with formal authority refuse to listen, the informal coalition has little influence, and a pilot project would require permission that nobody is willing to grant?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": "Institutional Stewardship",
+        "url": "https://geralddaquila.com/institutional-stewardship/"
+      },
+      "known_theme": "Formal authority refuses to listen; informal coalition lacks influence; pilot needs permission.",
+      "assertions": [
+        "Original numbered slot is confirmed in the forensic inventory.",
+        "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
+        "Do not infer exact wording from the thematic summary.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
+        "request_hash": null,
+        "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_source": "Public Archive runtime/catalogue record recovered from Library source."
+      },
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
+      "rating_out_of_10": 8.7,
+      "approval_state": "answer accepted; exact response not recovered",
+      "reconstruction_candidate_response": "When formal leaders refuse to listen, an informal coalition has little influence, and a pilot requires permission no one will grant, the group faces a real constraint—not just a communication problem. Repeating the same proposal more forcefully may not change the balance of authority, and pretending that a pilot is available can expose people to unnecessary risk.\n\nA practical first step is to clarify what decision is blocked, who has the authority to make it, and what legitimate concern or incentive may be sustaining the refusal. The coalition can document the problem and its consequences, gather perspectives from people affected, and seek a smaller action that is genuinely within its authority. If no such action exists, the responsible move may be to build a clearer case, find a legitimate review route, or acknowledge the limits for now. Do not promise influence the group does not have.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-11-2026-10-21",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 11,
+      "query": "How can we tell whether the people blocking change are protecting legitimate responsibilities or protecting their own power?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": "Beyond Bureaucracy",
+        "url": "https://geralddaquila.com/beyond-bureaucracy/"
+      },
+      "known_theme": "Legitimate safeguards versus protection of power.",
+      "assertions": [
+        "Original numbered slot is confirmed in the forensic inventory.",
+        "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
+        "Do not infer exact wording from the thematic summary.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
+        "request_hash": null,
+        "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_source": "Public Archive runtime catalogue record recovered from Library source."
+      },
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
+      "rating_out_of_10": 9,
+      "approval_state": "answer and destination accepted; evidence verification was pending",
+      "reconstruction_candidate_response": "A person may be protecting a legitimate responsibility when they can name a specific risk, explain how it connects to their role, apply the same standard consistently, and say what evidence or safeguard would address the concern. The concern becomes more suspect when the criteria keep changing, exceptions are made for powerful people, or no evidence would ever be enough to permit change. Still, resistance alone does not prove bad faith.\n\nMake the concern and the decision rule explicit. Ask what harm the safeguard is meant to prevent, who is accountable for that risk, how the safeguard will be assessed, and what conditions would allow the proposal to proceed. Apply those criteria transparently and give affected people a way to challenge them. This shifts the discussion from guessing someone’s motives to examining whether the responsibility is real, proportionate, and consistently applied.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-12-2026-10-21",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 12,
+      "query": "What if the safeguards are accepted, but the people in power keep adding new conditions whenever the proposed change gets close to being approved?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "known_theme": "Moving goalposts after safeguards have been accepted.",
+      "assertions": [
+        "Original numbered slot is confirmed in the forensic inventory.",
+        "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
+        "Do not infer exact wording from the thematic summary.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
+        "request_hash": null,
+        "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
+      },
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
+      "rating_out_of_10": 8.8,
+      "approval_state": "answer and destination accepted subject to evidence verification; exact destination title not recovered",
+      "reconstruction_candidate_response": "Adding a condition after another has been met is not automatically improper; new evidence may reveal a real gap. The warning sign is a pattern in which the conditions change without a clear connection to a material risk, the standard is applied differently across proposals, or decision-makers cannot say what would count as sufficient.\n\nKeep a written record of the agreed criteria, what evidence satisfies each one, and any newly raised condition with its reason. Ask whether the new requirement addresses a specific risk, whether it is proportionate, and whether the same rule would apply to a comparable proposal. If it is legitimate, update the criteria transparently and explain the consequences. If no stable standard can be stated, the group has reason to question whether the process is genuinely evaluating the proposal or simply postponing a decision.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-13-2026-10-21",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 13,
+      "query": "What if a genuinely new risk emerges after the criteria have been agreed upon? How can we distinguish a legitimate reason to reopen the decision from another attempt to delay it?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": "Decision-Making Under Uncertainty: How People Choose Without Enough Information",
+        "url": "https://geralddaquila.com/2026/04/04/decision-making-under-uncertainty-how-people-choose-without-enough-information/"
+      },
+      "known_theme": "Genuinely new risk after criteria are agreed.",
+      "assertions": [
+        "Original numbered slot is confirmed in the forensic inventory.",
+        "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
+        "Do not infer exact wording from the thematic summary.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
+        "request_hash": null,
+        "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_source": "Public Archive runtime/catalogue record recovered from Library source."
+      },
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
+      "rating_out_of_10": 9.1,
+      "approval_state": "answer and destination accepted; grounding verification was pending",
+      "reconstruction_candidate_response": "A genuinely new risk can justify reopening a decision, but it should be identified specifically rather than used as a general reason to start the process over. Ask what has changed since the criteria were agreed, what evidence supports the new concern, who could be affected, and whether the existing safeguards address it. A concern that can be linked to new facts and assessed against a clear standard is different from an objection that moves the goalposts without explaining what would resolve it.\n\nThe group should record the new risk, assess its likelihood and consequences, and decide what additional evidence or safeguard would be sufficient. It should also set a clear review point so that reconsideration does not become indefinite delay. Reopening a decision responsibly means being willing to respond to material new information while preserving fair, consistent criteria and accountability for the costs of changing course.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-14-2026-10-21",
+      "status": "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+      "subsystem": "general-purpose-guide",
+      "original_gold_standard_number": 14,
+      "query": "What if the new risk is real, but addressing it would impose serious costs on people who have already accepted the original decision? How should the group decide who bears those costs?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "known_theme": "Fairness when circumstances change and the costs of addressing new risk fall unevenly.",
+      "assertions": [
+        "Original numbered slot is confirmed in the forensic inventory.",
+        "Recover exact original prompt, answer text, doorway, visitor rating, and approval decision before treating this as a gold-standard answer.",
+        "Do not infer exact wording from the thematic summary.",
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "provider_attribution": "groq/qwen/qwen3.8-27b successful composition logged",
+        "request_hash": null,
+        "source_status": "provider/timing attribution recorded; exact prompt/answer capture not recovered in issue body",
+        "evidence_boundary": "Only the topic/theme is recorded here. No answer or original question wording has been invented. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "doorway_decision": "The Cognitive Dissonance recommendation was explicitly rejected as only conceptually adjacent and not directly about cost distribution."
+      },
+      "freeze_policy": "Recovery placeholder only; not an approved answer benchmark.",
+      "rating_out_of_10": 8.7,
+      "approval_state": "answer accepted; proposed Cognitive Dissonance recommendation explicitly rejected as only conceptually adjacent, not directly about cost distribution",
+      "answer_evidence_excerpt": "Prior calibration review states: “The Guide does not simply say that everyone should share the burden equally. Instead, it considers who was exposed to the risk, who benefited from the original decision, and how the group should make the resulting decision transparently.” This is reviewer commentary, not the exact accepted answer.",
+      "reconstruction_candidate_response": "When a new risk is real but addressing it imposes serious costs on people who accepted the original decision, the group should not assume that everyone must bear an equal share. A fair assessment considers who benefited from the original choice, who was exposed to the risk, who has the capacity to absorb the cost, and who had meaningful influence over the decision. Those factors may point in different directions, so the group should make its criteria explicit rather than treating one principle as decisive in every case.\n\nIdentify the harm the correction is meant to prevent, distinguish unavoidable costs from costs that can be reduced, and consider whether those who benefited or exercised greater authority should carry a greater share. Give affected people a meaningful chance to explain what the proposed correction would mean for them, including people with less power to object. If a trade-off remains, explain why the chosen distribution is defensible, acknowledge who will bear the loss, and review whether the correction is actually reducing the risk.",
+      "reconstruction_candidate_provenance": {
+        "source_type": "new ChatGPT-generated reconstruction candidate",
+        "created_at": "2026-10-23",
+        "based_on": [
+          "recovered question text",
+          "recovered review themes and acceptance metadata",
+          "documented Guide composition contract principles"
+        ],
+        "live_guide_replay": false,
+        "historical_exact": false,
+        "user_approved": false,
+        "caution": "This is not the historical accepted answer and was not captured from the deployed Guide. Preserve separately from expected_response; do not treat as a gold-standard oracle until live replay and user review."
+      }
+    },
+    {
+      "benchmark_id": "general-guide-provider-exhaustion-negative-control-2026-10-21",
+      "status": "RECOVERED_FAILURE_CONTROL_NOT_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide-provider-reliability",
+      "query": "What if the people who benefited most from the original decision are least able to absorb the costs of correcting it, while those who benefited least are best able to pay?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Preserve as an unaccepted provider-exhaustion failure-control case, not an approved gold standard.",
+        "Provider-attempt sequence includes Groq Qwen and Workers AI timeouts, Groq GPT-OSS TPM admission rejection, NVIDIA HTTP 404/model-unavailable, and OpenRouter timeout.",
+        "Final response length was logged as 410 characters; do not invent the exact final response text.",
+        "Keep provider reliability and answer-quality evaluation distinct."
+      ],
+      "provenance": {
+        "source_issue": 747,
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "request_hash": "basic-f96eeca16b79a729",
+        "timestamp_utc": "2026-10-21T11:25:52Z",
+        "provider_sequence": [
+          "Groq qwen/qwen3.8-27b timeout at 1.277s",
+          "Workers AI @cf/google/gemma-4-26b-a4b-it timeout at 1.274s",
+          "Groq openai/gpt-oss-120b rejected due to exhausted TPM budget",
+          "NVIDIA nvidia/nemotron-3-super-120b-a12b HTTP 404: hosted function not found for account",
+          "OpenRouter nvidia/nemotron-3-ultra-550b-a55b:free timeout at 1.893s"
+        ],
+        "final_response_chars": 410,
+        "evidence_boundary": "Issue #747 identifies this as the next unaccepted edge-case prompt, not Gold Standard #14 or an approved answer. Exact final text and visitor rating are not recorded."
+      },
+      "freeze_policy": "Negative reliability control only; never count as an approved response gold standard."
+    },
+    {
+      "benchmark_id": "general-guide-gold-standard-sequence-gap-15-17-19",
+      "status": "NEEDS_SOURCE_RECOVERY",
+      "subsystem": "general-purpose-guide-calibration-provenance",
+      "missing_original_sequence_numbers": [
+        15,
+        16,
+        17,
+        19
+      ],
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "The prior calibration context explicitly says the original GS #15–#21 records are not preserved in the retrieved source.",
+        "Do not create inferred standards for slots 15, 16, 17, or 19 without original source evidence.",
+        "Keep the known unaccepted provider-exhaustion negative control separate from approved gold standards.",
+        "Keep the separate ethical-trade-off answer's conflicting #2/#18 labels unresolved until original sequence evidence is recovered.",
+        "Separately recovered Advanced Calibration Suite prompts are stored verbatim but remain unassigned; do not map them to original Gold Standard numbers without primary-source evidence."
+      ],
+      "provenance": {
+        "source": "prior-conversation forensic recovery",
+        "source_issue_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "evidence_boundary": "These are missing sequence positions, not assertions that a particular question/answer existed at each number. #20 and #21 are separately recorded with their exact accepted responses.",
+        "source_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747",
+        "additional_recovery_note": "The five exact prompts above were surfaced by a separate prior-conversation history search as members of an Advanced Calibration Suite. The available history results do not establish that these prompts map one-to-one to the missing original Gold Standard sequence slots 15, 16, 17, 19, or the disputed slot 18. They are preserved verbatim as unassigned prompt evidence only; no answer text, rating, approval, or doorway is inferred."
+      },
+      "freeze_policy": "Gap marker only; do not count as a gold-standard answer.",
+      "separately_recovered_advanced_calibration_prompts_unassigned": [
+        {
+          "prompt": "How can a group make a responsible decision when members disagree about the facts and nobody has enough evidence to be certain?",
+          "source_date": "2026-10-21",
+          "source": "ChatGPT prior-conversation history search summary",
+          "answer_body_recovered": false,
+          "rating_or_approval_recovered": false
+        },
+        {
+          "prompt": "How can we tell whether an accountability process is helping people take responsibility or simply giving the group a socially acceptable way to punish someone?",
+          "source_date": "2026-10-21",
+          "source": "ChatGPT prior-conversation history search summary",
+          "answer_body_recovered": false,
+          "rating_or_approval_recovered": false
+        },
+        {
+          "prompt": "I’m tired of being the only adult in the room. What am I missing?",
+          "source_date": "2026-10-21",
+          "source": "ChatGPT prior-conversation history search summary",
+          "answer_body_recovered": false,
+          "rating_or_approval_recovered": false
+        },
+        {
+          "prompt": "How do I get people to take responsibility?",
+          "source_date": "2026-10-21",
+          "source": "ChatGPT prior-conversation history search summary",
+          "answer_body_recovered": false,
+          "rating_or_approval_recovered": false
+        },
+        {
+          "prompt": "If I stop helping, am I abandoning people?",
+          "source_date": "2026-10-21",
+          "source": "ChatGPT prior-conversation history search summary",
+          "answer_body_recovered": false,
+          "rating_or_approval_recovered": false
+        }
+      ]
+    }
+  ],
+  "last_reconciliation_note": "October 23: 34 structured records. Original #1–#14 prompts, recovered ratings, approval/resource metadata, and provenance are recorded; exact accepted answer text for that original sequence remains unavailable in retrieved prior context. Canonical URLs recovered for #2, #5, #8, #10, #13. The separate approved ethical-trade-off answer is preserved at 9.0/10 with conflicting labels #2 and #18. Missing original sequence positions #15–#17 and #19 are recorded as a gap marker, not fabricated standards. Current CI rerun pending on latest head."
+}

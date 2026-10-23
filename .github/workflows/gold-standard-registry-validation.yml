@@ -1,0 +1,97 @@
+name: Gold Standard Registry Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "docs/qa/gold_standard_registry.json"
+      - "scripts/qa/report_gold_standard_registry.py"
+      - "scripts/qa/capture_live_guide_gold_standard_candidate.py"
+      - "tests/test_gold_standard_registry.py"
+      - "tests/test_live_guide_gold_standard_capture.py"
+      - ".github/workflows/gold-standard-registry-validation.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/qa/gold_standard_registry.json"
+      - "scripts/qa/report_gold_standard_registry.py"
+      - "scripts/qa/capture_live_guide_gold_standard_candidate.py"
+      - "tests/test_gold_standard_registry.py"
+      - "tests/test_live_guide_gold_standard_capture.py"
+      - ".github/workflows/gold-standard-registry-validation.yml"
+  workflow_dispatch:
+    inputs:
+      capture_live:
+        description: "Send exactly one real Guide API request? Select yes only when intentionally capturing a live response."
+        type: choice
+        required: true
+        default: "no"
+        options:
+          - "no"
+          - "yes"
+      benchmark_id:
+        description: "Exact registry benchmark_id to capture (one question only)"
+        type: string
+        required: false
+      endpoint:
+        description: "Live API service"
+        type: choice
+        required: true
+        default: "https://living-archive-backend.onrender.com"
+        options:
+          - "https://living-archive-backend.onrender.com"
+          - "https://living-archive-backend-mirror.onrender.com"
+
+permissions:
+  contents: read
+
+jobs:
+  registry-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out exact tested revision
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate registry JSON and test contracts
+        run: |
+          python -m json.tool docs/qa/gold_standard_registry.json > /dev/null
+          python -m pip install --upgrade pytest
+          python -m pytest -q tests/test_gold_standard_registry.py tests/test_live_guide_gold_standard_capture.py
+      - name: Generate registry and application identity report
+        env:
+          QA_APPLICATION_COMMIT: ${{ github.sha }}
+          QA_RUNTIME_IDENTITY: github-actions/${{ runner.os }}/python-3.12
+        run: |
+          mkdir -p qa-artifacts
+          python scripts/qa/report_gold_standard_registry.py --output qa-artifacts/gold-standard-registry-report.json
+      - name: Publish registry identity report
+        uses: actions/upload-artifact@v4
+        with:
+          name: gold-standard-registry-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: qa-artifacts/gold-standard-registry-report.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Capture one live Guide answer (explicit manual opt-in only)
+        if: github.event_name == 'workflow_dispatch' && inputs.capture_live == 'yes'
+        env:
+          QA_REGISTRY_COMMIT: ${{ github.sha }}
+        run: |
+          test -n "${{ inputs.benchmark_id }}" || { echo "benchmark_id is required when capture_live=yes"; exit 2; }
+          mkdir -p qa-artifacts/live-capture
+          python scripts/qa/capture_live_guide_gold_standard_candidate.py \
+            --benchmark-id "${{ inputs.benchmark_id }}" \
+            --endpoint "${{ inputs.endpoint }}" \
+            --output "qa-artifacts/live-capture/${{ inputs.benchmark_id }}.json" \
+            --confirm-live-request
+      - name: Publish live capture artifact
+        if: github.event_name == 'workflow_dispatch' && inputs.capture_live == 'yes' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guide-live-capture-${{ github.run_id }}-${{ github.run_attempt }}
+          path: qa-artifacts/live-capture/
+          if-no-files-found: warn
+          retention-days: 30

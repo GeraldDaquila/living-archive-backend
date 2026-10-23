@@ -12,6 +12,9 @@ on:
       - "tests/test_general_guide_preference_clarification.py"
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
       - ".github/workflows/general-guide-composition-contract.yml"
+      - "docs/qa/gold_standard_registry.json"
+      - "scripts/qa/report_gold_standard_registry.py"
+      - "tests/test_gold_standard_registry.py"
   push:
     branches: [main]
     paths:
@@ -23,6 +26,9 @@ on:
       - "tests/test_general_guide_preference_clarification.py"
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
       - ".github/workflows/general-guide-composition-contract.yml"
+      - "docs/qa/gold_standard_registry.json"
+      - "scripts/qa/report_gold_standard_registry.py"
+      - "tests/test_gold_standard_registry.py"
 
 permissions:
   contents: read
@@ -45,3 +51,17 @@ jobs:
         run: python -m pytest -q tests/test_general_guide_perception_contract.py tests/test_general_guide_preference_clarification.py test_deterministic_answer_recovery.py
       - name: Run static Guide composition QA
         run: python QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py
+      - name: Run central gold-standard registry contracts
+        run: python -m pytest -q tests/test_gold_standard_registry.py
+      - name: Generate pinned registry identity report
+        env:
+          QA_APPLICATION_COMMIT: ${{ github.sha }}
+          QA_RUNTIME_IDENTITY: github-actions/${{ runner.os }}/python-3.12
+        run: python scripts/qa/report_gold_standard_registry.py --output gold-standard-registry-report.json
+      - name: Upload pinned registry identity report
+        uses: actions/upload-artifact@v4
+        with:
+          name: gold-standard-registry-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: gold-standard-registry-report.json
+          if-no-files-found: error
+          retention-days: 90
