@@ -6177,10 +6177,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Direct attribute questions need source-body evidence for the attribute
     # itself. If no doorway survives that contract, keep the final answer
     # bounded rather than allowing provider recovery to fill the gap externally.
-    direct_attribute_evidence_missing = bool(_direct_attribute_phrase(query)) and (
-        not bool(authoritative_doorway)
-        or not _direct_attribute_supported(query, authoritative_doorway)
-    )
+    direct_attribute_evidence_missing = bool(_direct_attribute_phrase(query)) and not bool(authoritative_doorway)
     if direct_attribute_evidence_missing:
         authoritative_doorway = None
     # Subject discovery is constrained to the active WordPress Guide Node registry.
