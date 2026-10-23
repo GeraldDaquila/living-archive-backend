@@ -6750,11 +6750,19 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         composition_context.pop("authoritative_doorway", None)
         composition_context["evidence_sufficiency_unavailable"] = True
 
+    # Preserve query-specific failures even if a later broad composition
+    # recovery clears the generic evidence flag. In particular, the generic
+    # sufficiency gate must not undo a direct-attribute failure caused by
+    # rejecting a preselected but substantively unrelated doorway.
+    final_archive_evidence_unavailable = bool(
+        archive_evidence_unavailable or direct_attribute_evidence_missing
+    )
+
     # Enforce the Archive-only boundary after every provider and deterministic
     # recovery path. If the evidence gates found no suitable source, generated
     # or deterministic prose must not silently become an external answer. The
     # subject-discovery path has its own exact-page evidence contract above.
-    if _should_fail_closed(archive_evidence_unavailable, discovery_subject):
+    if _should_fail_closed(final_archive_evidence_unavailable, discovery_subject):
         response = _archive_limitation_response()
         authoritative_doorway = None
         composition_context.pop("authoritative_doorway", None)
@@ -6763,7 +6771,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # doorway. No-evidence responses are explicitly labelled as such; when the
     # evidence gate passes, the answer is Archive-supported even if no separate
     # recommendation is appropriate.
-    if archive_evidence_unavailable and not discovery_subject:
+    if final_archive_evidence_unavailable and not discovery_subject:
         answer_basis = {
             "kind": "archive_evidence_unavailable",
             "label": "Archive evidence not found",
