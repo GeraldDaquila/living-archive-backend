@@ -85,20 +85,41 @@ jobs:
 
           def post_query(query):
               body = json.dumps({"query": query}).encode("utf-8")
-              request = urllib.request.Request(
-                  endpoint,
-                  data=body,
-                  headers={"Content-Type": "application/json"},
-                  method="POST",
-              )
               started = time.perf_counter()
-              try:
-                  with urllib.request.urlopen(request, timeout=90) as response:
-                      status = response.status
-                      raw = response.read().decode("utf-8")
-              except urllib.error.HTTPError as exc:
-                  status = exc.code
-                  raw = exc.read().decode("utf-8", errors="replace")
+              last_failure = None
+              for transport_attempt in range(3):
+                  request = urllib.request.Request(
+                      endpoint,
+                      data=body,
+                      headers={"Content-Type": "application/json"},
+                      method="POST",
+                  )
+                  try:
+                      with urllib.request.urlopen(request, timeout=90) as response:
+                          status = response.status
+                          raw = response.read().decode("utf-8")
+                      if status >= 500 and transport_attempt < 2:
+                          last_failure = f"transient HTTP {status}: {raw[:500]}"
+                          time.sleep(3 * (transport_attempt + 1))
+                          continue
+                      break
+                  except urllib.error.HTTPError as exc:
+                      status = exc.code
+                      raw = exc.read().decode("utf-8", errors="replace")
+                      if status >= 500 and transport_attempt < 2:
+                          last_failure = f"transient HTTP {status}: {raw[:500]}"
+                          time.sleep(3 * (transport_attempt + 1))
+                          continue
+                      break
+                  except (TimeoutError, urllib.error.URLError, ConnectionError) as exc:
+                      last_failure = repr(exc)
+                      if transport_attempt < 2:
+                          print(json.dumps({"transport_retry": transport_attempt + 1, "query": query, "error": last_failure}))
+                          time.sleep(3 * (transport_attempt + 1))
+                          continue
+                      raise AssertionError(
+                          f"Query transport failed after 3 attempts: {query!r}; last_error={last_failure}"
+                      ) from exc
               elapsed_ms = (time.perf_counter() - started) * 1000
               try:
                   payload = json.loads(raw)
