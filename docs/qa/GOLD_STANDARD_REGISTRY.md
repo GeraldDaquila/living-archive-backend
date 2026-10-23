@@ -347,7 +347,7 @@ These records were added to `gold_standard_registry.json` from historical PRs an
 
 **Verified current fixture counts:** balanced relevance 4; held-out paraphrases 4; independent challenge set 16; simulated question battery 10; fuzzy fallback replay 9. These total 43 fixture cases, but are not 43 approved gold standards. The independent challenge set includes correlated cases and underspecified candidate pairs; simulated cases are not independent human ground truth. The separate ten-question calibration set is also not an approved-answer set.
 
-**Registry size at this revision:** 33 structured records, including the five fuzzy evaluation/diagnostic records and one ten-question calibration-set record. This count describes records, not approved gold-standard answers.
+**Registry size at this revision:** 34 structured records, including the five fuzzy evaluation/diagnostic records and one ten-question calibration-set record. This count describes records, not approved gold-standard answers.
 
 
 ## G. Original 14-standard forensic sequence recovered from Issue #747
@@ -419,3 +419,8 @@ Source for these recovered metadata fields: prior October 21 calibration convers
 
 
 **Numbering conflict discovered during prior-conversation recovery:** the exact ethical-trade-off answer is recorded as “Gold Standard #2 — Deterministic Recovery Calibration” in Issue #747 comment dated October 22 and as “GS #18 — Ethical Trade-offs and Conflicting Harms” in an earlier calibration summary. That earlier summary gives it a 9.0/10 rating. The registry preserves both labels and rating without asserting they are the same sequence as the original 14. Do not renumber until the original numbered calibration log is recovered.
+
+
+### Original sequence gaps #15–#17 and #19
+
+A gap marker in the JSON registry records the source-backed limitation that prior-context recovery did not preserve the original items for slots #15, #16, #17, and #19. These are not invented benchmarks. The provider-exhaustion question is separately classified as an unaccepted reliability control, and the ethical-trade-off answer retains its conflicting #2/#18 labels pending original sequence evidence. Gold Standards #20 and #21 remain separately recorded with exact approved responses.
