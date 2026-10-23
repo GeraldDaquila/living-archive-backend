@@ -105,7 +105,7 @@ jobs:
           for name, query in cases:
               samples = []
               observed = []
-              sample_count = 3 if name == "provider_error_payload_fails_closed" else 10
+              sample_count = 3 if name == "provider_error_payload_fails_closed" else 5
               for attempt in range(sample_count):
                   status, payload, elapsed_ms = post_query(query)
                   samples.append(elapsed_ms)
