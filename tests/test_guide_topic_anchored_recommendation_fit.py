@@ -1,4 +1,7 @@
-"""Regression tests for multi-concept topic relevance at the outward recommendation boundary."""
+"""Regression tests for topic relevance and read-only Guide retrieval boundaries."""
+
+import ast
+from pathlib import Path
 
 import main
 
@@ -154,5 +157,44 @@ def test_human_development_topic_gate_accepts_direct_title_with_body_corroborati
     assert main._topic_specific_candidate_fit(query, direct)
     assert main._eligible_outward_doc(
         query, direct, main._base._inquiry_profile(query), min_relevance=2
+    )
+
+def test_guide_request_core_contains_no_vector_index_mutation_calls():
+    """The live Guide query path may retrieve canonical vectors, never mutate them."""
+    forbidden_methods = {
+        "upsert", "upsert_records", "delete", "delete_records", "insert",
+        "update", "add_vectors", "remove_vectors",
+    }
+
+    def attribute_chain(node):
+        parts = []
+        while isinstance(node, ast.Attribute):
+            parts.append(node.attr)
+            node = node.value
+        if isinstance(node, ast.Name):
+            parts.append(node.id)
+        return ".".join(reversed(parts))
+
+    source_paths = (
+        Path(main.__file__).resolve(),
+        Path(main.use_core.__file__).resolve(),
+    )
+    violations = []
+    for path in source_paths:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+                continue
+            if node.func.attr not in forbidden_methods:
+                continue
+            receiver = attribute_chain(node.func.value)
+            if receiver in {"index", "pinecone_index", "vector_index"} or receiver.endswith(
+                (".index", ".pinecone_index", ".vector_index")
+            ):
+                violations.append(f"{path.name}:{node.lineno}: {receiver}.{node.func.attr}")
+
+    assert not violations, (
+        "The visitor-facing Guide query core must remain read-only against the "
+        "canonical vector index; found mutation calls: " + ", ".join(violations)
     )
 
