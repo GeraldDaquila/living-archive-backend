@@ -63,7 +63,7 @@ def test_registry_has_unique_ids_and_provenance_for_every_record():
             # to have no single query/answer; they must not be miscounted as gold answers.
             assert "NOT_GOLD_STANDARD" in record["status"] or (
                 "PENDING" in record["status"]
-            ) or record["status"] in {"RECOVERED_REGRESSION_SCENARIO", "CONFIRMED_CASE", "NEEDS_SOURCE_RECOVERY", "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE", "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE", "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY"}
+            ) or record["status"] in {"RECOVERED_REGRESSION_SCENARIO", "CONFIRMED_CASE", "NEEDS_SOURCE_RECOVERY", "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE", "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE", "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT", "USER_CONFIRMED_NAVIGATOR_HANDOFF_RECORD", "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY"}
         else:
             assert record["query"].strip()
             assert record["expected_response"].strip()
