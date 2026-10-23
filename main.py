@@ -5129,8 +5129,59 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
                     f"({type(excerpt_exc).__name__})."
                 )
 
-            # If the excerpt cannot establish enough source text, try the public
-            # page body. It must still pass URL identity and minimum-content checks.
+            # If the excerpt is not topically sufficient, retrieve bounded raw
+            # text from the read-only WordPress published-content bridge. This
+            # avoids rendering a full page or transferring the entire REST object.
+            post_match = re.match(
+                r"^https://geralddaquila\\.com/wp-json/wp/v2/(?:posts|pages)/([0-9]+)(?:\\?.*)?$",
+                href,
+                re.I,
+            )
+            if post_match:
+                post_id = int(post_match.group(1))
+                bridge_url = (
+                    "https://geralddaquila.com/wp-json/living-archive/v1/"
+                    f"canonical-evidence/{post_id}"
+                )
+                try:
+                    bridge_request = UrlRequest(
+                        bridge_url,
+                        headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
+                        method="GET",
+                    )
+                    with urlopen(bridge_request, timeout=3.0) as response:
+                        bridge_payload = json.loads(response.read().decode("utf-8"))
+                    bridge_title = str(bridge_payload.get("title") or "").strip() if isinstance(bridge_payload, dict) else ""
+                    bridge_url_value = str(bridge_payload.get("url") or "").strip() if isinstance(bridge_payload, dict) else ""
+                    bridge_text = str(bridge_payload.get("text") or "").strip() if isinstance(bridge_payload, dict) else ""
+                    bridge_candidate = {
+                        "title": html.unescape(bridge_title),
+                        "url": bridge_url_value,
+                        "text": bridge_text[:6000],
+                    }
+                    if (
+                        isinstance(bridge_payload, dict)
+                        and int(bridge_payload.get("id") or 0) == post_id
+                        and bridge_payload.get("source") == "published_wordpress_content"
+                        and bridge_title
+                        and len(bridge_text) >= 80
+                        and re.match(r"^https://geralddaquila\\.com/\\S+$", bridge_url_value, re.I)
+                        and bridge_url_value.rstrip("/").casefold() == url.rstrip("/").casefold()
+                        and _topic_specific_candidate_fit(query, bridge_candidate)
+                    ):
+                        print(
+                            "The Guide canonical search recovery: recovered topic-fit "
+                            f"canonical body from published-content bridge (chars={len(bridge_text)})."
+                        )
+                        return bridge_candidate
+                except Exception as bridge_exc:
+                    print(
+                        "The Guide canonical search recovery: published-content bridge skipped "
+                        f"({type(bridge_exc).__name__})."
+                    )
+
+            # Last fallback: render the public page. It must still pass URL
+            # identity and minimum-content checks before downstream relevance gates.
             try:
                 recovered = _wordpress_fetch_selected_canonical_body(url)
             except Exception as recovery_exc:
