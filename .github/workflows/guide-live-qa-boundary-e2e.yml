@@ -119,7 +119,18 @@ jobs:
 
           base = os.environ["QA_BASE_URL"].rstrip("/")
           endpoint = base + "/api/query"
+          # Run positive controls before the deliberately failing provider controls.
+          # This prevents the suite itself from exhausting free-provider quotas
+          # before it tests whether an Archive-grounded explanation can succeed.
           cases = [
+              (
+                  "positive_archive_grounded_explanation",
+                  "What does the Living Archive say about becoming fully human?",
+              ),
+              (
+                  "positive_canonical_node_handoff",
+                  "Please take me to Living Stewardship.",
+              ),
               (
                   "negative_direct_attribute",
                   "What is the boiling point of water at sea level?",
@@ -131,14 +142,6 @@ jobs:
               (
                   "provider_error_payload_fails_closed",
                   "I want to learn about AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever.",
-              ),
-              (
-                  "positive_archive_grounded_explanation",
-                  "What does the Living Archive say about becoming fully human?",
-              ),
-              (
-                  "positive_canonical_node_handoff",
-                  "Please take me to Living Stewardship.",
               ),
           ]
           timings = {}
@@ -191,7 +194,13 @@ jobs:
           for name, query in cases:
               samples = []
               observed = []
-              sample_count = 3 if name in {"provider_error_payload_fails_closed", "positive_archive_grounded_explanation"} else 5
+              sample_count = {
+                  "positive_archive_grounded_explanation": 3,
+                  "positive_canonical_node_handoff": 3,
+                  "negative_direct_attribute": 3,
+                  "provider_exhaustion_fails_closed": 1,
+                  "provider_error_payload_fails_closed": 1,
+              }[name]
               for attempt in range(sample_count):
                   status, payload, elapsed_ms = post_query(query)
                   samples.append(elapsed_ms)
