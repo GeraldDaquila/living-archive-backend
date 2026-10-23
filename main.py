@@ -5074,8 +5074,56 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
 
         def recover_public_page():
             # REST body requests can fail while the already-discovered public
-            # canonical page remains readable. Recover its actual body only;
-            # search metadata alone never becomes recommendation evidence.
+            # canonical page remains readable. First request only the canonical
+            # title/link/excerpt fields: the full post body can be very large and
+            # is unnecessary when the published excerpt itself grounds the query.
+            # Excerpt text is still source content; metadata alone is never enough.
+            try:
+                separator = "&" if "?" in href else "?"
+                excerpt_endpoint = f"{href}{separator}_fields=link,title,excerpt"
+                excerpt_request = UrlRequest(
+                    excerpt_endpoint,
+                    headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
+                    method="GET",
+                )
+                with urlopen(excerpt_request, timeout=2.0) as response:
+                    excerpt_resource = json.loads(response.read().decode("utf-8"))
+                if isinstance(excerpt_resource, dict):
+                    excerpt_url = str(excerpt_resource.get("link") or "").strip()
+                    excerpt_title_obj = excerpt_resource.get("title")
+                    excerpt_title = str(
+                        excerpt_title_obj.get("rendered")
+                        if isinstance(excerpt_title_obj, dict) else excerpt_title_obj or title
+                    ).strip()
+                    excerpt_obj = excerpt_resource.get("excerpt")
+                    excerpt_html = str(
+                        excerpt_obj.get("rendered") or ""
+                        if isinstance(excerpt_obj, dict) else excerpt_obj or ""
+                    )
+                    excerpt_text = _guide_html_to_source_text(excerpt_html).strip()
+                    if (
+                        excerpt_title
+                        and len(excerpt_text) >= 80
+                        and re.match(r"^https://geralddaquila\\.com/\\S+$", excerpt_url, re.I)
+                        and excerpt_url.rstrip("/").casefold() == url.rstrip("/").casefold()
+                    ):
+                        print(
+                            "The Guide canonical search recovery: "
+                            f"recovered canonical excerpt (chars={len(excerpt_text)})."
+                        )
+                        return {
+                            "title": html.unescape(excerpt_title),
+                            "url": excerpt_url,
+                            "text": excerpt_text[:6000],
+                        }
+            except Exception as excerpt_exc:
+                print(
+                    "The Guide canonical search recovery: excerpt fetch skipped "
+                    f"({type(excerpt_exc).__name__})."
+                )
+
+            # If the excerpt cannot establish enough source text, try the public
+            # page body. It must still pass URL identity and minimum-content checks.
             try:
                 recovered = _wordpress_fetch_selected_canonical_body(url)
             except Exception as recovery_exc:
