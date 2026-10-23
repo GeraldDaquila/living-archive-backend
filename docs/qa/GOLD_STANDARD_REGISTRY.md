@@ -392,3 +392,27 @@ The issue also records that query/history hashes are not unique invocation IDs a
 ### Additional failure-control record
 
 The JSON registry also records the unaccepted provider-exhaustion prompt from Issue #747 as a separate negative reliability control. Its exact prompt and provider-attempt sequence are captured, including the Groq/Workers/OpenRouter timeouts, Groq TPM rejection, and NVIDIA hosted-function 404. The final response was logged as 410 characters, but the exact text was not recovered. This is explicitly not a gold-standard answer and must not be counted as one.
+
+
+### Ratings and approval decisions recovered from prior calibration context
+
+The registry now records the following ratings and destination decisions for original standards #1–#14 where prior conversation evidence supports them. These do not replace missing verbatim answer text.
+
+| Original # | Rating | Recovered approval / doorway note |
+|---|---:|---|
+| #1 | 8.5/10 | Answer accepted conceptually; exact prompt, answer and doorway still missing |
+| #2 | 9/10 | “Learning to Receive Without Feeling Guilty” recommendation approved |
+| #3 | 8.5/10 | Answer accepted; shared responsibility is not necessarily equal responsibility |
+| #4 | 9/10 | Start Here orientation accepted; Navigator handoff, not General Guide composition |
+| #5 | 9/10 | “Community Accountability Systems” recorded as expected resource |
+| #6 | 9/10 | Answer accepted; exact response/doorway missing |
+| #7 | 9/10 | Answer accepted; exact response/doorway missing |
+| #8 | 8.8/10 | “When Experience Can Change Us: The Two Capacities of a Living System” |
+| #9 | 8.6/10 | Answer accepted; resource not recovered |
+| #10 | 8.7/10 | “Institutional Stewardship” |
+| #11 | 9.0/10 | “Beyond Bureaucracy”; evidence verification was pending |
+| #12 | 8.8/10 | Answer/destination accepted subject to evidence verification; exact resource title missing |
+| #13 | 9.1/10 | “Decision-Making Under Uncertainty: How People Choose Without Enough Information”; grounding pending |
+| #14 | ~8.7/10 | Answer accepted; Cognitive Dissonance recommendation explicitly rejected as only conceptually adjacent |
+
+Source for these recovered metadata fields: prior October 21 calibration conversation. The exact accepted response text for original #1–#14 has not yet been recovered verbatim. The separate October 22 deterministic-recovery trade-off answer remains explicitly approved with its full exact answer in the registry, but its “Gold Standard #2” label conflicts with earlier numbering for reciprocity; do not renumber either without original sequence evidence.
