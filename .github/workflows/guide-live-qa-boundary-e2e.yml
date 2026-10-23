@@ -105,6 +105,62 @@ jobs:
               )
           PY
 
+      - name: Verify QA-only read-only index and provider-health diagnostics
+        env:
+          QA_BASE_URL: https://guide-factual-boundary-qa.onrender.com
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from urllib.parse import urlencode
+          import urllib.request
+
+          base = os.environ["QA_BASE_URL"].rstrip("/")
+          canonical_url = "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/"
+          query = urlencode({"canonical_url": canonical_url})
+          request = urllib.request.Request(
+              base + "/api/qa/read-only-diagnostics?" + query,
+              headers={"Accept": "application/json"},
+              method="GET",
+          )
+          with urllib.request.urlopen(request, timeout=30) as response:
+              status = response.status
+              payload = json.loads(response.read().decode("utf-8"))
+
+          print("QA_READ_ONLY_DIAGNOSTICS=" + json.dumps(payload, sort_keys=True))
+          if status != 200 or not payload.get("ok") or payload.get("read_only") is not True:
+              raise SystemExit("QA read-only diagnostics did not return a valid index snapshot.")
+
+          index = payload.get("index") or {}
+          if index.get("dimension") != 384:
+              raise SystemExit(f"Unexpected Pinecone dimension: {index.get('dimension')!r}")
+          total = index.get("total_vector_count")
+          if not isinstance(total, int) or total <= 0:
+              raise SystemExit(f"Pinecone vector count is missing or empty: {total!r}")
+
+          provider_health = payload.get("provider_health") or {}
+          if provider_health.get("shared_secret_configured") or provider_health.get("persistence_enabled"):
+              raise SystemExit("QA shared provider-health persistence is enabled; write isolation is not established.")
+
+          probe = payload.get("exact_url_probe") or {}
+          if probe.get("status") != "ok":
+              raise SystemExit(f"Exact-URL read-only probe failed: {probe!r}")
+          variants = probe.get("variants") or {}
+          match_count = sum(int(item.get("match_count") or 0) for item in variants.values())
+          print(
+              "QA_READ_ONLY_INDEX_EVIDENCE="
+              + json.dumps({
+                  "dimension": index.get("dimension"),
+                  "total_vector_count": total,
+                  "namespace_count": index.get("namespace_count"),
+                  "canonical_url": canonical_url,
+                  "exact_url_match_count_across_slash_variants": match_count,
+                  "shared_provider_health_persistence_enabled": provider_health.get("persistence_enabled"),
+                  "vector_writes_performed": payload.get("write_operations_performed"),
+              }, sort_keys=True)
+          )
+          PY
+
       - name: Run live negative and positive visitor queries
         env:
           QA_BASE_URL: https://guide-factual-boundary-qa.onrender.com
