@@ -964,9 +964,6 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
         return False
     if role["worldview"] and not (profile.get("specialized") or profile.get("grief") or profile.get("ai_truth")):
         return False
-    topic_fit = _canonical_topic_relevance(query, doc)
-    if not topic_fit["eligible"]:
-        return False
     metrics = _subject_metrics(query, doc)
     # A title overlap alone is not enough to make a canonical doorway relevant.
     # Require corroboration in the resource's own body, so generic/title-level
