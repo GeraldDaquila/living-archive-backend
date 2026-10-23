@@ -4300,7 +4300,7 @@ def _guide_finalize_visitor_payload(payload, query):
         return payload
     response_text = str(payload.get("response") or "")
     provider_error_response = bool(re.search(
-        r"\\b(?:unable to generate a response|[A-Z0-9_]+_API_KEY\\s+is not configured|provider bank exhausted|provider unavailable)\\b",
+        r"\b(?:unable to generate a response|[A-Z0-9_]+_API_KEY\s+is not configured|provider bank exhausted|provider unavailable)\b",
         response_text,
         re.I,
     ))
