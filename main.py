@@ -6426,9 +6426,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # separate field and is not passed into the composition context.
 
     # All ordinary questions use the same provider-neutral composition path.
-    # The composition prompt is corpus-only: no outside knowledge or generic
-    # methodology may fill missing Archive evidence. If the evidence gates fail,
-    # the final response boundary below states that limitation explicitly.
+    # The composition prompt restricts substantive claims, examples, and methods
+    # to supplied Archive sources; the final response boundary prevents provider
+    # or deterministic recovery from filling evidence gaps with outside knowledge.
 
     # One controlled reasoning-provider seam. AUTO preserves the existing LLM-first
     # provider bank and bounded deterministic fallback. DETERMINISTIC_ONLY bypasses
