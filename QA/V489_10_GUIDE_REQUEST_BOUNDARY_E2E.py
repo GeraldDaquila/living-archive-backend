@@ -184,6 +184,28 @@ def test_archive_evidence_gaps_fail_closed_after_composition(monkeypatch):
         assert payload.get("recommendation") is None
         assert payload["answer_basis"]["kind"] == "archive_evidence_unavailable"
 
+def test_direct_attribute_query_rejects_preselected_unrelated_doorway(monkeypatch):
+    """A preselected entity-overlap doorway cannot bypass source-body evidence."""
+    _install_controlled_provider_and_retrieval(
+        monkeypatch,
+        {
+            "recommendation_canonical_primary": {
+                "title": "Frequency Water",
+                "url": "https://geralddaquila.com/2025/07/06/frequency-water-programming-liquid-memory-for-healing-mission/",
+            },
+        },
+    )
+    status, payload = asyncio.run(
+        _post_query("What is the boiling point of water at sea level?")
+    )
+
+    assert status == 200
+    assert payload["response"] == use_main._archive_limitation_response()
+    assert payload.get("recommendation") is None
+    assert payload["answer_basis"]["kind"] == "archive_evidence_unavailable"
+    assert "Frequency Water" not in payload["response"]
+
+
 def test_deterministic_burnout_recovery_is_useful_and_has_real_paragraph_breaks():
     result = use_main._basic_inquiry_round1_deterministic_response(
         "How do I handle burnout as a manager?", {}, {}
