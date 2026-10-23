@@ -62,3 +62,49 @@ def test_general_guide_composition_prompt_is_corpus_only():
     assert "sole authority for substantive content" in system_prompt
     assert "Do not import outside facts" in system_prompt
     assert "answer from reliable general knowledge" not in system_prompt
+
+
+
+def test_direct_attribute_question_rejects_unverified_preselected_primary():
+    preselected = {"title": "Frequency Water", "url": "https://geralddaquila.com/frequency-water/"}
+    calls = []
+
+    def selector(query, context):
+        calls.append((query, context))
+        return None
+
+    selected = select_authoritative_doorway(
+        "What is the boiling point of water at sea level?",
+        preselected,
+        selector,
+        {"documents": []},
+        resource_query="What is the boiling point of water at sea level?",
+    )
+    assert selected is None
+    assert len(calls) == 1
+
+
+def test_relevant_direct_attribute_source_can_be_selected():
+    preselected = {"title": "Frequency Water", "url": "https://geralddaquila.com/frequency-water/"}
+    relevant = {"title": "Water properties", "url": "https://geralddaquila.com/water-properties/"}
+    selected = select_authoritative_doorway(
+        "What is the boiling point of water at sea level?",
+        preselected,
+        lambda query, context: relevant,
+        {},
+        normalize=lambda item: item,
+    )
+    assert selected == relevant
+
+
+def test_ordinary_question_preserves_preselected_primary():
+    preselected = {"title": "Community care", "url": "https://geralddaquila.com/community-care/"}
+    calls = []
+    selected = select_authoritative_doorway(
+        "How can a community care for its members?",
+        preselected,
+        lambda query, context: calls.append(query) or None,
+        {},
+    )
+    assert selected is preselected
+    assert calls == []
