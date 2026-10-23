@@ -200,6 +200,30 @@ def test_provider_exhaustion_fails_closed_even_when_a_relevant_doorway_exists(mo
     assert "Stewardship means taking care" not in payload["response"]
 
 
+def test_provider_error_payload_is_not_treated_as_composition_success(monkeypatch):
+    """A truthy provider error object cannot authorize a generic answer or doorway."""
+    _install_controlled_provider_and_retrieval(monkeypatch)
+    monkeypatch.setattr(
+        general_guide_composition,
+        "compose",
+        lambda **kwargs: {
+            "response": "Unable to generate a response. GROQ_API_KEY is not configured in backend environment.",
+            "doorway_title": CANONICAL_TITLE,
+            "response_shape": "explanatory",
+            "provider": "",
+            "model": "",
+        },
+    )
+
+    status, payload = asyncio.run(_post_query(QUERY))
+
+    assert status == 200
+    assert payload["response"] == use_main._archive_limitation_response()
+    assert payload.get("recommendation") is None
+    assert payload["answer_basis"]["kind"] == "archive_evidence_unavailable"
+    assert "GROQ_API_KEY" not in payload["response"]
+
+
 def test_outer_basic_inquiry_failure_cannot_bypass_archive_only_boundary(monkeypatch):
     """The request-boundary emergency path must not revive generic fallback prose."""
     def fail_basic_inquiry(**kwargs):
