@@ -3350,7 +3350,7 @@ def _has_substantive_topic_intent(query):
     """
     q = _normalize_query(query)
     return bool(re.search(
-        r"\b(?:i\s+(?:care about|want to understand|want to know about|"
+        r"\b(?:i\s+(?:care about|want to learn(?: about)?|want to understand|want to know about|"
         r"am interested in|would like to understand|am trying to understand)|"
         r"how\s+(?:do|can|might|could)\s+i\s+(?:know|recognize|understand|create|build|improve)|"
         r"what\s+(?:makes|does|would make|is|are)\s+.{2,100}|"
@@ -7130,6 +7130,10 @@ if _is_explicit_guide_destination_request(
     "What is stewardship and why does it matter now more than ever?"
 ):
     raise RuntimeError("Guide routing invariant failed: explanatory question classified as destination request.")
+if not _has_substantive_topic_intent(
+    "I want to learn about AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever."
+):
+    raise RuntimeError("Guide routing invariant failed: explicit topic-learning intent was not recognized.")
 if not _is_explicit_guide_destination_request("Please take me to the Steward Readiness Instruments."):
     raise RuntimeError("Guide routing invariant failed: explicit destination request not recognized.")
 if _is_explicit_guide_destination_request("What is open source software?"):
