@@ -639,7 +639,9 @@
         "Preserve this exact original numbered calibration question.",
         "Keep answer quality and destination relevance scored independently.",
         "Do not reconstruct the original accepted response from model attribution or response length alone.",
-        "Record the recovered historical rating and approval/destination decision without inventing missing response text."
+        "Record the recovered historical rating and approval/destination decision without inventing missing response text.",
+        "The recovered route is the Guide systemic Navigator orientation handoff, not a General Guide composition event.",
+        "Do not infer that the underlying answer composition used the same provider/model as standards #1–#3 and #5–#14."
       ],
       "provenance": {
         "source_issue": 747,
@@ -647,8 +649,9 @@
         "request_hash": "navigator-c03843228f6a6649",
         "provider_attribution": "navigation specialist; model composition not established",
         "source_status": "matched in October 21, 2026 forensic record",
-        "evidence_boundary": "Issue #747 comment directly correlates the exact prompt to a navigation-specialist orientation handoff and this URL. This is not a logged General Guide composition event; exact answer, visitor rating, and approval remain unrecovered. Prior conversation summary recovers rating/approval and some doorway titles, but not the exact accepted answer text. Do not reconstruct verbatim response from its theme.",
-        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation"
+        "evidence_boundary": "Issue #747 comment directly correlates the exact prompt to a navigation-specialist orientation handoff and this URL. This is not a logged General Guide composition event; exact answer, visitor rating, and approval remain unrecovered. Do not reconstruct verbatim response from its theme.",
+        "recovery_source": "personal-context search of prior October 21, 2026 calibration conversation",
+        "forensic_comment_url": "https://github.com/GeraldDaquila/living-archive-backend/issues/747#issuecomment-6315222606"
       },
       "freeze_policy": "Do not promote to a verbatim frozen fixture until exact answer and approval evidence are recovered.",
       "rating_out_of_10": 9,
