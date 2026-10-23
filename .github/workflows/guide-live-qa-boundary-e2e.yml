@@ -68,6 +68,10 @@ jobs:
                   "What is stewardship and why does it matter now more than ever?",
               ),
               (
+                  "provider_error_payload_fails_closed",
+                  "I want to learn about AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever.",
+              ),
+              (
                   "positive_canonical_node_handoff",
                   "Please take me to Living Stewardship.",
               ),
@@ -101,7 +105,8 @@ jobs:
           for name, query in cases:
               samples = []
               observed = []
-              for attempt in range(10):
+              sample_count = 3 if name == "provider_error_payload_fails_closed" else 10
+              for attempt in range(sample_count):
                   status, payload, elapsed_ms = post_query(query)
                   samples.append(elapsed_ms)
                   observed.append({"status": status, "payload": payload, "elapsed_ms": round(elapsed_ms, 1)})
@@ -144,6 +149,18 @@ jobs:
                           )
                       if "Stewardship means taking care" in response:
                           raise AssertionError("Provider-exhaustion control leaked the hardcoded general-knowledge answer.")
+                  elif name == "provider_error_payload_fails_closed":
+                      if basis.get("kind") != "archive_evidence_unavailable":
+                          raise AssertionError(
+                              "Provider-error payload did not fail closed: "
+                              f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                          )
+                      if recommendation is not None:
+                          raise AssertionError("Provider-error payload retained an unsupported recommendation.")
+                      if "outside knowledge" not in response.casefold():
+                          raise AssertionError("Provider-error payload did not use the Archive-only limitation response.")
+                      if "GROQ_API_KEY" in response or "Unable to generate a response" in response:
+                          raise AssertionError("Provider configuration/error details leaked into the visitor response.")
                   else:
                       if payload.get("intent") == "GUIDE_NODE_HANDOFF":
                           if payload.get("handoff") != "guide_node":
