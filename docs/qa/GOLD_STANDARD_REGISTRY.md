@@ -453,3 +453,17 @@ This addendum supersedes older snapshot statements above wherever they conflict 
 ### Validation boundary for this update
 
 Before the two latest registry-recovery commits, the five required workflows had passed on PR head `b30b962c53470e8c8c43bc28c5edddae7bee6ce8`. This addendum and the implementation-only registry field create a newer head; those earlier passes do **not** validate the newer commits. Rerun the five required workflows against the new head before treating this registry update as validated. PR #800 remains a recovery branch only: do not merge or deploy as part of this work, and do not change protected `use_core.py`.
+
+
+## Recovery correction — October 23, 2026 (source-state recheck)
+
+This section supersedes the earlier addendum above where it describes PR #757 as unmerged. A fresh fetch of GitHub's current PR metadata and the current `main` source confirms:
+
+- **PR #757 is merged**, merge commit `fa7c575c8337a937c0f0a6bef8ef87339ce35b96`. Its exact bounded collective-next-step fallback remains registered as `implementation_response`, not as an approved `expected_response`. No visitor approval or rating for that exact fallback was found.
+- **PR #768 is merged**, merge commit `c8badec12025e57b47024ebd7fa07666c85d4a04`. Its exact deterministic harm-reduction outcome-evaluation fallback is now recorded under `implementation_response` for `general-guide-harm-reduction-outcome-evaluation-2026-10`. It describes baseline signs, comparison over time, feedback from affected people, and checks for unintended consequences. No visitor approval/rating for that exact fallback was recovered.
+- Both records remain regression scenarios. Implementation text recovered from merged code is not, by itself, evidence that a specific visitor received that response or approved it. Neither record fills a missing original sequence slot #15–#17 or #19.
+- The latest registry has **34 records and 8 exact approved/reference `expected_response` bodies**; the two newly indexed implementation responses are tracked separately and do not increase that gold-answer count.
+
+Source records: [PR #757](https://github.com/GeraldDaquila/living-archive-backend/pull/757), [PR #768](https://github.com/GeraldDaquila/living-archive-backend/pull/768), and current `main` file `general_guide_composition.py`.
+
+The five required workflows must run again on the latest PR #800 head because these source-recovery metadata and test changes are new. PR #800 remains open and unmerged; no production deployment is authorized by this recovery pass.
