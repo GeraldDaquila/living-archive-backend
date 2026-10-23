@@ -397,7 +397,7 @@ def main():
     assert_true('"recommendation": authoritative_doorway' in MAIN_TEXT, "ordinary response recommendation field is not bound to authoritative doorway")
     assert_true("authoritative_doorway = _normalize_authoritative_recommendation(" in MAIN_TEXT, "recommendation is not resolved before composition")
     assert_true("One relevant place to continue is [" not in MAIN_TEXT, "doorway prose still leaks into ordinary answer construction")
-    assert_true('"recommendation": recovery_recommendation' in MAIN_TEXT, "recovery response lost structured recommendation")
+    assert_true('_archive_limitation_response()' in MAIN_TEXT and '"recommendation": None' in MAIN_TEXT, "outer recovery must fail closed instead of presenting an unverified answer as Archive-grounded")
 
     # Recommendation authority must terminate at USE's canonical link context;
     # it must never depend on provider-generated navigation.
