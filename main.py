@@ -5133,7 +5133,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
             # text from the read-only WordPress published-content bridge. This
             # avoids rendering a full page or transferring the entire REST object.
             post_match = re.match(
-                r"^https://geralddaquila\\.com/wp-json/wp/v2/(?:posts|pages)/([0-9]+)(?:\\?.*)?$",
+                r"^https://geralddaquila\.com/wp-json/wp/v2/(?:posts|pages)/([0-9]+)(?:\?.*)?$",
                 href,
                 re.I,
             )
@@ -5165,7 +5165,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
                         and bridge_payload.get("source") == "published_wordpress_content"
                         and bridge_title
                         and len(bridge_text) >= 80
-                        and re.match(r"^https://geralddaquila\\.com/\\S+$", bridge_url_value, re.I)
+                        and re.match(r"^https://geralddaquila\.com/\S+$", bridge_url_value, re.I)
                         and bridge_url_value.rstrip("/").casefold() == url.rstrip("/").casefold()
                         and _topic_specific_candidate_fit(query, bridge_candidate)
                     ):
