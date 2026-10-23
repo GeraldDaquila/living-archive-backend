@@ -79,13 +79,14 @@ jobs:
                   with urllib.request.urlopen(req, timeout=20) as response:
                       status = response.status
                       payload = json.loads(response.read().decode("utf-8"))
+                      runtime_source_sha256 = response.headers.get("x-use-source-sha256")
                   last_state = {
                       "status": status,
                       "version": payload.get("version"),
                       "fingerprint": payload.get("fingerprint"),
-                      "source_sha256": payload.get("source_sha256"),
+                      "source_sha256": runtime_source_sha256,
                   }
-                  if status == 200 and payload.get("source_sha256") == expected:
+                  if status == 200 and runtime_source_sha256 == expected:
                       print(
                           "Isolated QA runtime identity matches this checkout: "
                           f"version={payload.get('version')}, source_sha256={expected}"
