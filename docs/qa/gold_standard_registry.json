@@ -195,7 +195,7 @@
       "status": "RECOVERED_SCENARIO_PENDING_APPROVAL_EVIDENCE",
       "subsystem": "general-purpose-guide",
       "query": "What if each person sincerely believes they are protecting something important, but protecting one person's priorities means another person will lose something they deeply value? How should we decide what to protect?",
-      "expected_response": null,
+      "expected_response": "When protecting one important thing puts something else at risk, the decision cannot be made fairly by asking only which priority matters more. We also need to consider who depends on each choice, who has the power to decide, and who will bear the consequences.\n\nMake each person's claim visible, including the needs of people who may not have a voice in the decision. Distinguish losses that can be repaired from those that cannot, and examine whether a different approach could protect at least part of what matters to each side. Shared facts, clear criteria, and a chance for affected people to challenge assumptions make the process more defensible.\n\nSometimes a genuine trade-off remains. In that case, responsibility means explaining the reasons for the decision, acknowledging what is being sacrificed, and checking that the burden does not fall unfairly on those with the least power. The question is not only what we choose to protect, but whether we can justify that choice to the people who must live with its consequences.",
       "expected_doorway": {
         "title": null,
         "url": null
@@ -212,7 +212,7 @@
         "source_path": "test_deterministic_answer_recovery.py",
         "source_ref": "main",
         "source_blob_sha": "d51817ea1c2aa940f724b61cc586faffda3bbef2",
-        "evidence_boundary": "Exact calibration question and required-response assertions recovered. Full accepted response and visitor approval record not yet recovered."
+        "evidence_boundary": "Exact deterministic recovery answer for the ethical-tradeoff query recovered from current main deterministic_answer_recovery.py (blob d51817ea1c2aa940f724b61cc586faffda3bbef2). This is source wording, not evidence of visitor approval or rating."
       },
       "freeze_policy": "Scenario/regression record only; do not invent or reconstruct missing expected_response."
     },
@@ -340,7 +340,8 @@
           "collective-next-step",
           "accountability"
         ],
-        "case_count": 4
+        "case_count": 4,
+        "source_blob_sha": "508fd643768d8243136ebe1a6eb6ee88251e5843"
       },
       "freeze_policy": "Evaluation dataset only; never count as four approved answer gold standards."
     },
@@ -364,7 +365,9 @@
         "source_path": "tests/fixtures/guide_fuzzy_relevance_heldout_paraphrases.json",
         "source_ref": "main",
         "source_status": "merged",
-        "evidence_boundary": "Exact case count to be computed from current main fixture before declaring inventory complete."
+        "evidence_boundary": "Exact case count to be computed from current main fixture before declaring inventory complete.",
+        "case_count": 4,
+        "source_blob_sha": "643fc07bf620d923461373628d1c3441234f702d"
       },
       "freeze_policy": "Evaluation dataset only; not a set of approved response texts."
     },
@@ -396,7 +399,9 @@
         "source_path": "tests/fixtures/guide_fuzzy_relevance_independent_challenge_set.json",
         "source_ref": "main",
         "source_status": "merged",
-        "evidence_boundary": "Expanded case count to be computed from current main fixture; labels are simulated judgments, not independent human ground truth."
+        "evidence_boundary": "Expanded case count to be computed from current main fixture; labels are simulated judgments, not independent human ground truth.",
+        "case_count": 16,
+        "source_blob_sha": "73e87b319076e5be809e17902a788b7951cb308f"
       },
       "freeze_policy": "Evaluation dataset only; report correlation and candidate-set caveats."
     },
@@ -420,7 +425,9 @@
         "source_path": "tests/fixtures/guide_fuzzy_relevance_simulated_question_battery.json",
         "source_ref": "main",
         "source_status": "merged",
-        "evidence_boundary": "Current case count to be verified from main fixture."
+        "evidence_boundary": "Current case count to be verified from main fixture.",
+        "case_count": 10,
+        "source_blob_sha": "7a146a44eb8a37f432d0b9e618aede151779e06a"
       },
       "freeze_policy": "Evaluation dataset only; not approved answer gold standards."
     },
@@ -444,7 +451,9 @@
         "source_path": "tests/fixtures/fuzzy_fallback_replay_simulated_cases.json",
         "source_ref": "main",
         "source_status": "merged",
-        "evidence_boundary": "Current case count to be verified from main fixture."
+        "evidence_boundary": "Current case count to be verified from main fixture.",
+        "case_count": 9,
+        "source_blob_sha": "f03afa3157c683479591b67d835065f922ceeab0"
       },
       "freeze_policy": "Diagnostic replay only; not approved answer gold standards."
     },
@@ -470,7 +479,43 @@
         "evidence_boundary": "Keep separate from approved Gold Standard #20, whose accepted exact response and 9/10 rating are already registered."
       },
       "freeze_policy": "Shadow diagnostic only; Gold Standard #20 is the approved response record."
+    },
+    {
+      "benchmark_id": "general-guide-calibration-question-set-2026-09-20",
+      "status": "RECOVERED_QUESTION_SET_PENDING_PER_ITEM_APPROVAL",
+      "subsystem": "general-purpose-guide-calibration",
+      "query": null,
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "calibration_questions": [
+        "I feel lonely even when I’m around people. What might I be missing?",
+        "How do I know whether a major transition in my life is asking me to let go or to persist?",
+        "Why do I keep taking responsibility for problems that other people should handle themselves?",
+        "I’m struggling to make an important decision because every option seems to have consequences. How do I discern what matters most?",
+        "How can I tell the difference between genuine belonging and simply adapting myself to fit in?",
+        "Why do conflicts in groups sometimes become much larger than the original disagreement?",
+        "What does it mean to lead without controlling people?",
+        "How do I recognize when helping someone has become a form of interference?",
+        "I understand what I should do, but I still cannot seem to act on it. What gets in the way?",
+        "What makes a community capable of dealing with difficult change without falling apart?"
+      ],
+      "assertions": [
+        "Preserve all ten questions verbatim as calibration/regression candidates.",
+        "Evaluation dimensions: human question recognition, first-door directness, doorway diversity, catalogue grounding, explanation quality, synthesis quality.",
+        "Do not promote each question to frozen answer gold standard unless its original evaluation, rating, expected output, and approval decision are recovered."
+      ],
+      "provenance": {
+        "source_library_file": "Pasted markdown(20260920-021951).md",
+        "source_library_file_id": "libfile_05b5d9b1cf2c81919d4678c64385cc60",
+        "source_path": "docs/qa/RECOVERED_CALIBRATION_QUESTION_SET.md",
+        "case_count": 10,
+        "evidence_boundary": "Recovered question set and evaluation dimensions. Original per-question answer/rating/approval records are not in the recovered excerpt."
+      },
+      "freeze_policy": "Question set is a calibration candidate set, not ten approved answer gold standards."
     }
   ],
-  "last_reconciliation_note": "Expanded source inventory from PRs #749, #750, #755-#757, #758, #760-#762, #763-#766, #768, #772, and #794. Distinguishes recovered exact answers, response-contract scenarios, and simulated/shadow evaluation fixtures. Full original 20+ collection and several approval/rating records remain unrecovered."
+  "last_reconciliation_note": "October 23 reconciliation: 17 structured records; exact ethical-tradeoff recovery text added; fuzzy fixture counts verified from main (4 balanced, 4 held-out, 16 independent challenge, 10 simulated battery, 9 simulated fallback replay); ten-question calibration set recorded as a single non-approved candidate-set record. Original 20+ collection still not fully recovered."
 }
