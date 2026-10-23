@@ -31,3 +31,16 @@ def test_unrelated_question_falls_back_without_exemplar():
 def test_registry_failure_is_nonfatal(monkeypatch):
     monkeypatch.setattr(exemplars, "_EXEMPLARS", [])
     assert exemplars.select_exemplar("How can I tell when helping has turned into taking over?") is None
+
+
+def test_curated_semantic_variants_match_same_theme_without_model_calls():
+    variants = [
+        "Why do I always end up doing everything for other people?",
+        "How do I support someone without making them dependent on me?",
+        "How can I help without taking away their independence?",
+    ]
+    for query in variants:
+        selected = exemplars.select_exemplar(query)
+        assert selected is not None, query
+        assert selected["benchmark_id"] == "general-guide-original-gold-standard-02-2026-10-21"
+
