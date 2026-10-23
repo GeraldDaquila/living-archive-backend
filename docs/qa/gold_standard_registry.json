@@ -302,7 +302,7 @@
       "benchmark_id": "general-guide-harm-reduction-outcome-evaluation-2026-10",
       "status": "RECOVERED_REGRESSION_SCENARIO",
       "subsystem": "general-purpose-guide",
-      "query": "How can we tell whether a revised approach is genuinely reducing harm?",
+      "query": "How can a group tell whether its revised approach is genuinely reducing harm, rather than simply making the group feel that it has addressed the problem?",
       "expected_response": null,
       "expected_doorway": {
         "title": null,
@@ -330,7 +330,8 @@
           "https://github.com/GeraldDaquila/living-archive-backend/pull/768"
         ],
         "source_status": "merged",
-        "evidence_boundary": "Exact question and shallow-answer failure pattern recovered from regression tests. Exact deterministic recovery text is now recovered from merged PR #768 and separately recorded as implementation_response; visitor approval/rating for that exact response remains unrecovered."
+        "evidence_boundary": "Exact question and shallow-answer failure pattern recovered from regression tests. Exact deterministic recovery text is now recovered from merged PR #768 and separately recorded as implementation_response; visitor approval/rating for that exact response remains unrecovered.",
+        "query_fidelity_note": "Exact observed prompt recovered from PR #765 source/tests on 2026-10-23. The previous shortened registry wording is retained as a query alias, not as the original prompt."
       },
       "freeze_policy": "Keep as one scenario lineage with linked PR revisions; do not count each PR as a separate gold standard.",
       "implementation_response": "To tell whether the revised approach is reducing harm, first describe what the harm looked like before the change and choose a few observable signs to track. These might include how often the problem occurs, what affected people report, or whether people feel safer in the specific situation. Compare those observations with the starting point over time rather than relying on the group’s confidence or a single encouraging example.\n\nAsk the people most affected whether their experience has changed, and check for unintended consequences or people who may still be harmed. If the evidence is mixed, treat that as a reason to adjust and keep observing—not as proof of success or failure. The key test is whether the change improves real experiences and whether that improvement holds up when the group looks for evidence that could challenge its own belief.",
@@ -339,7 +340,10 @@
         "source_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/768",
         "source_status": "merged to main via PR #768 merge commit c8badec12025e57b47024ebd7fa07666c85d4a04 (verified 2026-10-23)",
         "evidence_boundary": "Exact deterministic fallback text is present in merged general_guide_composition.py. This is implementation evidence, not a visitor-approved gold answer; no explicit visitor approval or rating for this exact response was recovered."
-      }
+      },
+      "query_aliases": [
+        "How can we tell whether a revised approach is genuinely reducing harm?"
+      ]
     },
     {
       "benchmark_id": "general-guide-fuzzy-relevance-balanced-evaluation-2026-10-22",
