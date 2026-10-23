@@ -1261,6 +1261,48 @@ def _recommendation_first_fetch(query_str):
     data.pop("recommendation_canonical_primary", None)
     canonical_context = str(data.get("canonical_link_context") or "")
     if not canonical_context:
+        # Observe the early-return seam too: the base retrieval may supply
+        # composition documents outside canonical_link_context. Log identities
+        # only, never source text or visitor history.
+        try:
+            _early_docs = general_guide_composition._documents_from_context(use_core, data)
+            _early_identity = [
+                {
+                    "title": str(item.get("title") or "")[:180],
+                    "url": str(item.get("url") or item.get("canonical_url") or "")[:500],
+                    "body_chars": len(str(item.get("text") or item.get("content") or item.get("excerpt") or "")),
+                }
+                for item in _early_docs if isinstance(item, dict)
+            ]
+            _protected_early = (
+                data.get("generation_authority_protected_docs")
+                or data.get("question_authority_protected_docs")
+                or []
+            )
+            print(
+                "The Guide source-fidelity early-return diagnostic: "
+                + json.dumps({
+                    "query": _normalize_query(query_str)[:120],
+                    "profile_action": profile.get("action"),
+                    "context_keys": sorted(str(key) for key in data.keys()),
+                    "canonical_context_chars": len(canonical_context),
+                    "context_blocks_chars": len(str(data.get("context_blocks") or "")),
+                    "composition_documents": _early_identity[:20],
+                    "protected_documents": [
+                        {
+                            "title": str(item.get("title") or "")[:180],
+                            "url": str(item.get("url") or item.get("canonical_url") or "")[:500],
+                            "body_chars": len(str(item.get("text") or item.get("content") or item.get("excerpt") or "")),
+                        }
+                        for item in _protected_early if isinstance(item, dict)
+                    ][:10] if isinstance(_protected_early, list) else [],
+                }, ensure_ascii=False, sort_keys=True)
+            )
+        except Exception as _diag_exc:
+            print(
+                "The Guide source-fidelity early-return diagnostic unavailable: "
+                f"{type(_diag_exc).__name__}"
+            )
         return data
     docs = _parse_context_documents(canonical_context)
     if not docs:
