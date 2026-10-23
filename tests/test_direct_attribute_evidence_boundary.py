@@ -4,6 +4,7 @@ from guide_direct_attribute_evidence import (
     direct_attribute_supported,
     should_fail_closed,
     archive_limitation_response,
+    select_authoritative_doorway,
 )
 
 
