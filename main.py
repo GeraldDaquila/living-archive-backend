@@ -6889,7 +6889,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # closed rather than allowing generic model prose to masquerade as grounded.
     _conceptual_inquiry = _is_conceptual_explanatory_request(query)
     if _conceptual_inquiry:
-        _conceptual_source_body = ""
         _conceptual_terms = {
             token for token in re.findall(r"[a-z0-9]+", _normalize_query(query))
             if len(token) > 3 and token not in {
@@ -6900,11 +6899,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             }
         }
 
-        # Source-body grounding and destination selection are one contract.
-        # Evaluate each already-vetted canonical generation document on its own
-        # merits, then pair the best-supported body with that exact canonical URL.
-        # Do not require the initial doorway's title/URL alias to match a separately
-        # fetched source when a better vetted body is available for this question.
+        # Conceptual answers may need synthesis across several individually
+        # vetted canonical bodies. Measure term coverage over the bounded,
+        # gate-passing evidence set, never over arbitrary retrieved or external text.
         _conceptual_authority_docs = []
         for _docs_key in (
             "generation_authority_protected_docs",
@@ -6920,9 +6917,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             if _conceptual_authority_docs:
                 break
 
+        _conceptual_combined_body = []
         _conceptual_best_doc = None
-        _conceptual_coverage = 0.0
-        _conceptual_best_body = ""
+        _conceptual_best_coverage = -1.0
         for _doc in _conceptual_authority_docs:
             _doc_title = str(_doc.get("title") or "").strip()
             _doc_url = str(
@@ -6945,21 +6942,33 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     if re.search(r"\b" + re.escape(token) + r"\b", _doc_normalized)
                 ) / max(1, len(_conceptual_terms))
             )
-            if _doc_coverage > _conceptual_coverage:
+            _conceptual_combined_body.append(_doc_body)
+            if _doc_coverage > _conceptual_best_coverage:
                 _conceptual_best_doc = _doc
-                _conceptual_best_body = _doc_body
-                _conceptual_coverage = _doc_coverage
+                _conceptual_best_coverage = _doc_coverage
 
-        _conceptual_source_body = _conceptual_best_body
+        _conceptual_source_body = " ".join(_conceptual_combined_body)
+        _conceptual_normalized = _normalize_query(_conceptual_source_body)
+        _conceptual_coverage = (
+            sum(
+                1 for token in _conceptual_terms
+                if re.search(r"\b" + re.escape(token) + r"\b", _conceptual_normalized)
+            ) / max(1, len(_conceptual_terms))
+        )
+        # Two-term questions are valid conceptual inquiries too. For those, the
+        # 75% body-coverage rule requires both terms; three-plus-term questions
+        # retain the same strict coverage rule. This avoids a hard-coded minimum
+        # that made natural questions like "purpose of reciprocity in a community"
+        # impossible to support even when both concepts exist in vetted sources.
         _conceptual_supported = (
             bool(_conceptual_best_doc)
             and bool(_conceptual_source_body.strip())
-            and len(_conceptual_terms) >= 3
+            and len(_conceptual_terms) >= 2
             and _conceptual_coverage >= 0.75
         )
         if _conceptual_supported:
-            # Keep the visitor's destination attached to the exact body that
-            # earned the grounding decision, not a stale preselected alias.
+            # Recommend a canonical destination from the same vetted evidence
+            # set; the answer grounding itself is based on the combined source set.
             authoritative_doorway = _normalize_authoritative_recommendation({
                 "title": _conceptual_best_doc.get("title"),
                 "url": _conceptual_best_doc.get("url") or _conceptual_best_doc.get("canonical_url"),
@@ -6978,8 +6987,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             composition_context.pop("authoritative_doorway_title", None)
             composition_context["evidence_sufficiency_unavailable"] = True
             print(
-                "The Guide conceptual boundary: no individually vetted canonical "
-                "source body met the question-coverage threshold; returned "
+                "The Guide conceptual boundary: vetted canonical evidence set "
+                "did not meet the question-coverage threshold; returned "
                 "Archive-only limitation."
             )
 
