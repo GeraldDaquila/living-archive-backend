@@ -122,10 +122,43 @@ try {
   )) {
     throw new Error("The real production API did not return the exact canonical recommendation pair.");
   }
+  // Exercise the exact conceptual question that previously redirected to the Glossary.
+  // It must remain in General Guide and visibly fail closed when the Archive evidence
+  // gate cannot support an answer; the stale successful recommendation must disappear.
+  const conceptualQuery = "What is the role of trust in community stewardship?";
+  await input.fill(conceptualQuery);
+  await submit.evaluate(element => setTimeout(() => element.click(), 0));
+  await page.getByText("I haven’t found enough support in the Living Archive’s available material to answer that reliably.", { exact: false }).waitFor({ state: "visible", timeout: 60_000 });
+  const conceptualText = await answer.innerText();
+  await Promise.all(apiBodyReads);
+  const conceptualResponses = apiResponses.filter(item => item.payload && JSON.stringify(item.payload).includes("Archive’s available material"));
+  if (!apiRequests.some(request => request.body.query === conceptualQuery)) {
+    throw new Error("No real production /api/query request carried the conceptual trust/stewardship query.");
+  }
+  if (!conceptualResponses.some(item =>
+    item.status === 200 &&
+    item.payload?.intent === "TOPICAL_INQUIRY" &&
+    item.payload?.recommendation == null &&
+    item.payload?.answer_basis?.kind === "archive_evidence_unavailable"
+  )) {
+    throw new Error("Conceptual trust/stewardship query did not remain a fail-closed General Guide inquiry.");
+  }
+  if (!conceptualText.includes("I’ll keep the answer within the Archive")) {
+    throw new Error("The visitor-facing conceptual limitation response did not render.");
+  }
+  if (await root.locator("#archive-response-text a.archive-recommendation-link").count()) {
+    throw new Error("A stale or irrelevant recommendation remained visible after the unsupported conceptual query.");
+  }
+  if (conceptualText.toLowerCase().includes("glossary")) {
+    throw new Error("The conceptual question was visibly redirected to the Glossary.");
+  }
   if (pageErrors.length) throw new Error("Browser page errors: " + pageErrors.join(" | "));
 
   console.log(JSON.stringify({
     stage: "live_e2e_passed",
+    conceptualQuery,
+    conceptualText,
+    rendered,
     rendered,
     elapsedMs: elapsed(),
     controllerRequests,
