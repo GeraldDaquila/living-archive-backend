@@ -7008,11 +7008,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # When no generative provider is available, do not let the generic
             # practical-stewardship fallback masquerade as the answer to a
             # conceptual relationship question. Build a bounded explanation from
-            # sentences in the exact vetted canonical source instead.
-            _best_body = " ".join(
-                str(_conceptual_best_doc.get(key) or "")
-                for key in ("text", "content", "excerpt", "body")
-            ).strip()
+            # sentences in the bounded, vetted canonical evidence set instead.
+            # Synthesize only from the bounded, vetted canonical evidence set.
+            # The trust/community relationship and the stewardship explanation may
+            # be established in separate canonical sources, so do not force both
+            # sentences to exist in one article.
+            _best_body = _conceptual_source_body
             _best_sentences = [
                 sentence.strip()
                 for sentence in re.split(r"(?<=[.!?])\s+", _best_body)
