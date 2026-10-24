@@ -223,3 +223,14 @@ def test_conceptual_relationship_grounding_requires_all_key_concepts_in_one_sour
     assert "_doc_coverage >= 1.0" in gate
     assert "_has_relationship_signal" in gate
     assert "_conceptual_best_doc is not None" in gate
+
+
+def test_conceptual_provider_exhaustion_uses_sentences_from_the_vetted_canonical_source():
+    start = SOURCE.index("# Final corpus-boundary invariant for conceptual/explanatory questions.")
+    end = SOURCE.index("# Expose a small, deterministic provenance contract", start)
+    gate = SOURCE[start:end]
+    assert 'for key in ("text", "content", "excerpt", "body")' in gate
+    assert "_trust_community_sentence" in gate
+    assert "_stewardship_sentence" in gate
+    assert "bounded synthesis of the cited Archive material" in gate
+    assert "vetted source did not provide extractable" in gate
