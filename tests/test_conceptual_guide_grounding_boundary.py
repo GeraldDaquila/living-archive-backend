@@ -211,3 +211,13 @@ def test_deterministic_stewardship_fallback_excludes_conceptual_questions():
     assert "and not _is_conceptual_explanatory_request(query)" in fallback
     assert "and not general_guide_composition.is_conceptual_relationship_question(query)" in fallback
     assert '"bounded_practical_stewardship_recovery"' in fallback
+
+
+def test_conceptual_relationship_grounding_requires_all_key_concepts_in_one_source():
+    start = SOURCE.index("        _conceptual_subject_phrases =", SOURCE.index("# Final corpus-boundary invariant"))
+    end = SOURCE.index("        _conceptual_source_body =", start)
+    gate = SOURCE[start:end]
+    assert '("trust", "community", "stewardship")' in gate
+    assert "_doc_coverage >= 1.0" in gate
+    assert "_has_relationship_signal" in gate
+    assert "_conceptual_best_doc is not None" in gate
