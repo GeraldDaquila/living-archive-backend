@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.294 — Practical stewardship provider-exhaustion recovery
+# USE QA CANDIDATE VERSION: v489.295 — Direct-attribute evidence boundary
 import asyncio
 import hashlib
 from html import unescape
@@ -60,6 +60,7 @@ from provider_bank import (
     snapshot as provider_bank_snapshot,
     refresh_shared_health_state,
 )
+from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
 from guide_fuzzy_relevance import score_resource_fit as _score_guide_fuzzy_relevance_shadow
 from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery, is_harm_repair_question
@@ -75,9 +76,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.294"
-DEPLOYMENT_FINGERPRINT = "USE-v489.294-practical-stewardship-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.294-practical-stewardship-recovery"
+APP_VERSION = "v489.295"
+DEPLOYMENT_FINGERPRINT = "USE-v489.295-direct-attribute-evidence-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.295-direct-attribute-evidence-boundary"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -944,6 +945,10 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     if not title or not re.match(r"^https://\S+$", url, re.I):
         return False
     if not _topic_specific_candidate_fit(query, doc):
+        return False
+    # Entity overlap cannot substitute for evidence of a requested attribute.
+    # The attribute and any explicit condition must appear in this source body.
+    if not _direct_attribute_supported(query, doc):
         return False
     if not _uncertainty_resource_direct_fit(query, doc):
         return False
@@ -6164,10 +6169,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Navigation authority is resolved once, before composition, and carried
     # through every ordinary-answer path. It must never depend on which
     # provider/model happened to compose the prose successfully.
-    authoritative_doorway = _normalize_authoritative_recommendation(
-        context_data.get("recommendation_canonical_primary")
-        or _general_guide_authoritative_doorway(resource_query, context_data)
+    direct_attribute_query = bool(_direct_attribute_phrase(query))
+    authoritative_doorway = _select_direct_attribute_doorway(
+        query,
+        context_data.get("recommendation_canonical_primary"),
+        _general_guide_authoritative_doorway,
+        context_data,
+        resource_query=resource_query,
+        normalize=_normalize_authoritative_recommendation,
     )
+    direct_attribute_evidence_missing = direct_attribute_query and not bool(authoritative_doorway)
     # Subject discovery is constrained to the active WordPress Guide Node registry.
     # A public URL returned by search is not, by itself, an approved Guide doorway.
     if discovery_subject and authoritative_doorway:
@@ -6729,6 +6740,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         composition_context.pop("authoritative_doorway", None)
         composition_context["evidence_sufficiency_unavailable"] = True
 
+    # Direct-attribute questions may not fall through to general-knowledge
+    # composition when no Archive source body establishes the requested property.
+    if direct_attribute_evidence_missing:
+        response = _archive_limitation_response()
+        authoritative_doorway = None
+        archive_evidence_unavailable = True
+        composition_context.pop("authoritative_doorway", None)
+
     # Expose a small, deterministic provenance contract for the visitor UI.
     # This describes the answer's basis; it does not claim that every sentence
     # is directly quoted from a source. A recommendation is only supplied when
@@ -6750,6 +6769,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "kind": "general_knowledge",
             "label": "General knowledge",
             "explanation": "No sufficiently relevant Archive resource was identified for this question.",
+        }
+    if direct_attribute_evidence_missing:
+        answer_basis = {
+            "kind": "archive_evidence_unavailable",
+            "label": "Archive evidence not found",
+            "explanation": "The available Archive material did not establish the requested attribute.",
         }
 
     payload = {
