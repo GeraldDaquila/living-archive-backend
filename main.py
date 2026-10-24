@@ -6883,7 +6883,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         _conceptual_coverage = (
             sum(
                 1 for token in _conceptual_terms
-                if re.search(r"\\b" + re.escape(token) + r"\\b", _conceptual_normalized)
+                if re.search(r"\b" + re.escape(token) + r"\b", _conceptual_normalized)
             ) / max(1, len(_conceptual_terms))
         )
         _conceptual_supported = (
