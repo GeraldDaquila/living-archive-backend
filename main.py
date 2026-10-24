@@ -7186,15 +7186,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         if _conceptual_human_voice_supported:
             _final_trust_title = str(locals().get("_trust_title") or "Trust Architecture").strip()
             _final_stewardship_title = str(locals().get("_stewardship_title") or "The Stewardship Age").strip()
+            # Keep the explanation conversational. Source titles belong in the
+            # recommendation link below, not inside the opening sentence where
+            # they interrupt the visitor-facing explanation.
             response = _sanitize_basic_inquiry_response(
-                "Trust helps people in a community rely on one another. "
-                + _final_trust_title
-                + " explains how that confidence helps communities and institutions work together. "
-                + _final_stewardship_title
-                + " brings in the other side: the responsibility to care for what people share and depend on.\n\n"
-                + "Think of a shared garden. Trust means people can count on one another to show up and do their part. "
-                + "Stewardship is tending the garden so it remains healthy for everyone. One makes cooperation possible; "
-                + "the other helps that cooperation endure."
+                "Trust helps people in a community rely on one another. It gives "
+                "people confidence that others will do their part and act with care. "
+                "Stewardship is the shared responsibility to care for what people "
+                "depend on.\n\n"
+                + "Think of a shared garden. Trust means people can count on one "
+                "another to show up and do their part. Stewardship is tending the "
+                "garden so it remains healthy for everyone. Trust makes cooperation "
+                "possible; stewardship helps that cooperation endure."
             )
 
         if not _conceptual_human_voice_supported:
