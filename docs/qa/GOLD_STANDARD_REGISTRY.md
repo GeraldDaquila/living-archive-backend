@@ -518,3 +518,13 @@ Both records are separate candidates and must not be counted as user-approved fr
 - **Fixture:** `tests/fixtures/general_guide_human_development_gold_standard.json`
 - **Test:** `tests/test_gold_standard_registry.py::test_human_development_gold_standard_preserves_approved_answer_and_doorway`
 - **Freeze policy:** Preserve the approved response and doorway; changes require explicit user authorization and a documented benchmark-version update.
+
+
+### GS-GUIDE-009 — Basic science fact must not be refused
+- **Status:** RECOVERED_FAILURE_CONTROL_NOT_GOLD_STANDARD (negative regression control)
+- **Exact question:** “What is the boiling point of water at sea level?”
+- **Observed failure:** The live Guide returned an Archive-only evidence limitation instead of answering a well-established general fact.
+- **Expected behavior:** Answer directly that water boils at 100°C (212°F) at standard atmospheric pressure; optionally note that boiling temperature decreases as pressure decreases. Do not claim the answer is Archive doctrine and do not attach an unrelated doorway.
+- **Provenance:** User-provided live Guide screenshot dated 2026-10-24.
+- **Test:** `tests/test_human_development_conceptual_recovery.py::test_water_boiling_point_gets_a_direct_general_knowledge_answer`
+- **Boundary:** This is a negative regression control, not an approved verbatim answer benchmark.
