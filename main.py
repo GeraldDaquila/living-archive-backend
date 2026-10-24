@@ -6948,6 +6948,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 break
 
         _conceptual_combined_body = []
+        _conceptual_vetted_docs = []
         _conceptual_best_doc = None
         _conceptual_best_coverage = -1.0
         for _doc in _conceptual_authority_docs:
@@ -6985,10 +6986,25 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 _doc_normalized,
             ))
             _conceptual_combined_body.append(_doc_body)
-            if _doc_coverage >= 1.0 and _has_relationship_signal:
-                if _doc_coverage > _conceptual_best_coverage:
-                    _conceptual_best_doc = _doc
-                    _conceptual_best_coverage = _doc_coverage
+            _conceptual_vetted_docs.append({
+                "doc": _doc,
+                "body": " ".join(
+                    str(_doc.get(key) or "")
+                    for key in ("text", "content", "excerpt", "body")
+                ).strip(),
+                "subjects": _present_subjects,
+                "relationship_signal": _has_relationship_signal,
+            })
+            # The trust/community relationship must be supported within one
+            # canonical source. A separate vetted source may establish the
+            # stewardship connection used in the bounded synthesis below.
+            if (
+                {"trust", "community"}.issubset(_present_subjects)
+                and _has_relationship_signal
+                and _doc_coverage > _conceptual_best_coverage
+            ):
+                _conceptual_best_doc = _doc
+                _conceptual_best_coverage = _doc_coverage
 
         _conceptual_source_body = " ".join(_conceptual_combined_body)
         _conceptual_normalized = _normalize_query(_conceptual_source_body)
@@ -7066,13 +7082,32 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         break
                 if _conceptual_trust_doc:
                     break
-            _stewardship_sentence = next((
-                sentence for sentence in _all_sentences
-                if re.search(r"\bstewardship\b", sentence, re.I)
-                and re.search(r"\b(?:care|caring|entrust|protect|manage|preserv|resource|community|communities)\w*\b", sentence, re.I)
-                and not re.search(r"\bwritten by\b", sentence, re.I)
-            ), "")
-            if _trust_sentence and _community_sentence and _stewardship_sentence:
+            # Locate a substantive stewardship sentence in a separately vetted
+            # canonical body when the trust/community source does not contain one.
+            _stewardship_doc = None
+            _stewardship_sentence = ""
+            for _evidence_item in _conceptual_vetted_docs:
+                _evidence_doc = _evidence_item["doc"]
+                _evidence_body = _evidence_item["body"]
+                _evidence_sentences = [
+                    sentence.strip()
+                    for sentence in re.split(r"(?<=[.!?])\s+", _evidence_body)
+                    if len(sentence.strip()) >= 35
+                ]
+                _candidate = next((
+                    sentence for sentence in _evidence_sentences
+                    if re.search(r"\bstewardship\b", sentence, re.I)
+                    and re.search(
+                        r"\b(?:care|caring|entrust|protect|manage|preserv|resource|responsibilit|accountability|community|communities)\w*\b",
+                        sentence, re.I
+                    )
+                    and not re.search(r"\bwritten by\b", sentence, re.I)
+                ), "")
+                if _candidate:
+                    _stewardship_doc = _evidence_doc
+                    _stewardship_sentence = _candidate
+                    break
+            if _trust_sentence and _community_sentence and _stewardship_doc and _stewardship_sentence:
                 response = (
                     "In the Archive's canonical source "
                     + str((_conceptual_trust_doc or {}).get("title") or "on trust")
@@ -7080,11 +7115,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     + _trust_sentence
                     + " The same source also notes: "
                     + _community_sentence
-                    + " The Archive's stewardship material adds: "
+                    + " The Archive's canonical source "
+                    + str((_stewardship_doc or {}).get("title") or "on stewardship")
+                    + " adds: "
                     + _stewardship_sentence
                     + " Read together, these statements suggest that trust supports the coordination and cooperation a community needs, "
                     "while stewardship is the responsibility of caring for what the community depends on. "
-                    "This is a bounded synthesis across the cited Archive material, not a claim that any one sentence states the whole relationship verbatim."
+                    "This is a bounded synthesis across the cited Archive sources, not a claim that any one sentence states the whole relationship verbatim."
                 )
             else:
                 _conceptual_supported = False
@@ -7093,8 +7130,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     "and a substantive canonical stewardship sentence."
                 )
         if _conceptual_supported:
-            # Recommend a canonical destination from the same vetted evidence
-            # set; the answer grounding itself is based on the combined source set.
+            # The trust architecture page is the canonical recommendation used
+            # for the trust/community claim; any second source is explicitly cited.
             _conceptual_recommendation_doc = _conceptual_trust_doc or _conceptual_best_doc
             authoritative_doorway = _normalize_authoritative_recommendation({
                 "title": _conceptual_recommendation_doc.get("title"),
