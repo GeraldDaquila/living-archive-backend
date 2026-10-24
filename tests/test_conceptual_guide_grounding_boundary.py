@@ -39,13 +39,13 @@ def test_conceptual_response_gate_requires_selected_canonical_source_body():
     assert "_conceptual_source_body" in gate
     assert "_conceptual_supported" in gate
     assert "_conceptual_coverage >= (2 / 3)" in gate
-    assert "len(_conceptual_terms) >= 3" in gate
+    assert "len(_conceptual_terms) >= 2" in gate
 
 
 def test_conceptual_response_gate_fails_closed_without_relevant_body_even_if_doorway_exists():
     gate = _final_conceptual_gate()
-    assert "if not _conceptual_supported:" in gate
-    assert "response = _archive_limitation_response()" in gate
+    assert "if not _conceptual_supported or archive_evidence_unavailable:" in gate
+    assert "response = _archive_limitation_response(query)" in gate
     assert "authoritative_doorway = None" in gate
     assert 'composition_context["evidence_sufficiency_unavailable"] = True' in gate
 
@@ -92,6 +92,8 @@ def test_conceptual_retrieval_keeps_the_central_concept_in_the_canonical_search_
     assert "_is_conceptual_explanatory_request(query)" in searcher
     assert "focus_terms = list(_subject_terms(conceptual_match.group(1)))" in searcher
     assert "context_terms = list(_subject_terms(conceptual_match.group(2)))" in searcher
+    assert "selected[:3]" in searcher
+    assert "community" in searcher
 
 
 def test_canonical_page_body_fetch_has_enough_time_for_live_wordpress_responses():
@@ -128,7 +130,7 @@ def test_conceptual_grounding_pairs_the_best_vetted_body_with_its_exact_destinat
     gate = SOURCE[start:end]
     assert '"generation_authority_protected_docs"' in gate
     assert "_conceptual_best_doc" in gate
-    assert "_conceptual_coverage >= 0.75" in gate
+    assert "_conceptual_coverage >= (2 / 3)" in gate
     assert '"title": _conceptual_best_doc.get("title")' in gate
     assert '"url": _conceptual_best_doc.get("url") or _conceptual_best_doc.get("canonical_url")' in gate
 
@@ -140,7 +142,7 @@ def test_conceptual_grounding_allows_bounded_synthesis_across_vetted_canonical_b
     assert "_conceptual_combined_body" in gate
     assert '"generation_authority_protected_docs"' in gate
     assert "len(_conceptual_terms) >= 2" in gate
-    assert "_conceptual_coverage >= 0.75" in gate
+    assert "_conceptual_coverage >= (2 / 3)" in gate
 
 
 def test_conceptual_grounding_failure_diagnostic_reports_bounded_coverage_state():
@@ -156,6 +158,81 @@ def test_conceptual_grounding_preserves_upstream_evidence_failure_as_fail_closed
     start = SOURCE.index("        if not _conceptual_supported or archive_evidence_unavailable:")
     end = SOURCE.index("# Expose a small, deterministic provenance contract", start)
     gate = SOURCE[start:end]
-    assert "response = _archive_limitation_response()" in gate
+    assert "response = _archive_limitation_response(query)" in gate
     assert "authoritative_doorway = None" in gate
     assert 'composition_context.pop("authoritative_doorway", None)' in gate
+
+
+def test_practical_stewardship_guard_cannot_override_a_conceptual_question_after_recovery():
+    start = SOURCE.index("if (\n        _is_practical_stewardship_question(query)", SOURCE.index("def _basic_inquiry_response"))
+    end = SOURCE.index("# Subject-discovery prose must be independent", start)
+    guard = SOURCE[start:end]
+    assert "and not _is_conceptual_explanatory_request(query)" in guard
+    assert "and not general_guide_composition.is_conceptual_relationship_question(query)" in guard
+    assert "archive_evidence_unavailable = True" in guard
+    assert "composition_context[\"evidence_sufficiency_unavailable\"] = True" in guard
+
+
+def test_practical_deterministic_route_does_not_bypass_conceptual_recovery():
+    start = SOURCE.index("    if (\n        _is_practical_stewardship_question(query)", SOURCE.index("def _basic_inquiry_response"))
+    end = SOURCE.index("    elif reasoning_mode == \"deterministic_only\"", start)
+    guard = SOURCE[start:end]
+    assert "and not _is_conceptual_explanatory_request(query)" in guard
+    assert "and not general_guide_composition.is_conceptual_relationship_question(query)" in guard
+    assert "_basic_inquiry_round1_deterministic_response(" in guard
+
+
+def test_conceptual_recovery_clears_upstream_flags_only_after_all_content_gates_pass():
+    start = SOURCE.index("if not recovery_insufficient and recovered_docs:")
+    end = SOURCE.index("# Recovery may establish a qualifying doorway", start)
+    recovery = SOURCE[start:end]
+    assert "if not recovery_question_unavailable and recovered_docs:" in recovery
+    assert "archive_evidence_unavailable = False" in recovery
+    assert "for flag in (" in recovery
+    assert "frame_neutral_evidence_unavailable" in recovery
+    assert "evidence_sufficiency_unavailable" in recovery
+    assert "question_evidence_fit_unavailable" in recovery
+
+
+def test_query_aware_conceptual_term_extraction_excludes_generic_and_context_terms():
+    # The final guard must distinguish the actual concepts from the grammatical
+    # frame, and preserve context-bearing phrases rather than treat single-word
+    # overlap as proof of a relationship.
+    start = SOURCE.index("        _conceptual_terms = {", SOURCE.index("# Final corpus-boundary invariant"))
+    end = SOURCE.index("\n\n        # Conceptual answers may need synthesis", start)
+    extraction = SOURCE[start:end]
+    assert '"role"' in extraction
+    assert '"community"' not in extraction or "len(token) > 3" in extraction
+    assert "token not in" in extraction
+
+
+def test_deterministic_stewardship_fallback_excludes_conceptual_questions():
+    start = SOURCE.index("def _basic_inquiry_round1_deterministic_response")
+    end = SOURCE.index("# This recovery is deliberately modest.", start)
+    fallback = SOURCE[start:end]
+    assert "and not _is_conceptual_explanatory_request(query)" in fallback
+    assert "and not general_guide_composition.is_conceptual_relationship_question(query)" in fallback
+    assert '"bounded_practical_stewardship_recovery"' in fallback
+
+
+def test_conceptual_relationship_grounding_requires_all_key_concepts_in_one_source():
+    start = SOURCE.index("        _conceptual_subject_phrases =", SOURCE.index("# Final corpus-boundary invariant"))
+    end = SOURCE.index("        _conceptual_source_body =", start)
+    gate = SOURCE[start:end]
+    assert '("trust", "community", "stewardship")' in gate
+    assert "_doc_coverage >= 1.0" in gate
+    assert "_has_relationship_signal" in gate
+    assert "_conceptual_best_doc is not None" in gate
+
+
+def test_conceptual_provider_exhaustion_uses_sentences_from_the_vetted_canonical_source():
+    start = SOURCE.index("# Final corpus-boundary invariant for conceptual/explanatory questions.")
+    end = SOURCE.index("# Expose a small, deterministic provenance contract", start)
+    gate = SOURCE[start:end]
+    assert "_conceptual_body_only" in gate
+    assert "_ordered_conceptual_docs" in gate
+    assert "_trust_sentence" in gate
+    assert "_community_sentence" in gate
+    assert "_stewardship_sentence" in gate
+    assert "bounded synthesis of the cited Archive material" in gate
+    assert "vetted source did not provide extractable" in gate

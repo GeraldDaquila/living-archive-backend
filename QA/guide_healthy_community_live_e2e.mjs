@@ -122,32 +122,57 @@ try {
   )) {
     throw new Error("The real production API did not return the exact canonical recommendation pair.");
   }
-  // Exercise the exact conceptual question that previously redirected to the Glossary.
-  // It must remain in General Guide and visibly fail closed when the Archive evidence
-  // gate cannot support an answer; the stale successful recommendation must disappear.
+  // Exercise the exact conceptual question that previously fell through to the
+  // evidence-limitation message despite canonical recovery passing. Keep this test
+  // explicit about the trusted answer contract, rather than relying on query-word
+  // overlap which could mistake the fallback itself for a satisfactory answer.
   const conceptualQuery = "What is the role of trust in community stewardship?";
   await input.fill(conceptualQuery);
   await submit.evaluate(element => setTimeout(() => element.click(), 0));
-  await page.getByText("I haven’t found enough support in the Living Archive’s available material to answer that reliably.", { exact: false }).waitFor({ state: "visible", timeout: 60_000 });
+  await page.waitForFunction(() => {
+    const el = document.querySelector("#archive-response-text");
+    const text = (el?.innerText || "").toLowerCase();
+    return !!el && text.length > 100 && /trust/.test(text) && /community|stewardship/.test(text);
+  }, null, { timeout: 60_000 });
   const conceptualText = await answer.innerText();
   await Promise.all(apiBodyReads);
-  const conceptualResponses = apiResponses.filter(item => item.payload && JSON.stringify(item.payload).includes("Archive’s available material"));
+  const conceptualResponses = apiResponses.filter(item =>
+    item.payload && item.payload.query === conceptualQuery
+  );
   if (!apiRequests.some(request => request.body.query === conceptualQuery)) {
     throw new Error("No real production /api/query request carried the conceptual trust/stewardship query.");
   }
-  if (!conceptualResponses.some(item =>
+  const supportedResponse = conceptualResponses.find(item =>
     item.status === 200 &&
     item.payload?.intent === "TOPICAL_INQUIRY" &&
-    item.payload?.recommendation == null &&
-    item.payload?.answer_basis?.kind === "archive_evidence_unavailable"
-  )) {
-    throw new Error("Conceptual trust/stewardship query did not remain a fail-closed General Guide inquiry.");
+    item.payload?.answer_basis?.kind === "archive_supported" &&
+    typeof item.payload?.response === "string" &&
+    item.payload.response.trim().length >= 120 &&
+    item.payload?.recommendation &&
+    /^https:\/\/geralddaquila\.com\//i.test(item.payload.recommendation.url || "")
+  );
+  if (!supportedResponse) {
+    throw new Error("Conceptual trust/stewardship question did not return an Archive-grounded answer and canonical recommendation. Responses: " +
+      JSON.stringify(conceptualResponses.map(item => ({
+        status:item.status,
+        intent:item.payload?.intent,
+        answer_basis:item.payload?.answer_basis,
+        recommendation:item.payload?.recommendation,
+        response:item.payload?.response
+      }))));
   }
-  if (!conceptualText.includes("I’ll keep the answer within the Archive")) {
-    throw new Error("The visitor-facing conceptual limitation response did not render.");
+  const normalizedUI = conceptualText.replace(/\s+/g, " ").trim().toLowerCase();
+  const normalizedAPI = supportedResponse.payload.response.replace(/\s+/g, " ").trim().toLowerCase();
+  if (!normalizedAPI.split(/[.!?]+/).map(part=>part.trim()).filter(part=>part.length>20)
+    .some(part=>normalizedUI.includes(part.slice(0, Math.min(part.length, 48))))) {
+    throw new Error("The browser did not render a meaningful portion of the Archive-grounded API answer.");
   }
-  if (await root.locator("#archive-response-text a.archive-recommendation-link").count()) {
-    throw new Error("A stale or irrelevant recommendation remained visible after the unsupported conceptual query.");
+  if (await root.locator("#archive-response-text a.archive-recommendation-link").count() !== 1) {
+    throw new Error("The conceptual response must render exactly one canonical recommendation link.");
+  }
+  const conceptualLink = await root.locator("#archive-response-text a.archive-recommendation-link").first().evaluate(el=>({href:el.href,text:(el.innerText||el.textContent||"").trim()}));
+  if (conceptualLink.href !== supportedResponse.payload.recommendation.url) {
+    throw new Error("The conceptual recommendation URL does not match the API-selected canonical destination.");
   }
   if (conceptualText.toLowerCase().includes("glossary")) {
     throw new Error("The conceptual question was visibly redirected to the Glossary.");
