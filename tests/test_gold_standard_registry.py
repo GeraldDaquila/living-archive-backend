@@ -272,6 +272,18 @@ def test_harm_reduction_fallback_is_preserved_as_implementation_not_gold_answer(
     assert "not a visitor-approved gold answer" in record["implementation_response_provenance"]["evidence_boundary"]
 
 
+def test_community_trust_candidate_preserves_sequence_and_evidence_boundary():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-trust-community-stewardship-2026-10-24"
+    )
+    assert record["status"] == "CANDIDATE"
+    assert record["query"] == "What is the role of trust in community stewardship?"
+    assert record["expected_response"] is None
+    assert "Exact prior trust answer text" in record["provenance"]["evidence_boundary"]
+
+
 def test_reciprocity_community_gold_standard_candidate_is_bounded_and_not_misrepresented():
     registry = _registry()
     record = next(
@@ -285,4 +297,5 @@ def test_reciprocity_community_gold_standard_candidate_is_bounded_and_not_misrep
     assert "not when kindness becomes a debt ledger" in record["expected_response"]
     assert record["expected_doorway"]["url"] is None
     assert "has not yet been reviewed and approved" in record["provenance"]["approval_evidence"]
+    assert record["provenance"]["source_path"] == "docs/qa/gold_standard_registry.json"
     assert any("recommendation must be demonstrably relevant" in item for item in record["assertions"])
