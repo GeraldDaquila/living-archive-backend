@@ -6181,6 +6181,49 @@ def _guide_subject_discovery_answer(response, subject, doorway, evidence):
         )
     return _guide_deterministic_discovery_response(subject, doorway, evidence) or str(response or "").strip()
 
+def _established_general_knowledge_recovery(query):
+    """Return a bounded answer for a small, explicit set of stable public facts.
+
+    This provider-independent recovery only answers fact patterns whose
+    response is pre-established here. Unlisted questions return None and
+    continue through normal evidence, uncertainty, and composition rules.
+    """
+    normalized = _normalize_query(query).strip().casefold()
+    if not normalized:
+        return None
+
+    water_boiling_question = bool(
+        re.search(r"\bwater\b", normalized)
+        and re.search(r"\bboil(?:ing)? point\b", normalized)
+        and re.search(
+            r"\b(?:sea level|standard atmospheric pressure|at normal atmospheric pressure|1 atm)\b",
+            normalized,
+        )
+    )
+    if water_boiling_question:
+        return {
+            "fact_id": "water_boiling_point_sea_level",
+            "response": (
+                "At sea level, water boils at 100°C (212°F) under standard atmospheric pressure. "
+                "As altitude increases and air pressure decreases, water boils at a lower temperature.\n\n"
+                "The key point is that boiling depends on pressure, not just temperature."
+            ),
+        }
+
+    metric_length_question = bool(
+        re.search(r"\bcentimet(?:er|re)s?\b", normalized)
+        and re.search(r"\bmet(?:er|re)s?\b", normalized)
+        and re.search(r"\b(?:how many|convert|conversion|equal|equals|in a|in one)\b", normalized)
+    )
+    if metric_length_question:
+        return {
+            "fact_id": "meter_centimeter_conversion",
+            "response": "One meter equals 100 centimeters.",
+        }
+
+    return None
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -6279,7 +6322,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         resource_query=resource_query,
         normalize=_normalize_authoritative_recommendation,
     )
-    direct_attribute_evidence_missing = _direct_attribute_evidence_missing(query, authoritative_doorway)
+    general_knowledge_recovery = _established_general_knowledge_recovery(query)
+    # Only explicitly matched stable facts may bypass Archive-attribute refusal.
+    # All other unsupported attributes keep the established fail-closed boundary.
+    direct_attribute_evidence_missing = (
+        _direct_attribute_evidence_missing(query, authoritative_doorway)
+        and general_knowledge_recovery is None
+    )
     # Subject discovery is constrained to the active WordPress Guide Node registry.
     # A public URL returned by search is not, by itself, an approved Guide doorway.
     if discovery_subject and authoritative_doorway:
@@ -6912,32 +6961,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # source body must address the concepts in the visitor's actual question.
     # Without demonstrable source support, remain in General Guide and fail
     # closed rather than allowing generic model prose to masquerade as grounded.
-    # The Archive evidence boundary governs Archive-attributed claims, not
-    # whether the Guide may answer an established public fact. Handle this
-    # stable general-fact recovery at the shared inquiry boundary, before
-    # conceptual-only grounding logic, and keep it separate from Archive doctrine.
-    _water_boiling_point_question = bool(
-        re.search(r"\bboil(?:ing)? point\b", _normalize_query(query), re.I)
-        and re.search(r"\bwater\b", _normalize_query(query), re.I)
-        and re.search(
-            r"\b(?:sea level|standard atmospheric pressure|at what temperature|what is|what's)\b",
-            _normalize_query(query),
-            re.I,
-        )
-    )
-    if _water_boiling_point_question and not direct_attribute_evidence_missing:
+    # General knowledge is a separate answer basis, not an Archive claim.
+    # A vetted fact recovery is applied after normal composition but before
+    # conceptual-only evidence enforcement. It clears any unverified doorway.
+    if general_knowledge_recovery is not None:
         response = _sanitize_basic_inquiry_response(
-            "At sea level, water boils at 100°C (212°F) under standard atmospheric pressure. "
-            "As altitude increases and air pressure decreases, water boils at a lower temperature.\n\n"
-            "The key point is that boiling depends on pressure, not just temperature."
+            str(general_knowledge_recovery.get("response") or "")
         )
         archive_evidence_unavailable = False
         authoritative_doorway = None
         composition_context.pop("authoritative_doorway", None)
         composition_context.pop("authoritative_doorway_title", None)
         composition_context.pop("evidence_sufficiency_unavailable", None)
-        composition_context["general_knowledge_recovery"] = "water_boiling_point"
-        print("The Guide general-knowledge boundary: answered the established boiling-point fact without Archive attribution or an unsupported doorway.")
+        composition_context["general_knowledge_recovery"] = general_knowledge_recovery["fact_id"]
+        print(
+            "The Guide general-knowledge boundary: answered a registered stable fact "
+            "without Archive attribution or an unsupported doorway; "
+            f"fact_id={general_knowledge_recovery['fact_id']}."
+        )
 
     _conceptual_inquiry = _is_conceptual_explanatory_request(query)
     if _conceptual_inquiry:
