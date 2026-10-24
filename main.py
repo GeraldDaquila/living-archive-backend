@@ -6339,7 +6339,13 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
         if not re.search(r"[.!?]$", sentence):
             continue
         words = set(re.findall(r"[a-z0-9]+", sentence.casefold()))
-        if subject_tokens and len(subject_tokens & words) < min(2, len(subject_tokens)):
+        # The page-level relevance gate has already validated this canonical
+        # body as a direct match. Requiring two literal tokens from the visitor's
+        # wording ("becoming fully human") excludes the source's strongest
+        # framework sentence ("Human development is the lifelong integration...").
+        # Keep at least one lexical tie to the subject, but let the independently
+        # validated source contribute its own precise vocabulary.
+        if subject_tokens and not (subject_tokens & words):
             continue
         if re.search(r"\b(?:governing question|meta description|read more)\b", sentence, re.I):
             continue
