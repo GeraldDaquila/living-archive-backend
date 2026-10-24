@@ -504,3 +504,17 @@ The five required workflows must run again on the latest PR #800 head because th
 - **Acceptance boundary:** Preserve the live answer as the observed candidate, not as an exact runtime guarantee. The user should explicitly approve a frozen benchmark after resource relevance is resolved.
 
 Both records are separate candidates and must not be counted as user-approved frozen gold standards. The machine-readable registry is authoritative.
+
+
+### GS-GUIDE-008 — Human development significance with canonical doorway
+- **Status:** USER_APPROVED_GOLD_STANDARD
+- **Rating:** 9/10
+- **Exact question:** “What is the significance of human development?”
+- **Expected behavior:** Three thoughtful, humane paragraphs that explain the significance of human development, followed by a distinct, clickable “A useful place to continue” doorway into the Living Archive.
+- **Canonical recommendation:** The First Institution: Why Human Development Begins at Home — https://geralddaquila.com/2025/06/17/the-first-institution-why-human-development-begins-at-home/
+- **Editorial boundary:** The general answer is not presented as a verbatim statement of Archive doctrine. The destination is a relevant next step, not proof of every sentence in the answer. No closing disclaimer should undo the answer's clarity.
+- **Assertions:** Answer and destination tested independently; exactly three substantive paragraphs; actual clickable canonical link; no Glossary misrouting; one Search submission renders both answer and doorway.
+- **Provenance:** User-provided live Guide screenshot dated 2026-10-24; user explicitly requested registry inclusion as gold standard after reviewing the live result. Canonical URL verified against the published Archive page.
+- **Fixture:** `tests/fixtures/general_guide_human_development_gold_standard.json`
+- **Test:** `tests/test_gold_standard_registry.py::test_human_development_gold_standard_preserves_approved_answer_and_doorway`
+- **Freeze policy:** Preserve the approved response and doorway; changes require explicit user authorization and a documented benchmark-version update.
