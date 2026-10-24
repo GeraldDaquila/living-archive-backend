@@ -13,6 +13,12 @@ const cases = [
     expected: "answer-first-no-navigation"
   },
   {
+    id: "general-knowledge-triangle",
+    query: "How many sides does a triangle have?",
+    expected: "general-knowledge-no-navigation",
+    expectedAnswer: /three sides/i
+  },
+  {
     id: "catalogue-resource-discovery",
     query: "Where can I find material about institutional responsibility?",
     expected: "native-catalogue-handoff"
@@ -126,7 +132,7 @@ try {
       await root.locator("#archive-query-input").fill(testCase.query);
       await root.locator("#archive-submit-btn").click();
 
-      if (testCase.expected === "answer-first-no-navigation") {
+      if (testCase.expected === "answer-first-no-navigation" || testCase.expected === "general-knowledge-no-navigation") {
         await page.waitForFunction(({ selector }) => {
           const root = document.querySelector(selector);
           const text = root?.querySelector("#archive-response-text")?.innerText?.trim() || "";
@@ -140,8 +146,11 @@ try {
             new URL(item.finalUrl).pathname !== new URL(GUIDE_URL).pathname) {
           throw new Error("Explicit no-navigation request left The Guide: " + item.finalUrl);
         }
-        if (!/^stewardship means/i.test(item.answerText.trim())) {
+        if (testCase.expected === "answer-first-no-navigation" && !/^stewardship means/i.test(item.answerText.trim())) {
           throw new Error("Stewardship explanation was not answered directly");
+        }
+        if (testCase.expected === "general-knowledge-no-navigation" && !testCase.expectedAnswer.test(item.answerText)) {
+          throw new Error("General-knowledge answer omitted expected factual content");
         }
         if (/provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer|\bUSE\b/i.test(item.answerText)) {
           throw new Error("Internal implementation jargon leaked into the visitor-facing answer");
