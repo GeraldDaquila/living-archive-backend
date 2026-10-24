@@ -351,4 +351,4 @@ def test_water_boiling_point_general_knowledge_gold_standard_preserves_live_answ
     assert "depends on pressure, not just temperature" in record["expected_response"]
     disclosure = "The Guide considers your question alongside the Living Archive’s ideas, themes, and pathways to help you find where to begin. From there, you can explore the Archive for yourself."
     assert disclosure in fixture["provenance"]["expanded_how_results_are_found_disclosure"]
-    assert "does not imply that the scientific fact is an Archive-sourced or canonical claim" in fixture["provenance"]["evidence_boundary"]
+    assert "does not claim the science answer is sourced from or canonical doctrine" in fixture["provenance"]["evidence_boundary"]
