@@ -314,7 +314,7 @@ def test_conceptual_provider_exhaustion_fallback_preserves_the_guides_human_voic
     response_start = gate.index('                response = (', gate.index('_trust_title = re.sub'))
     response_end = gate.index('\n                )', response_start) + len('\n                )')
     response = gate[response_start:response_end]
-    assert "helps people in a community rely on one another and work together" in response
+    assert "Trust helps people in a community rely on one another." in response
     assert "Think of a shared garden" in response
     assert "_trust_title" in response
     assert "_stewardship_title" in response
