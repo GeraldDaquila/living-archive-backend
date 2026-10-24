@@ -213,6 +213,8 @@ def test_original_fourteen_standard_provenance_is_recorded_without_fabricated_an
             "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
             "RECOVERED_HISTORICAL_RESPONSE_PENDING_APPROVAL_EVIDENCE",
             "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+            "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+            "USER_CONFIRMED_NAVIGATOR_HANDOFF_RECORD",
         }
         assert records[number]["expected_response"] is None
 
