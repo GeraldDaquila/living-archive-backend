@@ -4730,12 +4730,12 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if "reciprocity" in q and re.search(r"\b(?:what\s+is|what\s+does|meaning|define|explain|mean)\b", q):
         response = (
             "Reciprocity means a relationship of mutual response: people give, receive, and support one another over time. "
-            "It is not a strict tally in which every act must be repaid immediately or in exactly equal measure. "
-            "For the Living Archive context, this is a useful starting definition; the linked Archive source may offer a more specific framing.\n\n"
-            "For example, neighbors might take turns checking on an older resident or helping each other with errands. "
-            "One person may give more during a difficult week and receive help later; the relationship can remain reciprocal without every exchange being identical.\n\n"
-            "Reciprocity should not be used to demand access, obedience, or repayment from someone who cannot freely offer it. "
-            "Mutual support works best when contributions respond to real circumstances rather than becoming a debt ledger."
+            "It does not mean keeping score or expecting every act to be repaid immediately or in equal measure. "
+            "People may give more at one point and need more help at another; what matters is that support can move in both directions over time.\\n\\n"
+            "Think of neighbors taking turns checking on an older resident or helping one another with errands. "
+            "One neighbor may do more during a difficult week and receive help later. The relationship can still be reciprocal even when each exchange is different.\\n\\n"
+            "Reciprocity should never be used to demand access, obedience, or repayment from someone who cannot freely offer it. "
+            "Mutual support works best when people respond to one another's real circumstances, not when kindness becomes a debt ledger."
         )
         return {"response": response, "doorway_title": title, "provider": "bounded_general_knowledge_recovery", "model": ""}
 
