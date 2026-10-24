@@ -6890,45 +6890,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     _conceptual_inquiry = _is_conceptual_explanatory_request(query)
     if _conceptual_inquiry:
         _conceptual_source_body = ""
-        _conceptual_title = str(
-            (authoritative_doorway or {}).get("title") or ""
-        ).strip().casefold()
-        _conceptual_url = str(
-            (authoritative_doorway or {}).get("url") or ""
-        ).strip().casefold()
-        _conceptual_docs = []
-        for _docs_key in (
-            "generation_authority_protected_docs",
-            "generation_evidence_docs",
-            "retrieved_documents",
-            "documents",
-            "context_blocks",
-        ):
-            _docs_value = composition_context.get(_docs_key)
-            if isinstance(_docs_value, list):
-                _conceptual_docs.extend(
-                    item for item in _docs_value if isinstance(item, dict)
-                )
-            elif isinstance(_docs_value, dict):
-                _conceptual_docs.append(_docs_value)
-            elif isinstance(_docs_value, str):
-                _conceptual_source_body += " " + _docs_value
-        for _doc in _conceptual_docs:
-            _doc_url = str(
-                _doc.get("url") or _doc.get("canonical_url") or ""
-            ).strip().casefold()
-            _doc_title = str(_doc.get("title") or "").strip().casefold()
-            if (
-                _conceptual_url and _doc_url.rstrip("/") == _conceptual_url.rstrip("/")
-            ) or (
-                _conceptual_title and _doc_title == _conceptual_title
-            ):
-                _conceptual_source_body += " " + " ".join(
-                    str(_doc.get(key) or "")
-                    for key in ("title", "text", "content", "excerpt", "body")
-                )
-        _conceptual_normalized = _normalize_query(_conceptual_source_body)
-        _conceptual_terms = [
+        _conceptual_terms = {
             token for token in re.findall(r"[a-z0-9]+", _normalize_query(query))
             if len(token) > 3 and token not in {
                 "what", "role", "purpose", "significance", "importance",
@@ -6936,23 +6898,78 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 "relationship", "does", "with", "from", "that", "this",
                 "into", "their", "there", "about",
             }
-        ]
-        _conceptual_terms = set(_conceptual_terms)
-        _conceptual_coverage = (
-            sum(
-                1 for token in _conceptual_terms
-                if re.search(r"\b" + re.escape(token) + r"\b", _conceptual_normalized)
-            ) / max(1, len(_conceptual_terms))
-        )
-        # Two-term overlap is too weak: it can pass on a broad page that merely
-        # mentions the topic. Require at least three substantive query terms,
-        # and require strong coverage within the selected canonical source body.
+        }
+
+        # Source-body grounding and destination selection are one contract.
+        # Evaluate each already-vetted canonical generation document on its own
+        # merits, then pair the best-supported body with that exact canonical URL.
+        # Do not require the initial doorway's title/URL alias to match a separately
+        # fetched source when a better vetted body is available for this question.
+        _conceptual_authority_docs = []
+        for _docs_key in (
+            "generation_authority_protected_docs",
+            "generation_evidence_docs",
+        ):
+            _docs_value = composition_context.get(_docs_key)
+            if isinstance(_docs_value, list):
+                _conceptual_authority_docs.extend(
+                    item for item in _docs_value if isinstance(item, dict)
+                )
+            elif isinstance(_docs_value, dict):
+                _conceptual_authority_docs.append(_docs_value)
+            if _conceptual_authority_docs:
+                break
+
+        _conceptual_best_doc = None
+        _conceptual_coverage = 0.0
+        _conceptual_best_body = ""
+        for _doc in _conceptual_authority_docs:
+            _doc_title = str(_doc.get("title") or "").strip()
+            _doc_url = str(
+                _doc.get("url") or _doc.get("canonical_url") or ""
+            ).strip()
+            _doc_body = " ".join(
+                str(_doc.get(key) or "")
+                for key in ("title", "text", "content", "excerpt", "body")
+            ).strip()
+            if (
+                not _doc_title
+                or not _doc_body
+                or not re.match(r"^https://geralddaquila\.com/\S+$", _doc_url, re.I)
+            ):
+                continue
+            _doc_normalized = _normalize_query(_doc_body)
+            _doc_coverage = (
+                sum(
+                    1 for token in _conceptual_terms
+                    if re.search(r"\b" + re.escape(token) + r"\b", _doc_normalized)
+                ) / max(1, len(_conceptual_terms))
+            )
+            if _doc_coverage > _conceptual_coverage:
+                _conceptual_best_doc = _doc
+                _conceptual_best_body = _doc_body
+                _conceptual_coverage = _doc_coverage
+
+        _conceptual_source_body = _conceptual_best_body
         _conceptual_supported = (
-            bool(authoritative_doorway)
+            bool(_conceptual_best_doc)
             and bool(_conceptual_source_body.strip())
             and len(_conceptual_terms) >= 3
             and _conceptual_coverage >= 0.75
         )
+        if _conceptual_supported:
+            # Keep the visitor's destination attached to the exact body that
+            # earned the grounding decision, not a stale preselected alias.
+            authoritative_doorway = _normalize_authoritative_recommendation({
+                "title": _conceptual_best_doc.get("title"),
+                "url": _conceptual_best_doc.get("url") or _conceptual_best_doc.get("canonical_url"),
+            })
+            composition_context["authoritative_doorway"] = authoritative_doorway
+            composition_context["authoritative_doorway_title"] = (
+                authoritative_doorway.get("title") if authoritative_doorway else ""
+            )
+            if not authoritative_doorway:
+                _conceptual_supported = False
         if not _conceptual_supported:
             response = _archive_limitation_response()
             archive_evidence_unavailable = True
@@ -6961,8 +6978,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             composition_context.pop("authoritative_doorway_title", None)
             composition_context["evidence_sufficiency_unavailable"] = True
             print(
-                "The Guide conceptual boundary: no demonstrably relevant canonical "
-                "source body; returned Archive-only limitation."
+                "The Guide conceptual boundary: no individually vetted canonical "
+                "source body met the question-coverage threshold; returned "
+                "Archive-only limitation."
             )
 
     # Expose a small, deterministic provenance contract for the visitor UI.

@@ -120,3 +120,14 @@ def test_conceptual_grounding_selects_doorway_from_vetted_evidence_without_disco
     assert "_general_guide_authoritative_doorway(" in recovery
     assert '{"generation_authority_protected_docs": recovered_docs}' in recovery
     assert "_guide_align_registered_discovery_doorway(" not in recovery[:recovery.index("if discovery_subject:")]
+
+
+def test_conceptual_grounding_pairs_the_best_vetted_body_with_its_exact_destination():
+    start = SOURCE.index("    _conceptual_inquiry = _is_conceptual_explanatory_request(query)")
+    end = SOURCE.index("# Expose a small, deterministic provenance contract", start)
+    gate = SOURCE[start:end]
+    assert '"generation_authority_protected_docs"' in gate
+    assert "_conceptual_best_doc" in gate
+    assert "_conceptual_coverage >= 0.75" in gate
+    assert '"title": _conceptual_best_doc.get("title")' in gate
+    assert '"url": _conceptual_best_doc.get("url") or _conceptual_best_doc.get("canonical_url")' in gate
