@@ -5071,7 +5071,10 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
                 context_terms.sort(key=lambda term: (len(term), term), reverse=True)
                 selected = [focus_terms[0]]
                 selected.extend(term for term in context_terms if term not in selected)
-                search_text = " ".join(selected[:2]).strip()
+                # Keep the focus concept and both context concepts together. Reducing
+                # this to two terms drops "community" and lets broad stewardship pages
+                # outrank the canonical trust source for relationship questions.
+                search_text = " ".join(selected[:3]).strip()
     if not search_text:
         # Preserve the established deterministic query shaping for all other
         # requests and for conceptual forms that do not match the bounded pattern.
@@ -5676,7 +5679,9 @@ def _guide_requires_canonical_subject_supplement(
 
 def _guide_subject_supplement_limit(discovery_subject):
     """Broaden candidate recall for explicit resource-finding requests."""
-    return 10 if str(discovery_subject or "").strip() else 3
+    # Conceptual questions need a wider candidate window because the exact trust source
+    # may rank behind broad stewardship pages when the query is reduced to two terms.
+    return 10 if str(discovery_subject or "").strip() else 5
 
 
 def _guide_discovery_evidence_grade(subject, document, node=None):
@@ -6956,9 +6961,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             ):
                 continue
             _doc_normalized = _normalize_query(_doc_body)
+            _subject_patterns = {
+                "trust": r"\b(?:trust|trusted|trustworthiness)\b",
+                "community": r"\b(?:community|communities)\b",
+                "stewardship": r"\bstewardship\b",
+            }
             _present_subjects = {
-                term for term in _conceptual_subject_phrases
-                if re.search(r"\b" + re.escape(term) + r"\b", _doc_normalized)
+                term for term, pattern in _subject_patterns.items()
+                if re.search(pattern, _doc_normalized)
             }
             _doc_coverage = len(_present_subjects) / len(_conceptual_subject_phrases)
             # Require all key concepts and an explicit relationship signal in
