@@ -6904,15 +6904,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # closed rather than allowing generic model prose to masquerade as grounded.
     _conceptual_inquiry = _is_conceptual_explanatory_request(query)
     if _conceptual_inquiry:
+        # This is a relationship question: retain the key concepts as
+        # explicit requirements instead of letting their overlap make the
+        # evidence threshold trivially pass.
         _conceptual_terms = {
             token for token in re.findall(r"[a-z0-9]+", _normalize_query(query))
             if len(token) > 3 and token not in {
                 "what", "role", "purpose", "significance", "importance",
                 "function", "value", "contribution", "impact", "nature",
                 "relationship", "does", "with", "from", "that", "this",
-                "into", "their", "there", "about",
+                "into", "their", "there", "about", "community",
+                "communities", "stewardship", "trust",
             }
         }
+        _conceptual_subject_phrases = ("trust", "community", "stewardship")
 
         # Conceptual answers may need synthesis across several individually
         # vetted canonical bodies. Measure term coverage over the bounded,
@@ -6951,16 +6956,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             ):
                 continue
             _doc_normalized = _normalize_query(_doc_body)
-            _doc_coverage = (
-                sum(
-                    1 for token in _conceptual_terms
-                    if re.search(r"\b" + re.escape(token) + r"\b", _doc_normalized)
-                ) / max(1, len(_conceptual_terms))
-            )
+            _present_subjects = {
+                term for term in _conceptual_subject_phrases
+                if re.search(r"\\b" + re.escape(term) + r"\\b", _doc_normalized)
+            }
+            _doc_coverage = len(_present_subjects) / len(_conceptual_subject_phrases)
+            # Require all key concepts and an explicit relationship signal in
+            # the same canonical body. Generic stewardship advice must not
+            # qualify merely because it mentions one adjacent theme.
+            _has_relationship_signal = bool(re.search(
+                r"\\b(?:trust|trusted|trustworthiness)\\b.{0,180}\\b(?:community|communities|stewardship)\\b"
+                r"|\\b(?:community|communities|stewardship)\\b.{0,180}\\b(?:trust|trusted|trustworthiness)\\b",
+                _doc_normalized,
+            ))
             _conceptual_combined_body.append(_doc_body)
-            if _doc_coverage > _conceptual_best_coverage:
-                _conceptual_best_doc = _doc
-                _conceptual_best_coverage = _doc_coverage
+            if _doc_coverage >= 1.0 and _has_relationship_signal:
+                if _doc_coverage > _conceptual_best_coverage:
+                    _conceptual_best_doc = _doc
+                    _conceptual_best_coverage = _doc_coverage
 
         _conceptual_source_body = " ".join(_conceptual_combined_body)
         _conceptual_normalized = _normalize_query(_conceptual_source_body)
@@ -6978,8 +6991,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         _conceptual_supported = (
             bool(_conceptual_best_doc)
             and bool(_conceptual_source_body.strip())
-            and len(_conceptual_terms) >= 2
-            and _conceptual_coverage >= (2 / 3)
+            and _conceptual_best_coverage >= 1.0
+            and _conceptual_best_doc is not None
         )
         if _conceptual_supported:
             # Recommend a canonical destination from the same vetted evidence
