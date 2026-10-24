@@ -6935,14 +6935,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             if (
                 not _doc_title
                 or not _doc_body
-                or not re.match(r"^https://geralddaquila\\.com/\\S+$", _doc_url, re.I)
+                or not re.match(r"^https://geralddaquila\.com/\S+$", _doc_url, re.I)
             ):
                 continue
             _doc_normalized = _normalize_query(_doc_body)
             _doc_coverage = (
                 sum(
                     1 for token in _conceptual_terms
-                    if re.search(r"\\b" + re.escape(token) + r"\\b", _doc_normalized)
+                    if re.search(r"\b" + re.escape(token) + r"\b", _doc_normalized)
                 ) / max(1, len(_conceptual_terms))
             )
             if _doc_coverage > _conceptual_coverage:
