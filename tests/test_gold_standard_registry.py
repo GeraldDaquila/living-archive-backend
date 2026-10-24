@@ -270,3 +270,19 @@ def test_harm_reduction_fallback_is_preserved_as_implementation_not_gold_answer(
     assert record["implementation_response_provenance"]["source_pr"] == 768
     assert "merged to main via PR #768" in record["implementation_response_provenance"]["source_status"]
     assert "not a visitor-approved gold answer" in record["implementation_response_provenance"]["evidence_boundary"]
+
+
+def test_reciprocity_community_gold_standard_candidate_is_bounded_and_not_misrepresented():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-reciprocity-community-2026-10-24"
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD_PENDING_LIVE_APPROVAL"
+    assert record["query"] == "What is the purpose of reciprocity in a community?"
+    assert record["rating_out_of_10"] is None
+    assert "support one another over time" in record["expected_response"]
+    assert "not when kindness becomes a debt ledger" in record["expected_response"]
+    assert record["expected_doorway"]["url"] is None
+    assert "has not yet been reviewed and approved" in record["provenance"]["approval_evidence"]
+    assert any("recommendation must be demonstrably relevant" in item for item in record["assertions"])
