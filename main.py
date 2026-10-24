@@ -7963,6 +7963,31 @@ async def _use_request_boundary(scope, receive, send):
                 "The Guide Basic Inquiry seam failed; "
                 f"ordinary route remains ordinary and will not be reclassified: {exc}"
             )
+            # A direct-attribute question must not escape through the legacy
+            # deterministic recovery path if its evidence boundary itself fails.
+            if _direct_attribute_phrase(query):
+                request_id = "attribute-recovery-" + hashlib.sha1(
+                    (query + "|" + _history_text(history)).encode("utf-8")
+                ).hexdigest()[:16]
+                return await _use_send_json(send, {
+                    "ok": True,
+                    "version": APP_VERSION,
+                    "fingerprint": DEPLOYMENT_FINGERPRINT,
+                    "source_sha256": RUNTIME_SOURCE_SHA256,
+                    "request_id": request_id,
+                    "query": query,
+                    "intent": "TOPICAL_INQUIRY",
+                    "response": _archive_limitation_response(),
+                    "recommendation": None,
+                    "answer_basis": {
+                        "kind": "archive_evidence_unavailable",
+                        "label": "Archive evidence not found",
+                        "explanation": "The available Archive material did not establish the requested attribute.",
+                    },
+                    "processing": "basic_inquiry_recovery",
+                    "route_source": "guide_direct_attribute_fail_closed",
+                    "visitor_boundary_version": APP_VERSION,
+                })
             try:
                 context_data = use_core.fetch_canonical_context(query)
                 recovery_context = context_data if isinstance(context_data, dict) else {}
