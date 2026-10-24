@@ -5531,6 +5531,11 @@ def _general_guide_authoritative_doorway(query, context_data):
     """
     if not isinstance(context_data, dict):
         return None
+    # Subject discovery has its own bounded active-registry evidence path in
+    # _basic_inquiry_response. Do not run this general doorway selector's
+    # human-development title search or broad fallback searches first.
+    if _guide_subject_discovery_query(query):
+        return None
     try:
         profile = _base._inquiry_profile(query)
         if profile.get("risk") or profile.get("action") == "risk":
@@ -6536,17 +6541,17 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if direct_attribute_evidence_missing:
         authoritative_doorway = None
         archive_evidence_unavailable = True
-    # Subject discovery is constrained to the active WordPress Guide Node registry.
-    # A public URL returned by search is not, by itself, an approved Guide doorway.
-    if discovery_subject and authoritative_doorway:
-        registered_urls = {
-            str(node.get("canonical_url") or "").rstrip("/").casefold()
-            for node in _guide_node_registry_snapshot()
-            if isinstance(node, dict) and str(node.get("status") or "") == "active"
-        }
-        if str(authoritative_doorway.get("url") or "").rstrip("/").casefold() not in registered_urls:
-            print("The Guide discovery boundary: rejected unregistered destination.")
-            authoritative_doorway = None
+    # Subject discovery uses its dedicated active-registry selector below,
+    # not a broad retrieval preselection that may point to an adjacent article.
+    # Defer all initial candidates so the registry-ranked, fetched canonical
+    # page body—not a generic search result—authorizes the final doorway.
+    if discovery_subject:
+        if authoritative_doorway:
+            print(
+                "The Guide discovery boundary: initial retrieval doorway deferred "
+                "to active-registry evidence selection."
+            )
+        authoritative_doorway = None
     # Distress-sensitive pacing governs the prose, not access to a separate
     # optional resource. Keep the compassionate response first and preserve a
     # qualified, independently rendered doorway when the existing relevance
@@ -6602,7 +6607,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 }
                 # Keep fallback exploration bounded. A missing doorway is safer
                 # than turning an unbounded sequence of page fetches into latency.
-                for node in _guide_registered_discovery_nodes(discovery_subject, limit=4):
+                for node in _guide_registered_discovery_nodes(discovery_subject, limit=2):
                     node_url = str(node.get("canonical_url") or "").strip()
                     if not node_url or node_url.rstrip("/").casefold() in known_urls:
                         continue
@@ -6614,6 +6619,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         recovered_docs.append(node_body)
                         registry_discovery_docs.append(node_body)
                         known_urls.add(node_url.rstrip("/").casefold())
+                        grade = _guide_discovery_evidence_grade(
+                            discovery_subject, node_body, node=node
+                        )
+                        # Stop at the first verified direct/related canonical body.
+                        # A second candidate is only a bounded fallback if the
+                        # highest-ranked registry node fails page-level validation.
+                        if grade.get("grade") in {"direct", "related"}:
+                            break
             # The selected doorway is already independently authorized. Fetch
             # its actual canonical body as well as topic-search candidates so
             # content relevance is tested against the destination being offered,
