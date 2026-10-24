@@ -6578,15 +6578,19 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             recovered_docs = _wordpress_search_canonical_candidates(
                 resource_query, limit=_guide_subject_supplement_limit(discovery_subject)
             )
-            # Add a small, deterministic set of active registry nodes ranked by
-            # their published purpose and semantic hints. Only fetched canonical
-            # page bodies can subsequently authorize a recommendation.
-            if discovery_subject:
+            # Registry-body exploration is a fallback only when retrieval has
+            # not already supplied an authoritative doorway. The selected
+            # doorway's exact body is fetched and checked below. Fetching up to
+            # twenty other registry pages serially here can multiply a single
+            # slow WordPress response into a 20+ second visitor turn.
+            if discovery_subject and not authoritative_doorway:
                 known_urls = {
                     str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
                     for item in recovered_docs if isinstance(item, dict)
                 }
-                for node in _guide_registered_discovery_nodes(discovery_subject, limit=20):
+                # Keep fallback exploration bounded. A missing doorway is safer
+                # than turning an unbounded sequence of page fetches into latency.
+                for node in _guide_registered_discovery_nodes(discovery_subject, limit=4):
                     node_url = str(node.get("canonical_url") or "").strip()
                     if not node_url or node_url.rstrip("/").casefold() in known_urls:
                         continue
@@ -6796,7 +6800,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # This narrow practical-question class has a bounded, provider-independent
     # answer. Do not send it through the general composition envelope: that
     # envelope can exceed provider token budgets before the fallback is reached.
-    if _is_practical_stewardship_question(query):
+    if discovery_subject:
+        # Subject-discovery responses are rendered from the verified canonical
+        # page body by the final discovery boundary below. Calling the generative
+        # composer first only to discard its prose wastes provider time and can
+        # add repeated timeout/fallback delays without changing the visitor answer.
+        deterministic_recovery_used = True
+        llm_output = _guide_subject_discovery_answer(
+            "", resource_query, authoritative_doorway, discovery_selected_evidence
+        )
+        print(
+            "The Guide General Composition: "
+            "mode=bounded_canonical_discovery, llm_composer_invoked=false, "
+            f"evidence_backed={_guide_discovery_doorway_is_evidence_backed(authoritative_doorway, discovery_selected_evidence)}"
+        )
+    elif _is_practical_stewardship_question(query):
         deterministic_recovery_used = True
         deterministic_result = _basic_inquiry_round1_deterministic_response(
             query, {}, composition_context, recommendation_available=False
