@@ -8160,9 +8160,9 @@ async def _use_request_boundary(scope, receive, send):
         })
 
 
-    # Immediate Glossary handoff: an explicit definition/meaning question is
-    # already a bounded lookup request. Do not spend a routing-model call or
-    # allow ordinary Guide retrieval to answer it first.
+    # Immediate Glossary handoff: explicit destination requests are not term
+    # lookups. They must open the native Glossary even when no search term was
+    # supplied and the generic conceptual classifier also recognizes the words.
     glossary_term = _normalize_glossary_term(query)
     embedded_glossary_term = _extract_embedded_glossary_term(query)
     _explicit_glossary_navigation = bool(re.search(
@@ -8170,16 +8170,48 @@ async def _use_request_boundary(scope, receive, send):
         str(query or ""),
         re.I,
     ))
+    _glossary_navigation_term = (
+        glossary_term
+        or (embedded_glossary_term if embedded_glossary_term else "")
+        or ("stewardship" if re.search(r"\bstewardship\b", str(query or ""), re.I) else "")
+        or "general"
+    )
+    if _explicit_glossary_navigation:
+        glossary_url = "https://geralddaquila.com/glossary/"
+        if _glossary_navigation_term != "general":
+            glossary_url += "?glossary_term=" + quote(_glossary_navigation_term, safe="")
+        request_id = "glossary-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide immediate explicit Glossary navigation: "
+            f"request_id={request_id}, term={_glossary_navigation_term!r}, url={glossary_url}"
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "query": query,
+            "intent": "GLOSSARY_HANDOFF",
+            "response": "",
+            "handoff": "glossary",
+            "handoff_mode": "immediate",
+            "handoff_pending": True,
+            "glossary_term": _glossary_navigation_term,
+            "glossary_url": glossary_url,
+            "return_mode": "native_glossary_search",
+            "visitor_boundary_version": APP_VERSION,
+            "request_id": request_id,
+        })
+
+    # Bounded term-definition requests remain separate from open conceptual
+    # questions and must pass the existing term sufficiency checks.
     if (
         _is_bounded_glossary_request(
             query,
             glossary_term=glossary_term,
             embedded_term=embedded_glossary_term,
         )
-        and (
-            _explicit_glossary_navigation
-            or not _is_conceptual_explanatory_request(query)
-        )
+        and not _is_conceptual_explanatory_request(query)
     ):
         glossary_url = (
             "https://geralddaquila.com/glossary/?glossary_term="
@@ -8189,7 +8221,7 @@ async def _use_request_boundary(scope, receive, send):
             (query + "|" + _history_text(history)).encode("utf-8")
         ).hexdigest()[:16]
         print(
-            "The Guide immediate Glossary handoff: "
+            "The Guide immediate Glossary term handoff: "
             f"request_id={request_id}, term={glossary_term!r}, url={glossary_url}"
         )
         return await _use_send_json(send, {

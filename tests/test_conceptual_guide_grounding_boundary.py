@@ -64,6 +64,8 @@ def test_explicit_glossary_navigation_overrides_conceptual_guard_without_redirec
     # This assertion mirrors the production route predicate: explicit
     # destination language is an exception to the conceptual-guard veto.
     assert explicit or not _is_conceptual_explanatory_request(query)
+    assert "_explicit_glossary_navigation" in SOURCE
+    assert "The Guide immediate explicit Glossary navigation" in SOURCE
 
 
     assert 'composition_context["evidence_sufficiency_unavailable"] = True' in gate
