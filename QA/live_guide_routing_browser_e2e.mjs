@@ -19,6 +19,12 @@ const cases = [
     expectedAnswer: /three sides/i
   },
   {
+    id: "general-knowledge-ice-density",
+    query: "Why does ice float in water?",
+    expected: "general-knowledge-no-navigation",
+    expectedAnswer: /less dense than liquid water|lower density than liquid water/i
+  },
+  {
     id: "catalogue-resource-discovery",
     query: "Where can I find material about institutional responsibility?",
     expected: "native-catalogue-handoff"
