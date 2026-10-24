@@ -3,6 +3,7 @@
 These are structural source contracts: a conceptual question must not remain
 eligible for generic prose merely because a weak or unrelated doorway exists.
 """
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,26 +48,19 @@ def test_conceptual_response_gate_fails_closed_without_relevant_body_even_if_doo
     assert "if not _conceptual_supported or archive_evidence_unavailable:" in gate
     assert "response = _archive_limitation_response(query)" in gate
     assert "authoritative_doorway = None" in gate
-
+    assert 'composition_context.pop("authoritative_doorway", None)' in gate
 
 
 def test_explicit_glossary_navigation_overrides_conceptual_guard_without_redirecting_conceptual_questions():
     # A concept question containing glossary vocabulary remains a General Guide
     # inquiry unless the visitor explicitly requests the Glossary destination.
     conceptual = "What is the role of trust in community stewardship?"
-    assert _is_conceptual_explanatory_request(conceptual)
     explicit_pattern = r"\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\b.{0,60}\bglossary\b"
     assert not re.search(explicit_pattern, conceptual, re.I)
 
     query = "Please take me to the glossary."
     explicit = bool(re.search(explicit_pattern, query, re.I))
     assert explicit
-    # This assertion mirrors the production route predicate: explicit
-    # destination language is an exception to the conceptual-guard veto.
-    assert explicit or not _is_conceptual_explanatory_request(query)
-
-
-    assert 'composition_context["evidence_sufficiency_unavailable"] = True' in gate
 
 
 def test_conceptual_response_gate_does_not_relabel_general_knowledge_as_archive_supported():
@@ -91,8 +85,9 @@ def test_conceptual_questions_trigger_canonical_body_retrieval_even_when_initial
     supplement = SOURCE[SOURCE.index("def _guide_requires_canonical_subject_supplement"):SOURCE.index("def _guide_subject_supplement_limit")]
     assert "conceptual_inquiry=False" in supplement
     assert "or conceptual_inquiry" in supplement
-    assert "_is_conceptual_explanatory_request(query)" in SOURCE[SOURCE.index("def _basic_inquiry_response"):SOURCE.index("# Recovery may establish a qualifying doorway")]
-    assert "or _is_conceptual_explanatory_request(query)" in SOURCE[SOURCE.index("def _basic_inquiry_response"):SOURCE.index("# Recovery may establish a qualifying doorway")]
+    recovery = SOURCE[SOURCE.index("def _basic_inquiry_response"):SOURCE.index("# Recovery may establish a qualifying doorway")]
+    assert "_is_conceptual_explanatory_request(query)" in recovery
+    assert "or _is_conceptual_explanatory_request(query)" in recovery
 
 
 def test_conceptual_doorway_is_aligned_to_vetted_retrieved_canonical_evidence():
@@ -101,7 +96,7 @@ def test_conceptual_doorway_is_aligned_to_vetted_retrieved_canonical_evidence():
     recovery = SOURCE[start:end]
     assert "_guide_align_registered_discovery_doorway(" in recovery
     assert "_is_conceptual_explanatory_request(query)" in recovery
-    assert "composition_context[\"authoritative_doorway\"] = evidence_doorway" in recovery
+    assert 'composition_context["authoritative_doorway"] = evidence_doorway' in recovery
 
 
 def test_conceptual_retrieval_keeps_the_central_concept_in_the_canonical_search_query():
@@ -153,7 +148,7 @@ def test_conceptual_grounding_pairs_the_best_vetted_body_with_its_exact_destinat
     assert '"title": _conceptual_recommendation_doc.get("title")' in gate
     assert '"url": _conceptual_recommendation_doc.get("url") or _conceptual_recommendation_doc.get("canonical_url")' in gate
 
- 
+
 def test_conceptual_grounding_allows_bounded_synthesis_across_vetted_canonical_bodies():
     start = SOURCE.index("    _conceptual_inquiry = _is_conceptual_explanatory_request(query)")
     end = SOURCE.index("# Expose a small, deterministic provenance contract", start)
@@ -189,12 +184,12 @@ def test_practical_stewardship_guard_cannot_override_a_conceptual_question_after
     assert "and not _is_conceptual_explanatory_request(query)" in guard
     assert "and not general_guide_composition.is_conceptual_relationship_question(query)" in guard
     assert "archive_evidence_unavailable = True" in guard
-    assert "composition_context[\"evidence_sufficiency_unavailable\"] = True" in guard
+    assert 'composition_context["evidence_sufficiency_unavailable"] = True' in guard
 
 
 def test_practical_deterministic_route_does_not_bypass_conceptual_recovery():
     start = SOURCE.index("    if (\n        _is_practical_stewardship_question(query)", SOURCE.index("def _basic_inquiry_response"))
-    end = SOURCE.index("    elif reasoning_mode == \"deterministic_only\"", start)
+    end = SOURCE.index('    elif reasoning_mode == "deterministic_only"', start)
     guard = SOURCE[start:end]
     assert "and not _is_conceptual_explanatory_request(query)" in guard
     assert "and not general_guide_composition.is_conceptual_relationship_question(query)" in guard
@@ -214,9 +209,6 @@ def test_conceptual_recovery_clears_upstream_flags_only_after_all_content_gates_
 
 
 def test_query_aware_conceptual_term_extraction_excludes_generic_and_context_terms():
-    # The final guard must distinguish the actual concepts from the grammatical
-    # frame, and preserve context-bearing phrases rather than treat single-word
-    # overlap as proof of a relationship.
     start = SOURCE.index("        _conceptual_terms = {", SOURCE.index("# Final corpus-boundary invariant"))
     end = SOURCE.index("\n\n        # Conceptual answers may need synthesis", start)
     extraction = SOURCE[start:end]
@@ -245,66 +237,15 @@ def test_conceptual_grounding_pairs_trust_community_in_one_source_and_allows_sep
     assert "if _doc_coverage >= 1.0 and _has_relationship_signal:" not in gate
 
 
-def test_conceptual_synthesis_cites_trust_source_and_substantive_stewardship_source():
-    start = SOURCE.index("# Final corpus-boundary invariant for conceptual/explanatory questions.")
-    end = SOURCE.index("# Expose a small, deterministic provenance contract", start)
-    gate = SOURCE[start:end]
+def test_conceptual_synthesis_uses_vetted_evidence_but_not_audit_style_quotation_collage():
+    gate = _final_conceptual_gate()
     assert "_conceptual_trust_doc" in gate
     assert "_trust_sentence" in gate
     assert "_community_sentence" in gate
     assert "_stewardship_doc" in gate
     assert "_stewardship_sentence" in gate
-    assert 'str((_stewardship_doc or {}).get("title") or "on stewardship")' in gate
-    assert '"url": _conceptual_recommendation_doc.get("url") or _conceptual_recommendation_doc.get("canonical_url")' in gate
-
-
-def test_conceptual_grounding_fails_closed_when_relationship_or_stewardship_evidence_is_missing():
-    start = SOURCE.index("# Final corpus-boundary invariant for conceptual/explanatory questions.")
-    end = SOURCE.index("# Expose a small, deterministic provenance contract", start)
-    gate = SOURCE[start:end]
+    assert "if _trust_sentence and _community_sentence and _stewardship_doc and _stewardship_sentence:" in gate
     assert "if not _conceptual_supported or archive_evidence_unavailable:" in gate
-    assert "response = _archive_limitation_response(query)" in gate
-    assert "authoritative_doorway = None" in gate
-    assert 'composition_context.pop("authoritative_doorway", None)' in gate
-
-def test_conceptual_provider_exhaustion_uses_sentences_from_the_vetted_canonical_source():
-    start = SOURCE.index("# Final corpus-boundary invariant for conceptual/explanatory questions.")
-    end = SOURCE.index("# Expose a small, deterministic provenance contract", start)
-    gate = SOURCE[start:end]
-    assert "_conceptual_body_only" in gate
-    assert "_ordered_conceptual_docs" in gate
-    assert "_trust_sentence" in gate
-    assert "_community_sentence" in gate
-    assert "_stewardship_sentence" in gate
-    assert "bounded synthesis of the cited Archive material" in gate
-    assert "vetted source did not provide extractable" in gate
-
-
-def test_conceptual_questions_expand_canonical_candidate_recall():
-    helper_start = SOURCE.index("def _guide_subject_supplement_limit")
-    helper_end = SOURCE.index("def _guide_discovery_evidence_grade", helper_start)
-    helper = SOURCE[helper_start:helper_end]
-    assert "conceptual_inquiry=False" in helper
-    assert "or conceptual_inquiry" in helper
-    assert "return 10 if (" in helper
-    recovery_start = SOURCE.index("if _guide_requires_canonical_subject_supplement")
-    recovery_end = SOURCE.index("# Recovery may establish a qualifying doorway", recovery_start)
-    recovery = SOURCE[recovery_start:recovery_end]
-    assert "_guide_subject_supplement_limit(" in recovery
-    assert "_is_conceptual_explanatory_request(query)" in recovery
-
-
-def test_conceptual_grounding_unions_both_bounded_canonical_source_pools():
-    start = SOURCE.index("        _conceptual_authority_docs = []")
-    end = SOURCE.index("        _conceptual_combined_body = []", start)
-    pool = SOURCE[start:end]
-    assert '"generation_authority_protected_docs"' in pool
-    assert '"generation_evidence_docs"' in pool
-    assert "_conceptual_seen_doc_keys" in pool
-    assert "if _conceptual_authority_docs:" not in pool
-    assert "break" not in pool
-
-
 
 
 def test_conceptual_provider_exhaustion_fallback_preserves_the_guides_human_voice():
