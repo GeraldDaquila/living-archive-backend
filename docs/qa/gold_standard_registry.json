@@ -1385,7 +1385,9 @@
         "source_date": "2026-10-24",
         "source": "User-provided sequential live Guide review: trust question immediately preceded 'What is the purpose of reciprocity in a community?'",
         "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
-        "evidence_boundary": "The question and its sequence are evidenced by the user's report. Exact prior trust answer text and its separate rating/approval are not present in the current evidence, so this record is a candidate behavioral benchmark, not an approved exact-answer transcript."
+        "evidence_boundary": "The question and its sequence are evidenced by the user's report. Exact prior trust answer text and its separate rating/approval are not present in the current evidence, so this record is a candidate behavioral benchmark, not an approved exact-answer transcript.",
+        "source_path": "docs/qa/gold_standard_registry.json",
+        "source_ref": "qa/register-community-trust-reciprocity-2026-10-24"
       },
       "rating": null,
       "rating_out_of_10": null,
