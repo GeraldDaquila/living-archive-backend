@@ -6820,6 +6820,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         archive_evidence_unavailable = True
         composition_context.pop("authoritative_doorway", None)
 
+    # General Guide is Archive-bounded. A conceptual explanation without a
+    # relevant canonical doorway must not silently degrade into generic model
+    # knowledge; preserve the question in General Guide and state the evidence
+    # boundary instead of inventing an answer or redirecting to Glossary.
+    if (
+        general_guide_composition.is_conceptual_relationship_question(query)
+        and not authoritative_doorway
+    ):
+        response = _archive_limitation_response()
+        archive_evidence_unavailable = True
+        authoritative_doorway = None
+        composition_context.pop("authoritative_doorway", None)
+        composition_context.pop("authoritative_doorway_title", None)
+        print("The Guide conceptual boundary: no relevant Archive doorway; returned Archive-only limitation.")
+
     # Expose a small, deterministic provenance contract for the visitor UI.
     # This describes the answer's basis; it does not claim that every sentence
     # is directly quoted from a source. A recommendation is only supplied when
