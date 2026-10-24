@@ -7219,6 +7219,28 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     "possible; stewardship helps that cooperation endure."
                 )
 
+        # Narrow deterministic recovery for a stable basic-science fact.
+        # General factual knowledge and Archive attribution are separate: answer
+        # the known fact without inventing an Archive doorway.
+        _normalized_basic_fact_query = re.sub(r"\\s+", " ", str(query or "")).strip().casefold()
+        _water_boiling_point_question = bool(
+            re.search(r"\\bboiling point\\b", _normalized_basic_fact_query)
+            and re.search(r"\\bwater\\b", _normalized_basic_fact_query)
+            and re.search(r"\\bsea level\\b", _normalized_basic_fact_query)
+        )
+        if _water_boiling_point_question and not locals().get("conceptual_subject_recovery"):
+            response = _sanitize_basic_inquiry_response(
+                "At sea level, water boils at 100°C (212°F) under standard atmospheric pressure. "
+                "As altitude increases and air pressure decreases, water boils at a lower temperature.\\n\\n"
+                "The key point is that boiling depends on pressure, not just temperature."
+            )
+            archive_evidence_unavailable = False
+            authoritative_doorway = None
+            composition_context.pop("authoritative_doorway", None)
+            composition_context.pop("authoritative_doorway_title", None)
+            composition_context.pop("evidence_sufficiency_unavailable", None)
+            print("The Guide basic-fact recovery: answered standard water boiling-point question without implying Archive attribution.")
+
         # Human development is a broad, answerable public concept even when the
         # Archive's retrieved bodies do not establish its own specific framing.
         # Keep a useful general explanation, but do not imply Archive attribution

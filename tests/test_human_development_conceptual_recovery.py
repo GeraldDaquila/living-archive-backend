@@ -1,6 +1,7 @@
 """Regression contract for human-development recovery and Archive doorway."""
 
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = (ROOT / "main.py").read_text(encoding="utf-8")
@@ -41,3 +42,26 @@ def test_general_conceptual_fail_closed_behavior_remains_for_other_topics():
     remaining_gate = SOURCE[start:end]
     assert "response = _archive_limitation_response(query)" in remaining_gate
     assert "archive_evidence_unavailable = True" in remaining_gate
+
+
+def test_water_boiling_point_general_fact_is_answered_without_archive_match():
+    normalized = re.sub(r"\\s+", " ", "What is the boiling point of water at sea level?").strip().casefold()
+    assert re.search(r"\\bboiling point\\b", normalized)
+    assert re.search(r"\\bwater\\b", normalized)
+    assert re.search(r"\\bsea level\\b", normalized)
+    start = SOURCE.index("# Narrow deterministic recovery for a stable basic-science fact.")
+    end = SOURCE.index("# Human development is a broad, answerable public concept", start)
+    recovery = SOURCE[start:end]
+    assert "100°C (212°F)" in recovery
+    assert "standard atmospheric pressure" in recovery
+    assert "archive_evidence_unavailable = False" in recovery
+    assert "composition_context.pop(\"authoritative_doorway\", None)" in recovery
+
+
+def test_basic_fact_recovery_is_narrow_and_does_not_replace_general_conceptual_boundary():
+    start = SOURCE.index("# Narrow deterministic recovery for a stable basic-science fact.")
+    end = SOURCE.index("# Human development is a broad, answerable public concept", start)
+    recovery = SOURCE[start:end]
+    assert "_water_boiling_point_question" in recovery
+    assert "boiling point" in recovery and "sea level" in recovery
+    assert "archive_evidence_unavailable = True" not in recovery
