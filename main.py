@@ -5049,11 +5049,30 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
     terms = sorted(set(_subject_terms(query)))
     if not terms:
         return []
-    # Prefer the visitor's more distinctive query terms without introducing
-    # topic-specific keyword families or changing the question's meaning.
-    indexed_terms = list(enumerate(terms))
-    indexed_terms.sort(key=lambda pair: (len(pair[1]), -pair[0]), reverse=True)
-    search_text = " ".join(term for _, term in indexed_terms[:2]).strip()
+    # For conceptual questions, search with the concept being examined plus
+    # one strong context term. Purely length-based ranking can omit the central
+    # concept (for example, "trust") in favour of longer context words, making
+    # canonical search miss the very source the visitor needs.
+    search_text = ""
+    if _is_conceptual_explanatory_request(query):
+        conceptual_match = re.match(
+            r"^what\s+is\s+(?:the\s+)?(?:role|purpose|significance|importance|function|value|contribution|impact|nature|relationship)\s+of\s+(.+?)\s+(?:in|within|among|for|of|on)\s+(.+?)[?.!]*$",
+            re.sub(r"\s+", " ", str(query or "").strip().casefold()),
+        )
+        if conceptual_match:
+            focus_terms = list(_subject_terms(conceptual_match.group(1)))
+            context_terms = list(_subject_terms(conceptual_match.group(2)))
+            if focus_terms:
+                context_terms.sort(key=lambda term: (len(term), term), reverse=True)
+                selected = [focus_terms[0]]
+                selected.extend(term for term in context_terms if term not in selected)
+                search_text = " ".join(selected[:2]).strip()
+    if not search_text:
+        # Preserve the established deterministic query shaping for all other
+        # requests and for conceptual forms that do not match the bounded pattern.
+        indexed_terms = list(enumerate(terms))
+        indexed_terms.sort(key=lambda pair: (len(pair[1]), -pair[0]), reverse=True)
+        search_text = " ".join(term for _, term in indexed_terms[:2]).strip()
     if not search_text:
         return []
     endpoint = (

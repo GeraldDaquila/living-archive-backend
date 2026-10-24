@@ -83,3 +83,12 @@ def test_conceptual_doorway_is_aligned_to_vetted_retrieved_canonical_evidence():
     assert "_guide_align_registered_discovery_doorway(" in recovery
     assert "_is_conceptual_explanatory_request(query)" in recovery
     assert "composition_context[\"authoritative_doorway\"] = evidence_doorway" in recovery
+
+
+def test_conceptual_retrieval_keeps_the_central_concept_in_the_canonical_search_query():
+    start = SOURCE.index("def _wordpress_search_canonical_candidates")
+    end = SOURCE.index("def _guide_", start)
+    searcher = SOURCE[start:end]
+    assert "_is_conceptual_explanatory_request(query)" in searcher
+    assert "focus_terms = list(_subject_terms(conceptual_match.group(1)))" in searcher
+    assert "context_terms = list(_subject_terms(conceptual_match.group(2)))" in searcher
