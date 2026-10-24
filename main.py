@@ -6628,15 +6628,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             except Exception:
                 llm_output = ""
 
-    if _is_practical_stewardship_question(query) and not _is_healthy_community_orientation_question(query):
+    if (
+        _is_practical_stewardship_question(query)
+        and not _is_healthy_community_orientation_question(query)
+        and not _is_conceptual_explanatory_request(query)
+    ):
         # This bounded recovery has no canonical source body selected as direct
-        # evidence for the exact question. Suppress any incidental doorway from
-        # broad initial retrieval rather than attach an unrelated recommendation.
-        # A substantive healthy-community newcomer query is a separate topic
-        # orientation intent and keeps its own validated recommendation contract.
+        # evidence for the exact practical question. Suppress an incidental
+        # doorway for a practical how-to request, but do not override a
+        # conceptual inquiry whose canonical bodies have already passed the
+        # frame-neutral, sufficiency, and question-fit gates above.
         authoritative_doorway = None
         archive_evidence_unavailable = True
         composition_context.pop("authoritative_doorway", None)
+        composition_context.pop("authoritative_doorway_title", None)
         composition_context["evidence_sufficiency_unavailable"] = True
 
     # Subject-discovery prose must be independent of provider availability and generation.
