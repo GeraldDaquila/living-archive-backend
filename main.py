@@ -7239,10 +7239,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # vetted canonical resource can still invite the visitor deeper.
             _human_development_doorway_doc = next((
                 _doc for _doc in _conceptual_authority_docs
-                if re.search(r"\\bhuman development\\b", str(_doc.get("title") or ""), re.I)
-                and re.search(r"\\bfirst institution\\b", str(_doc.get("title") or ""), re.I)
+                if re.search(r"\bhuman development\b", str(_doc.get("title") or ""), re.I)
+                and re.search(r"\bfirst institution\b", str(_doc.get("title") or ""), re.I)
                 and re.match(
-                    r"^https://geralddaquila\\.com/\\S+$",
+                    r"^https://geralddaquila\.com/\S+$",
                     str(_doc.get("url") or _doc.get("canonical_url") or "").strip(),
                     re.I,
                 )
