@@ -1,4 +1,5 @@
-# USE CANDIDATE PATCH ON v489.294 — Direct-attribute evidence boundary
+# USE PRODUCTION VERSION: v489.294 — Practical stewardship provider-exhaustion recovery
+# Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
 from html import unescape
