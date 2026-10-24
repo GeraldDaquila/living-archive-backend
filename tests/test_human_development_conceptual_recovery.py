@@ -43,29 +43,40 @@ def test_general_conceptual_fail_closed_behavior_remains_for_other_topics():
     assert "archive_evidence_unavailable = True" in remaining_gate
 
 
-def test_water_boiling_point_recovery_is_on_the_shared_inquiry_path_before_conceptual_only_grounding():
-    shared_boundary = SOURCE.index(
-        "# The Archive evidence boundary governs Archive-attributed claims"
-    )
-    conceptual_only_gate = SOURCE.index(
-        "_conceptual_inquiry = _is_conceptual_explanatory_request(query)",
-        shared_boundary,
-    )
-    water_recovery = SOURCE.index("_water_boiling_point_question = bool(", shared_boundary)
-    assert shared_boundary < water_recovery < conceptual_only_gate
-    assert 're.search(r"\\\\bboil(?:ing)? point\\\\b", _normalize_query(query), re.I)' in SOURCE
-    assert "At sea level, water boils at 100°C (212°F)" in SOURCE
-    assert "standard atmospheric pressure" in SOURCE
-    assert 'composition_context["general_knowledge_recovery"] = "water_boiling_point"' in SOURCE
-    assert "The Guide general-knowledge boundary: answered the established boiling-point fact" in SOURCE
+def test_established_general_facts_use_a_bounded_provider_independent_recovery():
+    start = SOURCE.index("def _established_general_knowledge_recovery(query):")
+    end = SOURCE.index("\ndef _basic_inquiry_response(", start)
+    resolver = SOURCE[start:end]
+    assert "water_boiling_point_sea_level" in resolver
+    assert "At sea level, water boils at 100°C (212°F)" in resolver
+    assert "standard atmospheric pressure" in resolver
+    assert "meter_centimeter_conversion" in resolver
+    assert "One meter equals 100 centimeters." in resolver
+    assert "return None" in resolver
 
 
-def test_water_boiling_point_recovery_does_not_invent_archive_doorway():
-    start = SOURCE.index('composition_context["general_knowledge_recovery"] = "water_boiling_point"')
-    end = SOURCE.index('    _conceptual_inquiry = _is_conceptual_explanatory_request(query)', start)
-    block = SOURCE[start-1200:end]
+def test_matched_general_fact_bypasses_direct_attribute_guard_but_unlisted_attributes_do_not():
+    resolver_call = SOURCE.index(
+        "general_knowledge_recovery = _established_general_knowledge_recovery(query)"
+    )
+    guard = SOURCE.index("direct_attribute_evidence_missing = (", resolver_call)
+    guard_block = SOURCE[guard:SOURCE.index("# Subject discovery", guard)]
+    assert resolver_call < guard
+    assert "_direct_attribute_evidence_missing(query, authoritative_doorway)" in guard_block
+    assert "and general_knowledge_recovery is None" in guard_block
+
+
+def test_general_fact_answer_is_applied_before_conceptual_only_grounding():
+    recovery = SOURCE.index("if general_knowledge_recovery is not None:")
+    conceptual_gate = SOURCE.index(
+        "_conceptual_inquiry = _is_conceptual_explanatory_request(query)", recovery
+    )
+    assert recovery < conceptual_gate
+    block = SOURCE[recovery:conceptual_gate]
+    assert "response = _sanitize_basic_inquiry_response(" in block
+    assert 'composition_context["general_knowledge_recovery"] = general_knowledge_recovery["fact_id"]' in block
     assert 'composition_context.pop("authoritative_doorway", None)' in block
     assert 'composition_context.pop("authoritative_doorway_title", None)' in block
-    assert 'authoritative_doorway = None' in block
+    assert "authoritative_doorway = None" in block
     assert "archive_evidence_unavailable = False" in block
-    assert "elif not _conceptual_human_voice_supported" in block
+    assert "The Guide general-knowledge boundary: answered a registered stable fact" in block
