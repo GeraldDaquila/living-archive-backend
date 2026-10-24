@@ -2508,6 +2508,22 @@ def _normalize_glossary_term(query, interpretation=None):
 
     normalized = re.sub(r"\s+", " ", str(query or "").strip()).strip()
 
+    # Explicit requests for the canonical Glossary definition often phrase the
+    # term after the words "Glossary definition of". Extract only that term;
+    # otherwise the native Glossary receives a sentence fragment that cannot
+    # match a canonical heading.
+    canonical_definition = re.match(
+        r"^(?:what is|what's|give me|show me|find)\\s+(?:the\\s+)?(?:canonical\\s+)?"
+        r"(?:living archive\\s+)?glossary\\s+(?:definition|entry)\\s+(?:of|for|on)\\s+(.+?)[?!.]?$",
+        normalized,
+        re.I,
+    )
+    if canonical_definition:
+        term = re.sub(r"^[\\s\\\"']+|[\\s\\\"'?.!]+$", "", canonical_definition.group(1))
+        term = re.sub(r"^(?:the\\s+term\\s+|the\\s+word\\s+|word\\s+)", "", term, flags=re.I)
+        if 1 <= len(term) <= 120 and not re.search(r"[?\\n]", term):
+            return term
+
     # Explicit destination language is different from an explanatory definition
     # request, but the visitor still expects the Glossary's native lookup UI.
     navigation = re.search(
