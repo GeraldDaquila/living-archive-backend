@@ -131,8 +131,8 @@ def test_conceptual_grounding_pairs_the_best_vetted_body_with_its_exact_destinat
     assert '"generation_authority_protected_docs"' in gate
     assert "_conceptual_best_doc" in gate
     assert "_conceptual_best_coverage >= 1.0" in gate
-    assert '"title": _conceptual_best_doc.get("title")' in gate
-    assert '"url": _conceptual_best_doc.get("url") or _conceptual_best_doc.get("canonical_url")' in gate
+    assert '"title": _conceptual_recommendation_doc.get("title")' in gate
+    assert '"url": _conceptual_recommendation_doc.get("url") or _conceptual_recommendation_doc.get("canonical_url")' in gate
 
  
 def test_conceptual_grounding_allows_bounded_synthesis_across_vetted_canonical_bodies():
