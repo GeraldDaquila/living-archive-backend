@@ -10,6 +10,8 @@ on:
       - "tests/test_gold_standard_registry.py"
       - "docs/qa/SYSTEM_WIDE_ORIENTATION_AND_STRUCTURAL_FIX_STANDARD.md"
       - "tests/test_system_wide_orientation_standard.py"
+      - "docs/qa/ECOSYSTEM_ORIENTATION_AUDIT_BASELINE.md"
+      - "tests/test_ecosystem_orientation_audit_baseline.py"
       - "tests/test_live_guide_gold_standard_capture.py"
       - ".github/workflows/gold-standard-registry-validation.yml"
   push:
