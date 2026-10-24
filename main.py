@@ -5634,9 +5634,20 @@ def _guide_subject_discovery_query(query):
     return ""
 
 
-def _guide_requires_canonical_subject_supplement(archive_evidence_unavailable, discovery_subject):
-    """Always supplement subject-finding requests with vetted canonical content."""
-    return bool(archive_evidence_unavailable or str(discovery_subject or "").strip())
+def _guide_requires_canonical_subject_supplement(
+    archive_evidence_unavailable, discovery_subject, conceptual_inquiry=False
+):
+    """Fetch canonical page bodies for discovery and explanatory questions.
+
+    A vector-selected doorway is only a candidate. Conceptual questions must
+    fetch and inspect its public Archive body before the final grounding gate
+    can decide whether to answer, recommend it, or fail closed.
+    """
+    return bool(
+        archive_evidence_unavailable
+        or str(discovery_subject or "").strip()
+        or conceptual_inquiry
+    )
 
 
 def _guide_subject_supplement_limit(discovery_subject):
@@ -6272,7 +6283,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     direct_selected_body = None
     registry_discovery_docs = []
     if _guide_requires_canonical_subject_supplement(
-        archive_evidence_unavailable, discovery_subject
+        archive_evidence_unavailable,
+        discovery_subject,
+        _is_conceptual_explanatory_request(query),
     ):
         # Subject-finding requests always receive a bounded WordPress content
         # supplement, even when the initial vector pass did not set an evidence-
@@ -6307,7 +6320,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # its actual canonical body as well as topic-search candidates so
             # content relevance is tested against the destination being offered,
             # not just whichever pages WordPress ranked highest for the phrase.
-            if discovery_subject and authoritative_doorway:
+            if (
+                discovery_subject or _is_conceptual_explanatory_request(query)
+            ) and authoritative_doorway:
                 # Fetch the exact, already-authorized canonical destination first.
                 # A second WordPress search for its title repeats search plus
                 # candidate-body requests when the direct page fetch succeeds.
