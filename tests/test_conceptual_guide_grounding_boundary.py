@@ -35,11 +35,11 @@ def test_conceptual_response_gate_requires_selected_canonical_source_body():
     gate = _final_conceptual_gate()
     assert "generation_authority_protected_docs" in gate
     assert "generation_evidence_docs" in gate
-    assert "retrieved_documents" in gate
     assert "_conceptual_source_body" in gate
     assert "_conceptual_supported" in gate
-    assert "_conceptual_coverage >= (2 / 3)" in gate
-    assert "len(_conceptual_terms) >= 2" in gate
+    assert "_conceptual_best_doc" in gate
+    assert "_conceptual_best_coverage >= 1.0" in gate
+    assert "_has_relationship_signal" in gate
 
 
 def test_conceptual_response_gate_fails_closed_without_relevant_body_even_if_doorway_exists():
