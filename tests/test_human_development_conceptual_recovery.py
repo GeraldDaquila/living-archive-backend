@@ -104,3 +104,19 @@ def test_final_answer_basis_remains_general_knowledge_for_matched_fact():
     assert '"kind": "general_knowledge"' in provenance_block
     assert "not attributed to the Living Archive" in provenance_block
     assert 'elif direct_attribute_evidence_missing:' in provenance_block
+
+
+def test_registered_general_fact_skips_conceptual_only_archive_gate():
+    resolver = SOURCE.index("general_knowledge_recovery = _established_general_knowledge_recovery(query)")
+    conceptual_gate = SOURCE.index(
+        "if _conceptual_inquiry and general_knowledge_recovery is None:",
+        resolver,
+    )
+    assert resolver < conceptual_gate
+    assert "if _conceptual_inquiry and general_knowledge_recovery is None:" in SOURCE
+    assert "response = _archive_limitation_response(query)" in SOURCE[
+        conceptual_gate:SOURCE.index(
+            "# Expose a small, deterministic provenance contract for the visitor UI.",
+            conceptual_gate,
+        )
+    ]
