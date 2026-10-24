@@ -6965,8 +6965,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # the same canonical body. Generic stewardship advice must not
             # qualify merely because it mentions one adjacent theme.
             _has_relationship_signal = bool(re.search(
-                r"\b(?:trust|trusted|trustworthiness)\\b.{0,180}\\b(?:community|communities|stewardship)\\b"
-                r"|\\b(?:community|communities|stewardship)\\b.{0,180}\\b(?:trust|trusted|trustworthiness)\\b",
+                r"\b(?:trust|trusted|trustworthiness)\b.{0,180}\b(?:community|communities|stewardship)\b"
+                r"|\b(?:community|communities|stewardship)\b.{0,180}\b(?:trust|trusted|trustworthiness)\b",
                 _doc_normalized,
             ))
             _conceptual_combined_body.append(_doc_body)
