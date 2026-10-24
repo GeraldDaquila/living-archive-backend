@@ -278,7 +278,7 @@ def test_reciprocity_community_gold_standard_candidate_is_bounded_and_not_misrep
         item for item in registry["records"]
         if item["benchmark_id"] == "general-guide-reciprocity-community-2026-10-24"
     )
-    assert record["status"] == "USER_APPROVED_GOLD_STANDARD_PENDING_LIVE_APPROVAL"
+    assert record["status"] == "CANDIDATE"
     assert record["query"] == "What is the purpose of reciprocity in a community?"
     assert record["rating_out_of_10"] is None
     assert "support one another over time" in record["expected_response"]
