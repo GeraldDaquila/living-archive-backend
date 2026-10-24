@@ -35,11 +35,11 @@ def test_conceptual_response_gate_requires_selected_canonical_source_body():
     gate = _final_conceptual_gate()
     assert "generation_authority_protected_docs" in gate
     assert "generation_evidence_docs" in gate
-    assert "retrieved_documents" in gate
     assert "_conceptual_source_body" in gate
     assert "_conceptual_supported" in gate
-    assert "_conceptual_coverage >= (2 / 3)" in gate
-    assert "len(_conceptual_terms) >= 2" in gate
+    assert "_conceptual_best_doc" in gate
+    assert "_conceptual_best_coverage >= 1.0" in gate
+    assert "_has_relationship_signal" in gate
 
 
 def test_conceptual_response_gate_fails_closed_without_relevant_body_even_if_doorway_exists():
@@ -130,9 +130,9 @@ def test_conceptual_grounding_pairs_the_best_vetted_body_with_its_exact_destinat
     gate = SOURCE[start:end]
     assert '"generation_authority_protected_docs"' in gate
     assert "_conceptual_best_doc" in gate
-    assert "_conceptual_coverage >= (2 / 3)" in gate
-    assert '"title": _conceptual_best_doc.get("title")' in gate
-    assert '"url": _conceptual_best_doc.get("url") or _conceptual_best_doc.get("canonical_url")' in gate
+    assert "_conceptual_best_coverage >= 1.0" in gate
+    assert '"title": _conceptual_recommendation_doc.get("title")' in gate
+    assert '"url": _conceptual_recommendation_doc.get("url") or _conceptual_recommendation_doc.get("canonical_url")' in gate
 
  
 def test_conceptual_grounding_allows_bounded_synthesis_across_vetted_canonical_bodies():
@@ -141,8 +141,8 @@ def test_conceptual_grounding_allows_bounded_synthesis_across_vetted_canonical_b
     gate = SOURCE[start:end]
     assert "_conceptual_combined_body" in gate
     assert '"generation_authority_protected_docs"' in gate
-    assert "len(_conceptual_terms) >= 2" in gate
-    assert "_conceptual_coverage >= (2 / 3)" in gate
+    assert "_has_relationship_signal" in gate
+    assert "_conceptual_best_coverage >= 1.0" in gate
 
 
 def test_conceptual_grounding_failure_diagnostic_reports_bounded_coverage_state():
@@ -236,3 +236,17 @@ def test_conceptual_provider_exhaustion_uses_sentences_from_the_vetted_canonical
     assert "_stewardship_sentence" in gate
     assert "bounded synthesis of the cited Archive material" in gate
     assert "vetted source did not provide extractable" in gate
+
+
+def test_conceptual_questions_expand_canonical_candidate_recall():
+    helper_start = SOURCE.index("def _guide_subject_supplement_limit")
+    helper_end = SOURCE.index("def _guide_discovery_evidence_grade", helper_start)
+    helper = SOURCE[helper_start:helper_end]
+    assert "conceptual_inquiry=False" in helper
+    assert "or conceptual_inquiry" in helper
+    assert "return 10 if (" in helper
+    recovery_start = SOURCE.index("if _guide_requires_canonical_subject_supplement")
+    recovery_end = SOURCE.index("# Recovery may establish a qualifying doorway", recovery_start)
+    recovery = SOURCE[recovery_start:recovery_end]
+    assert "_guide_subject_supplement_limit(" in recovery
+    assert "_is_conceptual_explanatory_request(query)" in recovery
