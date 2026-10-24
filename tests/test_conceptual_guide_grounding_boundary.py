@@ -99,3 +99,11 @@ def test_canonical_page_body_fetch_has_enough_time_for_live_wordpress_responses(
     search_fetch = SOURCE[SOURCE.index("def _wordpress_search_canonical_candidates"):SOURCE.index("def _comparative_subject_terms")]
     assert "urlopen(request, timeout=5.0)" in selected_fetch
     assert "urlopen(request, timeout=5.0)" in search_fetch
+
+
+def test_conceptual_search_diagnostic_uses_the_selected_query_not_fallback_local_state():
+    start = SOURCE.index("def _wordpress_search_canonical_candidates")
+    end = SOURCE.index("def _comparative_subject_terms")
+    searcher = SOURCE[start:end]
+    assert 'search_terms={len(search_text.split())}' in searcher
+    assert 'search_terms={len(indexed_terms[:2])}' not in searcher
