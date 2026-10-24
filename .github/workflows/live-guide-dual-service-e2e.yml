@@ -134,9 +134,9 @@ jobs:
                   )
               response = str(payload.get("response") or "")
               basis = payload.get("answer_basis") or {}
-              if not re.search(r"100\\s*°?C", response, re.I):
+              if not re.search(r"100\s*°?C", response, re.I):
                   raise SystemExit(f"{name}: water answer missing 100°C: {response!r}")
-              if not re.search(r"212\\s*°?F", response, re.I):
+              if not re.search(r"212\s*°?F", response, re.I):
                   raise SystemExit(f"{name}: water answer missing 212°F: {response!r}")
               if not re.search(r"standard atmospheric pressure", response, re.I):
                   raise SystemExit(f"{name}: water answer omitted pressure qualification: {response!r}")
