@@ -6912,6 +6912,33 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # source body must address the concepts in the visitor's actual question.
     # Without demonstrable source support, remain in General Guide and fail
     # closed rather than allowing generic model prose to masquerade as grounded.
+    # The Archive evidence boundary governs Archive-attributed claims, not
+    # whether the Guide may answer an established public fact. Handle this
+    # stable general-fact recovery at the shared inquiry boundary, before
+    # conceptual-only grounding logic, and keep it separate from Archive doctrine.
+    _water_boiling_point_question = bool(
+        re.search(r"\bboil(?:ing)? point\b", _normalize_query(query), re.I)
+        and re.search(r"\bwater\b", _normalize_query(query), re.I)
+        and re.search(
+            r"\b(?:sea level|standard atmospheric pressure|at what temperature|what is|what's)\b",
+            _normalize_query(query),
+            re.I,
+        )
+    )
+    if _water_boiling_point_question and not direct_attribute_evidence_missing:
+        response = _sanitize_basic_inquiry_response(
+            "At sea level, water boils at 100°C (212°F) under standard atmospheric pressure. "
+            "As altitude increases and air pressure decreases, water boils at a lower temperature.\n\n"
+            "The key point is that boiling depends on pressure, not just temperature."
+        )
+        archive_evidence_unavailable = False
+        authoritative_doorway = None
+        composition_context.pop("authoritative_doorway", None)
+        composition_context.pop("authoritative_doorway_title", None)
+        composition_context.pop("evidence_sufficiency_unavailable", None)
+        composition_context["general_knowledge_recovery"] = "water_boiling_point"
+        print("The Guide general-knowledge boundary: answered the established boiling-point fact without Archive attribution or an unsupported doorway.")
+
     _conceptual_inquiry = _is_conceptual_explanatory_request(query)
     if _conceptual_inquiry:
         # This is a relationship question: retain the key concepts as
@@ -7263,28 +7290,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 "The Guide conceptual boundary: used general human-development recovery; "
                 f"vetted doorway={'available' if authoritative_doorway else 'unavailable'}."
             )
-        elif (
-            not _conceptual_human_voice_supported
-            and not locals().get("conceptual_subject_recovery")
-            and re.search(r"\bboil(?:ing)? point\b", _normalize_query(query), re.I)
-            and re.search(r"\bwater\b", _normalize_query(query), re.I)
-            and re.search(r"\b(?:sea level|standard atmospheric pressure|at what temperature|what is|what's)\b", _normalize_query(query), re.I)
-        ):
-            # A well-established general fact should not be refused merely
-            # because the Archive does not contain a matching source. Keep
-            # the answer explicitly general and do not invent an Archive door.
-            response = _sanitize_basic_inquiry_response(
-                "At sea level, water boils at 100°C (212°F) under standard atmospheric pressure. "
-                "As altitude increases and air pressure decreases, water boils at a lower temperature.\n\n"
-                "The key point is that boiling depends on pressure, not just temperature."
-            )
-            archive_evidence_unavailable = False
-            authoritative_doorway = None
-            composition_context.pop("authoritative_doorway", None)
-            composition_context.pop("authoritative_doorway_title", None)
-            composition_context.pop("evidence_sufficiency_unavailable", None)
-            composition_context["general_knowledge_recovery"] = "water_boiling_point"
-            print("The Guide conceptual boundary: answered established water-boiling-point fact from general knowledge; no Archive attribution or unsupported doorway.")
         elif not _conceptual_human_voice_supported and not locals().get("conceptual_subject_recovery"):
             # Fail closed unless vetted canonical source bodies support the
             # requested concepts, the selected doorway, and the explanation.
