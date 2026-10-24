@@ -58,6 +58,8 @@ try {
       startUrl: GUIDE_URL,
       apiRequests: [],
       apiResponses: [],
+      catalogueRequests: [],
+      catalogueResponses: [],
       finalUrl: null,
       answerText: "",
       result: "RUNNING",
@@ -73,6 +75,9 @@ try {
         if (url.pathname === "/api/query" && request.method() === "POST") {
           item.apiRequests.push({ url: request.url(), body: request.postData() || "" });
         }
+        if (/\/wp-json\/mini-use\/v1\/navigate\/?$/.test(url.pathname) && request.method() === "POST") {
+          item.catalogueRequests.push({ url: request.url(), body: request.postData() || "" });
+        }
       } catch {}
     });
     page.on("response", response => {
@@ -80,6 +85,9 @@ try {
         const url = new URL(response.url());
         if (url.pathname === "/api/query" && response.request().method() === "POST") {
           item.apiResponses.push({ url: response.url(), status: response.status() });
+        }
+        if (/\/wp-json\/mini-use\/v1\/navigate\/?$/.test(url.pathname) && response.request().method() === "POST") {
+          item.catalogueResponses.push({ url: response.url(), status: response.status() });
         }
       } catch {}
     });
@@ -121,16 +129,35 @@ try {
       } else {
         await page.waitForURL(url => url.pathname === CATALOGUE_PATH, { timeout: 45_000 });
         item.finalUrl = page.url();
-        const final = new URL(item.finalUrl);
-        const query = final.searchParams.get("catalogue_query");
-        if (query !== testCase.query) {
-          throw new Error("Catalogue handoff did not preserve exact visitor query: " + JSON.stringify(query));
-        }
+
+        // Mini-USE intentionally removes catalogue_query from the address bar
+        // after reading it, then seeds and submits its own native search form.
+        // Validate downstream intake rather than requiring the temporary
+        // handoff parameter to remain in the final URL.
+        const catalogueInput = page.locator(".mini-use-plugin .mini-use-query").first();
+        await catalogueInput.waitFor({ state: "visible", timeout: 20_000 });
+        await page.waitForFunction(({ selector, expected }) => {
+          const input = document.querySelector(selector);
+          return !!input && input.value.trim() === expected;
+        }, { selector: ".mini-use-plugin .mini-use-query", expected: testCase.query }, { timeout: 20_000 });
+
         if (!item.apiRequests.some(req => {
           try { return JSON.parse(req.body).query === testCase.query; } catch { return false; }
-        })) throw new Error("Live API request did not preserve the exact Catalogue discovery question");
+        })) throw new Error("Live Guide API request did not preserve the exact Catalogue discovery question");
         if (!item.apiResponses.some(res => res.status >= 200 && res.status < 300)) {
-          throw new Error("No successful API response was observed for Catalogue discovery case");
+          throw new Error("No successful Guide API response was observed for Catalogue discovery case");
+        }
+        await page.locator(".mini-use-plugin .mini-use-results:not([hidden])").waitFor({
+          state: "visible",
+          timeout: 30_000
+        }).catch(() => {
+          throw new Error("Catalogue did not complete the automatic Mini-USE search for the handed-off question");
+        });
+        if (!item.catalogueRequests.some(req => {
+          try { return JSON.parse(req.body).query === testCase.query; } catch { return false; }
+        })) throw new Error("Mini-USE request did not preserve the exact handed-off visitor question");
+        if (!item.catalogueResponses.some(res => res.status >= 200 && res.status < 300)) {
+          throw new Error("Mini-USE did not return a successful response for the handed-off question");
         }
         item.answerText = "";
       }
