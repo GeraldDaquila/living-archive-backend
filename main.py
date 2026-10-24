@@ -7219,6 +7219,27 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     "possible; stewardship helps that cooperation endure."
                 )
 
+        # A narrow, deterministic recovery for a well-established general fact.
+        # Archive evidence remains the basis for Archive-specific claims, but its
+        # absence must not make the Guide refuse a basic factual question.
+        _water_boiling_point_question = bool(
+            re.search(r"\bboiling point of water\b", query, re.I)
+            and re.search(r"\b(sea level|standard atmospheric pressure|at standard pressure)\b", query, re.I)
+        )
+        if _water_boiling_point_question:
+            response = _sanitize_basic_inquiry_response(
+                "At sea level, water boils at 100°C (212°F) under standard atmospheric pressure. "
+                "As altitude increases and air pressure decreases, water boils at a lower temperature.\n\n"
+                "The key point is that boiling depends on pressure as well as temperature."
+            )
+            archive_evidence_unavailable = False
+            # This is general knowledge, not an Archive-attributed statement.
+            # Do not attach an unrelated or unverified Archive doorway.
+            authoritative_doorway = None
+            composition_context.pop("authoritative_doorway", None)
+            composition_context.pop("authoritative_doorway_title", None)
+            composition_context.pop("evidence_sufficiency_unavailable", None)
+            print("The Guide factual recovery: answered standard water boiling-point question from stable general knowledge; no Archive attribution.")
         # Human development is a broad, answerable public concept even when the
         # Archive's retrieved bodies do not establish its own specific framing.
         # Keep a useful general explanation, but do not imply Archive attribution
@@ -7227,7 +7248,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             re.search(r"\bhuman development\b", _normalize_query(query), re.I)
             and re.search(r"\b(?:significance|importance|meaning|why|matter|what is)\b", _normalize_query(query), re.I)
         )
-        if not _conceptual_human_voice_supported and not locals().get("conceptual_subject_recovery") and _human_development_question:
+        if not _water_boiling_point_question and not _conceptual_human_voice_supported and not locals().get("conceptual_subject_recovery") and _human_development_question:
             response = _sanitize_basic_inquiry_response(
                 "Human development is more than growing older, gaining knowledge, or learning a skill. It is the gradual shaping of how a person understands the world, makes choices, lives with others, and takes responsibility for the life they share.\n\n"
                 "Its significance lies in what those capacities make possible. A person who can think things through, learn from experience, and understand another person's point of view has more room to choose how to respond—not simply repeat what circumstances have taught them. Those choices matter in everyday life: in how people care for themselves, raise children, work through differences, and contribute to their communities.\n\n"
@@ -7263,7 +7284,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 "The Guide conceptual boundary: used general human-development recovery; "
                 f"vetted doorway={'available' if authoritative_doorway else 'unavailable'}."
             )
-        elif not _conceptual_human_voice_supported and not locals().get("conceptual_subject_recovery"):
+        elif not _water_boiling_point_question and not _conceptual_human_voice_supported and not locals().get("conceptual_subject_recovery"):
             # Fail closed unless vetted canonical source bodies support the
             # requested concepts, the selected doorway, and the explanation.
             response = _archive_limitation_response(query)

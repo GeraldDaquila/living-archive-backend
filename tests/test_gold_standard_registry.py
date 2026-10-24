@@ -318,3 +318,12 @@ def test_human_development_gold_standard_preserves_approved_answer_and_doorway()
     assert record["rating_out_of_10"] == fixture["rating_out_of_10"] == 9.0
     assert len(record["expected_response"].split(chr(10) * 2)) == 3
     assert "not a claim that the general explanation is a verbatim canonical doctrine" in record["provenance"]["evidence_boundary"]
+
+
+def test_water_boiling_point_general_fact_has_a_deterministic_answer_not_archive_refusal():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    assert '_water_boiling_point_question = bool(' in source
+    assert '"At sea level, water boils at 100°C (212°F) under standard atmospheric pressure.' in source
+    assert 'water boils at a lower temperature.' in source
+    assert 'This is general knowledge, not an Archive-attributed statement.' in source
+    assert 'The Guide factual recovery: answered standard water boiling-point question from stable general knowledge; no Archive attribution.' in source

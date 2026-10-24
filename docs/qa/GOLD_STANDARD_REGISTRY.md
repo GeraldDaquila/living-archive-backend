@@ -518,3 +518,14 @@ Both records are separate candidates and must not be counted as user-approved fr
 - **Fixture:** `tests/fixtures/general_guide_human_development_gold_standard.json`
 - **Test:** `tests/test_gold_standard_registry.py::test_human_development_gold_standard_preserves_approved_answer_and_doorway`
 - **Freeze policy:** Preserve the approved response and doorway; changes require explicit user authorization and a documented benchmark-version update.
+
+
+### GS-GUIDE-009 — General fact must not be refused for lack of Archive evidence (negative control)
+- **Status:** RECOVERED_FAILURE_CONTROL_NOT_GOLD_STANDARD
+- **Exact question:** “What is the boiling point of water at sea level?”
+- **Observed failure:** The live Guide refused to answer because the Living Archive did not contain enough supporting material.
+- **Required behavior:** Give the established general fact (100°C / 212°F at standard atmospheric pressure), briefly explain the effect of lower pressure at altitude, and do not imply this is Archive doctrine.
+- **Doorway:** None required; do not attach an unrelated or unverified destination to a simple science fact.
+- **Regression rule:** Lack of Archive evidence must not trigger refusal for this well-established general fact.
+- **Source:** User-provided live screenshot, 2026-10-24.
+- **Implementation fixture:** Deterministic narrow recovery in `main.py`; this remains a failure-control case, not approved gold-standard wording until the user accepts the live result.
