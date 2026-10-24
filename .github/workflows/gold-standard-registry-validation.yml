@@ -8,6 +8,8 @@ on:
       - "scripts/qa/report_gold_standard_registry.py"
       - "scripts/qa/capture_live_guide_gold_standard_candidate.py"
       - "tests/test_gold_standard_registry.py"
+      - "docs/qa/SYSTEM_WIDE_ORIENTATION_AND_STRUCTURAL_FIX_STANDARD.md"
+      - "tests/test_system_wide_orientation_standard.py"
       - "tests/test_live_guide_gold_standard_capture.py"
       - ".github/workflows/gold-standard-registry-validation.yml"
   push:
