@@ -43,16 +43,29 @@ def test_general_conceptual_fail_closed_behavior_remains_for_other_topics():
     assert "archive_evidence_unavailable = True" in remaining_gate
 
 
-def test_water_boiling_point_gets_a_direct_general_knowledge_answer():
-    assert 're.search(r"\\bboil(?:ing)? point\\b", _normalize_query(query), re.I)' in SOURCE
+def test_water_boiling_point_recovery_is_on_the_shared_inquiry_path_before_conceptual_only_grounding():
+    shared_boundary = SOURCE.index(
+        "# The Archive evidence boundary governs Archive-attributed claims"
+    )
+    conceptual_only_gate = SOURCE.index(
+        "_conceptual_inquiry = _is_conceptual_explanatory_request(query)",
+        shared_boundary,
+    )
+    water_recovery = SOURCE.index("_water_boiling_point_question = bool(", shared_boundary)
+    assert shared_boundary < water_recovery < conceptual_only_gate
+    assert 're.search(r"\\\\bboil(?:ing)? point\\\\b", _normalize_query(query), re.I)' in SOURCE
     assert "At sea level, water boils at 100°C (212°F)" in SOURCE
     assert "standard atmospheric pressure" in SOURCE
     assert 'composition_context["general_knowledge_recovery"] = "water_boiling_point"' in SOURCE
+    assert "The Guide general-knowledge boundary: answered the established boiling-point fact" in SOURCE
 
 
 def test_water_boiling_point_recovery_does_not_invent_archive_doorway():
-    start = SOURCE.index('general_knowledge_recovery"] = "water_boiling_point"')
-    block = SOURCE[start-1000:start+200]
+    start = SOURCE.index('composition_context["general_knowledge_recovery"] = "water_boiling_point"')
+    end = SOURCE.index('    _conceptual_inquiry = _is_conceptual_explanatory_request(query)', start)
+    block = SOURCE[start-1200:end]
     assert 'composition_context.pop("authoritative_doorway", None)' in block
     assert 'composition_context.pop("authoritative_doorway_title", None)' in block
+    assert 'authoritative_doorway = None' in block
     assert "archive_evidence_unavailable = False" in block
+    assert "elif not _conceptual_human_voice_supported" in block
