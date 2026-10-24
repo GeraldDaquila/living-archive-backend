@@ -6982,7 +6982,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         )
 
     _conceptual_inquiry = _is_conceptual_explanatory_request(query)
-    if _conceptual_inquiry:
+    if _conceptual_inquiry and general_knowledge_recovery is None:
         # This is a relationship question: retain the key concepts as
         # explicit requirements instead of letting their overlap make the
         # evidence threshold trivially pass.
