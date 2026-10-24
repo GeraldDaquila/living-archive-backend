@@ -6350,27 +6350,47 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
             "I couldn’t isolate a complete source sentence that I can quote reliably, "
             "so I won’t manufacture one."
         )
-    # Prefer sentences that express the page's substantive framework, not
-    # merely a rhetorically polished sentence about the topic. Score only
-    # source sentences already present verbatim in the canonical body; this
-    # changes selection, never the quoted wording.
-    framework_terms = {
-        "biology", "psychology", "ethics", "leadership", "meaning",
-        "integration", "integrated", "interconnected", "maturity",
-        "responsibility", "stewardship", "relational", "systemic",
-        "existential", "capacities",
+    # Select a small set of verbatim canonical sentences that collectively
+    # preserve the source's framework. A single sentence often mentions the
+    # topic but omits either disciplinary scope or the maturity/stewardship
+    # conclusion. Never synthesize a quote: every selected sentence must be
+    # copied from the fetched source body.
+    framework_groups = {
+        "disciplinary_scope": {"biology", "psychology", "ethics", "leadership", "meaning", "relational", "systemic", "existential"},
+        "integration": {"integration", "integrated", "interconnected", "capacities"},
+        "maturity_stewardship": {"maturity", "responsibility", "stewardship"},
     }
-    sentence = max(
+    def _tokens(value):
+        return set(re.findall(r"[a-z0-9]+", value.casefold()))
+    ranked = sorted(
         candidates,
         key=lambda item: (
-            len(set(re.findall(r"[a-z0-9]+", item.casefold())) & framework_terms),
-            len(set(re.findall(r"[a-z0-9]+", item.casefold())) & subject_tokens),
-            len(set(re.findall(r"[a-z0-9]+", item.casefold()))),
+            len(_tokens(item) & set().union(*framework_groups.values())),
+            len(_tokens(item) & subject_tokens),
+            len(_tokens(item)),
             len(item),
         ),
+        reverse=True,
     )
+    selected = []
+    covered = set()
+    for sentence in ranked:
+        terms = _tokens(sentence)
+        groups_here = {
+            group for group, terms_for_group in framework_groups.items()
+            if terms & terms_for_group
+        }
+        if not selected or groups_here - covered:
+            selected.append(sentence)
+            covered.update(groups_here)
+        if len(selected) >= 3 or covered == set(framework_groups):
+            break
+    # Retain the highest-ranked sentence even if the source body does not
+    # contain all three framework groups; the response must not fill gaps
+    # with outside knowledge.
+    quotes = " ".join(f"“{sentence}”" for sentence in selected)
     return (
-        f"{title} is a useful place to begin. The essay states: “{sentence}” "
+        f"{title} is a useful place to begin. The essay states: {quotes} "
         f"That gives you a focused entry point for exploring {normalized_subject}."
     )
 
