@@ -361,7 +361,13 @@ jobs:
                       response_folded = response.casefold()
                       required_source_concepts = {
                           "integration": ("integration", "integrated", "interconnected"),
-                          "disciplinary_scope": ("biology", "psychology", "ethics", "leadership", "meaning"),
+                          # Match the canonical article’s actual wording and valid forms;
+                          # do not require unrelated synonyms absent from the source.
+                          "disciplinary_scope": (
+                              "biology", "biological", "psychology", "psychological",
+                              "ethics", "ethical", "relational", "systemic", "existential",
+                              "leadership", "meaning",
+                          ),
                           "maturity_or_stewardship": ("maturity", "responsibility", "stewardship"),
                       }
                       missing_concepts = [
