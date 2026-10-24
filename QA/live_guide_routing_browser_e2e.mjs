@@ -1,0 +1,172 @@
+import fs from "node:fs";
+import { chromium } from "playwright";
+
+const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/";
+const CATALOGUE_PATH = "/explore-the-stewardship-catalogue/";
+const ARTIFACT_DIR = "artifacts";
+fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
+
+const cases = [
+  {
+    id: "explicit-no-navigation",
+    query: "Explain stewardship, but do not send me to another page yet.",
+    expected: "answer-first-no-navigation"
+  },
+  {
+    id: "catalogue-resource-discovery",
+    query: "Where can I find material about institutional responsibility?",
+    expected: "native-catalogue-handoff"
+  }
+];
+
+const report = {
+  test: "Live WordPress Guide browser E2E — routing boundaries",
+  guideUrl: GUIDE_URL,
+  startedAt: new Date().toISOString(),
+  pageErrors: [],
+  failedRequests: [],
+  cases: [],
+  result: "RUNNING",
+  failure: null
+};
+
+const browser = await chromium.launch({ headless: true });
+const rootSelector = '.archive-stage-wrapper[data-guide-instance="woody"]';
+
+async function openGuide(page) {
+  const response = await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded" });
+  if (!response || response.status() !== 200) {
+    throw new Error("Guide returned non-200 status: " + (response?.status() ?? "no response"));
+  }
+  const root = page.locator(rootSelector);
+  await root.waitFor({ state: "visible", timeout: 25_000 });
+  await root.locator("#archive-query-input").waitFor({ state: "visible" });
+  await root.locator("#archive-submit-btn").waitFor({ state: "visible" });
+  return root;
+}
+
+try {
+  for (const testCase of cases) {
+    const page = await browser.newPage({ viewport: { width: 1365, height: 1000 } });
+    page.setDefaultTimeout(15_000);
+    page.setDefaultNavigationTimeout(45_000);
+
+    const item = {
+      id: testCase.id,
+      query: testCase.query,
+      expected: testCase.expected,
+      startUrl: GUIDE_URL,
+      apiRequests: [],
+      apiResponses: [],
+      finalUrl: null,
+      answerText: "",
+      result: "RUNNING",
+      failure: null
+    };
+    page.on("pageerror", error => report.pageErrors.push({ case: testCase.id, error: error.message }));
+    page.on("requestfailed", request => report.failedRequests.push({
+      case: testCase.id, url: request.url(), error: request.failure()?.errorText || "unknown"
+    }));
+    page.on("request", request => {
+      try {
+        const url = new URL(request.url());
+        if (url.pathname === "/api/query" && request.method() === "POST") {
+          item.apiRequests.push({ url: request.url(), body: request.postData() || "" });
+        }
+      } catch {}
+    });
+    page.on("response", response => {
+      try {
+        const url = new URL(response.url());
+        if (url.pathname === "/api/query" && response.request().method() === "POST") {
+          item.apiResponses.push({ url: response.url(), status: response.status() });
+        }
+      } catch {}
+    });
+
+    try {
+      const root = await openGuide(page);
+      await root.locator("#archive-query-input").fill(testCase.query);
+      await root.locator("#archive-submit-btn").click();
+
+      if (testCase.expected === "answer-first-no-navigation") {
+        await page.waitForFunction(({ selector }) => {
+          const root = document.querySelector(selector);
+          const text = root?.querySelector("#archive-response-text")?.innerText?.trim() || "";
+          const loading = /^(giving this question a little more room|searching|thinking|working on it)[.\s…]*$/i.test(text);
+          return text.length >= 300 && !loading;
+        }, { selector: rootSelector }, { timeout: 155_000 });
+
+        item.answerText = await root.locator("#archive-response-text").innerText();
+        item.finalUrl = page.url();
+        if (new URL(item.finalUrl).origin !== new URL(GUIDE_URL).origin ||
+            new URL(item.finalUrl).pathname !== new URL(GUIDE_URL).pathname) {
+          throw new Error("Explicit no-navigation request left The Guide: " + item.finalUrl);
+        }
+        if (!/^stewardship means/i.test(item.answerText.trim())) {
+          throw new Error("Stewardship explanation was not answered directly");
+        }
+        if (/provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer|\bUSE\b/i.test(item.answerText)) {
+          throw new Error("Internal implementation jargon leaked into the visitor-facing answer");
+        }
+        if (/https?:\/\/|\[[^\]]+\]\(/i.test(item.answerText)) {
+          throw new Error("The answer embedded a navigation link despite the visitor's explicit instruction");
+        }
+        if (!item.apiRequests.some(req => {
+          try { return JSON.parse(req.body).query === testCase.query; } catch { return false; }
+        })) throw new Error("Live API request did not preserve the exact no-navigation question");
+        if (!item.apiResponses.some(res => res.status >= 200 && res.status < 300)) {
+          throw new Error("No successful API response was observed for no-navigation case");
+        }
+      } else {
+        await page.waitForURL(url => url.pathname === CATALOGUE_PATH, { timeout: 45_000 });
+        item.finalUrl = page.url();
+        const final = new URL(item.finalUrl);
+        const query = final.searchParams.get("catalogue_query");
+        if (query !== testCase.query) {
+          throw new Error("Catalogue handoff did not preserve exact visitor query: " + JSON.stringify(query));
+        }
+        if (!item.apiRequests.some(req => {
+          try { return JSON.parse(req.body).query === testCase.query; } catch { return false; }
+        })) throw new Error("Live API request did not preserve the exact Catalogue discovery question");
+        if (!item.apiResponses.some(res => res.status >= 200 && res.status < 300)) {
+          throw new Error("No successful API response was observed for Catalogue discovery case");
+        }
+        item.answerText = "";
+      }
+
+      if (report.pageErrors.some(entry => entry.case === testCase.id)) {
+        throw new Error("Browser JavaScript error: " + report.pageErrors.filter(entry => entry.case === testCase.id).map(entry => entry.error).join(" | "));
+      }
+      item.result = "PASS";
+    } catch (error) {
+      item.result = "FAIL";
+      item.failure = error?.stack || error?.message || String(error);
+      item.finalUrl = item.finalUrl || page.url();
+      try {
+        item.answerText = await page.locator(rootSelector + " #archive-response-text").innerText({ timeout: 3000 });
+      } catch {}
+      report.cases.push(item);
+      await page.screenshot({ path: `${ARTIFACT_DIR}/live-guide-routing-${testCase.id}.png`, fullPage: true }).catch(() => {});
+      throw error;
+    }
+
+    report.cases.push(item);
+    await page.screenshot({ path: `${ARTIFACT_DIR}/live-guide-routing-${testCase.id}.png`, fullPage: true }).catch(() => {});
+    await page.close();
+  }
+
+  if (report.pageErrors.length) throw new Error("One or more browser page errors were observed");
+  report.result = "PASS";
+  report.finishedAt = new Date().toISOString();
+  console.log("LIVE_GUIDE_ROUTING_BROWSER_E2E_RESULT " + JSON.stringify(report));
+} catch (error) {
+  report.result = "FAIL";
+  report.failure = error?.stack || error?.message || String(error);
+  report.finishedAt = new Date().toISOString();
+  console.error("LIVE_GUIDE_ROUTING_BROWSER_E2E_RESULT " + JSON.stringify(report));
+  process.exitCode = 1;
+} finally {
+  fs.writeFileSync(`${ARTIFACT_DIR}/live-guide-routing-browser-e2e.json`, JSON.stringify(report, null, 2));
+  await browser.close().catch(() => {});
+}
