@@ -120,8 +120,12 @@ try {
     const root = document.querySelector(selector);
     const text = root?.querySelector("#archive-response-text")?.innerText?.trim() || "";
     const box = root?.querySelector("#archive-response-box");
-    return text.length > 0 && text !== previous.trim() && box && getComputedStyle(box).display !== "none";
-  }, { selector: rootSelector, previous: answerBefore }, { timeout: 135_000 });
+    const stillLoading = /^(giving this question a little more room|searching|thinking|working on it)[.\\s…]*$/i.test(text);
+    // The UI first renders a short progress sentence. Do not treat that transient
+    // placeholder as a completed answer: wait for substantive visitor-facing text.
+    return text.length > 80 && text !== previous.trim() && !stillLoading &&
+      box && getComputedStyle(box).display !== "none";
+  }, { selector: rootSelector, previous: answerBefore }, { timeout: 155_000 });
 
   await page.waitForTimeout(700);
   const rendered = await page.evaluate((selector) => {
@@ -172,6 +176,25 @@ try {
   report.result = "FAIL";
   report.failure = error?.stack || error?.message || String(error);
   report.finishedAt = new Date().toISOString();
+  try {
+    const current = await page.evaluate((selector) => {
+      const root = document.querySelector(selector);
+      const button = root?.querySelector("#archive-submit-btn");
+      const box = root?.querySelector("#archive-response-box");
+      return {
+        answerText: root?.querySelector("#archive-response-text")?.innerText?.trim() || "",
+        responseBoxDisplay: box ? getComputedStyle(box).display : null,
+        buttonDisabled: button?.disabled ?? null,
+        buttonLoading: button?.classList.contains("is-loading") ?? null,
+        url: location.href
+      };
+    }, '.archive-stage-wrapper[data-guide-instance="woody"]');
+    report.currentDom = current;
+    if (!report.answerText) report.answerText = current.answerText;
+    if (!report.pageUrlAfterSubmit) report.pageUrlAfterSubmit = current.url;
+  } catch (domError) {
+    report.domInspectionError = domError.message;
+  }
   try {
     await page.screenshot({ path: `${ARTIFACT_DIR}/live-guide-water-browser-e2e.png`, fullPage: true, timeout: 10_000 });
   } catch (screenshotError) {
