@@ -16,6 +16,24 @@ const cases = [
     id: "catalogue-resource-discovery",
     query: "Where can I find material about institutional responsibility?",
     expected: "native-catalogue-handoff"
+  },
+  {
+    id: "explicit-glossary-definition",
+    query: "What is the canonical Glossary definition of stewardship?",
+    expected: "native-glossary-handoff",
+    path: "/glossary/"
+  },
+  {
+    id: "explicit-atlas-map",
+    query: "Show me the Living Archive Atlas map for stewardship.",
+    expected: "native-atlas-handoff",
+    path: "/the-living-archive-atlas/"
+  },
+  {
+    id: "explicit-glyph-search",
+    query: "Find the Guardian Glyph associated with stewardship.",
+    expected: "native-glyph-handoff",
+    path: "/guardian-glyph-archives/"
   }
 ];
 
@@ -126,6 +144,26 @@ try {
         if (!item.apiResponses.some(res => res.status >= 200 && res.status < 300)) {
           throw new Error("No successful API response was observed for no-navigation case");
         }
+      } else if (testCase.expected === "native-glossary-handoff" ||
+                 testCase.expected === "native-atlas-handoff" ||
+                 testCase.expected === "native-glyph-handoff") {
+        // These are destination-boundary checks. The Guide must honor an
+        // explicit request for a native tool and preserve the original query
+        // at the request boundary. Destination-specific search completion
+        // remains a separate acceptance check.
+        await page.waitForURL(url => url.pathname === testCase.path, { timeout: 45_000 });
+        item.finalUrl = page.url();
+        const finalUrl = new URL(item.finalUrl);
+        if (!finalUrl.search) {
+          throw new Error("Native destination handoff omitted its query/term parameter");
+        }
+        if (!item.apiRequests.some(req => {
+          try { return JSON.parse(req.body).query === testCase.query; } catch { return false; }
+        })) throw new Error("Live Guide API request did not preserve the exact native-destination question");
+        if (!item.apiResponses.some(res => res.status >= 200 && res.status < 300)) {
+          throw new Error("No successful Guide API response was observed for native-destination case");
+        }
+        item.answerText = "";
       } else {
         await page.waitForURL(url => url.pathname === CATALOGUE_PATH, { timeout: 45_000 });
         item.finalUrl = page.url();
