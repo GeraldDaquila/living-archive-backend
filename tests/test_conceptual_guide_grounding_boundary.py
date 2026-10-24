@@ -280,3 +280,17 @@ def test_conceptual_human_voice_fallback_is_rejected_only_when_source_gates_fail
     assert "and not direct_attribute_evidence_missing" in gate
     assert "if not _conceptual_human_voice_supported:" in gate
     assert "if not _conceptual_supported or archive_evidence_unavailable:" not in gate
+
+
+def test_final_visitor_boundary_restores_human_voice_after_provider_composition():
+    start = SOURCE.index("# Final human-voice boundary for conceptual relationship questions.")
+    end = SOURCE.index('    request_id = "basic-"', start)
+    boundary = SOURCE[start:end]
+    assert 'locals().get("_conceptual_human_voice_supported") is True' in boundary
+    assert "_final_trust_title" in boundary
+    assert "_final_stewardship_title" in boundary
+    assert "Trust helps people in a community rely on one another." in boundary
+    assert "Think of a shared garden." in boundary
+    assert "Stewardship is tending the garden" in boundary
+    assert "canonical source" not in boundary
+    assert "bounded synthesis" not in boundary
