@@ -140,7 +140,7 @@ def test_conceptual_grounding_allows_bounded_synthesis_across_vetted_canonical_b
     assert "_conceptual_combined_body" in gate
     assert '"generation_authority_protected_docs"' in gate
     assert "len(_conceptual_terms) >= 2" in gate
-    assert "_conceptual_coverage >= 0.75" in gate
+    assert "_conceptual_coverage >= (2 / 3)" in gate
 
 
 def test_conceptual_grounding_failure_diagnostic_reports_bounded_coverage_state():
@@ -156,7 +156,7 @@ def test_conceptual_grounding_preserves_upstream_evidence_failure_as_fail_closed
     start = SOURCE.index("        if not _conceptual_supported or archive_evidence_unavailable:")
     end = SOURCE.index("# Expose a small, deterministic provenance contract", start)
     gate = SOURCE[start:end]
-    assert "response = _archive_limitation_response()" in gate
+    assert "response = _archive_limitation_response(query)" in gate
     assert "authoritative_doorway = None" in gate
     assert 'composition_context.pop("authoritative_doorway", None)' in gate
 
