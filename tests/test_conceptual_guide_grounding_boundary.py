@@ -150,3 +150,12 @@ def test_conceptual_grounding_failure_diagnostic_reports_bounded_coverage_state(
     assert "coverage:{_conceptual_coverage:.3f}" in diagnostic
     assert "vetted_docs:{len(_conceptual_authority_docs)}" in diagnostic
     assert "usable_docs:{len(_conceptual_combined_body)}" in diagnostic
+
+
+def test_conceptual_grounding_preserves_upstream_evidence_failure_as_fail_closed():
+    start = SOURCE.index("        if not _conceptual_supported or archive_evidence_unavailable:")
+    end = SOURCE.index("# Expose a small, deterministic provenance contract", start)
+    gate = SOURCE[start:end]
+    assert "response = _archive_limitation_response()" in gate
+    assert "authoritative_doorway = None" in gate
+    assert 'composition_context.pop("authoritative_doorway", None)' in gate
