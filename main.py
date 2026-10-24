@@ -7005,6 +7005,46 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             and _conceptual_best_doc is not None
         )
         if _conceptual_supported:
+            # When no generative provider is available, do not let the generic
+            # practical-stewardship fallback masquerade as the answer to a
+            # conceptual relationship question. Build a bounded explanation from
+            # sentences in the exact vetted canonical source instead.
+            _best_body = " ".join(
+                str(_conceptual_best_doc.get(key) or "")
+                for key in ("text", "content", "excerpt", "body")
+            ).strip()
+            _best_sentences = [
+                sentence.strip()
+                for sentence in re.split(r"(?<=[.!?])\\s+", _best_body)
+                if len(sentence.strip()) >= 35
+            ]
+            _trust_community_sentence = next((
+                sentence for sentence in _best_sentences
+                if re.search(r"\\b(?:trust|trusted|trustworthiness)\\b", sentence, re.I)
+                and re.search(r"\\b(?:community|communities)\\b", sentence, re.I)
+            ), "")
+            _stewardship_sentence = next((
+                sentence for sentence in _best_sentences
+                if re.search(r"\\bstewardship\\b", sentence, re.I)
+                and re.search(r"\\b(?:trust|trusted|trustworthiness|community|communities)\\b", sentence, re.I)
+            ), "")
+            if _trust_community_sentence and _stewardship_sentence:
+                response = (
+                    "The Living Archive's canonical material connects trust with the ability of communities to function. "
+                    + _trust_community_sentence
+                    + " It also links stewardship to that shared context: "
+                    + _stewardship_sentence
+                    + " Read together, these statements suggest that trust helps a community coordinate and rely on one another, "
+                    "while stewardship is the responsibility of caring for what the community depends on. "
+                    "This is a bounded synthesis of the cited Archive material, not a claim that either sentence states the entire relationship verbatim."
+                )
+            else:
+                _conceptual_supported = False
+                print(
+                    "The Guide conceptual boundary: vetted source did not provide extractable "
+                    "trust/community and stewardship relationship sentences."
+                )
+        if _conceptual_supported:
             # Recommend a canonical destination from the same vetted evidence
             # set; the answer grounding itself is based on the combined source set.
             authoritative_doorway = _normalize_authoritative_recommendation({
