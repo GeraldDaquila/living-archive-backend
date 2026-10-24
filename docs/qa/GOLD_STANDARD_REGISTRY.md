@@ -5,6 +5,7 @@
 **Rule:** A question is not an approved gold standard merely because it was tested once. Preserve exact approved text when available; otherwise mark it NEEDS_SOURCE_RECOVERY. Never reconstruct missing approved wording from memory.
 
 ## Operating rules
+- Apply the repository-wide [System-Wide Orientation and Structural Fix Standard](SYSTEM_WIDE_ORIENTATION_AND_STRUCTURAL_FIX_STANDARD.md) to structural fixes across every specialist and visitor-facing surface.
 - Keep this registry version-controlled in the living-archive-backend repository.
 - Preserve protected use_core.py unchanged.
 - Keep General Purpose USE / The Guide and HRN benchmarks structurally separate.
