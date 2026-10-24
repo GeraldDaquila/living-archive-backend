@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.294 — Practical stewardship provider-exhaustion recovery
+# USE PRODUCTION VERSION: v489.297 — Practical stewardship provider-exhaustion recovery
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
@@ -77,9 +77,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.294"
-DEPLOYMENT_FINGERPRINT = "USE-v489.294-direct-attribute-evidence-boundary"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.294-direct-attribute-evidence-boundary"
+APP_VERSION = "v489.297"
+DEPLOYMENT_FINGERPRINT = "USE-v489.297-human-voice-conceptual-fallback"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.297-human-voice-conceptual-fallback"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -221,7 +221,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.294":
+if str(APP_VERSION) != "v489.297":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -7125,20 +7125,30 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     _stewardship_sentence = _candidate
                     break
             if _trust_sentence and _community_sentence and _stewardship_doc and _stewardship_sentence:
+                # Provider-exhaustion recovery must still sound like The Guide:
+                # explain the grounded relationship in ordinary language rather than
+                # exposing evidence-processing terminology or stitching quotations
+                # together as an audit trail. Keep the source titles, but remove
+                # decorative leading symbols copied from WordPress titles.
+                _trust_title = re.sub(
+                    r"^[^\w]+", "",
+                    str((_conceptual_trust_doc or {}).get("title") or "Trust Architecture").strip(),
+                    flags=re.UNICODE,
+                ).strip()
+                _stewardship_title = re.sub(
+                    r"^[^\w]+", "",
+                    str((_stewardship_doc or {}).get("title") or "The Stewardship Age").strip(),
+                    flags=re.UNICODE,
+                ).strip()
                 response = (
-                    "In the Archive's canonical source "
-                    + str((_conceptual_trust_doc or {}).get("title") or "on trust")
-                    + ", trust is described this way: "
-                    + _trust_sentence
-                    + " The same source also notes: "
-                    + _community_sentence
-                    + " The Archive's canonical source "
-                    + str((_stewardship_doc or {}).get("title") or "on stewardship")
-                    + " adds: "
-                    + _stewardship_sentence
-                    + " Read together, these statements suggest that trust supports the coordination and cooperation a community needs, "
-                    "while stewardship is the responsibility of caring for what the community depends on. "
-                    "This is a bounded synthesis across the cited Archive sources, not a claim that any one sentence states the whole relationship verbatim."
+                    "Trust helps people in a community rely on one another. "
+                    + _trust_title
+                    + " explains how that confidence helps communities and institutions work together. "
+                    + _stewardship_title
+                    + " brings in the other side: the responsibility to care for what people share and depend on.\n\n"
+                    "Think of a shared garden. Trust means people can count on one another to show up and do their part. "
+                    "Stewardship is tending the garden so it remains healthy for everyone. One makes cooperation possible; "
+                    "the other helps that cooperation endure."
                 )
             else:
                 _conceptual_supported = False
@@ -7160,13 +7170,36 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             )
             if not authoritative_doorway:
                 _conceptual_supported = False
-        if not _conceptual_supported or archive_evidence_unavailable:
-            # An upstream evidence gate may already have failed even when the
-            # lexical overlap check passes. Never let lexical overlap override
-            # that failure or leave a recommendation attached to an unsupported answer.
-            # The fallback may help the visitor explore the question's concepts
-            # separately, but it must not assert their relationship or attach an
-            # unsupported canonical doorway.
+        _conceptual_human_voice_supported = bool(
+            _conceptual_supported
+            and _trust_sentence
+            and _community_sentence
+            and _stewardship_doc
+            and _stewardship_sentence
+            and authoritative_doorway
+            and not direct_attribute_evidence_missing
+        )
+        # Final human-voice boundary for conceptual relationship questions.
+        # This runs after the canonical evidence and doorway gates are known to
+        # have passed. Provider exhaustion must not replace the visitor-facing
+        # explanation with a quotation collage or internal evidence terminology.
+        if _conceptual_human_voice_supported:
+            _final_trust_title = str(locals().get("_trust_title") or "Trust Architecture").strip()
+            _final_stewardship_title = str(locals().get("_stewardship_title") or "The Stewardship Age").strip()
+            response = _sanitize_basic_inquiry_response(
+                "Trust helps people in a community rely on one another. "
+                + _final_trust_title
+                + " explains how that confidence helps communities and institutions work together. "
+                + _final_stewardship_title
+                + " brings in the other side: the responsibility to care for what people share and depend on.\n\n"
+                + "Think of a shared garden. Trust means people can count on one another to show up and do their part. "
+                + "Stewardship is tending the garden so it remains healthy for everyone. One makes cooperation possible; "
+                + "the other helps that cooperation endure."
+            )
+
+        if not _conceptual_human_voice_supported:
+            # Fail closed unless vetted canonical source bodies support the
+            # requested concepts, the selected doorway, and the explanation.
             response = _archive_limitation_response(query)
             archive_evidence_unavailable = True
             authoritative_doorway = None
@@ -7175,8 +7208,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             composition_context["evidence_sufficiency_unavailable"] = True
             print(
                 "The Guide conceptual boundary: vetted canonical evidence set "
-                "did not meet the question-coverage threshold; returned "
-                "Archive-only limitation. "
+                "did not support the requested explanation; returned Archive-only limitation. "
                 f"diagnostics=terms:{len(_conceptual_terms)},"
                 f"coverage:{_conceptual_coverage:.3f},"
                 f"vetted_docs:{len(_conceptual_authority_docs)},"

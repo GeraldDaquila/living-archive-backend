@@ -1,6 +1,11 @@
 import { chromium } from "playwright";
 
 const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_live=healthy-community-20261022";
+const PRIMARY_API_ORIGIN = "https://living-archive-backend.onrender.com";
+const MIRROR_API_ORIGIN = "https://living-archive-backend-mirror.onrender.com";
+const BACKEND_API_ORIGINS = [PRIMARY_API_ORIGIN, MIRROR_API_ORIGIN];
+const USE_API_ORIGIN = (process.env.USE_API_ORIGIN || PRIMARY_API_ORIGIN).replace(/\/+$/, "");
+const EXPECTED_USE_VERSION = (process.env.EXPECTED_USE_VERSION || "").trim();
 const QUERY = "I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.";
 const EXPECTED_TITLE = "What Healthy Communities Actually Look Like";
 const EXPECTED_URL = "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/";
@@ -11,6 +16,27 @@ const context = await browser.newContext({ serviceWorkers: "block" });
 const page = await context.newPage();
 page.setDefaultTimeout(60_000);
 page.setDefaultNavigationTimeout(30_000);
+
+// The WordPress controller points at production. For PR acceptance, route its
+// real browser requests to the isolated QA deployment of this exact candidate.
+if (USE_API_ORIGIN !== PRIMARY_API_ORIGIN) {
+  await page.route("**/api/query", async route => {
+    const requestedUrl = route.request().url();
+    const sourceOrigin = BACKEND_API_ORIGINS.find(origin =>
+      requestedUrl.startsWith(origin + "/api/query")
+    );
+    if (!sourceOrigin || sourceOrigin === USE_API_ORIGIN) {
+      await route.continue();
+      return;
+    }
+    const targetUrl = USE_API_ORIGIN + requestedUrl.slice(sourceOrigin.length);
+    // route.fetch() only obtains the upstream response; fulfill the browser's
+    // intercepted request with it or the controller will time out and choose
+    // the untouched mirror response instead.
+    const upstreamResponse = await route.fetch({ url: targetUrl });
+    await route.fulfill({ response: upstreamResponse });
+  });
+}
 
 const startedAt = Date.now();
 const elapsed = () => Date.now() - startedAt;
@@ -145,6 +171,7 @@ try {
   const supportedResponse = conceptualResponses.find(item =>
     item.status === 200 &&
     item.payload?.intent === "TOPICAL_INQUIRY" &&
+    (!EXPECTED_USE_VERSION || item.payload?.version === EXPECTED_USE_VERSION) &&
     item.payload?.answer_basis?.kind === "archive_supported" &&
     typeof item.payload?.response === "string" &&
     item.payload.response.trim().length >= 120 &&
@@ -167,6 +194,35 @@ try {
     .some(part=>normalizedUI.includes(part.slice(0, Math.min(part.length, 48))))) {
     throw new Error("The browser did not render a meaningful portion of the Archive-grounded API answer.");
   }
+  // Acceptance is not complete merely because a long grounded answer rendered.
+  // The provider-exhaustion path must retain The Guide's ordinary, patient voice.
+  // These phrases are deliberate user-facing contract language, not a citation
+  // shortcut: canonical-source evidence gates above still have to pass.
+  const normalizedHumanVoice = normalizedAPI;
+  for (const requiredPhrase of [
+    "trust helps people in a community rely on one another",
+    "think of a shared garden",
+    "stewardship is tending the garden"
+  ]) {
+    if (!normalizedHumanVoice.includes(requiredPhrase)) {
+      throw new Error("The conceptual fallback lost The Guide's required human voice. Missing phrase: " + requiredPhrase +
+        ". Actual API response: " + supportedResponse.payload.response);
+    }
+  }
+  for (const forbiddenPhrase of [
+    "canonical source",
+    "bounded synthesis",
+    "not a claim that any one sentence",
+    "verbatim"
+  ]) {
+    if (normalizedHumanVoice.includes(forbiddenPhrase)) {
+      throw new Error("The conceptual fallback exposed audit-style or internal wording: " + forbiddenPhrase +
+        ". Actual API response: " + supportedResponse.payload.response);
+    }
+  }
+  if (/^[^\S\r\n]*[✨🌱🔹🔸✅⚠️]/mu.test(supportedResponse.payload.response)) {
+    throw new Error("The conceptual fallback began a response line with decorative emoji.");
+  }
   if (await root.locator("#archive-response-text a.archive-recommendation-link").count() !== 1) {
     throw new Error("The conceptual response must render exactly one canonical recommendation link.");
   }
@@ -181,6 +237,9 @@ try {
 
   console.log(JSON.stringify({
     stage: "live_e2e_passed",
+    apiOrigin: USE_API_ORIGIN,
+    expectedUseVersion: EXPECTED_USE_VERSION || null,
+    actualUseVersion: supportedResponse.payload.version,
     conceptualQuery,
     conceptualText,
     rendered,
