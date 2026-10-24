@@ -7070,12 +7070,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     "The Guide conceptual boundary: vetted sources did not provide nearby trust/community evidence "
                     "and a canonical stewardship sentence."
                 )
-            else:
-                _conceptual_supported = False
-                print(
-                    "The Guide conceptual boundary: vetted source did not provide extractable "
-                    "trust/community and stewardship relationship sentences."
-                )
         if _conceptual_supported:
             # Recommend a canonical destination from the same vetted evidence
             # set; the answer grounding itself is based on the combined source set.
