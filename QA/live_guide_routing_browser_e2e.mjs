@@ -176,7 +176,37 @@ try {
         if (!item.apiResponses.some(res => res.status >= 200 && res.status < 300)) {
           throw new Error("No successful Guide API response was observed for native-destination case");
         }
-        item.answerText = "";
+
+        // Assert that each receiving tool actually consumes the handoff and
+        // renders a result, not merely that the browser arrived at its URL.
+        if (testCase.expected === "native-glossary-handoff") {
+          const result = page.locator(".living-glossary-intelligence .lagi-result");
+          await result.waitFor({ state: "visible", timeout: 25_000 });
+          const canonicalTerm = (await result.locator(".lagi-term-heading").first().innerText()).trim();
+          if (canonicalTerm.toLowerCase() !== "stewardship") {
+            throw new Error("Glossary rendered the wrong canonical heading: " + canonicalTerm);
+          }
+          item.answerText = await result.innerText();
+          item.destinationResult = { selector: ".living-glossary-intelligence .lagi-result", canonicalTerm };
+        } else if (testCase.expected === "native-atlas-handoff") {
+          const result = page.locator(".laaf-result");
+          await result.waitFor({ state: "visible", timeout: 35_000 });
+          const resultText = (await result.innerText()).trim();
+          if (resultText.length < 30 || !/atlas map/i.test(resultText)) {
+            throw new Error("Atlas Finder did not render a substantive Atlas Map result: " + resultText.slice(0, 300));
+          }
+          item.answerText = resultText;
+          item.destinationResult = { selector: ".laaf-result", textLength: resultText.length };
+        } else if (testCase.expected === "native-glyph-handoff") {
+          const result = page.locator(".la-glyph-result");
+          await result.waitFor({ state: "visible", timeout: 25_000 });
+          const resultText = (await result.innerText()).trim();
+          if (resultText.length < 30) {
+            throw new Error("Glyph Finder result rendered without substantive content");
+          }
+          item.answerText = resultText;
+          item.destinationResult = { selector: ".la-glyph-result", textLength: resultText.length };
+        }
       } else {
         await page.waitForURL(url => url.pathname === CATALOGUE_PATH, { timeout: 45_000 });
         item.finalUrl = page.url();
