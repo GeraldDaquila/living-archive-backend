@@ -1182,11 +1182,11 @@ def select(use_core, operation="generic", schema=None):
     grouped = OrderedDict()
     for item in items: grouped.setdefault(item["provider"], []).append(item)
     configured = _csv("USE_LLM_PROVIDER_ORDER")
-    # OpenRouter is the preferred free lane whenever its credential enables it.
-    # Promote it to the front even when a legacy explicit order lists it later;
-    # otherwise the two-candidate HRN window can repeatedly spend its fallback
-    # on rate-limited lanes before reaching the configured free router.
-    if "openrouter" in grouped:
+    # HRN has a deliberately narrow free-lane fallback policy. Do not force
+    # OpenRouter ahead of the operator's configured order for general Guide
+    # composition: a slow or rate-limited free router can consume the entire
+    # bounded generation window before a known-working primary model is reached.
+    if operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair"} and "openrouter" in grouped:
         configured = ["openrouter"] + [name for name in configured if name != "openrouter"]
     providers = [x for x in configured if x in grouped] + [x for x in grouped if x not in configured]
     # HRN invokes several semantic operations within one visitor turn. Rotating
@@ -1195,7 +1195,7 @@ def select(use_core, operation="generic", schema=None):
     # Keep the configured provider priority stable for HRN; health/capability
     # filtering still removes unusable candidates, and the normal fallback lane
     # remains available. Other USE operations retain round-robin arbitration.
-    if operation not in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:
+    if operation not in {"hrn_perception", "hrn_relational", "hrn_voice_repair", "general_guide_composition"}:
         providers = _rotate(providers, int(_STATE["provider_cursor"]))
         _STATE["provider_cursor"] += 1
     lanes = []

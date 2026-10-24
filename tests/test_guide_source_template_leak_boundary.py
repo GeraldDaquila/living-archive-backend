@@ -40,8 +40,29 @@ def test_final_boundary_recovers_template_contamination():
     )
     assert "currentTurn" not in recovered["response"]
     assert "nextQuestion" not in recovered["response"]
-    assert "For example" in recovered["response"]
+    assert recovered["response"] == main._archive_limitation_response()
+    assert "outside knowledge" in recovered["response"]
     assert recovered["recommendation"] is None
+    assert recovered["answer_basis"]["kind"] == "archive_evidence_unavailable"
+    assert recovered["processing"] == "final_visitor_boundary_recovery"
+
+
+def test_final_boundary_recovers_provider_error_payload():
+    payload = {
+        "ok": True,
+        "intent": "TOPICAL_INQUIRY",
+        "response": "Unable to generate a response. GROQ_API_KEY is not configured in backend environment.",
+        "recommendation": {"title": "AI vs. Human Stewardship"},
+    }
+    recovered = main._guide_finalize_visitor_payload(
+        payload,
+        "I want to learn about AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever.",
+    )
+    assert recovered["response"] == main._archive_limitation_response()
+    assert "GROQ_API_KEY" not in recovered["response"]
+    assert "Unable to generate a response" not in recovered["response"]
+    assert recovered["recommendation"] is None
+    assert recovered["answer_basis"]["kind"] == "archive_evidence_unavailable"
     assert recovered["processing"] == "final_visitor_boundary_recovery"
 
 
@@ -99,8 +120,10 @@ def test_outer_asgi_boundary_catches_leak_from_early_request_exit(monkeypatch):
     recovered = json.loads(response_body.decode("utf-8"))
     assert "currentTurn" not in recovered["response"]
     assert "nextQuestion" not in recovered["response"]
-    assert "For example" in recovered["response"]
+    assert recovered["response"] == main._archive_limitation_response()
+    assert "outside knowledge" in recovered["response"]
     assert recovered["recommendation"] is None
+    assert recovered["answer_basis"]["kind"] == "archive_evidence_unavailable"
     assert recovered["processing"] == "final_visitor_boundary_recovery"
 
 

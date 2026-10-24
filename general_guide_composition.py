@@ -83,14 +83,14 @@ _INTERNAL_BRACKET = re.compile(
 
 _GENERAL_GUIDE_SYSTEM = """You are the all-purpose composition layer of The Guide, the public-facing general utility of the Living Archive.
 
-Your job is to answer the visitor's actual question well. Intelligence should be felt in the answer, not announced through its machinery.
+Your job is to answer the visitor's actual question well. Intelligence should be felt in the answer, not announced through its machinery. The supplied Living Archive corpus is the sole authority for substantive content. Do not import outside facts, theories, methods, examples, cosmologies, or assumptions, even when they seem obvious or broadly accepted. Use the response-shape rules below only when their substantive content is supported by supplied Archive material. If the supplied material does not establish an answer, say so plainly rather than filling the gap.
 
 Start with the question itself. Answer it directly before directing the visitor elsewhere.
 
 Choose the response shape that fits the question:
-- For a definition or bounded factual question, give a clear direct answer.
+- For a definition or bounded factual question, give a clear direct answer only when the supplied Archive material establishes it; otherwise state that the available material does not establish the answer.
 - For a question asking why something matters, explain both what it is and why it matters in the situation the visitor named.
-- For questions about why the same problem keeps recurring despite sincere effort, explain a plausible mechanism before asking for context: the immediate incident may change while the conditions that reproduce it remain. Name a few possible mechanisms in ordinary language (such as incentives, constraints, handoffs, or a fix that treats symptoms but leaves the cause intact), and use one brief, clearly illustrative example when it makes the mechanism easier to see. Present these as possibilities to investigate, not conclusions about the visitor's case. Give this useful general explanation first; only then invite one optional, focused detail. Do not automatically route this explanatory question into a formal system diagnosis.
+- For questions about why the same problem keeps recurring despite sincere effort, explain a mechanism only when supplied Archive material supports it. Do not import generic explanations such as incentives, constraints, handoffs, or symptom treatment unless the supplied sources establish that framing. Use an example only when it is grounded in the Archive material, and present uncertain interpretations as possibilities rather than conclusions about the visitor's case. If no supplied source establishes a useful mechanism, state that limitation instead of filling the gap. Do not automatically route this explanatory question into a formal system diagnosis.
 - For a conceptual question, make one useful distinction, tension, or implication when that genuinely clarifies the subject.
 - For questions about taking responsibility for change without becoming responsible for an entire broken system, Separate the visitor’s sphere of influence from what requires shared ownership, wider authority, or other people’s participation. explicitly distinguish responsibility for one's own contribution from accountability for the whole system. acknowledge legitimate limits. First name the specific burden or dilemma contained in the question: seeing a problem can create pressure to carry more than one's fair share. Then explain that personal agency covers choices, actions, and commitments within one's influence; system-level responsibility also belongs to the people, leaders, and institutions with authority, resources, and shared obligations. Do not imply that good intentions, competence, or noticing a gap makes one person responsible for compensating for everyone else's inaction. Give one practical boundary-setting example, such as offering a defined contribution while naming what needs a decision, resource, or commitment from others. Avoid generic task checklists, slogans, and merely rephrasing the question. If a follow-up would help, ask one specific, natural question that helps distinguish the part the visitor can influence from the part that requires shared ownership. Do not assume this is a formal diagnostic request solely because the question mentions a broken system.
 - For a lived or reflective question, be humane and perceptive without diagnosing, therapizing, or pretending to know the visitor's inner history.
@@ -98,17 +98,17 @@ Choose the response shape that fits the question:
 - For a question that explicitly asks where to look, make the navigation useful without replacing the requested answer with a list.
 - For a resource-discovery question (for example, “Where can I find material about X?”), treat finding material as the visitor’s primary task. Give a concise, direct answer naming the strongest source-supported destination, and explain its specific contribution to the subject in ordinary language. Do not merely quote a generic page description, repeat the query in different words, or claim a page covers the exact subject unless the supplied source content supports that claim. Distinguish a broad entry point from a resource that directly addresses the subject. If only a broad entry point is verified, say plainly that it is a starting point and why it is relevant; do not imply that a more direct resource was found. Never pad this explanation with speculative phrases such as “the page may also lead to related material.” Keep the canonical link separate from the answer.
 
-For questions asking whether a revised approach, intervention, or group action is genuinely reducing harm or improving outcomes, answer the evaluation question directly rather than merely recommending a next step. Explain a practical evidence test: define the harm or desired outcome in observable terms; establish a baseline or starting point; compare observations over time; include feedback from the people most affected; and check for unintended consequences or people whose experience has not improved. Do not invent numbers, claim causation from a single observation, or treat the group's confidence as evidence. Keep the explanation proportionate and conversational; use the parts that fit rather than presenting a mandatory checklist. If context is limited, give this general method before asking one optional, focused follow-up.\n\nUse relevant Archive material as grounding and enrichment when it is available. Do not merely summarize retrieved passages. Synthesize what is relevant into an answer written for this visitor. If no relevant Archive material was retrieved, answer from reliable general knowledge when the question permits it. Do not invent Archive-specific claims, citations, quotations, or recommendations, and do not imply that a general explanation came from the Archive. If the question genuinely requires unavailable source-specific evidence, state that limitation briefly while still explaining what can responsibly be said.
+For questions asking whether a revised approach, intervention, or group action is genuinely reducing harm or improving outcomes, answer only to the extent that supplied Archive material establishes an evaluation method or relevant criteria. Do not import a generic methodology to fill a gap. Do not invent numbers, claim causation from a single observation, or treat confidence as evidence. If the supplied Archive material does not establish a responsible answer, state that limitation rather than supplying an outside method.\n\nThe supplied Living Archive material is the sole authority for substantive claims, concepts, definitions, explanations, examples, methods, and recommendations. Synthesize relevant supplied material into an answer written for this visitor; do not merely summarize passages. Do not use outside knowledge, common-sense completion, pretrained assumptions, or general methods to fill gaps in the Archive. If the supplied material does not establish the requested point, state that the Archive material available here does not establish it and stop short of supplying the missing answer. Do not invent Archive-specific claims, citations, quotations, or recommendations. The response may use ordinary language and conversational structure, but all substantive content must remain grounded in the supplied Archive material.
 
 Use ordinary language for ordinary public questions. Do not introduce Archive jargon such as cornerstone, canonical, glyph, stewardship, or similar internal vocabulary merely because it appears in the source material. If the visitor explicitly asks about the Living Archive or its own language, that vocabulary may be used naturally and lightly.
 
-For a plain request to explain stewardship, prefer three connected paragraphs over a taxonomy: define it in ordinary language; show one recognizable everyday example and why small choices matter over time; then clarify its limits, including that stewardship is not control over everything or self-sacrifice for everyone. Do not introduce a spectrum, category list, or sweeping civilizational crisis unless the visitor asks for that level of analysis. Keep the Archive doorway separate from the answer.
+For a plain request to explain stewardship, use three connected paragraphs only when supplied Archive material supports the definition, example, implications, and limits. Do not import a definition, everyday example, or claim about stewardship's limits from outside the corpus. If the available sources do not establish the requested explanation, state that limitation. Do not introduce a spectrum, category list, or sweeping civilizational crisis unless the supplied material supports that framing and the visitor asks for it. Keep the Archive doorway separate from the answer.
 
 Be concrete rather than literary. Prefer precise listening and useful explanation over impressive writing. Do not repeat the visitor's question as filler.
 
 Apply explanatory discernment before composing: infer what kind of understanding the question calls for, then choose the most useful depth, structure, and examples. A definition may need only a clear answer; a conceptual question may need distinctions; a practical question may need steps or an example; a teaching, learning, or leadership question may benefit from a scenario the reader can recognize and apply. Do not assume the visitor's role unless the question or context supports it.
 
-Apply a universal perception pass to every answer, regardless of topic or response shape. Before finalizing, silently ask: (1) What is the visitor actually trying to understand, decide, or make sense of? (2) Is there a real tension, trade-off, assumption, consequence, or distinction beneath the wording that would materially improve the answer? (3) What is the single most useful insight that helps the visitor see the subject more clearly? Use the insight only when grounded in the question, reliable knowledge, or supplied Archive material; never invent a hidden motive or emotional state.
+Apply a universal perception pass to every answer, regardless of topic or response shape. Before finalizing, silently ask: (1) What is the visitor actually trying to understand, decide, or make sense of? (2) Is there a real tension, trade-off, assumption, consequence, or distinction beneath the wording that would materially improve the answer? (3) What is the single most useful insight that helps the visitor see the subject more clearly? Use the insight only when grounded in the visitor's wording and supplied Archive material; never import outside knowledge, invent a hidden motive, or claim an emotional state as fact.
 
 Perception is not a requirement to sound emotional. For factual and bounded questions, it may mean naming the important qualification or correcting a likely misconception. For conceptual questions, it may mean explaining a meaningful tension or consequence. For practical questions, it may mean noticing a constraint, trade-off, or likely failure point. For reflective or lived questions, it may mean acknowledging the particular difficulty or competing needs the visitor actually described. For teaching, leadership, or social questions, it may mean showing how an idea plays out in a recognizable situation. Match the kind of perception to the question; do not force every answer into the same genre.
 
@@ -700,11 +700,34 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
 
 
         if _requires_concrete_concept_explanation(query):
-            paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-            if len(paragraphs) < 2:
-                raise ValueError("abstract concept definition must use readable paragraph breaks")
-            if not _has_everyday_example(response):
-                raise ValueError("abstract concept definition requires one useful everyday example")
+            # The prompt makes an everyday example conditional on source support.
+            # The validator must honor the same evidence boundary: requiring an
+            # example when the supplied Archive documents contain no recognizable
+            # everyday anchor turns a correct, bounded answer into a contract
+            # rejection and can exhaust every provider. Only enforce the example
+            # and paragraph-shape requirements when the selected source material
+            # itself supplies an everyday-life anchor.
+            source_supports_everyday_example = any(
+                _has_everyday_example(
+                    str(item.get("content") or item.get("text") or "")
+                )
+                for item in documents
+                if isinstance(item, dict)
+            )
+            if source_supports_everyday_example:
+                paragraphs = [
+                    part.strip()
+                    for part in re.split(r"\n\s*\n+", response)
+                    if part.strip()
+                ]
+                if len(paragraphs) < 2:
+                    raise ValueError(
+                        "source-supported abstract concept explanation must use readable paragraph breaks"
+                    )
+                if not _has_everyday_example(response):
+                    raise ValueError(
+                        "source-supported abstract concept explanation requires one useful everyday example"
+                    )
 
         if _requires_discernment_synthesis(query):
             paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
@@ -982,6 +1005,24 @@ def compose(
         }
 
     documents = _documents_from_context(use_core, context_data)
+    if re.search(r"\b(?:becoming fully human|human development)\b", question, re.I):
+        primary = context_data.get("authoritative_doorway")
+        primary_url = str((primary or {}).get("url") or (primary or {}).get("canonical_url") or "").rstrip("/").casefold()
+        document_trace = [
+            {
+                "title": str(item.get("title") or "")[:160],
+                "url": str(item.get("url") or "")[:240],
+                "content_chars": len(str(item.get("content") or "")),
+                "matches_authoritative_doorway": bool(primary_url) and str(item.get("url") or "").rstrip("/").casefold() == primary_url,
+            }
+            for item in documents
+        ]
+        print("The Guide source-fidelity composition inputs: " + json.dumps({
+            "question_class": "human_development",
+            "authoritative_doorway_title": str((primary or {}).get("title") or "")[:160],
+            "authoritative_doorway_url": primary_url,
+            "documents": document_trace,
+        }, ensure_ascii=False, separators=(",", ":")))
     corrected_subject = correction_subject(question)
     effective_question = corrected_subject or question
     shape = _question_shape(effective_question)
@@ -1000,13 +1041,13 @@ def compose(
         "The visitor is correcting a previous off-topic answer. They explicitly say the subject they asked about was "
         + repr(corrected_subject)
         + ". Briefly acknowledge the mismatch without repeating the whole complaint, then answer that subject directly. "
-        "Do not answer about the mistaken subject. Use the supplied Archive material when relevant, and use reliable general knowledge if no suitable Archive material was retrieved. "
+        "Do not answer about the mistaken subject. Use only supplied Living Archive material to answer the corrected subject. If no suitable Archive material was retrieved, state that the available Archive material does not establish the answer; do not fill the gap with outside knowledge. "
         "Do not turn this recoverable correction into a refusal or ask the visitor to restate the subject.\n\n"
         if corrected_subject
         else ""
     )
     practical_application_instruction = (
-        "The visitor explicitly asks what to do differently or how to put a value into practice. Give at least two concrete, observable behaviors before asking a follow-up. For organizational trust, examples include hearing from people affected before a decision, distinguishing facts from assumptions, explaining the decision, assigning responsibility, and checking whether follow-through changed people's experience. Do not answer only with a reflection framework or ask the visitor to make the question more concrete. End with at most one focused question that helps identify where to apply the actions.\n\n"
+        "The visitor explicitly asks what to do differently or how to put a value into practice. Give at least two concrete, observable behaviors only if supplied Archive material supports them; do not invent actions or import generic organizational advice. If the corpus does not establish two useful actions, say so rather than filling the gap. Do not answer only with a reflection framework or ask the visitor to make the question more concrete. End with at most one focused question that helps identify where to apply the source-supported actions.\n\n"
         if is_practical_application_question(question)
         else ""
     )
@@ -1035,7 +1076,7 @@ def compose(
             if _requires_distress_sensitive_pacing(question)
             else ""
         )
-        + f"Archive material available to ground the answer:\n{_evidence_payload(documents) if documents else 'No relevant Archive material was retrieved for this question. Use reliable general knowledge where appropriate; do not invent Archive-specific claims or sources.'}"
+        + f"Archive material available to ground the answer:\n{_evidence_payload(documents) if documents else 'No relevant Archive material was retrieved for this question. Do not answer from outside knowledge; state that the available Living Archive material does not establish the answer.'}"
     )
 
     cache_key = _composition_cache_key(

@@ -10,6 +10,7 @@ import time
 import uuid
 from urllib.request import Request as UrlRequest, urlopen
 from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
+from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, select_authoritative_doorway as _select_direct_attribute_doorway, should_fail_closed as _should_fail_closed, archive_limitation_response as _archive_limitation_response
 from guide_fuzzy_shadow_observer import record_shadow_comparison as _record_guide_fuzzy_shadow_comparison
 from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
 from pathlib import Path
@@ -887,6 +888,22 @@ _TOPIC_ANCHOR_GROUPS = {
         r"\bpolitics\b",
         r"\bgovernment\b",
     ),
+    # A narrow semantic family for the Archive's human-development material.
+    # It distinguishes embodiment/soul resources from broadly adjacent articles
+    # that happen to repeat the phrase "becoming fully human" in their body.
+    "human_development": (
+        r"\bbecoming fully human\b",
+        r"\bfully human\b",
+        r"\bhuman development\b",
+        r"\bhuman potential\b",
+        r"\bmore than this body\b",
+        r"\bbody as archive\b",
+        r"\bbody and soul\b",
+        r"\bsoul(?:'s)? continuity\b",
+        r"\bembodiment\b",
+        r"\bembodied\b",
+        r"\bhuman nature\b",
+    ),
 }
 
 
@@ -905,10 +922,26 @@ def _topic_specific_candidate_fit(query, doc):
     for a question about institutions, political dynasties, or accountability.
     """
     query_groups = _topic_anchor_groups(query)
-    if len(query_groups) < 2:
-        return True
     title = str(doc.get("title") or "")
     body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "")
+    if "human_development" in query_groups:
+        # This topic requires title-level identity plus source-body corroboration.
+        # A long adjacent article must not qualify merely because its body repeats
+        # "becoming fully human" while its actual subject is attention or AI.
+        if not title.strip() or not body.strip():
+            return False
+        title_groups = _topic_anchor_groups(title)
+        # The title must name the human-development family. Body corroboration
+        # may use the Archive's established body/soul vocabulary even when the
+        # exact title phrase is not repeated in the article body.
+        body_support = bool(re.search(
+            r"\b(?:soul|body|embodiment|embodied|memory|flesh|human existence|divine potential|spirit)\b",
+            body,
+            re.I,
+        ))
+        return "human_development" in title_groups and body_support
+    if len(query_groups) < 2:
+        return True
     if not title.strip() or not body.strip():
         return False
     title_groups = _topic_anchor_groups(title)
@@ -936,6 +969,9 @@ def _topic_specific_candidate_fit(query, doc):
     return bool(query_groups & title_groups) or len(query_groups & early_groups) >= 2
 
 
+
+
+
 def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     if not isinstance(doc, dict):
         return False
@@ -944,6 +980,11 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     if not title or not re.match(r"^https://\S+$", url, re.I):
         return False
     if not _topic_specific_candidate_fit(query, doc):
+        return False
+    # A shared entity (for example, "water") cannot establish evidence for a
+    # requested attribute (for example, "boiling point"). Direct attributes
+    # must be present in the candidate's own source body.
+    if not _direct_attribute_supported(query, doc):
         return False
     if not _uncertainty_resource_direct_fit(query, doc):
         return False
@@ -968,7 +1009,15 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
         # across the document, rather than requiring literal title overlap.
         frame = _query_frame(query)
         contextual_family_support = bool(frame["families"]) and _contextual_fit(query, doc)[1] >= 1 and metrics[2] >= 1
-        if not contextual_family_support:
+        # For the narrowly anchored human-development topic, title identity and
+        # body-level body/soul corroboration are stronger evidence than literal
+        # overlap with the visitor's wording. This keeps a relevant fallback
+        # doorway available when the exact-title search times out.
+        human_development_title_fit = (
+            "human_development" in _topic_anchor_groups(query)
+            and _topic_specific_candidate_fit(query, doc)
+        )
+        if not contextual_family_support and not human_development_title_fit:
             return False
     return True
 
@@ -996,9 +1045,11 @@ def _canonical_primary_from_docs(docs, query, profile):
             continue
         metrics = _subject_metrics(query, doc)
         context = _contextual_fit(query, doc)
-        # Rank by body corroboration first, then title fit. The document's
-        # substantive relevance must outrank incidental title overlap.
-        score = (metrics[2], metrics[3], metrics[0], metrics[1], context[2], context[1], -index)
+        # Eligibility already requires source-body corroboration. Rank the
+        # candidate's title-level topic fit before broad body frequency, so a
+        # long adjacent article cannot outrank the resource that names the
+        # visitor's requested subject. Fuzzy scores remain observational only.
+        score = (metrics[0], metrics[1], metrics[2], metrics[3], context[2], context[1], -index)
         eligible.append((score, doc))
     eligible.sort(key=lambda item: item[0], reverse=True)
     return eligible[0][1] if eligible else None
@@ -1210,6 +1261,48 @@ def _recommendation_first_fetch(query_str):
     data.pop("recommendation_canonical_primary", None)
     canonical_context = str(data.get("canonical_link_context") or "")
     if not canonical_context:
+        # Observe the early-return seam too: the base retrieval may supply
+        # composition documents outside canonical_link_context. Log identities
+        # only, never source text or visitor history.
+        try:
+            _early_docs = general_guide_composition._documents_from_context(use_core, data)
+            _early_identity = [
+                {
+                    "title": str(item.get("title") or "")[:180],
+                    "url": str(item.get("url") or item.get("canonical_url") or "")[:500],
+                    "body_chars": len(str(item.get("text") or item.get("content") or item.get("excerpt") or "")),
+                }
+                for item in _early_docs if isinstance(item, dict)
+            ]
+            _protected_early = (
+                data.get("generation_authority_protected_docs")
+                or data.get("question_authority_protected_docs")
+                or []
+            )
+            print(
+                "The Guide source-fidelity early-return diagnostic: "
+                + json.dumps({
+                    "query": _normalize_query(query_str)[:120],
+                    "profile_action": profile.get("action"),
+                    "context_keys": sorted(str(key) for key in data.keys()),
+                    "canonical_context_chars": len(canonical_context),
+                    "context_blocks_chars": len(str(data.get("context_blocks") or "")),
+                    "composition_documents": _early_identity[:20],
+                    "protected_documents": [
+                        {
+                            "title": str(item.get("title") or "")[:180],
+                            "url": str(item.get("url") or item.get("canonical_url") or "")[:500],
+                            "body_chars": len(str(item.get("text") or item.get("content") or item.get("excerpt") or "")),
+                        }
+                        for item in _protected_early if isinstance(item, dict)
+                    ][:10] if isinstance(_protected_early, list) else [],
+                }, ensure_ascii=False, sort_keys=True)
+            )
+        except Exception as _diag_exc:
+            print(
+                "The Guide source-fidelity early-return diagnostic unavailable: "
+                f"{type(_diag_exc).__name__}"
+            )
         return data
     docs = _parse_context_documents(canonical_context)
     if not docs:
@@ -1280,6 +1373,44 @@ def _recommendation_first_fetch(query_str):
             "title": selected_doorway["title"],
             "url": selected_doorway["url"],
         }
+
+        # Read-only seam diagnostic: record the titles/URLs available to answer
+        # composition, and whether the validated primary body is actually present.
+        # Never log source text, visitor history, or credentials.
+        try:
+            _composition_docs = general_guide_composition._documents_from_context(use_core, data)
+            _composition_doc_identity = [
+                {
+                    "title": str(item.get("title") or "")[:180],
+                    "url": str(item.get("url") or item.get("canonical_url") or "")[:500],
+                    "body_chars": len(str(item.get("text") or item.get("content") or item.get("excerpt") or "")),
+                }
+                for item in _composition_docs if isinstance(item, dict)
+            ]
+            _primary_identity = {
+                "title": str(authoritative[0].get("title") or "")[:180],
+                "url": str(authoritative[0].get("url") or "")[:500],
+                "body_chars": len(str(authoritative[0].get("text") or "")),
+            }
+            _primary_in_composition = any(
+                str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
+                == str(_primary_identity["url"]).rstrip("/").casefold()
+                for item in _composition_docs if isinstance(item, dict)
+            )
+            print(
+                "The Guide source-fidelity seam diagnostic: "
+                + json.dumps({
+                    "query": _normalize_query(query_str)[:120],
+                    "selected_primary": _primary_identity,
+                    "primary_present_in_composition_pool": _primary_in_composition,
+                    "composition_documents": _composition_doc_identity[:20],
+                }, ensure_ascii=False, sort_keys=True)
+            )
+        except Exception as _diag_exc:
+            print(
+                "The Guide source-fidelity seam diagnostic unavailable: "
+                f"{type(_diag_exc).__name__}"
+            )
 
     # Preserve the complete evidence pool for non-navigation questions. Their
     # composition may need multiple sources, but the canonical primary remains
@@ -3344,7 +3475,7 @@ def _has_substantive_topic_intent(query):
     """
     q = _normalize_query(query)
     return bool(re.search(
-        r"\b(?:i\s+(?:care about|want to understand|want to know about|"
+        r"\b(?:i\s+(?:care about|want to learn(?: about)?|want to understand|want to know about|"
         r"am interested in|would like to understand|am trying to understand)|"
         r"how\s+(?:do|can|might|could)\s+i\s+(?:know|recognize|understand|create|build|improve)|"
         r"what\s+(?:makes|does|would make|is|are)\s+.{2,100}|"
@@ -4289,47 +4420,35 @@ def _basic_inquiry_has_internal_annotation(response):
 
 
 def _guide_finalize_visitor_payload(payload, query):
-    """Replace contaminated ordinary Guide responses at the shared outer API boundary."""
+    """Fail closed when provider errors or contaminated prose cross any Guide response path."""
     if not isinstance(payload, dict):
         return payload
     response_text = str(payload.get("response") or "")
-    # Source/template fragments are a separate contamination class from evidence
-    # annotations. Detect them at the shared API boundary so they cannot escape
-    # regardless of which provider, retrieval route, or composer produced them.
+    provider_error_response = bool(re.search(
+        r"\b(?:unable to generate a response|[A-Z0-9_]+_API_KEY\s+is not configured|provider bank exhausted|provider unavailable)\b",
+        response_text,
+        re.I,
+    ))
     if (
-        not _basic_inquiry_has_internal_annotation(response_text)
+        not provider_error_response
+        and not _basic_inquiry_has_internal_annotation(response_text)
         and not _basic_inquiry_has_source_dump(response_text)
     ):
         return payload
 
-    # If executable/template text escaped into the answer, bypass the same
-    # composition path and use the dedicated safe recovery for the visitor's query.
-    if _basic_inquiry_has_source_dump(response_text):
-        response = _sanitize_basic_inquiry_response(
-            _basic_inquiry_source_dump_recovery(query)
-        )
-        recovered = {}
-    else:
-        recovered = _basic_inquiry_round1_deterministic_response(
-            query, {}, {"context_blocks": ""}, recommendation_available=False
-        )
-        response = _sanitize_basic_inquiry_response(str(recovered.get("response") or "").strip())
-    if (
-        not response
-        or _basic_inquiry_has_internal_annotation(response)
-        or _basic_inquiry_has_source_dump(response)
-    ):
-        response = _sanitize_basic_inquiry_response(_basic_inquiry_source_dump_recovery(query))
-
+    # A provider error or sanitization failure invalidates the answer evidence
+    # contract, even when the protected core is the path that produced the text.
+    # Never pass through provider configuration details or replace them with
+    # a hardcoded general-knowledge answer.
     safe = dict(payload)
     safe.update({
         "ok": True,
-        "response": response,
+        "response": _archive_limitation_response(),
         "recommendation": None,
         "answer_basis": {
-            "kind": "general_knowledge",
-            "label": "General knowledge",
-            "explanation": "The response was recovered without relying on a direct Archive source.",
+            "kind": "archive_evidence_unavailable",
+            "label": "Archive evidence not found",
+            "explanation": "The available Archive material did not establish a safe, supported answer to this question.",
         },
         "processing": "final_visitor_boundary_recovery",
         "route_source": "guide_final_visitor_boundary",
@@ -4337,8 +4456,9 @@ def _guide_finalize_visitor_payload(payload, query):
     })
     safe.pop("error_type", None)
     print(
-        "The Guide shared final visitor boundary: discarded contaminated response "
-        "and any incidental recommendation; deterministic recovery used."
+        "The Guide shared final visitor boundary: discarded provider-error or "
+        "contaminated response and recommendation; failed closed because source "
+        "support was not verified."
     )
     return safe
 
@@ -4941,7 +5061,7 @@ def _wordpress_fetch_selected_canonical_body(url):
             headers={"Accept": "text/html", "User-Agent": "LivingArchiveGuide/1.0"},
             method="GET",
         )
-        with urlopen(request, timeout=2.0) as response:
+        with urlopen(request, timeout=6.0) as response:
             final_url = str(response.geturl() or "").strip()
             raw_html = response.read(1_000_000).decode("utf-8", errors="replace")
         final = urlparse(final_url)
@@ -5031,6 +5151,165 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
 
     def fetch_candidate(entry):
         _title_hits, _order, title, url, href = entry
+
+        def recover_public_page():
+            # REST body requests can fail while the already-discovered public
+            # canonical page remains readable. First request only the canonical
+            # title/link/excerpt fields: the full post body can be very large and
+            # is unnecessary when the published excerpt itself grounds the query.
+            # Excerpt text is still source content; metadata alone is never enough.
+            try:
+                separator = "&" if "?" in href else "?"
+                excerpt_endpoint = f"{href}{separator}_fields=link,title,excerpt"
+                excerpt_request = UrlRequest(
+                    excerpt_endpoint,
+                    headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
+                    method="GET",
+                )
+                with urlopen(excerpt_request, timeout=2.0) as response:
+                    excerpt_resource = json.loads(response.read().decode("utf-8"))
+                if isinstance(excerpt_resource, dict):
+                    excerpt_url = str(excerpt_resource.get("link") or "").strip()
+                    excerpt_title_obj = excerpt_resource.get("title")
+                    excerpt_title = str(
+                        excerpt_title_obj.get("rendered")
+                        if isinstance(excerpt_title_obj, dict) else excerpt_title_obj or title
+                    ).strip()
+                    excerpt_obj = excerpt_resource.get("excerpt")
+                    excerpt_html = str(
+                        excerpt_obj.get("rendered") or ""
+                        if isinstance(excerpt_obj, dict) else excerpt_obj or ""
+                    )
+                    excerpt_text = _guide_html_to_source_text(excerpt_html).strip()
+                    excerpt_candidate = {
+                        "title": html.unescape(excerpt_title),
+                        "url": excerpt_url,
+                        "text": excerpt_text[:6000],
+                    }
+                    if (
+                        excerpt_title
+                        and len(excerpt_text) >= 80
+                        and re.match(r"^https://geralddaquila\.com/\S+$", excerpt_url, re.I)
+                        and excerpt_url.rstrip("/").casefold() == url.rstrip("/").casefold()
+                        and _topic_specific_candidate_fit(query, excerpt_candidate)
+                    ):
+                        print(
+                            "The Guide canonical search recovery: "
+                            f"recovered topic-fit canonical excerpt (chars={len(excerpt_text)})."
+                        )
+                        return excerpt_candidate
+                    if len(excerpt_text) >= 80:
+                        print(
+                            "The Guide canonical search recovery: excerpt did not meet "
+                            "topic-specific body corroboration; trying full public page."
+                        )
+            except Exception as excerpt_exc:
+                print(
+                    "The Guide canonical search recovery: excerpt fetch skipped "
+                    f"({type(excerpt_exc).__name__})."
+                )
+
+            # If the excerpt is not topically sufficient, retrieve bounded raw
+            # text from the read-only WordPress published-content bridge. This
+            # avoids rendering a full page or transferring the entire REST object.
+            post_match = re.match(
+                r"^https://geralddaquila\.com/wp-json/wp/v2/(?:posts|pages)/([0-9]+)/?(?:\?.*)?$",
+                href,
+                re.I,
+            )
+            if not post_match:
+                print(
+                    "The Guide canonical search recovery: published-content bridge skipped "
+                    "(unrecognized WordPress REST self URL)."
+                )
+            else:
+                post_id = int(post_match.group(1))
+                bridge_url = (
+                    "https://geralddaquila.com/wp-json/living-archive/v1/"
+                    f"canonical-evidence/{post_id}"
+                )
+                try:
+                    bridge_request = UrlRequest(
+                        bridge_url,
+                        headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
+                        method="GET",
+                    )
+                    with urlopen(bridge_request, timeout=3.0) as response:
+                        bridge_payload = json.loads(response.read().decode("utf-8"))
+                    bridge_is_dict = isinstance(bridge_payload, dict)
+                    bridge_title = str(bridge_payload.get("title") or "").strip() if bridge_is_dict else ""
+                    bridge_url_value = str(bridge_payload.get("url") or "").strip() if bridge_is_dict else ""
+                    bridge_text = str(bridge_payload.get("text") or "").strip() if bridge_is_dict else ""
+                    bridge_candidate = {
+                        "title": html.unescape(bridge_title),
+                        "url": bridge_url_value,
+                        "text": bridge_text[:6000],
+                    }
+                    bridge_id_match = bridge_is_dict and str(bridge_payload.get("id") or "") == str(post_id)
+                    bridge_source_match = bridge_is_dict and bridge_payload.get("source") == "published_wordpress_content"
+                    bridge_url_match = bool(
+                        re.match(r"^https://geralddaquila\.com/\S+$", bridge_url_value, re.I)
+                        and bridge_url_value.rstrip("/").casefold() == url.rstrip("/").casefold()
+                    )
+                    bridge_topic_fit = bool(
+                        bridge_title
+                        and len(bridge_text) >= 80
+                        and bridge_url_match
+                        and _topic_specific_candidate_fit(query, bridge_candidate)
+                    )
+                    if (
+                        bridge_id_match
+                        and bridge_source_match
+                        and bridge_title
+                        and len(bridge_text) >= 80
+                        and bridge_url_match
+                        and bridge_topic_fit
+                    ):
+                        print(
+                            "The Guide canonical search recovery: recovered topic-fit "
+                            f"canonical body from published-content bridge (chars={len(bridge_text)})."
+                        )
+                        return bridge_candidate
+                    print(
+                        "The Guide canonical search recovery: published-content bridge response rejected "
+                        f"(id_match={bridge_id_match}, source_match={bridge_source_match}, "
+                        f"url_match={bridge_url_match}, topic_fit={bridge_topic_fit}, "
+                        f"body_chars={len(bridge_text)})."
+                    )
+                except Exception as bridge_exc:
+                    print(
+                        "The Guide canonical search recovery: published-content bridge skipped "
+                        f"({type(bridge_exc).__name__})."
+                    )
+
+            # Last fallback: render the public page. It must still pass URL
+            # identity and minimum-content checks before downstream relevance gates.
+            try:
+                recovered = _wordpress_fetch_selected_canonical_body(url)
+            except Exception as recovery_exc:
+                print(
+                    "The Guide canonical search recovery: public body fetch skipped "
+                    f"({type(recovery_exc).__name__})."
+                )
+                return None
+            if not isinstance(recovered, dict):
+                return None
+            recovered_title = str(recovered.get("title") or title).strip()
+            recovered_url = str(recovered.get("url") or "").strip()
+            recovered_text = str(recovered.get("text") or "").strip()
+            if (
+                not recovered_title
+                or len(recovered_text) < 80
+                or not re.match(r"^https://geralddaquila\.com/\S+$", recovered_url, re.I)
+                or recovered_url.rstrip("/").casefold() != url.rstrip("/").casefold()
+            ):
+                return None
+            return {
+                "title": html.unescape(recovered_title),
+                "url": recovered_url,
+                "text": recovered_text[:6000],
+            }
+
         try:
             request = UrlRequest(
                 href,
@@ -5040,7 +5319,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
             with urlopen(request, timeout=1.5) as response:
                 resource = json.loads(response.read().decode("utf-8"))
             if not isinstance(resource, dict):
-                return None
+                return recover_public_page()
             resource_url = str(resource.get("link") or url).strip()
             resource_title_obj = resource.get("title")
             resource_title = str(
@@ -5054,12 +5333,17 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
             raw_content = content_html or excerpt_html
             raw_content = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", raw_content)
             content = _guide_html_to_source_text(raw_content)
-            if not content or not re.match(r"^https://geralddaquila\.com/\S+$", resource_url, re.I):
-                return None
+            if (
+                not content
+                or len(content) < 80
+                or not re.match(r"^https://geralddaquila\.com/\S+$", resource_url, re.I)
+                or resource_url.rstrip("/").casefold() != url.rstrip("/").casefold()
+            ):
+                return recover_public_page()
             return {"title": html.unescape(resource_title), "url": resource_url, "text": content[:6000]}
         except Exception as exc:
             print(f"The Guide canonical search recovery: resource fetch skipped ({type(exc).__name__}).")
-            return None
+            return recover_public_page()
 
     # Fetch the bounded candidate slice concurrently but preserve ranking order.
     # The per-request timeout still bounds each outbound operation.
@@ -5247,6 +5531,11 @@ def _general_guide_authoritative_doorway(query, context_data):
     """
     if not isinstance(context_data, dict):
         return None
+    # Subject discovery has its own bounded active-registry evidence path in
+    # _basic_inquiry_response. Do not run this general doorway selector's
+    # human-development title search or broad fallback searches first.
+    if _guide_subject_discovery_query(query):
+        return None
     try:
         profile = _base._inquiry_profile(query)
         if profile.get("risk") or profile.get("action") == "risk":
@@ -5276,6 +5565,24 @@ def _general_guide_authoritative_doorway(query, context_data):
         except Exception:
             supplied = []
         candidates.extend(item for item in supplied if isinstance(item, dict))
+
+        # Run one bounded, exact-title canonical search for this narrow topic.
+        # Retrieval may surface related body/soul material while omitting the
+        # direct "Becoming Fully Human" doorway; supplement candidates before
+        # ranking rather than allowing an adjacent article to become primary.
+        if "human_development" in _topic_anchor_groups(query):
+            try:
+                candidates.extend(
+                    item for item in (
+                        _wordpress_search_canonical_candidates("Becoming Fully Human", limit=10) or []
+                    )
+                    if isinstance(item, dict)
+                )
+            except Exception as exc:
+                print(
+                    "The Guide human-development canonical recovery failed safely: "
+                    f"{type(exc).__name__}"
+                )
 
         # Preserve only evidence-bearing documents with canonical Archive URLs.
         evidence_docs = []
@@ -5543,6 +5850,9 @@ def _guide_subject_discovery_query(query):
     q = re.sub(r"\s+", " ", _normalize_query(query)).strip()
     patterns = (
         # Natural-language reading requests are still Archive discovery tasks.
+        # When visitors explicitly ask what the Archive says about a named developmental subject,
+        # retrieve and validate the matching canonical page before composing an explanation.
+        r"^(?:what\s+does|what\s+do)\s+(?:the\s+)?(?:living\s+archive|archive)\s+say\s+about\s+(.+?)[?.!]*$",
         # Extract their subject so the answer is grounded in the selected page,
         # rather than letting a broad generated explanation contradict the link.
         r"^(?:i want to understand|i would like to understand|i'd like to understand|i want to learn about|i would like to learn about|i'd like to learn about)\s+(.+?)(?:[.!?]\s*(?:what|which)\s+(?:should|could|can|would)\s+i\s+read\b.*)?[?.!]*$",
@@ -5576,8 +5886,11 @@ def _guide_requires_canonical_subject_supplement(archive_evidence_unavailable, d
 
 
 def _guide_subject_supplement_limit(discovery_subject):
-    """Broaden candidate recall for explicit resource-finding requests."""
-    return 10 if str(discovery_subject or "").strip() else 3
+    """Keep fallback candidate recall bounded for visitor latency."""
+    # If retrieval has already selected an authorized discovery doorway, its
+    # exact canonical body is fetched directly below; broad search fan-out is
+    # only a recovery path when that direct body is unavailable.
+    return 3 if str(discovery_subject or "").strip() else 3
 
 
 def _guide_discovery_evidence_grade(subject, document, node=None):
@@ -5656,10 +5969,11 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
             and len(early_hits) >= 2
             and len(metadata_subject_hits) == len(subject_tokens)
             and (
-                (phrase_count >= 1 and direct_fit >= 2)
-                # A registered node whose title names the subject and whose
-                # opening text corroborates it is direct even when the visitor's
-                # full natural-language question is not repeated verbatim.
+                # A single occurrence of the full phrase in a broad page is
+                # not enough to make that page a direct authority. Require repeated
+                # phrase-level evidence, or a title that independently anchors the
+                # subject and opening text that corroborates it.
+                (phrase_count >= 2 and direct_fit >= 2)
                 or (len(title_hits) >= 2 and len(early_hits) >= 3)
             )
         )
@@ -6033,7 +6347,13 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
         if not re.search(r"[.!?]$", sentence):
             continue
         words = set(re.findall(r"[a-z0-9]+", sentence.casefold()))
-        if subject_tokens and len(subject_tokens & words) < min(2, len(subject_tokens)):
+        # The page-level relevance gate has already validated this canonical
+        # body as a direct match. Requiring two literal tokens from the visitor's
+        # wording ("becoming fully human") excludes the source's strongest
+        # framework sentence ("Human development is the lifelong integration...").
+        # Keep at least one lexical tie to the subject, but let the independently
+        # validated source contribute its own precise vocabulary.
+        if subject_tokens and not (subject_tokens & words):
             continue
         if re.search(r"\b(?:governing question|meta description|read more)\b", sentence, re.I):
             continue
@@ -6044,9 +6364,47 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
             "I couldn’t isolate a complete source sentence that I can quote reliably, "
             "so I won’t manufacture one."
         )
-    sentence = candidates[0]
+    # Select a small set of verbatim canonical sentences that collectively
+    # preserve the source's framework. A single sentence often mentions the
+    # topic but omits either disciplinary scope or the maturity/stewardship
+    # conclusion. Never synthesize a quote: every selected sentence must be
+    # copied from the fetched source body.
+    framework_groups = {
+        "disciplinary_scope": {"biology", "psychology", "ethics", "leadership", "meaning", "relational", "systemic", "existential"},
+        "integration": {"integration", "integrated", "interconnected", "capacities"},
+        "maturity_stewardship": {"maturity", "responsibility", "stewardship"},
+    }
+    def _tokens(value):
+        return set(re.findall(r"[a-z0-9]+", value.casefold()))
+    ranked = sorted(
+        candidates,
+        key=lambda item: (
+            len(_tokens(item) & set().union(*framework_groups.values())),
+            len(_tokens(item) & subject_tokens),
+            len(_tokens(item)),
+            len(item),
+        ),
+        reverse=True,
+    )
+    selected = []
+    covered = set()
+    for sentence in ranked:
+        terms = _tokens(sentence)
+        groups_here = {
+            group for group, terms_for_group in framework_groups.items()
+            if terms & terms_for_group
+        }
+        if not selected or groups_here - covered:
+            selected.append(sentence)
+            covered.update(groups_here)
+        if len(selected) >= 3 or covered == set(framework_groups):
+            break
+    # Retain the highest-ranked sentence even if the source body does not
+    # contain all three framework groups; the response must not fill gaps
+    # with outside knowledge.
+    quotes = " ".join(f"“{sentence}”" for sentence in selected)
     return (
-        f"{title} is a useful place to begin. The essay asks: “{sentence}” "
+        f"{title} is a useful place to begin. The essay states: {quotes} "
         f"That gives you a focused entry point for exploring {normalized_subject}."
     )
 
@@ -6164,21 +6522,36 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Navigation authority is resolved once, before composition, and carried
     # through every ordinary-answer path. It must never depend on which
     # provider/model happened to compose the prose successfully.
-    authoritative_doorway = _normalize_authoritative_recommendation(
-        context_data.get("recommendation_canonical_primary")
-        or _general_guide_authoritative_doorway(resource_query, context_data)
+    direct_attribute_query = bool(_direct_attribute_phrase(query))
+    # The shared selector deliberately ignores a preselected primary for
+    # direct-attribute questions, forcing source-bearing evidence to pass the
+    # same eligibility contract used for canonical outward recommendations.
+    authoritative_doorway = _select_direct_attribute_doorway(
+        query,
+        context_data.get("recommendation_canonical_primary"),
+        _general_guide_authoritative_doorway,
+        context_data,
+        resource_query=resource_query,
+        normalize=_normalize_authoritative_recommendation,
     )
-    # Subject discovery is constrained to the active WordPress Guide Node registry.
-    # A public URL returned by search is not, by itself, an approved Guide doorway.
-    if discovery_subject and authoritative_doorway:
-        registered_urls = {
-            str(node.get("canonical_url") or "").rstrip("/").casefold()
-            for node in _guide_node_registry_snapshot()
-            if isinstance(node, dict) and str(node.get("status") or "") == "active"
-        }
-        if str(authoritative_doorway.get("url") or "").rstrip("/").casefold() not in registered_urls:
-            print("The Guide discovery boundary: rejected unregistered destination.")
-            authoritative_doorway = None
+    # Direct attribute questions need source-body evidence for the attribute
+    # itself. If no doorway survives that contract, keep the final answer
+    # bounded rather than allowing provider recovery to fill the gap externally.
+    direct_attribute_evidence_missing = direct_attribute_query and not bool(authoritative_doorway)
+    if direct_attribute_evidence_missing:
+        authoritative_doorway = None
+        archive_evidence_unavailable = True
+    # Subject discovery uses its dedicated active-registry selector below,
+    # not a broad retrieval preselection that may point to an adjacent article.
+    # Defer all initial candidates so the registry-ranked, fetched canonical
+    # page body—not a generic search result—authorizes the final doorway.
+    if discovery_subject:
+        if authoritative_doorway:
+            print(
+                "The Guide discovery boundary: initial retrieval doorway deferred "
+                "to active-registry evidence selection."
+            )
+        authoritative_doorway = None
     # Distress-sensitive pacing governs the prose, not access to a separate
     # optional resource. Keep the compassionate response first and preserve a
     # qualified, independently rendered doorway when the existing relevance
@@ -6210,18 +6583,31 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # text and re-run the same frame-neutral, sufficiency, and question-fit
         # gates before allowing it into the answer composition.
         try:
-            recovered_docs = _wordpress_search_canonical_candidates(
-                resource_query, limit=_guide_subject_supplement_limit(discovery_subject)
-            )
-            # Add a small, deterministic set of active registry nodes ranked by
-            # their published purpose and semantic hints. Only fetched canonical
-            # page bodies can subsequently authorize a recommendation.
+            # Subject discovery uses the bounded active Guide Node registry as
+            # its candidate source. Generic WordPress search can return ten
+            # weak/unregistered pages and then serially attempt excerpt/full-page
+            # fetches for each, even when those pages cannot authorize a doorway.
+            # Skip that fan-out for discovery requests; registry bodies and the
+            # exact selected doorway body below provide the bounded evidence path.
             if discovery_subject:
+                recovered_docs = []
+            else:
+                recovered_docs = _wordpress_search_canonical_candidates(
+                    resource_query, limit=_guide_subject_supplement_limit(discovery_subject)
+                )
+            # Registry-body exploration is a fallback only when retrieval has
+            # not already supplied an authoritative doorway. The selected
+            # doorway's exact body is fetched and checked below. Fetching up to
+            # twenty other registry pages serially here can multiply a single
+            # slow WordPress response into a 20+ second visitor turn.
+            if discovery_subject and not authoritative_doorway:
                 known_urls = {
                     str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
                     for item in recovered_docs if isinstance(item, dict)
                 }
-                for node in _guide_registered_discovery_nodes(discovery_subject, limit=20):
+                # Keep fallback exploration bounded. A missing doorway is safer
+                # than turning an unbounded sequence of page fetches into latency.
+                for node in _guide_registered_discovery_nodes(discovery_subject, limit=2):
                     node_url = str(node.get("canonical_url") or "").strip()
                     if not node_url or node_url.rstrip("/").casefold() in known_urls:
                         continue
@@ -6233,6 +6619,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         recovered_docs.append(node_body)
                         registry_discovery_docs.append(node_body)
                         known_urls.add(node_url.rstrip("/").casefold())
+                        grade = _guide_discovery_evidence_grade(
+                            discovery_subject, node_body, node=node
+                        )
+                        # Stop at the first verified direct/related canonical body.
+                        # A second candidate is only a bounded fallback if the
+                        # highest-ranked registry node fails page-level validation.
+                        if grade.get("grade") in {"direct", "related"}:
+                            break
             # The selected doorway is already independently authorized. Fetch
             # its actual canonical body as well as topic-search candidates so
             # content relevance is tested against the destination being offered,
@@ -6412,10 +6806,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # selected, relevant canonical doorway. The doorway is returned as a
         # separate field and is not passed into the composition context.
 
-    # All ordinary questions use the same provider-neutral composition path,
-    # including when no suitable Archive evidence is available. The composer
-    # is explicitly instructed to answer from general knowledge where suitable
-    # and to state source limitations only when the question actually requires it.
+    # All ordinary questions use the same provider-neutral composition path.
+    # The composition prompt restricts substantive claims, examples, and methods
+    # to supplied Archive sources; the final response boundary prevents provider
+    # or deterministic recovery from filling evidence gaps with outside knowledge.
 
     # One controlled reasoning-provider seam. AUTO preserves the existing LLM-first
     # provider bank and bounded deterministic fallback. DETERMINISTIC_ONLY bypasses
@@ -6427,10 +6821,26 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         reasoning_mode = "auto"
 
     composition_result = None
+    deterministic_recovery_used = False
     # This narrow practical-question class has a bounded, provider-independent
     # answer. Do not send it through the general composition envelope: that
     # envelope can exceed provider token budgets before the fallback is reached.
-    if _is_practical_stewardship_question(query):
+    if discovery_subject:
+        # Subject-discovery responses are rendered from the verified canonical
+        # page body by the final discovery boundary below. Calling the generative
+        # composer first only to discard its prose wastes provider time and can
+        # add repeated timeout/fallback delays without changing the visitor answer.
+        deterministic_recovery_used = True
+        llm_output = _guide_subject_discovery_answer(
+            "", resource_query, authoritative_doorway, discovery_selected_evidence
+        )
+        print(
+            "The Guide General Composition: "
+            "mode=bounded_canonical_discovery, llm_composer_invoked=false, "
+            f"evidence_backed={_guide_discovery_doorway_is_evidence_backed(authoritative_doorway, discovery_selected_evidence)}"
+        )
+    elif _is_practical_stewardship_question(query):
+        deterministic_recovery_used = True
         deterministic_result = _basic_inquiry_round1_deterministic_response(
             query, {}, composition_context, recommendation_available=False
         )
@@ -6443,6 +6853,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "llm_composer_invoked=false, archive_recommendation=none"
         )
     elif reasoning_mode == "deterministic_only":
+        deterministic_recovery_used = True
         deterministic_result = _basic_inquiry_round1_deterministic_response(
             correction_subject or query, {}, composition_context,
             recommendation_available=bool(authoritative_doorway),
@@ -6464,26 +6875,61 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 history_text=_history_text(history),
             )
             if composition_result:
-                llm_output = composition_result.get("response", "")
-                print(
-                    "The Guide General Composition: "
-                    f"mode=auto, provider={composition_result.get('provider') or 'unknown'}, "
-                    f"model={composition_result.get('model') or 'unknown'}, "
-                    f"shape={composition_result.get('response_shape') or 'unknown'}, "
-                    f"archive_evidence={'unavailable' if archive_evidence_unavailable else 'available'}, "
-                    f"navigation_candidate={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
+                composition_response = str(composition_result.get("response") or "").strip()
+                composition_provider = str(composition_result.get("provider") or "").strip()
+                composition_model = str(composition_result.get("model") or "").strip()
+                composition_shape = str(composition_result.get("response_shape") or "").strip()
+                clarification_reason = str(composition_result.get("clarification_reason") or "").strip()
+                safe_clarification = (
+                    composition_shape == "clarifying"
+                    and clarification_reason in {
+                        "source_claim_missing",
+                        "response_preference_subject_missing",
+                    }
                 )
+                provider_error_response = bool(re.search(
+                    r"\b(?:unable to generate a response|[A-Z0-9_]+_API_KEY\s+is not configured|provider bank exhausted|provider unavailable)\b",
+                    composition_response,
+                    re.I,
+                ))
+                missing_provider_identity = not composition_provider or not composition_model
+                if provider_error_response or (missing_provider_identity and not safe_clarification):
+                    # A truthy composition object is not proof that a model answered.
+                    # Provider-bank recovery payloads can contain hardcoded general
+                    # knowledge and error text while still looking like a result.
+                    deterministic_recovery_used = True
+                    llm_output = _archive_limitation_response()
+                    print(
+                        "The Guide General Composition: mode=auto; rejected result "
+                        "without verified provider/model identity or with provider-error text."
+                    )
+                    print(
+                        "The Guide Final Pathway: mode=auto, pathway=fail_closed, "
+                        "provider=none, model=none, reason=provider_result_not_verified"
+                    )
+                else:
+                    llm_output = composition_response
+                    print(
+                        "The Guide General Composition: "
+                        f"mode=auto, provider={composition_provider or 'clarification'}, "
+                        f"model={composition_model or 'none'}, "
+                        f"shape={composition_shape or 'unknown'}, "
+                        f"archive_evidence={'unavailable' if archive_evidence_unavailable else 'available'}, "
+                        f"navigation_candidate={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
+                    )
             else:
-                print("The Guide General Composition: mode=auto; provider bank exhausted; using conservative deterministic recovery.")
-                print("The Guide Final Pathway: mode=auto, pathway=deterministic_recovery, provider=none, model=none, reason=provider_bank_exhausted")
+                deterministic_recovery_used = True
+                print("The Guide General Composition: mode=auto; provider bank exhausted; no Archive-grounded answer generation available.")
+                print("The Guide Final Pathway: mode=auto, pathway=fail_closed, provider=none, model=none, reason=provider_bank_exhausted")
                 deterministic_result = _basic_inquiry_provider_exhaustion_response(
                     correction_subject or query, {}, composition_context,
                     recommendation_available=bool(authoritative_doorway),
                 )
                 llm_output = str(deterministic_result.get("response") or "")
         except Exception as exc:
-            print(f"The Guide General Composition failed safely in auto mode: {type(exc).__name__}; using conservative deterministic recovery.")
-            print(f"The Guide Final Pathway: mode=auto, pathway=deterministic_recovery, provider=none, model=none, reason=composition_exception:{type(exc).__name__}")
+            deterministic_recovery_used = True
+            print(f"The Guide General Composition failed safely in auto mode: {type(exc).__name__}; no Archive-grounded answer generation available.")
+            print(f"The Guide Final Pathway: mode=auto, pathway=fail_closed, provider=none, model=none, reason=composition_exception:{type(exc).__name__}")
             try:
                 deterministic_result = _basic_inquiry_provider_exhaustion_response(
                     query, {}, composition_context,
@@ -6525,6 +6971,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # unsupported title/URL pairs from crossing the API boundary.
     raw_visitor_text = str(llm_output or "").strip()
     if _basic_inquiry_has_internal_annotation(raw_visitor_text):
+        deterministic_recovery_used = True
         print(
             "The Guide visitor boundary: rejected generated prose with internal "
             "evidence annotations; using query-grounded deterministic recovery."
@@ -6535,6 +6982,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         llm_output = str(deterministic_recovery.get("response") or "").strip()
         raw_visitor_text = llm_output
     if _basic_inquiry_contains_html_markup(raw_visitor_text):
+        deterministic_recovery_used = True
         print(
             "The Guide visitor boundary: rejected HTML-shaped generated prose; "
             "using query-grounded deterministic recovery."
@@ -6555,6 +7003,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             llm_output = ""
     response = _sanitize_basic_inquiry_response(str(llm_output or "").strip())
     if _basic_inquiry_has_source_dump(response):
+        deterministic_recovery_used = True
         print(
             "The Guide visitor boundary: rejected a copied/truncated source excerpt; "
             "using deterministic synthesis instead."
@@ -6591,6 +7040,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # that last step reintroduces internal annotations, discard it and recover
     # from the visitor's question without reusing contaminated prose or links.
     if _basic_inquiry_has_internal_annotation(response):
+        deterministic_recovery_used = True
         print(
             "The Guide final discovery boundary: rejected reintroduced internal "
             "annotations; using query-grounded deterministic recovery."
@@ -6729,27 +7179,51 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         composition_context.pop("authoritative_doorway", None)
         composition_context["evidence_sufficiency_unavailable"] = True
 
-    # Expose a small, deterministic provenance contract for the visitor UI.
-    # This describes the answer's basis; it does not claim that every sentence
-    # is directly quoted from a source. A recommendation is only supplied when
-    # the relevance gate found a canonical doorway for this specific question.
-    if archive_evidence_unavailable:
+    # Preserve query-specific failures even if a later broad composition
+    # recovery clears the generic evidence flag. In particular, the generic
+    # sufficiency gate must not undo a direct-attribute failure caused by
+    # rejecting a preselected but substantively unrelated doorway.
+    if deterministic_recovery_used and not discovery_subject:
+        archive_evidence_unavailable = True
+
+    final_archive_evidence_unavailable = bool(
+        archive_evidence_unavailable or direct_attribute_evidence_missing
+    )
+
+    # Enforce the Archive-only boundary after every provider and deterministic
+    # recovery path. If the evidence gates found no suitable source, generated
+    # or deterministic prose must not silently become an external answer. The
+    # subject-discovery path has its own exact-page evidence contract above.
+    if _should_fail_closed(final_archive_evidence_unavailable, discovery_subject):
+        response = _archive_limitation_response()
+        authoritative_doorway = None
+        composition_context.pop("authoritative_doorway", None)
+
+    # Provenance describes evidence sufficiency, not the mere presence of a
+    # doorway. No-evidence responses are explicitly labelled as such; when the
+    # evidence gate passes, the answer is Archive-supported even if no separate
+    # recommendation is appropriate.
+    if final_archive_evidence_unavailable and not discovery_subject:
         answer_basis = {
-            "kind": "general_knowledge",
-            "label": "General knowledge",
-            "explanation": "No suitable Archive evidence was available to ground this answer.",
+            "kind": "archive_evidence_unavailable",
+            "label": "Archive evidence not found",
+            "explanation": "The available Archive material did not establish an answer to this question.",
         }
-    elif authoritative_doorway:
+    elif discovery_subject and not authoritative_doorway:
         answer_basis = {
-            "kind": "archive_supported",
-            "label": "Informed by the Living Archive",
-            "explanation": "A relevant Archive resource is available to explore the ideas behind this answer.",
+            "kind": "archive_evidence_unavailable",
+            "label": "Archive evidence not found",
+            "explanation": "No verified canonical Archive page was found to support this discovery request.",
         }
     else:
         answer_basis = {
-            "kind": "general_knowledge",
-            "label": "General knowledge",
-            "explanation": "No sufficiently relevant Archive resource was identified for this question.",
+            "kind": "archive_supported",
+            "label": "Informed by the Living Archive",
+            "explanation": (
+                "The answer is grounded in available Archive evidence."
+                if not authoritative_doorway
+                else "A relevant Archive resource is available to explore the ideas behind this answer."
+            ),
         }
 
     payload = {
@@ -7054,6 +7528,10 @@ if _is_explicit_guide_destination_request(
     "What is stewardship and why does it matter now more than ever?"
 ):
     raise RuntimeError("Guide routing invariant failed: explanatory question classified as destination request.")
+if not _has_substantive_topic_intent(
+    "I want to learn about AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever."
+):
+    raise RuntimeError("Guide routing invariant failed: explicit topic-learning intent was not recognized.")
 if not _is_explicit_guide_destination_request("Please take me to the Steward Readiness Instruments."):
     raise RuntimeError("Guide routing invariant failed: explicit destination request not recognized.")
 if _is_explicit_guide_destination_request("What is open source software?"):
@@ -7938,74 +8416,31 @@ async def _use_request_boundary(scope, receive, send):
                 "The Guide Basic Inquiry seam failed; "
                 f"ordinary route remains ordinary and will not be reclassified: {exc}"
             )
-            try:
-                context_data = use_core.fetch_canonical_context(query)
-                recovery_context = context_data if isinstance(context_data, dict) else {}
-                recovery = _basic_inquiry_round1_deterministic_response(
-                    query,
-                    {},
-                    recovery_context,
-                )
-                recovery_text = str(recovery.get("response") or "").strip()
-                if _basic_inquiry_contains_html_markup(recovery_text):
-                    print(
-                        "The Guide recovery boundary: rejected HTML-shaped deterministic output; "
-                        "retrying without retrieved context."
-                    )
-                    recovery_text = _basic_inquiry_markup_recovery(
-                        query, history, context_data.get("intent", "TOPICAL_INQUIRY")
-                    )
-                    if not recovery_text:
-                        try:
-                            recovery = _basic_inquiry_round1_deterministic_response(
-                                query, {}, {"context_blocks": ""}
-                            )
-                            recovery_text = str(recovery.get("response") or "").strip()
-                        except Exception:
-                            recovery_text = ""
-                if _basic_inquiry_contains_html_markup(recovery_text):
-                    recovery_text = ""
-                recovery_recommendation = _normalize_authoritative_recommendation(
-                    _general_guide_authoritative_doorway(query, recovery_context)
-                )
-                if recovery_text:
-                    request_id = "basic-recovery-" + hashlib.sha1(
-                        (query + "|" + _history_text(history)).encode("utf-8")
-                    ).hexdigest()[:16]
-                    return await _use_send_json(send, {
-                        "ok": True,
-                        "version": APP_VERSION,
-                        "fingerprint": DEPLOYMENT_FINGERPRINT,
-                        "source_sha256": RUNTIME_SOURCE_SHA256,
-                        "request_id": request_id,
-                        "query": query,
-                        "intent": (
-                            context_data.get("intent", "TOPICAL_INQUIRY")
-                            if isinstance(context_data, dict)
-                            else "TOPICAL_INQUIRY"
-                        ),
-                        "response": recovery_text,
-                        "recommendation": recovery_recommendation,
-                        "processing": "basic_inquiry_recovery",
-                        "route_source": "guide_basic_inquiry_recovery",
-                        "recovery": "deterministic_round1",
-                        "visitor_boundary_version": APP_VERSION,
-                    })
-            except Exception as recovery_exc:
-                print(
-                    "The Guide Basic Inquiry deterministic recovery also failed: "
-                    f"{recovery_exc}"
-                )
+            # If the Basic Inquiry seam itself fails, no generated answer can be
+            # certified against the Archive evidence contract. Return the same
+            # honest limitation rather than bypassing the final provenance gate.
+            request_id = "basic-recovery-" + hashlib.sha1(
+                (query + "|" + _history_text(history)).encode("utf-8")
+            ).hexdigest()[:16]
             return await _use_send_json(send, {
-                "ok": False,
+                "ok": True,
                 "version": APP_VERSION,
+                "fingerprint": DEPLOYMENT_FINGERPRINT,
+                "source_sha256": RUNTIME_SOURCE_SHA256,
+                "request_id": request_id,
                 "query": query,
                 "intent": "TOPICAL_INQUIRY",
-                "response": "The Guide could not complete this question right now.",
-                "error_type": "basic_inquiry_failure",
-                "route_source": "guide_basic_inquiry",
+                "response": _archive_limitation_response(),
+                "recommendation": None,
+                "answer_basis": {
+                    "kind": "archive_evidence_unavailable",
+                    "label": "Archive evidence not found",
+                    "explanation": "The available Archive material did not establish a safe, supported answer to this question.",
+                },
+                "processing": "basic_inquiry_recovery",
+                "route_source": "guide_basic_inquiry_recovery",
                 "visitor_boundary_version": APP_VERSION,
-            }, 503)
+            })
 
     explicit_formation_route = _explicit_formation_entry_route(query)
     if explicit_formation_route is not None:
@@ -8016,9 +8451,22 @@ async def _use_request_boundary(scope, receive, send):
     mode = str(route.get("mode") or "direct").strip().casefold()
     confidence = float(route.get("confidence", 0.0) or 0.0)
 
-    # Final-boundary arbitration: comparative explanatory intent outranks a
-    # model's generic Glossary classification. Do not hand off the whole phrase
-    # as a term; retain the visitor's complete question for Guide composition.
+    # Final-boundary arbitration: explanatory learning intent outranks
+    # generic specialist labels from the advisory capability router. This
+    # applies to Navigator as well as Glossary: a request to learn about a
+    # substantive topic must remain in Guide composition, not become an empty
+    # Start Here handoff merely because a model selected the Navigator lane.
+    if route_id == "navigator" and _has_substantive_topic_intent(query):
+        print(
+            "The Guide request boundary: kept substantive topic inquiry in Guide composition; "
+            f"advisory_route=navigator, query={_normalize_query(query)[:120]}"
+        )
+        route_id = "guide"
+        mode = "direct"
+
+    # Comparative explanatory intent also outranks a model's generic Glossary
+    # classification. Do not hand off the whole phrase as a term; retain the
+    # visitor's complete question for Guide composition.
     if route_id == "glossary" and _is_comparative_explanatory_request(query):
         print(
             "The Guide request boundary: kept comparative inquiry in Guide composition; "
@@ -8806,6 +9254,173 @@ def provider_health_readiness():
             },
             "limitations": ["Provider health diagnostics could not be completed."],
         }
+
+
+@_FASTAPI_APP.get("/api/qa/read-only-diagnostics")
+def qa_read_only_diagnostics(request: Request):
+    """QA-flag-gated, read-only Pinecone and shared-health configuration probe."""
+    if str(os.getenv("USE_QA_DIAGNOSTICS") or "").strip().casefold() not in {"1", "true", "yes"}:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    index = getattr(use_core, "index", None)
+    if index is None:
+        return JSONResponse(
+            status_code=503,
+            content={"ok": False, "error": "Pinecone index unavailable"},
+        )
+
+    def _plain_mapping(value):
+        if isinstance(value, dict):
+            return value
+        for method_name in ("to_dict", "model_dump", "dict"):
+            method = getattr(value, method_name, None)
+            if callable(method):
+                try:
+                    result = method()
+                    if isinstance(result, dict):
+                        return result
+                except Exception:
+                    pass
+        return {}
+
+    try:
+        stats = _plain_mapping(index.describe_index_stats())
+    except Exception as exc:
+        return JSONResponse(
+            status_code=502,
+            content={"ok": False, "error_type": type(exc).__name__},
+        )
+
+    namespaces_raw = stats.get("namespaces") or {}
+    namespace_vector_counts = {}
+    if isinstance(namespaces_raw, dict):
+        for namespace_name, namespace_value in namespaces_raw.items():
+            namespace_stats = _plain_mapping(namespace_value)
+            vector_count = namespace_stats.get("vector_count", namespace_stats.get("vectorCount"))
+            namespace_vector_counts[str(namespace_name)] = int(vector_count or 0)
+
+    total_vector_count = stats.get("total_vector_count", stats.get("totalVectorCount"))
+    dimension = stats.get("dimension")
+
+    canonical_url = str(
+        request.query_params.get("canonical_url")
+        or "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/"
+    ).strip()
+    if (
+        not re.match(r"^https://geralddaquila\.com/\S+$", canonical_url, re.I)
+        or "?" in canonical_url
+        or "#" in canonical_url
+    ):
+        raise HTTPException(status_code=400, detail="Invalid canonical URL")
+
+    probe = {"status": "unavailable", "variants": {}}
+    semantic_probe = {"status": "unavailable", "matches": []}
+    embedding_function = getattr(use_core, "generate_embedding", None)
+    if callable(embedding_function):
+        try:
+            vector = embedding_function(
+                "What does the Living Archive say about becoming fully human?"
+            )
+            if vector:
+                url_variants = [canonical_url]
+                without_trailing_slash = canonical_url.rstrip("/")
+                with_trailing_slash = without_trailing_slash + "/"
+                for variant in (without_trailing_slash, with_trailing_slash):
+                    if variant not in url_variants:
+                        url_variants.append(variant)
+
+                for variant in url_variants:
+                    query_result = _plain_mapping(index.query(
+                        vector=vector,
+                        top_k=5,
+                        filter={"url": {"$eq": variant}},
+                        include_metadata=True,
+                    ))
+                    matches = query_result.get("matches") or []
+                    summaries = []
+                    for match in matches:
+                        match_data = _plain_mapping(match)
+                        metadata = _plain_mapping(match_data.get("metadata") or {})
+                        summaries.append({
+                            "title": str(metadata.get("title") or ""),
+                            "url": str(metadata.get("url") or ""),
+                            "chunk_index": metadata.get("chunk_index"),
+                            "resource_type": str(metadata.get("resource_type") or ""),
+                        })
+                    probe["variants"][variant] = {
+                        "match_count": len(matches),
+                        "matches": summaries,
+                    }
+                semantic_probe = {"status": "unavailable", "matches": []}
+                try:
+                    semantic_result = _plain_mapping(index.query(
+                        vector=vector,
+                        top_k=8,
+                        include_metadata=True,
+                    ))
+                    semantic_matches = semantic_result.get("matches") or []
+                    semantic_summaries = []
+                    for match in semantic_matches:
+                        match_data = _plain_mapping(match)
+                        metadata = _plain_mapping(match_data.get("metadata") or {})
+                        semantic_summaries.append({
+                            "title": str(metadata.get("title") or ""),
+                            "url": str(metadata.get("url") or ""),
+                            "chunk_index": metadata.get("chunk_index"),
+                            "resource_type": str(metadata.get("resource_type") or ""),
+                            "score": match_data.get("score"),
+                        })
+                    semantic_probe = {
+                        "status": "ok",
+                        "matches": semantic_summaries,
+                    }
+                except Exception as semantic_exc:
+                    semantic_probe = {
+                        "status": "error",
+                        "error_type": type(semantic_exc).__name__,
+                    }
+                probe["status"] = "ok"
+            else:
+                semantic_probe = {"status": "unavailable", "matches": []}
+                probe["status"] = "embedding_unavailable"
+        except Exception as exc:
+            probe = {"status": "error", "error_type": type(exc).__name__}
+
+    shared_url = str(
+        os.getenv("USE_PROVIDER_HEALTH_STATE_URL")
+        or "https://geralddaquila.com/wp-json/living-archive/v1/provider-health"
+    ).strip()
+    shared_secret_configured = bool(
+        str(os.getenv("USE_PROVIDER_BANK_SHARED_SECRET") or "").strip()
+    )
+    shared_health_persistence_enabled = bool(
+        shared_url.startswith("https://") and shared_secret_configured
+    )
+
+    return {
+        "ok": dimension is not None and total_vector_count is not None,
+        "diagnostic_mode": "qa_read_only",
+        "read_only": True,
+        "write_operations_performed": False,
+        "index": {
+            "name": str(
+                getattr(use_core, "PINECONE_INDEX_NAME", None)
+                or os.getenv("PINECONE_INDEX_NAME")
+                or "living-archive"
+            ),
+            "dimension": dimension,
+            "total_vector_count": total_vector_count,
+            "namespace_count": len(namespace_vector_counts),
+            "namespace_vector_counts": namespace_vector_counts,
+        },
+        "exact_url_probe": probe,
+        "semantic_top_matches": semantic_probe,
+        "provider_health": {
+            "url_configured": bool(str(os.getenv("USE_PROVIDER_HEALTH_STATE_URL") or "").strip()),
+            "shared_secret_configured": shared_secret_configured,
+            "persistence_enabled": shared_health_persistence_enabled,
+        },
+    }
 
 
 @_FASTAPI_APP.get("/api/integration-audit")

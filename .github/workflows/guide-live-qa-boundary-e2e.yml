@@ -1,0 +1,460 @@
+name: Guide Live QA Boundary E2E
+# Keep the live source-boundary suite running against each candidate branch revision.
+
+on:
+  pull_request:
+    branches:
+      - feat/runtime-gold-standard-exemplars
+    paths:
+      - main.py
+      - guide_direct_attribute_evidence.py
+      - general_guide_composition.py
+      - .github/workflows/guide-live-qa-boundary-e2e.yml
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  live-guide-boundary:
+    if: github.event.pull_request.head.ref == 'fix/guide-factual-no-evidence-final-gate'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Compute expected runtime source identity
+        run: |
+          python - <<'PY'
+          import hashlib
+          import os
+          from pathlib import Path
+
+          root = Path(".").resolve()
+          excluded_parts = {
+              ".git", ".venv", "venv", "__pycache__", ".pytest_cache",
+              "tests", "QA", "scripts", "node_modules",
+          }
+          source_files = []
+          for path in root.rglob("*.py"):
+              if path.is_symlink():
+                  continue
+              relative = path.relative_to(root)
+              if any(part in excluded_parts for part in relative.parts):
+                  continue
+              source_files.append(path)
+          digest = hashlib.sha256()
+          for path in sorted(source_files, key=lambda item: item.relative_to(root).as_posix()):
+              relative_name = path.relative_to(root).as_posix()
+              digest.update(relative_name.encode("utf-8"))
+              digest.update(b"\\0")
+              digest.update(path.read_bytes())
+              digest.update(b"\\0")
+          expected = digest.hexdigest()
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
+              env_file.write(f"EXPECTED_SOURCE_SHA256={expected}\n")
+          print(f"Expected runtime source SHA-256: {expected}")
+          PY
+
+      - name: Wait for isolated QA runtime identity
+        env:
+          QA_BASE_URL: https://guide-factual-boundary-qa.onrender.com
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import time
+          import urllib.request
+
+          base = os.environ["QA_BASE_URL"].rstrip("/")
+          expected = os.environ["EXPECTED_SOURCE_SHA256"]
+          deadline = time.monotonic() + 300
+          last_state = None
+          while time.monotonic() < deadline:
+              try:
+                  req = urllib.request.Request(
+                      base + "/api/integration-audit",
+                      headers={"Accept": "application/json"},
+                      method="GET",
+                  )
+                  with urllib.request.urlopen(req, timeout=20) as response:
+                      status = response.status
+                      payload = json.loads(response.read().decode("utf-8"))
+                      runtime_source_sha256 = response.headers.get("x-use-source-sha256")
+                  last_state = {
+                      "status": status,
+                      "version": payload.get("version"),
+                      "fingerprint": payload.get("fingerprint"),
+                      "source_sha256": runtime_source_sha256,
+                  }
+                  if status == 200 and runtime_source_sha256 == expected:
+                      print(
+                          "Isolated QA runtime identity matches this checkout: "
+                          f"version={payload.get('version')}, source_sha256={expected}"
+                      )
+                      break
+              except Exception as exc:
+                  last_state = {"error": f"{type(exc).__name__}: {str(exc)[:180]}"}
+              print(f"Waiting for expected isolated QA runtime identity: {last_state}")
+              time.sleep(10)
+          else:
+              raise SystemExit(
+                  "QA service did not reach this checkout's runtime source identity "
+                  f"within 5 minutes. Expected={expected}; last_state={last_state}"
+              )
+          PY
+
+      - name: Verify QA-only read-only index and provider-health diagnostics
+        env:
+          QA_BASE_URL: https://guide-factual-boundary-qa.onrender.com
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from urllib.parse import urlencode
+          import urllib.request
+
+          base = os.environ["QA_BASE_URL"].rstrip("/")
+          canonical_urls = [
+              "https://geralddaquila.com/2026/08/12/the-architecture-of-human-development/",
+              "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/",
+          ]
+          snapshots = []
+          for canonical_url in canonical_urls:
+              query = urlencode({"canonical_url": canonical_url})
+              request = urllib.request.Request(
+                  base + "/api/qa/read-only-diagnostics?" + query,
+                  headers={"Accept": "application/json"},
+                  method="GET",
+              )
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  status = response.status
+                  payload = json.loads(response.read().decode("utf-8"))
+
+              print("QA_READ_ONLY_DIAGNOSTICS=" + json.dumps(payload, sort_keys=True))
+              if status != 200 or not payload.get("ok") or payload.get("read_only") is not True:
+                  raise SystemExit("QA read-only diagnostics did not return a valid index snapshot.")
+
+              index = payload.get("index") or {}
+              if index.get("dimension") != 384:
+                  raise SystemExit(f"Unexpected Pinecone dimension: {index.get('dimension')!r}")
+              total = index.get("total_vector_count")
+              if not isinstance(total, int) or total <= 0:
+                  raise SystemExit(f"Pinecone vector count is missing or empty: {total!r}")
+
+              provider_health = payload.get("provider_health") or {}
+              if provider_health.get("shared_secret_configured") or provider_health.get("persistence_enabled"):
+                  raise SystemExit("QA shared provider-health persistence is enabled; write isolation is not established.")
+
+              probe = payload.get("exact_url_probe") or {}
+              if probe.get("status") != "ok":
+                  raise SystemExit(f"Exact-URL read-only probe failed: {probe!r}")
+              semantic = payload.get("semantic_top_matches") or {}
+              if semantic.get("status") != "ok":
+                  raise SystemExit(f"Unfiltered semantic read-only probe failed: {semantic!r}")
+              variants = probe.get("variants") or {}
+              match_count = sum(int(item.get("match_count") or 0) for item in variants.values())
+              semantic_matches = semantic.get("matches") or []
+              snapshot = {
+                  "dimension": index.get("dimension"),
+                  "total_vector_count": total,
+                  "namespace_count": index.get("namespace_count"),
+                  "canonical_url": canonical_url,
+                  "exact_url_match_count_across_slash_variants": match_count,
+                  "exact_url_matches": {
+                      variant: item.get("matches", [])
+                      for variant, item in variants.items()
+                  },
+                  "semantic_top_titles": [item.get("title") for item in semantic_matches],
+                  "semantic_top_urls": [item.get("url") for item in semantic_matches],
+                  "shared_provider_health_persistence_enabled": provider_health.get("persistence_enabled"),
+                  "vector_writes_performed": payload.get("write_operations_performed"),
+              }
+              snapshots.append(snapshot)
+              print("QA_READ_ONLY_INDEX_EVIDENCE=" + json.dumps(snapshot, sort_keys=True))
+
+          print("QA_CANONICAL_URL_COMPARISON=" + json.dumps(snapshots, sort_keys=True))
+          if len(snapshots) != 2:
+              raise SystemExit("Expected independent read-only snapshots for both historical and live URLs.")
+          PY
+
+      - name: Run live negative and positive visitor queries
+        env:
+          QA_BASE_URL: https://guide-factual-boundary-qa.onrender.com
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import statistics
+          import time
+          import urllib.error
+          import urllib.request
+
+          base = os.environ["QA_BASE_URL"].rstrip("/")
+          endpoint = base + "/api/query"
+          # Keep this live suite deterministic and low-load. Provider-exhaustion
+          # and provider-error payload guarantees are covered by dedicated CI
+          # regressions that simulate those states rather than relying on live quotas.
+          cases = [
+              (
+                  "positive_archive_grounded_explanation",
+                  "What does the Living Archive say about becoming fully human?",
+              ),
+              (
+                  "positive_canonical_node_handoff",
+                  "Please take me to Living Stewardship.",
+              ),
+              (
+                  "negative_direct_attribute",
+                  "What is the boiling point of water at sea level?",
+              ),
+          ]
+          timings = {}
+          payloads = {}
+
+          def post_query(query):
+              body = json.dumps({"query": query}).encode("utf-8")
+              started = time.perf_counter()
+              last_failure = None
+              source_sha256 = None
+              for transport_attempt in range(3):
+                  request = urllib.request.Request(
+                      endpoint,
+                      data=body,
+                      headers={"Content-Type": "application/json"},
+                      method="POST",
+                  )
+                  try:
+                      with urllib.request.urlopen(request, timeout=90) as response:
+                          status = response.status
+                          source_sha256 = response.headers.get("x-use-source-sha256")
+                          raw = response.read().decode("utf-8")
+                      if status >= 500 and transport_attempt < 2:
+                          last_failure = f"transient HTTP {status}: {raw[:500]}"
+                          time.sleep(3 * (transport_attempt + 1))
+                          continue
+                      break
+                  except urllib.error.HTTPError as exc:
+                      status = exc.code
+                      source_sha256 = exc.headers.get("x-use-source-sha256") if exc.headers else None
+                      raw = exc.read().decode("utf-8", errors="replace")
+                      if status >= 500 and transport_attempt < 2:
+                          last_failure = f"transient HTTP {status}: {raw[:500]}"
+                          time.sleep(3 * (transport_attempt + 1))
+                          continue
+                      break
+                  except (TimeoutError, urllib.error.URLError, ConnectionError) as exc:
+                      last_failure = repr(exc)
+                      if transport_attempt < 2:
+                          print(json.dumps({"transport_retry": transport_attempt + 1, "query": query, "error": last_failure}))
+                          time.sleep(3 * (transport_attempt + 1))
+                          continue
+                      raise AssertionError(
+                          f"Query transport failed after 3 attempts: {query!r}; last_error={last_failure}"
+                      ) from exc
+              elapsed_ms = (time.perf_counter() - started) * 1000
+              try:
+                  payload = json.loads(raw)
+              except Exception:
+                  payload = {"raw_response": raw[:2000]}
+              return status, payload, elapsed_ms, source_sha256
+
+          for name, query in cases:
+              samples = []
+              observed = []
+              sample_count = 3
+              for attempt in range(sample_count):
+                  status, payload, elapsed_ms, response_source_sha256 = post_query(query)
+                  samples.append(elapsed_ms)
+                  observed.append({"status": status, "payload": payload, "elapsed_ms": round(elapsed_ms, 1)})
+                  if status != 200:
+                      raise AssertionError(
+                          f"{name} attempt {attempt + 1}: expected HTTP 200, got {status}; "
+                          f"payload={json.dumps(payload, ensure_ascii=False)[:2000]}"
+                      )
+                  expected_source = os.environ["EXPECTED_SOURCE_SHA256"]
+                  observed_source = response_source_sha256 or payload.get("source_sha256")
+                  if observed_source is None:
+                      # Native handoff payloads intentionally omit source_sha256.
+                      # Verify the live runtime identity through the audit endpoint
+                      # rather than forcing an internal field into the visitor schema.
+                      audit_request = urllib.request.Request(
+                          base + "/api/integration-audit",
+                          headers={"Accept": "application/json"},
+                          method="GET",
+                      )
+                      with urllib.request.urlopen(audit_request, timeout=20) as audit_response:
+                          audit_status = audit_response.status
+                          audit_payload = json.loads(audit_response.read().decode("utf-8"))
+                          observed_source = audit_response.headers.get("x-use-source-sha256")
+                      if audit_status != 200 or audit_payload.get("version") != payload.get("version"):
+                          raise AssertionError(
+                              f"{name} attempt {attempt + 1}: native handoff version differs from runtime audit; "
+                              f"handoff_version={payload.get('version')}; audit={audit_payload}"
+                          )
+                  if observed_source != expected_source:
+                      raise AssertionError(
+                          f"{name} attempt {attempt + 1}: runtime identity changed or does not match "
+                          f"the tested checkout; expected_source_sha256={expected_source}; "
+                          f"observed_source_sha256={observed_source}"
+                      )
+                  basis = payload.get("answer_basis") or {}
+                  recommendation = payload.get("recommendation")
+                  response = str(payload.get("response") or "")
+                  if name == "negative_direct_attribute":
+                      if basis.get("kind") != "archive_evidence_unavailable":
+                          raise AssertionError(
+                              "Direct-attribute query did not fail closed with "
+                              f"archive_evidence_unavailable: {json.dumps(payload, ensure_ascii=False)[:2000]}"
+                          )
+                      if recommendation is not None:
+                          raise AssertionError(
+                              "Direct-attribute query returned an unsupported recommendation: "
+                              f"{json.dumps(recommendation, ensure_ascii=False)}"
+                          )
+                      if "Frequency Water" in response:
+                          raise AssertionError("Direct-attribute response contains the known unrelated decoy.")
+                  elif name == "positive_archive_grounded_explanation":
+                      if basis.get("kind") != "archive_supported":
+                          raise AssertionError(
+                              "Grounded explanation positive control was not marked Archive-supported: "
+                              f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                          )
+                      if not isinstance(recommendation, dict):
+                          raise AssertionError(
+                              "Grounded explanation positive control did not return a canonical recommendation: "
+                              f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                          )
+                      positive_url = str(recommendation.get("url") or "")
+                      if not positive_url.startswith("https://geralddaquila.com/"):
+                          raise AssertionError(
+                              "Grounded explanation positive control returned a non-canonical recommendation: "
+                              f"{json.dumps(recommendation, ensure_ascii=False)}"
+                          )
+                      # Canonical ownership alone does not prove topical relevance.
+                      # For this question, require a resource about human development,
+                      # the body/soul, or becoming fully human—not a merely adjacent
+                      # Archive page such as an article about attention and focus.
+                      positive_title = str(recommendation.get("title") or "").casefold()
+                      relevant_title_markers = (
+                          "fully human",
+                          "human development",
+                          "body as archive",
+                          "more than this body",
+                          "soul",
+                      )
+                      if not any(marker in positive_title for marker in relevant_title_markers):
+                          raise AssertionError(
+                              "Grounded explanation returned a canonical but topically mismatched recommendation: "
+                              f"{json.dumps(recommendation, ensure_ascii=False)}"
+                          )
+                      if len(response.strip()) < 80:
+                          raise AssertionError("Grounded explanation positive control is unexpectedly empty or short.")
+                      if "couldn’t establish an answer" in response.casefold() or "outside knowledge" in response.casefold():
+                          raise AssertionError("Grounded explanation positive control fell back to the evidence-unavailable response.")
+                      # Topic/title overlap is not source fidelity. The canonical
+                      # post (ID 66853) frames human development as integration
+                      # across disciplines, maturity, responsibility, and stewardship.
+                      # Require those central ideas and reject known cross-asset claims
+                      # that are absent from this source.
+                      response_folded = response.casefold()
+                      required_source_concepts = {
+                          "integration": ("integration", "integrated", "interconnected"),
+                          # Match the canonical article’s actual wording and valid forms;
+                          # do not require unrelated synonyms absent from the source.
+                          "disciplinary_scope": (
+                              "biology", "biological", "psychology", "psychological",
+                              "ethics", "ethical", "relational", "systemic", "existential",
+                              "leadership", "meaning",
+                          ),
+                          "maturity_or_stewardship": ("maturity", "responsibility", "stewardship"),
+                      }
+                      missing_concepts = [
+                          label for label, alternatives in required_source_concepts.items()
+                          if not any(term in response_folded for term in alternatives)
+                      ]
+                      if missing_concepts:
+                          raise AssertionError(
+                              "Grounded explanation does not reflect the canonical source's central "
+                              "developmental-integration framework; missing concept groups="
+                              f"{missing_concepts}; response={response[:2000]!r}"
+                          )
+                      unsupported_source_claims = (
+                          "temporary garment",
+                          "continues beyond any single lifetime",
+                          "soul-memory",
+                          "somatic meditation",
+                          "mindful movement",
+                          "retrieve the hidden records of the soul",
+                      )
+                      detected_unsupported = [
+                          claim for claim in unsupported_source_claims if claim in response_folded
+                      ]
+                      if detected_unsupported:
+                          raise AssertionError(
+                              "Grounded explanation contains claims not supported by the selected "
+                              f"canonical source: {detected_unsupported}; response={response[:2000]!r}"
+                          )
+                  else:
+                      if payload.get("intent") == "GUIDE_NODE_HANDOFF":
+                          if payload.get("handoff") != "guide_node":
+                              raise AssertionError("Living Stewardship positive control used an unexpected handoff mode.")
+                          if payload.get("guide_node_title") != "Living Stewardship":
+                              raise AssertionError(
+                                  "Positive node handoff did not select the requested canonical node: "
+                                  f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                              )
+                          if payload.get("guide_node_url") != "https://geralddaquila.com/living-projects-2/":
+                              raise AssertionError(
+                                  "Positive node handoff URL did not match the canonical registry: "
+                                  f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                              )
+                      else:
+                          if basis.get("kind") != "archive_supported":
+                              raise AssertionError(
+                                  "Source-discovery positive control was not Archive-supported: "
+                                  f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                              )
+                          positive_url = str((recommendation or {}).get("url") or "")
+                          if not isinstance(recommendation, dict) or not positive_url.startswith("https://geralddaquila.com/"):
+                              raise AssertionError(
+                                  "Source-discovery positive control did not return a canonical Living Archive recommendation: "
+                                  f"{json.dumps(payload, ensure_ascii=False)[:2000]}"
+                              )
+                          if len(response.strip()) < 40:
+                              raise AssertionError("Source-discovery response is unexpectedly empty or short.")
+                  time.sleep(2)
+              ordered = sorted(samples)
+              timings[name] = {
+                  "samples_ms": [round(x, 1) for x in samples],
+                  "p50_ms": round(statistics.median(samples), 1),
+                  "p95_ms_nearest_rank": round(ordered[max(0, __import__("math").ceil(0.95 * len(ordered)) - 1)], 1),
+              }
+              payloads[name] = observed[-1]["payload"]
+              print(json.dumps({"case": name, "timings": timings[name], "last_payload": observed[-1]["payload"]}, ensure_ascii=False))
+
+          print("LIVE_QA_SUMMARY=" + json.dumps(timings, ensure_ascii=False))
+
+          # Performance is part of the release gate, not merely a reported metric.
+          # The last validated baseline was ~13.4s p95 for Archive-grounded discovery,
+          # ~0.31s for a direct node handoff, and ~6.25s for an unsupported direct-attribute
+          # query. Require a material discovery improvement without regressing the other
+          # bounded visitor paths.
+          latency_budgets_ms = {
+              "positive_archive_grounded_explanation": {"p50_ms": 10000, "p95_ms_nearest_rank": 10000},
+              "positive_canonical_node_handoff": {"p95_ms_nearest_rank": 2000},
+              "negative_direct_attribute": {"p95_ms_nearest_rank": 7000},
+          }
+          for case_name, budgets in latency_budgets_ms.items():
+              observed = timings[case_name]
+              for metric_name, maximum_ms in budgets.items():
+                  measured_ms = observed[metric_name]
+                  if measured_ms > maximum_ms:
+                      raise AssertionError(
+                          f"Latency budget exceeded for {case_name}: "
+                          f"{metric_name}={measured_ms}ms > {maximum_ms}ms; "
+                          f"samples={observed['samples_ms']}"
+                      )
+          PY

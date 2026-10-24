@@ -166,8 +166,8 @@ def test_compound_stewardship_question_completes_request_composition_and_recomme
 
 
 
-def test_archive_evidence_gaps_do_not_bypass_general_composition(monkeypatch):
-    """Evidence flags limit Archive attribution, not general answers to public questions."""
+def test_archive_evidence_gaps_fail_closed_after_composition(monkeypatch):
+    """The composer may run, but unsupported prose must not cross the visitor boundary."""
     for flag in (
         "frame_neutral_evidence_unavailable",
         "question_structure_evidence_unavailable",
@@ -178,10 +178,86 @@ def test_archive_evidence_gaps_do_not_bypass_general_composition(monkeypatch):
         )
         status, payload = asyncio.run(_post_query("How do I handle burnout as a manager? " + flag))
         assert status == 200
-        assert payload["response"] == ANSWER
+        assert "Living Archive" in payload["response"]
+        assert "outside knowledge" in payload["response"]
         assert composition_calls == ["general_guide_composition"]
         assert payload.get("recommendation") is None
-        assert payload["answer_basis"]["kind"] == "general_knowledge"
+        assert payload["answer_basis"]["kind"] == "archive_evidence_unavailable"
+
+def test_provider_exhaustion_fails_closed_even_when_a_relevant_doorway_exists(monkeypatch):
+    """A navigation candidate cannot authorize hardcoded prose when composition is unavailable."""
+    _install_controlled_provider_and_retrieval(monkeypatch)
+    monkeypatch.setattr(
+        general_guide_composition, "compose", lambda **kwargs: None
+    )
+
+    status, payload = asyncio.run(_post_query(QUERY))
+
+    assert status == 200
+    assert payload["response"] == use_main._archive_limitation_response()
+    assert payload.get("recommendation") is None
+    assert payload["answer_basis"]["kind"] == "archive_evidence_unavailable"
+    assert "Stewardship means taking care" not in payload["response"]
+
+
+def test_provider_error_payload_is_not_treated_as_composition_success(monkeypatch):
+    """A truthy provider error object cannot authorize a generic answer or doorway."""
+    _install_controlled_provider_and_retrieval(monkeypatch)
+    monkeypatch.setattr(
+        general_guide_composition,
+        "compose",
+        lambda **kwargs: {
+            "response": "Unable to generate a response. GROQ_API_KEY is not configured in backend environment.",
+            "doorway_title": CANONICAL_TITLE,
+            "response_shape": "explanatory",
+            "provider": "",
+            "model": "",
+        },
+    )
+
+    status, payload = asyncio.run(_post_query(QUERY))
+
+    assert status == 200
+    assert payload["response"] == use_main._archive_limitation_response()
+    assert payload.get("recommendation") is None
+    assert payload["answer_basis"]["kind"] == "archive_evidence_unavailable"
+    assert "GROQ_API_KEY" not in payload["response"]
+
+
+def test_outer_basic_inquiry_failure_cannot_bypass_archive_only_boundary(monkeypatch):
+    """The request-boundary emergency path must not revive generic fallback prose."""
+    def fail_basic_inquiry(**kwargs):
+        raise RuntimeError("controlled request-boundary failure")
+
+    monkeypatch.setattr(use_main, "_basic_inquiry_response", fail_basic_inquiry)
+    status, payload = asyncio.run(_post_query(QUERY))
+
+    assert status == 200
+    assert payload["response"] == use_main._archive_limitation_response()
+    assert payload.get("recommendation") is None
+    assert payload["answer_basis"]["kind"] == "archive_evidence_unavailable"
+
+
+def test_direct_attribute_query_rejects_preselected_unrelated_doorway(monkeypatch):
+    """A preselected entity-overlap doorway cannot bypass source-body evidence."""
+    _install_controlled_provider_and_retrieval(
+        monkeypatch,
+        {
+            "recommendation_canonical_primary": {
+                "title": "Frequency Water",
+                "url": "https://geralddaquila.com/2025/07/06/frequency-water-programming-liquid-memory-for-healing-mission/",
+            },
+        },
+    )
+    status, payload = asyncio.run(
+        _post_query("What is the boiling point of water at sea level?")
+    )
+
+    assert status == 200
+    assert payload["response"] == use_main._archive_limitation_response()
+    assert payload.get("recommendation") is None
+    assert payload["answer_basis"]["kind"] == "archive_evidence_unavailable"
+    assert "Frequency Water" not in payload["response"]
 
 
 def test_deterministic_burnout_recovery_is_useful_and_has_real_paragraph_breaks():
@@ -381,8 +457,8 @@ def test_source_specific_question_acknowledges_unavailable_archive_source(monkey
     assert not seen["context_data"].get("context_blocks")
     assert payload.get("recommendation") is None
 
-def test_provider_bank_exhaustion_uses_question_aware_general_recovery(monkeypatch):
-    """Provider exhaustion retains useful guidance and actual paragraph breaks."""
+def test_provider_bank_exhaustion_fails_closed_without_archive_evidence(monkeypatch):
+    """Provider exhaustion cannot turn missing Archive evidence into outside guidance."""
     _install_controlled_provider_and_retrieval(
         monkeypatch, {"evidence_sufficiency_unavailable": True}
     )
@@ -395,12 +471,10 @@ def test_provider_bank_exhaustion_uses_question_aware_general_recovery(monkeypat
     )
 
     assert status == 200
-    assert "workload and recovery problem" in payload["response"]
-    assert "For example" in payload["response"]
-    assert len(payload["response"].split("\n\n")) == 3
-    assert r"\n\n" not in payload["response"]
-    assert "I couldn't verify a reliable answer" not in payload["response"]
+    assert "Living Archive" in payload["response"]
+    assert "outside knowledge" in payload["response"]
     assert payload.get("recommendation") is None
+    assert payload["answer_basis"]["kind"] == "archive_evidence_unavailable"
 
 def test_supported_evidence_preserves_structured_recommendation_title_and_url(monkeypatch):
     """Evidence-supported answers retain navigation in its separate response field."""
@@ -442,8 +516,8 @@ def test_canonical_search_recovery_reuses_the_same_relevance_gate(monkeypatch):
     }
 
 
-def test_deterministic_only_stewardship_disagreement_answers_the_actual_question(monkeypatch):
-    """A conflict question must not fall through to the generic stewardship definition."""
+def test_deterministic_only_stewardship_disagreement_fails_closed_without_evidence(monkeypatch):
+    """Deterministic recovery must not invent a corpus-free conflict answer."""
     monkeypatch.setenv("USE_REASONING_PROVIDER_MODE", "deterministic_only")
     _install_controlled_provider_and_retrieval(monkeypatch, {"evidence_sufficiency_unavailable": True})
 
@@ -456,16 +530,13 @@ def test_deterministic_only_stewardship_disagreement_answers_the_actual_question
 
     response = payload.get("response", "")
     assert status == 200
-    assert "different values" in response
-    assert "what each person is trying to protect" in response
-    assert "handle disagreement responsibly" in response
-    assert "Stewardship means taking care of something entrusted to you" not in response
-    assert len(response.split("\n\n")) == 3
-    assert r"\n\n" not in response
+    assert "Living Archive" in response
+    assert "outside knowledge" in response
+    assert payload["answer_basis"]["kind"] == "archive_evidence_unavailable"
+    assert payload.get("recommendation") is None
 
-
-def test_deterministic_only_mode_bypasses_llm_composer_and_attributes_recovery(monkeypatch):
-    """The explicit mode switch isolates deterministic recovery without provider calls."""
+def test_deterministic_only_mode_bypasses_llm_and_fails_closed_without_evidence(monkeypatch):
+    """Deterministic-only recovery cannot substitute external knowledge."""
     monkeypatch.setenv("USE_REASONING_PROVIDER_MODE", "deterministic_only")
     _install_controlled_provider_and_retrieval(
         monkeypatch, {"evidence_sufficiency_unavailable": True}
@@ -480,12 +551,12 @@ def test_deterministic_only_mode_bypasses_llm_composer_and_attributes_recovery(m
     )
 
     assert status == 200
-    assert "workload and recovery problem" in payload["response"]
-    assert "For example" in payload["response"]
-    assert len(payload["response"].split("\n\n")) == 3
-    assert r"\n\n" not in payload["response"]
+    assert "Living Archive" in payload["response"]
+    assert "outside knowledge" in payload["response"]
+    assert payload["answer_basis"]["kind"] == "archive_evidence_unavailable"
+    assert payload.get("recommendation") is None
 
-def test_practical_stewardship_request_bypasses_oversized_composition_envelope(monkeypatch):
+def test_practical_stewardship_without_evidence_fails_closed_without_composition(monkeypatch):
     query = "How can a community practice stewardship in its everyday decisions and responsibilities?"
     _install_controlled_provider_and_retrieval(monkeypatch)
     monkeypatch.setenv("USE_REASONING_PROVIDER_MODE", "auto")
@@ -508,13 +579,10 @@ def test_practical_stewardship_request_bypasses_oversized_composition_envelope(m
 
     assert status == 200
     answer = payload["response"].casefold()
-    assert "people who rely on it" in answer
-    assert "clear criteria" in answer
-    assert "review the outcome" in answer
-    assert "general practical suggestions" in answer
-    assert "could not complete this request" not in answer
+    assert "living archive" in answer
+    assert "outside knowledge" in answer
     assert composer_calls == []
     assert payload.get("recommendation") is None
-    assert payload["answer_basis"]["kind"] == "general_knowledge"
+    assert payload["answer_basis"]["kind"] == "archive_evidence_unavailable"
     assert payload["processing"] == "basic_inquiry"
 

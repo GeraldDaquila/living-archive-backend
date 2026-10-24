@@ -12,7 +12,9 @@ def test_guide_provider_call_timeout_is_bounded():
 
 def test_guide_fast_failure_budget_is_narrow_and_bounded():
     assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 2.8
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 1
+    # This is the number of fallback candidates after the primary attempt,
+    # not the total number of provider attempts.
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
 
 
 def test_guide_timeout_does_not_change_hrn_provider_timeout():

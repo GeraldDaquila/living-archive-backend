@@ -60,7 +60,7 @@ def main():
     assert_true("from concurrent.futures import ThreadPoolExecutor" in MAIN_TEXT and "executor.map(fetch_candidate, candidate_slice)" in MAIN_TEXT, "canonical search candidate fetches are not concurrent and order-preserving")
     assert_true("fallback_docs = _wordpress_search_canonical_candidates(query)" in MAIN_TEXT, "canonical search recovery is not connected to missing-doorway recovery")
     assert_true("primary = _canonical_primary_from_docs(evidence_docs, query, profile)" in MAIN_TEXT, "recovered candidates do not pass through the shared relevance gate")
-    assert_true("score = (metrics[2], metrics[3], metrics[0], metrics[1], context[2], context[1], -index)" in MAIN_TEXT, "canonical doorway ranking does not prioritize evidence in the resource body")
+    assert_true("score = (metrics[0], metrics[1], metrics[2], metrics[3], context[2], context[1], -index)" in MAIN_TEXT, "canonical doorway ranking does not prioritize title-level topic fit after body-evidence eligibility")
     # Navigation selection is independent from answer synthesis sufficiency.
     evidence_boundary_start = MAIN_TEXT.find("if archive_evidence_unavailable:")
     evidence_boundary_end = MAIN_TEXT.find("# All ordinary questions use the same provider-neutral composition path", evidence_boundary_start)
@@ -95,7 +95,9 @@ def main():
     assert_true("regardless of topic or response shape" in composition._GENERAL_GUIDE_SYSTEM, "perception does not apply across response types")
     assert_true("Prefer one earned insight over several generic observations" in composition._GENERAL_GUIDE_SYSTEM, "one-earned-insight restraint missing")
     assert_true("Apply discernment structurally, not as a final stylistic flourish" not in composition._GENERAL_GUIDE_SYSTEM, "over-restrictive v1.12 discernment gate has returned")
-    assert_true("If no relevant Archive material was retrieved, answer from reliable general knowledge when the question permits it" in composition._GENERAL_GUIDE_SYSTEM, "general-knowledge answer path is not protected")
+    assert_true("sole authority for substantive content" in composition._GENERAL_GUIDE_SYSTEM, "corpus-only source boundary is missing")
+    assert_true("Do not import outside facts" in composition._GENERAL_GUIDE_SYSTEM, "outside-knowledge prohibition is missing")
+    assert_true("If no relevant Archive material was retrieved, answer from reliable general knowledge when the question permits it" not in composition._GENERAL_GUIDE_SYSTEM, "external-knowledge fallback instruction has returned")
     assert_true("Perception is not a requirement to sound emotional" in composition._GENERAL_GUIDE_SYSTEM, "neutral factual answers may be over-emotionalized")
     assert_true("Do not turn a neutral question into personal advice" in composition._GENERAL_GUIDE_SYSTEM, "neutral question boundary missing")
     assert_true("Preserve the visitor's agency" in composition._GENERAL_GUIDE_SYSTEM, "visitor agency boundary missing")
@@ -265,11 +267,15 @@ def main():
         assert_true(empty_result is not None, "empty Archive retrieval blocked a general-purpose answer")
         assert_true(
             "No relevant Archive material was retrieved" in captured_user_messages[-1],
-            "empty-retrieval prompt did not preserve the general-knowledge lane",
+            "empty-retrieval prompt did not preserve the source-only lane",
         )
         assert_true(
-            "do not invent Archive-specific claims or sources" in captured_user_messages[-1],
-            "empty-retrieval prompt does not protect source integrity",
+            "Do not answer from outside knowledge" in captured_user_messages[-1],
+            "empty-retrieval prompt permits external-knowledge substitution",
+        )
+        assert_true(
+            "available Living Archive material does not establish the answer" in captured_user_messages[-1],
+            "empty-retrieval prompt does not require an honest source limitation",
         )
 
         # Navigation must be supplied structurally by the Guide, never embedded
@@ -356,9 +362,9 @@ def main():
         )
         assert_true(bool(quality_rule), "golden calibration rule missing")
 
-    # Significant distress changes conversational pacing, not the availability
-    # of a separately rendered doorway that has already passed relevance/safety
-    # gates. Verify the ordinary and recovery paths do not discard it by default.
+    # A valid doorway remains separate from answer synthesis when a supported
+    # answer exists. But a recovery path with no certified answer must fail closed
+    # and suppress any doorway that would imply the unsupported answer is grounded.
     assert_true(
         "Distress-sensitive pacing governs the prose, not access to a separate" in MAIN_TEXT,
         "distress-sensitive doorway continuity contract is missing",
@@ -369,8 +375,9 @@ def main():
     )
     assert_true(
         '"recommendation": authoritative_doorway' in MAIN_TEXT
-        and '"recommendation": recovery_recommendation' in MAIN_TEXT,
-        "ordinary/recovery recommendation contract is incomplete",
+        and '"response": _archive_limitation_response()' in MAIN_TEXT
+        and '"recommendation": None' in MAIN_TEXT,
+        "ordinary answer and fail-closed recovery recommendation contracts are incomplete",
     )
 
     # The final public boundary must preserve Markdown line breaks instead of
@@ -390,7 +397,7 @@ def main():
     assert_true('"recommendation": authoritative_doorway' in MAIN_TEXT, "ordinary response recommendation field is not bound to authoritative doorway")
     assert_true("authoritative_doorway = _normalize_authoritative_recommendation(" in MAIN_TEXT, "recommendation is not resolved before composition")
     assert_true("One relevant place to continue is [" not in MAIN_TEXT, "doorway prose still leaks into ordinary answer construction")
-    assert_true('"recommendation": recovery_recommendation' in MAIN_TEXT, "recovery response lost structured recommendation")
+    assert_true('_archive_limitation_response()' in MAIN_TEXT and '"recommendation": None' in MAIN_TEXT, "outer recovery must fail closed instead of presenting an unverified answer as Archive-grounded")
 
     # Recommendation authority must terminate at USE's canonical link context;
     # it must never depend on provider-generated navigation.
