@@ -167,6 +167,35 @@ try {
     .some(part=>normalizedUI.includes(part.slice(0, Math.min(part.length, 48))))) {
     throw new Error("The browser did not render a meaningful portion of the Archive-grounded API answer.");
   }
+  // Acceptance is not complete merely because a long grounded answer rendered.
+  // The provider-exhaustion path must retain The Guide's ordinary, patient voice.
+  // These phrases are deliberate user-facing contract language, not a citation
+  // shortcut: canonical-source evidence gates above still have to pass.
+  const normalizedHumanVoice = normalizedAPI;
+  for (const requiredPhrase of [
+    "trust helps people in a community rely on one another",
+    "think of a shared garden",
+    "stewardship is tending the garden"
+  ]) {
+    if (!normalizedHumanVoice.includes(requiredPhrase)) {
+      throw new Error("The conceptual fallback lost The Guide's required human voice. Missing phrase: " + requiredPhrase +
+        ". Actual API response: " + supportedResponse.payload.response);
+    }
+  }
+  for (const forbiddenPhrase of [
+    "canonical source",
+    "bounded synthesis",
+    "not a claim that any one sentence",
+    "verbatim"
+  ]) {
+    if (normalizedHumanVoice.includes(forbiddenPhrase)) {
+      throw new Error("The conceptual fallback exposed audit-style or internal wording: " + forbiddenPhrase +
+        ". Actual API response: " + supportedResponse.payload.response);
+    }
+  }
+  if (/^[^\S\r\n]*[✨🌱🔹🔸✅⚠️]/mu.test(supportedResponse.payload.response)) {
+    throw new Error("The conceptual fallback began a response line with decorative emoji.");
+  }
   if (await root.locator("#archive-response-text a.archive-recommendation-link").count() !== 1) {
     throw new Error("The conceptual response must render exactly one canonical recommendation link.");
   }
