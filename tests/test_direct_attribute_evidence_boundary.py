@@ -119,3 +119,16 @@ def test_single_word_attribute_is_still_checked():
     assert direct_attribute_phrase(question) == "color"
     assert not direct_attribute_supported(question, {"title": "Flag", "text": "The flag is displayed outside."})
     assert direct_attribute_supported(question, {"title": "Flag", "text": "The color of the flag is blue."})
+
+
+
+def test_conceptual_role_question_is_not_treated_as_direct_fact():
+    assert direct_attribute_phrase("What is the role of trust in community stewardship?") is None
+
+
+def test_conceptual_purpose_question_is_not_treated_as_direct_fact():
+    assert direct_attribute_phrase("What is the purpose of reciprocity in a community?") is None
+
+
+def test_conceptual_significance_question_is_not_treated_as_direct_fact():
+    assert direct_attribute_phrase("What is the significance of human development?") is None
