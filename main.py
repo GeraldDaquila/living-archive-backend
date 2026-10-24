@@ -7184,43 +7184,42 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # have passed. Provider exhaustion must not replace the visitor-facing
         # explanation with a quotation collage or internal evidence terminology.
         if _conceptual_human_voice_supported:
-            # Preserve the visitor's actual subject before using the trust /
-            # stewardship synthesis. A nearby conceptual question about a
-            # different concept must not inherit this answer merely because the
-            # same canonical sources were retrieved.
-            _conceptual_query_normalized = re.sub(r"\\s+", " ", str(query or "")).strip().casefold()
-            if re.search(r"\\breciproc(?:ity|al)\\b", _conceptual_query_normalized) and not re.search(r"\\b(?:trust|stewardship)\\b", _conceptual_query_normalized):
-                _reciprocity_recovery = _compose_provider_exhaustion_recovery(
+            # Preserve the current concept; never reuse the trust/stewardship answer for reciprocity.
+            _conceptual_query_normalized = re.sub(r"\s+", " ", str(query or "")).strip().casefold()
+            _is_reciprocity_only_query = bool(
+                re.search(r"\breciproc(?:ity|al)\b", _conceptual_query_normalized)
+                and not re.search(r"\b(?:trust|stewardship)\b", _conceptual_query_normalized)
+            )
+            if _is_reciprocity_only_query:
+                _reciprocity_text = _compose_provider_exhaustion_recovery(
                     query,
                     underlying_question=str((interpretation or {}).get("underlying_question") or ""),
                     desired_movement=str((interpretation or {}).get("desired_movement") or ""),
                 )
-                _reciprocity_text = str(_reciprocity_recovery or "").strip()
-                if _reciprocity_text and re.search(r"\\breciprocity\\b", _reciprocity_text, re.I) and not re.search(r"\\bThink of a shared garden\\b", _reciprocity_text, re.I):
+                _reciprocity_text = str(_reciprocity_text or "").strip()
+                if _reciprocity_text and re.search(r"\breciprocity\b", _reciprocity_text, re.I) and not re.search(r"\bThink of a shared garden\b", _reciprocity_text, re.I):
                     response = _reciprocity_text
                     authoritative_doorway = None
                     composition_context.pop("authoritative_doorway", None)
                     composition_context.pop("authoritative_doorway_title", None)
                     composition_context["conceptual_subject_recovery"] = "reciprocity"
+                else:
                     _conceptual_human_voice_supported = False
-            if _conceptual_human_voice_supported:
+            else:
                 _final_trust_title = str(locals().get("_trust_title") or "Trust Architecture").strip()
-            _final_stewardship_title = str(locals().get("_stewardship_title") or "The Stewardship Age").strip()
-            # Keep the explanation conversational. Source titles belong in the
-            # recommendation link below, not inside the opening sentence where
-            # they interrupt the visitor-facing explanation.
-            response = _sanitize_basic_inquiry_response(
-                "Trust helps people in a community rely on one another. It gives "
-                "people confidence that others will do their part and act with care. "
-                "Stewardship is the shared responsibility to care for what people "
-                "depend on.\n\n"
-                + "Think of a shared garden. Trust means people can count on one "
-                "another to show up and do their part. Stewardship is tending the "
-                "garden so it remains healthy for everyone. Trust makes cooperation "
-                "possible; stewardship helps that cooperation endure."
-            )
+                _final_stewardship_title = str(locals().get("_stewardship_title") or "The Stewardship Age").strip()
+                response = _sanitize_basic_inquiry_response(
+                    "Trust helps people in a community rely on one another. It gives "
+                    "people confidence that others will do their part and act with care. "
+                    "Stewardship is the shared responsibility to care for what people "
+                    "depend on.\n\n"
+                    + "Think of a shared garden. Trust means people can count on one "
+                    "another to show up and do their part. Stewardship is tending the "
+                    "garden so it remains healthy for everyone. Trust makes cooperation "
+                    "possible; stewardship helps that cooperation endure."
+                )
 
-        if not _conceptual_human_voice_supported:
+        if not _conceptual_human_voice_supported and not locals().get("conceptual_subject_recovery"):
             # Fail closed unless vetted canonical source bodies support the
             # requested concepts, the selected doorway, and the explanation.
             response = _archive_limitation_response(query)
