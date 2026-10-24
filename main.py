@@ -6460,23 +6460,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         _is_conceptual_explanatory_request(query)
                         and not discovery_subject
                     ):
-                        # For conceptual questions, align the recommendation to
-                        # the same vetted canonical bodies that will ground the
-                        # answer. The initial doorway selector can prefer a broad
-                        # stewardship page even when a better topical source such
-                        # as Trust Architecture is present in recovered evidence.
-                        evidence_doorway, evidence_for_doorway = (
-                            _guide_align_registered_discovery_doorway(
-                                query, list(recovered_docs) + list(registry_discovery_docs)
-                            )
+                        # Conceptual inquiries need a source selected from the
+                        # vetted evidence bodies, but do not require the special
+                        # registered-node rule used for explicit resource discovery.
+                        # Reuse the Guide's general authoritative doorway selector
+                        # against the recovered, gate-passing canonical documents.
+                        evidence_doorway = _general_guide_authoritative_doorway(
+                            query,
+                            {"generation_authority_protected_docs": recovered_docs},
                         )
-                        if evidence_doorway and evidence_for_doorway:
+                        evidence_doorway = _normalize_authoritative_recommendation(
+                            evidence_doorway
+                        )
+                        if evidence_doorway:
                             authoritative_doorway = evidence_doorway
                             composition_context["authoritative_doorway"] = evidence_doorway
-                            discovery_selected_evidence = evidence_for_doorway
                             print(
-                                "The Guide conceptual evidence contract: aligned "
-                                "the doorway to a vetted canonical source body "
+                                "The Guide conceptual evidence contract: selected "
+                                "the doorway from vetted canonical evidence "
                                 f"{evidence_doorway.get('title')!r}."
                             )
                     if discovery_subject:
