@@ -61,7 +61,7 @@ from provider_bank import (
     snapshot as provider_bank_snapshot,
     refresh_shared_health_state,
 )
-from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
+from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
 from guide_fuzzy_relevance import score_resource_fit as _score_guide_fuzzy_relevance_shadow
 from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery, is_harm_repair_question
@@ -6179,7 +6179,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         resource_query=resource_query,
         normalize=_normalize_authoritative_recommendation,
     )
-    direct_attribute_evidence_missing = direct_attribute_query and not bool(authoritative_doorway)
+    direct_attribute_evidence_missing = _direct_attribute_evidence_missing(query, authoritative_doorway)
     # Subject discovery is constrained to the active WordPress Guide Node registry.
     # A public URL returned by search is not, by itself, an approved Guide doorway.
     if discovery_subject and authoritative_doorway:
@@ -6395,6 +6395,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     )
         except Exception as exc:
             print(f"The Guide evidence recovery failed safely: {type(exc).__name__}.")
+
+    # Recovery may establish a qualifying doorway after the initial selection.
+    # Recompute this state from the current authoritative source instead of
+    # carrying a stale pre-recovery failure into the final response.
+    direct_attribute_evidence_missing = _direct_attribute_evidence_missing(
+        query, authoritative_doorway
+    )
 
     # Discovery is fail-closed at the final selection boundary. An initial
     # retrieval recommendation is not sufficient: the final selected canonical
@@ -6740,6 +6747,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # Keep provenance honest even if earlier retrieval supplied a broad asset.
         composition_context.pop("authoritative_doorway", None)
         composition_context["evidence_sufficiency_unavailable"] = True
+
+    # Re-evaluate after every downstream gate has had the opportunity to
+    # suppress a destination; the final decision must reflect current state.
+    direct_attribute_evidence_missing = _direct_attribute_evidence_missing(
+        query, authoritative_doorway
+    )
 
     # Direct-attribute questions may not fall through to general-knowledge
     # composition when no Archive source body establishes the requested property.
