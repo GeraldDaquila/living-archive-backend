@@ -7023,7 +7023,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 for sentence in re.split(r"(?<=[.!?])\s+", _conceptual_body_only)
                 if len(sentence.strip()) >= 35
             ]
-            _trust_sentence = ""
+            _trust_sentence = next((
+                sentence for sentence in _all_sentences
+                if re.search(r"\b(?:trust|trusted|trustworthiness)\b", sentence, re.I)
+                and re.search(r"\b(?:enable|enables|allow|allows|function|functions|coordination|shape|shapes|social cohesion|infrastructure)\b", sentence, re.I)
+            ), "")
             _community_sentence = ""
             _conceptual_trust_doc = None
             # Pair trust and community evidence within the same source and nearby
@@ -7046,7 +7050,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     if len(sentence.strip()) >= 35
                 ]
                 for _index, _sentence in enumerate(_doc_sentences):
-                    if not re.search(r"\b(?:trust|trusted|trustworthiness)\b", _sentence, re.I):
+                    if _trust_sentence or not re.search(r"(?:trust|trusted|trustworthiness)", _sentence, re.I):
                         continue
                     for _nearby in _doc_sentences[_index:min(len(_doc_sentences), _index + 7)]:
                         if re.search(r"\b(?:community|communities)\b", _nearby, re.I):
@@ -7061,6 +7065,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             _stewardship_sentence = next((
                 sentence for sentence in _all_sentences
                 if re.search(r"\bstewardship\b", sentence, re.I)
+                and re.search(r"\b(?:care|caring|responsib|entrust|protect|manage|preserv|resource|community|communities)\w*\b", sentence, re.I)
+                and not re.search(r"\bwritten by\b", sentence, re.I)
             ), "")
             if _trust_sentence and _community_sentence and _stewardship_sentence:
                 response = (
