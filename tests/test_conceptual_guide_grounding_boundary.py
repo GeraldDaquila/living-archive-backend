@@ -202,3 +202,12 @@ def test_query_aware_conceptual_term_extraction_excludes_generic_and_context_ter
     assert '"role"' in extraction
     assert '"community"' not in extraction or "len(token) > 3" in extraction
     assert "token not in" in extraction
+
+
+def test_deterministic_stewardship_fallback_excludes_conceptual_questions():
+    start = SOURCE.index("def _basic_inquiry_round1_deterministic_response")
+    end = SOURCE.index("# This recovery is deliberately modest.", start)
+    fallback = SOURCE[start:end]
+    assert "and not _is_conceptual_explanatory_request(query)" in fallback
+    assert "and not general_guide_composition.is_conceptual_relationship_question(query)" in fallback
+    assert '"bounded_practical_stewardship_recovery"' in fallback
