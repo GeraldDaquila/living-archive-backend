@@ -77,7 +77,8 @@ def test_archive_limitation_is_honest_and_offers_a_non_claiming_next_step():
     assert "haven’t found enough support" in response_contract
     assert "within the Archive" in response_contract
     assert "outside knowledge" in response_contract
-    assert "narrowing the question" in response_contract
+    assert "narrowing the " in response_contract
+    assert "question to a specific term" in response_contract
     assert "recommendation" not in response_contract
 
 
