@@ -39,13 +39,13 @@ def test_conceptual_response_gate_requires_selected_canonical_source_body():
     assert "_conceptual_source_body" in gate
     assert "_conceptual_supported" in gate
     assert "_conceptual_coverage >= (2 / 3)" in gate
-    assert "len(_conceptual_terms) >= 3" in gate
+    assert "len(_conceptual_terms) >= 2" in gate
 
 
 def test_conceptual_response_gate_fails_closed_without_relevant_body_even_if_doorway_exists():
     gate = _final_conceptual_gate()
-    assert "if not _conceptual_supported:" in gate
-    assert "response = _archive_limitation_response()" in gate
+    assert "if not _conceptual_supported or archive_evidence_unavailable:" in gate
+    assert "response = _archive_limitation_response(query)" in gate
     assert "authoritative_doorway = None" in gate
     assert 'composition_context["evidence_sufficiency_unavailable"] = True' in gate
 
@@ -128,7 +128,7 @@ def test_conceptual_grounding_pairs_the_best_vetted_body_with_its_exact_destinat
     gate = SOURCE[start:end]
     assert '"generation_authority_protected_docs"' in gate
     assert "_conceptual_best_doc" in gate
-    assert "_conceptual_coverage >= 0.75" in gate
+    assert "_conceptual_coverage >= (2 / 3)" in gate
     assert '"title": _conceptual_best_doc.get("title")' in gate
     assert '"url": _conceptual_best_doc.get("url") or _conceptual_best_doc.get("canonical_url")' in gate
 
@@ -159,3 +159,24 @@ def test_conceptual_grounding_preserves_upstream_evidence_failure_as_fail_closed
     assert "response = _archive_limitation_response()" in gate
     assert "authoritative_doorway = None" in gate
     assert 'composition_context.pop("authoritative_doorway", None)' in gate
+
+
+def test_practical_stewardship_guard_cannot_override_a_conceptual_question_after_recovery():
+    start = SOURCE.index("if (\n        _is_practical_stewardship_question(query)", SOURCE.index("def _basic_inquiry_response"))
+    end = SOURCE.index("# Subject-discovery prose must be independent", start)
+    guard = SOURCE[start:end]
+    assert "and not _is_conceptual_explanatory_request(query)" in guard
+    assert "archive_evidence_unavailable = True" in guard
+    assert "composition_context[\"evidence_sufficiency_unavailable\"] = True" in guard
+
+
+def test_conceptual_recovery_clears_upstream_flags_only_after_all_content_gates_pass():
+    start = SOURCE.index("if not recovery_insufficient and recovered_docs:")
+    end = SOURCE.index("# Recovery may establish a qualifying doorway", start)
+    recovery = SOURCE[start:end]
+    assert "if not recovery_question_unavailable and recovered_docs:" in recovery
+    assert "archive_evidence_unavailable = False" in recovery
+    assert "for flag in (" in recovery
+    assert "frame_neutral_evidence_unavailable" in recovery
+    assert "evidence_sufficiency_unavailable" in recovery
+    assert "question_evidence_fit_unavailable" in recovery
