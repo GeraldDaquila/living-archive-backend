@@ -1352,17 +1352,46 @@
         "A recommendation must be demonstrably relevant to reciprocity; otherwise omit the doorway."
       ],
       "provenance": {
-        "source_path": "docs/qa/gold_standard_registry.json",
-        "source_ref": "fix/reciprocity-gold-standard-voice",
         "source_date": "2026-10-24",
-        "approval_evidence": "User requested structural correction to gold-standard quality after reviewing the live reciprocity response. Proposed benchmark wording remains a candidate and has not yet been reviewed and approved as the exact live answer.",
+        "source": "User-provided live screenshot reviewed in this conversation",
         "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
-        "implementation_commit": "615dec05771564a2ff7e4398cb51df86e3a4f159",
-        "evidence_boundary": "Candidate benchmark is not yet approved as an exact visitor-facing gold answer. The existing screenshot demonstrates the prior live answer, not this revised wording."
+        "approval_evidence": "The wording has not yet been reviewed and approved as the exact live answer. User-provided screenshot was assessed as meeting expectations; resource relevance remains unresolved.",
+        "evidence_boundary": "Candidate benchmark records the observed live answer and behavioral invariants. The user has not explicitly approved it as a frozen gold standard. The displayed resource title is not yet verified as directly relevant.",
+        "source_path": "docs/qa/gold_standard_registry.json",
+        "source_ref": "qa/register-community-trust-reciprocity-2026-10-24"
       },
       "rating": null,
       "rating_out_of_10": null,
       "freeze_policy": "Do not mark user-approved or deploy until tests pass and the user reviews the revised live response. Do not treat the candidate benchmark as runtime configuration."
+    },
+    {
+      "benchmark_id": "general-guide-trust-community-stewardship-2026-10-24",
+      "status": "CANDIDATE",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the role of trust in community stewardship?",
+      "expected_response": null,
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Answer the role of trust in community stewardship directly in natural, humane, concrete language.",
+        "Explain trust as something built and sustained through reliable actions, honesty, listening, and follow-through, rather than as an abstract virtue alone.",
+        "Keep this answer distinct from the subsequent reciprocity question; do not reuse its neighbor-helping example or define reciprocity in place of trust.",
+        "Avoid robotic tone, institutional self-reference, jargon, decorative emoji, and unsolicited or weakly related resource recommendations.",
+        "Complete the substantive answer before any optional relevant resource recommendation."
+      ],
+      "provenance": {
+        "source_date": "2026-10-24",
+        "source": "User-provided sequential live Guide review: trust question immediately preceded 'What is the purpose of reciprocity in a community?'",
+        "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
+        "evidence_boundary": "The question and its sequence are evidenced by the user's report. Exact prior trust answer text and its separate rating/approval are not present in the current evidence, so this record is a candidate behavioral benchmark, not an approved exact-answer transcript.",
+        "source_path": "docs/qa/gold_standard_registry.json",
+        "source_ref": "qa/register-community-trust-reciprocity-2026-10-24"
+      },
+      "rating": null,
+      "rating_out_of_10": null,
+      "freeze_policy": "Do not promote to user-approved gold standard until exact live answer text and approval evidence are recovered."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture."

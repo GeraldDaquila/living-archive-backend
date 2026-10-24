@@ -484,3 +484,23 @@ The five required workflows must run again on the latest PR #800 head because th
 
 - **Behavioral invariants:** direct human opening; explain mutual support over time without exact-scorekeeping; concrete neighbor example; ethical boundary against coercion; no self-referential Archive framing, internal jargon, decorative emoji, or recycled trust/stewardship analogy; recommendation must be relevant or omitted.
 - **Provenance boundary:** This is a proposed benchmark based on the user-requested correction. The screenshot reviewed on October 24 shows the prior live response, not this exact candidate. Do not represent this wording as user-approved or runtime-loaded until live acceptance and test evidence are recorded.
+
+
+## Sequential community benchmarks — October 24, 2026
+
+### Trust in community stewardship
+- **Benchmark ID:** `general-guide-trust-community-stewardship-2026-10-24`
+- **Status:** `CANDIDATE`; query registered, exact answer transcript and separate approval evidence not recovered.
+- **Question:** “What is the role of trust in community stewardship?”
+- **Sequence rule:** This was the immediately preceding question before the reciprocity question. Keep trust and reciprocity conceptually distinct; do not reuse the reciprocity answer or its neighbor-helping example as a substitute for explaining trust.
+- **Evidence boundary:** The sequence is user-reported. Do not invent the missing exact answer or claim the record is an approved frozen transcript.
+
+### Reciprocity in community
+- **Benchmark ID:** `general-guide-reciprocity-community-2026-10-24`
+- **Status:** `CANDIDATE`; live screenshot reviewed and rated **9.0/10**, meets expectations, but not yet explicitly frozen by the user as an approved gold standard.
+- **Question:** “What is the purpose of reciprocity in a community?”
+- **Observed live answer:** Reciprocity is mutual support over time, without exact-scorekeeping; neighbors checking on an older resident or helping with errands; mutual support must not become a demand for access, obedience, or repayment.
+- **Remaining concern:** The displayed recommendation “The Game of Life: Uncovering Hidden Rules Through Forgiveness and Multidisciplinary Wisdom” has not been shown to be directly relevant. Omit unrelated recommendations; evaluate answer quality separately from resource relevance.
+- **Acceptance boundary:** Preserve the live answer as the observed candidate, not as an exact runtime guarantee. The user should explicitly approve a frozen benchmark after resource relevance is resolved.
+
+Both records are separate candidates and must not be counted as user-approved frozen gold standards. The machine-readable registry is authoritative.
