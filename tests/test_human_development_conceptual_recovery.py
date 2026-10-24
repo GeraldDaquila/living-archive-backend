@@ -41,3 +41,18 @@ def test_general_conceptual_fail_closed_behavior_remains_for_other_topics():
     remaining_gate = SOURCE[start:end]
     assert "response = _archive_limitation_response(query)" in remaining_gate
     assert "archive_evidence_unavailable = True" in remaining_gate
+
+
+def test_water_boiling_point_gets_a_direct_general_knowledge_answer():
+    assert 're.search(r"\\bboil(?:ing)? point\\b", _normalize_query(query), re.I)' in SOURCE
+    assert "At sea level, water boils at 100°C (212°F)" in SOURCE
+    assert "standard atmospheric pressure" in SOURCE
+    assert 'composition_context["general_knowledge_recovery"] = "water_boiling_point"' in SOURCE
+
+
+def test_water_boiling_point_recovery_does_not_invent_archive_doorway():
+    start = SOURCE.index('general_knowledge_recovery"] = "water_boiling_point"')
+    block = SOURCE[start-1000:start+200]
+    assert 'composition_context.pop("authoritative_doorway", None)' in block
+    assert 'composition_context.pop("authoritative_doorway_title", None)' in block
+    assert "archive_evidence_unavailable = False" in block
