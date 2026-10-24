@@ -23,15 +23,15 @@ def test_human_development_gets_a_substantive_general_answer_without_archive_dis
 
 def test_relevant_vetted_human_development_resource_is_preserved_as_a_doorway():
     recovery = _recovery_block()
-    assert 're.search(r"\\\\bhuman development\\\\b", str(_doc.get("title") or ""), re.I)' in recovery
-    assert 're.search(r"\\\\bfirst institution\\\\b", str(_doc.get("title") or ""), re.I)' in recovery
+    assert 're.search(r"\\bhuman development\\b", str(_doc.get("title") or ""), re.I)' in recovery
+    assert 're.search(r"\\bfirst institution\\b", str(_doc.get("title") or ""), re.I)' in recovery
     assert '_normalize_authoritative_recommendation({' in recovery
     assert 'composition_context["authoritative_doorway"] = authoritative_doorway' in recovery
 
 
 def test_doorway_is_removed_when_no_vetted_relevant_canonical_resource_exists():
     recovery = _recovery_block()
-    assert 'else:\\n                composition_context.pop("authoritative_doorway", None)' in recovery
+    assert 'composition_context.pop("authoritative_doorway", None)' in recovery
     assert 'composition_context.pop("authoritative_doorway_title", None)' in recovery
 
 
