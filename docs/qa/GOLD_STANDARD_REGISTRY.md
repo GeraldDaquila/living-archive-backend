@@ -467,3 +467,21 @@ This section supersedes the earlier addendum above where it describes PR #757 as
 Source records: [PR #757](https://github.com/GeraldDaquila/living-archive-backend/pull/757), [PR #768](https://github.com/GeraldDaquila/living-archive-backend/pull/768), and current `main` file `general_guide_composition.py`.
 
 The five required workflows must run again on the latest PR #800 head because these source-recovery metadata and test changes are new. PR #800 remains open and unmerged; no production deployment is authorized by this recovery pass.
+
+
+## Gold Standard — Trust and community stewardship (October 24, 2026)
+
+- **Benchmark ID:** `general-guide-trust-community-stewardship-2026-10-24`
+- **Status:** `USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE` — the live response and user approval are captured in the central registry; a dedicated test fixture has not yet been added.
+- **Question:** “What is the role of trust in community stewardship?”
+- **Rating:** **9/10**, accepted by the user on October 24, 2026.
+- **Accepted response:**
+
+  > Trust helps people in a community rely on one another. It gives people confidence that others will do their part and act with care. Stewardship is the shared responsibility to care for what people depend on.
+  >
+  > Think of a shared garden. Trust means people can count on one another to show up and do their part. Stewardship is tending the garden so it remains healthy for everyone. Trust makes cooperation possible; stewardship helps that cooperation endure.
+
+- **Doorway:** [Trust Architecture: The Missing Infrastructure Behind Functional Societies](https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/)
+- **Behavioral invariants:** direct human opening; explain trust as confidence in others' care and follow-through; explain stewardship as shared responsibility; use a concrete garden analogy; explicitly connect trust to enabling cooperation and stewardship to sustaining it; keep the source title in the separate recommendation area, not inside the answer; avoid decorative emoji, machine-like jargon, and unsolicited Glossary routing.
+- **Provenance:** Live WordPress visitor screenshot reviewed on October 24, 2026; response accepted by user and rated 9/10. The implementation wording change is in [PR #839](https://github.com/GeraldDaquila/living-archive-backend/pull/839), merge commit `44d620fe010bae782cdd635b17baecd8df59bf0e`.
+- **Boundary:** Registry acceptance records the approved visitor behavior. It does not by itself mean the registry is automatically loaded by the live Guide. A dedicated fixture and registry QA validation remain separate tasks.
