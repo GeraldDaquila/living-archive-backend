@@ -2625,9 +2625,7 @@ for _conceptual_glossary_regression in (
     "What is the purpose of reciprocity in a community?",
     "What is the significance of human development?",
 ):
-    if _is_conceptual_explanatory_request(_conceptual_glossary_regression):
-        pass
-    else:
+    if not _is_conceptual_explanatory_request(_conceptual_glossary_regression):
         raise RuntimeError("USE conceptual inquiry routing invariant failed")
 
 
@@ -2741,6 +2739,23 @@ if _is_bounded_glossary_request(
     glossary_term=_normalize_glossary_term("What is the meaning of emptiness?"),
 ) is not False:
     raise RuntimeError("USE glossary fallback invariant failed: unknown glossary term was handed off instead of remaining with the Guide")
+
+for _conceptual_glossary_regression in (
+    "What is the role of trust in community stewardship?",
+    "What is the purpose of reciprocity in a community?",
+    "What is the significance of human development?",
+):
+    if _is_bounded_glossary_request(
+        _conceptual_glossary_regression,
+        glossary_term=_normalize_glossary_term(_conceptual_glossary_regression),
+    ):
+        raise RuntimeError("USE conceptual inquiry was incorrectly routed to Glossary")
+
+if not _is_bounded_glossary_request(
+    "Open the Glossary for stewardship",
+    glossary_term=_normalize_glossary_term("Open the Glossary for stewardship"),
+):
+    raise RuntimeError("USE explicit Glossary navigation invariant failed")
 
 
 def _extract_embedded_glossary_term(query):
