@@ -6,6 +6,7 @@ on:
     paths:
       - "main.py"
       - "QA/guide_healthy_community_live_e2e.mjs"
+      - "tests/test_human_development_conceptual_recovery.py"
       - ".github/workflows/guide-healthy-community-live-e2e.yml"
       - "tests/test_conceptual_guide_grounding_boundary.py"
   push:
