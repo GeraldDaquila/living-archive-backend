@@ -26,6 +26,8 @@ VALID_STATUSES = {
     "NEEDS_SOURCE_RECOVERY",
     "CANDIDATE",
     "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+    "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+    "USER_CONFIRMED_NAVIGATOR_HANDOFF_RECORD",
 }
 
 
@@ -61,7 +63,7 @@ def test_registry_has_unique_ids_and_provenance_for_every_record():
             # to have no single query/answer; they must not be miscounted as gold answers.
             assert "NOT_GOLD_STANDARD" in record["status"] or (
                 "PENDING" in record["status"]
-            ) or record["status"] in {"RECOVERED_REGRESSION_SCENARIO", "CONFIRMED_CASE", "NEEDS_SOURCE_RECOVERY", "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE", "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE", "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY"}
+            ) or record["status"] in {"RECOVERED_REGRESSION_SCENARIO", "CONFIRMED_CASE", "NEEDS_SOURCE_RECOVERY", "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE", "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE", "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY", "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT", "USER_CONFIRMED_NAVIGATOR_HANDOFF_RECORD"}
         else:
             assert record["query"].strip()
             assert record["expected_response"].strip()
@@ -211,6 +213,8 @@ def test_original_fourteen_standard_provenance_is_recorded_without_fabricated_an
             "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
             "RECOVERED_HISTORICAL_RESPONSE_PENDING_APPROVAL_EVIDENCE",
             "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
+            "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+            "USER_CONFIRMED_NAVIGATOR_HANDOFF_RECORD",
         }
         assert records[number]["expected_response"] is None
 

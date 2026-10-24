@@ -1,4 +1,5 @@
 # USE PRODUCTION VERSION: v489.294 — Practical stewardship provider-exhaustion recovery
+# Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
 from html import unescape
@@ -60,6 +61,7 @@ from provider_bank import (
     snapshot as provider_bank_snapshot,
     refresh_shared_health_state,
 )
+from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
 from guide_fuzzy_relevance import score_resource_fit as _score_guide_fuzzy_relevance_shadow
 from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery, is_harm_repair_question
@@ -76,8 +78,8 @@ use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
 APP_VERSION = "v489.294"
-DEPLOYMENT_FINGERPRINT = "USE-v489.294-practical-stewardship-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.294-practical-stewardship-recovery"
+DEPLOYMENT_FINGERPRINT = "USE-v489.294-direct-attribute-evidence-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.294-direct-attribute-evidence-boundary"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -944,6 +946,10 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     if not title or not re.match(r"^https://\S+$", url, re.I):
         return False
     if not _topic_specific_candidate_fit(query, doc):
+        return False
+    # Entity overlap cannot substitute for evidence of a requested attribute.
+    # The attribute and any explicit condition must appear in this source body.
+    if not _direct_attribute_supported(query, doc):
         return False
     if not _uncertainty_resource_direct_fit(query, doc):
         return False
@@ -2592,6 +2598,37 @@ if _is_lived_experience_explanatory_request("What does uncertainty mean?"):
     raise RuntimeError("USE v489.90 glossary distinction invariant failed")
 
 
+def _is_conceptual_explanatory_request(query):
+    """Keep questions about a concept's role or significance in General Guide.
+
+    These ask for contextual explanation and synthesis, not a dictionary
+    definition of the phrase following 'what is'. This boundary is evaluated
+    before canonical-term matching so a word like 'stewardship' inside a
+    conceptual question cannot force an immediate Glossary handoff.
+    """
+    normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
+    if not normalized:
+        return False
+    patterns = (
+        r"^what is (?:the )?(?:role|purpose|significance|importance|function|value|contribution|impact|nature|relationship) of\b",
+        r"^what are (?:the )?(?:roles|purposes|significance|importance|functions|contributions|impacts|relationships) of\b",
+        r"^how does .{1,120} (?:shape|support|contribute to|affect|influence|relate to) .{1,120}",
+        r"^why (?:does|do|is|are) .{1,120} (?:matter|important|significant|essential|relevant)\b",
+    )
+    return any(re.search(pattern, normalized) for pattern in patterns)
+
+
+# Structural routing invariant: explanatory questions remain in General Guide
+# even when their subject contains a canonical Glossary term.
+for _conceptual_glossary_regression in (
+    "What is the role of trust in community stewardship?",
+    "What is the purpose of reciprocity in a community?",
+    "What is the significance of human development?",
+):
+    if not _is_conceptual_explanatory_request(_conceptual_glossary_regression):
+        raise RuntimeError("USE conceptual inquiry routing invariant failed")
+
+
 def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     """Return True only for a bounded vocabulary lookup.
 
@@ -2605,6 +2642,16 @@ def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     if not normalized or not term:
         return False
     if _is_comparative_explanatory_request(query):
+        return False
+
+    # Conceptual/explanatory questions belong to General Guide even when the
+    # subject includes a canonical glossary word such as "stewardship".
+    # Explicit requests to open the Glossary remain eligible below.
+    if _is_conceptual_explanatory_request(query) and not re.search(
+        r"\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\b.{0,60}\bglossary\b",
+        normalized,
+        re.I,
+    ):
         return False
 
     # v489.90 structural boundary: lived-experience/existential questions are
@@ -2692,6 +2739,23 @@ if _is_bounded_glossary_request(
     glossary_term=_normalize_glossary_term("What is the meaning of emptiness?"),
 ) is not False:
     raise RuntimeError("USE glossary fallback invariant failed: unknown glossary term was handed off instead of remaining with the Guide")
+
+for _conceptual_glossary_regression in (
+    "What is the role of trust in community stewardship?",
+    "What is the purpose of reciprocity in a community?",
+    "What is the significance of human development?",
+):
+    if _is_bounded_glossary_request(
+        _conceptual_glossary_regression,
+        glossary_term=_normalize_glossary_term(_conceptual_glossary_regression),
+    ):
+        raise RuntimeError("USE conceptual inquiry was incorrectly routed to Glossary")
+
+if not _is_bounded_glossary_request(
+    "Open the Glossary for stewardship",
+    glossary_term=_normalize_glossary_term("Open the Glossary for stewardship"),
+):
+    raise RuntimeError("USE explicit Glossary navigation invariant failed")
 
 
 def _extract_embedded_glossary_term(query):
@@ -6164,10 +6228,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Navigation authority is resolved once, before composition, and carried
     # through every ordinary-answer path. It must never depend on which
     # provider/model happened to compose the prose successfully.
-    authoritative_doorway = _normalize_authoritative_recommendation(
-        context_data.get("recommendation_canonical_primary")
-        or _general_guide_authoritative_doorway(resource_query, context_data)
+    direct_attribute_query = bool(_direct_attribute_phrase(query))
+    authoritative_doorway = _select_direct_attribute_doorway(
+        query,
+        context_data.get("recommendation_canonical_primary"),
+        _general_guide_authoritative_doorway,
+        context_data,
+        resource_query=resource_query,
+        normalize=_normalize_authoritative_recommendation,
     )
+    direct_attribute_evidence_missing = _direct_attribute_evidence_missing(query, authoritative_doorway)
     # Subject discovery is constrained to the active WordPress Guide Node registry.
     # A public URL returned by search is not, by itself, an approved Guide doorway.
     if discovery_subject and authoritative_doorway:
@@ -6383,6 +6453,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     )
         except Exception as exc:
             print(f"The Guide evidence recovery failed safely: {type(exc).__name__}.")
+
+    # Recovery may establish a qualifying doorway after the initial selection.
+    # Recompute this state from the current authoritative source instead of
+    # carrying a stale pre-recovery failure into the final response.
+    direct_attribute_evidence_missing = _direct_attribute_evidence_missing(
+        query, authoritative_doorway
+    )
 
     # Discovery is fail-closed at the final selection boundary. An initial
     # retrieval recommendation is not sufficient: the final selected canonical
@@ -6729,6 +6806,35 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         composition_context.pop("authoritative_doorway", None)
         composition_context["evidence_sufficiency_unavailable"] = True
 
+    # Re-evaluate after every downstream gate has had the opportunity to
+    # suppress a destination; the final decision must reflect current state.
+    direct_attribute_evidence_missing = _direct_attribute_evidence_missing(
+        query, authoritative_doorway
+    )
+
+    # Direct-attribute questions may not fall through to general-knowledge
+    # composition when no Archive source body establishes the requested property.
+    if direct_attribute_evidence_missing:
+        response = _archive_limitation_response()
+        authoritative_doorway = None
+        archive_evidence_unavailable = True
+        composition_context.pop("authoritative_doorway", None)
+
+    # General Guide is Archive-bounded. A conceptual explanation without a
+    # relevant canonical doorway must not silently degrade into generic model
+    # knowledge; preserve the question in General Guide and state the evidence
+    # boundary instead of inventing an answer or redirecting to Glossary.
+    if (
+        general_guide_composition.is_conceptual_relationship_question(query)
+        and not authoritative_doorway
+    ):
+        response = _archive_limitation_response()
+        archive_evidence_unavailable = True
+        authoritative_doorway = None
+        composition_context.pop("authoritative_doorway", None)
+        composition_context.pop("authoritative_doorway_title", None)
+        print("The Guide conceptual boundary: no relevant Archive doorway; returned Archive-only limitation.")
+
     # Expose a small, deterministic provenance contract for the visitor UI.
     # This describes the answer's basis; it does not claim that every sentence
     # is directly quoted from a source. A recommendation is only supplied when
@@ -6750,6 +6856,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "kind": "general_knowledge",
             "label": "General knowledge",
             "explanation": "No sufficiently relevant Archive resource was identified for this question.",
+        }
+    if direct_attribute_evidence_missing:
+        answer_basis = {
+            "kind": "archive_evidence_unavailable",
+            "label": "Archive evidence not found",
+            "explanation": "The available Archive material did not establish the requested attribute.",
         }
 
     payload = {
@@ -7717,10 +7829,13 @@ async def _use_request_boundary(scope, receive, send):
     # allow ordinary Guide retrieval to answer it first.
     glossary_term = _normalize_glossary_term(query)
     embedded_glossary_term = _extract_embedded_glossary_term(query)
-    if _is_bounded_glossary_request(
-        query,
-        glossary_term=glossary_term,
-        embedded_term=embedded_glossary_term,
+    if (
+        _is_bounded_glossary_request(
+            query,
+            glossary_term=glossary_term,
+            embedded_term=embedded_glossary_term,
+        )
+        and not _is_conceptual_explanatory_request(query)
     ):
         glossary_url = (
             "https://geralddaquila.com/glossary/?glossary_term="
@@ -7938,6 +8053,31 @@ async def _use_request_boundary(scope, receive, send):
                 "The Guide Basic Inquiry seam failed; "
                 f"ordinary route remains ordinary and will not be reclassified: {exc}"
             )
+            # A direct-attribute question must not escape through the legacy
+            # deterministic recovery path if its evidence boundary itself fails.
+            if _direct_attribute_phrase(query):
+                request_id = "attribute-recovery-" + hashlib.sha1(
+                    (query + "|" + _history_text(history)).encode("utf-8")
+                ).hexdigest()[:16]
+                return await _use_send_json(send, {
+                    "ok": True,
+                    "version": APP_VERSION,
+                    "fingerprint": DEPLOYMENT_FINGERPRINT,
+                    "source_sha256": RUNTIME_SOURCE_SHA256,
+                    "request_id": request_id,
+                    "query": query,
+                    "intent": "TOPICAL_INQUIRY",
+                    "response": _archive_limitation_response(),
+                    "recommendation": None,
+                    "answer_basis": {
+                        "kind": "archive_evidence_unavailable",
+                        "label": "Archive evidence not found",
+                        "explanation": "The available Archive material did not establish the requested attribute.",
+                    },
+                    "processing": "basic_inquiry_recovery",
+                    "route_source": "guide_direct_attribute_fail_closed",
+                    "visitor_boundary_version": APP_VERSION,
+                })
             try:
                 context_data = use_core.fetch_canonical_context(query)
                 recovery_context = context_data if isinstance(context_data, dict) else {}
