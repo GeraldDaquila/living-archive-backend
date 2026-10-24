@@ -7125,20 +7125,32 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     _stewardship_sentence = _candidate
                     break
             if _trust_sentence and _community_sentence and _stewardship_doc and _stewardship_sentence:
+                # Provider-exhaustion recovery must still sound like The Guide:
+                # explain the grounded relationship in ordinary language rather than
+                # exposing evidence-processing terminology or stitching quotations
+                # together as an audit trail. Keep the source titles, but remove
+                # decorative leading symbols copied from WordPress titles.
+                _trust_title = re.sub(
+                    r"^[^\\w]+", "",
+                    str((_conceptual_trust_doc or {}).get("title") or "Trust Architecture").strip(),
+                    flags=re.UNICODE,
+                ).strip()
+                _stewardship_title = re.sub(
+                    r"^[^\\w]+", "",
+                    str((_stewardship_doc or {}).get("title") or "The Stewardship Age").strip(),
+                    flags=re.UNICODE,
+                ).strip()
                 response = (
-                    "In the Archive's canonical source "
-                    + str((_conceptual_trust_doc or {}).get("title") or "on trust")
-                    + ", trust is described this way: "
-                    + _trust_sentence
-                    + " The same source also notes: "
-                    + _community_sentence
-                    + " The Archive's canonical source "
-                    + str((_stewardship_doc or {}).get("title") or "on stewardship")
-                    + " adds: "
-                    + _stewardship_sentence
-                    + " Read together, these statements suggest that trust supports the coordination and cooperation a community needs, "
-                    "while stewardship is the responsibility of caring for what the community depends on. "
-                    "This is a bounded synthesis across the cited Archive sources, not a claim that any one sentence states the whole relationship verbatim."
+                    "Trust helps people in a community rely on one another and work together. "
+                    + _trust_title
+                    + " explains that trust helps communities and institutions coordinate and operate effectively. "
+                    + _stewardship_title
+                    + " turns to the responsibilities and mindset needed to care for what a community depends on. "
+                    "Together, these ideas show why cooperation needs both confidence in one another and a willingness "
+                    "to care for what is shared.\n\n"
+                    "Think of a shared garden: trust lets people count on one another to do their part; stewardship "
+                    "is the care they take of the garden over time. The first helps people work together; the second "
+                    "asks them to look after what they share."
                 )
             else:
                 _conceptual_supported = False
