@@ -8165,13 +8165,21 @@ async def _use_request_boundary(scope, receive, send):
     # allow ordinary Guide retrieval to answer it first.
     glossary_term = _normalize_glossary_term(query)
     embedded_glossary_term = _extract_embedded_glossary_term(query)
+    _explicit_glossary_navigation = bool(re.search(
+        r"\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\b.{0,60}\bglossary\b",
+        str(query or ""),
+        re.I,
+    ))
     if (
         _is_bounded_glossary_request(
             query,
             glossary_term=glossary_term,
             embedded_term=embedded_glossary_term,
         )
-        and not _is_conceptual_explanatory_request(query)
+        and (
+            _explicit_glossary_navigation
+            or not _is_conceptual_explanatory_request(query)
+        )
     ):
         glossary_url = (
             "https://geralddaquila.com/glossary/?glossary_term="
