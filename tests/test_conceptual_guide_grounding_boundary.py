@@ -74,3 +74,12 @@ def test_conceptual_questions_trigger_canonical_body_retrieval_even_when_initial
     assert "or conceptual_inquiry" in supplement
     assert "_is_conceptual_explanatory_request(query)" in SOURCE[SOURCE.index("def _basic_inquiry_response"):SOURCE.index("# Recovery may establish a qualifying doorway")]
     assert "or _is_conceptual_explanatory_request(query)" in SOURCE[SOURCE.index("def _basic_inquiry_response"):SOURCE.index("# Recovery may establish a qualifying doorway")]
+
+
+def test_conceptual_doorway_is_aligned_to_vetted_retrieved_canonical_evidence():
+    start = SOURCE.index("if not recovery_insufficient and recovered_docs:")
+    end = SOURCE.index("# Recovery may establish a qualifying doorway", start)
+    recovery = SOURCE[start:end]
+    assert "_guide_align_registered_discovery_doorway(" in recovery
+    assert "_is_conceptual_explanatory_request(query)" in recovery
+    assert "composition_context[\"authoritative_doorway\"] = evidence_doorway" in recovery
