@@ -45,7 +45,7 @@ def test_conceptual_response_gate_requires_selected_canonical_source_body():
 
 def test_conceptual_response_gate_fails_closed_without_relevant_body_even_if_doorway_exists():
     gate = _final_conceptual_gate()
-    assert "if not _conceptual_supported or archive_evidence_unavailable:" in gate
+    assert "if not _conceptual_human_voice_supported:" in gate
     assert "response = _archive_limitation_response(query)" in gate
     assert "authoritative_doorway = None" in gate
     assert 'composition_context.pop("authoritative_doorway", None)' in gate
@@ -169,11 +169,12 @@ def test_conceptual_grounding_failure_diagnostic_reports_bounded_coverage_state(
     assert "usable_docs:{len(_conceptual_combined_body)}" in diagnostic
 
 
-def test_conceptual_grounding_preserves_upstream_evidence_failure_as_fail_closed():
-    start = SOURCE.index("        if not _conceptual_supported or archive_evidence_unavailable:")
+def test_conceptual_grounding_fails_closed_when_vetted_human_voice_evidence_is_missing():
+    start = SOURCE.index("        if not _conceptual_human_voice_supported:")
     end = SOURCE.index("# Expose a small, deterministic provenance contract", start)
     gate = SOURCE[start:end]
     assert "response = _archive_limitation_response(query)" in gate
+    assert "archive_evidence_unavailable = True" in gate
     assert "authoritative_doorway = None" in gate
     assert 'composition_context.pop("authoritative_doorway", None)' in gate
 
@@ -246,7 +247,7 @@ def test_conceptual_synthesis_uses_vetted_evidence_but_not_audit_style_quotation
     assert "_stewardship_doc" in gate
     assert "_stewardship_sentence" in gate
     assert "if _trust_sentence and _community_sentence and _stewardship_doc and _stewardship_sentence:" in gate
-    assert "if not _conceptual_supported or archive_evidence_unavailable:" in gate
+    assert "if not _conceptual_human_voice_supported:" in gate
 
 
 def test_conceptual_provider_exhaustion_fallback_preserves_the_guides_human_voice():
@@ -270,11 +271,12 @@ def test_conceptual_provider_exhaustion_fallback_preserves_the_guides_human_voic
 def test_conceptual_human_voice_fallback_is_rejected_only_when_source_gates_fail():
     gate = _final_conceptual_gate()
     assert "_conceptual_human_voice_supported = bool(" in gate
-    assert "and _conceptual_supported" in gate
+    assert "_conceptual_supported" in gate
     assert "and _trust_sentence" in gate
     assert "and _community_sentence" in gate
     assert "and _stewardship_doc" in gate
     assert "and _stewardship_sentence" in gate
     assert "and authoritative_doorway" in gate
+    assert "and not direct_attribute_evidence_missing" in gate
     assert "if not _conceptual_human_voice_supported:" in gate
     assert "if not _conceptual_supported or archive_evidence_unavailable:" not in gate
