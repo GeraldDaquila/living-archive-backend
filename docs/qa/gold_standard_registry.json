@@ -1355,11 +1355,13 @@
         "source_date": "2026-10-24",
         "source": "User-provided live screenshot reviewed in this conversation",
         "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
-        "approval_evidence": "User asked for assessment; assistant rated the live answer 9.0/10 and judged it meets expectations, while identifying resource relevance as the main remaining weakness.",
-        "evidence_boundary": "Candidate benchmark records the observed live answer and behavioral invariants. The user has not explicitly approved it as a frozen gold standard. The displayed resource title is not yet verified as directly relevant."
+        "approval_evidence": "The wording has not yet been reviewed and approved as the exact live answer. User-provided screenshot was assessed as meeting expectations; resource relevance remains unresolved.",
+        "evidence_boundary": "Candidate benchmark records the observed live answer and behavioral invariants. The user has not explicitly approved it as a frozen gold standard. The displayed resource title is not yet verified as directly relevant.",
+        "source_path": "docs/qa/gold_standard_registry.json",
+        "source_ref": "qa/register-community-trust-reciprocity-2026-10-24"
       },
-      "rating": 9,
-      "rating_out_of_10": 10,
+      "rating": null,
+      "rating_out_of_10": null,
       "freeze_policy": "Do not mark user-approved or deploy until tests pass and the user reviews the revised live response. Do not treat the candidate benchmark as runtime configuration."
     },
     {
