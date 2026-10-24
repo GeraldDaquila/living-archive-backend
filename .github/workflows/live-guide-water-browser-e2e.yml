@@ -6,6 +6,7 @@ on:
       - qa/live-guide-water-browser-e2e-v489-297
     paths:
       - "QA/live_guide_water_browser_e2e.mjs"
+      - "QA/live_guide_routing_browser_e2e.mjs"
       - ".github/workflows/live-guide-water-browser-e2e.yml"
   workflow_dispatch:
 
@@ -32,11 +33,14 @@ jobs:
       - name: Exercise the public Guide from a real browser
         timeout-minutes: 4
         run: node QA/live_guide_water_browser_e2e.mjs
+      - name: Exercise live routing boundaries in a real browser
+        timeout-minutes: 6
+        run: node QA/live_guide_routing_browser_e2e.mjs
       - name: Upload browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: live-guide-water-browser-e2e
-          path: artifacts/live-guide-water-browser-e2e.*
+          path: artifacts/live-guide-*-browser-e2e.*
           if-no-files-found: ignore
           retention-days: 14
