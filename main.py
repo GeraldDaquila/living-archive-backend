@@ -5881,8 +5881,11 @@ def _guide_requires_canonical_subject_supplement(archive_evidence_unavailable, d
 
 
 def _guide_subject_supplement_limit(discovery_subject):
-    """Broaden candidate recall for explicit resource-finding requests."""
-    return 10 if str(discovery_subject or "").strip() else 3
+    """Keep fallback candidate recall bounded for visitor latency."""
+    # If retrieval has already selected an authorized discovery doorway, its
+    # exact canonical body is fetched directly below; broad search fan-out is
+    # only a recovery path when that direct body is unavailable.
+    return 3 if str(discovery_subject or "").strip() else 3
 
 
 def _guide_discovery_evidence_grade(subject, document, node=None):
@@ -6575,9 +6578,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # text and re-run the same frame-neutral, sufficiency, and question-fit
         # gates before allowing it into the answer composition.
         try:
-            recovered_docs = _wordpress_search_canonical_candidates(
-                resource_query, limit=_guide_subject_supplement_limit(discovery_subject)
-            )
+            # An already-authorized discovery doorway has a single exact source
+            # of truth: fetch its canonical body directly below. Searching ten
+            # more pages first caused serial WordPress timeouts and duplicate
+            # bridge fetches even when the correct destination was already known.
+            # Broad search remains available as recovery if no doorway exists or
+            # the exact canonical-body fetch fails.
+            if discovery_subject and authoritative_doorway:
+                recovered_docs = []
+            else:
+                recovered_docs = _wordpress_search_canonical_candidates(
+                    resource_query, limit=_guide_subject_supplement_limit(discovery_subject)
+                )
             # Registry-body exploration is a fallback only when retrieval has
             # not already supplied an authoritative doorway. The selected
             # doorway's exact body is fetched and checked below. Fetching up to
