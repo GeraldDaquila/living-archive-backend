@@ -6876,7 +6876,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 "what", "role", "purpose", "significance", "importance",
                 "function", "value", "contribution", "impact", "nature",
                 "relationship", "does", "with", "from", "that", "this",
-                "into", "their", "there", "about", "community",
+                "into", "their", "there", "about",
             }
         ]
         _conceptual_terms = set(_conceptual_terms)
@@ -6886,10 +6886,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 if re.search(r"\b" + re.escape(token) + r"\b", _conceptual_normalized)
             ) / max(1, len(_conceptual_terms))
         )
+        # Two-term overlap is too weak: it can pass on a broad page that merely
+        # mentions the topic. Require at least three substantive query terms,
+        # and require strong coverage within the selected canonical source body.
         _conceptual_supported = (
             bool(authoritative_doorway)
             and bool(_conceptual_source_body.strip())
-            and _conceptual_coverage >= 0.35
+            and len(_conceptual_terms) >= 3
+            and _conceptual_coverage >= 0.75
         )
         if not _conceptual_supported:
             response = _archive_limitation_response()
@@ -6909,9 +6913,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # the relevance gate found a canonical doorway for this specific question.
     if archive_evidence_unavailable:
         answer_basis = {
-            "kind": "general_knowledge",
-            "label": "General knowledge",
-            "explanation": "No suitable Archive evidence was available to ground this answer.",
+            "kind": "archive_evidence_unavailable",
+            "label": "Archive evidence not found",
+            "explanation": "The available Archive material did not establish the requested answer.",
         }
     elif authoritative_doorway:
         answer_basis = {
