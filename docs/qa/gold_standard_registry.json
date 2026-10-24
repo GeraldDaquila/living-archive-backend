@@ -1452,7 +1452,38 @@
         "source_ref": "fix/general-fact-water-boiling-point"
       },
       "freeze_policy": "Preserve as a negative regression control. Do not promote to an answer gold standard without explicit visitor review and approval."
+    },
+    {
+      "benchmark_id": "general-guide-water-boiling-point-general-knowledge-gold-standard-2026-10-24",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the boiling point of water at sea level?",
+      "expected_response": "At sea level, water boils at 100°C (212°F) under standard atmospheric pressure. As altitude increases and air pressure decreases, water boils at a lower temperature.\n\nThe key point is that boiling depends on pressure, not just temperature.",
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "rating_out_of_10": 9,
+      "assertions": [
+        "Answer the established general-knowledge question directly: water boils at 100°C (212°F) at sea level under standard atmospheric pressure.",
+        "Preserve the concise pressure/altitude explanation and the plain-language closing insight about pressure.",
+        "Do not refuse because the Living Archive lacks matching evidence, and do not present the general fact as Archive doctrine.",
+        "Do not attach an unrelated Archive doorway or recommendation to this self-contained factual question.",
+        "Keep the general-knowledge answer and the Guide's role/provenance disclosure conceptually distinct.",
+        "The expanded 'How results are found' disclosure explains that the Guide considers the question alongside Archive ideas, themes, and pathways without implying the answer itself came from an Archive source."
+      ],
+      "provenance": {
+        "source_date": "2026-10-24",
+        "source": "User-provided live visitor-facing Guide screenshot with the 'How results are found' disclosure expanded; user explicitly requested Gold Standard registry inclusion.",
+        "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
+        "approval_evidence": "User requested 'add to registry of gold standards' after reviewing the live answer and expanded disclosure. Prior assessment rated the response 9/10 and approved it as Gold Standard-worthy for general-knowledge fallback.",
+        "source_path": "docs/qa/gold_standard_registry.json",
+        "source_ref": "qa/register-water-boiling-point-gold-standard",
+        "evidence_boundary": "Expected response and disclosure transcribed from the user-provided live screenshot. This standard approves the observed response behavior and transparent Guide-purpose disclosure; it does not claim the science answer is sourced from or canonical doctrine of the Living Archive.",
+        "expanded_how_results_are_found_disclosure": "The Guide considers your question alongside the Living Archive’s ideas, themes, and pathways to help you find where to begin. From there, you can explore the Archive for yourself."
+      },
+      "freeze_policy": "Preserve the approved response, absence of an unrelated doorway, and provenance boundary. Changes require explicit user authorization and a documented benchmark-version update."
     }
   ],
-  "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture."
+  "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control."
 }

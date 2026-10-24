@@ -330,3 +330,25 @@ def test_water_boiling_point_failure_control_is_not_misrepresented_as_gold_answe
     assert record["query"] == "What is the boiling point of water at sea level?"
     assert record["expected_response"] is None
     assert any("Do not refuse a well-established general fact" in item for item in record["assertions"])
+
+
+
+def test_water_boiling_point_general_knowledge_gold_standard_preserves_live_answer_and_disclosure():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-water-boiling-point-general-knowledge-gold-standard-2026-10-24"
+    )
+    fixture_path = ROOT / "tests" / "fixtures" / "general_guide_water_boiling_point_gold_standard.json"
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+    assert record["status"] == fixture["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == fixture["query"] == "What is the boiling point of water at sea level?"
+    assert record["expected_response"] == fixture["expected_response"]
+    assert record["expected_doorway"] == {"title": None, "url": None}
+    assert record["rating_out_of_10"] == fixture["rating_out_of_10"] == 9
+    assert len(record["expected_response"].split(chr(10) * 2)) == 2
+    assert "100°C (212°F)" in record["expected_response"]
+    assert "depends on pressure, not just temperature" in record["expected_response"]
+    disclosure = "The Guide considers your question alongside the Living Archive’s ideas, themes, and pathways to help you find where to begin. From there, you can explore the Archive for yourself."
+    assert disclosure in fixture["provenance"]["expanded_how_results_are_found_disclosure"]
+    assert "does not claim the science answer is sourced from or canonical doctrine" in fixture["provenance"]["evidence_boundary"]

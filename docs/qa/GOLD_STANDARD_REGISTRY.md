@@ -528,3 +528,23 @@ Both records are separate candidates and must not be counted as user-approved fr
 - **Provenance:** User-provided live Guide screenshot dated 2026-10-24.
 - **Test:** `tests/test_human_development_conceptual_recovery.py::test_water_boiling_point_gets_a_direct_general_knowledge_answer`
 - **Boundary:** This is a negative regression control, not an approved verbatim answer benchmark.
+
+
+### GS-GUIDE-010 — General-knowledge fallback: boiling point of water
+- **Status:** USER_APPROVED_GOLD_STANDARD
+- **Rating:** 9/10
+- **Exact question:** “What is the boiling point of water at sea level?”
+- **Approved live response:**
+
+  At sea level, water boils at 100°C (212°F) under standard atmospheric pressure. As altitude increases and air pressure decreases, water boils at a lower temperature.
+
+  The key point is that boiling depends on pressure, not just temperature.
+- **Doorway decision:** No Archive recommendation is attached to this self-contained factual answer.
+- **Expanded “How results are found” disclosure:** “The Guide considers your question alongside the Living Archive’s ideas, themes, and pathways to help you find where to begin. From there, you can explore the Archive for yourself.”
+- **Editorial boundary:** The Guide can answer established general-knowledge questions when the Archive has no matching evidence. The disclosure describes the Guide’s orientation role; it does not imply that the scientific fact is an Archive-sourced or canonical claim.
+- **Assertions:** Direct accurate answer; no Archive-only refusal; no unrelated recommendation; concise explanation; transparent, distinct Guide-purpose disclosure.
+- **Provenance:** User-provided live visitor-facing Guide screenshot dated 2026-10-24, including the expanded disclosure; user explicitly requested Gold Standard registry inclusion.
+- **Fixture:** `tests/fixtures/general_guide_water_boiling_point_gold_standard.json`
+- **Test:** `tests/test_gold_standard_registry.py::test_water_boiling_point_general_knowledge_gold_standard_preserves_live_answer_and_disclosure`
+- **Related negative regression control:** `general-guide-water-boiling-point-failure-control-2026-10-24` remains in the registry to ensure the former Archive-only refusal does not return.
+- **Freeze policy:** Preserve the approved response and provenance boundary; changes require explicit user authorization and a documented benchmark-version update.
