@@ -132,3 +132,23 @@ def test_conceptual_purpose_question_is_not_treated_as_direct_fact():
 
 def test_conceptual_significance_question_is_not_treated_as_direct_fact():
     assert direct_attribute_phrase("What is the significance of human development?") is None
+
+
+
+def test_attribute_phrase_preserves_internal_prepositions():
+    question = "What is the rate of return of an investment?"
+    assert direct_attribute_phrase(question) == "rate of return"
+    source = {
+        "title": "Investment returns",
+        "text": "The rate of return of an investment measures its gain or loss.",
+    }
+    assert direct_attribute_supported(question, source)
+
+
+def test_internal_preposition_must_match_source_phrase():
+    question = "What is the rate of return of an investment?"
+    decoy = {
+        "title": "Investment returns",
+        "text": "The rate for an investment depends on time and risk.",
+    }
+    assert not direct_attribute_supported(question, decoy)
