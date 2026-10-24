@@ -2598,6 +2598,39 @@ if _is_lived_experience_explanatory_request("What does uncertainty mean?"):
     raise RuntimeError("USE v489.90 glossary distinction invariant failed")
 
 
+def _is_conceptual_explanatory_request(query):
+    """Keep questions about a concept's role or significance in General Guide.
+
+    These ask for contextual explanation and synthesis, not a dictionary
+    definition of the phrase following 'what is'. This boundary is evaluated
+    before canonical-term matching so a word like 'stewardship' inside a
+    conceptual question cannot force an immediate Glossary handoff.
+    """
+    normalized = re.sub(r"\\s+", " ", str(query or "").strip().casefold())
+    if not normalized:
+        return False
+    patterns = (
+        r"^what is (?:the )?(?:role|purpose|significance|importance|function|value|contribution|impact|nature|relationship) of\\b",
+        r"^what are (?:the )?(?:roles|purposes|significance|importance|functions|contributions|impacts|relationships) of\\b",
+        r"^how does .{1,120} (?:shape|support|contribute to|affect|influence|relate to) .{1,120}",
+        r"^why (?:does|do|is|are) .{1,120} (?:matter|important|significant|essential|relevant)\\b",
+    )
+    return any(re.search(pattern, normalized) for pattern in patterns)
+
+
+# Structural routing invariant: explanatory questions remain in General Guide
+# even when their subject contains a canonical Glossary term.
+for _conceptual_glossary_regression in (
+    "What is the role of trust in community stewardship?",
+    "What is the purpose of reciprocity in a community?",
+    "What is the significance of human development?",
+):
+    if _is_conceptual_explanatory_request(_conceptual_glossary_regression):
+        pass
+    else:
+        raise RuntimeError("USE conceptual inquiry routing invariant failed")
+
+
 def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     """Return True only for a bounded vocabulary lookup.
 
@@ -2611,6 +2644,16 @@ def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     if not normalized or not term:
         return False
     if _is_comparative_explanatory_request(query):
+        return False
+
+    # Conceptual/explanatory questions belong to General Guide even when the
+    # subject includes a canonical glossary word such as "stewardship".
+    # Explicit requests to open the Glossary remain eligible below.
+    if _is_conceptual_explanatory_request(query) and not re.search(
+        r"\\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\\b.{0,60}\\bglossary\\b",
+        normalized,
+        re.I,
+    ):
         return False
 
     # v489.90 structural boundary: lived-experience/existential questions are
