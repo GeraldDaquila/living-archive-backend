@@ -141,3 +141,12 @@ def test_conceptual_grounding_allows_bounded_synthesis_across_vetted_canonical_b
     assert '"generation_authority_protected_docs"' in gate
     assert "len(_conceptual_terms) >= 2" in gate
     assert "_conceptual_coverage >= 0.75" in gate
+
+
+def test_conceptual_grounding_failure_diagnostic_reports_bounded_coverage_state():
+    start = SOURCE.index("The Guide conceptual boundary: vetted canonical evidence set")
+    end = SOURCE.index("\n\n    # Expose a small, deterministic provenance contract", start)
+    diagnostic = SOURCE[start:end]
+    assert "coverage:{_conceptual_coverage:.3f}" in diagnostic
+    assert "vetted_docs:{len(_conceptual_authority_docs)}" in diagnostic
+    assert "usable_docs:{len(_conceptual_combined_body)}" in diagnostic
