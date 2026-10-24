@@ -46,7 +46,7 @@ def test_structural_fix_standard_separates_provenance_and_orientation_measuremen
         "system-generated interpretation",
         "Traffic and clicks are activity metrics, not proof of orientation",
         "data minimization",
-        "Do not upgrade a case to Gold Standard solely because it passes an automated test",
+        "Never upgrade a case to Gold Standard solely because it passes an automated test",
     ):
         assert required in standard
 
