@@ -92,6 +92,8 @@ def test_conceptual_retrieval_keeps_the_central_concept_in_the_canonical_search_
     assert "_is_conceptual_explanatory_request(query)" in searcher
     assert "focus_terms = list(_subject_terms(conceptual_match.group(1)))" in searcher
     assert "context_terms = list(_subject_terms(conceptual_match.group(2)))" in searcher
+    assert "selected[:3]" in searcher
+    assert "community" in searcher
 
 
 def test_canonical_page_body_fetch_has_enough_time_for_live_wordpress_responses():
