@@ -6958,14 +6958,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             _doc_normalized = _normalize_query(_doc_body)
             _present_subjects = {
                 term for term in _conceptual_subject_phrases
-                if re.search(r"\\b" + re.escape(term) + r"\\b", _doc_normalized)
+                if re.search(r"\b" + re.escape(term) + r"\b", _doc_normalized)
             }
             _doc_coverage = len(_present_subjects) / len(_conceptual_subject_phrases)
             # Require all key concepts and an explicit relationship signal in
             # the same canonical body. Generic stewardship advice must not
             # qualify merely because it mentions one adjacent theme.
             _has_relationship_signal = bool(re.search(
-                r"\\b(?:trust|trusted|trustworthiness)\\b.{0,180}\\b(?:community|communities|stewardship)\\b"
+                r"\b(?:trust|trusted|trustworthiness)\\b.{0,180}\\b(?:community|communities|stewardship)\\b"
                 r"|\\b(?:community|communities|stewardship)\\b.{0,180}\\b(?:trust|trusted|trustworthiness)\\b",
                 _doc_normalized,
             ))
