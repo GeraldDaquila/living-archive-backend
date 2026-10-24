@@ -1005,6 +1005,24 @@ def compose(
         }
 
     documents = _documents_from_context(use_core, context_data)
+    if re.search(r"\b(?:becoming fully human|human development)\b", question, re.I):
+        primary = context_data.get("authoritative_doorway")
+        primary_url = str((primary or {}).get("url") or (primary or {}).get("canonical_url") or "").rstrip("/").casefold()
+        document_trace = [
+            {
+                "title": str(item.get("title") or "")[:160],
+                "url": str(item.get("url") or "")[:240],
+                "content_chars": len(str(item.get("content") or "")),
+                "matches_authoritative_doorway": bool(primary_url) and str(item.get("url") or "").rstrip("/").casefold() == primary_url,
+            }
+            for item in documents
+        ]
+        print("The Guide source-fidelity composition inputs: " + json.dumps({
+            "question_class": "human_development",
+            "authoritative_doorway_title": str((primary or {}).get("title") or "")[:160],
+            "authoritative_doorway_url": primary_url,
+            "documents": document_trace,
+        }, ensure_ascii=False, separators=(",", ":")))
     corrected_subject = correction_subject(question)
     effective_question = corrected_subject or question
     shape = _question_shape(effective_question)
