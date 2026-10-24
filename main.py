@@ -4731,9 +4731,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         response = (
             "Reciprocity means a relationship of mutual response: people give, receive, and support one another over time. "
             "It does not mean keeping score or expecting every act to be repaid immediately or in equal measure. "
-            "People may give more at one point and need more help at another; what matters is that support can move in both directions over time.\\n\\n"
+            "People may give more at one point and need more help at another; what matters is that support can move in both directions over time.\n\n"
             "Think of neighbors taking turns checking on an older resident or helping one another with errands. "
-            "One neighbor may do more during a difficult week and receive help later. The relationship can still be reciprocal even when each exchange is different.\\n\\n"
+            "One neighbor may do more during a difficult week and receive help later. The relationship can still be reciprocal even when each exchange is different.\n\n"
             "Reciprocity should never be used to demand access, obedience, or repayment from someone who cannot freely offer it. "
             "Mutual support works best when people respond to one another's real circumstances, not when kindness becomes a debt ledger."
         )
