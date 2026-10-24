@@ -472,7 +472,7 @@ The five required workflows must run again on the latest PR #800 head because th
 ## Gold Standard candidate — Reciprocity in community (October 24, 2026)
 
 - **Benchmark ID:** `general-guide-reciprocity-community-2026-10-24`
-- **Status:** `USER_APPROVED_GOLD_STANDARD_PENDING_LIVE_APPROVAL` — candidate wording added for calibration; the revised live response has not yet been reviewed and approved by the user.
+- **Status:** `CANDIDATE` — candidate wording added for calibration; the revised live response has not yet been reviewed and approved by the user.
 - **Question:** “What is the purpose of reciprocity in a community?”
 - **Candidate response:**
 
