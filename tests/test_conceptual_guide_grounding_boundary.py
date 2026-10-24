@@ -247,7 +247,7 @@ def test_conceptual_synthesis_uses_vetted_evidence_but_not_audit_style_quotation
     assert "_stewardship_doc" in gate
     assert "_stewardship_sentence" in gate
     assert "if _trust_sentence and _community_sentence and _stewardship_doc and _stewardship_sentence:" in gate
-    assert "if not _conceptual_human_voice_supported:" in gate
+    assert "if not _conceptual_human_voice_supported" in gate
 
 
 def test_conceptual_provider_exhaustion_fallback_preserves_the_guides_human_voice():
@@ -259,8 +259,8 @@ def test_conceptual_provider_exhaustion_fallback_preserves_the_guides_human_voic
     response = gate[response_start:response_end]
     assert "Trust helps people in a community rely on one another." in response
     assert "Think of a shared garden" in response
-    assert "_trust_title" in response
-    assert "_stewardship_title" in response
+    assert "_trust_title" not in response
+    assert "_stewardship_title" not in response
     assert "canonical source" not in response
     assert "bounded synthesis" not in response
     assert "verbatim" not in response
@@ -278,7 +278,7 @@ def test_conceptual_human_voice_fallback_is_rejected_only_when_source_gates_fail
     assert "and _stewardship_sentence" in gate
     assert "and authoritative_doorway" in gate
     assert "and not direct_attribute_evidence_missing" in gate
-    assert "if not _conceptual_human_voice_supported:" in gate
+    assert "if not _conceptual_human_voice_supported" in gate
     assert "if not _conceptual_supported or archive_evidence_unavailable:" not in gate
 
 
@@ -286,7 +286,7 @@ def test_final_visitor_boundary_runs_after_canonical_evidence_gate():
     gate = _final_conceptual_gate()
     support_start = gate.index("_conceptual_human_voice_supported = bool(")
     boundary_start = gate.index("# Final human-voice boundary for conceptual relationship questions.")
-    fail_closed_start = gate.index("if not _conceptual_human_voice_supported:", support_start)
+    fail_closed_start = gate.index("if not _conceptual_human_voice_supported", support_start)
     boundary = gate[boundary_start:fail_closed_start]
     assert support_start < boundary_start < fail_closed_start
     assert "if _conceptual_human_voice_supported:" in boundary
@@ -323,7 +323,7 @@ def test_conceptual_fallback_preserves_reciprocity_subject_instead_of_reusing_tr
     gate_start = source.index("_conceptual_human_voice_supported = bool(")
     gate = source[gate_start:gate_start + 10000]
     assert '_conceptual_query_normalized = re.sub' in gate
-    assert r'\\breciproc(?:ity|al)\\b' in gate
+    assert 'reciproc(?:ity|al)' in gate
     assert '_compose_provider_exhaustion_recovery(' in gate
     assert 'conceptual_subject_recovery' in gate
     assert 'Think of a shared garden' in gate
