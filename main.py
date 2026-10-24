@@ -7013,9 +7013,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # The trust/community relationship and the stewardship explanation may
             # be established in separate canonical sources, so do not force both
             # sentences to exist in one article.
+            _conceptual_body_only = " ".join(
+                str(_doc.get(key) or "")
+                for _doc in _conceptual_authority_docs
+                for key in ("text", "content", "excerpt", "body")
+            )
             _all_sentences = [
                 sentence.strip()
-                for sentence in re.split(r"(?<=[.!?])\s+", _conceptual_source_body)
+                for sentence in re.split(r"(?<=[.!?])\s+", _conceptual_body_only)
                 if len(sentence.strip()) >= 35
             ]
             _trust_sentence = ""
@@ -7023,7 +7028,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             _conceptual_trust_doc = None
             # Pair trust and community evidence within the same source and nearby
             # sentences; do not pair unrelated sentences from different articles.
-            for _doc in _conceptual_authority_docs:
+            _ordered_conceptual_docs = sorted(
+                _conceptual_authority_docs,
+                key=lambda item: (
+                    0 if re.search(r"\btrust\b", str(item.get("title") or ""), re.I) else 1,
+                    str(item.get("title") or "").casefold(),
+                ),
+            )
+            for _doc in _ordered_conceptual_docs:
                 _doc_body = " ".join(
                     str(_doc.get(key) or "")
                     for key in ("text", "content", "excerpt", "body")
