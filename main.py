@@ -4663,15 +4663,20 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         }
 
 
-    if _is_practical_stewardship_question(query):
+    if (
+        _is_practical_stewardship_question(query)
+        and not _is_conceptual_explanatory_request(query)
+        and not general_guide_composition.is_conceptual_relationship_question(query)
+    ):
         response = (
             "A community can practice stewardship by making its responsibilities visible and considering who is affected by each decision. "
-            "For example, before changing a shared space or allocating a limited budget, invite the people who rely on it to explain what they need and what could be lost.\n\n"
+            "For example, before changing a shared space or allocating a limited budget, invite the people who rely on it to explain what they need and what could be lost.\\n\\n"
             "Agree on clear criteria, use the same criteria for everyone, name who will maintain the result, and make the reasons for the decision accessible. "
-            "Where people disagree, record the trade-offs and choose a time to review the outcome rather than treating the first decision as beyond question.\n\n"
+            "Where people disagree, record the trade-offs and choose a time to review the outcome rather than treating the first decision as beyond question.\\n\\n"
             "These are general practical suggestions, not a claim that a specific Archive text prescribes this process. I could not verify a sufficiently direct Archive resource to recommend for this question."
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_practical_stewardship_recovery", "model": ""}
+
 
     # This recovery is deliberately modest. It answers the concrete public
     # question from general knowledge where a stable, everyday explanation is
