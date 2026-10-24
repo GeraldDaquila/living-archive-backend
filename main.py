@@ -7231,15 +7231,38 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             response = _sanitize_basic_inquiry_response(
                 "Human development is more than growing older, gaining knowledge, or learning a skill. It is the gradual shaping of how a person understands the world, makes choices, lives with others, and takes responsibility for the life they share.\n\n"
                 "Its significance lies in what those capacities make possible. A person who can think things through, learn from experience, and understand another person's point of view has more room to choose how to respond—not simply repeat what circumstances have taught them. Those choices matter in everyday life: in how people care for themselves, raise children, work through differences, and contribute to their communities.\n\n"
-                "Human development is therefore both personal and shared. People are shaped by the conditions in which they grow, but they also help shape those conditions for others. When people have room to learn, exercise judgment, and participate, families and communities can become more capable of meeting life together. When that room is denied, the loss is not only individual; it can narrow what a whole community is able to become.\n\n"
-                "This is a general explanation. I have not verified a Living Archive text that establishes this as the Archive's own teaching."
+                "Human development is therefore both personal and shared. People are shaped by the conditions in which they grow, but they also help shape those conditions for others. When people have room to learn, exercise judgment, and participate, families and communities can become more capable of meeting life together. When that room is denied, the loss is not only individual; it can narrow what a whole community is able to become."
             )
             archive_evidence_unavailable = False
-            authoritative_doorway = None
-            composition_context.pop("authoritative_doorway", None)
-            composition_context.pop("authoritative_doorway_title", None)
+            # Explanation and doorway are separate decisions: a general answer
+            # need not be presented as Archive doctrine, while a relevant,
+            # vetted canonical resource can still invite the visitor deeper.
+            _human_development_doorway_doc = next((
+                _doc for _doc in _conceptual_authority_docs
+                if re.search(r"\bhuman development\b", str(_doc.get("title") or ""), re.I)
+                and re.search(r"\bfirst institution\b", str(_doc.get("title") or ""), re.I)
+                and re.match(
+                    r"^https://geralddaquila\.com/\S+$",
+                    str(_doc.get("url") or _doc.get("canonical_url") or "").strip(),
+                    re.I,
+                )
+                and str(_doc.get("text") or _doc.get("content") or _doc.get("excerpt") or _doc.get("body") or "").strip()
+            ), None)
+            authoritative_doorway = _normalize_authoritative_recommendation({
+                "title": _human_development_doorway_doc.get("title"),
+                "url": _human_development_doorway_doc.get("url") or _human_development_doorway_doc.get("canonical_url"),
+            }) if _human_development_doorway_doc else None
+            if authoritative_doorway:
+                composition_context["authoritative_doorway"] = authoritative_doorway
+                composition_context["authoritative_doorway_title"] = authoritative_doorway.get("title") or ""
+            else:
+                composition_context.pop("authoritative_doorway", None)
+                composition_context.pop("authoritative_doorway_title", None)
             composition_context.pop("evidence_sufficiency_unavailable", None)
-            print("The Guide conceptual boundary: used bounded general-knowledge recovery for human development; no unsupported Archive attribution or doorway retained.")
+            print(
+                "The Guide conceptual boundary: used general human-development recovery; "
+                f"vetted doorway={'available' if authoritative_doorway else 'unavailable'}."
+            )
         elif not _conceptual_human_voice_supported and not locals().get("conceptual_subject_recovery"):
             # Fail closed unless vetted canonical source bodies support the
             # requested concepts, the selected doorway, and the explanation.
