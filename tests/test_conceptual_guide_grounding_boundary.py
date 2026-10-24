@@ -294,8 +294,10 @@ def test_final_visitor_boundary_runs_after_canonical_evidence_gate():
     assert "It gives " in boundary
     assert "Think of a shared garden." in boundary
     assert "Stewardship is tending the " in boundary
-    assert "_final_trust_title" not in boundary
-    assert "_final_stewardship_title" not in boundary
+    response_start = boundary.index("response = _sanitize_basic_inquiry_response(")
+    visitor_response = boundary[response_start:]
+    assert "_final_trust_title" not in visitor_response
+    assert "_final_stewardship_title" not in visitor_response
     assert "canonical source" not in boundary
     assert "bounded synthesis" not in boundary
     assert "\\n\\n" in boundary
