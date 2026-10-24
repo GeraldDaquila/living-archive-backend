@@ -6933,19 +6933,36 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # vetted canonical bodies. Measure term coverage over the bounded,
         # gate-passing evidence set, never over arbitrary retrieved or external text.
         _conceptual_authority_docs = []
+        _conceptual_seen_doc_keys = set()
+        # The protected authority set and the generation evidence set are
+        # complementary inputs, not alternatives. Union both bounded sets so
+        # a source that grounds one dimension (e.g. trust/community) cannot
+        # hide a separate vetted source that grounds another (e.g. stewardship).
         for _docs_key in (
             "generation_authority_protected_docs",
             "generation_evidence_docs",
         ):
             _docs_value = composition_context.get(_docs_key)
             if isinstance(_docs_value, list):
-                _conceptual_authority_docs.extend(
-                    item for item in _docs_value if isinstance(item, dict)
-                )
+                _docs_candidates = _docs_value
             elif isinstance(_docs_value, dict):
-                _conceptual_authority_docs.append(_docs_value)
-            if _conceptual_authority_docs:
-                break
+                _docs_candidates = [_docs_value]
+            else:
+                _docs_candidates = []
+            for _candidate_doc in _docs_candidates:
+                if not isinstance(_candidate_doc, dict):
+                    continue
+                _candidate_url = str(
+                    _candidate_doc.get("url")
+                    or _candidate_doc.get("canonical_url")
+                    or ""
+                ).strip().rstrip("/")
+                _candidate_title = str(_candidate_doc.get("title") or "").strip().casefold()
+                _candidate_key = _candidate_url.casefold() or _candidate_title
+                if not _candidate_key or _candidate_key in _conceptual_seen_doc_keys:
+                    continue
+                _conceptual_seen_doc_keys.add(_candidate_key)
+                _conceptual_authority_docs.append(_candidate_doc)
 
         _conceptual_combined_body = []
         _conceptual_vetted_docs = []
