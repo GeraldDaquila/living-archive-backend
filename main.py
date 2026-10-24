@@ -7131,12 +7131,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 # together as an audit trail. Keep the source titles, but remove
                 # decorative leading symbols copied from WordPress titles.
                 _trust_title = re.sub(
-                    r"^[^\\w]+", "",
+                    r"^[^\w]+", "",
                     str((_conceptual_trust_doc or {}).get("title") or "Trust Architecture").strip(),
                     flags=re.UNICODE,
                 ).strip()
                 _stewardship_title = re.sub(
-                    r"^[^\\w]+", "",
+                    r"^[^\w]+", "",
                     str((_stewardship_doc or {}).get("title") or "The Stewardship Age").strip(),
                     flags=re.UNICODE,
                 ).strip()
