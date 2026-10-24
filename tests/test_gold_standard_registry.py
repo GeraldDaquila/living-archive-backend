@@ -270,3 +270,18 @@ def test_harm_reduction_fallback_is_preserved_as_implementation_not_gold_answer(
     assert record["implementation_response_provenance"]["source_pr"] == 768
     assert "merged to main via PR #768" in record["implementation_response_provenance"]["source_status"]
     assert "not a visitor-approved gold answer" in record["implementation_response_provenance"]["evidence_boundary"]
+
+
+def test_user_approved_trust_community_stewardship_gold_standard():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-trust-community-stewardship-2026-10-24"
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE"
+    assert record["query"] == "What is the role of trust in community stewardship?"
+    assert record["rating_out_of_10"] == 9
+    assert "Trust makes cooperation possible; stewardship helps that cooperation endure." in record["expected_response"]
+    assert record["expected_doorway"]["title"] == "Trust Architecture: The Missing Infrastructure Behind Functional Societies"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/"
+    assert "not proof that this exact text is automatically loaded" in record["provenance"]["evidence_boundary"]
