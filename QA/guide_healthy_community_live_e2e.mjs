@@ -1,6 +1,9 @@
 import { chromium } from "playwright";
 
 const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_live=healthy-community-20261022";
+const PRIMARY_API_ORIGIN = "https://living-archive-backend.onrender.com";
+const USE_API_ORIGIN = (process.env.USE_API_ORIGIN || PRIMARY_API_ORIGIN).replace(/\/+$/, "");
+const EXPECTED_USE_VERSION = (process.env.EXPECTED_USE_VERSION || "").trim();
 const QUERY = "I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.";
 const EXPECTED_TITLE = "What Healthy Communities Actually Look Like";
 const EXPECTED_URL = "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/";
@@ -11,6 +14,20 @@ const context = await browser.newContext({ serviceWorkers: "block" });
 const page = await context.newPage();
 page.setDefaultTimeout(60_000);
 page.setDefaultNavigationTimeout(30_000);
+
+// The WordPress controller points at production. For PR acceptance, route its
+// real browser requests to the isolated QA deployment of this exact candidate.
+if (USE_API_ORIGIN !== PRIMARY_API_ORIGIN) {
+  await page.route("**/api/query", async route => {
+    const requestedUrl = route.request().url();
+    if (requestedUrl.startsWith(PRIMARY_API_ORIGIN + "/api/query")) {
+      const targetUrl = USE_API_ORIGIN + requestedUrl.slice(PRIMARY_API_ORIGIN.length);
+      await route.fetch({ url: targetUrl });
+    } else {
+      await route.continue();
+    }
+  });
+}
 
 const startedAt = Date.now();
 const elapsed = () => Date.now() - startedAt;
@@ -145,6 +162,7 @@ try {
   const supportedResponse = conceptualResponses.find(item =>
     item.status === 200 &&
     item.payload?.intent === "TOPICAL_INQUIRY" &&
+    (!EXPECTED_USE_VERSION || item.payload?.version === EXPECTED_USE_VERSION) &&
     item.payload?.answer_basis?.kind === "archive_supported" &&
     typeof item.payload?.response === "string" &&
     item.payload.response.trim().length >= 120 &&
@@ -210,6 +228,9 @@ try {
 
   console.log(JSON.stringify({
     stage: "live_e2e_passed",
+    apiOrigin: USE_API_ORIGIN,
+    expectedUseVersion: EXPECTED_USE_VERSION || null,
+    actualUseVersion: supportedResponse.payload.version,
     conceptualQuery,
     conceptualText,
     rendered,
