@@ -265,3 +265,16 @@ def test_conceptual_provider_exhaustion_fallback_preserves_the_guides_human_voic
     assert "verbatim" not in response
     assert "✨" not in response
     assert "_trust_title = re.sub(" in gate
+
+
+def test_conceptual_human_voice_fallback_is_rejected_only_when_source_gates_fail():
+    gate = _final_conceptual_gate()
+    assert "_conceptual_human_voice_supported = bool(" in gate
+    assert "and _conceptual_supported" in gate
+    assert "and _trust_sentence" in gate
+    assert "and _community_sentence" in gate
+    assert "and _stewardship_doc" in gate
+    assert "and _stewardship_sentence" in gate
+    assert "and authoritative_doorway" in gate
+    assert "if not _conceptual_human_voice_supported:" in gate
+    assert "if not _conceptual_supported or archive_evidence_unavailable:" not in gate
