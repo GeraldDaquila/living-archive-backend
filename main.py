@@ -6979,7 +6979,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             )
             if not authoritative_doorway:
                 _conceptual_supported = False
-        if not _conceptual_supported:
+        if not _conceptual_supported or archive_evidence_unavailable:
+            # An upstream evidence gate may already have failed even when the
+            # lexical overlap check passes. Never let lexical overlap override
+            # that failure or leave a recommendation attached to an unsupported answer.
             response = _archive_limitation_response()
             archive_evidence_unavailable = True
             authoritative_doorway = None
