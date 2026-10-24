@@ -467,3 +467,20 @@ This section supersedes the earlier addendum above where it describes PR #757 as
 Source records: [PR #757](https://github.com/GeraldDaquila/living-archive-backend/pull/757), [PR #768](https://github.com/GeraldDaquila/living-archive-backend/pull/768), and current `main` file `general_guide_composition.py`.
 
 The five required workflows must run again on the latest PR #800 head because these source-recovery metadata and test changes are new. PR #800 remains open and unmerged; no production deployment is authorized by this recovery pass.
+
+
+## Gold Standard candidate — Reciprocity in community (October 24, 2026)
+
+- **Benchmark ID:** `general-guide-reciprocity-community-2026-10-24`
+- **Status:** `USER_APPROVED_GOLD_STANDARD_PENDING_LIVE_APPROVAL` — candidate wording added for calibration; the revised live response has not yet been reviewed and approved by the user.
+- **Question:** “What is the purpose of reciprocity in a community?”
+- **Candidate response:**
+
+  > Reciprocity means people support one another over time. It does not mean keeping score or expecting every act to be repaid immediately or in equal measure. People may give more at one point and need more help at another; what matters is that support can move in both directions over time.
+  >
+  > Think of neighbors taking turns checking on an older resident or helping one another with errands. One neighbor may do more during a difficult week and receive help later. The relationship can still be reciprocal even when each exchange is different.
+  >
+  > Reciprocity should never be used to demand access, obedience, or repayment from someone who cannot freely offer it. Mutual support works best when people respond to one another's real circumstances, not when kindness becomes a debt ledger.
+
+- **Behavioral invariants:** direct human opening; explain mutual support over time without exact-scorekeeping; concrete neighbor example; ethical boundary against coercion; no self-referential Archive framing, internal jargon, decorative emoji, or recycled trust/stewardship analogy; recommendation must be relevant or omitted.
+- **Provenance boundary:** This is a proposed benchmark based on the user-requested correction. The screenshot reviewed on October 24 shows the prior live response, not this exact candidate. Do not represent this wording as user-approved or runtime-loaded until live acceptance and test evidence are recorded.
