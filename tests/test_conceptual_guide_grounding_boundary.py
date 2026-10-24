@@ -5,8 +5,10 @@ eligible for generic prose merely because a weak or unrelated doorway exists.
 """
 from pathlib import Path
 
-MAIN = Path(__file__).resolve().parents[1] / "main.py"
+ROOT = Path(__file__).resolve().parents[1]
+MAIN = ROOT / "main.py"
 SOURCE = MAIN.read_text(encoding="utf-8")
+LIMITATION_SOURCE = (ROOT / "guide_direct_attribute_evidence.py").read_text(encoding="utf-8")
 
 
 def _final_conceptual_gate():
@@ -53,3 +55,14 @@ def test_conceptual_response_gate_does_not_relabel_general_knowledge_as_archive_
     assert "_conceptual_source_body" in gate
     assert "_conceptual_supported" in gate
     assert "answer_basis" not in gate  # provenance remains assigned downstream
+
+
+def test_archive_limitation_is_honest_and_offers_a_non_claiming_next_step():
+    start = LIMITATION_SOURCE.index("def archive_limitation_response():")
+    end = LIMITATION_SOURCE.index("\n\ndef select_authoritative_doorway", start)
+    response_contract = LIMITATION_SOURCE[start:end]
+    assert "haven’t found enough support" in response_contract
+    assert "within the Archive" in response_contract
+    assert "outside knowledge" in response_contract
+    assert "narrowing the question" in response_contract
+    assert "recommendation" not in response_contract
