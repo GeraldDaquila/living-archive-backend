@@ -2,6 +2,8 @@ import { chromium } from "playwright";
 
 const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_live=healthy-community-20261022";
 const PRIMARY_API_ORIGIN = "https://living-archive-backend.onrender.com";
+const MIRROR_API_ORIGIN = "https://living-archive-backend-mirror.onrender.com";
+const BACKEND_API_ORIGINS = [PRIMARY_API_ORIGIN, MIRROR_API_ORIGIN];
 const USE_API_ORIGIN = (process.env.USE_API_ORIGIN || PRIMARY_API_ORIGIN).replace(/\/+$/, "");
 const EXPECTED_USE_VERSION = (process.env.EXPECTED_USE_VERSION || "").trim();
 const QUERY = "I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.";
@@ -20,12 +22,19 @@ page.setDefaultNavigationTimeout(30_000);
 if (USE_API_ORIGIN !== PRIMARY_API_ORIGIN) {
   await page.route("**/api/query", async route => {
     const requestedUrl = route.request().url();
-    if (requestedUrl.startsWith(PRIMARY_API_ORIGIN + "/api/query")) {
-      const targetUrl = USE_API_ORIGIN + requestedUrl.slice(PRIMARY_API_ORIGIN.length);
-      await route.fetch({ url: targetUrl });
-    } else {
+    const sourceOrigin = BACKEND_API_ORIGINS.find(origin =>
+      requestedUrl.startsWith(origin + "/api/query")
+    );
+    if (!sourceOrigin || sourceOrigin === USE_API_ORIGIN) {
       await route.continue();
+      return;
     }
+    const targetUrl = USE_API_ORIGIN + requestedUrl.slice(sourceOrigin.length);
+    // route.fetch() only obtains the upstream response; fulfill the browser's
+    // intercepted request with it or the controller will time out and choose
+    // the untouched mirror response instead.
+    const upstreamResponse = await route.fetch({ url: targetUrl });
+    await route.fulfill({ response: upstreamResponse });
   });
 }
 
