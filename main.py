@@ -6509,7 +6509,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         f"documents={len(recovered_docs)}."
                     )
         except Exception as exc:
-            print(f"The Guide evidence recovery failed safely: {type(exc).__name__}.")
+            print(f"The Guide evidence recovery failed safely: {type(exc).__name__}: {exc}.")
 
     # Recovery may establish a qualifying doorway after the initial selection.
     # Recompute this state from the current authoritative source instead of
