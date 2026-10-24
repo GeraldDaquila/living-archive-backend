@@ -5151,7 +5151,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
     candidate_slice = ranked[:limit]
     with ThreadPoolExecutor(max_workers=max(1, min(limit, len(candidate_slice)))) as executor:
         recovered = [item for item in executor.map(fetch_candidate, candidate_slice) if item]
-    print(f"The Guide canonical search recovery: search_terms={len(indexed_terms[:2])}, candidates={len(recovered)}.")
+    print(f"The Guide canonical search recovery: search_terms={len(search_text.split())}, candidates={len(recovered)}.")
     return recovered
 
 
