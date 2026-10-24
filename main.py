@@ -7015,18 +7015,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             ).strip()
             _best_sentences = [
                 sentence.strip()
-                for sentence in re.split(r"(?<=[.!?])\\s+", _best_body)
+                for sentence in re.split(r"(?<=[.!?])\s+", _best_body)
                 if len(sentence.strip()) >= 35
             ]
             _trust_community_sentence = next((
                 sentence for sentence in _best_sentences
-                if re.search(r"\\b(?:trust|trusted|trustworthiness)\\b", sentence, re.I)
-                and re.search(r"\\b(?:community|communities)\\b", sentence, re.I)
+                if re.search(r"\b(?:trust|trusted|trustworthiness)\b", sentence, re.I)
+                and re.search(r"\b(?:community|communities)\b", sentence, re.I)
             ), "")
             _stewardship_sentence = next((
                 sentence for sentence in _best_sentences
-                if re.search(r"\\bstewardship\\b", sentence, re.I)
-                and re.search(r"\\b(?:trust|trusted|trustworthiness|community|communities)\\b", sentence, re.I)
+                if re.search(r"\bstewardship\b", sentence, re.I)
+                and re.search(r"\b(?:trust|trusted|trustworthiness|community|communities)\b", sentence, re.I)
             ), "")
             if _trust_community_sentence and _stewardship_sentence:
                 response = (
