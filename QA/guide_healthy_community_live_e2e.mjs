@@ -154,11 +154,15 @@ try {
   const waterQuery = "What is the boiling point of water at sea level?";
   await input.fill(waterQuery);
   await submit.evaluate(element => setTimeout(() => element.click(), 0));
-  await page.waitForFunction(() => {
-    const el = document.querySelector("#archive-response-text");
-    const text = (el?.innerText || "").toLowerCase();
-    return !!el && text.includes("100") && (text.includes("°c") || text.includes("celsius"));
-  }, null, { timeout: 60_000 });
+  // Wait on the captured API payload first so an incorrect runtime response
+  // fails with its actual body rather than timing out in the browser DOM.
+  const waterDeadline = Date.now() + 45_000;
+  while (
+    !apiResponses.some(item => item.payload && item.payload.query === waterQuery) &&
+    Date.now() < waterDeadline
+  ) {
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
   await Promise.all(apiBodyReads);
   const waterResponses = apiResponses.filter(item =>
     item.payload && item.payload.query === waterQuery
@@ -304,6 +308,13 @@ try {
       url: item.url,
       status: item.status,
       atMs: item.atMs,
+      query: item.payload?.query,
+      response: item.payload?.response,
+      answer_basis: item.payload?.answer_basis,
+      route_source: item.payload?.route_source,
+      version: item.payload?.version,
+      fingerprint: item.payload?.fingerprint,
+      source_sha256: item.payload?.source_sha256,
       recommendation: item.payload?.recommendation,
       bodyReadError: item.bodyReadError
     })),
