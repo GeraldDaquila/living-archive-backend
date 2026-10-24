@@ -79,10 +79,21 @@ try {
       catalogueRequests: [],
       catalogueResponses: [],
       finalUrl: null,
+      destinationUrls: [],
       answerText: "",
       result: "RUNNING",
       failure: null
     };
+    page.on("framenavigated", frame => {
+      if (frame === page.mainFrame()) {
+        try {
+          const navigatedUrl = new URL(frame.url());
+          if (testCase.path && navigatedUrl.pathname === testCase.path) {
+            item.destinationUrls.push(frame.url());
+          }
+        } catch {}
+      }
+    });
     page.on("pageerror", error => report.pageErrors.push({ case: testCase.id, error: error.message }));
     page.on("requestfailed", request => report.failedRequests.push({
       case: testCase.id, url: request.url(), error: request.failure()?.errorText || "unknown"
@@ -153,9 +164,11 @@ try {
         // remains a separate acceptance check.
         await page.waitForURL(url => url.pathname === testCase.path, { timeout: 45_000 });
         item.finalUrl = page.url();
-        const finalUrl = new URL(item.finalUrl);
-        if (!finalUrl.search) {
-          throw new Error("Native destination handoff omitted its query/term parameter");
+        const destinationUrlWithQuery = item.destinationUrls
+          .map(value => new URL(value))
+          .find(url => url.search);
+        if (!destinationUrlWithQuery) {
+          throw new Error("Native destination navigation never received a query/term parameter");
         }
         if (!item.apiRequests.some(req => {
           try { return JSON.parse(req.body).query === testCase.query; } catch { return false; }
