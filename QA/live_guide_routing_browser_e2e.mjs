@@ -228,11 +228,22 @@ try {
         if (!item.apiResponses.some(res => res.status >= 200 && res.status < 300)) {
           throw new Error("No successful Guide API response was observed for Catalogue discovery case");
         }
+        // The Catalogue backend can cold-start on Render Free. Live logs showed
+        // /api/navigate returning successfully after the former 30-second limit.
+        // Allow its documented 45-second backend timeout plus a browser margin.
         await page.locator(".mini-use-plugin .mini-use-results:not([hidden])").waitFor({
           state: "visible",
-          timeout: 30_000
-        }).catch(() => {
-          throw new Error("Catalogue did not complete the automatic Mini-USE search for the handed-off question");
+          timeout: 60_000
+        }).catch(async () => {
+          const statusText = await page.locator(".mini-use-plugin .mini-use-status").innerText().catch(() => "");
+          const resultState = await page.locator(".mini-use-plugin .mini-use-results").evaluate(el => ({
+            hidden: el.hidden,
+            text: (el.innerText || "").trim().slice(0, 500)
+          })).catch(() => ({ hidden: null, text: "" }));
+          throw new Error(
+            "Catalogue did not complete the automatic Mini-USE search within 60 seconds. " +
+            "Status: " + (statusText || "(empty)") + "; result state: " + JSON.stringify(resultState)
+          );
         });
         if (!item.catalogueRequests.some(req => {
           try { return JSON.parse(req.body).query === testCase.query; } catch { return false; }
