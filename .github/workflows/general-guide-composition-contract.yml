@@ -14,6 +14,7 @@ on:
       - "tests/test_general_guide_preference_clarification.py"
       - "tests/test_general_guide_elementary_factual_gold_standards.py"
       - "tests/fixtures/general_guide_elementary_factual_gold_standards.json"
+      - "requirements.txt"
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
       - ".github/workflows/general-guide-composition-contract.yml"
       - "docs/qa/gold_standard_registry.json"
@@ -30,6 +31,7 @@ on:
       - "tests/test_general_guide_preference_clarification.py"
       - "tests/test_general_guide_elementary_factual_gold_standards.py"
       - "tests/fixtures/general_guide_elementary_factual_gold_standards.json"
+      - "requirements.txt"
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
       - ".github/workflows/general-guide-composition-contract.yml"
       - "docs/qa/gold_standard_registry.json"
@@ -42,15 +44,15 @@ permissions:
 jobs:
   composition-contract:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: "pip"
-      - name: Install test runner
-        run: python -m pip install --upgrade pytest
+      - name: Install runtime dependencies and test runner
+        run: python -m pip install -r requirements.txt pytest
       - name: Compile Guide runtime modules
         run: python -m compileall -q main.py guide_direct_attribute_evidence.py general_guide_composition.py deterministic_answer_recovery.py streaming_transport.py
       - name: Run composition regression tests
