@@ -94,7 +94,7 @@ def archive_limitation_response(question=None):
     value = re.sub(r"\s+", " ", str(question or "")).strip().rstrip(" ?!.")
     match = re.search(
         r"\b(?:role|purpose|significance|meaning|importance|function|value|"
-        r"contribution|impact|nature|relationship)\s+of\s+(.+?)\\s+in\\s+(.+)$",
+        r"contribution|impact|nature|relationship)\s+of\s+(.+?)\s+in\s+(.+)$",
         value,
         flags=re.I,
     )
