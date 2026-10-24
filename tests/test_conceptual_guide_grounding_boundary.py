@@ -322,4 +322,4 @@ def test_conceptual_provider_exhaustion_fallback_preserves_the_guides_human_voic
     assert "bounded synthesis" not in response
     assert "verbatim" not in response
     assert "✨" not in response
-    assert "^[^\\\\w]+" in gate
+    assert "_trust_title = re.sub(" in gate
