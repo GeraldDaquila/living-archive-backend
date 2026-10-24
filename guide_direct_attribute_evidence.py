@@ -84,8 +84,35 @@ def should_fail_closed(archive_evidence_unavailable, discovery_subject=False):
     return bool(archive_evidence_unavailable) and not bool(discovery_subject)
 
 
-def archive_limitation_response():
-    """Visitor-facing corpus-only response with a useful, non-claiming next step."""
+def archive_limitation_response(question=None):
+    """Return a corpus-bounded limitation plus a concrete, non-claiming exploration step.
+
+    For conceptual relationship questions, separate the two concepts and invite
+    the visitor to explore them independently. This does not assert that either
+    concept or their relationship is supported by the current retrieval result.
+    """
+    value = re.sub(r"\s+", " ", str(question or "")).strip().rstrip(" ?!.")
+    match = re.search(
+        r"\b(?:role|purpose|significance|meaning|importance|function|value|"
+        r"contribution|impact|nature|relationship)\s+of\s+(.+?)\s+in\s+(.+)$",
+        value,
+        flags=re.I,
+    )
+    if match:
+        left = re.sub(r"\s+", " ", match.group(1)).strip(" ,.;:")
+        right = re.sub(r"\s+", " ", match.group(2)).strip(" ,.;:")
+        if left and right and left.casefold() != right.casefold():
+            return (
+                "I haven’t found enough support in the Living Archive’s available material "
+                "to establish how "
+                + repr(left)
+                + " and "
+                + repr(right)
+                + " relate. I’ll keep the answer within the Archive rather than fill the "
+                "gap with outside knowledge. A useful next step is to explore those two "
+                "subjects separately in The Guide, then compare what the Archive itself "
+                "supports."
+            )
     return (
         "I haven’t found enough support in the Living Archive’s available material "
         "to answer that reliably. I’ll keep the answer within the Archive rather "
