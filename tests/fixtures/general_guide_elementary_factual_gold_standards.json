@@ -1,0 +1,43 @@
+{
+  "registry_id": "guide-elementary-general-knowledge-gold-standards-2026-10-25",
+  "status": "PROPOSED_REFERENCE_FIXTURE",
+  "purpose": "Versioned regression references for concise, reliable general-knowledge answers when Archive evidence is absent or unrelated. These examples support The Guide's orientation role; they do not convert it into a generic Q&A service.",
+  "references": [
+    {
+      "id": "triangle-has-three-sides",
+      "query": "How many sides does a triangle have?",
+      "expected_response": "A triangle has three sides and three angles.",
+      "response_shape": "direct_fact",
+      "invariants": [
+        "States three sides directly.",
+        "May add the closely related fact that a triangle has three angles.",
+        "No unnecessary explanation or irrelevant Archive handoff.",
+        "Use ordinary, natural language."
+      ]
+    },
+    {
+      "id": "ice-floats-because-less-dense",
+      "query": "Why does ice float in water?",
+      "expected_response": "Ice floats in water because it is less dense than liquid water. When water freezes, its molecules form an open crystal structure that takes up more space, so the same mass occupies a larger volume.",
+      "response_shape": "brief_explanation",
+      "invariants": [
+        "Identifies ice as less dense than liquid water.",
+        "Explains that freezing forms an open crystal structure and increases volume for the same mass.",
+        "Uses accessible language and stays proportionate to the question.",
+        "No unsupported Archive attribution or irrelevant navigation."
+      ]
+    }
+  ],
+  "acceptance_policy": [
+    "The answer and the optional doorway are separate decisions.",
+    "When a straightforward, established general fact is asked and Archive evidence is absent or unrelated, answer from bounded general knowledge when a reliable response is available.",
+    "Do not invent Archive evidence or describe general knowledge as Archive-supported.",
+    "Do not force an irrelevant destination onto the visitor.",
+    "Keep the existing frozen stewardship benchmark unchanged.",
+    "These references are additive; any expansion of the recovery patterns requires regression tests and live browser acceptance."
+  ],
+  "provenance": {
+    "triangle-has-three-sides": "User-provided live production screenshot, 2026-10-25.",
+    "ice-floats-because-less-dense": "User-provided live production screenshot, 2026-10-25."
+  }
+}
