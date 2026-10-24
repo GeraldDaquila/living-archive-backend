@@ -1331,6 +1331,38 @@
           "rating_or_approval_recovered": false
         }
       ]
+    },
+    {
+      "benchmark_id": "general-guide-reciprocity-community-2026-10-24",
+      "status": "USER_APPROVED_GOLD_STANDARD_PENDING_LIVE_APPROVAL",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the purpose of reciprocity in a community?",
+      "expected_response": "Reciprocity means people support one another over time. It does not mean keeping score or expecting every act to be repaid immediately or in equal measure. People may give more at one point and need more help at another; what matters is that support can move in both directions over time.\n\nThink of neighbors taking turns checking on an older resident or helping one another with errands. One neighbor may do more during a difficult week and receive help later. The relationship can still be reciprocal even when each exchange is different.\n\nReciprocity should never be used to demand access, obedience, or repayment from someone who cannot freely offer it. Mutual support works best when people respond to one another's real circumstances, not when kindness becomes a debt ledger.",
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "assertions": [
+        "Answer the purpose of reciprocity directly in natural, humane language.",
+        "Explain mutual support over time without implying exact or immediate repayment.",
+        "Use the neighbors checking on an older resident or helping with errands as the concrete example.",
+        "State that reciprocity must not be used to demand access, obedience, or repayment.",
+        "Do not use self-referential Archive framing, internal jargon, decorative emoji, or the unrelated shared-garden trust/stewardship analogy.",
+        "A sequential trust question followed by this question must produce a distinct reciprocity answer.",
+        "A recommendation must be demonstrably relevant to reciprocity; otherwise omit the doorway."
+      ],
+      "provenance": {
+        "source_path": "docs/qa/gold_standard_registry.json",
+        "source_ref": "fix/reciprocity-gold-standard-voice",
+        "source_date": "2026-10-24",
+        "approval_evidence": "User requested structural correction to gold-standard quality after reviewing the live reciprocity response. Proposed benchmark wording is a candidate for live acceptance; user has not yet explicitly approved this exact text.",
+        "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
+        "implementation_commit": "615dec05771564a2ff7e4398cb51df86e3a4f159",
+        "evidence_boundary": "Candidate benchmark is not yet approved as an exact visitor-facing gold answer. The existing screenshot demonstrates the prior live answer, not this revised wording."
+      },
+      "rating": null,
+      "rating_out_of_10": null,
+      "freeze_policy": "Do not mark user-approved or deploy until tests pass and the user reviews the revised live response. Do not treat the candidate benchmark as runtime configuration."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture."
