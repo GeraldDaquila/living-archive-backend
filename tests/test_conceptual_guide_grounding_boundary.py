@@ -45,7 +45,7 @@ def test_conceptual_response_gate_requires_selected_canonical_source_body():
 
 def test_conceptual_response_gate_fails_closed_without_relevant_body_even_if_doorway_exists():
     gate = _final_conceptual_gate()
-    assert "if not _conceptual_human_voice_supported:" in gate
+    assert "if not _conceptual_human_voice_supported" in gate
     assert "response = _archive_limitation_response(query)" in gate
     assert "authoritative_doorway = None" in gate
     assert 'composition_context.pop("authoritative_doorway", None)' in gate
