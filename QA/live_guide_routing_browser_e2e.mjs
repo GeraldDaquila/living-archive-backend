@@ -251,7 +251,17 @@ try {
         if (!item.catalogueResponses.some(res => res.status >= 200 && res.status < 300)) {
           throw new Error("Mini-USE did not return a successful response for the handed-off question");
         }
-        item.answerText = "";
+        const catalogueResultText = (await page.locator(".mini-use-plugin .mini-use-results").innerText()).trim();
+        if (catalogueResultText.length < 30) {
+          throw new Error("Catalogue results container became visible but did not render substantive resource results: " +
+            (catalogueResultText || "(empty result container)"));
+        }
+        item.answerText = catalogueResultText;
+        item.destinationResult = {
+          selector: ".mini-use-plugin .mini-use-results",
+          textLength: catalogueResultText.length,
+          preview: catalogueResultText.slice(0, 300)
+        };
       }
 
       if (report.pageErrors.some(entry => entry.case === testCase.id)) {
