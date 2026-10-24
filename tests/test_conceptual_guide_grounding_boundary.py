@@ -282,11 +282,14 @@ def test_conceptual_human_voice_fallback_is_rejected_only_when_source_gates_fail
     assert "if not _conceptual_supported or archive_evidence_unavailable:" not in gate
 
 
-def test_final_visitor_boundary_restores_human_voice_after_provider_composition():
-    start = SOURCE.index("# Final human-voice boundary for conceptual relationship questions.")
-    end = SOURCE.index('    request_id = "basic-"', start)
-    boundary = SOURCE[start:end]
-    assert 'locals().get("_conceptual_human_voice_supported") is True' in boundary
+def test_final_visitor_boundary_runs_after_canonical_evidence_gate():
+    gate = _final_conceptual_gate()
+    support_start = gate.index("_conceptual_human_voice_supported = bool(")
+    boundary_start = gate.index("# Final human-voice boundary for conceptual relationship questions.")
+    fail_closed_start = gate.index("if not _conceptual_human_voice_supported:", support_start)
+    boundary = gate[boundary_start:fail_closed_start]
+    assert support_start < boundary_start < fail_closed_start
+    assert "if _conceptual_human_voice_supported:" in boundary
     assert "_final_trust_title" in boundary
     assert "_final_stewardship_title" in boundary
     assert "Trust helps people in a community rely on one another." in boundary
@@ -294,3 +297,4 @@ def test_final_visitor_boundary_restores_human_voice_after_provider_composition(
     assert "Stewardship is tending the garden" in boundary
     assert "canonical source" not in boundary
     assert "bounded synthesis" not in boundary
+    assert "\\n\\n" in boundary
