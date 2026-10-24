@@ -130,7 +130,7 @@ def test_conceptual_grounding_pairs_the_best_vetted_body_with_its_exact_destinat
     gate = SOURCE[start:end]
     assert '"generation_authority_protected_docs"' in gate
     assert "_conceptual_best_doc" in gate
-    assert "_conceptual_coverage >= (2 / 3)" in gate
+    assert "_conceptual_best_coverage >= 1.0" in gate
     assert '"title": _conceptual_best_doc.get("title")' in gate
     assert '"url": _conceptual_best_doc.get("url") or _conceptual_best_doc.get("canonical_url")' in gate
 
@@ -141,8 +141,8 @@ def test_conceptual_grounding_allows_bounded_synthesis_across_vetted_canonical_b
     gate = SOURCE[start:end]
     assert "_conceptual_combined_body" in gate
     assert '"generation_authority_protected_docs"' in gate
-    assert "len(_conceptual_terms) >= 2" in gate
-    assert "_conceptual_coverage >= (2 / 3)" in gate
+    assert "_has_relationship_signal" in gate
+    assert "_conceptual_best_coverage >= 1.0" in gate
 
 
 def test_conceptual_grounding_failure_diagnostic_reports_bounded_coverage_state():
