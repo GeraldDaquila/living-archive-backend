@@ -50,20 +50,30 @@ def test_conceptual_response_gate_fails_closed_without_relevant_body_even_if_doo
 
 
 
-def test_explicit_glossary_navigation_overrides_conceptual_guard_without_redirecting_conceptual_questions():
-    # A concept question containing glossary vocabulary remains a General Guide
-    # inquiry unless the visitor explicitly requests the Glossary destination.
-    conceptual = "What is the role of trust in community stewardship?"
-    assert _is_conceptual_explanatory_request(conceptual)
-    explicit_pattern = r"\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\b.{0,60}\bglossary\b"
-    assert not re.search(explicit_pattern, conceptual, re.I)
+def test_explicit_glossary_navigation_is_checked_before_bounded_term_lookup():
+    # Surface navigation must not require a term. This request has no term to
+    # prefill, but still must emit the native handoff before ordinary synthesis.
+    start = SOURCE.index("# Immediate Glossary handoff: explicit destination requests")
+    end = SOURCE.index("# Immediate lived-relational handoff", start)
+    route = SOURCE[start:end]
 
+    explicit_pattern = r"\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\b.{0,60}\bglossary\b"
+    conceptual = "What is the role of trust in community stewardship?"
     query = "Please take me to the glossary."
-    explicit = bool(re.search(explicit_pattern, query, re.I))
-    assert explicit
-    # This assertion mirrors the production route predicate: explicit
-    # destination language is an exception to the conceptual-guard veto.
-    assert explicit or not _is_conceptual_explanatory_request(query)
+
+    assert _is_conceptual_explanatory_request(conceptual)
+    assert not re.search(explicit_pattern, conceptual, re.I)
+    assert re.search(explicit_pattern, query, re.I)
+
+    # The explicit surface handoff is evaluated before bounded lookup
+    # validation, so a missing term cannot divert it into topical prose.
+    assert route.index("if _explicit_glossary_navigation:") < route.index("_is_bounded_glossary_request(")
+    explicit_branch = route[route.index("if _explicit_glossary_navigation:"):route.index("# Bounded term-definition requests")]
+    assert '"intent": "GLOSSARY_HANDOFF"' in explicit_branch
+    assert '"handoff": "glossary"' in explicit_branch
+    assert '"handoff_mode": "immediate"' in explicit_branch
+    assert '"glossary_url": glossary_url' in explicit_branch
+    assert 'glossary_url = "https://geralddaquila.com/glossary/"' in explicit_branch
 
 
     assert 'composition_context["evidence_sufficiency_unavailable"] = True' in gate
