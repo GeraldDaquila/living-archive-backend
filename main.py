@@ -5005,7 +5005,7 @@ def _wordpress_fetch_selected_canonical_body(url):
             headers={"Accept": "text/html", "User-Agent": "LivingArchiveGuide/1.0"},
             method="GET",
         )
-        with urlopen(request, timeout=2.0) as response:
+        with urlopen(request, timeout=5.0) as response:
             final_url = str(response.geturl() or "").strip()
             raw_html = response.read(1_000_000).decode("utf-8", errors="replace")
         final = urlparse(final_url)
@@ -5120,7 +5120,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
                 headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
                 method="GET",
             )
-            with urlopen(request, timeout=1.5) as response:
+            with urlopen(request, timeout=5.0) as response:
                 resource = json.loads(response.read().decode("utf-8"))
             if not isinstance(resource, dict):
                 return None
