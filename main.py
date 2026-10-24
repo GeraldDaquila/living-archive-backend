@@ -6983,7 +6983,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # An upstream evidence gate may already have failed even when the
             # lexical overlap check passes. Never let lexical overlap override
             # that failure or leave a recommendation attached to an unsupported answer.
-            response = _archive_limitation_response()
+            # The fallback may help the visitor explore the question's concepts
+            # separately, but it must not assert their relationship or attach an
+            # unsupported canonical doorway.
+            response = _archive_limitation_response(query)
             archive_evidence_unavailable = True
             authoritative_doorway = None
             composition_context.pop("authoritative_doorway", None)
