@@ -28,6 +28,7 @@ VALID_STATUSES = {
     "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
     "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
     "USER_CONFIRMED_NAVIGATOR_HANDOFF_RECORD",
+    "USER_APPROVED_GOLD_STANDARD",
 }
 
 
@@ -299,3 +300,21 @@ def test_reciprocity_community_gold_standard_candidate_is_bounded_and_not_misrep
     assert "has not yet been reviewed and approved" in record["provenance"]["approval_evidence"]
     assert record["provenance"]["source_path"] == "docs/qa/gold_standard_registry.json"
     assert any("recommendation must be demonstrably relevant" in item for item in record["assertions"])
+
+
+def test_human_development_gold_standard_preserves_approved_answer_and_doorway():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-human-development-significance-2026-10-24"
+    )
+    fixture_path = ROOT / "tests" / "fixtures" / "general_guide_human_development_gold_standard.json"
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == fixture["query"] == "What is the significance of human development?"
+    assert record["expected_response"] == fixture["expected_response"]
+    assert record["expected_doorway"]["title"] == fixture["expected_doorway_title"]
+    assert record["expected_doorway"]["url"] == fixture["expected_doorway_url"]
+    assert record["rating_out_of_10"] == fixture["rating_out_of_10"] == 9.0
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
+    assert "not a claim that the general explanation is a verbatim canonical doctrine" in record["provenance"]["evidence_boundary"]
