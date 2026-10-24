@@ -6350,13 +6350,21 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
             "I couldn’t isolate a complete source sentence that I can quote reliably, "
             "so I won’t manufacture one."
         )
-    # Prefer the most informative complete source sentence rather than the
-    # first matching sentence, which is often a short rhetorical question and
-    # can omit the source's actual framework. This is source selection only:
-    # the sentence must still be copied verbatim from the canonical page body.
+    # Prefer sentences that express the page's substantive framework, not
+    # merely a rhetorically polished sentence about the topic. Score only
+    # source sentences already present verbatim in the canonical body; this
+    # changes selection, never the quoted wording.
+    framework_terms = {
+        "biology", "psychology", "ethics", "leadership", "meaning",
+        "integration", "integrated", "interconnected", "maturity",
+        "responsibility", "stewardship", "relational", "systemic",
+        "existential", "capacities",
+    }
     sentence = max(
         candidates,
         key=lambda item: (
+            len(set(re.findall(r"[a-z0-9]+", item.casefold())) & framework_terms),
+            len(set(re.findall(r"[a-z0-9]+", item.casefold())) & subject_tokens),
             len(set(re.findall(r"[a-z0-9]+", item.casefold()))),
             len(item),
         ),
