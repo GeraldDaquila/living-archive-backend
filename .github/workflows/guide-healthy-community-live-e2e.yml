@@ -6,6 +6,7 @@ on:
     paths:
       - "main.py"
       - "QA/guide_healthy_community_live_e2e.mjs"
+      - "tests/test_human_development_conceptual_recovery.py"
       - ".github/workflows/guide-healthy-community-live-e2e.yml"
       - "tests/test_conceptual_guide_grounding_boundary.py"
   push:
@@ -29,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
-      USE_API_ORIGIN: ${{ github.event_name == 'pull_request' && 'https://guide-conceptual-recovery-qa.onrender.com' || 'https://living-archive-backend.onrender.com' }}
+      USE_API_ORIGIN: ${{ github.event_name == 'pull_request' && 'https://guide-water-boiling-pr-qa.onrender.com' || 'https://living-archive-backend.onrender.com' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

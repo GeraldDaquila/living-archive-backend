@@ -318,3 +318,15 @@ def test_human_development_gold_standard_preserves_approved_answer_and_doorway()
     assert record["rating_out_of_10"] == fixture["rating_out_of_10"] == 9.0
     assert len(record["expected_response"].split(chr(10) * 2)) == 3
     assert "not a claim that the general explanation is a verbatim canonical doctrine" in record["provenance"]["evidence_boundary"]
+
+
+def test_water_boiling_point_failure_control_is_not_misrepresented_as_gold_answer():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-water-boiling-point-failure-control-2026-10-24"
+    )
+    assert record["status"] == "RECOVERED_FAILURE_CONTROL_NOT_GOLD_STANDARD"
+    assert record["query"] == "What is the boiling point of water at sea level?"
+    assert record["expected_response"] is None
+    assert any("Do not refuse a well-established general fact" in item for item in record["assertions"])
