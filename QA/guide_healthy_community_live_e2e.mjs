@@ -177,6 +177,54 @@ try {
   if (conceptualText.toLowerCase().includes("glossary")) {
     throw new Error("The conceptual question was visibly redirected to the Glossary.");
   }
+  // Positive routing acceptance for explicit Glossary navigation. It is a
+  // separate visitor action, not merely a check that conceptual prose avoids
+  // mentioning the Glossary.
+  const glossaryQuery = "Please take me to the glossary.";
+  await input.fill(glossaryQuery);
+  await submit.evaluate(element => setTimeout(() => element.click(), 0));
+  await page.waitForFunction(() => {
+    const el = document.querySelector("#archive-response-text");
+    const text = (el?.innerText || "").toLowerCase();
+    return !!el && text.length > 0 && text.includes("glossary");
+  }, null, { timeout: 60_000 });
+  const glossaryText = await answer.innerText();
+  await Promise.all(apiBodyReads);
+  const glossaryResponses = apiResponses.filter(item =>
+    item.payload && item.payload.query === glossaryQuery
+  );
+  if (!apiRequests.some(request => request.body.query === glossaryQuery)) {
+    throw new Error("No real production /api/query request carried the explicit Glossary navigation request.");
+  }
+  const glossarySupported = glossaryResponses.find(item =>
+    item.status === 200 &&
+    item.payload?.intent !== "TOPICAL_INQUIRY" &&
+    typeof item.payload?.response === "string" &&
+    item.payload.response.toLowerCase().includes("glossary") &&
+    item.payload?.recommendation &&
+    /^https:\/\/geralddaquila\.com\//i.test(item.payload.recommendation.url || "")
+  );
+  if (!glossarySupported) {
+    throw new Error("Explicit Glossary navigation did not return a successful, canonical Glossary destination. Responses: " +
+      JSON.stringify(glossaryResponses.map(item => ({
+        status: item.status,
+        intent: item.payload?.intent,
+        recommendation: item.payload?.recommendation,
+        response: item.payload?.response
+      }))));
+  }
+  const glossaryLink = root.locator("#archive-response-text a.archive-recommendation-link");
+  if (await glossaryLink.count() !== 1) {
+    throw new Error("Explicit Glossary navigation must render exactly one canonical destination link.");
+  }
+  const glossaryRenderedLink = await glossaryLink.first().evaluate(el => ({ href: el.href, title: (el.innerText || el.textContent || "").trim() }));
+  if (glossaryRenderedLink.href !== glossarySupported.payload.recommendation.url) {
+    throw new Error("The explicit Glossary visitor link differs from the API canonical destination.");
+  }
+  if (!/glossary/i.test(glossaryRenderedLink.title + " " + glossaryText)) {
+    throw new Error("The explicit Glossary navigation did not visibly identify its destination.");
+  }
+
   if (pageErrors.length) throw new Error("Browser page errors: " + pageErrors.join(" | "));
 
   console.log(JSON.stringify({
