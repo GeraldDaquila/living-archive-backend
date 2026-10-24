@@ -7141,16 +7141,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     flags=re.UNICODE,
                 ).strip()
                 response = (
-                    "Trust helps people in a community rely on one another and work together. "
+                    "Trust helps people in a community rely on one another. "
                     + _trust_title
-                    + " explains that trust helps communities and institutions coordinate and operate effectively. "
+                    + " explains how that confidence helps communities and institutions work together. "
                     + _stewardship_title
-                    + " turns to the responsibilities and mindset needed to care for what a community depends on. "
-                    "Together, these ideas show why cooperation needs both confidence in one another and a willingness "
-                    "to care for what is shared.\n\n"
-                    "Think of a shared garden: trust lets people count on one another to do their part; stewardship "
-                    "is the care they take of the garden over time. The first helps people work together; the second "
-                    "asks them to look after what they share."
+                    + " brings in the other side: the responsibility to care for what people share and depend on.\n\n"
+                    "Think of a shared garden. Trust means people can count on one another to show up and do their part. "
+                    "Stewardship is tending the garden so it remains healthy for everyone. One makes cooperation possible; "
+                    "the other helps that cooperation endure."
                 )
             else:
                 _conceptual_supported = False
