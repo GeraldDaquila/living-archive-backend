@@ -6226,6 +6226,31 @@ def _established_general_knowledge_recovery(query):
             ),
         }
 
+    triangle_sides_question = bool(
+        re.search(r"\b(?:how many sides|number of sides)\b", normalized)
+        and re.search(r"\btriangle\b", normalized)
+    )
+    if triangle_sides_question:
+        return {
+            "fact_id": "triangle_has_three_sides",
+            "response": "A triangle has three sides and three angles.",
+        }
+
+    ice_floats_question = bool(
+        re.search(r"\bice\b", normalized)
+        and re.search(r"\bfloat(?:s|ing)?\b", normalized)
+        and re.search(r"\bwater\b", normalized)
+    )
+    if ice_floats_question:
+        return {
+            "fact_id": "ice_floats_because_less_dense",
+            "response": (
+                "Ice floats in water because it is less dense than liquid water. "
+                "When water freezes, its molecules form an open crystal structure that takes up more space, "
+                "so the same mass occupies a larger volume."
+            ),
+        }
+
     metric_length_question = bool(
         re.search(r"\bcentimet(?:er|re)s?\b", normalized)
         and re.search(r"\bmet(?:er|re)s?\b", normalized)
