@@ -305,3 +305,21 @@ def test_conceptual_grounding_unions_both_bounded_canonical_source_pools():
     assert "break" not in pool
 
 
+
+
+def test_conceptual_provider_exhaustion_fallback_preserves_the_guides_human_voice():
+    start = SOURCE.index("# Final corpus-boundary invariant for conceptual/explanatory questions.")
+    end = SOURCE.index("# Expose a small, deterministic provenance contract", start)
+    gate = SOURCE[start:end]
+    response_start = gate.index('                response = (', gate.index('_trust_title = re.sub'))
+    response_end = gate.index('\n                )', response_start) + len('\n                )')
+    response = gate[response_start:response_end]
+    assert "helps people in a community rely on one another and work together" in response
+    assert "Think of a shared garden" in response
+    assert "_trust_title" in response
+    assert "_stewardship_title" in response
+    assert "canonical source" not in response
+    assert "bounded synthesis" not in response
+    assert "verbatim" not in response
+    assert "✨" not in response
+    assert "^[^\\\\w]+" in gate
