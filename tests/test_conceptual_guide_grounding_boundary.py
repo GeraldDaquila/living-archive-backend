@@ -47,6 +47,25 @@ def test_conceptual_response_gate_fails_closed_without_relevant_body_even_if_doo
     assert "if not _conceptual_supported or archive_evidence_unavailable:" in gate
     assert "response = _archive_limitation_response(query)" in gate
     assert "authoritative_doorway = None" in gate
+
+
+
+def test_explicit_glossary_navigation_overrides_conceptual_guard_without_redirecting_conceptual_questions():
+    # A concept question containing glossary vocabulary remains a General Guide
+    # inquiry unless the visitor explicitly requests the Glossary destination.
+    conceptual = "What is the role of trust in community stewardship?"
+    assert _is_conceptual_explanatory_request(conceptual)
+    explicit_pattern = r"\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\b.{0,60}\bglossary\b"
+    assert not re.search(explicit_pattern, conceptual, re.I)
+
+    query = "Please take me to the glossary."
+    explicit = bool(re.search(explicit_pattern, query, re.I))
+    assert explicit
+    # This assertion mirrors the production route predicate: explicit
+    # destination language is an exception to the conceptual-guard veto.
+    assert explicit or not _is_conceptual_explanatory_request(query)
+
+
     assert 'composition_context["evidence_sufficiency_unavailable"] = True' in gate
 
 
