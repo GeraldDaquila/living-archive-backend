@@ -2519,7 +2519,7 @@ def _normalize_glossary_term(query, interpretation=None):
         re.I,
     )
     if canonical_definition:
-        term = re.sub(r"^[\s\\"']+|[\s\\"'?.!]+$", "", canonical_definition.group(1))
+        term = canonical_definition.group(1).strip().strip("\\\"'?.! ")
         term = re.sub(r"^(?:the\s+term\s+|the\s+word\s+|word\s+)", "", term, flags=re.I)
         if 1 <= len(term) <= 120 and not re.search(r"[?\n]", term):
             return term
