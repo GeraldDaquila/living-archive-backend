@@ -1334,7 +1334,7 @@
     },
     {
       "benchmark_id": "general-guide-reciprocity-community-2026-10-24",
-      "status": "USER_APPROVED_GOLD_STANDARD_PENDING_LIVE_APPROVAL",
+      "status": "CANDIDATE",
       "subsystem": "general-purpose-guide",
       "query": "What is the purpose of reciprocity in a community?",
       "expected_response": "Reciprocity means people support one another over time. It does not mean keeping score or expecting every act to be repaid immediately or in equal measure. People may give more at one point and need more help at another; what matters is that support can move in both directions over time.\n\nThink of neighbors taking turns checking on an older resident or helping one another with errands. One neighbor may do more during a difficult week and receive help later. The relationship can still be reciprocal even when each exchange is different.\n\nReciprocity should never be used to demand access, obedience, or repayment from someone who cannot freely offer it. Mutual support works best when people respond to one another's real circumstances, not when kindness becomes a debt ledger.",
@@ -1355,7 +1355,7 @@
         "source_path": "docs/qa/gold_standard_registry.json",
         "source_ref": "fix/reciprocity-gold-standard-voice",
         "source_date": "2026-10-24",
-        "approval_evidence": "User requested structural correction to gold-standard quality after reviewing the live reciprocity response. Proposed benchmark wording is a candidate for live acceptance; user has not yet explicitly approved this exact text.",
+        "approval_evidence": "User requested structural correction to gold-standard quality after reviewing the live reciprocity response. Proposed benchmark wording remains a candidate and has not yet been reviewed and approved as the exact live answer.",
         "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
         "implementation_commit": "615dec05771564a2ff7e4398cb51df86e3a4f159",
         "evidence_boundary": "Candidate benchmark is not yet approved as an exact visitor-facing gold answer. The existing screenshot demonstrates the prior live answer, not this revised wording."
