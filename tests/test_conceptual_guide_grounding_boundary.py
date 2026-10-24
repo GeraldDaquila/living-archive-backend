@@ -236,3 +236,16 @@ def test_conceptual_provider_exhaustion_uses_sentences_from_the_vetted_canonical
     assert "_stewardship_sentence" in gate
     assert "bounded synthesis of the cited Archive material" in gate
     assert "vetted source did not provide extractable" in gate
+
+
+def test_conceptual_questions_expand_canonical_candidate_recall():
+    helper_start = SOURCE.index("def _guide_subject_supplement_limit")
+    helper_end = SOURCE.index("def _guide_discovery_evidence_grade", helper_start)
+    helper = SOURCE[helper_start:helper_end]
+    assert "conceptual_inquiry=False" in helper
+    assert "or conceptual_inquiry" in helper
+    recovery_start = SOURCE.index("if _guide_requires_canonical_subject_supplement")
+    recovery_end = SOURCE.index("# Recovery may establish a qualifying doorway", recovery_start)
+    recovery = SOURCE[recovery_start:recovery_end]
+    assert "_guide_subject_supplement_limit(" in recovery
+    assert "_is_conceptual_explanatory_request(query)" in recovery
