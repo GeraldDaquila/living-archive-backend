@@ -148,7 +148,7 @@ try {
     typeof item.payload?.response === "string" &&
     item.payload.response.trim().length >= 120 &&
     item.payload?.recommendation &&
-    /^https:\/\/geralddaquila\\.com\//i.test(item.payload.recommendation.url || "")
+    /^https:\/\/geralddaquila\.com\//i.test(item.payload.recommendation.url || "")
   );
   if (!supportedResponse) {
     throw new Error("Conceptual trust/stewardship question did not return an Archive-grounded answer and canonical recommendation. Responses: " +
