@@ -229,7 +229,7 @@ def test_conceptual_provider_exhaustion_uses_sentences_from_the_vetted_canonical
     start = SOURCE.index("# Final corpus-boundary invariant for conceptual/explanatory questions.")
     end = SOURCE.index("# Expose a small, deterministic provenance contract", start)
     gate = SOURCE[start:end]
-    assert 'for key in ("text", "content", "excerpt", "body")' in gate
+    assert "_best_body = _conceptual_source_body" in gate
     assert "_trust_community_sentence" in gate
     assert "_stewardship_sentence" in gate
     assert "bounded synthesis of the cited Archive material" in gate
