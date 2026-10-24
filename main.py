@@ -5677,11 +5677,13 @@ def _guide_requires_canonical_subject_supplement(
     )
 
 
-def _guide_subject_supplement_limit(discovery_subject):
-    """Broaden candidate recall for explicit resource-finding requests."""
-    # Conceptual questions need a wider candidate window because the exact trust source
-    # may rank behind broad stewardship pages when the query is reduced to two terms.
-    return 10 if str(discovery_subject or "").strip() else 5
+def _guide_subject_supplement_limit(discovery_subject, conceptual_inquiry=False):
+    """Broaden candidate recall for resource-finding and conceptual questions."""
+    # Conceptual questions need the same wider candidate window as explicit
+    # discovery requests: the central concept source can rank behind broad pages.
+    return 10 if (
+        str(discovery_subject or "").strip() or conceptual_inquiry
+    ) else 5
 
 
 def _guide_discovery_evidence_grade(subject, document, node=None):
@@ -6323,7 +6325,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # gates before allowing it into the answer composition.
         try:
             recovered_docs = _wordpress_search_canonical_candidates(
-                resource_query, limit=_guide_subject_supplement_limit(discovery_subject)
+                resource_query,
+                limit=_guide_subject_supplement_limit(
+                    discovery_subject, _is_conceptual_explanatory_request(query)
+                ),
             )
             # Add a small, deterministic set of active registry nodes ranked by
             # their published purpose and semantic hints. Only fetched canonical
