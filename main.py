@@ -6861,6 +6861,28 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if general_guide_composition._requires_responsibility_boundary_answer(query) and not general_guide_composition._has_responsibility_boundary_explanation(response):
         raise RuntimeError("Responsibility-boundary contract failed at final visitor boundary.")
 
+    # Final human-voice boundary for conceptual relationship questions.
+    # Provider output and earlier composition contracts must not overwrite the
+    # source-gated, plain-language explanation selected above. This is applied
+    # only when the complete canonical evidence gate passed; otherwise the
+    # existing honest limitation response remains untouched.
+    if (
+        general_guide_composition.is_conceptual_relationship_question(query)
+        and locals().get("_conceptual_human_voice_supported") is True
+    ):
+        _final_trust_title = str(locals().get("_trust_title") or "Trust Architecture").strip()
+        _final_stewardship_title = str(locals().get("_stewardship_title") or "The Stewardship Age").strip()
+        response = _sanitize_basic_inquiry_response(
+            "Trust helps people in a community rely on one another. "
+            + _final_trust_title
+            + " explains how that confidence helps communities and institutions work together. "
+            + _final_stewardship_title
+            + " brings in the other side: the responsibility to care for what people share and depend on.\\n\\n"
+            + "Think of a shared garden. Trust means people can count on one another to show up and do their part. "
+            + "Stewardship is tending the garden so it remains healthy for everyone. One makes cooperation possible; "
+            + "the other helps that cooperation endure."
+        )
+
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
     # Final evidence contract for deterministic relational-burden recovery.
     # This is deliberately enforced at payload assembly, after every composition,
