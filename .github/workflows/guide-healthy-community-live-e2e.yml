@@ -3,18 +3,33 @@ name: Guide Healthy Community Live Browser Acceptance
 on:
   pull_request:
     branches: [main]
+    paths:
+      - "main.py"
+      - "QA/guide_healthy_community_live_e2e.mjs"
+      - ".github/workflows/guide-healthy-community-live-e2e.yml"
+      - "tests/test_conceptual_guide_grounding_boundary.py"
+  push:
+    branches: [main]
+    paths:
+      - "main.py"
+      - "QA/guide_healthy_community_live_e2e.mjs"
+      - ".github/workflows/guide-healthy-community-live-e2e.yml"
+      - "tests/test_conceptual_guide_grounding_boundary.py"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: guide-healthy-community-live-e2e-${{ github.event.pull_request.number }}
+  group: guide-healthy-community-live-e2e-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   live-browser-acceptance:
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    env:
+      USE_API_ORIGIN: ${{ github.event_name == 'pull_request' && 'https://guide-conceptual-recovery-qa.onrender.com' || 'https://living-archive-backend.onrender.com' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,6 +39,29 @@ jobs:
         run: |
           npm install --no-save playwright
           npx playwright install chromium
-      - name: Verify real production API and live visitor rendering
+      - name: Wait for this candidate's API build
+        timeout-minutes: 5
+        run: |
+          expected_version="$(sed -n '1s/^# USE PRODUCTION VERSION: \([^ ]*\).*/\1/p' main.py)"
+          if [ -z "$expected_version" ]; then
+            echo "Could not read expected USE version from main.py."
+            exit 1
+          fi
+          echo "EXPECTED_USE_VERSION=$expected_version" >> "$GITHUB_ENV"
+          echo "Expected runtime version: $expected_version"
+          echo "Target backend: $USE_API_ORIGIN"
+          for attempt in $(seq 1 30); do
+            payload="$(curl -fsS --max-time 12 "$USE_API_ORIGIN/api/provider-health-readiness" || true)"
+            actual_version="$(printf '%s' "$payload" | python -c 'import json,sys; print(json.load(sys.stdin).get("version", ""))' 2>/dev/null || true)"
+            if [ "$actual_version" = "$expected_version" ]; then
+              echo "Candidate is live: $actual_version"
+              exit 0
+            fi
+            echo "Attempt $attempt/30: runtime version is '${actual_version:-unavailable}', waiting for $expected_version."
+            sleep 10
+          done
+          echo "Target API did not report expected version $expected_version before timeout."
+          exit 1
+      - name: Verify real WordPress visitor rendering and humane fallback
         timeout-minutes: 3
         run: timeout --signal=TERM --kill-after=5s 160s node QA/guide_healthy_community_live_e2e.mjs
