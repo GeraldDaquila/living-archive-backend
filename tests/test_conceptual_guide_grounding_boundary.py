@@ -92,3 +92,10 @@ def test_conceptual_retrieval_keeps_the_central_concept_in_the_canonical_search_
     assert "_is_conceptual_explanatory_request(query)" in searcher
     assert "focus_terms = list(_subject_terms(conceptual_match.group(1)))" in searcher
     assert "context_terms = list(_subject_terms(conceptual_match.group(2)))" in searcher
+
+
+def test_canonical_page_body_fetch_has_enough_time_for_live_wordpress_responses():
+    selected_fetch = SOURCE[SOURCE.index("def _wordpress_fetch_selected_canonical_body"):SOURCE.index("def _wordpress_search_canonical_candidates")]
+    search_fetch = SOURCE[SOURCE.index("def _wordpress_search_canonical_candidates"):SOURCE.index("def _comparative_subject_terms")]
+    assert "urlopen(request, timeout=5.0)" in selected_fetch
+    assert "urlopen(request, timeout=5.0)" in search_fetch
