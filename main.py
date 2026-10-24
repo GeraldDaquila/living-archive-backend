@@ -6908,15 +6908,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # knowledge; preserve the question in General Guide and state the evidence
     # boundary instead of inventing an answer or redirecting to Glossary.
     # Final corpus-boundary invariant for conceptual/explanatory questions.
-    # A superficially plausible doorway is not enough: the selected canonical
-    # source body must address the concepts in the visitor's actual question.
-    # Without demonstrable source support, remain in General Guide and fail
-    # closed rather than allowing generic model prose to masquerade as grounded.
+    # A superficially plausible doorway is not enough: source-grounded claims
+    # require actual sentences from vetted canonical pages, not title overlap.
     _conceptual_inquiry = _is_conceptual_explanatory_request(query)
     if _conceptual_inquiry:
-        # This is a relationship question: retain the key concepts as
-        # explicit requirements instead of letting their overlap make the
-        # evidence threshold trivially pass.
         _conceptual_terms = {
             token for token in re.findall(r"[a-z0-9]+", _normalize_query(query))
             if len(token) > 3 and token not in {
@@ -6929,9 +6924,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         }
         _conceptual_subject_phrases = ("trust", "community", "stewardship")
 
-        # Conceptual answers may need synthesis across several individually
-        # vetted canonical bodies. Measure term coverage over the bounded,
-        # gate-passing evidence set, never over arbitrary retrieved or external text.
+        # Only the bounded, already-vetted canonical evidence set can ground
+        # the answer. Retrieval widening improves recall but does not change
+        # these content and attribution requirements.
         _conceptual_authority_docs = []
         for _docs_key in (
             "generation_authority_protected_docs",
@@ -6947,9 +6942,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             if _conceptual_authority_docs:
                 break
 
+        _conceptual_sources = []
         _conceptual_combined_body = []
-        _conceptual_best_doc = None
-        _conceptual_best_coverage = -1.0
+        _subject_patterns = {
+            "trust": r"\\b(?:trust|trusted|trustworthiness)\\b",
+            "community": r"\\b(?:community|communities)\\b",
+            "stewardship": r"\\bstewardship\\b",
+        }
         for _doc in _conceptual_authority_docs:
             _doc_title = str(_doc.get("title") or "").strip()
             _doc_url = str(
@@ -6957,162 +6956,145 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             ).strip()
             _doc_body = " ".join(
                 str(_doc.get(key) or "")
-                for key in ("title", "text", "content", "excerpt", "body")
+                for key in ("text", "content", "excerpt", "body")
             ).strip()
             if (
                 not _doc_title
-                or not _doc_body
-                or not re.match(r"^https://geralddaquila\.com/\S+$", _doc_url, re.I)
+                or len(_doc_body) < 80
+                or not re.match(r"^https://geralddaquila\\.com/\\S+$", _doc_url, re.I)
             ):
                 continue
             _doc_normalized = _normalize_query(_doc_body)
-            _subject_patterns = {
-                "trust": r"\b(?:trust|trusted|trustworthiness)\b",
-                "community": r"\b(?:community|communities)\b",
-                "stewardship": r"\bstewardship\b",
-            }
             _present_subjects = {
                 term for term, pattern in _subject_patterns.items()
                 if re.search(pattern, _doc_normalized)
             }
-            _doc_coverage = len(_present_subjects) / len(_conceptual_subject_phrases)
-            # Require all key concepts and an explicit relationship signal in
-            # the same canonical body. Generic stewardship advice must not
-            # qualify merely because it mentions one adjacent theme.
-            _has_relationship_signal = bool(re.search(
-                r"\b(?:trust|trusted|trustworthiness)\b.{0,180}\b(?:community|communities|stewardship)\b"
-                r"|\b(?:community|communities|stewardship)\b.{0,180}\b(?:trust|trusted|trustworthiness)\b",
-                _doc_normalized,
-            ))
-            _conceptual_combined_body.append(_doc_body)
-            if _doc_coverage >= 1.0 and _has_relationship_signal:
-                if _doc_coverage > _conceptual_best_coverage:
-                    _conceptual_best_doc = _doc
-                    _conceptual_best_coverage = _doc_coverage
+            _conceptual_combined_body.append(_doc_title + " " + _doc_body)
+            _conceptual_sources.append({
+                "title": _doc_title,
+                "url": _doc_url,
+                "body": _doc_body,
+                "subjects": _present_subjects,
+            })
 
         _conceptual_source_body = " ".join(_conceptual_combined_body)
         _conceptual_normalized = _normalize_query(_conceptual_source_body)
         _conceptual_coverage = (
             sum(
                 1 for token in _conceptual_terms
-                if re.search(r"\b" + re.escape(token) + r"\b", _conceptual_normalized)
+                if re.search(r"\\b" + re.escape(token) + r"\\b", _conceptual_normalized)
             ) / max(1, len(_conceptual_terms))
         )
-        # Require at least two-thirds lexical coverage across the bounded,
-        # already-vetted evidence set. With two substantive terms both must match;
-        # with three, two must match; broader questions require proportionally more.
-        # The separate frame-neutral, evidence-sufficiency, and question-fit gates
-        # remain mandatory, so this does not turn token overlap into authority.
-        _conceptual_supported = (
-            bool(_conceptual_best_doc)
-            and bool(_conceptual_source_body.strip())
-            and _conceptual_best_coverage >= 1.0
-            and _conceptual_best_doc is not None
+
+        # The trust/community relationship must be established by actual
+        # sentences from one vetted source. A separate vetted source may
+        # establish stewardship; we never splice unrelated sentences together
+        # to manufacture a relationship.
+        _conceptual_trust_doc = None
+        _trust_sentence = ""
+        _community_sentence = ""
+        _stewardship_doc = None
+        _stewardship_sentence = ""
+        _conceptual_sentence_rows = []
+        _ordered_conceptual_sources = sorted(
+            _conceptual_sources,
+            key=lambda item: (
+                0 if re.search(r"\\btrust\\b", item["title"], re.I) else 1,
+                item["title"].casefold(),
+            ),
         )
-        if _conceptual_supported:
-            # When no generative provider is available, do not let the generic
-            # practical-stewardship fallback masquerade as the answer to a
-            # conceptual relationship question. Build a bounded explanation from
-            # sentences in the bounded, vetted canonical evidence set instead.
-            # Synthesize only from the bounded, vetted canonical evidence set.
-            # The trust/community relationship and the stewardship explanation may
-            # be established in separate canonical sources, so do not force both
-            # sentences to exist in one article.
-            _conceptual_body_only = " ".join(
-                str(_doc.get(key) or "")
-                for _doc in _conceptual_authority_docs
-                for key in ("text", "content", "excerpt", "body")
-            )
-            _all_sentences = [
+        for _source in _ordered_conceptual_sources:
+            _doc_sentences = [
                 sentence.strip()
-                for sentence in re.split(r"(?<=[.!?])\s+", _conceptual_body_only)
+                for sentence in re.split(r"(?<=[.!?])\\s+", _source["body"])
                 if len(sentence.strip()) >= 35
+                and not re.search(r"\\bwritten by\\b", sentence, re.I)
             ]
-            _trust_sentence = ""
-            _community_sentence = ""
-            _conceptual_trust_doc = None
-            # Pair functional trust evidence with community evidence from the same
-            # canonical source; never join unrelated sentences from different pages.
-            _ordered_conceptual_docs = sorted(
-                _conceptual_authority_docs,
-                key=lambda item: (
-                    0 if re.search(r"\btrust\b", str(item.get("title") or ""), re.I) else 1,
-                    str(item.get("title") or "").casefold(),
-                ),
+            _conceptual_sentence_rows.extend(
+                (_source, _sentence) for _sentence in _doc_sentences
             )
-            for _doc in _ordered_conceptual_docs:
-                _doc_body = " ".join(
-                    str(_doc.get(key) or "")
-                    for key in ("text", "content", "excerpt", "body")
-                ).strip()
-                _doc_sentences = [
-                    sentence.strip()
-                    for sentence in re.split(r"(?<=[.!?])\s+", _doc_body)
-                    if len(sentence.strip()) >= 35
-                ]
-                for _index, _sentence in enumerate(_doc_sentences):
-                    if (
-                        not re.search(r"\b(?:trust|trusted|trustworthiness)\b", _sentence, re.I)
-                        or not re.search(r"\b(?:enable|enables|allow|allows|function|functions|coordination|shape|shapes|social cohesion|operate|operates)\b", _sentence, re.I)
-                    ):
-                        continue
-                    for _nearby in _doc_sentences[_index:min(len(_doc_sentences), _index + 7)]:
-                        if re.search(r"\b(?:community|communities)\b", _nearby, re.I):
-                            _trust_sentence = _sentence
-                            _community_sentence = _nearby
-                            _conceptual_trust_doc = _doc
-                            break
-                    if _conceptual_trust_doc:
-                        break
-                if _conceptual_trust_doc:
+            for _index, _sentence in enumerate(_doc_sentences):
+                if (
+                    not re.search(r"\\b(?:trust|trusted|trustworthiness)\\b", _sentence, re.I)
+                    or not re.search(
+                        r"\\b(?:enable|enables|allow|allows|function|functions|coordination|shape|shapes|social cohesion|operate|operates|reduce|reduces)\\b",
+                        _sentence, re.I
+                    )
+                ):
+                    continue
+                _nearby = next((
+                    candidate
+                    for candidate in _doc_sentences[_index:min(len(_doc_sentences), _index + 7)]
+                    if re.search(r"\\b(?:community|communities)\\b", candidate, re.I)
+                ), "")
+                if _nearby:
+                    _conceptual_trust_doc = _source
+                    _trust_sentence = _sentence
+                    _community_sentence = _nearby
                     break
-            _stewardship_sentence = next((
-                sentence for sentence in _all_sentences
-                if re.search(r"\bstewardship\b", sentence, re.I)
-                and re.search(r"\b(?:care|caring|entrust|protect|manage|preserv|resource|community|communities)\w*\b", sentence, re.I)
-                and not re.search(r"\bwritten by\b", sentence, re.I)
-            ), "")
-            if _trust_sentence and _community_sentence and _stewardship_sentence:
-                response = (
-                    "In the Archive's canonical source "
-                    + str((_conceptual_trust_doc or {}).get("title") or "on trust")
-                    + ", trust is described this way: "
-                    + _trust_sentence
-                    + " The same source also notes: "
-                    + _community_sentence
-                    + " The Archive's stewardship material adds: "
-                    + _stewardship_sentence
-                    + " Read together, these statements suggest that trust supports the coordination and cooperation a community needs, "
-                    "while stewardship is the responsibility of caring for what the community depends on. "
-                    "This is a bounded synthesis across the cited Archive material, not a claim that any one sentence states the whole relationship verbatim."
+            if _conceptual_trust_doc:
+                break
+
+        # Require a substantive stewardship statement, not an incidental
+        # mention in navigation or a title.
+        _stewardship_candidates = []
+        for _source, _sentence in _conceptual_sentence_rows:
+            if (
+                re.search(r"\\bstewardship\\b", _sentence, re.I)
+                and re.search(
+                    r"\\b(?:care|caring|entrust|protect|manage|preserv|resource|responsibilit|accountability|community|communities)\\w*\\b",
+                    _sentence, re.I
                 )
-            else:
-                _conceptual_supported = False
-                print(
-                    "The Guide conceptual boundary: vetted sources did not provide functional trust/community evidence "
-                    "and a substantive canonical stewardship sentence."
-                )
+            ):
+                _stewardship_candidates.append((_source, _sentence))
+        if _stewardship_candidates:
+            _stewardship_doc, _stewardship_sentence = _stewardship_candidates[0]
+
+        _conceptual_covered_subjects = {
+            subject
+            for source_item in _conceptual_sources
+            for subject in source_item["subjects"]
+        }
+        _conceptual_supported = bool(
+            _conceptual_trust_doc
+            and _trust_sentence
+            and _community_sentence
+            and _stewardship_doc
+            and _stewardship_sentence
+            and {"trust", "community", "stewardship"}.issubset(_conceptual_covered_subjects)
+            and _conceptual_sources
+        )
+
         if _conceptual_supported:
-            # Recommend a canonical destination from the same vetted evidence
-            # set; the answer grounding itself is based on the combined source set.
-            _conceptual_recommendation_doc = _conceptual_trust_doc or _conceptual_best_doc
+            response = (
+                "In the Archive's canonical source "
+                + _conceptual_trust_doc["title"]
+                + ", trust is described this way: "
+                + _trust_sentence
+                + " The same source also notes: "
+                + _community_sentence
+                + " The Archive's canonical source "
+                + _stewardship_doc["title"]
+                + " adds: "
+                + _stewardship_sentence
+                + " Read together, these statements suggest that trust supports the cooperation a community needs, "
+                "while stewardship is the responsibility of caring for what has been entrusted to a community. "
+                "This is a bounded synthesis across these cited Archive sources; neither source is presented as stating the entire relationship verbatim."
+            )
+            _conceptual_recommendation_doc = _conceptual_trust_doc
             authoritative_doorway = _normalize_authoritative_recommendation({
                 "title": _conceptual_recommendation_doc.get("title"),
-                "url": _conceptual_recommendation_doc.get("url") or _conceptual_recommendation_doc.get("canonical_url"),
+                "url": _conceptual_recommendation_doc.get("url"),
             })
-            composition_context["authoritative_doorway"] = authoritative_doorway
-            composition_context["authoritative_doorway_title"] = (
-                authoritative_doorway.get("title") if authoritative_doorway else ""
-            )
-            if not authoritative_doorway:
+            if authoritative_doorway:
+                composition_context["authoritative_doorway"] = authoritative_doorway
+                composition_context["authoritative_doorway_title"] = authoritative_doorway.get("title") or ""
+            else:
                 _conceptual_supported = False
+
         if not _conceptual_supported or archive_evidence_unavailable:
-            # An upstream evidence gate may already have failed even when the
-            # lexical overlap check passes. Never let lexical overlap override
-            # that failure or leave a recommendation attached to an unsupported answer.
-            # The fallback may help the visitor explore the question's concepts
-            # separately, but it must not assert their relationship or attach an
-            # unsupported canonical doorway.
+            # Preserve fail-closed behavior whenever direct source support is
+            # incomplete or an upstream sufficiency gate has already failed.
             response = _archive_limitation_response(query)
             archive_evidence_unavailable = True
             authoritative_doorway = None
@@ -7120,14 +7102,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             composition_context.pop("authoritative_doorway_title", None)
             composition_context["evidence_sufficiency_unavailable"] = True
             print(
-                "The Guide conceptual boundary: vetted canonical evidence set "
-                "did not meet the question-coverage threshold; returned "
-                "Archive-only limitation. "
-                f"diagnostics=terms:{len(_conceptual_terms)},"
-                f"coverage:{_conceptual_coverage:.3f},"
+                "The Guide conceptual boundary: vetted canonical evidence did not "
+                "support the relationship; returned Archive-only limitation. "
                 f"vetted_docs:{len(_conceptual_authority_docs)},"
-                f"usable_docs:{len(_conceptual_combined_body)},"
-                f"best_source:{str((_conceptual_best_doc or {}).get('title') or 'none')[:100]!r}"
+                f"usable_docs:{len(_conceptual_sources)},"
+                f"trust_source:{str((_conceptual_trust_doc or {}).get('title') or 'none')[:100]!r},"
+                f"stewardship_source:{str((_stewardship_doc or {}).get('title') or 'none')[:100]!r},"
+                f"coverage:{_conceptual_coverage:.3f},terms:{len(_conceptual_terms)}"
             )
 
     # Expose a small, deterministic provenance contract for the visitor UI.

@@ -215,15 +215,39 @@ def test_deterministic_stewardship_fallback_excludes_conceptual_questions():
     assert '"bounded_practical_stewardship_recovery"' in fallback
 
 
-def test_conceptual_relationship_grounding_requires_all_key_concepts_in_one_source():
-    start = SOURCE.index("        _conceptual_subject_phrases =", SOURCE.index("# Final corpus-boundary invariant"))
+def test_conceptual_relationship_grounding_requires_same_source_for_trust_community_but_allows_stewardship_across_vetted_sources():
+    start = SOURCE.index("        _conceptual_sources = []", SOURCE.index("# Final corpus-boundary invariant"))
     end = SOURCE.index("        _conceptual_source_body =", start)
     gate = SOURCE[start:end]
     assert '("trust", "community", "stewardship")' in gate
-    assert "_doc_coverage >= 1.0" in gate
-    assert "_has_relationship_signal" in gate
-    assert "_conceptual_best_doc is not None" in gate
+    assert "_conceptual_sources.append({" in gate
+    assert '"subjects": _present_subjects' in gate
 
+    synthesis_start = SOURCE.index("        _conceptual_trust_doc = None", start)
+    synthesis_end = SOURCE.index("        if not _conceptual_supported or archive_evidence_unavailable:", synthesis_start)
+    synthesis = SOURCE[synthesis_start:synthesis_end]
+    assert "_conceptual_trust_doc" in synthesis
+    assert "_trust_sentence" in synthesis
+    assert "_community_sentence" in synthesis
+    assert "_stewardship_doc" in synthesis
+    assert "_stewardship_sentence" in synthesis
+    assert "_conceptual_trust_doc" in synthesis and "_stewardship_doc" in synthesis
+    assert "vetted canonical evidence" in SOURCE[start:synthesis_end]
+    assert '"url": _conceptual_recommendation_doc.get("url")' in synthesis
+
+
+def test_conceptual_grounding_fails_closed_when_either_relationship_or_stewardship_sentence_is_missing():
+    start = SOURCE.index("# Final corpus-boundary invariant for conceptual/explanatory questions.")
+    end = SOURCE.index("# Expose a small, deterministic provenance contract", start)
+    gate = SOURCE[start:end]
+    assert "_conceptual_supported = bool(" in gate
+    assert "_conceptual_trust_doc" in gate
+    assert "_community_sentence" in gate
+    assert "_stewardship_doc" in gate
+    assert "_stewardship_sentence" in gate
+    assert "if not _conceptual_supported or archive_evidence_unavailable:" in gate
+    assert "response = _archive_limitation_response(query)" in gate
+    assert "authoritative_doorway = None" in gate
 
 def test_conceptual_provider_exhaustion_uses_sentences_from_the_vetted_canonical_source():
     start = SOURCE.index("# Final corpus-boundary invariant for conceptual/explanatory questions.")
