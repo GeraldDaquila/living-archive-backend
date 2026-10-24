@@ -6578,13 +6578,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # text and re-run the same frame-neutral, sufficiency, and question-fit
         # gates before allowing it into the answer composition.
         try:
-            # An already-authorized discovery doorway has a single exact source
-            # of truth: fetch its canonical body directly below. Searching ten
-            # more pages first caused serial WordPress timeouts and duplicate
-            # bridge fetches even when the correct destination was already known.
-            # Broad search remains available as recovery if no doorway exists or
-            # the exact canonical-body fetch fails.
-            if discovery_subject and authoritative_doorway:
+            # Subject discovery uses the bounded active Guide Node registry as
+            # its candidate source. Generic WordPress search can return ten
+            # weak/unregistered pages and then serially attempt excerpt/full-page
+            # fetches for each, even when those pages cannot authorize a doorway.
+            # Skip that fan-out for discovery requests; registry bodies and the
+            # exact selected doorway body below provide the bounded evidence path.
+            if discovery_subject:
                 recovered_docs = []
             else:
                 recovered_docs = _wordpress_search_canonical_candidates(
