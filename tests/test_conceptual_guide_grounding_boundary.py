@@ -111,3 +111,12 @@ def test_conceptual_search_diagnostic_uses_the_selected_query_not_fallback_local
 
 def test_conceptual_recovery_diagnostic_records_exception_reason_for_structural_failures():
     assert 'The Guide evidence recovery failed safely: {type(exc).__name__}: {exc}.' in SOURCE
+
+
+def test_conceptual_grounding_selects_doorway_from_vetted_evidence_without_discovery_registry_gate():
+    start = SOURCE.index("if not recovery_insufficient and recovered_docs:")
+    end = SOURCE.index("# Recovery may establish a qualifying doorway", start)
+    recovery = SOURCE[start:end]
+    assert "_general_guide_authoritative_doorway(" in recovery
+    assert '{"generation_authority_protected_docs": recovered_docs}' in recovery
+    assert "_guide_align_registered_discovery_doorway(" not in recovery[:recovery.index("if discovery_subject:")]
