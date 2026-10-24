@@ -85,11 +85,12 @@ def should_fail_closed(archive_evidence_unavailable, discovery_subject=False):
 
 
 def archive_limitation_response():
-    """Visitor-facing corpus-only response when no suitable Archive evidence exists."""
+    """Visitor-facing corpus-only response with a useful, non-claiming next step."""
     return (
-        "I couldn’t establish an answer to that question from the Living Archive’s "
-        "available material. I won’t substitute outside knowledge or attach a "
-        "resource that has not been shown to address what you asked."
+        "I haven’t found enough support in the Living Archive’s available material "
+        "to answer that reliably. I’ll keep the answer within the Archive rather "
+        "than fill the gap with outside knowledge. You could try narrowing the "
+        "question to a specific term, principle, or asset you want to explore."
     )
 
 
