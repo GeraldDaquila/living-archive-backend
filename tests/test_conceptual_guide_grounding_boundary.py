@@ -71,8 +71,8 @@ def test_conceptual_response_gate_does_not_relabel_general_knowledge_as_archive_
 
 
 def test_archive_limitation_is_honest_and_offers_a_non_claiming_next_step():
-    start = LIMITATION_SOURCE.index("def archive_limitation_response():")
-    end = LIMITATION_SOURCE.index("\n\ndef ", start + len("def archive_limitation_response"))
+    start = LIMITATION_SOURCE.index("def archive_limitation_response(")
+    end = LIMITATION_SOURCE.index("\n\ndef select_authoritative_doorway", start)
     response_contract = LIMITATION_SOURCE[start:end]
     assert "haven’t found enough support" in response_contract
     assert "within the Archive" in response_contract
