@@ -436,4 +436,25 @@ jobs:
               print(json.dumps({"case": name, "timings": timings[name], "last_payload": observed[-1]["payload"]}, ensure_ascii=False))
 
           print("LIVE_QA_SUMMARY=" + json.dumps(timings, ensure_ascii=False))
+
+          # Performance is part of the release gate, not merely a reported metric.
+          # The last validated baseline was ~13.4s p95 for Archive-grounded discovery,
+          # ~0.31s for a direct node handoff, and ~6.25s for an unsupported direct-attribute
+          # query. Require a material discovery improvement without regressing the other
+          # bounded visitor paths.
+          latency_budgets_ms = {
+              "positive_archive_grounded_explanation": {"p50_ms": 10000, "p95_ms_nearest_rank": 10000},
+              "positive_canonical_node_handoff": {"p95_ms_nearest_rank": 2000},
+              "negative_direct_attribute": {"p95_ms_nearest_rank": 7000},
+          }
+          for case_name, budgets in latency_budgets_ms.items():
+              observed = timings[case_name]
+              for metric_name, maximum_ms in budgets.items():
+                  measured_ms = observed[metric_name]
+                  if measured_ms > maximum_ms:
+                      raise AssertionError(
+                          f"Latency budget exceeded for {case_name}: "
+                          f"{metric_name}={measured_ms}ms > {maximum_ms}ms; "
+                          f"samples={observed['samples_ms']}"
+                      )
           PY
