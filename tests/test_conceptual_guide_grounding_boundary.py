@@ -292,3 +292,16 @@ def test_conceptual_questions_expand_canonical_candidate_recall():
     recovery = SOURCE[recovery_start:recovery_end]
     assert "_guide_subject_supplement_limit(" in recovery
     assert "_is_conceptual_explanatory_request(query)" in recovery
+
+
+def test_conceptual_grounding_unions_both_bounded_canonical_source_pools():
+    start = SOURCE.index("        _conceptual_authority_docs = []")
+    end = SOURCE.index("        _conceptual_combined_body = []", start)
+    pool = SOURCE[start:end]
+    assert '"generation_authority_protected_docs"' in pool
+    assert '"generation_evidence_docs"' in pool
+    assert "_conceptual_seen_doc_keys" in pool
+    assert "if _conceptual_authority_docs:" not in pool
+    assert "break" not in pool
+
+
