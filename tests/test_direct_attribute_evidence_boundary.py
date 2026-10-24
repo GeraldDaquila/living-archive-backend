@@ -1,6 +1,7 @@
 """Regression tests for direct-attribute source evidence."""
 from guide_direct_attribute_evidence import (
     direct_attribute_phrase,
+    direct_attribute_evidence_missing,
     direct_attribute_supported,
     should_fail_closed,
     archive_limitation_response,
@@ -152,3 +153,30 @@ def test_internal_preposition_must_match_source_phrase():
         "text": "The rate for an investment depends on time and risk.",
     }
     assert not direct_attribute_supported(question, decoy)
+
+
+
+def test_recovered_authoritative_doorway_clears_stale_missing_evidence_state():
+    question = "What is the boiling point of water at sea level?"
+    assert direct_attribute_evidence_missing(question, None)
+    recovered_source = {
+        "title": "Water properties",
+        "url": "https://geralddaquila.com/water-properties/",
+    }
+    assert not direct_attribute_evidence_missing(question, recovered_source)
+
+
+def test_losing_authoritative_doorway_reinstates_missing_evidence_state():
+    question = "What is the boiling point of water at sea level?"
+    selected_source = {
+        "title": "Water properties",
+        "url": "https://geralddaquila.com/water-properties/",
+    }
+    assert not direct_attribute_evidence_missing(question, selected_source)
+    assert direct_attribute_evidence_missing(question, None)
+
+
+def test_conceptual_query_never_enters_direct_attribute_missing_state():
+    assert not direct_attribute_evidence_missing(
+        "What is the role of trust in community stewardship?", None
+    )
