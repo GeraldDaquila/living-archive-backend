@@ -6579,8 +6579,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Recovery may establish a qualifying doorway after the initial selection.
     # Recompute this state from the current authoritative source instead of
     # carrying a stale pre-recovery failure into the final response.
-    direct_attribute_evidence_missing = _direct_attribute_evidence_missing(
-        query, authoritative_doorway
+    direct_attribute_evidence_missing = (
+        _direct_attribute_evidence_missing(query, authoritative_doorway)
+        and general_knowledge_recovery is None
     )
 
     # Discovery is fail-closed at the final selection boundary. An initial
@@ -7376,7 +7377,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "label": "General knowledge",
             "explanation": "No sufficiently relevant Archive resource was identified for this question.",
         }
-    if direct_attribute_evidence_missing:
+    if general_knowledge_recovery is not None:
+        # This explicit final provenance assignment follows all source and
+        # doorway gates. It prevents stale retrieval flags from relabeling a
+        # bounded public fact as an unsupported Archive claim.
+        answer_basis = {
+            "kind": "general_knowledge",
+            "label": "General knowledge",
+            "explanation": "This established fact is answered from general knowledge, not attributed to the Living Archive.",
+        }
+    elif direct_attribute_evidence_missing:
         answer_basis = {
             "kind": "archive_evidence_unavailable",
             "label": "Archive evidence not found",
