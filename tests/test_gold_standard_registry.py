@@ -284,4 +284,4 @@ def test_user_approved_trust_community_stewardship_gold_standard():
     assert "Trust makes cooperation possible; stewardship helps that cooperation endure." in record["expected_response"]
     assert record["expected_doorway"]["title"] == "Trust Architecture: The Missing Infrastructure Behind Functional Societies"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/"
-    assert "does not by itself mean the registry is automatically loaded" in record["provenance"]["evidence_boundary"]
+    assert "not proof that this exact text is automatically loaded" in record["provenance"]["evidence_boundary"]
