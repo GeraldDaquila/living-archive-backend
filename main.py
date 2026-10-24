@@ -6861,7 +6861,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if general_guide_composition._requires_responsibility_boundary_answer(query) and not general_guide_composition._has_responsibility_boundary_explanation(response):
         raise RuntimeError("Responsibility-boundary contract failed at final visitor boundary.")
 
-        request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
+    request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
     # Final evidence contract for deterministic relational-burden recovery.
     # This is deliberately enforced at payload assembly, after every composition,
     # sanitization, and discovery path. A broad doorway selected by earlier retrieval
