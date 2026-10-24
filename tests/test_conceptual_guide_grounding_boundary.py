@@ -298,3 +298,18 @@ def test_final_visitor_boundary_runs_after_canonical_evidence_gate():
     assert "canonical source" not in boundary
     assert "bounded synthesis" not in boundary
     assert "\\n\\n" in boundary
+
+
+def test_basic_inquiry_request_id_is_unconditional_after_response_contracts():
+    start = SOURCE.index("def _basic_inquiry_response(")
+    end = SOURCE.index("def _v48831_basic_inquiry_seam_self_audit(", start)
+    body = SOURCE[start:end]
+    request_id_lines = [
+        line for line in body.splitlines()
+        if 'request_id = "basic-" + hashlib.sha1(' in line
+    ]
+    assert len(request_id_lines) == 1
+    assert request_id_lines[0].startswith('    request_id = "basic-"')
+    assert not request_id_lines[0].startswith('        request_id = "basic-"')
+    responsibility_guard = body.index("if general_guide_composition._requires_responsibility_boundary_answer(query)")
+    assert body.index('request_id = "basic-"') > responsibility_guard
