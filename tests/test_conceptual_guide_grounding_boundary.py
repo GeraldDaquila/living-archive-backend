@@ -66,3 +66,11 @@ def test_archive_limitation_is_honest_and_offers_a_non_claiming_next_step():
     assert "outside knowledge" in response_contract
     assert "narrowing the question" in response_contract
     assert "recommendation" not in response_contract
+
+
+def test_conceptual_questions_trigger_canonical_body_retrieval_even_when_initial_retrieval_looks_sufficient():
+    supplement = SOURCE[SOURCE.index("def _guide_requires_canonical_subject_supplement"):SOURCE.index("def _guide_subject_supplement_limit")]
+    assert "conceptual_inquiry=False" in supplement
+    assert "or conceptual_inquiry" in supplement
+    assert "_is_conceptual_explanatory_request(query)" in SOURCE[SOURCE.index("def _basic_inquiry_response"):SOURCE.index("# Recovery may establish a qualifying doorway")]
+    assert "or _is_conceptual_explanatory_request(query)" in SOURCE[SOURCE.index("def _basic_inquiry_response"):SOURCE.index("# Recovery may establish a qualifying doorway")]
