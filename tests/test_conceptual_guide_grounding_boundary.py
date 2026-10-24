@@ -180,3 +180,15 @@ def test_conceptual_recovery_clears_upstream_flags_only_after_all_content_gates_
     assert "frame_neutral_evidence_unavailable" in recovery
     assert "evidence_sufficiency_unavailable" in recovery
     assert "question_evidence_fit_unavailable" in recovery
+
+
+def test_query_aware_conceptual_term_extraction_excludes_generic_and_context_terms():
+    # The final guard must distinguish the actual concepts from the grammatical
+    # frame, and preserve context-bearing phrases rather than treat single-word
+    # overlap as proof of a relationship.
+    start = SOURCE.index("        _conceptual_terms = {", SOURCE.index("# Final corpus-boundary invariant"))
+    end = SOURCE.index("\n\n        # Conceptual answers may need synthesis", start)
+    extraction = SOURCE[start:end]
+    assert '"role"' in extraction
+    assert '"community"' not in extraction or "len(token) > 3" in extraction
+    assert "token not in" in extraction
