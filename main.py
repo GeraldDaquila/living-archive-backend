@@ -7026,7 +7026,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             _stewardship_sentence = next((
                 sentence for sentence in _best_sentences
                 if re.search(r"\bstewardship\b", sentence, re.I)
-                and re.search(r"\b(?:trust|trusted|trustworthiness|community|communities)\b", sentence, re.I)
             ), "")
             if _trust_community_sentence and _stewardship_sentence:
                 response = (
