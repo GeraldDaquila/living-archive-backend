@@ -6955,16 +6955,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 if re.search(r"\b" + re.escape(token) + r"\b", _conceptual_normalized)
             ) / max(1, len(_conceptual_terms))
         )
-        # Two-term questions are valid conceptual inquiries too. For those, the
-        # 75% body-coverage rule requires both terms; three-plus-term questions
-        # retain the same strict coverage rule. This avoids a hard-coded minimum
-        # that made natural questions like "purpose of reciprocity in a community"
-        # impossible to support even when both concepts exist in vetted sources.
+        # Require at least two-thirds lexical coverage across the bounded,
+        # already-vetted evidence set. With two substantive terms both must match;
+        # with three, two must match; broader questions require proportionally more.
+        # The separate frame-neutral, evidence-sufficiency, and question-fit gates
+        # remain mandatory, so this does not turn token overlap into authority.
         _conceptual_supported = (
             bool(_conceptual_best_doc)
             and bool(_conceptual_source_body.strip())
             and len(_conceptual_terms) >= 2
-            and _conceptual_coverage >= 0.75
+            and _conceptual_coverage >= (2 / 3)
         )
         if _conceptual_supported:
             # Recommend a canonical destination from the same vetted evidence
