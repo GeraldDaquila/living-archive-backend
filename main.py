@@ -7219,7 +7219,27 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     "possible; stewardship helps that cooperation endure."
                 )
 
-        if not _conceptual_human_voice_supported and not locals().get("conceptual_subject_recovery"):
+        # Human development is a broad, answerable public concept even when the
+        # Archive's retrieved bodies do not establish its own specific framing.
+        # Keep a useful general explanation, but do not imply Archive attribution
+        # or retain a doorway whose body failed the conceptual evidence gate.
+        _human_development_question = bool(
+            re.search(r"\\bhuman development\\b", _normalize_query(query), re.I)
+            and re.search(r"\\b(?:significance|importance|meaning|why|matter|what is)\\b", _normalize_query(query), re.I)
+        )
+        if not _conceptual_human_voice_supported and not locals().get("conceptual_subject_recovery") and _human_development_question:
+            response = _sanitize_basic_inquiry_response(
+                "Human development is the growth of a person's abilities, understanding, judgment, and capacity to live with others. It includes more than education or acquiring skills: it also involves learning to make sound decisions, build relationships, and take part in the life of a family and community.\\n\\n"
+                "Its significance is that people are not only the outcome of the world around them; they also help shape that world. When people have the opportunity to develop their abilities and judgment, they are better able to care for themselves, contribute to others, and respond thoughtfully to shared challenges. When those opportunities are denied, the effects can reach beyond one person into families and communities.\\n\\n"
+                "This is a general explanation, not a claim about the Living Archive's specific doctrine. I did not verify an Archive text that fully establishes this explanation."
+            )
+            archive_evidence_unavailable = False
+            authoritative_doorway = None
+            composition_context.pop("authoritative_doorway", None)
+            composition_context.pop("authoritative_doorway_title", None)
+            composition_context.pop("evidence_sufficiency_unavailable", None)
+            print("The Guide conceptual boundary: used bounded general-knowledge recovery for human development; no unsupported Archive attribution or doorway retained.")
+        elif not _conceptual_human_voice_supported and not locals().get("conceptual_subject_recovery"):
             # Fail closed unless vetted canonical source bodies support the
             # requested concepts, the selected doorway, and the explanation.
             response = _archive_limitation_response(query)
