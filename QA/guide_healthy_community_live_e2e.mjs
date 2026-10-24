@@ -148,6 +148,58 @@ try {
   )) {
     throw new Error("The real production API did not return the exact canonical recommendation pair.");
   }
+  // Exact regression for the newly recovered stable general fact. This is
+  // checked through the real WordPress UI and candidate API, not only with
+  // source-text assertions.
+  const waterQuery = "What is the boiling point of water at sea level?";
+  await input.fill(waterQuery);
+  await submit.evaluate(element => setTimeout(() => element.click(), 0));
+  await page.waitForFunction(() => {
+    const el = document.querySelector("#archive-response-text");
+    const text = (el?.innerText || "").toLowerCase();
+    return !!el && text.includes("100") && (text.includes("°c") || text.includes("celsius"));
+  }, null, { timeout: 60_000 });
+  await Promise.all(apiBodyReads);
+  const waterResponses = apiResponses.filter(item =>
+    item.payload && item.payload.query === waterQuery
+  );
+  if (!apiRequests.some(request => request.body.query === waterQuery)) {
+    throw new Error("No real WordPress /api/query request carried the exact boiling-point question.");
+  }
+  const waterResponse = waterResponses.find(item =>
+    item.status === 200 &&
+    typeof item.payload?.response === "string" &&
+    /100\s*°?c/i.test(item.payload.response) &&
+    /212\s*°?f/i.test(item.payload.response) &&
+    /standard atmospheric pressure/i.test(item.payload.response) &&
+    item.payload?.answer_basis?.kind !== "archive_evidence_unavailable" &&
+    item.payload?.recommendation == null &&
+    !/i haven.t found enough support|rather than fill the gap with outside knowledge/i.test(item.payload.response)
+  );
+  if (!waterResponse) {
+    throw new Error("The exact boiling-point question did not return the general-fact contract without Archive-only refusal or an invented doorway. Responses: " +
+      JSON.stringify(waterResponses.map(item => ({
+        status: item.status,
+        answer_basis: item.payload?.answer_basis,
+        recommendation: item.payload?.recommendation,
+        response: item.payload?.response
+      }))));
+  }
+  const waterUI = (await answer.innerText()).replace(/\s+/g, " ").trim();
+  const waterAPI = waterResponse.payload.response.replace(/\s+/g, " ").trim();
+  if (!waterUI.toLowerCase().includes("100") ||
+      !waterUI.toLowerCase().includes("212") ||
+      !waterUI.toLowerCase().includes("pressure") ||
+      waterUI.toLowerCase().includes("living archive's available material")) {
+    throw new Error("The rendered visitor response did not match the concise general-fact boundary: " + waterUI);
+  }
+  if (await root.locator("#archive-response-text a.archive-recommendation-link").count() !== 0) {
+    throw new Error("The boiling-point response displayed a doorway even though no relevant canonical resource was verified.");
+  }
+  if (!waterUI.includes(waterAPI.slice(0, Math.min(48, waterAPI.length)))) {
+    throw new Error("The visible water answer did not reflect the candidate API response.");
+  }
+
   // Exercise the exact conceptual question that previously fell through to the
   // evidence-limitation message despite canonical recovery passing. Keep this test
   // explicit about the trusted answer contract, rather than relying on query-word
