@@ -1479,7 +1479,8 @@
         "approval_evidence": "User requested 'add to registry of gold standards' after reviewing the live answer and expanded disclosure. Prior assessment rated the response 9/10 and approved it as Gold Standard-worthy for general-knowledge fallback.",
         "source_path": "docs/qa/gold_standard_registry.json",
         "source_ref": "qa/register-water-boiling-point-gold-standard",
-        "evidence_boundary": "Expected response and disclosure transcribed from the user-provided live screenshot. This standard approves the observed response behavior and transparent Guide-purpose disclosure; it does not claim the science answer is sourced from or canonical doctrine of the Living Archive."
+        "evidence_boundary": "Expected response and disclosure transcribed from the user-provided live screenshot. This standard approves the observed response behavior and transparent Guide-purpose disclosure; it does not claim the science answer is sourced from or canonical doctrine of the Living Archive.",
+        "expanded_how_results_are_found_disclosure": "The Guide considers your question alongside the Living Archive’s ideas, themes, and pathways to help you find where to begin. From there, you can explore the Archive for yourself."
       },
       "freeze_policy": "Preserve the approved response, absence of an unrelated doorway, and provenance boundary. Changes require explicit user authorization and a documented benchmark-version update."
     }
