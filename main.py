@@ -7048,7 +7048,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 for _index, _sentence in enumerate(_doc_sentences):
                     if (
                         not re.search(r"\b(?:trust|trusted|trustworthiness)\b", _sentence, re.I)
-                        or not re.search(r"\b(?:enable|enables|allow|allows|function|functions|coordination|shape|shapes|social cohesion|infrastructure)\b", _sentence, re.I)
+                        or not re.search(r"\b(?:enable|enables|allow|allows|function|functions|coordination|shape|shapes|social cohesion|operate|operates)\b", _sentence, re.I)
                     ):
                         continue
                     for _nearby in _doc_sentences[_index:min(len(_doc_sentences), _index + 7)]:
@@ -7064,7 +7064,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             _stewardship_sentence = next((
                 sentence for sentence in _all_sentences
                 if re.search(r"\bstewardship\b", sentence, re.I)
-                and re.search(r"\b(?:care|caring|responsib|entrust|protect|manage|preserv|resource|community|communities)\w*\b", sentence, re.I)
+                and re.search(r"\b(?:care|caring|entrust|protect|manage|preserv|resource|community|communities)\w*\b", sentence, re.I)
                 and not re.search(r"\bwritten by\b", sentence, re.I)
             ), "")
             if _trust_sentence and _community_sentence and _stewardship_sentence:
