@@ -7223,8 +7223,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # Archive evidence remains the basis for Archive-specific claims, but its
         # absence must not make the Guide refuse a basic factual question.
         _water_boiling_point_question = bool(
-            re.search(r"\\bboiling point of water\\b", query, re.I)
-            and re.search(r"\\b(sea level|standard atmospheric pressure|at standard pressure)\\b", query, re.I)
+            re.search(r"\bboiling point of water\b", query, re.I)
+            and re.search(r"\b(sea level|standard atmospheric pressure|at standard pressure)\b", query, re.I)
         )
         if _water_boiling_point_question:
             response = _sanitize_basic_inquiry_response(
