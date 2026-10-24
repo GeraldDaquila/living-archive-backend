@@ -166,6 +166,7 @@ def test_practical_stewardship_guard_cannot_override_a_conceptual_question_after
     end = SOURCE.index("# Subject-discovery prose must be independent", start)
     guard = SOURCE[start:end]
     assert "and not _is_conceptual_explanatory_request(query)" in guard
+    assert "and not general_guide_composition.is_conceptual_relationship_question(query)" in guard
     assert "archive_evidence_unavailable = True" in guard
     assert "composition_context[\"evidence_sufficiency_unavailable\"] = True" in guard
 
