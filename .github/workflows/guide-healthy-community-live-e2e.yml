@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
-      USE_API_ORIGIN: ${{ github.event_name == 'pull_request' && 'https://guide-conceptual-recovery-qa.onrender.com' || 'https://living-archive-backend.onrender.com' }}
+      USE_API_ORIGIN: ${{ github.event_name == 'pull_request' && 'https://guide-water-boiling-pr-qa.onrender.com' || 'https://living-archive-backend.onrender.com' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
