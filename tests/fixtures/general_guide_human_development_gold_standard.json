@@ -1,0 +1,28 @@
+{
+  "benchmark_id": "general-guide-human-development-significance-2026-10-24",
+  "status": "USER_APPROVED_GOLD_STANDARD",
+  "subsystem": "general-purpose-guide",
+  "query": "What is the significance of human development?",
+  "expected_response": "Human development is more than growing older, gaining knowledge, or learning a skill. It is the gradual shaping of how a person understands the world, makes choices, lives with others, and takes responsibility for the life they share.\n\nIts significance lies in what those capacities make possible. A person who can think things through, learn from experience, and understand another person's point of view has more room to choose how to respond—not simply repeat what circumstances have taught them. Those choices matter in everyday life: in how people care for themselves, raise children, work through differences, and contribute to their communities.\n\nHuman development is therefore both personal and shared. People are shaped by the conditions in which they grow, but they also help shape those conditions for others. When people have room to learn, exercise judgment, and participate, families and communities can become more capable of meeting life together. When that room is denied, the loss is not only individual; it can narrow what a whole community is able to become.",
+  "expected_doorway_title": "The First Institution: Why Human Development Begins at Home",
+  "expected_doorway_url": "https://geralddaquila.com/2025/06/17/the-first-institution-why-human-development-begins-at-home/",
+  "rating_out_of_10": 9,
+  "assertions": [
+    "Answer the broad question directly in humane, concrete, thoughtful language before presenting the doorway.",
+    "Answer has exactly three substantive paragraphs and does not end with a disclaimer that undermines the explanation.",
+    "Present the canonical work as a useful next step into the Living Archive, not as proof that every sentence in the general explanation is canonical doctrine.",
+    "Render the title as a visible, working clickable link to the verified canonical URL.",
+    "Keep answer composition and destination recommendation independently testable.",
+    "A single Search submission renders the substantive answer and doorway; no second click or direct page handoff is required.",
+    "Do not route this broad conceptual question to the Glossary."
+  ],
+  "provenance": {
+    "source_date": "2026-10-24",
+    "source": "User-provided live Guide screenshot reviewed and explicitly approved for gold-standard registry inclusion.",
+    "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
+    "approval_evidence": "User request: 'add to registry for gold standard', following live screenshot review; assistant assessment 9/10, meets expectations, near gold standard.",
+    "source_path": "docs/qa/gold_standard_registry.json",
+    "source_ref": "qa/register-human-development-gold-standard",
+    "evidence_boundary": "Expected response transcribed from the user-provided live screenshot. Canonical URL independently verified against the published Archive page. Approval is for this observed response and doorway behavior, not a claim that the general explanation is a verbatim canonical doctrine."
+  }
+}
