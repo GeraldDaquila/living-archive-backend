@@ -6989,7 +6989,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             print(
                 "The Guide conceptual boundary: vetted canonical evidence set "
                 "did not meet the question-coverage threshold; returned "
-                "Archive-only limitation."
+                "Archive-only limitation. "
+                f"diagnostics=terms:{len(_conceptual_terms)},"
+                f"coverage:{_conceptual_coverage:.3f},"
+                f"vetted_docs:{len(_conceptual_authority_docs)},"
+                f"usable_docs:{len(_conceptual_combined_body)},"
+                f"best_source:{str((_conceptual_best_doc or {}).get('title') or 'none')[:100]!r}"
             )
 
     # Expose a small, deterministic provenance contract for the visitor UI.
