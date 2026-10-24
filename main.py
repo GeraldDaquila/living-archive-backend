@@ -6824,16 +6824,84 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # relevant canonical doorway must not silently degrade into generic model
     # knowledge; preserve the question in General Guide and state the evidence
     # boundary instead of inventing an answer or redirecting to Glossary.
-    if (
-        general_guide_composition.is_conceptual_relationship_question(query)
-        and not authoritative_doorway
-    ):
-        response = _archive_limitation_response()
-        archive_evidence_unavailable = True
-        authoritative_doorway = None
-        composition_context.pop("authoritative_doorway", None)
-        composition_context.pop("authoritative_doorway_title", None)
-        print("The Guide conceptual boundary: no relevant Archive doorway; returned Archive-only limitation.")
+    # Final corpus-boundary invariant for conceptual/explanatory questions.
+    # A superficially plausible doorway is not enough: the selected canonical
+    # source body must address the concepts in the visitor's actual question.
+    # Without demonstrable source support, remain in General Guide and fail
+    # closed rather than allowing generic model prose to masquerade as grounded.
+    _conceptual_inquiry = _is_conceptual_explanatory_request(query)
+    if _conceptual_inquiry:
+        _conceptual_source_body = ""
+        _conceptual_title = str(
+            (authoritative_doorway or {}).get("title") or ""
+        ).strip().casefold()
+        _conceptual_url = str(
+            (authoritative_doorway or {}).get("url") or ""
+        ).strip().casefold()
+        _conceptual_docs = []
+        for _docs_key in (
+            "generation_authority_protected_docs",
+            "generation_evidence_docs",
+            "retrieved_documents",
+            "documents",
+            "context_blocks",
+        ):
+            _docs_value = composition_context.get(_docs_key)
+            if isinstance(_docs_value, list):
+                _conceptual_docs.extend(
+                    item for item in _docs_value if isinstance(item, dict)
+                )
+            elif isinstance(_docs_value, dict):
+                _conceptual_docs.append(_docs_value)
+            elif isinstance(_docs_value, str):
+                _conceptual_source_body += " " + _docs_value
+        for _doc in _conceptual_docs:
+            _doc_url = str(
+                _doc.get("url") or _doc.get("canonical_url") or ""
+            ).strip().casefold()
+            _doc_title = str(_doc.get("title") or "").strip().casefold()
+            if (
+                _conceptual_url and _doc_url.rstrip("/") == _conceptual_url.rstrip("/")
+            ) or (
+                _conceptual_title and _doc_title == _conceptual_title
+            ):
+                _conceptual_source_body += " " + " ".join(
+                    str(_doc.get(key) or "")
+                    for key in ("title", "text", "content", "excerpt", "body")
+                )
+        _conceptual_normalized = _normalize_query(_conceptual_source_body)
+        _conceptual_terms = [
+            token for token in re.findall(r"[a-z0-9]+", _normalize_query(query))
+            if len(token) > 3 and token not in {
+                "what", "role", "purpose", "significance", "importance",
+                "function", "value", "contribution", "impact", "nature",
+                "relationship", "does", "with", "from", "that", "this",
+                "into", "their", "there", "about", "community",
+            }
+        ]
+        _conceptual_terms = set(_conceptual_terms)
+        _conceptual_coverage = (
+            sum(
+                1 for token in _conceptual_terms
+                if re.search(r"\\b" + re.escape(token) + r"\\b", _conceptual_normalized)
+            ) / max(1, len(_conceptual_terms))
+        )
+        _conceptual_supported = (
+            bool(authoritative_doorway)
+            and bool(_conceptual_source_body.strip())
+            and _conceptual_coverage >= 0.35
+        )
+        if not _conceptual_supported:
+            response = _archive_limitation_response()
+            archive_evidence_unavailable = True
+            authoritative_doorway = None
+            composition_context.pop("authoritative_doorway", None)
+            composition_context.pop("authoritative_doorway_title", None)
+            composition_context["evidence_sufficiency_unavailable"] = True
+            print(
+                "The Guide conceptual boundary: no demonstrably relevant canonical "
+                "source body; returned Archive-only limitation."
+            )
 
     # Expose a small, deterministic provenance contract for the visitor UI.
     # This describes the answer's basis; it does not claim that every sentence
