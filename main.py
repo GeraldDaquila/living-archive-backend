@@ -4737,7 +4737,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "Reciprocity should never be used to demand access, obedience, or repayment from someone who cannot freely offer it. "
             "Mutual support works best when people respond to one another's real circumstances, not when kindness becomes a debt ledger."
         )
-        return {"response": response, "doorway_title": title, "provider": "bounded_general_knowledge_recovery", "model": ""}
+        return {"response": response, "doorway_title": "", "provider": "bounded_general_knowledge_recovery", "model": ""}
 
     if "stewardship" in q and "responsibility" in q and re.search(r"\b(?:difference|different|distinguish|distinction|versus|vs)\b", q):
         response = (
