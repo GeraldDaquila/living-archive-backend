@@ -1,4 +1,5 @@
 name: Guide Live QA Boundary E2E
+# Keep the live source-boundary suite running against each candidate branch revision.
 
 on:
   pull_request:
