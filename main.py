@@ -5961,10 +5961,11 @@ def _guide_discovery_evidence_grade(subject, document, node=None):
             and len(early_hits) >= 2
             and len(metadata_subject_hits) == len(subject_tokens)
             and (
-                (phrase_count >= 1 and direct_fit >= 2)
-                # A registered node whose title names the subject and whose
-                # opening text corroborates it is direct even when the visitor's
-                # full natural-language question is not repeated verbatim.
+                # A single occurrence of the full phrase in a broad page is
+                # not enough to make that page a direct authority. Require repeated
+                # phrase-level evidence, or a title that independently anchors the
+                # subject and opening text that corroborates it.
+                (phrase_count >= 2 and direct_fit >= 2)
                 or (len(title_hits) >= 2 and len(early_hits) >= 3)
             )
         )
