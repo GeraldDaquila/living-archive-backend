@@ -6350,9 +6350,19 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
             "I couldn’t isolate a complete source sentence that I can quote reliably, "
             "so I won’t manufacture one."
         )
-    sentence = candidates[0]
+    # Prefer the most informative complete source sentence rather than the
+    # first matching sentence, which is often a short rhetorical question and
+    # can omit the source's actual framework. This is source selection only:
+    # the sentence must still be copied verbatim from the canonical page body.
+    sentence = max(
+        candidates,
+        key=lambda item: (
+            len(set(re.findall(r"[a-z0-9]+", item.casefold()))),
+            len(item),
+        ),
+    )
     return (
-        f"{title} is a useful place to begin. The essay asks: “{sentence}” "
+        f"{title} is a useful place to begin. The essay states: “{sentence}” "
         f"That gives you a focused entry point for exploring {normalized_subject}."
     )
 
