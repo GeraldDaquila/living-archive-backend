@@ -6632,6 +6632,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         _is_practical_stewardship_question(query)
         and not _is_healthy_community_orientation_question(query)
         and not _is_conceptual_explanatory_request(query)
+        and not general_guide_composition.is_conceptual_relationship_question(query)
     ):
         # This bounded recovery has no canonical source body selected as direct
         # evidence for the exact practical question. Suppress an incidental
