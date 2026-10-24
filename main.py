@@ -5845,6 +5845,9 @@ def _guide_subject_discovery_query(query):
     q = re.sub(r"\s+", " ", _normalize_query(query)).strip()
     patterns = (
         # Natural-language reading requests are still Archive discovery tasks.
+        # When visitors explicitly ask what the Archive says about a named developmental subject,
+        # retrieve and validate the matching canonical page before composing an explanation.
+        r"^(?:what\s+does|what\s+do)\s+(?:the\s+)?(?:living\s+archive|archive)\s+say\s+about\s+(.+?)[?.!]*$",
         # Extract their subject so the answer is grounded in the selected page,
         # rather than letting a broad generated explanation contradict the link.
         r"^(?:i want to understand|i would like to understand|i'd like to understand|i want to learn about|i would like to learn about|i'd like to learn about)\s+(.+?)(?:[.!?]\s*(?:what|which)\s+(?:should|could|can|would)\s+i\s+read\b.*)?[?.!]*$",
