@@ -7184,7 +7184,27 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # have passed. Provider exhaustion must not replace the visitor-facing
         # explanation with a quotation collage or internal evidence terminology.
         if _conceptual_human_voice_supported:
-            _final_trust_title = str(locals().get("_trust_title") or "Trust Architecture").strip()
+            # Preserve the visitor's actual subject before using the trust /
+            # stewardship synthesis. A nearby conceptual question about a
+            # different concept must not inherit this answer merely because the
+            # same canonical sources were retrieved.
+            _conceptual_query_normalized = re.sub(r"\\s+", " ", str(query or "")).strip().casefold()
+            if re.search(r"\\breciproc(?:ity|al)\\b", _conceptual_query_normalized) and not re.search(r"\\b(?:trust|stewardship)\\b", _conceptual_query_normalized):
+                _reciprocity_recovery = _compose_provider_exhaustion_recovery(
+                    query,
+                    underlying_question=str((interpretation or {}).get("underlying_question") or ""),
+                    desired_movement=str((interpretation or {}).get("desired_movement") or ""),
+                )
+                _reciprocity_text = str(_reciprocity_recovery or "").strip()
+                if _reciprocity_text and re.search(r"\\breciprocity\\b", _reciprocity_text, re.I) and not re.search(r"\\bThink of a shared garden\\b", _reciprocity_text, re.I):
+                    response = _reciprocity_text
+                    authoritative_doorway = None
+                    composition_context.pop("authoritative_doorway", None)
+                    composition_context.pop("authoritative_doorway_title", None)
+                    composition_context["conceptual_subject_recovery"] = "reciprocity"
+                    _conceptual_human_voice_supported = False
+            if _conceptual_human_voice_supported:
+                _final_trust_title = str(locals().get("_trust_title") or "Trust Architecture").strip()
             _final_stewardship_title = str(locals().get("_stewardship_title") or "The Stewardship Age").strip()
             # Keep the explanation conversational. Source titles belong in the
             # recommendation link below, not inside the opening sentence where
