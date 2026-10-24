@@ -36,7 +36,8 @@ def test_conceptual_response_gate_requires_selected_canonical_source_body():
     assert "retrieved_documents" in gate
     assert "_conceptual_source_body" in gate
     assert "_conceptual_supported" in gate
-    assert "_conceptual_coverage >= 0.35" in gate
+    assert "_conceptual_coverage >= 0.75" in gate
+    assert "len(_conceptual_terms) >= 3" in gate
 
 
 def test_conceptual_response_gate_fails_closed_without_relevant_body_even_if_doorway_exists():
