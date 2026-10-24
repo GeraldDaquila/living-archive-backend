@@ -7170,13 +7170,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             )
             if not authoritative_doorway:
                 _conceptual_supported = False
-        if not _conceptual_supported or archive_evidence_unavailable:
-            # An upstream evidence gate may already have failed even when the
-            # lexical overlap check passes. Never let lexical overlap override
-            # that failure or leave a recommendation attached to an unsupported answer.
-            # The fallback may help the visitor explore the question's concepts
-            # separately, but it must not assert their relationship or attach an
-            # unsupported canonical doorway.
+        _conceptual_human_voice_supported = bool(
+            _conceptual_supported
+            and _trust_sentence
+            and _community_sentence
+            and _stewardship_doc
+            and _stewardship_sentence
+            and authoritative_doorway
+            and not direct_attribute_evidence_missing
+        )
+        if not _conceptual_human_voice_supported:
+            # Fail closed unless vetted canonical source bodies support the
+            # requested concepts, the selected doorway, and the explanation.
             response = _archive_limitation_response(query)
             archive_evidence_unavailable = True
             authoritative_doorway = None
@@ -7185,8 +7190,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             composition_context["evidence_sufficiency_unavailable"] = True
             print(
                 "The Guide conceptual boundary: vetted canonical evidence set "
-                "did not meet the question-coverage threshold; returned "
-                "Archive-only limitation. "
+                "did not support the requested explanation; returned Archive-only limitation. "
                 f"diagnostics=terms:{len(_conceptual_terms)},"
                 f"coverage:{_conceptual_coverage:.3f},"
                 f"vetted_docs:{len(_conceptual_authority_docs)},"
