@@ -267,15 +267,19 @@ try {
       } catch {}
       report.cases.push(item);
       await page.screenshot({ path: `${ARTIFACT_DIR}/live-guide-routing-${testCase.id}.png`, fullPage: true }).catch(() => {});
-      throw error;
+      // Keep running the remaining independent simulations so one broken
+      // destination cannot hide failures or passes in the other handoffs.
     }
 
-    report.cases.push(item);
+    if (item.result === "PASS") report.cases.push(item);
     await page.screenshot({ path: `${ARTIFACT_DIR}/live-guide-routing-${testCase.id}.png`, fullPage: true }).catch(() => {});
     await page.close();
   }
 
-  if (report.pageErrors.length) throw new Error("One or more browser page errors were observed");
+  const failedCases = report.cases.filter(item => item.result === "FAIL");
+  if (report.pageErrors.length || failedCases.length) {
+    throw new Error("Routing simulations failed: " + failedCases.map(item => item.id).join(", "));
+  }
   report.result = "PASS";
   report.finishedAt = new Date().toISOString();
   console.log("LIVE_GUIDE_ROUTING_BROWSER_E2E_RESULT " + JSON.stringify(report));
