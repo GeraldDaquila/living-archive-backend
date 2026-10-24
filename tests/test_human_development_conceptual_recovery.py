@@ -80,3 +80,27 @@ def test_general_fact_answer_is_applied_before_conceptual_only_grounding():
     assert "authoritative_doorway = None" in block
     assert "archive_evidence_unavailable = False" in block
     assert "The Guide general-knowledge boundary: answered a registered stable fact" in block
+
+
+def test_final_answer_basis_remains_general_knowledge_for_matched_fact():
+    final_guard = SOURCE.index(
+        "# Re-evaluate after every downstream gate has had the opportunity to"
+    )
+    final_attribute_check = SOURCE.index(
+        "direct_attribute_evidence_missing = (", final_guard
+    )
+    final_provenance = SOURCE.index(
+        'if general_knowledge_recovery is not None:',
+        SOURCE.index("# Expose a small, deterministic provenance contract for the visitor UI."),
+    )
+    final_payload = SOURCE.index('    payload = {', final_provenance)
+    attribute_check_block = SOURCE[
+        final_attribute_check:SOURCE.index(
+            "# Direct-attribute questions may not fall through", final_attribute_check
+        )
+    ]
+    provenance_block = SOURCE[final_provenance:final_payload]
+    assert "and general_knowledge_recovery is None" in attribute_check_block
+    assert '"kind": "general_knowledge"' in provenance_block
+    assert "not attributed to the Living Archive" in provenance_block
+    assert 'elif direct_attribute_evidence_missing:' in provenance_block
