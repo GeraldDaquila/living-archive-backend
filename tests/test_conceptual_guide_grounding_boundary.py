@@ -316,3 +316,14 @@ def test_basic_inquiry_request_id_is_unconditional_after_response_contracts():
     assert not request_id_lines[0].startswith('        request_id = "basic-"')
     responsibility_guard = body.index("if general_guide_composition._requires_responsibility_boundary_answer(query)")
     assert body.index('request_id = "basic-"') > responsibility_guard
+
+
+def test_conceptual_fallback_preserves_reciprocity_subject_instead_of_reusing_trust_template():
+    source = SOURCE
+    gate_start = source.index("_conceptual_human_voice_supported = bool(")
+    gate = source[gate_start:gate_start + 10000]
+    assert '_conceptual_query_normalized = re.sub' in gate
+    assert r'\\breciproc(?:ity|al)\\b' in gate
+    assert '_compose_provider_exhaustion_recovery(' in gate
+    assert 'conceptual_subject_recovery' in gate
+    assert 'Think of a shared garden' in gate
