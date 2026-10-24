@@ -7,6 +7,13 @@ entity word to stand in for evidence.
 import re
 
 _STOP = {"a", "an", "the", "of", "for", "to", "in", "on", "at", "by", "with"}
+# These are conceptual framing terms, not direct factual properties. They must
+# remain on the normal Archive-grounded inquiry path instead of being subjected
+# to a literal attribute-string gate.
+_CONCEPTUAL_ATTRIBUTE_TERMS = {
+    "role", "purpose", "significance", "meaning", "importance", "relationship",
+    "contribution", "impact", "function", "nature", "value",
+}
 
 
 def direct_attribute_phrase(question):
@@ -20,7 +27,10 @@ def direct_attribute_phrase(question):
     if not match:
         return None
     phrase = re.sub(r"\s+", " ", match.group(1)).strip(" ,;:")
-    terms = [token.casefold() for token in re.findall(r"[a-z0-9]+", phrase) if token.casefold() not in _STOP]
+    raw_terms = [token.casefold() for token in re.findall(r"[a-z0-9]+", phrase)]
+    if not raw_terms or raw_terms[0] in _CONCEPTUAL_ATTRIBUTE_TERMS:
+        return None
+    terms = [token for token in raw_terms if token not in _STOP]
     return " ".join(terms) if terms else None
 
 
