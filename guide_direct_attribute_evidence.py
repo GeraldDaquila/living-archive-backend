@@ -74,6 +74,11 @@ def direct_attribute_supported(question, document):
     return not qualifier or qualifier in normalized_body
 
 
+def direct_attribute_evidence_missing(question, authoritative_doorway):
+    """Return whether a direct factual-property question lacks a selected source."""
+    return bool(direct_attribute_phrase(question)) and not bool(authoritative_doorway)
+
+
 def should_fail_closed(archive_evidence_unavailable, discovery_subject=False):
     """Fail closed for ordinary inquiries without evidence; discovery has its own page-body gate."""
     return bool(archive_evidence_unavailable) and not bool(discovery_subject)
