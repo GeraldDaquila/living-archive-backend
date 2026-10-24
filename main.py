@@ -2606,14 +2606,14 @@ def _is_conceptual_explanatory_request(query):
     before canonical-term matching so a word like 'stewardship' inside a
     conceptual question cannot force an immediate Glossary handoff.
     """
-    normalized = re.sub(r"\\s+", " ", str(query or "").strip().casefold())
+    normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
     if not normalized:
         return False
     patterns = (
-        r"^what is (?:the )?(?:role|purpose|significance|importance|function|value|contribution|impact|nature|relationship) of\\b",
-        r"^what are (?:the )?(?:roles|purposes|significance|importance|functions|contributions|impacts|relationships) of\\b",
+        r"^what is (?:the )?(?:role|purpose|significance|importance|function|value|contribution|impact|nature|relationship) of\b",
+        r"^what are (?:the )?(?:roles|purposes|significance|importance|functions|contributions|impacts|relationships) of\b",
         r"^how does .{1,120} (?:shape|support|contribute to|affect|influence|relate to) .{1,120}",
-        r"^why (?:does|do|is|are) .{1,120} (?:matter|important|significant|essential|relevant)\\b",
+        r"^why (?:does|do|is|are) .{1,120} (?:matter|important|significant|essential|relevant)\b",
     )
     return any(re.search(pattern, normalized) for pattern in patterns)
 
@@ -2650,7 +2650,7 @@ def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     # subject includes a canonical glossary word such as "stewardship".
     # Explicit requests to open the Glossary remain eligible below.
     if _is_conceptual_explanatory_request(query) and not re.search(
-        r"\\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\\b.{0,60}\\bglossary\\b",
+        r"\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\b.{0,60}\bglossary\b",
         normalized,
         re.I,
     ):
