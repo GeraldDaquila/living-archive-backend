@@ -6911,13 +6911,17 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # This describes the answer's basis; it does not claim that every sentence
     # is directly quoted from a source. A recommendation is only supplied when
     # the relevance gate found a canonical doorway for this specific question.
-    if archive_evidence_unavailable:
+    if archive_evidence_unavailable and _is_conceptual_explanatory_request(query):
+        # Conceptual questions must fail closed when no relevant Archive body
+        # establishes the explanation. Keep this provenance rule scoped to the
+        # conceptual grounding boundary; unrelated practical/topical inquiry
+        # contracts retain their established answer-basis semantics.
         answer_basis = {
             "kind": "archive_evidence_unavailable",
             "label": "Archive evidence not found",
             "explanation": "The available Archive material did not establish the requested answer.",
         }
-    elif authoritative_doorway:
+    elif authoritative_doorway and not archive_evidence_unavailable:
         answer_basis = {
             "kind": "archive_supported",
             "label": "Informed by the Living Archive",
