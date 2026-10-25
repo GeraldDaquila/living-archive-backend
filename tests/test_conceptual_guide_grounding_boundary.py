@@ -352,3 +352,10 @@ def test_general_conceptual_recovery_preserves_separate_verified_doorway_and_pro
     assert 'composition_context["conceptual_subject_recovery"] = "vetted_sentence_synthesis"' in gate
     assert 'composition_context["authoritative_doorway"] = authoritative_doorway' in gate
     assert 'composition_context.pop("evidence_sufficiency_unavailable", None)' in gate
+
+
+def test_cosmology_query_has_bounded_metaphysical_vocabulary_bridge():
+    gate = _final_conceptual_gate()
+    assert '"cosmology": {"metaphysics", "worldview", "creation", "universe", "origins"}' in gate
+    assert "_generic_expanded_terms.update(_generic_concept_aliases.get(_generic_term, set()))" in gate
+    assert "do not infer Archive doctrine from a title or doorway alone" in gate
