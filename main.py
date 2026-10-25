@@ -7848,6 +7848,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             }
             print("The Guide response integrity recovery: FAIL-CLOSED; retry did not pass question/answer alignment.")
 
+    # Absolute final visitor boundary: downstream relationship recovery and
+    # cross-question integrity handling can rewrite a response after the earlier
+    # composition contract ran. Re-apply the question-specific Gold Standard
+    # after every such rewrite, immediately before payload assembly.
+    response = _sanitize_basic_inquiry_response(
+        general_guide_composition.enforce_response_contracts(query, response)
+    )
+    if (
+        general_guide_composition._requires_intergenerational_stewardship(query)
+        and not general_guide_composition._has_intergenerational_stewardship_explanation(response)
+    ):
+        raise RuntimeError(
+            "Intergenerational-stewardship Gold Standard failed at the final visitor payload boundary."
+        )
+
     payload = {
         "ok": True,
         "version": APP_VERSION,
