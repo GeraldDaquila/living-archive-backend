@@ -95,6 +95,12 @@ def find_cross_question_standard_response(question: str, response: str) -> Optio
     if not normalized_question or not normalized_response:
         return None
     for standard_question, record in load_approved_standards().items():
+        # Frozen reference-only answers are reusable as deliberate exact-query
+        # fixtures, but are not all formally approved as universal cross-query
+        # sentinels. Only explicitly user-approved Gold Standards participate
+        # in this leakage detector.
+        if record.get("status") != "USER_APPROVED_GOLD_STANDARD":
+            continue
         if standard_question == normalized_question:
             continue
         if record["expected_response"].strip() == normalized_response:
