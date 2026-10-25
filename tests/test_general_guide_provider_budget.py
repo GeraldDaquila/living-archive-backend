@@ -178,7 +178,7 @@ def test_general_guide_does_not_walk_to_fourth_candidate(monkeypatch):
     assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
     assert clock.value == pytest.approx(0.6)
 
-def test_general_guide_uses_bounded_fallbacks_after_slow_failures(monkeypatch):
+def test_general_guide_does_not_chain_after_slow_first_failure(monkeypatch):
     _isolate(monkeypatch)
 
     class Clock:
@@ -203,9 +203,9 @@ def test_general_guide_uses_bounded_fallbacks_after_slow_failures(monkeypatch):
     )
 
     assert result is None
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
-    assert all(timeout == 6.0 for _, timeout in calls)
+    assert calls == [("gemini", 6.0)]
     assert provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS == 6.0
     assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 18.0
+    assert provider_bank.GENERAL_GUIDE_SLOW_FAILURE_STOP_SECONDS == 2.8
     assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
-    assert clock.value == 18.0
+    assert clock.value == 6.0
