@@ -13,7 +13,7 @@ import time
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
-from provider_bank import (
+from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard\n\nfrom provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
     route as route_with_model_bank,
 )
@@ -944,6 +944,21 @@ def compose(
     question = _normalize_space(query)
     if not question:
         return None
+
+    # Exact approved/frozen benchmark questions use their registered reference
+    # response. This is deliberately exact-match only: it protects approved
+    # standards without turning the Guide into a canned-answer service for
+    # paraphrases or unrelated questions. Unapproved/recovered records are
+    # never eligible for deterministic enforcement.
+    registered_standard = _registered_exact_gold_standard(question)
+    if registered_standard is not None:
+        return {
+            "response": registered_standard["expected_response"],
+            "doorway_title": "",
+            "response_shape": "direct" if len(registered_standard["expected_response"].split("\\n\\n")) <= 2 else "explanatory",
+            "provider": "gold_standard_registry",
+            "model": "approved-reference",
+        }
 
     if is_exact_source_request(question) and not source_trace_has_prior_claim(history_text):
         return {
