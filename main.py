@@ -242,7 +242,7 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.23":
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.24":
     raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
@@ -7561,8 +7561,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             }
         else:
             answer_basis = {
-                "kind": "general_knowledge" if _final_gold_standard.get("benchmark_id") == "GS-GENERAL-BOILING-POINT-WATER-001" else "archive_supported",
-                "label": "General knowledge" if _final_gold_standard.get("benchmark_id") == "GS-GENERAL-BOILING-POINT-WATER-001" else "Living Archive reference answer",
+                "kind": "general_knowledge" if _final_gold_standard.get("benchmark_id") == "general-guide-water-boiling-point-general-knowledge-gold-standard-2026-10-24" else "archive_supported",
+                "label": "General knowledge" if _final_gold_standard.get("benchmark_id") == "general-guide-water-boiling-point-general-knowledge-gold-standard-2026-10-24" else "Living Archive reference answer",
                 "explanation": "This is the exact approved reference answer for your question; no additional page handoff is attached.",
             }
         print("The Guide final gold-standard boundary: applied exact approved reference; " + str(_final_gold_standard.get("benchmark_id") or "unlabelled"))
