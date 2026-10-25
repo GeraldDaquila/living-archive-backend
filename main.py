@@ -7951,7 +7951,17 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # the earlier composition boundary. Enforce the three-paragraph default here,
     # immediately before payload assembly, so no late single-paragraph template
     # can escape to a substantive explanatory question.
-    if general_guide_composition._requires_three_paragraph_default(query):
+    _final_comparative_subjects = _comparative_subject_terms(query)
+    _final_requires_gold_standard = (
+        general_guide_composition._requires_three_paragraph_default(query)
+        or len(_final_comparative_subjects) == 2
+    )
+    print(
+        "The Guide final payload contract: "
+        f"gold_standard_required={_final_requires_gold_standard}, "
+        f"comparative_subjects={len(_final_comparative_subjects)}."
+    )
+    if _final_requires_gold_standard:
         # Reject meta-answers that describe what an answer should do instead of
         # answering the subject. Paragraph count alone cannot establish relevance.
         _meta_answer = bool(re.search(
