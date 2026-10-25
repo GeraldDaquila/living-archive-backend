@@ -560,3 +560,16 @@ Both records are separate candidates and must not be counted as user-approved fr
 - **Assertions:** Preserve the approved wording and three-paragraph presentation; no emojis or machine-oriented jargon; answer first; no unsupported claim that every connection is proven or every question settled.
 - **Provenance:** User-supplied live visitor screenshot, reviewed and explicitly approved on 2026-10-25.
 - **Freeze policy:** Do not change the approved answer without explicit user authorization and a separately documented benchmark-version change.
+
+
+### GS-GUIDE-011 — Fragmented knowledge and wise action
+- **Status:** USER_APPROVED_GOLD_STANDARD
+- **Rating:** 9.2/10
+- **Exact question:** “How does fragmented knowledge impede wise action?”
+- **Approved response:** The exact three-paragraph answer is frozen in `docs/qa/gold_standard_registry.json` under `general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26`.
+- **Expected contract:** Paragraph 1 explains why separated facts, experience, and perspectives can mislead without context and relationships. Paragraph 2 gives a cross-team example where disconnected insights cause a symptom to be treated while the underlying problem is recreated elsewhere. Paragraph 3 distinguishes integration from forced agreement, names known/inferred/missing information, and keeps decisions open to correction and accountable to affected people.
+- **Continuation doorway shown:** “Knowledge Stewardship in the AI Era: From Information to Wisdom.” Destination URL is unset pending independent verification.
+- **Assertions:** Exactly three substantive paragraphs; direct answer first; concrete example; humane, grounded language; no generic planning checklist or internal implementation terms; answer and optional doorway remain separate.
+- **Provenance:** User-provided live Guide screenshot dated 2026-10-26; response assessed as meeting expectations and passing the Gold Standard hurdle; user explicitly requested registry inclusion.
+- **Evidence boundary:** Screenshot confirms displayed response and three-paragraph presentation. It does not independently verify canonical source traceability, doorway URL, or backend runtime identity.
+- **Freeze policy:** Preserve the approved response verbatim. Changes require explicit user authorization and a documented benchmark-version update.
