@@ -77,3 +77,41 @@ def test_human_scorecard_allows_case_specific_critical_dimensions():
         applicable_critical=["accuracy", "archive_grounding_and_provenance"],
     )
     assert scorecard["critical_dimensions"] == ["accuracy", "archive_grounding_and_provenance"]
+
+
+def test_unspecified_doorway_url_is_not_mistaken_for_required_absence():
+    record = {
+        "status": "FROZEN_REFERENCE_ONLY",
+        "expected_response": "Answer.",
+        "expected_doorway": {"title": "Reciprocity Before Bureaucracy", "url": None},
+        "assertions": ["Offer the optional doorway after the answer."],
+        "freeze_policy": "Preserve the observed accepted response.",
+    }
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": "Answer.",
+            "recommendation": {
+                "title": "Reciprocity Before Bureaucracy",
+                "url": "https://geralddaquila.com/reciprocity/",
+            },
+        },
+    }
+    checks = evaluate_gold(record, transport)
+    assert all(item["passed"] for item in checks), checks
+    assert not any(item["name"] == "doorway_url" for item in checks)
+
+
+def test_cosmology_heldout_accepts_concrete_conditional_example():
+    case = {"case_id": "heldout-cosmology-life-001"}
+    answer = (
+        "Cosmology is an understanding of reality and how we belong within it. "
+        "This worldview shapes choices and relationships. If every disagreement is treated as a contest for control, "
+        "people may protect status instead of looking for a workable answer."
+    )
+    transport = {"status": 200, "error": None, "body": {"ok": True, "response": answer, "recommendation": None}}
+    checks = evaluate_held(case, transport)
+    example = next(item for item in checks if item["name"] == "concrete_implication")
+    assert example["passed"], checks
