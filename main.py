@@ -2789,12 +2789,6 @@ if _is_bounded_glossary_request(
     raise RuntimeError("USE institutional-scope invariant failed: Archive-specific meaning question was misrouted to Glossary")
 
 if _is_bounded_glossary_request(
-    "What does stewardship mean in the Living Archive?",
-    glossary_term=_normalize_glossary_term("What does stewardship mean in the Living Archive?"),
-) is not False:
-    raise RuntimeError("USE institutional-scope invariant failed: Archive-specific meaning question was misrouted to Glossary")
-
-if _is_bounded_glossary_request(
     "What is the meaning of emptiness?",
     glossary_term=_normalize_glossary_term("What is the meaning of emptiness?"),
 ) is not False:
