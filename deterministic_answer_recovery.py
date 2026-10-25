@@ -195,7 +195,7 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "go wrong. Check the result against the original goal and adjust rather than assuming the first attempt "
             "must be final."
         )
-    elif re.search(r"\\b(?:what is|what are|define|definition|meaning of|what does .* mean)\\b", lower):
+    elif re.search(r"\b(?:what is|what are|define|definition|meaning of|what does .* mean)\b", lower):
         # A definition question with a clear subject is answerable at the level
         # of ordinary meaning. Do not substitute a description of how an answer
         # should be constructed, and do not imply an Archive-specific definition.
