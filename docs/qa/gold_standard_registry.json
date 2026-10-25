@@ -1546,6 +1546,35 @@
       "freeze_policy": "Exact-match only. Do not generalize this response to other questions; broader questions continue through normal evidence-grounded composition.",
       "rating_out_of_10": 9.3,
       "approval_state": "Explicitly approved by user as a gold standard after review of the live visitor-facing screenshot on 2026-10-25; assessment 9.3/10, meets expectations."
+    },
+    {
+      "benchmark_id": "general-guide-living-archive-definition-gold-standard-2026-10-25",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the Living Archive, and what is it not?",
+      "expected_response": "The Living Archive is a public knowledge commons and an orientation ecosystem for understanding human life through connected ideas, relationships, and systems. It brings perspectives from different domains into conversation so people can see patterns, examine how parts affect one another, and explore what may support human flourishing. Its purpose is not simply to store information, but to help people find their bearings within a wider body of thought and inquiry.\n\nIt is not a chatbot that treats every question as a request for a quick, self-contained answer, a collection of unrelated pages, or an authority that claims final certainty. The Archive invites disciplined inquiry: established claims should be distinguishable from interpretation and inference; uncertainty should be acknowledged rather than hidden; and no framework should relieve people of the responsibility to think, judge, and act with care.\n\nThe Guide serves this purpose through constitutional sensemaking. It helps a person locate a question within the Archive's wider relationships, identify useful canonical resources, and understand how the pieces may fit together without pretending that every connection is proven or every question settled. In practice, a question about a relationship, institution, or community can open onto wider patterns of responsibility, power, history, and care. The aim is not to decide for the visitor, but to make the landscape clearer so that further inquiry and human judgment can be better grounded.",
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "rating_out_of_10": 9.2,
+      "approval_state": "USER_APPROVED",
+      "assertions": [
+        "Preserve the approved three-paragraph answer verbatim.",
+        "Paragraph one defines the Living Archive as a public knowledge commons and orientation ecosystem.",
+        "Paragraph two states what the Archive is not and preserves disciplined inquiry, uncertainty, and human responsibility.",
+        "Paragraph three explains The Guide's role as constitutional sensemaking without claiming that every connection is proven or every question settled.",
+        "Answer is substantive and complete before any optional navigation or doorway.",
+        "No emojis, machine-oriented jargon, or unexplained direct page handoff."
+      ],
+      "provenance": {
+        "source_path": "Live visitor screenshot supplied by user",
+        "source_ref": "user-approved-live-response-2026-10-25",
+        "source_status": "USER_APPROVED_GOLD_STANDARD",
+        "review_rating": "9.2/10",
+        "approval_basis": "User explicitly requested entry as another gold standard on 2026-10-25."
+      },
+      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control.",

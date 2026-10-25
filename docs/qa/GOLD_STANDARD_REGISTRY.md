@@ -549,3 +549,14 @@ Both records are separate candidates and must not be counted as user-approved fr
 - **Test:** `tests/test_gold_standard_registry.py::test_water_boiling_point_general_knowledge_gold_standard_preserves_live_answer_and_disclosure`
 - **Related negative regression control:** `general-guide-water-boiling-point-failure-control-2026-10-24` remains in the registry to ensure the former Archive-only refusal does not return.
 - **Freeze policy:** Preserve the approved response and provenance boundary; changes require explicit user authorization and a documented benchmark-version update.
+
+
+### GS-GUIDE-008 — What the Living Archive is and is not
+- **Status:** USER_APPROVED_GOLD_STANDARD
+- **Rating:** 9.2/10
+- **Exact question:** “What is the Living Archive, and what is it not?”
+- **Expected response:** The exact three-paragraph answer is frozen in `docs/qa/gold_standard_registry.json` under `general-guide-living-archive-definition-gold-standard-2026-10-25`.
+- **Expected contract:** Paragraph 1 defines the Archive as a public knowledge commons and orientation ecosystem; paragraph 2 distinguishes what it is not and protects disciplined inquiry, uncertainty, and human responsibility; paragraph 3 explains constitutional sensemaking and The Guide’s orientation role.
+- **Assertions:** Preserve the approved wording and three-paragraph presentation; no emojis or machine-oriented jargon; answer first; no unsupported claim that every connection is proven or every question settled.
+- **Provenance:** User-supplied live visitor screenshot, reviewed and explicitly approved on 2026-10-25.
+- **Freeze policy:** Do not change the approved answer without explicit user authorization and a separately documented benchmark-version change.
