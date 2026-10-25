@@ -7919,12 +7919,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # immediately before payload assembly, so no late single-paragraph template
     # can escape to a substantive explanatory question.
     if general_guide_composition._requires_three_paragraph_default(query):
+        # Reject meta-answers that describe what an answer should do instead of
+        # answering the subject. Paragraph count alone cannot establish relevance.
+        _meta_answer = bool(re.search(
+            r"\\b(?:the question about|deserves a direct answer|the most useful next step is to identify|"
+            r"i don['’]?t have enough verified context|the inquiry need not stop here|"
+            r"separate established facts from assumptions)\\b",
+            response,
+            re.I,
+        ))
         _last_paragraphs = [
             part.strip()
             for part in re.split(r"\n\s*\n+", response)
             if part.strip()
         ]
-        if len(_last_paragraphs) < 3:
+        if len(_last_paragraphs) < 3 or _meta_answer:
             # First repair the actual answer using the shared composer and the
             # same vetted evidence/context as the request. Do not make the
             # generic recovery template the normal answer to a real question.
