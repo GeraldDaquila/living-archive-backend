@@ -99,10 +99,11 @@ def _is_historical_cultural_explanation(question):
 
 
 def _historical_cultural_recovery():
+    """Answer the historical question directly while marking the limits of a broad national summary."""
     return (
-        "The apparent contradiction between a macho public culture and women's substantial influence at home is not necessarily a contradiction. Public ideals about masculinity do not tell us, by themselves, who manages household resources, sustains family networks, makes everyday decisions, or holds influence across generations. In the Philippines, women's roles have varied across regions, classes, periods, and communities; it is more accurate to speak of overlapping forms of authority than to describe the whole society as simply matriarchal or patriarchal.\n\n"
-        "The historical picture has several layers. Many accounts of precolonial Philippine communities describe women exercising economic, ritual, or leadership roles, though these roles were not identical everywhere. Spanish colonial rule and the spread of Catholic institutions strengthened patriarchal ideals in law, religion, and public respectability, without erasing women's work, property interests, kinship influence, or practical authority within families. Later economic change, migration, education, and women's paid work also reshaped how authority and responsibility were negotiated.\n\n"
-        "So the useful distinction is between a public language that can reward masculine dominance and the less visible relationships through which women exercise influence and carry responsibility. Neither story describes every Filipino family, and influence within a family is not the same as equal power across society. To trace the evolution precisely, we would need to distinguish the period and region being discussed and compare historical evidence rather than treating Filipino culture as one unchanging thing."
+        "The short answer is that public masculinity and women's influence in family and community life can coexist because they describe different kinds of power. A culture may praise male authority in public while women still hold substantial influence over household resources, kinship ties, care, property, or everyday decisions. That does not make the Philippines simply matriarchal: influence is not evenly shared, and a woman's responsibility for keeping a family together is not the same as having equal power. The useful starting point is to distinguish public ideals from the actual distribution of authority in different settings.\n\n"
+        "Historically, there was no single Philippine pattern that changed in the same way everywhere. Accounts of some precolonial communities describe women holding economic, ritual, or leadership roles, but those roles varied by community and should not be generalized into a universal precolonial matriarchy. Spanish colonial rule and Catholic institutions helped strengthen patriarchal norms in law, religion, and public respectability; they did not simply erase women's economic activity, property interests, or influence through family networks. In later periods, schooling, wage work, migration, urbanization, and changing household arrangements further reshaped who earned, cared, decided, and exercised influence. These forces layered over one another rather than replacing one social order with another overnight.\n\n"
+        "That layered history helps explain the tension you notice: masculine ideals can remain visible in public language while women's practical authority continues in less visible parts of social life. But neither 'macho society' nor 'matriarchy' captures every region, class, generation, or household, and private influence should not be mistaken for equality in institutions or public life. The strongest explanation therefore looks at specific periods and communities and asks who controls resources, makes decisions, performs unpaid work, and can challenge authority. The Archive reading below is a useful doorway into that question; a fully evidenced historical account would need to compare the relevant historical and regional sources rather than treat the country as culturally uniform."
     )
 
 
@@ -282,3 +283,19 @@ if len(_historical_cultural_answer.split("\n\n")) != 3:
     raise RuntimeError("Historical-cultural recovery contract failed: Gold Standard paragraph structure lost.")
 if not all(term in _historical_cultural_answer.casefold() for term in ("precolonial", "colonial", "public")):
     raise RuntimeError("Historical-cultural recovery contract failed: historical explanation incomplete.")
+
+_historical_cultural_required = (
+    "public masculinity", "precolonial", "spanish colonial", "varied by community",
+    "unpaid work", "not be mistaken for equality"
+)
+if not all(term in _historical_cultural_answer.casefold() for term in _historical_cultural_required):
+    raise RuntimeError("Historical-cultural Gold Standard contract failed: explanatory depth or nuance missing.")
+if "choose one step small enough to test" in _historical_cultural_answer:
+    raise RuntimeError("Historical-cultural Gold Standard contract failed: practical template leaked.")
+for _control_question in (
+    "How do I plan a practical test of a new workflow?",
+    "How should a team choose its next step?",
+):
+    _control_answer = compose_recovery(_control_question)
+    if "choose one step small enough to test" not in _control_answer:
+        raise RuntimeError("Historical-cultural Gold Standard contract failed: practical control question regressed.")
