@@ -360,7 +360,7 @@ def _question_shape(query: str) -> str:
         return "reflective"
     if re.search(r"\b(?:where can i find|where do i find|show me|take me to|link me to|browse|find the)\b", q):
         return "navigational"
-    if re.search(r"\b(?:where (?:does|did|do) .{1,100} come from|how (?:has|have|did|does) .{1,100} (?:evolve|develop|emerge|originate)|(?:origins?|histor(?:y|ical development)|evolution) of)\b", q):
+    if re.search(r"\b(?:where (?:is|are|does|did|do|was|were) .{1,100} come from|how (?:it|this|that|they|these|those|has|have|did|does|is|are|was|were) .{1,100} (?:evolve|evolved|develop|developed|emerge|emerged|originate|originated)|(?:origins?|histor(?:y|ical development)|evolution) of)\b", q):
         return "explanatory"
     if re.search(r"\b(?:why|why now|why does|why is|what makes|how does|how can)\b", q):
         return "explanatory"
