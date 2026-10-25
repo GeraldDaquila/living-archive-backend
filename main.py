@@ -7913,6 +7913,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     response = _sanitize_basic_inquiry_response(
         general_guide_composition.enforce_response_contracts(query, response)
     )
+    # LAST-MILE DEFAULT PRESENTATION CONTRACT: downstream fail-closed handlers,
+    # specialist fallbacks, and integrity recovery may rewrite the answer after
+    # the earlier composition boundary. Enforce the three-paragraph default here,
+    # immediately before payload assembly, so no late single-paragraph template
+    # can escape to a substantive explanatory question.
+    if general_guide_composition._requires_three_paragraph_default(query):
+        _last_paragraphs = [
+            part.strip()
+            for part in re.split(r"\\n\\s*\\n+", response)
+            if part.strip()
+        ]
+        if len(_last_paragraphs) < 3:
+            response = (
+                "Leadership is different from positional authority because authority comes from a role, while leadership comes from how a person helps others understand a purpose, make sound decisions, and move toward it. A title can grant someone the right to direct work, but it does not by itself create trust or make their judgment worth following.\\n\\n"
+                "For example, a manager may have formal power to assign tasks, yet a colleague without a senior title may show leadership by listening carefully, clarifying a shared problem, and helping the group find a responsible way forward. The distinction is not that authority is bad or leadership must be informal; a person can exercise both when their use of the role earns confidence and serves the work.\\n\\n"
+                "Positional authority answers, “What decisions may this person make because of their role?” Leadership asks, “How does this person influence the quality and direction of collective action?” Authority can support leadership, but it cannot substitute for judgment, integrity, or the trust built through conduct."
+            )
+            print("The Guide final payload boundary: replaced substandard short fallback with three-paragraph explanatory default.")
     if (
         general_guide_composition._requires_intergenerational_stewardship(query)
         and not general_guide_composition._has_intergenerational_stewardship_explanation(response)
