@@ -1818,6 +1818,35 @@
         "evidence_boundary": "Screenshot establishes a cross-question failure: the displayed answer addressed a different question. The replacement response is an authored canonical benchmark and must be verified against live visitor behavior."
       },
       "freeze_policy": "Do not alter expected_response without explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How does fragmented knowledge impede wise action?",
+      "expected_response": "Fragmented knowledge impedes wise action when useful facts, experience, and perspectives remain separated, so no one can see enough of the situation to judge what a decision may set in motion. A piece of information can be accurate on its own yet misleading when stripped of its context or its relationship to other parts of the problem. Wisdom depends not only on having information, but on understanding how the pieces bear on one another.\n\nFor example, one team may know why a process is failing, another may understand how a proposed fix affects people, and a third may hold the history of earlier attempts. If those insights never meet, a decision can solve the visible symptom while recreating the original problem somewhere else. Bringing the knowledge together helps reveal dependencies, trade-offs, and consequences that no single fragment could show.\n\nIntegration does not mean forcing every view into one story or pretending uncertainty disappears. It means comparing sources, listening to people who hold different parts of the picture, and making clear what is known, what is inferred, and what remains missing. Wise action becomes more likely when decisions reflect the whole available picture, stay open to correction, and account for the people who will live with the consequences.",
+      "expected_doorway": {
+        "title": "Knowledge Stewardship in the AI Era: From Information to Wisdom",
+        "url": null
+      },
+      "assertions": [
+        "Exactly three substantive paragraphs, preserving the approved visitor-facing response.",
+        "Directly explains how separated facts, experience, and perspectives can mislead when their context and relationships are missing.",
+        "Provides a concrete cross-team example in which disconnected knowledge leads to treating a symptom while recreating the original problem elsewhere.",
+        "Explains integration without forcing consensus or pretending uncertainty disappears.",
+        "Distinguishes what is known, inferred, and missing; keeps decisions open to correction and attentive to affected people.",
+        "Keeps the optional continuation doorway separate from the substantive answer.",
+        "Preserves humane, direct language and avoids generic planning checklists or internal implementation terminology."
+      ],
+      "provenance": {
+        "source_path": "visitor-facing Guide screenshot supplied by user on 2026-10-26",
+        "source_ref": "user-approved screenshot in conversation dated 2026-10-26",
+        "source_status": "USER_APPROVED_GOLD_STANDARD",
+        "review_rating": "9.2/10",
+        "approval_basis": "The live visitor-facing response was assessed as meeting expectations and passing the Gold Standard hurdle; the user explicitly requested registry inclusion.",
+        "evidence_boundary": "Screenshot confirms the displayed response, three-paragraph structure, and visible doorway title. It does not independently verify canonical source traceability, destination URL, or backend runtime identity."
+      },
+      "freeze_policy": "Preserve expected_response verbatim. Do not change wording or doorway title without explicit user authorization and a separately documented benchmark-version change."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control.",

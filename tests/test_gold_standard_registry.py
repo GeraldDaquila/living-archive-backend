@@ -352,3 +352,33 @@ def test_water_boiling_point_general_knowledge_gold_standard_preserves_live_answ
     disclosure = "The Guide considers your question alongside the Living Archive’s ideas, themes, and pathways to help you find where to begin. From there, you can explore the Archive for yourself."
     assert disclosure in fixture["provenance"]["expanded_how_results_are_found_disclosure"]
     assert "does not claim the science answer is sourced from or canonical doctrine" in fixture["provenance"]["evidence_boundary"]
+
+
+def test_fragmented_knowledge_gold_standard_preserves_approved_response():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26"
+    )
+    expected = (
+        "Fragmented knowledge impedes wise action when useful facts, experience, and perspectives remain separated, "
+        "so no one can see enough of the situation to judge what a decision may set in motion. A piece of information "
+        "can be accurate on its own yet misleading when stripped of its context or its relationship to other parts of "
+        "the problem. Wisdom depends not only on having information, but on understanding how the pieces bear on one another.\n\n"
+        "For example, one team may know why a process is failing, another may understand how a proposed fix affects "
+        "people, and a third may hold the history of earlier attempts. If those insights never meet, a decision can "
+        "solve the visible symptom while recreating the original problem somewhere else. Bringing the knowledge "
+        "together helps reveal dependencies, trade-offs, and consequences that no single fragment could show.\n\n"
+        "Integration does not mean forcing every view into one story or pretending uncertainty disappears. It means "
+        "comparing sources, listening to people who hold different parts of the picture, and making clear what is "
+        "known, what is inferred, and what remains missing. Wise action becomes more likely when decisions reflect "
+        "the whole available picture, stay open to correction, and account for the people who will live with the consequences."
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "How does fragmented knowledge impede wise action?"
+    assert record["expected_response"] == expected
+    assert len(expected.split(chr(10) * 2)) == 3
+    assert record["expected_doorway"]["title"] == "Knowledge Stewardship in the AI Era: From Information to Wisdom"
+    assert record["expected_doorway"]["url"] is None
+    assert record["provenance"]["review_rating"] == "9.2/10"
+    assert "does not independently verify" in record["provenance"]["evidence_boundary"]
