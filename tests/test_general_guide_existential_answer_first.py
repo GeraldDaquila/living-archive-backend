@@ -70,5 +70,5 @@ def test_deterministic_provider_exhaustion_path_preserves_existential_answer_fir
     )
 
     assert result["provider"] == "bounded_existential_general_knowledge_recovery"
-    assert len(result["response"].split("\\n\\n")) == 3
+    assert len(result["response"].split("\n\n")) == 3
     assert result["doorway_title"] == ""
