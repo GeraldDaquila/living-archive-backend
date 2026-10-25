@@ -25,7 +25,7 @@ def test_generic_response_is_replaced_by_substantive_three_paragraph_answer():
     answer = enforce_response_contracts(QUESTION, generic)
     assert answer != generic
     assert _has_faithful_stewardship_values_conflict(answer)
-    assert len([p for p in answer.split("\\n\\n") if p.strip()]) == 3
+    assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
     for phrase in ("what is actually in tension", "who is affected", "accountable to those affected"):
         assert phrase in answer.casefold()
 
@@ -33,7 +33,7 @@ def test_generic_response_is_replaced_by_substantive_three_paragraph_answer():
 def test_recovery_answer_passes_contract_and_contains_conflict_standards():
     answer = _faithful_stewardship_values_conflict_recovery()
     assert _has_faithful_stewardship_values_conflict(answer)
-    assert len([p for p in answer.split("\\n\\n") if p.strip()]) == 3
+    assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
 
 
 def test_generic_action_planning_fails_substantive_contract():
