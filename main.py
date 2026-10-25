@@ -4616,29 +4616,10 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if relational_fractal is not None:
         return relational_fractal
 
-    # A conceptual question about cosmology and lived significance must not
-    # fall through to the unrelated recurring-problem diagnostic recovery when
-    # providers are unavailable. This bounded answer is informed by the Archive's
-    # approved cosmology reference, but does not claim one source exhausts the topic.
-    _cosmology_lived_question = bool(
-        re.search(r"\b(?:cosmology|worldview)\b", q)
-        and re.search(r"\b(?:why|matter|important|significant|how people live|life)\b", q)
-    )
-    if _cosmology_lived_question:
-        response = (
-            "Cosmology is an understanding of how reality works and how we belong within it—not only a theory about the physical universe. "
-            "The picture we carry of people, nature, change, and our place in the world shapes what we notice and how we make decisions.\n\n"
-            "The Living Archive explores a contrast between a separation-based worldview and a unity-informed worldview. "
-            "A separation-based view tends to organize life around competition, control, earned worth, and fear of loss. "
-            "A unity-informed view sees people as distinct but connected, treats worth as inherent, and understands growth as something that can emerge through relationship, responsibility, and cooperation. "
-            "These are ways of interpreting experience, not labels for judging a person.\n\n"
-            "This matters because a worldview can become an invisible guide for everyday choices. "
-            "If every disagreement is treated as a contest for control, people may protect status instead of looking for a workable answer. "
-            "If people see themselves as distinct but connected, they can recognize differences without treating them as threats. "
-            "This is a useful starting explanation, not a claim that one Archive text exhausts the subject."
-        )
+    _cosmology_recovery = _established_archive_cosmology_recovery(query)
+    if _cosmology_recovery:
         return {
-            "response": response,
+            "response": _cosmology_recovery["response"],
             "doorway_title": "",
             "provider": "bounded_archive_informed_cosmology_recovery",
             "model": "",
@@ -6300,6 +6281,41 @@ def _established_general_knowledge_recovery(query):
     return None
 
 
+
+def _established_archive_cosmology_recovery(query):
+    """Answer a cosmology/worldview question about lived significance plainly.
+
+    This bounded fallback is based on the approved Guide cosmology reference.
+    It applies only when the question asks about cosmology/worldview and its
+    significance for life; it is not used for every cosmology definition.
+    """
+    normalized = re.sub(r"\s+", " ", _normalize_query(query)).strip().casefold()
+    if not normalized:
+        return None
+    has_subject = bool(re.search(r"\b(?:cosmology|worldview)\b", normalized))
+    asks_lived_significance = bool(re.search(
+        r"\b(?:why|matter|important|significant|how people live|life)\b",
+        normalized,
+    ))
+    if not (has_subject and asks_lived_significance):
+        return None
+    return {
+        "recovery_id": "archive_informed_cosmology_lived_significance",
+        "response": (
+            "Cosmology is an understanding of how reality works and how we belong within it—not only a theory about the physical universe. "
+            "The picture we carry of people, nature, change, and our place in the world shapes what we notice and how we make decisions.\n\n"
+            "The Living Archive explores a contrast between a separation-based worldview and a unity-informed worldview. "
+            "A separation-based view tends to organize life around competition, control, earned worth, and fear of loss. "
+            "A unity-informed view sees people as distinct but connected, treats worth as inherent, and understands growth as something that can emerge through relationship, responsibility, and cooperation. "
+            "These are ways of interpreting experience, not labels for judging a person.\n\n"
+            "This matters because a worldview can become an invisible guide for everyday choices. "
+            "If every disagreement is treated as a contest for control, people may protect status instead of looking for a workable answer. "
+            "If people see themselves as distinct but connected, they can recognize differences without treating them as threats. "
+            "This is a useful starting explanation, not a claim that one Archive text exhausts the subject."
+        ),
+    }
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -6399,6 +6415,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         normalize=_normalize_authoritative_recommendation,
     )
     general_knowledge_recovery = _established_general_knowledge_recovery(query)
+    _cosmology_lived_recovery = _established_archive_cosmology_recovery(query)
     # Only explicitly matched stable facts may bypass Archive-attribute refusal.
     # All other unsupported attributes keep the established fail-closed boundary.
     direct_attribute_evidence_missing = (
@@ -7530,6 +7547,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     "sentences; returned the Archive-only limitation."
                 )
 
+    # Preserve the question-specific Archive-informed fallback after generic
+    # conceptual evidence gating; do not let an unrelated diagnostic template
+    # or an unavailable-source disclaimer overwrite this bounded answer.
+    if _cosmology_lived_recovery is not None:
+        response = _sanitize_basic_inquiry_response(
+            str(_cosmology_lived_recovery["response"])
+        )
+        archive_evidence_unavailable = False
+        authoritative_doorway = None
+        composition_context.pop("authoritative_doorway", None)
+        composition_context.pop("authoritative_doorway_title", None)
+        composition_context.pop("evidence_sufficiency_unavailable", None)
+        composition_context["archive_reference_recovery"] = _cosmology_lived_recovery["recovery_id"]
+        print("The Guide conceptual boundary: applied approved Archive-informed cosmology recovery.")
+
     # Expose a small, deterministic provenance contract for the visitor UI.
     # This describes the answer's basis; it does not claim that every sentence
     # is directly quoted from a source. A recommendation is only supplied when
@@ -7597,6 +7629,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 "explanation": "This is the exact approved reference answer for your question; no additional page handoff is attached.",
             }
         print("The Guide final gold-standard boundary: applied exact approved reference; " + str(_final_gold_standard.get("benchmark_id") or "unlabelled"))
+
+    if _cosmology_lived_recovery is not None:
+        answer_basis = {
+            "kind": "archive_reference",
+            "label": "Living Archive reference",
+            "explanation": "This starting explanation uses the Guide's approved Archive cosmology reference; it does not claim that one source exhausts the subject.",
+        }
 
     payload = {
         "ok": True,
