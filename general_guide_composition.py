@@ -611,6 +611,50 @@ def _entrusted_stewardship_identification_recovery() -> str:
     )
 
 
+def _requires_faithful_stewardship_values_conflict(query: str) -> bool:
+    """Recognize normative questions about faithful stewardship amid conflicting values."""
+    q = _normalize_space(query).casefold()
+    asks_requirement = bool(re.search(
+        r"\b(?:what does|what should|what must|what would)\b.{1,100}\b(?:require|requires|required|demand|demands|call for)\b",
+        q,
+    ))
+    asks_conflict = bool(re.search(
+        r"\b(?:when|where|if|as)\b.{0,70}\b(?:values?|principles?|duties|obligations|commitments)\b.{0,50}\b(?:conflict|clash|compete|collide|pull in different directions)\b|"
+        r"\b(?:values?|principles?|duties|obligations|commitments)\b.{0,60}\b(?:conflict|clash|compete|collide)\b",
+        q,
+    ))
+    stewardship_context = bool(re.search(r"\b(?:faithful stewardship|stewardship|steward|integrity)\b", q))
+    return asks_requirement and asks_conflict and stewardship_context
+
+
+def _has_faithful_stewardship_values_conflict(response: str) -> bool:
+    """Require a substantive answer about competing duties, discernment, and accountable care."""
+    text = _normalize_space(response).casefold()
+    paragraphs = [p for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
+    required = (
+        r"\b(?:values?|principles?|commitments?)\b",
+        r"\b(?:conflict|compete|clash|pull in different directions)\b",
+        r"\b(?:obligation|responsibilit|duty|duties)\w*\b",
+        r"\b(?:affected|who may be harmed|consequences|impact)\w*\b",
+        r"\b(?:evidence|context|transparent|explain|accountable|revisit)\w*\b",
+    )
+    generic_fallback = re.search(
+        r"\b(?:define the outcome you want|identify the main constraint|choose one step small enough to test|"
+        r"the inquiry need not stop here|i don't have enough verified context)\b",
+        text,
+    )
+    return len(paragraphs) == 3 and all(re.search(p, text) for p in required) and not generic_fallback
+
+
+def _faithful_stewardship_values_conflict_recovery() -> str:
+    """Answer the normative question directly rather than redirecting to a glossary lookup."""
+    return (
+        "Faithful stewardship when values conflict begins by naming what is actually in tension, rather than treating one value as automatically decisive. Clarify what has been entrusted, which commitments or duties are relevant, what each value protects, and what the situation's context makes possible or impossible. Separate what is known from assumptions, and distinguish a genuine conflict between obligations from a conflict between a principle and personal preference.\\n\\n"
+        "Next, consider who is affected and what each possible choice would protect, risk, or harm. Give particular attention to people who bear the consequences but have less power to shape the decision. Look for options that honor more than one value, and identify any duties that cannot responsibly be traded away, such as honesty, keeping faith with an explicit commitment, or preventing avoidable harm. Where no option preserves everything, explain why one obligation must take priority in this case instead of disguising the trade-off as a perfect solution.\\n\\n"
+        "A faithful decision should be proportionate to the evidence, transparent about its reasoning, and accountable to those affected. State which values guided the choice, what costs or limits remain, and what new information would lead you to reconsider it. Stewardship is not simply defending a preferred value; it is caring for what has been entrusted while acknowledging competing responsibilities, avoiding self-serving exceptions, and remaining willing to repair harm if the decision proves mistaken."
+    )
+
+
 def _requires_method_comparison(query: str) -> bool:
     """Recognize questions comparing distinct methods of inquiry or understanding."""
     q = _normalize_space(query).casefold()
@@ -1230,6 +1274,10 @@ def enforce_response_contracts(question: str, response: str) -> str:
         candidate = _entrusted_stewardship_identification_recovery()
     if _requires_entrusted_stewardship_identification(question) and not _has_entrusted_stewardship_identification(candidate):
         raise RuntimeError("Entrusted-stewardship identification contract failed after recovery.")
+    if _requires_faithful_stewardship_values_conflict(question) and not _has_faithful_stewardship_values_conflict(candidate):
+        candidate = _faithful_stewardship_values_conflict_recovery()
+    if _requires_faithful_stewardship_values_conflict(question) and not _has_faithful_stewardship_values_conflict(candidate):
+        raise RuntimeError("Faithful-stewardship values-conflict response contract failed after recovery.")
     if _requires_method_comparison(question) and (
         len([part for part in re.split(r"\n\s*\n+", candidate) if part.strip()]) < 3
         or not _has_method_comparison_coverage(question, candidate)
