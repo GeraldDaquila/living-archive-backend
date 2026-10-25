@@ -16,7 +16,7 @@ _ELIGIBLE_STATUSES = {"FROZEN_REFERENCE_ONLY", "USER_APPROVED_GOLD_STANDARD"}
 
 
 def _normalize_question(value: Any) -> str:
-    return re.sub(r"\\s+", " ", str(value or "")).strip().casefold()
+    return re.sub(r"\s+", " ", str(value or "")).strip().casefold()
 
 
 def load_approved_standards() -> Dict[str, Dict[str, str]]:
@@ -36,18 +36,26 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
             continue
         doorway = record.get("expected_doorway") or {}
         assertions = record.get("assertions") or []
-        # Respect an explicit no-handoff instruction even if an older record
-        # also names a suggested doorway. Otherwise retain registered metadata.
         no_handoff = any(
             "forbids direct page handoff" in str(assertion).casefold()
             for assertion in assertions
-        ) or bool(re.search(r"\\bdo not send me to another page\\b", question))
+        ) or bool(re.search(r"\bdo not send me to another page\b", question))
         doorway_title = "" if no_handoff else str(doorway.get("title") or "")
         doorway_url = None if no_handoff else doorway.get("url")
-        if question in standards and standards[question]["expected_response"] != answer:
-            raise ValueError(
-                "Conflicting approved gold-standard answers share an exact question."
-            )
+        if question in standards:
+            previous = standards[question]
+            if previous["expected_response"] != answer:
+                raise ValueError(
+                    "Conflicting approved gold-standard answers share an exact question."
+                )
+            if (
+                previous.get("doorway_title", "") != doorway_title
+                or previous.get("doorway_url", "") != (str(doorway_url) if doorway_url else "")
+            ):
+                raise ValueError(
+                    "Conflicting approved gold-standard doorways share an exact question."
+                )
+            continue
         standards[question] = {
             "expected_response": answer,
             "benchmark_id": str(record.get("benchmark_id") or ""),
