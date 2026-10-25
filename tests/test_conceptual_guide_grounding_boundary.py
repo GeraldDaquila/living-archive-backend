@@ -373,3 +373,11 @@ def test_direct_cosmology_question_enters_conceptual_retrieval_path():
     detector = SOURCE[detector_start:detector_end]
     assert "cosmology|worldview|metaphysics|ontology" in detector
     assert "What is the cosmology of the Living Archive?" in SOURCE
+
+
+def test_conceptual_recovery_uses_human_opening_not_internal_archive_classification():
+    gate = _final_conceptual_gate()
+    assert "One useful place to begin is with how our view of the world" in gate
+    assert "The Archive’s material offers this starting point:" not in gate
+    assert "question-matched canonical " in gate
+    assert "do not infer Archive doctrine from a title or doorway alone" in gate
