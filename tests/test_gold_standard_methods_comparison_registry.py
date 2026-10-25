@@ -20,6 +20,6 @@ def test_method_comparison_is_registered_as_user_approved_gold_standard():
 def test_method_comparison_registry_answer_has_three_paragraphs_and_all_four_methods():
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
     answer = fixture["expected_response"]
-    assert len([p for p in answer.split("\\n\\n") if p.strip()]) == 3
+    assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
     for phrase in ("empirical inquiry", "systems analysis", "philosophy", "contemplative reflection"):
         assert phrase in answer.casefold()
