@@ -1,7 +1,7 @@
 {
   "suite_id": "living-archive-guide-learning-offline-evaluation",
   "suite_version": "1.0.0",
-  "status": "INITIAL_BASELINE_NOT_YET_SCORED",
+  "status": "REGISTRY_BASELINE_DEFINED_HELDOUTS_NOT_YET_SCORED",
   "purpose": "Evaluate whether proposed reusable lessons generalize beyond the gold-standard questions from which they were derived. This is a curated rubric dataset, not a claim that model learning or automatic scoring is implemented.",
   "scoring_policy": {
     "scale": "0-2",
@@ -197,5 +197,25 @@
       ],
       "source_benchmark_ids": []
     }
-  ]
+  ],
+  "baseline": {
+    "source_of_truth": "docs/qa/gold_standard_registry.json",
+    "selection_policy": {
+      "mandatory_floor_statuses": [
+        "USER_APPROVED_GOLD_STANDARD",
+        "FROZEN_REFERENCE_ONLY"
+      ],
+      "excluded_from_mandatory_floor": [
+        "RECOVERED_HISTORICAL_RESPONSE",
+        "RECOVERED_HISTORICAL_RESPONSE_PENDING_APPROVAL_EVIDENCE",
+        "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE",
+        "CANDIDATE",
+        "NEEDS_SOURCE_RECOVERY"
+      ],
+      "rationale": "Use the registry as the canonical, version-pinned acceptance baseline. Include only entries explicitly approved or frozen as reference standards. Keep recovered, candidate, incomplete, and diagnostic records separately labelled until their approval state is resolved."
+    },
+    "regression_rule": "Every selected baseline record remains an exact-question non-regression reference under its own assertions and freeze policy. Do not overwrite approved expected responses to match a candidate's output.",
+    "negative_controls": "Preserve registered failure controls as separate must-fail checks; they are not positive gold standards and must not be counted as floor entries.",
+    "reproducibility": "Record the registry commit SHA and selected benchmark IDs for every evaluation run."
+  }
 }
