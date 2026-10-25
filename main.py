@@ -4486,10 +4486,10 @@ def _guide_historical_origin_recovery():
         "The Philippines can look patriarchal today while carrying a long history in which women held substantial social, economic, and spiritual authority. "
         "In many precolonial communities, women could own or inherit property, participate in trade, and exercise influence in family and community decisions. "
         "Women known in some traditions as babaylan also served as healers, ritual leaders, and interpreters of spiritual life. "
-        "These practices varied across regions and communities, so it is more accurate to speak of strong traditions of female authority than to describe the whole archipelago as uniformly matriarchal.\\n\\n"
+        "These practices varied across regions and communities, so it is more accurate to speak of strong traditions of female authority than to describe the whole archipelago as uniformly matriarchal.\n\n"
         "Spanish colonial rule introduced and strengthened institutions shaped by Catholic patriarchy, including new expectations around marriage, public authority, and women's proper social roles. "
         "Those influences did not erase earlier practices all at once, nor did they create every form of gender hierarchy; local customs, class, religion, colonial administration, and later political and economic changes interacted over centuries. "
-        "Women's authority persisted in families, livelihoods, community leadership, and religious life even as formal institutions often privileged men.\\n\\n"
+        "Women's authority persisted in families, livelihoods, community leadership, and religious life even as formal institutions often privileged men.\n\n"
         "The tension today is therefore not a contradiction so much as the result of layered histories. "
         "Women in the Philippines have held visible roles in commerce, civic life, and national leadership, while patriarchal expectations and unequal power remain in many settings. "
         "Calling the country simply matriarchal or patriarchal can hide that complexity: the more useful question is where women hold real decision-making power, where they do not, and how those patterns differ by region, class, generation, and institution."
@@ -4859,9 +4859,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     ):
         response = (
             "A community can practice stewardship by making its responsibilities visible and considering who is affected by each decision. "
-            "For example, before changing a shared space or allocating a limited budget, invite the people who rely on it to explain what they need and what could be lost.\\n\\n"
+            "For example, before changing a shared space or allocating a limited budget, invite the people who rely on it to explain what they need and what could be lost.\n\n"
             "Agree on clear criteria, use the same criteria for everyone, name who will maintain the result, and make the reasons for the decision accessible. "
-            "Where people disagree, record the trade-offs and choose a time to review the outcome rather than treating the first decision as beyond question.\\n\\n"
+            "Where people disagree, record the trade-offs and choose a time to review the outcome rather than treating the first decision as beyond question.\n\n"
             "These are general practical suggestions, not a claim that a specific Archive text prescribes this process. I could not verify a sufficiently direct Archive resource to recommend for this question."
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_practical_stewardship_recovery", "model": ""}
@@ -7921,13 +7921,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if general_guide_composition._requires_three_paragraph_default(query):
         _last_paragraphs = [
             part.strip()
-            for part in re.split(r"\\n\\s*\\n+", response)
+            for part in re.split(r"\n\s*\n+", response)
             if part.strip()
         ]
         if len(_last_paragraphs) < 3:
             response = (
-                "I can’t give this question the careful explanation it deserves with the reliable information available to me right now. I don’t want to replace the answer you asked for with a generic prompt or an unsupported claim.\\n\\n"
-                "A complete response should address your actual question directly, develop the key distinction or reasoning, and explain any important nuance in ordinary language. That explanation has not been produced reliably in this response.\\n\\n"
+                "I can’t give this question the careful explanation it deserves with the reliable information available to me right now. I don’t want to replace the answer you asked for with a generic prompt or an unsupported claim.\n\n"
+                "A complete response should address your actual question directly, develop the key distinction or reasoning, and explain any important nuance in ordinary language. That explanation has not been produced reliably in this response.\n\n"
                 "Please try again shortly. The Guide should either provide that three-part explanation or clearly identify what the available information does not establish, rather than present a one-paragraph fallback as a finished answer."
             )
             print("The Guide final payload boundary: replaced substandard short fallback with three-paragraph explanatory default.")
