@@ -10,8 +10,6 @@ on:
       - "general_guide_composition.py"
       - "general_guide_gold_standards.py"
       - "tests/test_general_guide_gold_standard_runtime.py"
-      - "general_guide_gold_standards.py"
-      - "tests/test_general_guide_gold_standard_runtime.py"
       - "deterministic_answer_recovery.py"
       - "test_deterministic_answer_recovery.py"
       - "tests/test_general_guide_perception_contract.py"
@@ -29,6 +27,8 @@ on:
     paths:
       - "main.py"
       - "general_guide_composition.py"
+      - "general_guide_gold_standards.py"
+      - "tests/test_general_guide_gold_standard_runtime.py"
       - "deterministic_answer_recovery.py"
       - "test_deterministic_answer_recovery.py"
       - "tests/test_general_guide_perception_contract.py"
