@@ -3094,6 +3094,19 @@ def _is_fsd_request(query):
     if agency_and_responsibility_question:
         return False
 
+    # Conceptual distinction questions should be answered by the Guide first.
+    system_concept_question = bool(
+        re.search(
+            r"\b(?:what makes|what distinguishes|how is|how does|when does)\b.{0,100}"
+            r"\b(?:a system|systems?)\b.{0,100}"
+            r"\b(?:rather than|instead of|as opposed to|collection of|separate problems?|isolated problems?)\b",
+            q,
+            re.I,
+        )
+    )
+    if system_concept_question:
+        return False
+
     # A systems/organizational context is necessary for the natural-language
     # diagnostic boundary.
     systems_context = bool(re.search(
