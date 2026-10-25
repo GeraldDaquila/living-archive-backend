@@ -7922,9 +7922,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # Reject meta-answers that describe what an answer should do instead of
         # answering the subject. Paragraph count alone cannot establish relevance.
         _meta_answer = bool(re.search(
-            r"\\b(?:the question about|deserves a direct answer|the most useful next step is to identify|"
+            r"\b(?:the question about|deserves a direct answer|the most useful next step is to identify|"
             r"i don['’]?t have enough verified context|the inquiry need not stop here|"
-            r"separate established facts from assumptions)\\b",
+            r"separate established facts from assumptions)\b",
             response,
             re.I,
         ))
@@ -7961,9 +7961,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 if part.strip()
             ]
             _retry_is_meta_answer = bool(re.search(
-                r"\\b(?:the question about|deserves a direct answer|the most useful next step is to identify|"
+                r"\b(?:the question about|deserves a direct answer|the most useful next step is to identify|"
                 r"i don['’]?t have enough verified context|the inquiry need not stop here|"
-                r"separate established facts from assumptions)\\b",
+                r"separate established facts from assumptions)\b",
                 _last_retry_text,
                 re.I,
             ))
