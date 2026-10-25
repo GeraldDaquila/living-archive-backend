@@ -427,7 +427,7 @@ def clarification_response(query: str, history_text: str = "") -> Optional[Dict[
     # to search. Resolve it at the request boundary so no unrelated doorway can
     # be selected and attached later by the ordinary Guide pipeline.
     if _is_response_preference_without_subject(query, history_text):
-        if re.search(r"\\b(?:advice|recommendations)\\b", query, re.I):
+        if re.search(r"\b(?:advice|recommendations)\b", query, re.I):
             response = (
                 "Of course. I’ll focus on explaining the subject itself rather than "
                 "giving advice. What subject would you like to understand?"
@@ -870,11 +870,11 @@ def _is_archive_constitutional_question(query: str) -> bool:
     """Recognize Archive-specific constitutional questions as a bounded recovery class."""
     question = _normalize_space(query).casefold()
     has_constitutional_subject = bool(re.search(
-        r"\\b(?:constitutional reasoning|constitutional framework|constitutional architecture|constitutional register)\\b",
+        r"\b(?:constitutional reasoning|constitutional framework|constitutional architecture|constitutional register)\b",
         question,
     ))
     has_archive_context = bool(re.search(
-        r"\\b(?:living archive|the archive|archive['’]s)\\b",
+        r"\b(?:living archive|the archive|archive['’]s)\b",
         question,
     ))
     return has_constitutional_subject and has_archive_context
@@ -905,7 +905,7 @@ def _archive_constitutional_recovery(
         return None
 
     source_content = _normalize_space(source.get("content", ""))
-    if not re.search(r"\\b(?:constitutional|recovery|translation|interpretation|relationship)\\b", source_content, re.I):
+    if not re.search(r"\b(?:constitutional|recovery|translation|interpretation|relationship)\b", source_content, re.I):
         return None
 
     title = _normalize_space(source.get("title", ""))
