@@ -81,3 +81,22 @@ def resolve_exact_gold_standard(question: str) -> Optional[Dict[str, str]]:
     if not normalized:
         return None
     return load_approved_standards().get(normalized)
+
+
+def find_cross_question_standard_response(question: str, response: str) -> Optional[Dict[str, str]]:
+    """Find an approved answer reused for a different question.
+
+    This is a final-boundary integrity check, not a fuzzy answer matcher. It
+    only flags exact approved answer text and only when the incoming question
+    is not that record's exact normalized question.
+    """
+    normalized_question = _normalize_question(question)
+    normalized_response = str(response or "").strip()
+    if not normalized_question or not normalized_response:
+        return None
+    for standard_question, record in load_approved_standards().items():
+        if standard_question == normalized_question:
+            continue
+        if record["expected_response"].strip() == normalized_response:
+            return {**record, "standard_question": standard_question}
+    return None
