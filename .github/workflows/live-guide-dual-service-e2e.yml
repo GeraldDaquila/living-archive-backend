@@ -32,9 +32,11 @@ jobs:
       - name: Wait for both production services and verify the live clarification boundary
         run: |
           python - <<'PY'
+          import hashlib
           import json
           import os
           import re
+          import subprocess
           import time
           import urllib.error
           import urllib.parse
@@ -47,13 +49,31 @@ jobs:
               raise SystemExit("Cannot determine expected production version from main.py")
           expected_version = match.group(1)
 
-          # Render supplies RENDER_GIT_COMMIT to the running service. Compare
-          # that immutable deployment SHA with this workflow's exact GITHUB_SHA;
-          # APP_VERSION/fingerprint alone do not distinguish patch deployments.
-          expected_commit_sha = os.environ.get("GITHUB_SHA", "").strip()
-          if not expected_commit_sha:
-              raise SystemExit("GITHUB_SHA is unavailable; cannot verify exact deployment identity.")
-          print(f"Expected deployed commit SHA: {expected_commit_sha}")
+          # Fingerprint the tracked application-owned Python modules exactly as
+          # the runtime manifest does. Workflow-only commits must not require a
+          # redundant service rebuild, while a changed runtime module must match.
+          excluded_parts = {
+              ".git", ".venv", "venv", "__pycache__", ".pytest_cache",
+              "tests", "QA", "scripts", "node_modules",
+          }
+          tracked_paths = subprocess.check_output(
+              ["git", "ls-files", "-z"], stderr=subprocess.STDOUT
+          ).decode("utf-8").split("\0")
+          source_paths = sorted(
+              name for name in tracked_paths
+              if name
+              and name.endswith(".py")
+              and not any(part in excluded_parts for part in Path(name).parts)
+              and not Path(name).is_symlink()
+          )
+          digest = hashlib.sha256()
+          for name in source_paths:
+              digest.update(name.encode("utf-8"))
+              digest.update(b"\0")
+              digest.update(Path(name).read_bytes())
+              digest.update(b"\0")
+          expected_source_sha256 = digest.hexdigest()
+          print(f"Expected runtime source SHA-256: {expected_source_sha256}")
 
           services = {
               "primary": "https://living-archive-backend.onrender.com",
@@ -109,7 +129,7 @@ jobs:
                           status == 200
                           and payload.get("version") == expected_version
                           and str(payload.get("fingerprint") or "").startswith(f"USE-{expected_version}-")
-                          and payload.get("deployment_commit_sha") == expected_commit_sha
+                          and payload.get("source_sha256") == expected_source_sha256
                       ):
                           boundary_status, boundary_payload = post_query(
                               base_url, clarification_query, timeout=25
@@ -124,8 +144,8 @@ jobs:
                           ):
                               ready.add(name)
                               print(
-                                  f"{name}: deployed commit and clarification boundary PASS; "
-                                  f"version={expected_version}; commit={expected_commit_sha}"
+                                  f"{name}: runtime source and clarification boundary PASS; "
+                                  f"version={expected_version}; source_sha256={expected_source_sha256}"
                               )
                   except Exception as exc:
                       last_state[name] = {"error": f"{type(exc).__name__}: {str(exc)[:180]}"}
