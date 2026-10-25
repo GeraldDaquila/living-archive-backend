@@ -178,6 +178,9 @@ async def validated_query_stream(
     response_text = str((payload or {}).get("response") or "").strip()
     handoff = str((payload or {}).get("handoff") or "").strip()
     handoff_pending = bool((payload or {}).get("handoff_pending"))
+    # Keep the independent canonical doorway in the completion envelope; the
+    # stream transports a finished HTTP response and must not discard fields.
+    recommendation = (payload or {}).get("recommendation")
 
     await _send_event(
         send,
@@ -221,6 +224,7 @@ async def validated_query_stream(
             "validated_output": True,
             "state_commit": "atomic_after_complete",
             "elapsed_ms": round((time.perf_counter() - started) * 1000, 2),
+            "recommendation": recommendation,
             "payload": payload or {},
         },
     )
