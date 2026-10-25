@@ -104,4 +104,41 @@ jobs:
           )
           print("LIVE ANSWER:")
           print(answer)
+
+          # Verify the screenshot regression through the same live visitor API.
+          query = "How does fragmented knowledge impede wise action?"
+          req = urllib.request.Request(
+              base + "/api/query",
+              data=json.dumps({"query": query}).encode("utf-8"),
+              headers={"Content-Type": "application/json", "Accept": "application/json"},
+              method="POST",
+          )
+          with urllib.request.urlopen(req, timeout=150) as response:
+              status = response.status
+              payload = json.loads(response.read().decode("utf-8"))
+          if status != 200 or payload.get("version") != expected_version:
+              raise SystemExit(f"Fragmented-knowledge live query failed: status={status}, version={payload.get('version')}")
+          if payload.get("source_sha256") != audit.get("source_sha256"):
+              raise SystemExit("Fragmented-knowledge response source hash does not match primary integration audit")
+
+          answer = str(payload.get("response") or "").strip()
+          paragraphs = [p.strip() for p in re.split(r"\\n\\s*\\n+", answer) if p.strip()]
+          if len(paragraphs) != 3:
+              raise SystemExit(f"Fragmented-knowledge Gold Standard requires exactly 3 paragraphs; got {len(paragraphs)}: {answer!r}")
+          if not re.search(r"(?i)fragmented knowledge impedes wise action", paragraphs[0]):
+              raise SystemExit(f"First paragraph did not answer the fragmented-knowledge question directly: {paragraphs[0]!r}")
+          if not re.search(r"(?i)context|relationships|connections|incomplete|isolated|patterns", paragraphs[0]):
+              raise SystemExit(f"First paragraph omitted the fragmentation mechanism: {paragraphs[0]!r}")
+          if not re.search(r"(?i)for example|for instance|a team|two departments|an organization|an organisation", paragraphs[1]):
+              raise SystemExit(f"Second paragraph omitted a concrete example: {paragraphs[1]!r}")
+          if not re.search(r"(?i)wise|judgment|uncertainty|what is known|consequences|responsib", paragraphs[2]):
+              raise SystemExit(f"Third paragraph omitted the significance or limits: {paragraphs[2]!r}")
+          if re.search(r"(?i)define the outcome you want|identify the main constraint|choose one step small enough to test|check the result against the original goal", answer):
+              raise SystemExit(f"Generic planning checklist regression returned: {answer!r}")
+          print(
+              f"PRIMARY LIVE FRAGMENTED-KNOWLEDGE GOLD STANDARD PASS; version={expected_version}; "
+              f"source_sha256={audit.get('source_sha256')}; paragraphs={len(paragraphs)}; chars={len(answer)}"
+          )
+          print("LIVE ANSWER:")
+          print(answer)
           PY
