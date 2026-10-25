@@ -59,8 +59,10 @@ def evaluate_gold(record, transport):
     expected=record.get("expected_doorway") or {}
     if not no_doorway and (expected.get("title") or expected.get("url")):
         observed=rec if isinstance(rec,dict) else {}
-        out.append(check("doorway_title",observed.get("title")==expected.get("title"),f"Expected {expected.get('title')!r}; observed {observed.get('title')!r}."))
-        out.append(check("doorway_url",observed.get("url")==expected.get("url"),f"Expected {expected.get('url')!r}; observed {observed.get('url')!r}."))
+        if expected.get("title") is not None:
+            out.append(check("doorway_title",observed.get("title")==expected.get("title"),f"Expected {expected.get('title')!r}; observed {observed.get('title')!r}."))
+        if expected.get("url") is not None:
+            out.append(check("doorway_url",observed.get("url")==expected.get("url"),f"Expected {expected.get('url')!r}; observed {observed.get('url')!r}."))
     return out
 
 def evaluate_held(case, transport):
