@@ -34,8 +34,8 @@ jobs:
           python - <<'PY'
           import hashlib
           import json
-          import os
           import re
+          import subprocess
           import time
           import urllib.error
           import urllib.parse
@@ -56,20 +56,21 @@ jobs:
               ".git", ".venv", "venv", "__pycache__", ".pytest_cache",
               "tests", "QA", "scripts", "node_modules",
           }
+          # Git's tracked-file index gives the same deployed source set without
+          # recursively walking .git, large document trees, or generated assets.
+          tracked_paths = subprocess.check_output(
+              ["git", "ls-files", "-z"], stderr=subprocess.STDOUT
+          ).decode("utf-8").split("\\0")
           source_files = []
-          for directory, directory_names, file_names in os.walk(root_path):
-              # Prune excluded trees before traversal; filtering only after rglob
-              # still walks .git and can stall the release-readiness gate.
-              directory_names[:] = [
-                  name for name in directory_names if name not in excluded_parts
-              ]
-              for file_name in file_names:
-                  if not file_name.endswith(".py"):
-                      continue
-                  path = Path(directory) / file_name
-                  if path.is_symlink():
-                      continue
-                  source_files.append(path)
+          for relative_name in tracked_paths:
+              if not relative_name or not relative_name.endswith(".py"):
+                  continue
+              relative = Path(relative_name)
+              if any(part in excluded_parts for part in relative.parts):
+                  continue
+              if relative.is_symlink():
+                  continue
+              source_files.append(relative)
           digest = hashlib.sha256()
           for path in sorted(source_files, key=lambda item: item.relative_to(root_path).as_posix()):
               relative_name = path.relative_to(root_path).as_posix()
