@@ -1,0 +1,107 @@
+name: Guide Live Leverage-Point Gold Standard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "general_guide_composition.py"
+      - "main.py"
+      - "tests/test_guide_compound_concept_misuse_contract.py"
+      - ".github/workflows/guide-live-leverage-point-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: guide-live-leverage-point-contract
+  cancel-in-progress: true
+
+jobs:
+  primary-live-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify deployed primary and exercise the exact visitor question
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          import time
+          import urllib.request
+          from pathlib import Path
+
+          source = Path("main.py").read_text(encoding="utf-8")
+          match = re.search(r'APP_VERSION = "(v[0-9.]+)"', source)
+          if not match:
+              raise SystemExit("Cannot determine expected production version from main.py")
+          expected_version = match.group(1)
+          base = "https://living-archive-backend.onrender.com"
+
+          def get_audit():
+              req = urllib.request.Request(base + "/api/integration-audit", headers={"Accept": "application/json"})
+              with urllib.request.urlopen(req, timeout=15) as response:
+                  return response.status, json.loads(response.read().decode("utf-8"))
+
+          audit = None
+          for attempt in range(1, 25):
+              try:
+                  status, payload = get_audit()
+                  if (
+                      status == 200
+                      and payload.get("version") == expected_version
+                      and str(payload.get("fingerprint") or "").startswith(f"USE-{expected_version}-")
+                      and payload.get("source_sha256")
+                  ):
+                      audit = payload
+                      break
+                  print(f"Waiting for primary release: attempt={attempt}, status={status}, version={payload.get('version')}")
+              except Exception as exc:
+                  print(f"Waiting for primary release: attempt={attempt}, error={type(exc).__name__}: {str(exc)[:160]}")
+              time.sleep(10)
+          if audit is None:
+              raise SystemExit(f"Primary service did not report expected release {expected_version}")
+
+          query = "What is a leverage point, and why can it be misused?"
+          req = urllib.request.Request(
+              base + "/api/query",
+              data=json.dumps({"query": query}).encode("utf-8"),
+              headers={"Content-Type": "application/json", "Accept": "application/json"},
+              method="POST",
+          )
+          with urllib.request.urlopen(req, timeout=150) as response:
+              status = response.status
+              payload = json.loads(response.read().decode("utf-8"))
+          if status != 200 or payload.get("version") != expected_version:
+              raise SystemExit(f"Live query failed: status={status}, version={payload.get('version')}")
+          if payload.get("source_sha256") != audit.get("source_sha256"):
+              raise SystemExit("Live response source hash does not match primary integration audit")
+
+          answer = str(payload.get("response") or "").strip()
+          paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", answer) if p.strip()]
+          if len(paragraphs) != 3:
+              raise SystemExit(f"Gold Standard requires exactly 3 paragraphs; got {len(paragraphs)}: {answer!r}")
+          if not re.search(r"(?i)leverage point is a place in a system", paragraphs[0]):
+              raise SystemExit(f"First paragraph did not directly define leverage point: {paragraphs[0]!r}")
+          if not re.search(r"(?i)misus|exploit|conceal|control|bottleneck|information", paragraphs[1]):
+              raise SystemExit(f"Second paragraph omitted the misuse mechanism: {paragraphs[1]!r}")
+          if not re.search(r"(?i)for example|for instance|at work|organization|organisation|team", paragraphs[1]):
+              raise SystemExit(f"Second paragraph omitted a concrete example: {paragraphs[1]!r}")
+          if not re.search(r"(?i)accountab|scrutiny|affected people|consequences|responsible|correction", paragraphs[2]):
+              raise SystemExit(f"Third paragraph omitted accountability or limits: {paragraphs[2]!r}")
+          if re.search(
+              r"(?i)separate the immediate event|consider the evidence for each explanation|"
+              r"these are ways to investigate the question|a confident answer needs the relevant details",
+              answer,
+          ):
+              raise SystemExit(f"Generic investigation checklist regression returned: {answer!r}")
+          if re.search(r"(?i)\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\b|\bUSE\b", answer):
+              raise SystemExit(f"Internal implementation language leaked into visitor response: {answer!r}")
+          print(
+              f"PRIMARY LIVE LEVERAGE-POINT GOLD STANDARD PASS; version={expected_version}; "
+              f"source_sha256={audit.get('source_sha256')}; paragraphs={len(paragraphs)}; chars={len(answer)}"
+          )
+          print("LIVE ANSWER:")
+          print(answer)
+          PY
