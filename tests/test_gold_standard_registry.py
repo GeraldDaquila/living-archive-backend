@@ -382,3 +382,22 @@ def test_fragmented_knowledge_gold_standard_preserves_approved_response():
     assert record["expected_doorway"]["url"] is None
     assert record["provenance"]["review_rating"] == "9.2/10"
     assert "does not independently verify" in record["provenance"]["evidence_boundary"]
+
+
+def test_fragmented_knowledge_gold_standard_is_runtime_resolvable_and_three_paragraph_default_is_enforced():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26"
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "How does fragmented knowledge impede wise action?"
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
+
+    standards_source = (ROOT / "general_guide_gold_standards.py").read_text(encoding="utf-8")
+    composition_source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert "_registered_exact_gold_standard(question)" in composition_source
+    assert "def _requires_three_paragraph_default(query: str) -> bool:" in composition_source
+    assert "substantive explanatory answer must meet the three-paragraph Guide Gold Standard" in composition_source
+    assert 'CONTRACT_VERSION = "v1.28"' in composition_source
+    assert "def resolve_exact_gold_standard(question: str)" in standards_source
