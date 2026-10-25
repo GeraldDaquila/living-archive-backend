@@ -4603,6 +4603,11 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     question = _normalize_query(query)
     q = re.sub(r"\s+", " ", question).strip().casefold()
 
+    # Keep the answer-first existential contract active when the ordinary
+    # provider bank is exhausted or the isolated deterministic path is used.
+    if general_guide_composition._is_broad_existential_question(query):
+        return general_guide_composition._broad_existential_recovery()
+
     try:
         documents = use_core.context_blocks_to_documents(str(context_data.get("context_blocks") or ""))
     except Exception:
