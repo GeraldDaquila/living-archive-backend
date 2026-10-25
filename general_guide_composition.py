@@ -365,20 +365,25 @@ def _is_response_preference_without_subject(query: str, history_text: str = "") 
     return not named_subject
 
 def _requires_three_paragraph_default(query: str) -> bool:
-    """Enforce the default Gold Standard for substantive explanatory questions.
+    """Apply the Gold Standard as the default for ordinary visitor questions.
 
-    Explicit requests for brevity and bounded fact lookups remain exceptions;
-    reflective, navigational, and task-specific formats are handled elsewhere.
+    The policy is default-on: ordinary questions receive a substantive,
+    answer-first three-paragraph explanation unless a narrow, explicit
+    exception applies. Do not make question wording a prerequisite for quality.
     """
     q = _normalize_space(query).casefold()
     if not q:
         return False
+
+    # Explicit visitor preference for a shorter answer takes precedence.
     if re.search(
         r"\b(?:in one sentence|one sentence|briefly|brief answer|short answer|"
         r"be concise|keep it concise|in a few words|just the answer)\b",
         q,
     ):
         return False
+
+    # Bounded factual lookups are best answered directly, without padding.
     if re.match(
         r"^(?:how many|how much|how far|what time|what date|which year|"
         r"how old|what is the boiling point|what is the capital|"
@@ -386,18 +391,32 @@ def _requires_three_paragraph_default(query: str) -> bool:
         q,
     ):
         return False
+
+    # Distress-sensitive conversations use their dedicated humane pacing.
     if _requires_distress_sensitive_pacing(q):
         return False
+
+    # Navigation, source tracing, and action commands have distinct deliverables;
+    # they should not be padded into an explanatory essay.
     if re.search(
-        r"\b(?:why|what makes|what distinguishes|what separates|what differentiates|"
-        r"how does|how can|how do|how is|how does .{1,100} differ from|"
-        r"how is .{1,100} different from|what is .{1,100} difference between|"
-        r"what is the relationship between|what is the connection between|"
-        r"what is the difference between|how does .{1,100} relate to)\b",
+        r"\b(?:where can i find|where do i find|show me|take me to|link me to|"
+        r"browse|find the|open the|go to|give me the link|exact source of|"
+        r"cite the source|what is the source of)\b",
         q,
     ):
-        return True
-    return False
+        return False
+
+    # A preference-only message or a query that lacks the subject to answer is
+    # handled by the clarification contract, not by a fabricated explanation.
+    if _has_response_style_preference(q) and not re.search(
+        r"\b(?:about|regarding|concerning|on|why|what|how|explain|describe)\b",
+        q,
+    ):
+        return False
+
+    # DEFAULT-ON: all other ordinary visitor questions must satisfy the shared
+    # Gold Standard contract. Question phrasing is not an eligibility gate.
+    return True
 
 
 def _question_shape(query: str) -> str:
