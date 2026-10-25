@@ -1,0 +1,15 @@
+{
+  "benchmark_id": "general-guide-methods-comparison-gold-standard-2026-10-25",
+  "query": "How do empirical inquiry, systems analysis, philosophy, and contemplative reflection differ?",
+  "expected_response": "Empirical inquiry investigates what can be observed, measured, or tested, using evidence to evaluate claims about what happens. Systems analysis examines how parts interact, including relationships and feedback loops that shape a larger whole.\n\nPhilosophy clarifies concepts and examines the reasons, assumptions, and values behind claims. Contemplative reflection attends to lived experience and awareness, helping people notice habitual interpretations that might otherwise go unexamined.\n\nThese approaches complement one another without being interchangeable: empirical inquiry tests claims against observation, systems analysis maps interdependence, philosophy evaluates concepts and reasons, and contemplative reflection explores experience. Each has strengths and limits, so the useful approach depends on the question being asked.",
+  "expected_doorway": {
+    "title": "The Question Beneath the Questions",
+    "url": null
+  },
+  "assertions": [
+    "Exactly three paragraphs.",
+    "Covers all four approaches distinctly.",
+    "No generic action-planning substitution.",
+    "Doorway URL remains unverified and unset."
+  ]
+}
