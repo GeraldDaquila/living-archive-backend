@@ -5383,13 +5383,30 @@ def _comparative_subject_terms(query):
 
 
 def _comparative_candidate_has_direct_fit(query, document):
-    """Require evidence about both compared concepts and a topic-signalling title."""
+    """Require a title-level match and evidence for both compared concepts.
+
+    Use explicit concept families rather than literal whole-phrase matching:
+    "positional authority" may be discussed as formal authority or role-based
+    power without repeating the exact visitor wording.
+    """
     subjects = _comparative_subject_terms(query)
     if len(subjects) != 2:
         return True
     title = str(document.get("title") or "").casefold()
     body = str(document.get("text") or document.get("content") or document.get("excerpt") or "").casefold()
-    return any(subject in title for subject in subjects) and all(subject in body for subject in subjects)
+
+    def concept_pattern(subject):
+        words = set(re.findall(r"[a-z0-9]+", subject.casefold()))
+        if words & {"leadership", "leader", "leaders", "lead"}:
+            return r"\\b(?:leadership|leader|leaders|leading|lead)\\b"
+        if words & {"authority", "authorities", "positional", "position", "power", "role"}:
+            return r"\\b(?:positional authority|formal authority|authority|authorities|position(?:al)?|role[- ]based power|formal power|institutional power|power|role|roles)\\b"
+        escaped = [re.escape(word) for word in words if word]
+        return r"\\b(?:" + "|".join(escaped) + r")\\b" if escaped else r"(?!)"
+
+    title_fit = any(re.search(concept_pattern(subject), title) for subject in subjects)
+    body_fit = all(re.search(concept_pattern(subject), body) for subject in subjects)
+    return title_fit and body_fit
 
 
 def _stewardship_conflict_candidate_has_direct_fit(query, document):
