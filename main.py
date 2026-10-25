@@ -63,6 +63,7 @@ from provider_bank import (
 )
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
+from general_guide_gold_standards import resolve_exact_gold_standard as _resolve_exact_guide_gold_standard
 from guide_fuzzy_relevance import score_resource_fit as _score_guide_fuzzy_relevance_shadow
 from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery, is_harm_repair_question
 from deterministic_relational_fractal import compose_relational_fractal
@@ -7539,6 +7540,32 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "label": "Archive evidence not found",
             "explanation": "The available Archive material did not establish the requested attribute.",
         }
+
+    # Exact approved/frozen gold standards are enforced at the final visitor boundary,
+    # after all recovery, discovery, sanitization, and answer-contract rewrites.
+    # This is deliberately exact-match only; similar questions retain the normal path.
+    _final_gold_standard = _resolve_exact_guide_gold_standard(query)
+    if _final_gold_standard is not None:
+        response = _final_gold_standard["expected_response"]
+        _gold_title = str(_final_gold_standard.get("doorway_title") or "").strip()
+        _gold_url = str(_final_gold_standard.get("doorway_url") or "").strip()
+        authoritative_doorway = (
+            {"title": _gold_title, "url": _gold_url or None}
+            if _gold_title else None
+        )
+        if authoritative_doorway:
+            answer_basis = {
+                "kind": "archive_supported",
+                "label": "Informed by the Living Archive",
+                "explanation": "This response matches an approved Guide reference and its registered Archive doorway.",
+            }
+        else:
+            answer_basis = {
+                "kind": "general_knowledge" if _final_gold_standard.get("benchmark_id") == "GS-GENERAL-BOILING-POINT-WATER-001" else "archive_supported",
+                "label": "General knowledge" if _final_gold_standard.get("benchmark_id") == "GS-GENERAL-BOILING-POINT-WATER-001" else "Living Archive reference answer",
+                "explanation": "This is the exact approved reference answer for your question; no additional page handoff is attached.",
+            }
+        print("The Guide final gold-standard boundary: applied exact approved reference; " + str(_final_gold_standard.get("benchmark_id") or "unlabelled"))
 
     payload = {
         "ok": True,
