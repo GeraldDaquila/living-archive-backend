@@ -20,7 +20,7 @@ def test_cosmology_generalization_standards_is_registered_as_user_approved():
 def test_cosmology_generalization_gold_standard_has_three_paragraphs_and_all_hurdles():
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
     answer = fixture["expected_response"]
-    assert len([p for p in answer.split("\\n\\n") if p.strip()]) == 3
+    assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
     for phrase in (
         "full context", "corroboration", "contradict", "traceable",
         "evidence warrants", "whole cosmology",
