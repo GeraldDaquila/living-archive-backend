@@ -102,3 +102,16 @@ def test_unspecified_doorway_url_is_not_mistaken_for_required_absence():
     checks = evaluate_gold(record, transport)
     assert all(item["passed"] for item in checks), checks
     assert not any(item["name"] == "doorway_url" for item in checks)
+
+
+def test_cosmology_heldout_accepts_concrete_conditional_example():
+    case = {"case_id": "heldout-cosmology-life-001"}
+    answer = (
+        "Cosmology is an understanding of reality and how we belong within it. "
+        "This worldview shapes choices and relationships. If every disagreement is treated as a contest for control, "
+        "people may protect status instead of looking for a workable answer."
+    )
+    transport = {"status": 200, "error": None, "body": {"ok": True, "response": answer, "recommendation": None}}
+    checks = evaluate_held(case, transport)
+    example = next(item for item in checks if item["name"] == "concrete_implication")
+    assert example["passed"], checks
