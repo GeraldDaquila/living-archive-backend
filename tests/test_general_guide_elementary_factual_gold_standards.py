@@ -76,3 +76,16 @@ def test_cosmology_provider_exhaustion_fallback_answers_the_actual_question():
     assert "unity-informed worldview" in response
     assert "not labels for judging a person" in response
     assert result["doorway_title"] == ""
+
+
+def test_cosmology_recovery_is_limited_to_lived_significance_questions():
+    recovery = main._established_archive_cosmology_recovery(
+        "What is cosmology, and why does it matter to how people live?"
+    )
+    assert recovery is not None
+    assert recovery["recovery_id"] == "archive_informed_cosmology_lived_significance"
+    assert len(recovery["response"].split("\n\n")) == 3
+    assert main._established_archive_cosmology_recovery("What is cosmology?") is None
+    assert main._established_archive_cosmology_recovery(
+        "What is the cosmology of the Living Archive?"
+    ) is None
