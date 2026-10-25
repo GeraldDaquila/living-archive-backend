@@ -2634,7 +2634,7 @@ def _is_conceptual_explanatory_request(query):
         r"^how does .{1,120} (?:shape|support|contribute to|affect|influence|relate to) .{1,120}",
         r"^why (?:does|do|is|are) .{1,120} (?:matter|important|significant|essential|relevant)\b",
         # Compound concept questions must not fall into the recurring-problem recovery path.
-        r"^what is .{1,120}\band why (?:does|do|is|are)\b",
+        r"^what is (?:the )?(?:cosmology|worldview|metaphysics|ontology)\b.{0,120}\band why (?:does|do|is|are)\b",
     )
     return any(re.search(pattern, normalized) for pattern in patterns)
 
