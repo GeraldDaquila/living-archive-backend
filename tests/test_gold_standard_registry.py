@@ -421,6 +421,13 @@ def test_leadership_authority_recovery_is_direct_three_paragraph_gold_standard()
     assert "This is a general conceptual distinction" not in answer
 
 
+def test_distinguishing_question_extracts_both_compared_subjects_for_doorway_relevance():
+    main_source = (ROOT / "main.py").read_text(encoding="utf-8")
+    assert r"what distinguishes (.+?) from (.+?)" in main_source
+    assert r"what separates (.+?) from (.+?)" in main_source
+    assert r"what differentiates (.+?) from (.+?)" in main_source
+
+
 def test_gold_standard_default_is_default_on_for_ordinary_questions():
     import sys
     sys.path.insert(0, str(ROOT))
