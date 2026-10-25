@@ -160,13 +160,11 @@ def test_conceptual_grounding_allows_bounded_synthesis_across_vetted_canonical_b
     assert "_conceptual_best_coverage >= 1.0" in gate
 
 
-def test_conceptual_grounding_failure_diagnostic_reports_bounded_coverage_state():
-    start = SOURCE.index("The Guide conceptual boundary: vetted canonical evidence set")
-    end = SOURCE.index("\n\n    # Expose a small, deterministic provenance contract", start)
-    diagnostic = SOURCE[start:end]
-    assert "coverage:{_conceptual_coverage:.3f}" in diagnostic
-    assert "vetted_docs:{len(_conceptual_authority_docs)}" in diagnostic
-    assert "usable_docs:{len(_conceptual_combined_body)}" in diagnostic
+def test_conceptual_grounding_failure_diagnostic_reports_question_matched_recovery_state():
+    gate = _final_conceptual_gate()
+    assert "The Guide conceptual boundary: no question-matched canonical " in gate
+    assert "sentences; returned the Archive-only limitation." in gate
+    assert "evidence_sufficiency_unavailable" in gate
 
 
 def test_conceptual_grounding_fails_closed_when_vetted_human_voice_evidence_is_missing():
@@ -336,7 +334,7 @@ def test_general_conceptual_recovery_matches_vetted_source_sentences_to_question
     assert "_generic_sentence_candidates" in gate
     assert "_generic_hits" in gate
     assert "vetted canonical bodies" in gate
-    assert "question-matched canonical sentences" in gate
+    assert "question-matched canonical " in gate
 
 
 def test_general_conceptual_recovery_does_not_infer_archive_doctrine_from_doorway_title():
