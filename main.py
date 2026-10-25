@@ -2670,6 +2670,28 @@ def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     if _is_comparative_explanatory_request(query):
         return False
 
+    # Institutional-scope meaning questions ask for an explanation of how a
+    # concept functions within the Living Archive, not a dictionary lookup.
+    # Keep this boundary deterministic and upstream of the Glossary handoff so
+    # model classification cannot turn the Archive-specific question into a
+    # dead-end native search. Explicit requests to open the Glossary are exempt.
+    explicit_glossary_destination = bool(re.search(
+        r"\\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\\b.{0,60}\\bglossary\\b",
+        normalized,
+        re.I,
+    ))
+    archive_scoped_meaning = bool(
+        re.search(r"\\b(?:in|within|inside)\\s+the\\s+living\\s+archive\\b", normalized, re.I)
+        and re.search(
+            r"^(?:what does|what is|what's|what is the meaning of|meaning of|explain)\\b",
+            normalized,
+            re.I,
+        )
+        and re.search(r"\\b(?:mean|means|meaning|role|purpose|significance|understand)\\b", normalized, re.I)
+    )
+    if archive_scoped_meaning and not explicit_glossary_destination:
+        return False
+
     # Conceptual/explanatory questions belong to General Guide even when the
     # subject includes a canonical glossary word such as "stewardship".
     # Explicit requests to open the Glossary remain eligible below.
@@ -2759,6 +2781,18 @@ if _is_bounded_glossary_request(
     glossary_term=_normalize_glossary_term("What does stewardship mean here?"),
 ) is not True:
     raise RuntimeError("USE v488.89 glossary invariant failed: contextual definition was rejected")
+
+if _is_bounded_glossary_request(
+    "What does stewardship mean in the Living Archive?",
+    glossary_term=_normalize_glossary_term("What does stewardship mean in the Living Archive?"),
+) is not False:
+    raise RuntimeError("USE institutional-scope invariant failed: Archive-specific meaning question was misrouted to Glossary")
+
+if _is_bounded_glossary_request(
+    "What does stewardship mean in the Living Archive?",
+    glossary_term=_normalize_glossary_term("What does stewardship mean in the Living Archive?"),
+) is not False:
+    raise RuntimeError("USE institutional-scope invariant failed: Archive-specific meaning question was misrouted to Glossary")
 
 if _is_bounded_glossary_request(
     "What is the meaning of emptiness?",
