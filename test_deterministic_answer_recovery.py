@@ -75,12 +75,16 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         self.assertNotIn("A useful explanation should establish", answer)
         self.assertNotIn("What detail or context would make this question", answer)
 
-    def test_institutional_orientation_does_not_fall_into_definition_meta_template(self):
+    def test_institutional_orientation_answers_what_it_is_and_is_not(self):
         answer = compose_recovery("What is the Living Archive, and what is it not?")
+        paragraphs = [part for part in answer.split("\\n\\n") if part.strip()]
+        self.assertEqual(len(paragraphs), 3)
+        self.assertIn("connected body of resources", answer)
+        self.assertIn("not simply a chatbot", answer)
+        self.assertIn("connected knowledge", answer)
         self.assertNotIn("Your question asks for a clear account", answer)
         self.assertNotIn("A useful explanation should establish", answer)
         self.assertNotIn("What detail or context would make this question", answer)
-        self.assertGreater(len(answer), 120)
 
     def test_genuinely_missing_subject_is_handled_by_request_boundary_not_generic_recovery(self):
         answer = compose_recovery("What is this problem?")
