@@ -20,7 +20,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.25"
+CONTRACT_VERSION = "v1.26"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -928,6 +928,15 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
         if len(response) > 7000:
             raise ValueError("general composition response is too long")
 
+        # This question class has a structural contract: reject generic trust/cooperation
+        # prose and require an answer about consequences across generations. The final
+        # deterministic recovery below handles provider exhaustion; this validation
+        # prevents a plausible but off-topic candidate from passing as complete.
+        if _requires_intergenerational_stewardship(query) and not _has_intergenerational_stewardship_explanation(response):
+            raise ValueError(
+                "intergenerational stewardship answer must explain cross-generational responsibility in three purposeful paragraphs"
+            )
+
         # A complete practical next-step question must receive an actionable
         # move, not only abstract analysis or a request for more context. If the
         # provider misses this, reject the candidate so Provider Bank can retry.
@@ -1616,6 +1625,14 @@ def compose(
                 "response_shape": "explanatory",
                 "provider": "",
                 "model": "",
+            }
+        if _requires_intergenerational_stewardship(question):
+            return {
+                "response": _intergenerational_stewardship_recovery(),
+                "doorway_title": "",
+                "response_shape": "explanatory",
+                "provider": "bounded_intergenerational_stewardship_recovery",
+                "model": "deterministic-contract-recovery",
             }
         if _requires_outcome_evaluation_guidance(question):
             return {
