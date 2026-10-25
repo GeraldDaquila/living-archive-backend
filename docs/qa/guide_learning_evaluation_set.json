@@ -1,7 +1,7 @@
 {
   "suite_id": "living-archive-guide-learning-offline-evaluation",
-  "suite_version": "1.0.0",
-  "status": "REGISTRY_BASELINE_DEFINED_HELDOUTS_NOT_YET_SCORED",
+  "suite_version": "1.1.0",
+  "status": "LIVE_CAPTURED_HELDOUTS_HAVE_FAILURES_HUMAN_REVIEW_PENDING",
   "purpose": "Evaluate whether proposed reusable lessons generalize beyond the gold-standard questions from which they were derived. This is a curated rubric dataset, not a claim that model learning or automatic scoring is implemented.",
   "scoring_policy": {
     "scale": "0-2",
@@ -10,8 +10,9 @@
       "1": "partially satisfies; material weakness remains",
       "2": "clearly satisfies"
     },
-    "promotion_rule": "A human reviewer scores every applicable dimension. No promotion if any critical dimension scores 0, any Archive-specific factual claim lacks canonical support, or any existing approved gold standard regresses.",
-    "held_out_policy": "Held-out cases are not lesson-source questions and must remain separate from lesson extraction/calibration."
+    "promotion_rule": "A human reviewer scores every applicable dimension. No promotion if any critical dimension scores 0, any Archive-specific factual claim lacks canonical support, or any existing approved gold standard regresses. Automated checks may flag defects but cannot approve a lesson or replace human review.",
+    "held_out_policy": "Held-out cases are not lesson-source questions and must remain separate from lesson extraction/calibration.",
+    "human_review": "Every live response receives a pending structured review template. Scores and reviewer notes must be completed before a lesson is considered for approval."
   },
   "lessons": [
     {
@@ -217,5 +218,72 @@
     "regression_rule": "Every selected baseline record remains an exact-question non-regression reference under its own assertions and freeze policy. Do not overwrite approved expected responses to match a candidate's output.",
     "negative_controls": "Preserve registered failure controls as separate must-fail checks; they are not positive gold standards and must not be counted as floor entries.",
     "reproducibility": "Record the registry commit SHA and selected benchmark IDs for every evaluation run."
+  },
+  "human_review_rubric": {
+    "scale": {
+      "0": "Fails, contradicts the criterion, or materially misleads the visitor.",
+      "1": "Partially satisfies the criterion; a meaningful weakness remains.",
+      "2": "Clearly satisfies the criterion for this question.",
+      "NA": "Not applicable to this question; reviewer must explain why."
+    },
+    "critical_dimensions": [
+      "answer_directness",
+      "factual_accuracy",
+      "archive_grounding_and_provenance",
+      "sentence_coherence",
+      "paragraph_purpose_and_concision",
+      "uncertainty_honesty"
+    ],
+    "dimensions": [
+      {
+        "id": "answer_directness",
+        "guidance": "Answers the visitor's actual question before optional navigation, caveats, or follow-up."
+      },
+      {
+        "id": "factual_accuracy",
+        "guidance": "General facts are accurate and appropriately qualified; no invented details or false certainty."
+      },
+      {
+        "id": "archive_grounding_and_provenance",
+        "guidance": "Archive-specific claims are supported by traceable canonical evidence; general knowledge is clearly distinguished from Archive doctrine."
+      },
+      {
+        "id": "cosmology_fidelity",
+        "guidance": "When Archive cosmology is relevant, preserves the approved distinction and nuance; does not invent doctrine or reduce it to slogans."
+      },
+      {
+        "id": "human_voice_and_respect",
+        "guidance": "Sounds humane, patient, perceptive, and natural without jargon, false intimacy, diagnosis, or presumption."
+      },
+      {
+        "id": "sentence_coherence",
+        "guidance": "Sentences are grammatical, logically connected, and free of duplicated clauses, malformed question echoes, and unexplained shifts."
+      },
+      {
+        "id": "paragraph_purpose_and_concision",
+        "guidance": "Each paragraph adds a distinct piece of understanding; paragraphs are concise but not flattened into a summary."
+      },
+      {
+        "id": "response_proportionality",
+        "guidance": "Depth and length fit the question; three paragraphs are required only where the approved case/assertions specify them, not as a universal template."
+      },
+      {
+        "id": "fractal_coherence",
+        "guidance": "Where relevant, connects parts and whole, local choices and wider patterns, or individual and system levels without forcing fractal vocabulary into ordinary answers."
+      },
+      {
+        "id": "uncertainty_honesty",
+        "guidance": "Names genuine limits without using missing Archive retrieval as an excuse to refuse answerable general questions."
+      },
+      {
+        "id": "doorway_relevance_and_timing",
+        "guidance": "Any Archive doorway is relevant, verified, optional, and appears after the answer; explicit no-handoff requests are honored."
+      },
+      {
+        "id": "visitor_orientation",
+        "guidance": "Leaves the visitor with greater clarity about the concept, distinction, practical implication, or next useful direction."
+      }
+    ],
+    "review_gate": "Automated checks are triage, not approval. A human reviewer must complete applicable dimensions, inspect any Archive-specific claims, and record ACCEPT, REVISE, or REJECT with a rationale before a lesson can be promoted."
   }
 }
