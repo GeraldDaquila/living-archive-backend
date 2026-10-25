@@ -160,13 +160,11 @@ def test_conceptual_grounding_allows_bounded_synthesis_across_vetted_canonical_b
     assert "_conceptual_best_coverage >= 1.0" in gate
 
 
-def test_conceptual_grounding_failure_diagnostic_reports_bounded_coverage_state():
-    start = SOURCE.index("The Guide conceptual boundary: vetted canonical evidence set")
-    end = SOURCE.index("\n\n    # Expose a small, deterministic provenance contract", start)
-    diagnostic = SOURCE[start:end]
-    assert "coverage:{_conceptual_coverage:.3f}" in diagnostic
-    assert "vetted_docs:{len(_conceptual_authority_docs)}" in diagnostic
-    assert "usable_docs:{len(_conceptual_combined_body)}" in diagnostic
+def test_conceptual_grounding_failure_diagnostic_reports_question_matched_recovery_state():
+    gate = _final_conceptual_gate()
+    assert "The Guide conceptual boundary: no question-matched canonical " in gate
+    assert "sentences; returned the Archive-only limitation." in gate
+    assert "evidence_sufficiency_unavailable" in gate
 
 
 def test_conceptual_grounding_fails_closed_when_vetted_human_voice_evidence_is_missing():
@@ -327,3 +325,42 @@ def test_conceptual_fallback_preserves_reciprocity_subject_instead_of_reusing_tr
     assert '_compose_provider_exhaustion_recovery(' in gate
     assert 'conceptual_subject_recovery' in gate
     assert 'Think of a shared garden' in gate
+
+
+def test_general_conceptual_recovery_matches_vetted_source_sentences_to_question():
+    gate = _final_conceptual_gate()
+    assert "General conceptual recovery: answer from relevant sentences" in gate
+    assert "_generic_query_terms" in gate
+    assert "_generic_sentence_candidates" in gate
+    assert "_generic_hits" in gate
+    assert "vetted canonical bodies" in gate
+    assert "question-matched canonical " in gate
+
+
+def test_general_conceptual_recovery_does_not_infer_archive_doctrine_from_doorway_title():
+    gate = _final_conceptual_gate()
+    assert "do not infer Archive doctrine from a title or doorway alone" in gate
+    assert 'if _generic_selected and _generic_query_terms:' in gate
+    assert "if authoritative_doorway:" in gate
+    assert "response = _archive_limitation_response(query)" in gate
+
+
+def test_general_conceptual_recovery_preserves_separate_verified_doorway_and_provenance():
+    gate = _final_conceptual_gate()
+    assert 'composition_context["conceptual_subject_recovery"] = "vetted_sentence_synthesis"' in gate
+    assert 'composition_context["authoritative_doorway"] = authoritative_doorway' in gate
+    assert 'composition_context.pop("evidence_sufficiency_unavailable", None)' in gate
+
+
+def test_cosmology_query_has_bounded_metaphysical_vocabulary_bridge():
+    gate = _final_conceptual_gate()
+    assert '"cosmology": {"metaphysics", "worldview", "creation", "universe", "origins"}' in gate
+    assert "_generic_expanded_terms.update(_generic_concept_aliases.get(_generic_term, set()))" in gate
+    assert "do not infer Archive doctrine from a title or doorway alone" in gate
+
+
+def test_concept_alias_expansion_does_not_raise_single_concept_evidence_threshold():
+    gate = _final_conceptual_gate()
+    assert "_generic_original_query_terms = set(_generic_query_terms)" in gate
+    assert "_generic_min_hits = 1 if len(_generic_original_query_terms) <= 1 else 2" in gate
+    assert "Alias expansion broadens candidate discovery; it must not inflate" in gate
