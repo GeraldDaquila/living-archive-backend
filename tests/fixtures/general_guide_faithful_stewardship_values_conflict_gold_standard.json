@@ -1,0 +1,16 @@
+{
+  "benchmark_id": "general-guide-faithful-stewardship-values-conflict-gold-standard-2026-10-25",
+  "query": "What does faithful stewardship require when values conflict?",
+  "expected_response": "Faithful stewardship when values conflict begins by naming what is actually in tension, rather than treating one value as automatically decisive. Clarify what has been entrusted, which commitments or duties are relevant, what each value protects, and what the situation's context makes possible or impossible. Separate what is known from assumptions, and distinguish a genuine conflict between obligations from a conflict between a principle and personal preference.\n\nNext, consider who is affected and what each possible choice would protect, risk, or harm. Give particular attention to people who bear the consequences but have less power to shape the decision. Look for options that honor more than one value, and identify any duties that cannot responsibly be traded away, such as honesty, keeping faith with an explicit commitment, or preventing avoidable harm. Where no option preserves everything, explain why one obligation must take priority in this case instead of disguising the trade-off as a perfect solution.\n\nA faithful decision should be proportionate to the evidence, transparent about its reasoning, and accountable to those affected. State which values guided the choice, what costs or limits remain, and what new information would lead you to reconsider it. Stewardship is not simply defending a preferred value; it is caring for what has been entrusted while acknowledging competing responsibilities, avoiding self-serving exceptions, and remaining willing to repair harm if the decision proves mistaken.",
+  "expected_doorway": {
+    "title": "The Stewardship Landscape",
+    "url": ""
+  },
+  "assertions": [
+    "Three paragraphs.",
+    "Identifies competing values and distinguishes duties from preferences.",
+    "Considers affected people and unequal power.",
+    "Makes trade-offs explicit and requires transparent, accountable reasoning.",
+    "No Glossary-only routing or generic planning fallback."
+  ]
+}
