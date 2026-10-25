@@ -4616,6 +4616,34 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if relational_fractal is not None:
         return relational_fractal
 
+    # A conceptual question about cosmology and lived significance must not
+    # fall through to the unrelated recurring-problem diagnostic recovery when
+    # providers are unavailable. This bounded answer is informed by the Archive's
+    # approved cosmology reference, but does not claim one source exhausts the topic.
+    _cosmology_lived_question = bool(
+        re.search(r"\b(?:cosmology|worldview)\b", q)
+        and re.search(r"\b(?:why|matter|important|significant|how people live|life)\b", q)
+    )
+    if _cosmology_lived_question:
+        response = (
+            "Cosmology is an understanding of how reality works and how we belong within it—not only a theory about the physical universe. "
+            "The picture we carry of people, nature, change, and our place in the world shapes what we notice and how we make decisions.\n\n"
+            "The Living Archive explores a contrast between a separation-based worldview and a unity-informed worldview. "
+            "A separation-based view tends to organize life around competition, control, earned worth, and fear of loss. "
+            "A unity-informed view sees people as distinct but connected, treats worth as inherent, and understands growth as something that can emerge through relationship, responsibility, and cooperation. "
+            "These are ways of interpreting experience, not labels for judging a person.\n\n"
+            "This matters because a worldview can become an invisible guide for everyday choices. "
+            "If every disagreement is treated as a contest for control, people may protect status instead of looking for a workable answer. "
+            "If people see themselves as distinct but connected, they can recognize differences without treating them as threats. "
+            "This is a useful starting explanation, not a claim that one Archive text exhausts the subject."
+        )
+        return {
+            "response": response,
+            "doorway_title": "",
+            "provider": "bounded_archive_informed_cosmology_recovery",
+            "model": "",
+        }
+
     # Bounded relational uncertainty recovery. A lack of case-specific facts must
     # not become a refusal when the visitor has expressed a clear feeling. Reflect
     # only what the visitor stated, distinguish caring from a decision to continue
