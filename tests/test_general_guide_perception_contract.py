@@ -217,3 +217,14 @@ def test_explicit_closing_question_request_is_detected_and_enforced():
         "response_shape": "explanatory",
     })
     assert parse(valid_invitation)["response"].endswith("?")
+
+
+
+def test_gold_standard_is_the_default_general_presentation_contract():
+    prompt = guide._GENERAL_GUIDE_SYSTEM
+    assert "DEFAULT PRESENTATION STANDARD (applies to ordinary general-purpose questions)" in prompt
+    assert "Lead with the answer, not a description of what an answer should contain" in prompt
+    assert "normally three purposeful, readable paragraphs" in prompt
+    assert "Do not append a generic clarification prompt merely to prolong the exchange" in prompt
+    assert "place any verified, directly relevant Archive resource in a distinct, clearly labeled doorway section" in prompt
+    assert "This is a quality and sequence standard, not a rigid paragraph-count rule" in prompt
