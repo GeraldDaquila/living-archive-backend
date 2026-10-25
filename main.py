@@ -2655,6 +2655,36 @@ for _conceptual_glossary_regression in (
         raise RuntimeError("USE conceptual inquiry routing invariant failed")
 
 
+def _is_normative_conflict_explanatory_request(query):
+    """Keep questions asking what a value or principle requires during conflict in Guide synthesis."""
+    normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
+    if not normalized:
+        return False
+    asks_requirement = bool(re.search(
+        r"\b(?:what does|what should|what must|what would)\b.{1,100}\b(?:require|requires|required|demand|demands|call for)\b",
+        normalized,
+    ))
+    asks_conflict = bool(re.search(
+        r"\b(?:when|where|if|as)\b.{0,70}\b(?:values?|principles?|duties|obligations|commitments)\b.{0,50}\b(?:conflict|clash|compete|collide|pull in different directions)\b|"
+        r"\b(?:values?|principles?|duties|obligations|commitments)\b.{0,60}\b(?:conflict|clash|compete|collide)\b",
+        normalized,
+    ))
+    stewardship_context = bool(re.search(
+        r"\b(?:stewardship|steward|faithful|integrity|responsibility|trust|care)\b",
+        normalized,
+    ))
+    return asks_requirement and asks_conflict and stewardship_context
+
+
+# This is an explanatory/normative inquiry, not a bounded vocabulary lookup.
+if not _is_normative_conflict_explanatory_request(
+    "What does faithful stewardship require when values conflict?"
+):
+    raise RuntimeError("USE normative-conflict explanatory routing invariant failed")
+if _is_normative_conflict_explanatory_request("What does stewardship mean?"):
+    raise RuntimeError("USE normative-conflict routing overcaptured a bounded definition")
+
+
 def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     """Return True only for a bounded vocabulary lookup.
 
@@ -8789,7 +8819,8 @@ async def _use_request_boundary(scope, receive, send):
         re.I,
     ))
     if (
-        _is_bounded_glossary_request(
+        not _is_normative_conflict_explanatory_request(query)
+        and _is_bounded_glossary_request(
             query,
             glossary_term=glossary_term,
             embedded_term=embedded_glossary_term,
@@ -9121,6 +9152,14 @@ async def _use_request_boundary(scope, receive, send):
     # Final-boundary arbitration: comparative explanatory intent outranks a
     # model's generic Glossary classification. Do not hand off the whole phrase
     # as a term; retain the visitor's complete question for Guide composition.
+    if route_id == "glossary" and _is_normative_conflict_explanatory_request(query):
+        print(
+            "The Guide request boundary: kept normative values-conflict inquiry in Guide composition; "
+            f"query={_normalize_query(query)[:120]}"
+        )
+        route_id = "guide"
+        mode = "direct"
+
     if route_id == "glossary" and _is_comparative_explanatory_request(query):
         print(
             "The Guide request boundary: kept comparative inquiry in Guide composition; "
