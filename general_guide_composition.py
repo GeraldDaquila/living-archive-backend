@@ -389,7 +389,9 @@ def _requires_three_paragraph_default(query: str) -> bool:
     if _requires_distress_sensitive_pacing(q):
         return False
     if re.search(
-        r"\b(?:why|what makes|how does|how can|how do|how is|"
+        r"\b(?:why|what makes|what distinguishes|what separates|what differentiates|"
+        r"how does|how can|how do|how is|how does .{1,100} differ from|"
+        r"how is .{1,100} different from|what is .{1,100} difference between|"
         r"what is the relationship between|what is the connection between|"
         r"what is the difference between|how does .{1,100} relate to)\b",
         q,
