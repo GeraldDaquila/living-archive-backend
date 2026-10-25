@@ -7,6 +7,8 @@ on:
       - "main.py"
       - "streaming_transport.py"
       - "general_guide_composition.py"
+      - "deterministic_answer_recovery.py"
+      - "tests/test_archive_constitutional_recovery.py"
       - "provider_bank.py"
       - "tests/test_cross_question_gold_standard_integrity.py"
       - "tests/test_general_guide_perception_contract.py"
@@ -19,7 +21,7 @@ permissions:
 
 concurrency:
   group: live-guide-dual-service-e2e
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   production-e2e:
@@ -103,42 +105,35 @@ jobs:
                   if name in ready:
                       continue
                   try:
-                      # Use a cheap, read-only diagnostic while waiting for deploy parity.
-                      # Avoid model-backed requests merely to discover the runtime version.
-                      request = urllib.request.Request(
-                          base_url + "/api/integration-audit",
-                          headers={"Accept": "application/json"},
-                          method="GET",
+                      # The visitor-facing clarification path exposes source_sha256
+                      # and does not invoke a model, so it proves both release identity
+                      # and the live boundary without depending on the audit endpoint.
+                      status, payload = post_query(
+                          base_url, clarification_query, timeout=10
                       )
-                      with urllib.request.urlopen(request, timeout=10) as response:
-                          status = response.status
-                          payload = json.loads(response.read().decode("utf-8"))
+                      clarification = payload.get("clarification") or {}
                       last_state[name] = {
                           "status": status,
                           "version": payload.get("version"),
                           "fingerprint": payload.get("fingerprint"),
                           "source_sha256": payload.get("source_sha256"),
-                          "ok": payload.get("ok"),
+                          "intent": payload.get("intent"),
+                          "clarification_required": clarification.get("required"),
                       }
                       if (
                           status == 200
                           and payload.get("version") == expected_version
                           and str(payload.get("fingerprint") or "").startswith(f"USE-{expected_version}-")
                           and payload.get("source_sha256") == expected_source_sha256
+                          and payload.get("intent") == "CLARIFICATION_REQUIRED"
+                          and payload.get("recommendation") is None
+                          and clarification.get("required") is True
                       ):
-                          # Exercise the clarification boundary only once the release identity matches.
-                          boundary_status, boundary_payload = post_query(
-                              base_url, clarification_query, timeout=25
+                          ready.add(name)
+                          print(
+                              f"{name}: exact source identity and clarification boundary PASS; "
+                              f"version={expected_version}; source_sha256={expected_source_sha256}"
                           )
-                          if (
-                              boundary_status == 200
-                              and boundary_payload.get("version") == expected_version
-                              and boundary_payload.get("intent") == "CLARIFICATION_REQUIRED"
-                              and boundary_payload.get("recommendation") is None
-                              and boundary_payload.get("clarification", {}).get("required") is True
-                          ):
-                              ready.add(name)
-                              print(f"{name}: release identity and clarification boundary PASS; version={expected_version}")
                   except Exception as exc:
                       last_state[name] = {"error": f"{type(exc).__name__}: {str(exc)[:180]}"}
               if len(ready) == len(services):
