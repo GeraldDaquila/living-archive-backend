@@ -1,0 +1,16 @@
+{
+  "benchmark_id": "general-guide-cosmology-generalization-standards-gold-standard-2026-10-25",
+  "query": "What standards should be met before The Guide generalizes from one archive text to the whole cosmology?",
+  "expected_response": "The Guide should not generalize from one Archive text to the whole cosmology merely because an idea sounds consistent or important. First, interpret the passage in its full context: identify what it explicitly says, what question it addresses, and any limits or qualifications. Record the exact source and distinguish the text’s own claims from the Guide’s interpretation or inference. A single passage can establish what that passage says; by itself, it cannot establish that the same principle governs the entire cosmology.\n\nBefore making a broader claim, seek corroboration across relevant and meaningfully independent Archive texts, follow explicit cross-references, and test the proposed reading against passages that qualify, complicate, or contradict it. Check whether the sources use the same terms in the same sense and whether a local statement is being mistaken for a universal rule. The reasoning should be traceable: a reviewer must be able to see which passages support each part of the generalization, what evidence cuts against it, and why the broader conclusion follows.\n\nFinally, state the conclusion at the level the evidence warrants. Label direct textual statements, cross-text synthesis, and tentative interpretation distinctly; preserve exceptions and unresolved tensions instead of smoothing them away. If evidence comes from only one text, say that the claim is text-specific or a hypothesis for further testing—not an established account of the whole cosmology. A corpus-wide generalization is justified only when its scope, corroboration, counterevidence, and reasoning have been checked and remain open to revision.",
+  "expected_doorway": {
+    "title": "",
+    "url": null
+  },
+  "assertions": [
+    "Exactly three paragraphs.",
+    "Textual context and inference are distinguished.",
+    "Corroboration, counterevidence, and traceability are required.",
+    "Confidence is calibrated to evidence.",
+    "No generic uncertainty fallback."
+  ]
+}
