@@ -4618,7 +4618,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
 
     _cosmology_lived_question = bool(
         re.search(r"\b(?:cosmology|worldview)\b", q)
-        and re.search(r"\b(?:why|matter|important|significant|how people live|life)\b", q)
+        and re.search(r"\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\b", q)
     )
     if _cosmology_lived_question:
         _cosmology_response = (
@@ -6309,7 +6309,7 @@ def _established_archive_cosmology_recovery(query):
         return None
     has_subject = bool(re.search(r"\b(?:cosmology|worldview)\b", normalized))
     asks_lived_significance = bool(re.search(
-        r"\b(?:why|matter|important|significant|how people live|life)\b",
+        r"\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\b",
         normalized,
     ))
     if not (has_subject and asks_lived_significance):
