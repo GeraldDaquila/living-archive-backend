@@ -13,7 +13,9 @@ import time
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
-from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard\n\nfrom provider_bank import (
+from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard
+
+from provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
     route as route_with_model_bank,
 )
