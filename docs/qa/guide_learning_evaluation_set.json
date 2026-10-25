@@ -142,7 +142,7 @@
     {
       "case_id": "heldout-water-boiling-point-001",
       "split": "held_out",
-      "query": "What is the boiling point of water at sea level?",
+      "query": "At standard atmospheric pressure, what temperature does water boil at?",
       "question_type": "general_fact",
       "critical_dimensions": [
         "answer_first",
