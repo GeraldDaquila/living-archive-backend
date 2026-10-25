@@ -32,7 +32,7 @@ def test_generic_action_planning_response_is_replaced_by_direct_explanation():
     recovered = enforce_response_contracts(QUESTION, generic)
     assert recovered != generic
     assert _has_entrusted_stewardship_identification(recovered)
-    assert len([p for p in recovered.split("\\n\\n") if p.strip()]) == 3
+    assert len([p for p in recovered.split("\n\n") if p.strip()]) == 3
     for concept in (
         "what has been placed in someone's care",
         "who or what depends on that care",
@@ -46,7 +46,7 @@ def test_generic_action_planning_response_is_replaced_by_direct_explanation():
 def test_recovery_meets_contract_and_is_three_paragraphs():
     answer = _entrusted_stewardship_identification_recovery()
     assert _has_entrusted_stewardship_identification(answer)
-    assert len([p for p in answer.split("\\n\\n") if p.strip()]) == 3
+    assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
 
 
 def test_substantive_answer_passes_and_generic_one_fails():
