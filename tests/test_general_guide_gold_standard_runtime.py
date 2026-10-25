@@ -177,3 +177,24 @@ def test_first_principles_gold_standard_matches_straight_and_curly_apostrophes(m
     assert result["response"] == expected["expected_response"]
     assert result["doorway_title"] == "First Principles"
     assert result["doorway_url"] == "https://geralddaquila.com/first-principles/"
+
+
+def test_first_principles_gold_standard_names_all_six_published_principles():
+    result = resolve_exact_gold_standard(
+        "What are first principles, and what are the Living Archive’s first principles?"
+    )
+    assert result is not None
+    answer = result["expected_response"]
+    assert len(answer.split("\\n\\n")) == 3
+    for principle in (
+        "reality is intelligible",
+        "human beings participate in reality",
+        "understanding develops",
+        "complexity deserves integration rather than reduction",
+        "stewardship follows understanding",
+        "every generation inherits unfinished questions",
+    ):
+        assert principle in answer
+    assert "not unquestionable doctrines" in answer
+    assert result["doorway_title"] == "First Principles"
+    assert result["doorway_url"] == "https://geralddaquila.com/first-principles/"
