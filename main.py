@@ -7404,10 +7404,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 "worldview": {"cosmology", "metaphysics"},
                 "metaphysics": {"cosmology", "worldview"},
             }
-            _generic_expanded_terms = set(_generic_query_terms)
-            for _generic_term in tuple(_generic_query_terms):
+            _generic_original_query_terms = set(_generic_query_terms)
+            _generic_expanded_terms = set(_generic_original_query_terms)
+            for _generic_term in tuple(_generic_original_query_terms):
                 _generic_expanded_terms.update(_generic_concept_aliases.get(_generic_term, set()))
             _generic_query_terms = _generic_expanded_terms
+            # Alias expansion broadens candidate discovery; it must not inflate
+            # the number of independent concepts a single-word question requires.
+            _generic_min_hits = 1 if len(_generic_original_query_terms) <= 1 else 2
             _generic_sentence_candidates = []
             for _generic_item in _conceptual_vetted_docs:
                 _generic_doc = _generic_item["doc"]
@@ -7428,7 +7432,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         term for term in _generic_query_terms
                         if re.search(r"\b" + re.escape(term) + r"\b", _generic_normalized_sentence)
                     }
-                    _generic_min_hits = 1 if len(_generic_query_terms) <= 1 else 2
                     if len(_generic_hits) >= _generic_min_hits:
                         _generic_sentence_candidates.append({
                             "sentence": _generic_sentence,
