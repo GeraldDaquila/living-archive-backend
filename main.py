@@ -7165,7 +7165,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if general_guide_composition._requires_three_paragraph_default(query):
         _paragraphs = [
             part.strip()
-            for part in re.split(r"\\n\\s*\\n+", response)
+            for part in re.split(r"\n\s*\n+", response)
             if part.strip()
         ]
         if len(_paragraphs) < 3:
@@ -7189,7 +7189,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             )
             _retry_paragraphs = [
                 part.strip()
-                for part in re.split(r"\\n\\s*\\n+", _retry_text)
+                for part in re.split(r"\n\s*\n+", _retry_text)
                 if part.strip()
             ]
             if len(_retry_paragraphs) >= 3:
