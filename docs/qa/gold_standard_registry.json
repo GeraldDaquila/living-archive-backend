@@ -1576,7 +1576,8 @@
         "source_path": "docs/qa/gold_standard_registry.json",
         "source_ref": "qa/register-philippines-gender-dynamics-gold-standard",
         "evidence_boundary": "Expected response transcribed from the user-provided live screenshot. Doorway title and URL verified against the published WordPress post. Approval is for this observed response and doorway behavior, not a claim that the general explanation is verbatim canonical Archive doctrine."
-      }
+      },
+      "freeze_policy": "Preserve this user-approved live response as a reference benchmark. Do not alter expected_response without explicit user authorization and a separately documented benchmark-version change."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control.",
