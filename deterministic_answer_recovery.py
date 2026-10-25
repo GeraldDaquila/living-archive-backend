@@ -195,12 +195,18 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "go wrong. Check the result against the original goal and adjust rather than assuming the first attempt "
             "must be final."
         )
-    elif re.search(r"\b(?:what is|what are|define|definition|meaning of|what does .* mean)\b", lower):
+    elif re.search(r"\\b(?:what is|what are|define|definition|meaning of|what does .* mean)\\b", lower):
+        # A definition question with a clear subject is answerable at the level
+        # of ordinary meaning. Do not substitute a description of how an answer
+        # should be constructed, and do not imply an Archive-specific definition.
+        # Canonical Archive claims still require the normal evidence boundary
+        # before they can be attributed.
+        display_subject = subject[:1].upper() + subject[1:]
         answer = (
-            f"Your question asks for a clear account of {subject}. A useful explanation should establish what the "
-            "term or idea refers to, distinguish it from nearby concepts, and show how it works in a recognizable "
-            "example. The precise meaning can depend on the field or context, so I won't invent a formal or "
-            "Archive-specific definition without that grounding."
+            f"{display_subject} is best understood by what it means and how it operates in practice. "
+            "A useful definition distinguishes the idea from nearby concepts and makes its implications clear. "
+            "The precise meaning can vary by field or institution, so this is a general explanation rather than a "
+            "claim that the Living Archive uses a particular formal definition."
         )
     elif re.search(r"\b(?:meaning|make sense|understand|interpret|reflect|relationship)\b", lower):
         answer = (
@@ -220,8 +226,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     movement = _clean(desired_movement)
     if movement and not is_harm_repair_question(q) and not _is_ethical_tradeoff(q) and not _is_hindsight_accountability(q):
         answer += f" A sensible next step is to focus on {movement.rstrip('.')}."
-    elif not _is_historical_cultural_explanation(q) and not is_harm_repair_question(q) and not _is_ethical_tradeoff(q) and not _is_hindsight_accountability(q):
-        answer += " What detail or context would make this question most concrete for you?"
+    # A generic clarifier is not an acceptable default ending for a question
+    # that reached recovery with a concrete subject. The separate request-boundary
+    # classifier remains responsible for genuinely missing subjects.
     return answer
 
 
