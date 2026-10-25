@@ -20,7 +20,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.24"
+CONTRACT_VERSION = "v1.25"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -943,6 +943,63 @@ def _responsibility_boundary_recovery() -> str:
     )
 
 
+def _is_broad_existential_question(query: str) -> bool:
+    """Recognize broad philosophical questions that are answerable without personal disclosure.
+
+    Keep this boundary narrow. Questions that mention distress, hopelessness, or
+    immediate safety concerns must remain with the existing safety/reflective
+    pathway; Archive-specific questions must remain evidence-led.
+    """
+    q = _normalize_space(query).casefold()
+    if not q or re.search(
+        r"\b(?:living archive|archive's|archive’s|our doctrine|canonical principles)\b",
+        q,
+    ):
+        return False
+    if re.search(
+        r"\b(?:suicid|kill myself|end my life|not worth living|no reason to live|"
+        r"can't go on|cannot go on|hopeless|want to die|feel empty|feeling empty)\b",
+        q,
+    ):
+        return False
+    patterns = (
+        r"^(?:so )?what is the meaning of life[?.!]*$",
+        r"^what's the meaning of life[?.!]*$",
+        r"^what gives life meaning[?.!]*$",
+        r"^what is the purpose of life[?.!]*$",
+        r"^what's the purpose of life[?.!]*$",
+        r"^why are we here[?.!]*$",
+        r"^what does it mean to live a meaningful life[?.!]*$",
+    )
+    return any(re.fullmatch(pattern, q) for pattern in patterns)
+
+
+def _broad_existential_recovery() -> Dict[str, str]:
+    """Answer a broad existential question before clarification or navigation."""
+    response = (
+        "There is no single answer to the meaning of life that everyone has established as final. "
+        "For many people, meaning grows through love and friendship, caring for others, learning, "
+        "creating, contributing to a community, or serving something they believe is larger than themselves. "
+        "Others understand it through faith, philosophical commitments, or the experience of belonging to the world. "
+        "These views differ, but each offers a way to understand what makes a life matter.\n\n"
+        "Meaning is often not a hidden sentence we must discover once and for all. It can take shape in what we "
+        "choose to care for and how we live those commitments. A person may find it in raising a child, keeping "
+        "faith with a friend, doing honest work, easing suffering, or pursuing a question that helps others see "
+        "more clearly. Such things need not look grand to have lasting importance.\n\n"
+        "This does not mean every life must follow one grand purpose, or that uncertainty makes life meaningless. "
+        "What matters can change as we grow, encounter loss, learn, and take on new responsibilities. A useful "
+        "starting point is to notice what you value, what you are willing to care for, and what kind of presence "
+        "you want to offer the people and world around you."
+    )
+    return {
+        "response": response,
+        "doorway_title": "",
+        "response_shape": "explanatory",
+        "provider": "bounded_existential_general_knowledge_recovery",
+        "model": "",
+    }
+
+
 def compose(
     *,
     use_core: Any,
@@ -974,6 +1031,13 @@ def compose(
             "provider": "gold_standard_registry",
             "model": "approved-reference",
         }
+
+    # A broad existential question is answerable without asking the visitor to
+    # disclose personal context. Give a substantive, pluralistic first answer
+    # before any follow-up or doorway. Keep Archive-specific questions on the
+    # normal evidence-led path, and let the existing safety boundary own distress.
+    if _is_broad_existential_question(question):
+        return _broad_existential_recovery()
 
     if is_exact_source_request(question) and not source_trace_has_prior_claim(history_text):
         return {

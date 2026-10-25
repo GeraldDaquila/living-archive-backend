@@ -242,7 +242,7 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.24":
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.25":
     raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
@@ -4603,6 +4603,13 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     question = _normalize_query(query)
     q = re.sub(r"\s+", " ", question).strip().casefold()
 
+    # Keep the answer-first existential contract active when the ordinary
+    # provider bank is exhausted or the isolated deterministic path is used.
+    # Import locally so isolated recovery harnesses retain the same behavior.
+    import general_guide_composition as _guide_composition
+    if _guide_composition._is_broad_existential_question(query):
+        return _guide_composition._broad_existential_recovery()
+
     try:
         documents = use_core.context_blocks_to_documents(str(context_data.get("context_blocks") or ""))
     except Exception:
@@ -7678,7 +7685,7 @@ def _v48894_general_guide_composition_self_audit():
     if not callable(getattr(general_guide_composition, "compose", None)):
         raise RuntimeError("General Guide composition boundary is missing.")
     snapshot = general_guide_composition.contract_snapshot()
-    if snapshot.get("contract_version") != "v1.24":
+    if snapshot.get("contract_version") != "v1.25":
         raise RuntimeError("General Guide composition contract version drift.")
     if snapshot.get("provider_neutral") is not True:
         raise RuntimeError("General Guide composition lost provider neutrality.")
