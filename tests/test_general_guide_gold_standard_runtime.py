@@ -198,3 +198,27 @@ def test_first_principles_gold_standard_names_all_six_published_principles():
     assert "not unquestionable doctrines" in answer
     assert result["doorway_title"] == "First Principles"
     assert result["doorway_url"] == "https://geralddaquila.com/first-principles/"
+
+
+
+def test_continuous_learning_contract_is_explicit_and_does_not_claim_implementation():
+    registry = json.loads(
+        (ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8")
+    )
+    contract = registry["learning_contract"]
+
+    assert contract["contract_id"] == "living-archive-guide-continuous-learning-loop"
+    assert contract["contract_version"] == "1.0.0"
+    assert contract["status"] == "SPECIFIED_NOT_YET_IMPLEMENTED"
+    assert any("held-out/unseen-question tests" in item for item in contract["governing_principles"])
+    assert any("does not train a model" in item for item in contract["data_and_authority_boundaries"])
+    assert any("human approval" in item for item in contract["learning_cycle"][-2]["requirement"])
+    assert any("held-out question suite" in item for item in contract["acceptance_gates"])
+    assert any("current exact-match registry" in contract["current_capability_boundary"] for _ in [0])
+    assert [stage["stage"] for stage in contract["rollout_stages"]] == [
+        "1_contract_and_baseline",
+        "2_shadow_evaluation",
+        "3_reviewed_adaptation",
+        "4_guarded_promotion",
+        "5_continuous_monitoring",
+    ]
