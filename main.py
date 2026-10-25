@@ -2633,6 +2633,8 @@ def _is_conceptual_explanatory_request(query):
         r"^what are (?:the )?(?:roles|purposes|significance|importance|functions|contributions|impacts|relationships) of\b",
         r"^how does .{1,120} (?:shape|support|contribute to|affect|influence|relate to) .{1,120}",
         r"^why (?:does|do|is|are) .{1,120} (?:matter|important|significant|essential|relevant)\b",
+        # Compound concept questions must not fall into the recurring-problem recovery path.
+        r"^what is .{1,120}\band why (?:does|do|is|are)\b",
     )
     return any(re.search(pattern, normalized) for pattern in patterns)
 
@@ -2644,6 +2646,7 @@ for _conceptual_glossary_regression in (
     "What is the purpose of reciprocity in a community?",
     "What is the significance of human development?",
     "What is the cosmology of the Living Archive?",
+    "What is cosmology, and why does it matter to how people live?",
 ):
     if not _is_conceptual_explanatory_request(_conceptual_glossary_regression):
         raise RuntimeError("USE conceptual inquiry routing invariant failed")
@@ -6214,7 +6217,7 @@ def _established_general_knowledge_recovery(query):
 
     water_boiling_question = bool(
         re.search(r"\bwater\b", normalized)
-        and re.search(r"\bboil(?:ing)? point\b", normalized)
+        and re.search(r"\bboil(?:s|ing)?\b", normalized)
         and re.search(
             r"\b(?:sea level|standard atmospheric pressure|at normal atmospheric pressure|1 atm)\b",
             normalized,
