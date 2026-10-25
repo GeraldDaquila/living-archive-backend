@@ -28,6 +28,7 @@ def test_conceptual_guard_covers_role_purpose_and_significance_queries():
         "What is the role of trust in community stewardship?",
         "What is the purpose of reciprocity in a community?",
         "What is the significance of human development?",
+        "What is the cosmology of the Living Archive?",
     ):
         assert query in SOURCE
 
@@ -364,3 +365,11 @@ def test_concept_alias_expansion_does_not_raise_single_concept_evidence_threshol
     assert "_generic_original_query_terms = set(_generic_query_terms)" in gate
     assert "_generic_min_hits = 1 if len(_generic_original_query_terms) <= 1 else 2" in gate
     assert "Alias expansion broadens candidate discovery; it must not inflate" in gate
+
+
+def test_direct_cosmology_question_enters_conceptual_retrieval_path():
+    detector_start = SOURCE.index("def _is_conceptual_explanatory_request")
+    detector_end = SOURCE.index("# Structural routing invariant", detector_start)
+    detector = SOURCE[detector_start:detector_end]
+    assert "cosmology|worldview|metaphysics|ontology" in detector
+    assert "What is the cosmology of the Living Archive?" in SOURCE

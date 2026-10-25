@@ -2627,6 +2627,8 @@ def _is_conceptual_explanatory_request(query):
         return False
     patterns = (
         r"^what is (?:the )?(?:role|purpose|significance|importance|function|value|contribution|impact|nature|relationship) of\b",
+        # Direct cosmology/worldview questions must enter conceptual retrieval.
+        r"^what is (?:the )?(?:cosmology|worldview|metaphysics|ontology) of\b",
         r"^what are (?:the )?(?:roles|purposes|significance|importance|functions|contributions|impacts|relationships) of\b",
         r"^how does .{1,120} (?:shape|support|contribute to|affect|influence|relate to) .{1,120}",
         r"^why (?:does|do|is|are) .{1,120} (?:matter|important|significant|essential|relevant)\b",
@@ -2640,6 +2642,7 @@ for _conceptual_glossary_regression in (
     "What is the role of trust in community stewardship?",
     "What is the purpose of reciprocity in a community?",
     "What is the significance of human development?",
+    "What is the cosmology of the Living Archive?",
 ):
     if not _is_conceptual_explanatory_request(_conceptual_glossary_regression):
         raise RuntimeError("USE conceptual inquiry routing invariant failed")
