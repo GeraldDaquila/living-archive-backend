@@ -124,11 +124,11 @@ def test_human_review_rubric_has_critical_quality_dimensions_and_no_auto_approva
     assert {"sentence_coherence", "paragraph_purpose_and_concision", "human_voice_and_respect",
             "archive_grounding_and_provenance", "cosmology_fidelity", "fractal_coherence",
             "doorway_relevance_and_timing"} <= dimension_ids
-    assert "cannot approve a lesson" in rubric["review_gate"]
+    assert "human reviewer" in rubric["review_gate"] and "before a lesson can be promoted" in rubric["review_gate"]
 
 
 def test_human_review_rubric_never_promotes_proposed_lessons_automatically():
     suite = json.loads(SUITE_PATH.read_text(encoding="utf-8"))
-    assert "human review" in suite["scoring_policy"]["human_review"]
+    assert "pending structured review template" in suite["scoring_policy"]["human_review"]
     assert all(lesson["status"] == "proposed" for lesson in suite["lessons"])
     assert all(lesson["approval"]["human_approved"] is False for lesson in suite["lessons"])
