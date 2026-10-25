@@ -122,7 +122,7 @@ jobs:
               raise SystemExit("Fragmented-knowledge response source hash does not match primary integration audit")
 
           answer = str(payload.get("response") or "").strip()
-          paragraphs = [p.strip() for p in re.split(r"\\n\\s*\\n+", answer) if p.strip()]
+          paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", answer) if p.strip()]
           if len(paragraphs) != 3:
               raise SystemExit(f"Fragmented-knowledge Gold Standard requires exactly 3 paragraphs; got {len(paragraphs)}: {answer!r}")
           if not re.search(r"(?i)fragmented knowledge impedes wise action", paragraphs[0]):
