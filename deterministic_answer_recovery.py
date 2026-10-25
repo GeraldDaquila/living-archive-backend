@@ -3,7 +3,11 @@ import re
 
 
 def _clean(value):
-    return re.sub(r"\s+", " ", str(value or "")).strip()
+    # Preserve deliberate paragraph breaks in canonical bounded recoveries.
+    # Collapse horizontal spacing within each paragraph without flattening prose.
+    text = str(value or "").replace("\r\n", "\n").replace("\r", "\n")
+    paragraphs = [re.sub(r"[ \t\f\v]+", " ", part).strip() for part in re.split(r"\n\s*\n+", text)]
+    return "\n\n".join(part for part in paragraphs if part)
 
 
 def _subject(question):
@@ -117,7 +121,21 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
 
     # Retrospective accountability must outrank generic decision advice:
     # evaluate process using what was knowable then, not the outcome known now.
-    if _is_historical_cultural_explanation(q):
+    if re.search(r"\b(?:living archive|the archive)\b", lower) and re.search(r"\b(?:what is|what are|define|what does)\b", lower):
+        # Answer institutional orientation at a bounded, established level.
+        # The Guide is an orientation doorway into the Living Archive, which is
+        # a connected body of canonical resources rather than a generic Q&A
+        # service. Do not claim that the current retrieval result is the whole
+        # Archive or invent institutional details not established here.
+        answer = (
+            "The Living Archive is a connected body of resources for exploring ideas, relationships, and patterns across human life. "
+            "The Guide helps visitors find a useful place to begin and see how resources relate, while the Archive itself is broader than any single page or answer.\n\n"
+            "It is not simply a chatbot that produces answers on demand, nor is it one fixed text that exhausts a subject. "
+            "A useful response should explain the question as far as the available evidence allows, distinguish established Archive framing from general explanation, and avoid treating a missing search result as proof that the Archive has nothing more to say.\n\n"
+            "The practical difference is that the Archive is meant to be explored as connected knowledge, with relevant canonical resources serving as doorways into deeper study. "
+            "This is a general institutional orientation, not a claim that the material retrieved for any one question represents the whole Archive."
+        )
+    elif _is_historical_cultural_explanation(q):
         answer = _historical_cultural_recovery()
     elif is_harm_repair_question(q):
         answer = _harm_repair_response()
@@ -196,11 +214,17 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "must be final."
         )
     elif re.search(r"\b(?:what is|what are|define|definition|meaning of|what does .* mean)\b", lower):
+        # A definition question with a clear subject is answerable at the level
+        # of ordinary meaning. Do not substitute a description of how an answer
+        # should be constructed, and do not imply an Archive-specific definition.
+        # Canonical Archive claims still require the normal evidence boundary
+        # before they can be attributed.
+        display_subject = subject[:1].upper() + subject[1:]
         answer = (
-            f"Your question asks for a clear account of {subject}. A useful explanation should establish what the "
-            "term or idea refers to, distinguish it from nearby concepts, and show how it works in a recognizable "
-            "example. The precise meaning can depend on the field or context, so I won't invent a formal or "
-            "Archive-specific definition without that grounding."
+            f"{display_subject} is best understood by what it means and how it operates in practice. "
+            "A useful definition distinguishes the idea from nearby concepts and makes its implications clear. "
+            "The precise meaning can vary by field or institution, so this is a general explanation rather than a "
+            "claim that the Living Archive uses a particular formal definition."
         )
     elif re.search(r"\b(?:meaning|make sense|understand|interpret|reflect|relationship)\b", lower):
         answer = (
@@ -220,8 +244,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     movement = _clean(desired_movement)
     if movement and not is_harm_repair_question(q) and not _is_ethical_tradeoff(q) and not _is_hindsight_accountability(q):
         answer += f" A sensible next step is to focus on {movement.rstrip('.')}."
-    elif not _is_historical_cultural_explanation(q) and not is_harm_repair_question(q) and not _is_ethical_tradeoff(q) and not _is_hindsight_accountability(q):
-        answer += " What detail or context would make this question most concrete for you?"
+    # A generic clarifier is not an acceptable default ending for a question
+    # that reached recovery with a concrete subject. The separate request-boundary
+    # classifier remains responsible for genuinely missing subjects.
     return answer
 
 
