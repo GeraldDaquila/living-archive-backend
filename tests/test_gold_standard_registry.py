@@ -384,6 +384,25 @@ def test_fragmented_knowledge_gold_standard_preserves_approved_response():
     assert "does not independently verify" in record["provenance"]["evidence_boundary"]
 
 
+def test_gold_standard_default_is_default_on_for_ordinary_questions():
+    import sys
+    sys.path.insert(0, str(ROOT))
+    import general_guide_composition as composition
+
+    ordinary_questions = (
+        "What distinguishes leadership from positional authority?",
+        "What role does trust play in a community?",
+        "Explain why fragmented knowledge can lead to poor decisions.",
+        "Can you explain how stewardship works in practice?",
+        "What should a community understand about shared responsibility?",
+    )
+    for query in ordinary_questions:
+        assert composition._requires_three_paragraph_default(query), query
+
+    assert not composition._requires_three_paragraph_default("What is the capital of France?")
+    assert not composition._requires_three_paragraph_default("Please answer in one sentence.")
+
+
 def test_fragmented_knowledge_gold_standard_is_runtime_resolvable_and_three_paragraph_default_is_enforced():
     registry = _registry()
     record = next(
