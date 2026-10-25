@@ -186,10 +186,15 @@ jobs:
                   raise SystemExit(f"{name}: compound explanatory question was misrouted to Glossary")
               if len(paragraphs) < 3 or len(response) < 250:
                   raise SystemExit(f"{name}: explanatory composition lost depth or paragraph structure")
-              if re.search(
-                  r"\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\b|\bUSE\b",
-                  response,
-                  re.I,
+              # Internal labels remain case-insensitive, but the product acronym
+              # USE is reserved for uppercase; the ordinary verb "use" is valid prose.
+              if (
+                  re.search(
+                      r"\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\b",
+                      response,
+                      re.I,
+                  )
+                  or re.search(r"\bUSE\b", response)
               ):
                   raise SystemExit(f"{name}: internal implementation language leaked into visitor prose")
               recommendation = payload.get("recommendation")
@@ -248,10 +253,13 @@ jobs:
                   raise SystemExit(f"{name}: response omitted the distinction from later interpretation")
               if not re.search(r"(?i)recovery before translation|recover.*before.*translat", response):
                   raise SystemExit(f"{name}: response omitted the Archive's recovery-before-translation order")
-              if re.search(
-                  r"\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\b|\bUSE\b",
-                  response,
-                  re.I,
+              if (
+                  re.search(
+                      r"\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\b",
+                      response,
+                      re.I,
+                  )
+                  or re.search(r"\bUSE\b", response)
               ):
                   raise SystemExit(f"{name}: internal implementation language leaked into constitutional response")
               recommendation = payload.get("recommendation")
@@ -282,7 +290,13 @@ jobs:
                   raise SystemExit(f"{name}: explicit stewardship explanation is too thin: chars={len(response)}, paragraphs={len(paragraphs)}")
               if not re.search(r"(?i)^stewardship means", response):
                   raise SystemExit(f"{name}: explicit stewardship request was not answered directly")
-              if re.search(r"(?i)couldn't verify a reliable answer|won't present a guess as fact|separately selected Archive resource|provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer|\bUSE\b", response):
+              if (
+                  re.search(
+                      r"(?i)couldn't verify a reliable answer|won't present a guess as fact|separately selected Archive resource|provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer",
+                      response,
+                  )
+                  or re.search(r"\bUSE\b", response)
+              ):
                   raise SystemExit(f"{name}: limitation-only or machine-facing fallback leaked into visitor prose")
               if re.search(r"(?m)^\s*(?:[-*+]\s+|\d+[.)]\s+)", response):
                   raise SystemExit(f"{name}: plain stewardship explanation used an unsolicited list")
