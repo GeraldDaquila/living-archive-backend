@@ -17,7 +17,7 @@ def test_exact_approved_answer_is_enforced():
 def test_explicit_no_handoff_overrides_recorded_doorway():
     record = {
         "status": "FROZEN_REFERENCE_ONLY",
-        "expected_response": "One.\\n\\nTwo.\\n\\nThree.",
+        "expected_response": "One.\n\nTwo.\n\nThree.",
         "expected_doorway": {"title": "A page", "url": "https://example.org/page"},
         "assertions": ["Exactly three paragraphs.", "The explicit request not to send the visitor to another page forbids direct page handoff."],
         "freeze_policy": "Do not change expected_response.",
