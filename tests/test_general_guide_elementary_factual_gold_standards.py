@@ -89,3 +89,6 @@ def test_cosmology_recovery_is_limited_to_lived_significance_questions():
     assert main._established_archive_cosmology_recovery(
         "What is the cosmology of the Living Archive?"
     ) is None
+    assert main._established_archive_cosmology_recovery(
+        "What is cosmology, and why does it matter to astronomy?"
+    ) is None
