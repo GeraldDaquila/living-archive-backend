@@ -5638,6 +5638,13 @@ def _general_guide_authoritative_doorway(query, context_data):
             # candidate pool lacks a direct subject match, recover public
             # canonical candidates and subject them to the same relevance gate.
             fallback_docs = _wordpress_search_canonical_candidates(query)
+            if comparative_subjects:
+                # Broaden discovery by each compared subject, then retain the
+                # same direct-fit gates below before any doorway is selected.
+                for _subject in comparative_subjects:
+                    fallback_docs.extend(
+                        _wordpress_search_canonical_candidates(_subject, limit=10)
+                    )
             if require_dynasty_title:
                 # A distinctive subject query supplements the general search;
                 # it does not replace the visitor's original query.
