@@ -26,10 +26,29 @@ def test_perception_preserves_visitor_agency_and_avoids_false_intimacy():
 
 
 def test_composition_contract_advances_for_perception_policy():
-    assert guide.CONTRACT_VERSION == "v1.23"
+    assert guide.CONTRACT_VERSION == "v1.24"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.23"
+    assert snapshot["contract_version"] == "v1.24"
     assert snapshot["provider_neutral"] is True
+
+
+def test_stewardship_presentation_is_a_systemwide_explanatory_standard():
+    prompt = guide._GENERAL_GUIDE_SYSTEM
+    assert "System-wide answer presentation standard" in prompt
+    assert "applies to every ordinary Guide topic" in prompt
+    assert "three purposeful paragraphs as the default" in prompt
+    assert "complete before an optional Archive doorway appears" in prompt
+    assert "not only stewardship or Archive-specific questions" in prompt
+    assert "simple, self-contained factual lookup may be one or two sentences" in prompt
+    assert "direct navigation request should give a clear destination" in prompt
+
+
+def test_systemwide_presentation_preserves_humane_voice_and_evidence_boundaries():
+    prompt = guide._GENERAL_GUIDE_SYSTEM
+    assert "humane, patient, natural voice in every subject area" in prompt
+    assert "do not use the evidence limitation as a substitute for answering" in prompt
+    assert "do not fabricate an exhaustive doctrine or canonical list" in prompt
+    assert "The Guide is a doorway into the Living Archive" in prompt
 
 
 def test_responsibility_without_system_repair_has_a_distinct_composition_contract():
