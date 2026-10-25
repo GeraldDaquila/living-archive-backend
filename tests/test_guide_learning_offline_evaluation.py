@@ -75,4 +75,4 @@ def test_learning_suite_does_not_claim_runtime_learning_or_change_frozen_core():
     test_source = (ROOT / "tests" / "test_guide_learning_offline_evaluation.py").read_text(encoding="utf-8")
     assert "not a claim that model learning or automatic scoring is implemented" in suite["purpose"]
     assert "does not train or change runtime behavior" in schema["description"]
-    assert "use_core.py" in test_source
+    assert "import use_core" not in test_source
