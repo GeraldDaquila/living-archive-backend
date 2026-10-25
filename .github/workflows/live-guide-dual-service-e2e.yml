@@ -60,7 +60,7 @@ jobs:
           # recursively walking .git, large document trees, or generated assets.
           tracked_paths = subprocess.check_output(
               ["git", "ls-files", "-z"], stderr=subprocess.STDOUT
-          ).decode("utf-8").split("\\0")
+          ).decode("utf-8").split("\0")
           source_files = []
           for relative_name in tracked_paths:
               if not relative_name or not relative_name.endswith(".py"):
