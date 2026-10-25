@@ -1512,6 +1512,31 @@
         "visitor_e2e_evidence": "Screenshot supplied by user on 2026-10-25 shows the exact query submitted and the three-paragraph answer rendered in the Guide UI, with the expected source doorway and Start another question control."
       },
       "freeze_policy": "Exact-match only. Do not generalize this response to other cosmology questions; broader questions continue through normal evidence-grounded composition."
+    },
+    {
+      "benchmark_id": "general-guide-first-principles-gold-standard-2026-10-25",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What are first principles, and what are the Living Archive’s first principles?",
+      "expected_response": "First principles are the basic ideas or facts you begin with when you want to understand something clearly. Instead of relying only on habit, authority, or what people usually say, you ask what is actually known, what you are assuming, and what follows from those starting points. For example, before deciding whether a community rule is fair, you might begin by asking whom it affects, what purpose it serves, and whether the reasons for it hold up.\n\nWhen you ask about the Living Archive’s first principles, it is important to distinguish the general meaning from a formal list of principles established by the Archive itself. The Archive’s wider work emphasizes careful inquiry, human development, relationships, and stewardship, but I should not present those themes as an official, exhaustive list of first principles unless the relevant source explicitly establishes that. The useful starting point is to examine the published “First Principles” resource rather than inventing a definition on the Archive’s behalf.\n\nFirst-principles thinking helps make the reasoning beneath a belief or decision visible. It gives us a way to separate what we know from what we assume, test whether our conclusions follow, and revise them when the evidence calls for it. In the Living Archive context, that means using foundational questions to understand the ideas being offered while remaining attentive to what the Archive’s own sources do—and do not—claim.",
+      "expected_doorway": {
+        "title": "First Principles",
+        "url": null
+      },
+      "assertions": [
+        "Answer is complete before any optional doorway.",
+        "Exactly three substantive paragraphs, following the General Guide stewardship presentation standard.",
+        "Explains first principles in plain language and gives a recognizable example.",
+        "Separates the general concept from any formal Living Archive-specific list not established by the cited source.",
+        "Does not ask the visitor for clarification before providing a useful answer.",
+        "A single Search submission renders the answer without requiring a second click."
+      ],
+      "provenance": {
+        "source_status": "User-authorized calibration correction based on the visitor-facing regression screenshot dated 2026-10-25.",
+        "source_note": "The visitor UI offered the doorway titled First Principles. Until its full canonical content is verified, this answer explicitly avoids inventing an official exhaustive Archive list.",
+        "approval_note": "Three-paragraph answer-first format is required by the existing stewardship gold standard and the user’s explicit instruction to restore that presentation standard."
+      },
+      "freeze_policy": "Exact-match only. Do not generalize this answer to all questions about first principles; preserve source-grounded composition for other questions."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control."
