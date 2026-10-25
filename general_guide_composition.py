@@ -491,7 +491,7 @@ def _concept_misuse_subject(query: str) -> str:
     """Extract the named concept from a compound definition-and-misuse question."""
     q = _normalize_space(query).strip(" ?.!;:")
     match = re.search(
-        r"\bwhat is\s+(?:a|an|the)\s+(.+?)(?:,?\s+and\s+(?:why|how|when)\b|$)",
+        r"\b(?:what is|what are|define|explain)\s+(?:(?:a|an|the)\s+)?(.+?)(?:,?\s+and\s+(?:why|how|when)\b|$)",
         q, re.I,
     )
     return (match.group(1).strip(" ,;:") if match else "").casefold()
