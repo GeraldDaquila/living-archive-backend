@@ -516,6 +516,37 @@ def _question_requests_enumeration(query: str) -> bool:
     ))
 
 
+def _requires_method_comparison(query: str) -> bool:
+    """Recognize questions comparing distinct methods of inquiry or understanding."""
+    q = _normalize_space(query).casefold()
+    asks_comparison = bool(re.search(
+        r"\b(?:how do .{1,180} differ|how does .{1,180} differ|"
+        r"what is the difference between|differences between|compare .{1,180} and)\b",
+        q,
+    ))
+    methods = (
+        r"\bempirical inquiry\b",
+        r"\bsystems analysis\b",
+        r"\bphilosoph(?:y|ical)\b",
+        r"\bcontemplative reflection\b",
+    )
+    return asks_comparison and sum(bool(re.search(pattern, q)) for pattern in methods) >= 3
+
+
+def _has_method_comparison_coverage(query: str, response: str) -> bool:
+    """Require coverage of every named method rather than generic advice."""
+    q = _normalize_space(query).casefold()
+    answer = _normalize_space(response).casefold()
+    aliases = (
+        (r"\bempirical inquiry\b", r"\bempirical\b|\bobservation\b|\bmeasur(?:e|ement|ed)\b"),
+        (r"\bsystems analysis\b", r"\bsystems? analysis\b|\bfeedback loops?\b|\binterdependen(?:t|ce)\b"),
+        (r"\bphilosoph(?:y|ical)\b", r"\bphilosoph(?:y|ical)\b|\bconceptual reasoning\b"),
+        (r"\bcontemplative reflection\b", r"\bcontemplative reflection\b|\breflect(?:ion|ive)\b|\bawareness\b"),
+    )
+    required = [alias for source, alias in aliases if re.search(source, q)]
+    return len(required) >= 3 and all(re.search(alias, answer) for alias in required)
+
+
 def _requires_concrete_concept_explanation(query: str) -> bool:
     """Identify definition requests for abstract or Archive-specific concepts."""
     q = _normalize_space(query)
@@ -731,6 +762,15 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
             if not re.search(r"\b(?:does not mean|doesn['’]?t mean|controlling everything|sacrificing yourself|within your limits|what is yours to care for)\b", response, re.I):
                 raise ValueError("plain stewardship explanation must clarify the limits of responsibility")
 
+
+        if _requires_method_comparison(query):
+            paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
+            if len(paragraphs) < 3:
+                raise ValueError("method-comparison answer requires the three-paragraph Guide Gold Standard")
+            if not _has_method_comparison_coverage(query, response):
+                raise ValueError("method-comparison answer must distinguish every method named in the visitor question")
+            if re.search(r"\b(?:choose one step|identify the main constraint|before acting|adjust rather than assuming)\b", response, re.I):
+                raise ValueError("method-comparison answer must not be replaced by generic problem-solving advice")
 
         if _requires_concrete_concept_explanation(query):
             paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
