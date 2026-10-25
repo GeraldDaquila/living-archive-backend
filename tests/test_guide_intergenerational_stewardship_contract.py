@@ -46,7 +46,7 @@ def test_recovery_explains_relationship_example_and_bounded_responsibility():
     assert len(answer.split("\n\n")) == 3
     for concept in (
         "what remains possible", "future generations", "for example",
-        "what they inherit", "does not mean", "within our influence",
+        "conditions others will inherit", "does not mean", "within our influence",
     ):
         assert concept in answer.casefold()
 
