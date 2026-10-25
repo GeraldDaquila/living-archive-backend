@@ -16,7 +16,16 @@ _ELIGIBLE_STATUSES = {"FROZEN_REFERENCE_ONLY", "USER_APPROVED_GOLD_STANDARD"}
 
 
 def _normalize_question(value: Any) -> str:
-    return re.sub(r"\s+", " ", str(value or "")).strip().casefold()
+    # Browsers, keyboards, and text pipelines can change typographic apostrophes
+    # without changing the visitor's question. Canonicalize those variants so
+    # exact approved standards still apply, while keeping matching non-fuzzy.
+    text = str(value or "").translate(str.maketrans({
+        "\u2018": "'",
+        "\u2019": "'",
+        "\u02bc": "'",
+        "\uff07": "'",
+    }))
+    return re.sub(r"\s+", " ", text).strip().casefold()
 
 
 def load_approved_standards() -> Dict[str, Dict[str, str]]:
