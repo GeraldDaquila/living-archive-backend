@@ -15,8 +15,8 @@ def test_learning_schema_and_evaluation_suite_are_versioned():
     suite = json.loads(SUITE_PATH.read_text(encoding="utf-8"))
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert schema["properties"]["schema_version"]["const"] == "1.0.0"
-    assert suite["suite_version"] == "1.0.0"
-    assert suite["status"] == "REGISTRY_BASELINE_DEFINED_HELDOUTS_NOT_YET_SCORED"
+    assert suite["suite_version"] == "1.1.0"
+    assert suite["status"] == "LIVE_CAPTURED_HELDOUTS_HAVE_FAILURES_HUMAN_REVIEW_PENDING"
 
 
 def test_registry_is_the_authoritative_gold_standard_floor():
@@ -114,3 +114,21 @@ def test_learning_suite_does_not_claim_runtime_learning_or_change_frozen_core():
         if isinstance(node, ast.ImportFrom) and node.module
     }
     assert "use_core" not in imported_modules
+
+
+def test_human_review_rubric_has_critical_quality_dimensions_and_no_auto_approval():
+    suite = json.loads(SUITE_PATH.read_text(encoding="utf-8"))
+    rubric = suite["human_review_rubric"]
+    dimension_ids = {dimension["id"] for dimension in rubric["dimensions"]}
+    assert set(rubric["critical_dimensions"]) <= dimension_ids
+    assert {"sentence_coherence", "paragraph_purpose_and_concision", "human_voice_and_respect",
+            "archive_grounding_and_provenance", "cosmology_fidelity", "fractal_coherence",
+            "doorway_relevance_and_timing"} <= dimension_ids
+    assert "cannot approve a lesson" in rubric["review_gate"] or "cannot approve a lesson" in rubric["promotion_rule"]
+
+
+def test_human_review_rubric_never_promotes_proposed_lessons_automatically():
+    suite = json.loads(SUITE_PATH.read_text(encoding="utf-8"))
+    assert "human reviewer" in suite["scoring_policy"]["human_review"]
+    assert all(lesson["status"] == "proposed" for lesson in suite["lessons"])
+    assert all(lesson["approval"]["human_approved"] is False for lesson in suite["lessons"])
