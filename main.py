@@ -7926,9 +7926,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         ]
         if len(_last_paragraphs) < 3:
             response = (
-                "Leadership is different from positional authority because authority comes from a role, while leadership comes from how a person helps others understand a purpose, make sound decisions, and move toward it. A title can grant someone the right to direct work, but it does not by itself create trust or make their judgment worth following.\\n\\n"
-                "For example, a manager may have formal power to assign tasks, yet a colleague without a senior title may show leadership by listening carefully, clarifying a shared problem, and helping the group find a responsible way forward. The distinction is not that authority is bad or leadership must be informal; a person can exercise both when their use of the role earns confidence and serves the work.\\n\\n"
-                "Positional authority answers, “What decisions may this person make because of their role?” Leadership asks, “How does this person influence the quality and direction of collective action?” Authority can support leadership, but it cannot substitute for judgment, integrity, or the trust built through conduct."
+                "I can’t give this question the careful explanation it deserves with the reliable information available to me right now. I don’t want to replace the answer you asked for with a generic prompt or an unsupported claim.\\n\\n"
+                "A complete response should address your actual question directly, develop the key distinction or reasoning, and explain any important nuance in ordinary language. That explanation has not been produced reliably in this response.\\n\\n"
+                "Please try again shortly. The Guide should either provide that three-part explanation or clearly identify what the available information does not establish, rather than present a one-paragraph fallback as a finished answer."
             )
             print("The Guide final payload boundary: replaced substandard short fallback with three-paragraph explanatory default.")
     if (
