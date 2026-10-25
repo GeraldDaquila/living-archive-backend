@@ -41,3 +41,23 @@ def test_factual_recovery_does_not_expand_to_unrelated_questions():
     assert main._established_general_knowledge_recovery("What is the best way to govern a community?") is None
     assert main._established_general_knowledge_recovery("How many sides does a square have?") is None
     assert main._established_general_knowledge_recovery("Why does a boat float?") is None
+
+
+def test_water_boiling_point_accepts_temperature_question_paraphrase():
+    result = main._established_general_knowledge_recovery(
+        "At standard atmospheric pressure, what temperature does water boil at?"
+    )
+    assert result is not None
+    assert result["fact_id"] == "water_boiling_point_sea_level"
+    assert "100°C (212°F)" in result["response"]
+
+
+def test_compound_cosmology_question_stays_in_conceptual_general_guide():
+    query = "What is cosmology, and why does it matter to how people live?"
+    assert main._is_conceptual_explanatory_request(query)
+    assert not main._is_bounded_glossary_request(query, glossary_term="cosmology")
+
+
+def test_simple_cosmology_definition_is_not_forced_into_compound_classifier():
+    # The bounded glossary path remains available for a plain definition.
+    assert not main._is_conceptual_explanatory_request("What does cosmology mean?")
