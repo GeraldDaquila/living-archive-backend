@@ -29,8 +29,12 @@ jobs:
   live-browser-acceptance:
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    # The dedicated PR QA backend is not rebuilt for arbitrary pull requests.
+    # Run real WordPress visitor acceptance after the commit reaches main; PRs
+    # remain covered by mocked UI continuity and composition-contract tests.
+    if: github.event_name != 'pull_request'
     env:
-      USE_API_ORIGIN: ${{ github.event_name == 'pull_request' && 'https://guide-water-boiling-pr-qa.onrender.com' || 'https://living-archive-backend.onrender.com' }}
+      USE_API_ORIGIN: https://living-archive-backend.onrender.com
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
