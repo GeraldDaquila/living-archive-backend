@@ -237,3 +237,13 @@ def test_historical_origin_and_evolution_questions_use_explanatory_shape():
     prompt = guide._GENERAL_GUIDE_SYSTEM
     assert "For historical, cultural, or social questions asking where a phenomenon comes from or how it evolved" in prompt
     assert "Never substitute practical self-help advice, a planning framework, or an action checklist unless the visitor asks for one" in prompt
+
+
+
+def test_gold_standard_is_system_wide_floor_and_task_formats_must_earn_exception():
+    prompt = guide._GENERAL_GUIDE_SYSTEM
+    assert "SYSTEM-WIDE GOLD STANDARD FLOOR (default across the entire Guide)" in prompt
+    assert "every visitor-facing response, regardless of topic or specialist route" in prompt
+    assert "The task format changes the shape, never lowers the quality floor" in prompt
+    assert "A specialist's preferred format is not an exception merely because it is specialist-specific" in prompt
+    assert "This floor governs fallbacks too" in prompt
