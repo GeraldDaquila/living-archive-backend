@@ -1,0 +1,201 @@
+{
+  "suite_id": "living-archive-guide-learning-offline-evaluation",
+  "suite_version": "1.0.0",
+  "status": "INITIAL_BASELINE_NOT_YET_SCORED",
+  "purpose": "Evaluate whether proposed reusable lessons generalize beyond the gold-standard questions from which they were derived. This is a curated rubric dataset, not a claim that model learning or automatic scoring is implemented.",
+  "scoring_policy": {
+    "scale": "0-2",
+    "meaning": {
+      "0": "fails or contradicts the criterion",
+      "1": "partially satisfies; material weakness remains",
+      "2": "clearly satisfies"
+    },
+    "promotion_rule": "A human reviewer scores every applicable dimension. No promotion if any critical dimension scores 0, any Archive-specific factual claim lacks canonical support, or any existing approved gold standard regresses.",
+    "held_out_policy": "Held-out cases are not lesson-source questions and must remain separate from lesson extraction/calibration."
+  },
+  "lessons": [
+    {
+      "schema_version": "1.0.0",
+      "lesson_id": "answer-before-doorway",
+      "lesson_version": "1.0.0",
+      "lesson_kind": "answer_composition",
+      "status": "proposed",
+      "lesson": "Give the visitor a complete, direct answer before offering an optional doorway into the Living Archive.",
+      "source_benchmark_ids": [
+        "general-guide-practical-trust-application-2026-10-22",
+        "general-guide-first-principles-gold-standard-2026-10-25"
+      ],
+      "applies_when": [
+        "The visitor asks an answerable explanatory or practical question.",
+        "A relevant canonical Archive page could deepen the answer."
+      ],
+      "does_not_apply_when": [
+        "The visitor explicitly requests navigation only or a direct page handoff."
+      ],
+      "quality_dimensions": [
+        "answer_first",
+        "doorway_relevance",
+        "response_shape"
+      ],
+      "evidence_policy": {
+        "authority": "user_approved_gold_standard",
+        "limits": [
+          "A gold standard demonstrates an accepted example, not a mandatory wording template.",
+          "Do not append an unsolicited doorway when it distracts from a practical answer."
+        ]
+      },
+      "evaluation_case_ids": [
+        "heldout-cosmology-life-001",
+        "heldout-practical-trust-001"
+      ],
+      "approval": {
+        "human_approved": false,
+        "approved_by": null,
+        "approved_at": null,
+        "notes": "Proposed seed lesson; requires review before any runtime use."
+      }
+    },
+    {
+      "schema_version": "1.0.0",
+      "lesson_id": "separate-archive-doctrine-from-general-knowledge",
+      "lesson_version": "1.0.0",
+      "lesson_kind": "general_knowledge_boundary",
+      "status": "proposed",
+      "lesson": "Answer well-established general-knowledge questions directly, while clearly separating general knowledge from claims about the Living Archive's own published position.",
+      "source_benchmark_ids": [
+        "general-guide-water-boiling-point-general-knowledge-gold-standard-2026-10-24",
+        "general-guide-first-principles-gold-standard-2026-10-25"
+      ],
+      "applies_when": [
+        "A question has a well-established general answer.",
+        "The question also mentions, or could be mistaken as describing, the Archive's own doctrine."
+      ],
+      "does_not_apply_when": [
+        "The question asks only for a source-specific claim that cannot be supported by available canonical evidence."
+      ],
+      "quality_dimensions": [
+        "answer_first",
+        "general_knowledge_accuracy",
+        "archive_grounding",
+        "uncertainty_honesty"
+      ],
+      "evidence_policy": {
+        "authority": "mixed_with_explicit_separation",
+        "limits": [
+          "Do not present general knowledge as a Living Archive doctrine.",
+          "Archive-specific claims require traceable canonical evidence."
+        ]
+      },
+      "evaluation_case_ids": [
+        "heldout-water-boiling-point-001",
+        "heldout-cosmology-life-001"
+      ],
+      "approval": {
+        "human_approved": false,
+        "approved_by": null,
+        "approved_at": null,
+        "notes": "Proposed seed lesson; requires review before any runtime use."
+      }
+    },
+    {
+      "schema_version": "1.0.0",
+      "lesson_id": "concrete-humane-explanation",
+      "lesson_version": "1.0.0",
+      "lesson_kind": "human_voice",
+      "status": "proposed",
+      "lesson": "Use clear, natural language and concrete examples; explain the idea before introducing specialist terminology, and do not mistake brevity for clarity.",
+      "source_benchmark_ids": [
+        "general-guide-practical-trust-application-2026-10-22",
+        "general-guide-first-principles-gold-standard-2026-10-25"
+      ],
+      "applies_when": [
+        "The visitor asks for an explanation, significance, or practical application."
+      ],
+      "does_not_apply_when": [
+        "A short direct factual answer fully satisfies a narrow question."
+      ],
+      "quality_dimensions": [
+        "human_voice",
+        "concrete_clarity",
+        "response_shape"
+      ],
+      "evidence_policy": {
+        "authority": "user_approved_gold_standard",
+        "limits": [
+          "Three paragraphs are a proven gold-standard presentation for some explanatory questions, not a universal fixed-length rule.",
+          "Do not force a long format onto a narrow factual query."
+        ]
+      },
+      "evaluation_case_ids": [
+        "heldout-cosmology-life-001",
+        "heldout-practical-trust-001"
+      ],
+      "approval": {
+        "human_approved": false,
+        "approved_by": null,
+        "approved_at": null,
+        "notes": "Proposed seed lesson; requires review before any runtime use."
+      }
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "heldout-water-boiling-point-001",
+      "split": "held_out",
+      "query": "What is the boiling point of water at sea level?",
+      "question_type": "general_fact",
+      "critical_dimensions": [
+        "answer_first",
+        "general_knowledge_accuracy",
+        "uncertainty_honesty"
+      ],
+      "rubric": [
+        "State 100°C (212°F) under standard sea-level atmospheric pressure.",
+        "Explain briefly that boiling point changes with pressure if adding context.",
+        "Do not falsely refuse because the Archive corpus lacks this general fact.",
+        "Do not present this general fact as an Archive doctrine."
+      ],
+      "source_benchmark_ids": []
+    },
+    {
+      "case_id": "heldout-cosmology-life-001",
+      "split": "held_out",
+      "query": "What is cosmology, and why does it matter to how people live?",
+      "question_type": "conceptual_explanation",
+      "critical_dimensions": [
+        "answer_first",
+        "human_voice",
+        "concrete_clarity",
+        "archive_grounding",
+        "doorway_relevance"
+      ],
+      "rubric": [
+        "Define cosmology in plain language before exploring significance.",
+        "Explain how a picture of reality can shape values, choices, or relationships.",
+        "Use at least one concrete example or practical implication.",
+        "Do not invent or attribute an unsupported doctrine to the Living Archive.",
+        "If offering a doorway, make it relevant and optional after the answer."
+      ],
+      "source_benchmark_ids": []
+    },
+    {
+      "case_id": "heldout-practical-trust-001",
+      "split": "held_out",
+      "query": "How can an organization put trust into practice?",
+      "question_type": "practical_application",
+      "critical_dimensions": [
+        "answer_first",
+        "human_voice",
+        "concrete_clarity",
+        "doorway_relevance"
+      ],
+      "rubric": [
+        "Offer concrete, observable actions before any follow-up question.",
+        "Distinguish observable behavior from intentions or slogans.",
+        "Avoid jargon and an unsolicited page handoff.",
+        "Keep length proportionate to the practical question."
+      ],
+      "source_benchmark_ids": []
+    }
+  ]
+}
