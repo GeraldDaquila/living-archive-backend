@@ -134,6 +134,15 @@ def test_main_final_payload_boundary_reapplies_exact_standard_after_rewrites():
     assert 'authoritative_doorway = (' in main_source[resolver_position:payload_position]
 
 
+def test_water_gold_standard_keeps_general_knowledge_provenance():
+    main_source = (ROOT / "main.py").read_text(encoding="utf-8")
+    assert (
+        '_final_gold_standard.get("benchmark_id") == '
+        '"general-guide-water-boiling-point-general-knowledge-gold-standard-2026-10-24"'
+    ) in main_source
+    assert "GS-GENERAL-BOILING-POINT-WATER-001" not in main_source
+
+
 def test_frozen_core_blob_is_not_modified_by_runtime_integration():
     # Guard the protected production core's reviewed identity in CI.
     # The expected SHA is the known unchanged blob for this release line.
