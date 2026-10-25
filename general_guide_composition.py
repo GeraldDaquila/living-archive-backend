@@ -1094,7 +1094,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
         if _requires_three_paragraph_default(query):
             paragraphs = [
                 part.strip()
-                for part in re.split(r"\n\\s*\n+", response)
+                for part in re.split(r"\n\s*\n+", response)
                 if part.strip()
             ]
             if len(paragraphs) < 3:
