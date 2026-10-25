@@ -121,7 +121,14 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
 
     # Retrospective accountability must outrank generic decision advice:
     # evaluate process using what was knowable then, not the outcome known now.
-    if re.search(r"\b(?:living archive|the archive)\b", lower) and re.search(r"\b(?:what is|what are|define|what does)\b", lower):
+    # Only answer the Archive-definition question with the Archive-definition
+    # recovery. A question about another concept "in the Archive's sense" must
+    # not be mistaken for a question asking what the Archive itself is.
+    archive_subject = re.match(
+        r"^(?:the\\s+)?(?:living\\s+)?archive(?:$|[,.!?]|\\s+(?:and\\s+what\\s+is\\s+it\\s+not|itself|as\\s+a\\s+whole|ecosystem|purpose|mission)\\b)",
+        subject.casefold(),
+    )
+    if archive_subject and re.search(r"\\b(?:what is|what are|define|what does)\\b", lower):
         # Constitutional-sensemaking orientation: explain the Archive's purpose,
         # distinguish it from a generic answer engine, and keep evidence,
         # interpretation, uncertainty, and human responsibility visible.
