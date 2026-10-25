@@ -70,3 +70,41 @@ def test_general_composition_returns_registered_answer_before_provider_call(monk
         "What is the boiling point of water at sea level?"
     )["expected_response"]
     assert result["provider"] == "gold_standard_registry"
+
+
+def test_cosmology_question_is_not_replaced_by_an_exact_benchmark_answer(monkeypatch):
+    import general_guide_composition as composition
+
+    query = "What is cosmology, and why does it matter to how people live?"
+    provider_response = (
+        "Cosmology is an account of how the world is understood and how its parts fit together. "
+        "It matters because a person's picture of reality shapes what they notice, what they value, "
+        "and what they believe is possible. For example, if people see themselves as separate from "
+        "one another, they may treat shared problems as someone else's concern; seeing relationships "
+        "as interconnected can make mutual consequences easier to recognize."
+    )
+
+    def provider(**kwargs):
+        return {
+            "parsed": {
+                "response": provider_response,
+                "doorway_title": "The Worldview of a Conscious Human",
+                "response_shape": "explanatory",
+            },
+            "provider": "test-provider",
+            "model": "test-model",
+        }
+
+    monkeypatch.setattr(composition, "route_with_model_bank", provider)
+    result = composition.compose(
+        use_core=object(),
+        query=query,
+        context_data={},
+    )
+
+    assert resolve_exact_gold_standard(query) is None
+    assert result["provider"] == "test-provider"
+    assert result["response"] == provider_response
+    assert "shapes what they notice" in result["response"]
+    assert "The Worldview of a Conscious Human" == result["doorway_title"]
+
