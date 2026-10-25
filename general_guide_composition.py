@@ -1343,6 +1343,8 @@ def enforce_response_contracts(question: str, response: str) -> str:
         candidate = _faithful_stewardship_values_conflict_recovery()
     if _requires_faithful_stewardship_values_conflict(question) and not _has_faithful_stewardship_values_conflict(candidate):
         raise RuntimeError("Faithful-stewardship values-conflict response contract failed after recovery.")
+    if _requires_systems_vs_separate_problems_explanation(question):
+        candidate = _systems_vs_separate_problems_recovery()
     if _requires_method_comparison(question) and (
         len([part for part in re.split(r"\n\s*\n+", candidate) if part.strip()]) < 3
         or not _has_method_comparison_coverage(question, candidate)
