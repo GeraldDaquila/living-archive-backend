@@ -118,3 +118,33 @@ def test_cosmology_question_is_not_replaced_by_an_exact_benchmark_answer(monkeyp
     assert "shapes what they notice" in result["response"]
     assert "The Worldview of a Conscious Human" == result["doorway_title"]
 
+def test_main_final_payload_boundary_reapplies_exact_standard_after_rewrites():
+    main_source = (ROOT / "main.py").read_text(encoding="utf-8")
+    resolver_call = '_final_gold_standard = _resolve_exact_guide_gold_standard(query)'
+    payload_marker = '    payload = {\n        "ok": True,\n        "version": APP_VERSION,'
+    assert resolver_call in main_source
+    assert payload_marker in main_source
+    resolver_position = main_source.index(resolver_call)
+    payload_position = main_source.index(payload_marker, resolver_position)
+    final_contract_position = main_source.index(
+        'general_guide_composition.enforce_response_contracts(query, response)'
+    )
+    assert final_contract_position < resolver_position < payload_position
+    assert 'response = _final_gold_standard["expected_response"]' in main_source
+    assert 'authoritative_doorway = (' in main_source[resolver_position:payload_position]
+
+
+def test_frozen_core_blob_is_not_modified_by_runtime_integration():
+    # Guard the protected production core's reviewed identity in CI.
+    # The expected SHA is the known unchanged blob for this release line.
+    import subprocess
+
+    result = subprocess.run(
+        ["git", "hash-object", "use_core.py"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert result.stdout.strip() == "fb3208a8d287f16562ffd640d89f65d5e8d18607"
+
