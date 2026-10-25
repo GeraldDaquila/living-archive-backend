@@ -14,7 +14,7 @@ def test_user_approved_water_answer_is_enforced_exactly():
     assert result["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert result["expected_response"] == (
         "At sea level, water boils at 100°C (212°F) under standard atmospheric pressure. "
-        "As altitude increases and air pressure decreases, water boils at a lower temperature.\\n\\n"
+        "As altitude increases and air pressure decreases, water boils at a lower temperature.\n\n"
         "The key point is that boiling depends on pressure, not just temperature."
     )
 
@@ -23,7 +23,7 @@ def test_frozen_stewardship_answer_is_enforced_exactly():
     result = resolve_exact_gold_standard("Explain stewardship, but do not send me to another page yet.")
     assert result is not None
     assert result["status"] == "FROZEN_REFERENCE_ONLY"
-    assert len(result["expected_response"].split("\\n\\n")) == 3
+    assert len(result["expected_response"].split("\n\n")) == 3
     assert "does not mean controlling everything" in result["expected_response"]
 
 
