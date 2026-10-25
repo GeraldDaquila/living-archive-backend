@@ -327,3 +327,28 @@ def test_conceptual_fallback_preserves_reciprocity_subject_instead_of_reusing_tr
     assert '_compose_provider_exhaustion_recovery(' in gate
     assert 'conceptual_subject_recovery' in gate
     assert 'Think of a shared garden' in gate
+
+
+def test_general_conceptual_recovery_matches_vetted_source_sentences_to_question():
+    gate = _final_conceptual_gate()
+    assert "General conceptual recovery: answer from relevant sentences" in gate
+    assert "_generic_query_terms" in gate
+    assert "_generic_sentence_candidates" in gate
+    assert "_generic_hits" in gate
+    assert "vetted canonical bodies" in gate
+    assert "question-matched canonical sentences" in gate
+
+
+def test_general_conceptual_recovery_does_not_infer_archive_doctrine_from_doorway_title():
+    gate = _final_conceptual_gate()
+    assert "do not infer Archive doctrine from a title or doorway alone" in gate
+    assert 'if _generic_selected and _generic_query_terms:' in gate
+    assert "if authoritative_doorway:" in gate
+    assert "response = _archive_limitation_response(query)" in gate
+
+
+def test_general_conceptual_recovery_preserves_separate_verified_doorway_and_provenance():
+    gate = _final_conceptual_gate()
+    assert 'composition_context["conceptual_subject_recovery"] = "vetted_sentence_synthesis"' in gate
+    assert 'composition_context["authoritative_doorway"] = authoritative_doorway' in gate
+    assert 'composition_context.pop("evidence_sufficiency_unavailable", None)' in gate
