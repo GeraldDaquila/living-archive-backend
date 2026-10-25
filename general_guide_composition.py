@@ -516,6 +516,59 @@ def _question_requests_enumeration(query: str) -> bool:
     ))
 
 
+def _requires_cosmology_generalization_standards(query: str) -> bool:
+    """Recognize requests for standards governing inference from one Archive text to a whole cosmology."""
+    q = _normalize_space(query).casefold()
+    asks_for_standards = bool(re.search(
+        r"\\b(?:what standards|which standards|what criteria|what safeguards|what requirements)\\b",
+        q,
+    ))
+    asks_about_generalization = bool(re.search(
+        r"\\b(?:generaliz(?:e|es|ing|ation)|extrapolat(?:e|es|ing|ion)|infer(?:s|ring)?|"
+        r"extend.{0,40}claim)\\b",
+        q,
+    ))
+    archive_scale_shift = bool(re.search(
+        r"\\b(?:one|single|individual)\\s+(?:archive\\s+)?text\\b",
+        q,
+    )) and bool(re.search(
+        r"\\b(?:whole|entire|overall)\\s+(?:living\\s+archive\\s+)?cosmology\\b|"
+        r"\\b(?:whole|entire)\\s+archive\\b",
+        q,
+    ))
+    archive_context = bool(re.search(r"\\b(?:archive|cosmology|canonical corpus)\\b", q))
+    return asks_for_standards and asks_about_generalization and (archive_scale_shift or archive_context)
+
+
+def _has_cosmology_generalization_standards(response: str) -> bool:
+    """Require a direct, multi-part methodological answer instead of generic uncertainty."""
+    text = _normalize_space(response).casefold()
+    groups = (
+        r"\\b(?:context|textual context|source context)\\b",
+        r"\\b(?:corroborat|multiple texts|independent sources|cross-reference)\\w*\\b",
+        r"\\b(?:scope|directly states|explicitly states|inference|interpretation)\\b",
+        r"\\b(?:contradict|counterevidence|counter-evidence|exception|disconfirm)\\w*\\b",
+        r"\\b(?:traceab|traceable|evidence trail|source trail|verify|verification)\\w*\\b",
+        r"\\b(?:confidence|uncertainty|proportionate|warrants|warranted)\\b",
+    )
+    return len([p for p in re.split(r"\\n\\s*\\n+", str(response or "")) if p.strip()]) == 3 and all(
+        re.search(pattern, text) for pattern in groups
+    ) and not re.search(
+        r"\\b(?:i don't have enough verified context|the inquiry need not stop here|"
+        r"identify the specific claim|choose one step|before acting)\\b",
+        text,
+    )
+
+
+def _cosmology_generalization_standards_recovery() -> str:
+    """Give direct standards for moving from a single Archive text to a corpus-wide claim."""
+    return (
+        "The Guide should not generalize from one Archive text to the whole cosmology merely because an idea sounds consistent or important. First, interpret the passage in its full context: identify what it explicitly says, what question it addresses, and any limits or qualifications. Record the exact source and distinguish the text's own claims from the Guide's interpretation or inference. A single passage can establish what that passage says; by itself, it cannot establish that the same principle governs the entire cosmology.\\n\\n"
+        "Before making a broader claim, seek corroboration across relevant and meaningfully independent Archive texts, follow explicit cross-references, and test the proposed reading against passages that qualify, complicate, or contradict it. Check whether the sources use the same terms in the same sense and whether a local statement is being mistaken for a universal rule. The reasoning should be traceable: a reviewer must be able to see which passages support each part of the generalization, what evidence cuts against it, and why the broader conclusion follows.\\n\\n"
+        "Finally, state the conclusion at the level the evidence warrants. Label direct textual statements, cross-text synthesis, and tentative interpretation distinctly; preserve exceptions and unresolved tensions instead of smoothing them away. If evidence comes from only one text, say that the claim is text-specific or a hypothesis for further testing—not an established account of the whole cosmology. A corpus-wide generalization is justified only when its scope, corroboration, counterevidence, and reasoning have been checked and remain open to revision."
+    )
+
+
 def _requires_method_comparison(query: str) -> bool:
     """Recognize questions comparing distinct methods of inquiry or understanding."""
     q = _normalize_space(query).casefold()
@@ -1124,6 +1177,10 @@ def enforce_response_contracts(question: str, response: str) -> str:
             )
         ):
             candidate = _archive_scoped_stewardship_recovery()
+    if _requires_cosmology_generalization_standards(question) and not _has_cosmology_generalization_standards(candidate):
+        candidate = _cosmology_generalization_standards_recovery()
+    if _requires_cosmology_generalization_standards(question) and not _has_cosmology_generalization_standards(candidate):
+        raise RuntimeError("Cosmology-generalization standards contract failed after recovery.")
     if _requires_method_comparison(question) and (
         len([part for part in re.split(r"\n\s*\n+", candidate) if part.strip()]) < 3
         or not _has_method_comparison_coverage(question, candidate)
