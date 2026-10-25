@@ -105,7 +105,7 @@ def main():
     assert_true("Do not insert an example into a simple definition or answer when it adds no understanding" in composition._GENERAL_GUIDE_SYSTEM, "example restraint rule missing")
     assert_true("Make the example do explanatory work" in composition._GENERAL_GUIDE_SYSTEM, "example mechanism guidance missing")
     assert_true("Its relevance must be explainable in terms of the visitor's actual question" in composition._GENERAL_GUIDE_SYSTEM, "resource relevance contract missing")
-    assert_true("Let the nature and complexity of the question determine the length" in composition._GENERAL_GUIDE_SYSTEM, "adaptive length guidance missing")
+    assert_true("Let the task determine the substance and exceptions, but keep the default presentation stable" in composition._GENERAL_GUIDE_SYSTEM, "stable three-paragraph default and task-based exceptions missing")
     assert_true("Do not impose a fixed word count" in composition._GENERAL_GUIDE_SYSTEM, "fixed length prohibition missing")
     assert_true("natural, conversational voice" in composition._GENERAL_GUIDE_SYSTEM, "conversational voice guidance missing")
     assert_true("For reflective questions about how to understand, interpret, or respond to a difficult situation, do not default to a numbered sequence of instructions" in composition._GENERAL_GUIDE_SYSTEM, "reflective answers can regress into procedural checklists")
