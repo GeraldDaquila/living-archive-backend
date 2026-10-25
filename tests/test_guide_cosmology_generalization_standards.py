@@ -35,7 +35,7 @@ def test_generic_uncertainty_is_replaced_with_direct_methodological_standards():
     recovered = enforce_response_contracts(QUESTION, generic)
     assert recovered != generic
     assert _has_cosmology_generalization_standards(recovered)
-    assert len(recovered.split("\\n\\n")) == 3
+    assert len(recovered.split("\n\n")) == 3
     for concept in (
         "full context", "corroboration", "contradict", "traceable",
         "evidence warrants", "whole cosmology",
@@ -46,7 +46,7 @@ def test_generic_uncertainty_is_replaced_with_direct_methodological_standards():
 def test_recovery_meets_the_contract():
     answer = _cosmology_generalization_standards_recovery()
     assert _has_cosmology_generalization_standards(answer)
-    assert len(answer.split("\\n\\n")) == 3
+    assert len(answer.split("\n\n")) == 3
 
 
 def test_contract_accepts_complete_standards_and_rejects_single_paragraph():
