@@ -86,6 +86,23 @@ def evaluate_held(case, transport):
     else: out.append(check("known_heldout_case",False,f"No evaluator registered for {cid!r}."))
     return out
 
+def build_human_review_template(rubric, applicable_critical=None):
+    """Return an explicitly pending human scorecard; never auto-approve a response."""
+    dimensions = rubric.get("dimensions", []) if isinstance(rubric, dict) else []
+    dimension_ids = [item.get("id") for item in dimensions if isinstance(item, dict) and item.get("id")]
+    critical = applicable_critical or (rubric.get("critical_dimensions", []) if isinstance(rubric, dict) else [])
+    return {
+        "status": "PENDING",
+        "reviewer": None,
+        "reviewed_at": None,
+        "decision": "PENDING",
+        "critical_dimensions": list(critical),
+        "scores": {dimension_id: None for dimension_id in dimension_ids},
+        "reviewer_notes": "",
+        "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
+    }
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-url",default=PRIMARY)
@@ -98,14 +115,14 @@ def main():
     registry,suite=json.loads(rb),json.loads(sb)
     records=[r for r in registry.get("records",[]) if r.get("subsystem")=="general-purpose-guide" and r.get("status") in {"USER_APPROVED_GOLD_STANDARD","FROZEN_REFERENCE_ONLY"} and r.get("query") and r.get("expected_response")]
     workload=[("gold_standard",x) for x in records]+[("held_out",x) for x in suite.get("cases",[])]
-    report={"report_schema_version":"1.0.0","evaluation_started_at":datetime.now(timezone.utc).isoformat(),"target_base_url":base,"registry_id":registry.get("registry_id"),"registry_status":registry.get("registry_status"),"registry_file_sha256":hashlib.sha256(rb).hexdigest(),"registry_file_commit":file_commit(REGISTRY),"evaluation_suite_id":suite.get("suite_id"),"evaluation_suite_version":suite.get("suite_version"),"evaluation_suite_file_sha256":hashlib.sha256(sb).hexdigest(),"git_commit":subprocess.run(["git","rev-parse","HEAD"],cwd=ROOT,text=True,capture_output=True).stdout.strip() or None,"runtime_identity":None,"gold_standard_count":len(records),"heldout_count":len(suite.get("cases",[])),"results":[]}
+    report={"report_schema_version":"1.0.0","evaluation_started_at":datetime.now(timezone.utc).isoformat(),"target_base_url":base,"registry_id":registry.get("registry_id"),"registry_status":registry.get("registry_status"),"registry_file_sha256":hashlib.sha256(rb).hexdigest(),"registry_file_commit":file_commit(REGISTRY),"evaluation_suite_id":suite.get("suite_id"),"evaluation_suite_version":suite.get("suite_version"),"human_review_rubric_dimensions":[d.get("id") for d in suite.get("human_review_rubric",{}).get("dimensions",[]) if isinstance(d,dict) and d.get("id")],"evaluation_suite_file_sha256":hashlib.sha256(sb).hexdigest(),"git_commit":subprocess.run(["git","rev-parse","HEAD"],cwd=ROOT,text=True,capture_output=True).stdout.strip() or None,"runtime_identity":None,"gold_standard_count":len(records),"heldout_count":len(suite.get("cases",[])),"results":[]}
     for index,(split,item) in enumerate(workload):
         if index and args.delay_seconds>0: time.sleep(args.delay_seconds)
         question=item["query"]; transport=post(base,question); body=transport.get("body")
         body=body if isinstance(body,dict) else None
         checks=evaluate_gold(item,transport) if split=="gold_standard" else evaluate_held(item,transport)
         if body and report["runtime_identity"] is None: report["runtime_identity"]={"version":body.get("version"),"fingerprint":body.get("fingerprint"),"source_sha256":body.get("source_sha256")}
-        report["results"].append({"benchmark_id":item.get("benchmark_id") if split=="gold_standard" else item.get("case_id"),"split":split,"status":item.get("status") if split=="gold_standard" else None,"query":question,"checks":checks,"passed":all(x["passed"] for x in checks),"transport_status":transport.get("status"),"transport_error":transport.get("error"),"response":body.get("response") if body else None,"recommendation":body.get("recommendation") if body else None,"answer_basis":body.get("answer_basis") if body else None,"intent":body.get("intent") if body else None,"processing":body.get("processing") if body else None,"request_id":body.get("request_id") if body else None,"raw_body":transport.get("raw_body")})
+        report["results"].append({"benchmark_id":item.get("benchmark_id") if split=="gold_standard" else item.get("case_id"),"split":split,"status":item.get("status") if split=="gold_standard" else None,"query":question,"checks":checks,"passed":all(x["passed"] for x in checks),"transport_status":transport.get("status"),"transport_error":transport.get("error"),"response":body.get("response") if body else None,"recommendation":body.get("recommendation") if body else None,"answer_basis":body.get("answer_basis") if body else None,"intent":body.get("intent") if body else None,"processing":body.get("processing") if body else None,"request_id":body.get("request_id") if body else None,"raw_body":transport.get("raw_body"),"human_review":build_human_review_template(suite.get("human_review_rubric",{}),item.get("critical_dimensions") if split=="held_out" else None)})
     gold=[x for x in report["results"] if x["split"]=="gold_standard"]; held=[x for x in report["results"] if x["split"]=="held_out"]
     report["summary"]={"gold_standards_passed":sum(x["passed"] for x in gold),"gold_standards_total":len(gold),"heldout_passed":sum(x["passed"] for x in held),"heldout_total":len(held),"failed_gold_standard_ids":[x["benchmark_id"] for x in gold if not x["passed"]],"failed_heldout_ids":[x["benchmark_id"] for x in held if not x["passed"]],"overall_pass":all(x["passed"] for x in report["results"]),"interpretation":"Held-out checks are bounded heuristics requiring human review; no lesson is promoted automatically."}
     report["evaluation_finished_at"]=datetime.now(timezone.utc).isoformat()

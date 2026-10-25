@@ -1,4 +1,4 @@
-from scripts.guide_live_evaluation import evaluate_gold, evaluate_held
+from scripts.guide_live_evaluation import build_human_review_template, evaluate_gold, evaluate_held
 
 
 def test_exact_approved_answer_is_enforced():
@@ -49,3 +49,31 @@ def test_practical_trust_heldout_accepts_concrete_actions():
     transport = {"status": 200, "error": None, "body": {"ok": True, "response": answer, "recommendation": None}}
     checks = evaluate_held(case, transport)
     assert all(item["passed"] for item in checks), checks
+
+
+def test_live_results_receive_pending_human_scorecard_not_auto_approval():
+    rubric = {
+        "critical_dimensions": ["answer_directness", "factual_accuracy"],
+        "dimensions": [
+            {"id": "answer_directness"},
+            {"id": "factual_accuracy"},
+            {"id": "human_voice_and_respect"},
+        ],
+    }
+    scorecard = build_human_review_template(rubric)
+    assert scorecard["status"] == "PENDING"
+    assert scorecard["decision"] == "PENDING"
+    assert scorecard["reviewer"] is None
+    assert scorecard["reviewed_at"] is None
+    assert scorecard["critical_dimensions"] == ["answer_directness", "factual_accuracy"]
+    assert set(scorecard["scores"]) == {"answer_directness", "factual_accuracy", "human_voice_and_respect"}
+    assert all(value is None for value in scorecard["scores"].values())
+    assert "cannot approve" in scorecard["instruction"]
+
+
+def test_human_scorecard_allows_case_specific_critical_dimensions():
+    scorecard = build_human_review_template(
+        {"critical_dimensions": ["default"], "dimensions": [{"id": "accuracy"}]},
+        applicable_critical=["accuracy", "archive_grounding_and_provenance"],
+    )
+    assert scorecard["critical_dimensions"] == ["accuracy", "archive_grounding_and_provenance"]
