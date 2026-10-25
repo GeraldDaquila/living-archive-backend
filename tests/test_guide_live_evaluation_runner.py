@@ -77,3 +77,28 @@ def test_human_scorecard_allows_case_specific_critical_dimensions():
         applicable_critical=["accuracy", "archive_grounding_and_provenance"],
     )
     assert scorecard["critical_dimensions"] == ["accuracy", "archive_grounding_and_provenance"]
+
+
+def test_unspecified_doorway_url_is_not_mistaken_for_required_absence():
+    record = {
+        "status": "FROZEN_REFERENCE_ONLY",
+        "expected_response": "Answer.",
+        "expected_doorway": {"title": "Reciprocity Before Bureaucracy", "url": None},
+        "assertions": ["Offer the optional doorway after the answer."],
+        "freeze_policy": "Preserve the observed accepted response.",
+    }
+    transport = {
+        "status": 200,
+        "error": None,
+        "body": {
+            "ok": True,
+            "response": "Answer.",
+            "recommendation": {
+                "title": "Reciprocity Before Bureaucracy",
+                "url": "https://geralddaquila.com/reciprocity/",
+            },
+        },
+    }
+    checks = evaluate_gold(record, transport)
+    assert all(item["passed"] for item in checks), checks
+    assert not any(item["name"] == "doorway_url" for item in checks)
