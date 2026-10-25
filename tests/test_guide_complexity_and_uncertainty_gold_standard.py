@@ -19,6 +19,6 @@ def test_complexity_uncertainty_question_resolves_to_its_own_gold_standard():
 def test_complexity_uncertainty_standard_preserves_three_paragraphs_and_distinction():
     fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
     answer = fixture["expected_response"]
-    assert len([p for p in answer.split("\\n\\n") if p.strip()]) == 3
+    assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
     assert "Complexity arises" in answer
     assert "Uncertainty is the limit" in answer
