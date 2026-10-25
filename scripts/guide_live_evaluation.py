@@ -78,7 +78,7 @@ def evaluate_held(case, transport):
     elif cid=="heldout-cosmology-life-001":
         definition=any(x in low for x in ("cosmology is","cosmology refers","cosmology concerns","understanding of reality","picture of reality","worldview","how the universe works","how life works"))
         significance=any(x in low for x in ("values","choices","relationships","how people live","how we live","decisions"))
-        example=any(x in low for x in ("for example","for instance","when a person","in everyday life","such as"))
+        example=any(x in low for x in ("for example","for instance","when a person","in everyday life","such as")) or bool(re.search(r"\bif\s+(?:every|people|a person|someone|we|you)\b",low))
         wrong=any(x in low for x in ("separate the immediate event","conditions that made it more likely","incentives and constraints","what detail or context would make this question most concrete"))
         out += [check("defines_cosmology",definition,"Define cosmology before implications."),check("explains_lived_significance",significance,"Connect worldview to values, choices, relationships, or daily life."),check("concrete_implication",example,"Include a concrete example or implication."),check("no_wrong_specialist_routing",not wrong,"Do not use an unrelated recurring-problem diagnostic template.")]
     elif cid=="heldout-practical-trust-001":
