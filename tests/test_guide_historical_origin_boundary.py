@@ -49,3 +49,11 @@ def test_historical_origin_boundary_does_not_rewrite_a_relevant_explanatory_answ
     result = app._guide_finalize_visitor_payload(payload, query)
 
     assert result is payload
+
+
+def test_historical_mismatch_detector_matches_actual_visitor_wording():
+    import main as app
+
+    query = "On surface, the Philippines is very much a macho society. Where is the matriarchal reality come from and how it evolved?"
+    response = "A practical way to approach On surface, the Philippines is very much a macho society. Where is the matriarchal reality come from and how it evolved is to define the outcome you want, identify the main constraint, and choose one step small enough to test."
+    assert app._guide_historical_origin_mismatch(query, response) is True

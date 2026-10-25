@@ -4377,15 +4377,15 @@ def _basic_inquiry_has_internal_annotation(response):
 
 def _guide_historical_origin_mismatch(query, response_text):
     """Detect the known failure where a history question receives generic action-planning prose."""
-    q = re.sub(r"\\s+", " ", _normalize_query(query)).strip().casefold()
-    response = re.sub(r"\\s+", " ", str(response_text or "")).strip().casefold()
+    q = re.sub(r"\s+", " ", _normalize_query(query)).strip().casefold()
+    response = re.sub(r"\s+", " ", str(response_text or "")).strip().casefold()
     historical_question = bool(
-        re.search(r"\\bphilippines\\b", q)
-        and re.search(r"\\b(?:matriarch(?:al|y)|patriarch(?:al|y)|gender roles?)\\b", q)
-        and re.search(r"\\b(?:where|how|origin|evolv|histor|come from|develop)\\b", q)
+        re.search(r"\bphilippines\b", q)
+        and re.search(r"\b(?:matriarch(?:al|y)|patriarch(?:al|y)|gender roles?)\b", q)
+        and re.search(r"\b(?:where|how|origin|evolv|histor|come from|develop)\b", q)
     )
     generic_planning_answer = bool(re.match(
-        r"^(?:a practical way to approach|a practical way to think about|to approach this)\\b",
+        r"^(?:a practical way to approach|a practical way to think about|to approach this)\b",
         response,
     ))
     return historical_question and generic_planning_answer
