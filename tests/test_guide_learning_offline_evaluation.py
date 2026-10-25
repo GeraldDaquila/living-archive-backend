@@ -7,6 +7,8 @@ SUITE_PATH = ROOT / "docs" / "qa" / "guide_learning_evaluation_set.json"
 SCHEMA_PATH = ROOT / "docs" / "qa" / "guide_learning_lesson.schema.json"
 REGISTRY_PATH = ROOT / "docs" / "qa" / "gold_standard_registry.json"
 
+MANDATORY_FLOOR_STATUSES = {"USER_APPROVED_GOLD_STANDARD", "FROZEN_REFERENCE_ONLY"}
+
 
 def test_learning_schema_and_evaluation_suite_are_versioned():
     schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
@@ -14,7 +16,31 @@ def test_learning_schema_and_evaluation_suite_are_versioned():
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert schema["properties"]["schema_version"]["const"] == "1.0.0"
     assert suite["suite_version"] == "1.0.0"
-    assert suite["status"] == "INITIAL_BASELINE_NOT_YET_SCORED"
+    assert suite["status"] == "REGISTRY_BASELINE_DEFINED_HELDOUTS_NOT_YET_SCORED"
+
+
+def test_registry_is_the_authoritative_gold_standard_floor():
+    suite = json.loads(SUITE_PATH.read_text(encoding="utf-8"))
+    registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+    baseline = suite["baseline"]
+    assert baseline["source_of_truth"] == "docs/qa/gold_standard_registry.json"
+    assert set(baseline["selection_policy"]["mandatory_floor_statuses"]) == MANDATORY_FLOOR_STATUSES
+
+    selected = [
+        record for record in registry["records"]
+        if record.get("subsystem") == "general-purpose-guide"
+        and record.get("status") in MANDATORY_FLOOR_STATUSES
+    ]
+    assert selected, "The mandatory floor must be derived from registry records, not duplicated manually."
+    assert all(record.get("query") and record.get("expected_response") for record in selected)
+    assert baseline["regression_rule"]
+    assert baseline["reproducibility"]
+    assert baseline["negative_controls"]
+
+    # Diagnostic/recovered records are not silently promoted into the mandatory floor.
+    for record in registry["records"]:
+        if record.get("status") not in MANDATORY_FLOOR_STATUSES:
+            assert record not in selected
 
 
 def test_proposed_lessons_are_not_mistaken_for_approved_runtime_rules():
@@ -32,7 +58,7 @@ def test_proposed_lessons_are_not_mistaken_for_approved_runtime_rules():
         assert lesson["evaluation_case_ids"]
 
 
-def test_held_out_questions_are_distinct_from_lesson_source_questions():
+def test_held_out_questions_remain_separate_from_registry_baseline():
     suite = json.loads(SUITE_PATH.read_text(encoding="utf-8"))
     registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
     registry_queries = {
