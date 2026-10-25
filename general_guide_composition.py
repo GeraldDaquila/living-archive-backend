@@ -20,7 +20,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.27"
+CONTRACT_VERSION = "v1.28"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -363,6 +363,40 @@ def _is_response_preference_without_subject(query: str, history_text: str = "") 
         or re.search(r"\b(?:institutional responsibility|stewardship|governance|grief|loneliness|meaning|coercion)\b", q)
     )
     return not named_subject
+
+def _requires_three_paragraph_default(query: str) -> bool:
+    """Enforce the default Gold Standard for substantive explanatory questions.
+
+    Explicit requests for brevity and bounded fact lookups remain exceptions;
+    reflective, navigational, and task-specific formats are handled elsewhere.
+    """
+    q = _normalize_space(query).casefold()
+    if not q:
+        return False
+    if re.search(
+        r"\b(?:in one sentence|one sentence|briefly|brief answer|short answer|"
+        r"be concise|keep it concise|in a few words|just the answer)\b",
+        q,
+    ):
+        return False
+    if re.match(
+        r"^(?:how many|how much|how far|what time|what date|which year|"
+        r"how old|what is the boiling point|what is the capital|"
+        r"what percentage|what is the exchange rate)\b",
+        q,
+    ):
+        return False
+    if _requires_distress_sensitive_pacing(q):
+        return False
+    if re.search(
+        r"\b(?:why|what makes|how does|how can|how do|how is|"
+        r"what is the relationship between|what is the connection between|"
+        r"what is the difference between|how does .{1,100} relate to)\b",
+        q,
+    ):
+        return True
+    return False
+
 
 def _question_shape(query: str) -> str:
     q = _normalize_space(query).casefold()
@@ -1053,6 +1087,20 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
             raise ValueError("general composition response is too short")
         if len(response) > 7000:
             raise ValueError("general composition response is too long")
+
+        # The Gold Standard is an enforceable composition contract, not only a
+        # prompt preference. Reject compressed substantive explanatory answers
+        # so the provider bank can retry instead of allowing one paragraph through.
+        if _requires_three_paragraph_default(query):
+            paragraphs = [
+                part.strip()
+                for part in re.split(r"\n\s*\n+", response)
+                if part.strip()
+            ]
+            if len(paragraphs) < 3:
+                raise ValueError(
+                    "substantive explanatory answer must meet the three-paragraph Guide Gold Standard"
+                )
 
         # This question class has a structural contract: reject generic trust/cooperation
         # prose and require an answer about consequences across generations. The final
