@@ -228,3 +228,12 @@ def test_gold_standard_is_the_default_general_presentation_contract():
     assert "Do not append a generic clarification prompt merely to prolong the exchange" in prompt
     assert "place any verified, directly relevant Archive resource in a distinct, clearly labeled doorway section" in prompt
     assert "This is a quality and sequence standard, not a rigid paragraph-count rule" in prompt
+
+
+
+def test_historical_origin_and_evolution_questions_use_explanatory_shape():
+    question = "On surface, the Philippines is very much a macho society. Where is the matriarchal reality come from and how it evolved?"
+    assert guide._question_shape(question) == "explanatory"
+    prompt = guide._GENERAL_GUIDE_SYSTEM
+    assert "For historical, cultural, or social questions asking where a phenomenon comes from or how it evolved" in prompt
+    assert "Never substitute practical self-help advice, a planning framework, or an action checklist unless the visitor asks for one" in prompt
