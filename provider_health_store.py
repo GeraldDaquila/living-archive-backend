@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 import time
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -18,6 +19,12 @@ DEFAULT_URL = "https://geralddaquila.com/wp-json/living-archive/v1/provider-heal
 # Shared WordPress health state is advisory. Keep network stalls from consuming an inference attempt.
 # Local circuit state remains authoritative when the shared bridge is slow or unavailable.
 TIMEOUT_SECONDS = 0.25
+# The shared health bridge is advisory. Briefly open its local circuit after a
+# failed probe so each visitor request does not pay the same network timeout.
+CIRCUIT_COOLDOWN_SECONDS = 5.0
+_CIRCUIT_LOCK = threading.Lock()
+_CIRCUIT_OPEN_UNTIL = 0.0
+_CIRCUIT_PROBE_IN_FLIGHT = False
 STATE_FIELDS = (
     "provider", "model", "operation", "state", "failures", "consecutive_failures",
     "cooldown_until", "quarantine_until", "last_error", "last_success",
@@ -50,9 +57,25 @@ def configuration_status():
     }
 
 def _request(method, payload=None):
+    global _CIRCUIT_OPEN_UNTIL, _CIRCUIT_PROBE_IN_FLIGHT
     url, secret = _configuration()
     if not url:
         return None
+
+    now = time.monotonic()
+    with _CIRCUIT_LOCK:
+        if now < _CIRCUIT_OPEN_UNTIL:
+            print(
+                "USE provider health store circuit: "
+                f"method={method}, state=open, retry_in_seconds={_CIRCUIT_OPEN_UNTIL - now:.1f}"
+            )
+            return None
+        # Only one request probes recovery after the circuit opens. Other
+        # callers fall back locally rather than stampeding the shared bridge.
+        if _CIRCUIT_PROBE_IN_FLIGHT:
+            return None
+        _CIRCUIT_PROBE_IN_FLIGHT = True
+
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
@@ -62,9 +85,6 @@ def _request(method, payload=None):
     }
     request_url = url
     if method == "GET":
-        # WordPress hosting may cache REST GETs even when the response also
-        # carries no-store. A unique nonce guarantees every arbitration reads
-        # the current shared health snapshot rather than a CDN-cached copy.
         separator = "&" if "?" in request_url else "?"
         request_url += separator + "_la_health_nonce=" + str(time.time_ns())
     data = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8") if payload is not None else None
@@ -80,15 +100,20 @@ def _request(method, payload=None):
         outcome = "ok"
         return result
     except (HTTPError, URLError, TimeoutError, OSError, ValueError, json.JSONDecodeError):
-        # Deliberately omit URL, headers, and exception bodies: they may contain
-        # deployment details. The provider bank logs only a generic degradation.
+        # Do not log URLs, headers, exception bodies, or credentials.
         return None
     finally:
         elapsed = time.monotonic() - started
+        with _CIRCUIT_LOCK:
+            _CIRCUIT_PROBE_IN_FLIGHT = False
+            if outcome == "ok":
+                _CIRCUIT_OPEN_UNTIL = 0.0
+            else:
+                _CIRCUIT_OPEN_UNTIL = time.monotonic() + CIRCUIT_COOLDOWN_SECONDS
         print(
             "USE provider health store timing: "
             f"method={method}, outcome={outcome}, elapsed_seconds={elapsed:.3f}, "
-            f"timeout_seconds={TIMEOUT_SECONDS:.1f}"
+            f"timeout_seconds={TIMEOUT_SECONDS:.2f}"
         )
 
 
