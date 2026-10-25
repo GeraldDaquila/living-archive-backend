@@ -121,7 +121,7 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
 
     # Retrospective accountability must outrank generic decision advice:
     # evaluate process using what was knowable then, not the outcome known now.
-    if re.search(r"\\b(?:living archive|the archive)\\b", lower) and re.search(r"\\b(?:what is|what are|define|what does)\\b", lower):
+    if re.search(r"\b(?:living archive|the archive)\b", lower) and re.search(r"\b(?:what is|what are|define|what does)\b", lower):
         # Answer institutional orientation at a bounded, established level.
         # The Guide is an orientation doorway into the Living Archive, which is
         # a connected body of canonical resources rather than a generic Q&A
