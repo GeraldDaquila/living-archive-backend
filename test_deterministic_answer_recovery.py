@@ -8,7 +8,7 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         cases = {
             "Why do public institutions lose trust?": "evidence",
             "How can a community allocate a limited budget?": "outcome",
-            "What is institutional responsibility?": "clear account",
+            "What is institutional responsibility?": "is best understood",
             "Compare personal agency and responsibility.": "comparison",
             "Should we change the policy now?": "decision",
             "Help me understand a difficult situation.": "known",
@@ -66,6 +66,26 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         self.assertIn("define the outcome you want", answer)
         self.assertIn("choose one step small enough to test", answer)
         self.assertNotIn("least power", answer)
+
+    def test_answerable_definition_is_direct_and_not_a_meta_template(self):
+        answer = compose_recovery("What is institutional responsibility?")
+        self.assertIn("is best understood", answer)
+        self.assertIn("general explanation", answer)
+        self.assertNotIn("Your question asks for a clear account", answer)
+        self.assertNotIn("A useful explanation should establish", answer)
+        self.assertNotIn("What detail or context would make this question", answer)
+
+    def test_institutional_orientation_does_not_fall_into_definition_meta_template(self):
+        answer = compose_recovery("What is the Living Archive, and what is it not?")
+        self.assertNotIn("Your question asks for a clear account", answer)
+        self.assertNotIn("A useful explanation should establish", answer)
+        self.assertNotIn("What detail or context would make this question", answer)
+        self.assertGreater(len(answer), 120)
+
+    def test_genuinely_missing_subject_is_handled_by_request_boundary_not_generic_recovery(self):
+        answer = compose_recovery("What is this problem?")
+        self.assertNotIn("What detail or context would make this question", answer)
+        self.assertGreater(len(answer), 80)
 
     def test_never_claims_archive_source_or_provider_success(self):
         answer = compose_recovery("What is institutional responsibility?")
