@@ -7158,6 +7158,51 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     response = _sanitize_basic_inquiry_response(
         general_guide_composition.enforce_response_contracts(query, response)
     )
+    # Apply the default paragraph contract at the final visitor boundary too,
+    # because deterministic recoveries and downstream rewrites can bypass the
+    # provider-candidate parser. One evidence-grounded retry is allowed; if it
+    # still cannot meet the contract, fail honestly in three readable paragraphs.
+    if general_guide_composition._requires_three_paragraph_default(query):
+        _paragraphs = [
+            part.strip()
+            for part in re.split(r"\\n\\s*\\n+", response)
+            if part.strip()
+        ]
+        if len(_paragraphs) < 3:
+            _final_retry = None
+            if reasoning_mode != "deterministic_only":
+                try:
+                    _final_retry = general_guide_composition.compose(
+                        use_core=use_core,
+                        query=query,
+                        context_data=composition_context,
+                        history_text=_history_text(history),
+                        integrity_recovery=True,
+                    )
+                except Exception as exc:
+                    print(
+                        "The Guide final Gold Standard recovery failed safely: "
+                        f"{type(exc).__name__}."
+                    )
+            _retry_text = _sanitize_basic_inquiry_response(
+                str((_final_retry or {}).get("response") or "").strip()
+            )
+            _retry_paragraphs = [
+                part.strip()
+                for part in re.split(r"\\n\\s*\\n+", _retry_text)
+                if part.strip()
+            ]
+            if len(_retry_paragraphs) >= 3:
+                response = _retry_text
+            else:
+                response = (
+                    "I can’t give this question the careful explanation it deserves with the reliable information available to me right now. "
+                    "I don’t want to compress a substantive explanation into a short answer that leaves out the reasoning or important limits.\n\n"
+                    "The right answer depends on addressing the question directly, explaining the relevant relationships or evidence, and making clear what remains uncertain. "
+                    "I have not been able to produce that complete explanation reliably in this response.\n\n"
+                    "Please try again shortly. I will not present an incomplete response as though it met the Guide’s standard, and I will keep any Archive-specific claims bounded by what the available sources support."
+                )
+                print("The Guide final Gold Standard boundary: used three-paragraph fail-honest recovery.")
     if general_guide_composition._requires_responsibility_boundary_answer(query) and not general_guide_composition._has_responsibility_boundary_explanation(response):
         raise RuntimeError("Responsibility-boundary contract failed at final visitor boundary.")
 
@@ -7902,7 +7947,7 @@ def _v48894_general_guide_composition_self_audit():
     if not callable(getattr(general_guide_composition, "compose", None)):
         raise RuntimeError("General Guide composition boundary is missing.")
     snapshot = general_guide_composition.contract_snapshot()
-    if snapshot.get("contract_version") != "v1.27":
+    if snapshot.get("contract_version") != "v1.28":
         raise RuntimeError("General Guide composition contract version drift.")
     if snapshot.get("provider_neutral") is not True:
         raise RuntimeError("General Guide composition lost provider neutrality.")
