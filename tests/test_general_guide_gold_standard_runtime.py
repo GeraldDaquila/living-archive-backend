@@ -157,3 +157,23 @@ def test_frozen_core_blob_is_not_modified_by_runtime_integration():
     )
     assert result.stdout.strip() == "fb3208a8d287f16562ffd640d89f65d5e8d18607"
 
+
+
+def test_first_principles_gold_standard_matches_straight_and_curly_apostrophes(monkeypatch):
+    import general_guide_composition as composition
+
+    curly = "What are first principles, and what are the Living Archive’s first principles?"
+    straight = "What are first principles, and what are the Living Archive's first principles?"
+    expected = resolve_exact_gold_standard(curly)
+    assert expected is not None
+    assert resolve_exact_gold_standard(straight)["expected_response"] == expected["expected_response"]
+
+    def provider_must_not_be_called(**kwargs):
+        raise AssertionError("Provider bank must not replace the approved First Principles answer.")
+
+    monkeypatch.setattr(composition, "route_with_model_bank", provider_must_not_be_called)
+    result = composition.compose(use_core=object(), query=straight, context_data={})
+    assert result["provider"] == "gold_standard_registry"
+    assert result["response"] == expected["expected_response"]
+    assert result["doorway_title"] == "First Principles"
+    assert result["doorway_url"] == "https://geralddaquila.com/first-principles/"
