@@ -2676,18 +2676,18 @@ def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     # model classification cannot turn the Archive-specific question into a
     # dead-end native search. Explicit requests to open the Glossary are exempt.
     explicit_glossary_destination = bool(re.search(
-        r"\\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\\b.{0,60}\\bglossary\\b",
+        r"\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\b.{0,60}\bglossary\b",
         normalized,
         re.I,
     ))
     archive_scoped_meaning = bool(
-        re.search(r"\\b(?:in|within|inside)\\s+the\\s+living\\s+archive\\b", normalized, re.I)
+        re.search(r"\b(?:in|within|inside)\s+the\s+living\s+archive\b", normalized, re.I)
         and re.search(
-            r"^(?:what does|what is|what's|what is the meaning of|meaning of|explain)\\b",
+            r"^(?:what does|what is|what's|what is the meaning of|meaning of|explain)\b",
             normalized,
             re.I,
         )
-        and re.search(r"\\b(?:mean|means|meaning|role|purpose|significance|understand)\\b", normalized, re.I)
+        and re.search(r"\b(?:mean|means|meaning|role|purpose|significance|understand)\b", normalized, re.I)
     )
     if archive_scoped_meaning and not explicit_glossary_destination:
         return False
