@@ -66,9 +66,13 @@ HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5
 # forced an extra repair call; keep a bounded 700-token envelope aligned with the
 # operation floor while retaining provider-level model ceilings.
 HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
-GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 2.8
+# General Guide answers need enough time for real inference, including structured output.
+# The previous 1.25s per-candidate timeout expired before healthy free providers could
+# finish, causing avoidable fail-closed responses even when candidates were available.
+# Keep the attempt count bounded while allowing three candidates inside an 18s window.
+GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 18.0
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 2
-GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 1.25
+GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 6.0
 
 # Only production models with the structured-output capability required by the
 # current Provider Bank contract may enter the JSON operation pool. Live model
