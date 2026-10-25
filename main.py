@@ -7806,29 +7806,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "explanation": "The available Archive material did not establish the requested attribute.",
         }
 
-    # Default Gold Standard presentation: an ordinary explanatory answer is
-    # complete without a promotional/navigation footer. Keep a doorway only when
-    # the visitor asked to find/open a resource, or when an exact approved
-    # reference explicitly registers that destination. This prevents a generic
-    # fallback destination from being appended merely because one is available.
-    _is_resource_seeking_question = bool(re.search(
-        r"\\b(?:where can i find|where do i find|show me|take me to|link me to|"
-        r"find the page|open the page|give me the link|which resource|what resource|"
-        r"where should i start in the archive|what should i read)\\b",
-        query,
-        re.I,
-    ))
-    if (
-        authoritative_doorway
-        and not _is_resource_seeking_question
-        and _resolve_exact_guide_gold_standard(query) is None
-        and not composition_context.get("doorway_relevance_verified")
-    ):
-        authoritative_doorway = None
-        print(
-            "The Guide default presentation boundary: omitted unverified doorway "
-            "from an ordinary explanatory answer."
-        )
+    # Doorway selection is handled by the canonical relevance gate above.
+    # Preserve its result here: absence of an optional provenance flag must not
+    # erase a relevant, already-selected Archive resource. The answer remains
+    # complete without a doorway; when one is selected, it is shown separately.
 
     # Exact approved/frozen gold standards are enforced at the final visitor boundary,
     # after all recovery, discovery, sanitization, and answer-contract rewrites.
