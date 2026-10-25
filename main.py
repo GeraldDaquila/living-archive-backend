@@ -63,7 +63,10 @@ from provider_bank import (
 )
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
-from general_guide_gold_standards import (\n    resolve_exact_gold_standard as _resolve_exact_guide_gold_standard,\n    find_cross_question_standard_response as _find_cross_question_standard_response,\n)
+from general_guide_gold_standards import (
+    resolve_exact_gold_standard as _resolve_exact_guide_gold_standard,
+    find_cross_question_standard_response as _find_cross_question_standard_response,
+)
 from guide_fuzzy_relevance import score_resource_fit as _score_guide_fuzzy_relevance_shadow
 from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery, is_harm_repair_question
 from deterministic_relational_fractal import compose_relational_fractal
