@@ -479,42 +479,42 @@ def _requires_fragmented_knowledge_explanation(query: str) -> bool:
     """Recognize questions about how fragmented knowledge obstructs wise action."""
     q = _normalize_space(query).casefold()
     knowledge_fragmented = bool(re.search(
-        r"\\b(?:fragmented|fragmented\s+up|disconnected|siloed|scattered)\\b.{0,55}\\b(?:knowledge|information|understanding|insight)\\b|"
-        r"\\b(?:knowledge|information|understanding|insight)\\b.{0,55}\\b(?:fragmented|disconnected|siloed|scattered)\\b",
+        r"\b(?:fragmented|fragmented\s+up|disconnected|siloed|scattered)\b.{0,55}\b(?:knowledge|information|understanding|insight)\b|"
+        r"\b(?:knowledge|information|understanding|insight)\b.{0,55}\b(?:fragmented|disconnected|siloed|scattered)\b",
         q,
     ))
     asks_impact = bool(re.search(
-        r"\\b(?:impede|impedes|impeding|undermine|undermines|undermining|hinder|hinders|"
-        r"affect|affects|damage|damages|obstruct|obstructs|why|how)\\b", q
+        r"\b(?:impede|impedes|impeding|undermine|undermines|undermining|hinder|hinders|"
+        r"affect|affects|damage|damages|obstruct|obstructs|why|how)\b", q
     ))
-    wise_action = bool(re.search(r"\\b(?:wise action|wise decisions?|sound judgment|good judgment)\\b", q))
+    wise_action = bool(re.search(r"\b(?:wise action|wise decisions?|sound judgment|good judgment)\b", q))
     return knowledge_fragmented and asks_impact and wise_action
 
 
 def _has_fragmented_knowledge_explanation(response: str) -> bool:
     """Reject generic action checklists that do not explain fragmentation's mechanism."""
-    paragraphs = [p.strip() for p in re.split(r"\\n\\s*\\n+", str(response or "")) if p.strip()]
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
     if len(paragraphs) != 3:
         return False
     first, second, third = paragraphs
     direct_explanation = bool(re.search(
-        r"\\b(?:fragmented|siloed|disconnected|scattered)\\b", first, re.I
-    )) and bool(re.search(r"\\b(?:knowledge|information|understanding)\\b", first, re.I))
+        r"\b(?:fragmented|siloed|disconnected|scattered)\b", first, re.I
+    )) and bool(re.search(r"\b(?:knowledge|information|understanding)\b", first, re.I))
     mechanism = bool(re.search(
-        r"\\b(?:context|relationships|connections|contradict|incomplete|isolated|whole|"
-        r"patterns|trade-offs|consequences|assumptions)\\b", second, re.I
+        r"\b(?:context|relationships|connections|contradict|incomplete|isolated|whole|"
+        r"patterns|trade-offs|consequences|assumptions)\b", second, re.I
     ))
     concrete_example = bool(re.search(
-        r"\\b(?:for example|for instance|imagine|a team|an organization|an organisation|"
-        r"two departments|a community|a decision)\\b", second, re.I
+        r"\b(?:for example|for instance|imagine|a team|an organization|an organisation|"
+        r"two departments|a community|a decision)\b", second, re.I
     ))
     implication = bool(re.search(
-        r"\\b(?:wise|judgment|responsib|uncertaint|limit|humility|check|revise|"
-        r"affected|consequence|decision)\\b", third, re.I
+        r"\b(?:wise|judgment|responsib|uncertaint|limit|humility|check|revise|"
+        r"affected|consequence|decision)\b", third, re.I
     ))
     generic_advice = bool(re.search(
-        r"\\b(?:define the outcome you want|identify the main constraint|"
-        r"choose one step small enough to test|check the result against the original goal)\\b",
+        r"\b(?:define the outcome you want|identify the main constraint|"
+        r"choose one step small enough to test|check the result against the original goal)\b",
         response, re.I
     ))
     return direct_explanation and mechanism and concrete_example and implication and not generic_advice
@@ -523,8 +523,8 @@ def _has_fragmented_knowledge_explanation(response: str) -> bool:
 def _fragmented_knowledge_recovery() -> str:
     """Substantive three-paragraph explanation when generation substitutes generic advice."""
     return (
-        "Fragmented knowledge impedes wise action when useful facts, experience, and perspectives remain separated, so no one can see enough of the situation to judge what a decision may set in motion. A piece of information can be accurate on its own yet misleading when stripped of its context or its relationship to other parts of the problem. Wisdom depends not only on having information, but on understanding how the pieces bear on one another.\\n\\n"
-        "For example, one team may know why a process is failing, another may understand how a proposed fix affects people, and a third may hold the history of earlier attempts. If those insights never meet, a decision can solve the visible symptom while recreating the original problem somewhere else. Bringing the knowledge together helps reveal dependencies, trade-offs, and consequences that no single fragment could show.\\n\\n"
+        "Fragmented knowledge impedes wise action when useful facts, experience, and perspectives remain separated, so no one can see enough of the situation to judge what a decision may set in motion. A piece of information can be accurate on its own yet misleading when stripped of its context or its relationship to other parts of the problem. Wisdom depends not only on having information, but on understanding how the pieces bear on one another.\n\n"
+        "For example, one team may know why a process is failing, another may understand how a proposed fix affects people, and a third may hold the history of earlier attempts. If those insights never meet, a decision can solve the visible symptom while recreating the original problem somewhere else. Bringing the knowledge together helps reveal dependencies, trade-offs, and consequences that no single fragment could show.\n\n"
         "Integration does not mean forcing every view into one story or pretending uncertainty disappears. It means comparing sources, listening to people who hold different parts of the picture, and making clear what is known, what is inferred, and what remains missing. Wise action becomes more likely when decisions reflect the whole available picture, stay open to correction, and account for the people who will live with the consequences."
     )
 
