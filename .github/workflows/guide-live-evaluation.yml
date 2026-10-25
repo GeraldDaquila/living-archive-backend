@@ -1,0 +1,63 @@
+name: Guide Live Evaluation
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_service:
+        description: "Production service to evaluate"
+        type: choice
+        required: true
+        default: primary
+        options:
+          - primary
+          - mirror
+
+permissions:
+  contents: read
+
+concurrency:
+  group: guide-live-evaluation-${{ github.event.inputs.target_service }}
+  cancel-in-progress: false
+
+jobs:
+  live-evaluation:
+    name: Capture and score live Guide responses
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out evaluated source and registry
+        uses: actions/checkout@v4
+
+      - name: Run registry-derived live evaluation
+        id: evaluation
+        continue-on-error: true
+        env:
+          TARGET_SERVICE: ${{ inputs.target_service }}
+        run: |
+          if [ "$TARGET_SERVICE" = "mirror" ]; then
+            BASE_URL="https://living-archive-backend-mirror.onrender.com"
+          else
+            BASE_URL="https://living-archive-backend.onrender.com"
+          fi
+          python scripts/guide_live_evaluation.py \
+            --base-url "$BASE_URL" \
+            --output artifacts/guide-live-evaluation-report.json
+
+      - name: Upload complete response-level report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guide-live-evaluation-${{ inputs.target_service }}-${{ github.run_id }}
+          path: artifacts/guide-live-evaluation-report.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Fail run when a regression or held-out critical check fails
+        if: always()
+        env:
+          EVALUATION_OUTCOME: ${{ steps.evaluation.outcome }}
+        run: |
+          if [ "$EVALUATION_OUTCOME" != "success" ]; then
+            echo "Guide live evaluation found failures. Download the uploaded report and review every failed check."
+            exit 1
+          fi
