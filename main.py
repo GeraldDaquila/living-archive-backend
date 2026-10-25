@@ -9920,6 +9920,10 @@ def ecosystem_integration_audit():
         "audit_contract": "ecosystem-integration-audit-v1",
         "version": APP_VERSION,
         "fingerprint": DEPLOYMENT_FINGERPRINT,
+        # Render supplies this immutable SHA for the deployed commit. Expose it
+        # so production E2E can distinguish same-version patch deployments.
+        "deployment_commit_sha": os.environ.get("RENDER_GIT_COMMIT", "").strip(),
+        "source_sha256": RUNTIME_SOURCE_SHA256,
         "capability_registry": capabilities,
         "runtime_adapters": adapter_ids,
         "direct_handoffs": direct_handoffs,
