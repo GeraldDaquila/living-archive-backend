@@ -25,6 +25,15 @@ def test_frozen_stewardship_answer_is_enforced_exactly():
     assert result["status"] == "FROZEN_REFERENCE_ONLY"
     assert len(result["expected_response"].split("\n\n")) == 3
     assert "does not mean controlling everything" in result["expected_response"]
+    assert result["doorway_title"] == ""
+    assert result["doorway_url"] == ""
+
+
+def test_registered_doorway_is_preserved_when_no_handoff_was_not_requested():
+    result = resolve_exact_gold_standard("What is the significance of human development?")
+    assert result is not None
+    assert result["doorway_title"] == "The First Institution: Why Human Development Begins at Home"
+    assert result["doorway_url"] == "https://geralddaquila.com/2025/06/17/the-first-institution-why-human-development-begins-at-home/"
 
 
 def test_matching_is_case_and_whitespace_insensitive_but_not_fuzzy():
@@ -70,6 +79,7 @@ def test_general_composition_returns_registered_answer_before_provider_call(monk
         "What is the boiling point of water at sea level?"
     )["expected_response"]
     assert result["provider"] == "gold_standard_registry"
+    assert result["doorway_title"] == ""
 
 
 def test_cosmology_question_is_not_replaced_by_an_exact_benchmark_answer(monkeypatch):
