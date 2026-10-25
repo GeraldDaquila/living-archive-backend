@@ -7925,12 +7925,44 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             if part.strip()
         ]
         if len(_last_paragraphs) < 3:
-            response = (
-                "I can’t give this question the careful explanation it deserves with the reliable information available to me right now. I don’t want to replace the answer you asked for with a generic prompt or an unsupported claim.\n\n"
-                "A complete response should address your actual question directly, develop the key distinction or reasoning, and explain any important nuance in ordinary language. That explanation has not been produced reliably in this response.\n\n"
-                "Please try again shortly. The Guide should either provide that three-part explanation or clearly identify what the available information does not establish, rather than present a one-paragraph fallback as a finished answer."
+            # First repair the actual answer using the shared composer and the
+            # same vetted evidence/context as the request. Do not make the
+            # generic recovery template the normal answer to a real question.
+            _last_retry = None
+            if reasoning_mode != "deterministic_only":
+                try:
+                    _last_retry = general_guide_composition.compose(
+                        use_core=use_core,
+                        query=query,
+                        context_data=composition_context,
+                        history_text=_history_text(history),
+                        integrity_recovery=True,
+                    )
+                except Exception as exc:
+                    print(
+                        "The Guide final payload composition retry failed safely: "
+                        f"{type(exc).__name__}."
+                    )
+            _last_retry_text = _sanitize_basic_inquiry_response(
+                str((_last_retry or {}).get("response") or "").strip()
             )
-            print("The Guide final payload boundary: replaced substandard short fallback with three-paragraph explanatory default.")
+            _last_retry_paragraphs = [
+                part.strip()
+                for part in re.split(r"\n\s*\n+", _last_retry_text)
+                if part.strip()
+            ]
+            if len(_last_retry_paragraphs) >= 3:
+                response = _last_retry_text
+                print("The Guide final payload boundary: evidence-grounded three-paragraph recomposition PASS.")
+            else:
+                # Last resort remains explicitly fail-honest; it is not treated
+                # as an acceptable substantive answer and is observable in logs.
+                response = (
+                    "I can’t give this question the careful explanation it deserves with the reliable information available to me right now. I don’t want to replace the answer you asked for with a generic prompt or an unsupported claim.\n\n"
+                    "A complete response should address your actual question directly, develop the key distinction or reasoning, and explain any important nuance in ordinary language. That explanation has not been produced reliably in this response.\n\n"
+                    "Please try again shortly. The Guide should either provide that three-part explanation or clearly identify what the available information does not establish, rather than present a one-paragraph fallback as a finished answer."
+                )
+                print("The Guide final payload boundary: evidence-grounded recomposition failed; used three-paragraph fail-honest recovery.")
     if (
         general_guide_composition._requires_intergenerational_stewardship(query)
         and not general_guide_composition._has_intergenerational_stewardship_explanation(response)
