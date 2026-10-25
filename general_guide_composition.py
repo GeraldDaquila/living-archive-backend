@@ -110,6 +110,7 @@ Choose the response shape that fits the question:
 - For a question asking why something matters, explain both what it is and why it matters in the situation the visitor named.
 - For questions about why the same problem keeps recurring despite sincere effort, explain a plausible mechanism before asking for context: the immediate incident may change while the conditions that reproduce it remain. Name a few possible mechanisms in ordinary language (such as incentives, constraints, handoffs, or a fix that treats symptoms but leaves the cause intact), and use one brief, clearly illustrative example when it makes the mechanism easier to see. Present these as possibilities to investigate, not conclusions about the visitor's case. Give this useful general explanation first; only then invite one optional, focused detail. Do not automatically route this explanatory question into a formal system diagnosis.
 - For a conceptual question, make one useful distinction, tension, or implication when that genuinely clarifies the subject. For historical, cultural, or social questions asking where a phenomenon comes from or how it evolved, explain the origins and development directly, distinguish surface appearances from underlying institutions or practices where relevant, and acknowledge variation and uncertainty. Never substitute practical self-help advice, a planning framework, or an action checklist unless the visitor asks for one.
+- When a visitor asks about a constitutional concept, constitutional reasoning, or the Living Archive’s constitutional framework, ground the explanation in the supplied canonical material. Where supported, explain the concept’s role across the source corpus, its governing relationships to other concepts, the responsibilities or principles that remain stable, and the difference between recovered constitutional architecture and later interpretation. Preserve the Archive’s stated order of work: recovery before translation, and clarity before application. Do not reduce constitutional reasoning to generic “systems thinking,” list generic questions instead of explaining the concept, or claim that a landing page establishes details it does not contain. Use a concrete example only when it clarifies the distinction, and label inference as inference.
 - For questions about taking responsibility for change without becoming responsible for an entire broken system, Separate the visitor’s sphere of influence from what requires shared ownership, wider authority, or other people’s participation. explicitly distinguish responsibility for one's own contribution from accountability for the whole system. acknowledge legitimate limits. First name the specific burden or dilemma contained in the question: seeing a problem can create pressure to carry more than one's fair share. Then explain that personal agency covers choices, actions, and commitments within one's influence; system-level responsibility also belongs to the people, leaders, and institutions with authority, resources, and shared obligations. Do not imply that good intentions, competence, or noticing a gap makes one person responsible for compensating for everyone else's inaction. Give one practical boundary-setting example, such as offering a defined contribution while naming what needs a decision, resource, or commitment from others. Avoid generic task checklists, slogans, and merely rephrasing the question. If a follow-up would help, ask one specific, natural question that helps distinguish the part the visitor can influence from the part that requires shared ownership. Do not assume this is a formal diagnostic request solely because the question mentions a broken system.
 - For a lived or reflective question, be humane and perceptive without diagnosing, therapizing, or pretending to know the visitor's inner history.
 - When a visitor discloses grief or significant distress, do not rush them toward a task, a lesson, or a solution. Begin by reflecting the difficulty they actually named in specific, plain language; avoid formulaic openers such as “I’m sorry you’re feeling this way,” claims about what the loss means, and assumptions about their inner history. If their immediate need is unclear, offer one gentle, open, manageable question that gives them room to say what is hardest without requiring a list or explanation. Keep the response unhurried: recognition first, then one question, and no advice checklist. Grief or impaired functioning alone is not proof of suicidality and must not trigger emergency language by itself. If the visitor signals immediate danger or inability to stay safe, follow the established safety boundary.
@@ -1025,6 +1026,7 @@ def compose(
     query: str,
     context_data: Dict[str, Any],
     history_text: str = "",
+    integrity_recovery: bool = False,
 ) -> Optional[Dict[str, Any]]:
     """Compose one ordinary Guide answer through the provider-neutral bank."""
 
@@ -1040,7 +1042,7 @@ def compose(
     # standards without turning the Guide into a canned-answer service for
     # paraphrases or unrelated questions. Unapproved/recovered records are
     # never eligible for deterministic enforcement.
-    registered_standard = _registered_exact_gold_standard(question)
+    registered_standard = None if integrity_recovery else _registered_exact_gold_standard(question)
     if registered_standard is not None:
         return {
             "response": registered_standard["expected_response"],
@@ -1132,8 +1134,17 @@ def compose(
         if _requires_explicit_followup_invitation(question)
         else ""
     )
+    integrity_recovery_instruction = (
+        "INTEGRITY RECOVERY: A previous candidate answer was detected as an approved reference answer to a different question. "
+        "Do not repeat or paraphrase that unrelated answer. Answer the visitor’s exact question using the supplied canonical material. "
+        "For Archive-specific concepts, distinguish what the source explicitly establishes from inference; if evidence is insufficient, give the best bounded explanation without inventing a formal definition. "
+        "Use the normal Guide quality floor, normally three purposeful paragraphs for a conceptual explanation, followed by a relevant verified doorway only if supported.\n\n"
+        if integrity_recovery
+        else ""
+    )
     user_content = (
         f"Visitor question:\n{question}\n\n"
+        + integrity_recovery_instruction
         + explicit_invitation_instruction
         + practical_application_instruction
         + correction_instruction
@@ -1151,7 +1162,7 @@ def compose(
     cache_key = _composition_cache_key(
         question,
         history_text,
-        shape,
+        shape + ("|integrity_recovery" if integrity_recovery else ""),
         documents,
     )
     now = time.monotonic()
@@ -1168,7 +1179,10 @@ def compose(
         use_core=use_core,
         operation=OPERATION,
         messages=[
-            {"role": "system", "content": _GENERAL_GUIDE_SYSTEM},
+            {"role": "system", "content": _GENERAL_GUIDE_SYSTEM + (
+                "\n\n" + integrity_recovery_instruction.strip()
+                if integrity_recovery_instruction else ""
+            )},
             {"role": "user", "content": user_content[:10000]},
         ],
         max_tokens=900,

@@ -33,8 +33,20 @@ def test_exact_gold_standard_question_remains_frozen_and_eligible():
     assert find_cross_question_standard_response(question, expected["expected_response"]) is None
 
 
-def test_final_response_boundary_rejects_cross_question_standard_reuse():
+def test_final_response_boundary_recomposes_instead_of_using_query_specific_patch():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert "_find_cross_question_standard_response(query, response)" in source
+    assert "integrity_recovery=True" in source
+    assert "retry did not pass question/answer alignment" in source
+    assert 'if "constitutional reasoning" in _normalized_query' not in source
     assert "The Guide response integrity boundary: rejected cross-question" in source
+
+
+def test_composer_has_general_constitutional_grounding_contract():
+    source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
     assert "constitutional reasoning" in source
+    assert "governing relationships" in source
+    assert "recovered constitutional architecture and later interpretation" in source
+    assert "recovery before translation" in source
+    assert "integrity_recovery: bool = False" in source
+    assert "INTEGRITY RECOVERY" in source
