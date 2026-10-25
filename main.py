@@ -7395,6 +7395,19 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 token for token in re.findall(r"[a-z0-9]+", _normalize_query(query))
                 if len(token) > 3 and token not in _generic_stop_terms
             }
+            # A small, explicit conceptual vocabulary bridge allows a query
+            # such as "cosmology" to find adjacent metaphysical/worldview material,
+            # without treating that material as a definitive Archive doctrine.
+            _generic_concept_aliases = {
+                "cosmology": {"metaphysics", "worldview", "creation", "universe", "origins"},
+                "cosmological": {"metaphysics", "worldview", "creation", "universe", "origins"},
+                "worldview": {"cosmology", "metaphysics"},
+                "metaphysics": {"cosmology", "worldview"},
+            }
+            _generic_expanded_terms = set(_generic_query_terms)
+            for _generic_term in tuple(_generic_query_terms):
+                _generic_expanded_terms.update(_generic_concept_aliases.get(_generic_term, set()))
+            _generic_query_terms = _generic_expanded_terms
             _generic_sentence_candidates = []
             for _generic_item in _conceptual_vetted_docs:
                 _generic_doc = _generic_item["doc"]
