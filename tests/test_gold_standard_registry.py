@@ -384,6 +384,26 @@ def test_fragmented_knowledge_gold_standard_preserves_approved_response():
     assert "does not independently verify" in record["provenance"]["evidence_boundary"]
 
 
+def test_gold_standard_rejects_three_paragraph_meta_answer_fallback():
+    import json
+    import sys
+    import pytest
+
+    sys.path.insert(0, str(ROOT))
+    import general_guide_composition as composition
+
+    meta_answer = (
+        "The question about leadership deserves a direct answer, not a guess presented as certainty. "
+        "The most useful next step is to identify the specific claim.\n\n"
+        "The right answer depends on addressing the question directly and explaining the evidence. "
+        "I have not been able to produce that complete explanation reliably in this response.\n\n"
+        "Please try again shortly. I do not want to present an incomplete response as though it met the Guide’s standard."
+    )
+    parser = composition._parse_factory([], "What distinguishes leadership from positional authority?")
+    with pytest.raises(ValueError, match="meta-answer/failure text"):
+        parser(json.dumps({"response": meta_answer}))
+
+
 def test_gold_standard_default_is_default_on_for_ordinary_questions():
     import sys
     sys.path.insert(0, str(ROOT))
