@@ -57,3 +57,26 @@ def test_historical_mismatch_detector_matches_actual_visitor_wording():
     query = "On surface, the Philippines is very much a macho society. Where is the matriarchal reality come from and how it evolved?"
     response = "A practical way to approach On surface, the Philippines is very much a macho society. Where is the matriarchal reality come from and how it evolved is to define the outcome you want, identify the main constraint, and choose one step small enough to test."
     assert app._guide_historical_origin_mismatch(query, response) is True
+
+
+def test_generic_practical_template_is_classified_as_mismatch_for_explanatory_question():
+    import main as app
+
+    query = "Where did the matriarchal reality in the Philippines come from and how did it evolve?"
+    response = (
+        "A practical way to approach this question is to define the outcome you want, "
+        "identify the main constraint, and choose one step small enough to test. "
+        "What detail or context would make this question most concrete for you?"
+    )
+    assert app._guide_generic_practical_template_mismatch(query, response) is True
+
+
+def test_generic_practical_template_remains_available_for_explicit_action_question():
+    import main as app
+
+    query = "How do I make a practical plan to resolve a disagreement with my colleague?"
+    response = (
+        "A practical way to approach this is to define the outcome you want, "
+        "identify the main constraint, and choose one step small enough to test."
+    )
+    assert app._guide_generic_practical_template_mismatch(query, response) is False
