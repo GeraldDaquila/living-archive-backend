@@ -50,7 +50,8 @@ jobs:
           # so they cannot prove that deployed Python modules include this commit.
           root_path = Path(".")
           excluded_parts = {
-              "__pycache__", ".git", ".venv", "venv", "QA", "scripts", "node_modules",
+              ".git", ".venv", "venv", "__pycache__", ".pytest_cache",
+              "tests", "QA", "scripts", "node_modules",
           }
           source_files = []
           for path in root_path.rglob("*.py"):
