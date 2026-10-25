@@ -90,6 +90,22 @@ def _is_ethical_tradeoff(question):
     return competing_values and asks_for_judgment
 
 
+def _is_historical_cultural_explanation(question):
+    """Keep origins/evolution questions out of generic practical advice."""
+    q = _clean(question).casefold()
+    origin = re.search(r"\b(?:where .{0,80} come from|how .{0,80} evolved|origins? of|histor(?:y|ical)|evol(?:ve|ved|ution)|roots? of|how did .{0,100} change)\b", q)
+    culture = re.search(r"\b(?:culture|cultural|society|social|philippines|filipin[oa]s?|matriarch(?:y|al)|patriarch(?:y|al)|gender|macho|kinship|religion|colonial|tradition|customs?)\b", q)
+    return bool(origin and culture)
+
+
+def _historical_cultural_recovery():
+    return (
+        "The apparent contradiction between a macho public culture and women's substantial influence at home is not necessarily a contradiction. Public ideals about masculinity do not tell us, by themselves, who manages household resources, sustains family networks, makes everyday decisions, or holds influence across generations. In the Philippines, women's roles have varied across regions, classes, periods, and communities; it is more accurate to speak of overlapping forms of authority than to describe the whole society as simply matriarchal or patriarchal.\n\n"
+        "The historical picture has several layers. Many accounts of precolonial Philippine communities describe women exercising economic, ritual, or leadership roles, though these roles were not identical everywhere. Spanish colonial rule and the spread of Catholic institutions strengthened patriarchal ideals in law, religion, and public respectability, without erasing women's work, property interests, kinship influence, or practical authority within families. Later economic change, migration, education, and women's paid work also reshaped how authority and responsibility were negotiated.\n\n"
+        "So the useful distinction is between a public language that can reward masculine dominance and the less visible relationships through which women exercise influence and carry responsibility. Neither story describes every Filipino family, and influence within a family is not the same as equal power across society. To trace the evolution precisely, we would need to distinguish the period and region being discussed and compare historical evidence rather than treating Filipino culture as one unchanging thing."
+    )
+
+
 def compose_recovery(question, *, underlying_question="", desired_movement=""):
     """Offer a useful bounded response without inventing facts or sources."""
     q = _clean(question)
@@ -100,7 +116,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
 
     # Retrospective accountability must outrank generic decision advice:
     # evaluate process using what was knowable then, not the outcome known now.
-    if is_harm_repair_question(q):
+    if _is_historical_cultural_explanation(q):
+        answer = _historical_cultural_recovery()
+    elif is_harm_repair_question(q):
         answer = _harm_repair_response()
     elif _is_hindsight_accountability(q):
         answer = (
@@ -201,7 +219,7 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     movement = _clean(desired_movement)
     if movement and not is_harm_repair_question(q) and not _is_ethical_tradeoff(q) and not _is_hindsight_accountability(q):
         answer += f" A sensible next step is to focus on {movement.rstrip('.')}."
-    elif not is_harm_repair_question(q) and not _is_ethical_tradeoff(q) and not _is_hindsight_accountability(q):
+    elif not _is_historical_cultural_explanation(q) and not is_harm_repair_question(q) and not _is_ethical_tradeoff(q) and not _is_hindsight_accountability(q):
         answer += " What detail or context would make this question most concrete for you?"
     return answer
 
@@ -253,3 +271,14 @@ if "What detail or context would make this question" in _harm_repair_answer:
     raise RuntimeError("Harm-repair recovery contract failed: generic follow-up leaked.")
 if is_harm_repair_question("How do I repair a bicycle tire?"):
     raise RuntimeError("Harm-repair recovery contract failed: ordinary repair question misclassified.")
+
+_historical_cultural_question = "On surface, the Philippines is very much a macho society. Where is the matriarchal reality come from and how it evolved?"
+_historical_cultural_answer = compose_recovery(_historical_cultural_question)
+if not _is_historical_cultural_explanation(_historical_cultural_question):
+    raise RuntimeError("Historical-cultural recovery contract failed: question was not classified.")
+if "A practical way to approach" in _historical_cultural_answer or "What detail or context" in _historical_cultural_answer:
+    raise RuntimeError("Historical-cultural recovery contract failed: generic practical template leaked.")
+if len(_historical_cultural_answer.split("\n\n")) != 3:
+    raise RuntimeError("Historical-cultural recovery contract failed: Gold Standard paragraph structure lost.")
+if not all(term in _historical_cultural_answer.casefold() for term in ("precolonial", "colonial", "public")):
+    raise RuntimeError("Historical-cultural recovery contract failed: historical explanation incomplete.")
