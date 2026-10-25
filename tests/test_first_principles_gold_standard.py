@@ -18,7 +18,7 @@ def test_first_principles_gold_standard_is_three_paragraphs_and_source_grounded(
 
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["query"] == QUERY
-    assert len(record["expected_response"].split("\\n\\n")) == 3
+    assert len(record["expected_response"].split("\n\n")) == 3
     assert record["expected_doorway"] == {
         "title": "First Principles",
         "url": "https://geralddaquila.com/first-principles/",
