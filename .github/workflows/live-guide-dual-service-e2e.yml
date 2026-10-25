@@ -200,7 +200,7 @@ jobs:
                       f"status={status}, version={payload.get('version')}"
                   )
               response = str(payload.get("response") or "").strip()
-              paragraphs = [part.strip() for part in re.split(r"\\n\\s*\\n+", response) if part.strip()]
+              paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
               if payload.get("processing") != "basic_inquiry":
                   raise SystemExit(
                       f"{name}: constitutional reasoning left General Guide composition: "
@@ -232,7 +232,7 @@ jobs:
               if not re.search(r"(?i)recovery before translation|recover.*before.*translat", response):
                   raise SystemExit(f"{name}: response omitted the Archive's recovery-before-translation order")
               if re.search(
-                  r"\\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\\b|\\bUSE\\b",
+                  r"\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\b|\bUSE\b",
                   response,
                   re.I,
               ):
