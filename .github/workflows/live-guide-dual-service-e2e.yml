@@ -215,6 +215,45 @@ jobs:
                   f"recommendation={title}; url={url}"
               )
 
+          # Exact visitor-reported regression: the intergenerational relationship
+          # must retain the three-paragraph Gold Standard at the final API boundary.
+          intergenerational_query = "How does stewardship relate to intergenerational responsibility?"
+          for name, base_url in services.items():
+              status, payload = post_query(base_url, intergenerational_query, timeout=120)
+              if status != 200 or payload.get("version") != expected_version:
+                  raise SystemExit(
+                      f"{name}: intergenerational stewardship request failed: "
+                      f"status={status}, version={payload.get('version')}"
+                  )
+              response = str(payload.get("response") or "").strip()
+              paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
+              if len(paragraphs) != 3:
+                  raise SystemExit(
+                      f"{name}: intergenerational Gold Standard must have exactly 3 paragraphs; "
+                      f"got {len(paragraphs)}: {response!r}"
+                  )
+              required_groups = (
+                  r"(?i)stewardship",
+                  r"(?i)intergenerational responsibility|future generations|people who come after",
+                  r"(?i)for example|in practice",
+                  r"(?i)does not mean|doesn't mean|not about",
+                  r"(?i)within our influence|reasonable care|responsibility",
+              )
+              for pattern in required_groups:
+                  if not re.search(pattern, response):
+                      raise SystemExit(
+                          f"{name}: intergenerational answer missed required Gold Standard content "
+                          f"{pattern!r}: {response!r}"
+                      )
+              if re.search(r"(?i)think of a shared garden|trust helps people in a community rely on one another", response):
+                  raise SystemExit(f"{name}: visitor-reported generic garden fallback was not replaced")
+              if re.search(r"(?i)\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\b|\bUSE\b", response):
+                  raise SystemExit(f"{name}: internal implementation language leaked into intergenerational answer")
+              print(
+                  f"{name}: intergenerational Gold Standard PASS; "
+                  f"paragraphs={len(paragraphs)}; response_chars={len(response)}"
+              )
+
           # Production integrity-recovery regression: a constitutional-reasoning
           # question must not receive the approved Living Archive definition answer.
           # This directly exercises the provider-backed recovery path on both services.
