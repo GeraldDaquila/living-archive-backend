@@ -540,12 +540,12 @@ def _requires_archive_scoped_meaning(query: str) -> bool:
     """Require the full Guide explanatory standard for Archive-scoped meaning questions."""
     q = _normalize_space(query)
     asks_meaning = bool(re.search(
-        r"^(?:what does|what is|what's|explain|define)\\b",
+        r"^(?:what does|what is|what's|explain|define)\b",
         q,
         re.I,
-    )) and bool(re.search(r"\\b(?:mean|meaning|definition|understand|role|purpose)\\b", q, re.I))
+    )) and bool(re.search(r"\b(?:mean|meaning|definition|understand|role|purpose)\b", q, re.I))
     archive_scope = bool(re.search(
-        r"\\b(?:in|within|inside)\\s+the\\s+living\\s+archive\\b|\\bthe living archive['’]s\\b",
+        r"\b(?:in|within|inside)\s+the\s+living\s+archive\b|\bthe living archive['’]s\b",
         q,
         re.I,
     ))
