@@ -16,7 +16,7 @@ _ELIGIBLE_STATUSES = {"FROZEN_REFERENCE_ONLY", "USER_APPROVED_GOLD_STANDARD"}
 
 
 def _normalize_question(value: Any) -> str:
-    return re.sub(r"\\s+", " ", str(value or "")).strip().casefold()
+    return re.sub(r"\s+", " ", str(value or "")).strip().casefold()
 
 
 def load_approved_standards() -> Dict[str, Dict[str, str]]:
