@@ -1,6 +1,5 @@
 """Regression tests for compound concept-and-misuse questions."""
 
-import pytest
 
 from general_guide_composition import (
     _has_concept_misuse_explanation,
@@ -24,6 +23,9 @@ def test_compound_definition_and_misuse_question_is_classified():
     assert _requires_concept_misuse_explanation(QUERY)
     assert _requires_concept_misuse_explanation(
         "What is a leverage point, and how can it be exploited?"
+    )
+    assert _requires_concept_misuse_explanation(
+        "What are leverage points, and why are they misused?"
     )
 
 
