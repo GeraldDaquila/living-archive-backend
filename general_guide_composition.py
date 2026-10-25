@@ -696,6 +696,17 @@ def _faithful_stewardship_values_conflict_recovery() -> str:
     )
 
 
+def _requires_systems_vs_separate_problems_explanation(query: str) -> bool:
+    q = _normalize_space(query).casefold()
+    return bool(re.search(r"\b(?:what makes|what distinguishes|how is|how does|when does)\b", q) and re.search(r"\b(?:system|systems)\b", q) and re.search(r"\b(?:rather than|instead of|as opposed to|collection of|separate problems?|isolated problems?)\b", q))
+
+
+def _systems_vs_separate_problems_recovery() -> str:
+    return ("A situation is a system when its parts are connected in ways that shape one another, so the overall situation cannot be fully understood as a collection of separate problems. The parts may be people, roles, rules, resources, routines, or environmental conditions. What matters is not simply that several problems appear together, but that relationships among them influence what happens: a change in one part can alter the conditions faced by others and change the situation as a whole.\n\n"
+    "Look for patterns of interaction, dependencies, and feedback. For example, delays in one team may increase pressure on another team, which then rushes work and creates errors that send work back to the first team. Each issue can look like a separate problem when viewed alone, but their interaction forms a reinforcing loop. A system may also contain balancing feedback, bottlenecks, shared incentives, or rules that repeatedly produce the same outcomes even when individuals try to solve the immediate symptoms.\n\n"
+    "The practical test is whether understanding the connections explains more than a list of isolated issues would. Ask what depends on what, which effects return to influence their causes, and what conditions keep the pattern going. Not every cluster of problems is one system; the relationships must be evidenced rather than assumed. The Guide should explain this distinction first. A diagnostic tool such as FSD can be offered afterward if you want to map a specific real-world pattern, but it should not replace the answer to the conceptual question.")
+
+
 def _requires_method_comparison(query: str) -> bool:
     """Recognize questions comparing distinct methods of inquiry or understanding."""
     q = _normalize_space(query).casefold()
@@ -1332,6 +1343,8 @@ def enforce_response_contracts(question: str, response: str) -> str:
         candidate = _faithful_stewardship_values_conflict_recovery()
     if _requires_faithful_stewardship_values_conflict(question) and not _has_faithful_stewardship_values_conflict(candidate):
         raise RuntimeError("Faithful-stewardship values-conflict response contract failed after recovery.")
+    if _requires_systems_vs_separate_problems_explanation(question):
+        candidate = _systems_vs_separate_problems_recovery()
     if _requires_method_comparison(question) and (
         len([part for part in re.split(r"\n\s*\n+", candidate) if part.strip()]) < 3
         or not _has_method_comparison_coverage(question, candidate)
