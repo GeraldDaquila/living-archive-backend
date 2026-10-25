@@ -7403,17 +7403,17 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     _generic_doc.get("url") or _generic_doc.get("canonical_url") or ""
                 ).strip()
                 if not _generic_body or not re.match(
-                    r"^https://geralddaquila\\.com/\\S+$", _generic_url, re.I
+                    r"^https://geralddaquila\.com/\S+$", _generic_url, re.I
                 ):
                     continue
-                for _generic_sentence in re.split(r"(?<=[.!?])\\s+", _generic_body):
-                    _generic_sentence = re.sub(r"\\s+", " ", _generic_sentence).strip()
+                for _generic_sentence in re.split(r"(?<=[.!?])\s+", _generic_body):
+                    _generic_sentence = re.sub(r"\s+", " ", _generic_sentence).strip()
                     if len(_generic_sentence) < 45 or len(_generic_sentence) > 600:
                         continue
                     _generic_normalized_sentence = _normalize_query(_generic_sentence)
                     _generic_hits = {
                         term for term in _generic_query_terms
-                        if re.search(r"\\b" + re.escape(term) + r"\\b", _generic_normalized_sentence)
+                        if re.search(r"\b" + re.escape(term) + r"\b", _generic_normalized_sentence)
                     }
                     _generic_min_hits = 1 if len(_generic_query_terms) <= 1 else 2
                     if len(_generic_hits) >= _generic_min_hits:
