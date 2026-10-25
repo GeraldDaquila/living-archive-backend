@@ -1,0 +1,16 @@
+{
+  "benchmark_id": "general-guide-identifying-what-is-held-in-trust-gold-standard-2026-10-25",
+  "query": "How does one identify what is being held in trust in a given situation?",
+  "expected_response": "To identify what is being held in trust, look for what has been placed in someone's care, authority, or keeping without becoming theirs to use only for personal advantage. It may be a responsibility, a relationship, a resource, a promise, knowledge, a role, or a shared place. Ask what was entrusted, explicitly or implicitly, and what would be lost or damaged if it were neglected or misused. The answer is not always an object; sometimes what is entrusted is another person's confidence, a duty, or the ability to make a decision responsibly.\n\nNext, identify who or what depends on that care and what obligations follow. Consider the people affected, the purpose for which the thing was entrusted, the promises or rules that govern it, and any limits on the holder's authority. For example, a manager may be entrusted with a team's time and information: the duty is not to treat them as personal property, but to use them fairly, protect confidentiality, and explain decisions that affect the team. Different situations create different duties, so the context and the voices of those affected matter.\n\nFinally, test the interpretation by asking what responsible care would preserve, what misuse or neglect would look like, and where the holder's authority ends. Something is held in trust when care is owed beyond mere ownership or convenience: there is a purpose, a relationship of reliance, and an obligation to act with regard for those affected. Be explicit about what is known, what is inferred, and what remains unclear rather than assuming every responsibility is unlimited or belongs to one person alone.",
+  "expected_doorway": {
+    "title": "Simulation No. 10 — The Trust Exchange",
+    "url": ""
+  },
+  "assertions": [
+    "Three paragraphs.",
+    "Names entrusted subject, beneficiaries, duties, and limits.",
+    "Distinguishes care from ownership and identifies misuse or neglect.",
+    "Separates known, inferred, and unclear.",
+    "No generic action-planning fallback."
+  ]
+}

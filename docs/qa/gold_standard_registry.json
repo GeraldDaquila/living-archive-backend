@@ -1656,6 +1656,33 @@
         "evidence_boundary": "Screenshot confirms the displayed answer, three-paragraph structure, and visible doorway title. It does not independently verify canonical source traceability, destination URL, or backend runtime identity."
       },
       "freeze_policy": "Preserve expected_response verbatim. Do not change wording or doorway title without explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-identifying-what-is-held-in-trust-gold-standard-2026-10-25",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How does one identify what is being held in trust in a given situation?",
+      "expected_response": "To identify what is being held in trust, look for what has been placed in someone's care, authority, or keeping without becoming theirs to use only for personal advantage. It may be a responsibility, a relationship, a resource, a promise, knowledge, a role, or a shared place. Ask what was entrusted, explicitly or implicitly, and what would be lost or damaged if it were neglected or misused. The answer is not always an object; sometimes what is entrusted is another person's confidence, a duty, or the ability to make a decision responsibly.\n\nNext, identify who or what depends on that care and what obligations follow. Consider the people affected, the purpose for which the thing was entrusted, the promises or rules that govern it, and any limits on the holder's authority. For example, a manager may be entrusted with a team's time and information: the duty is not to treat them as personal property, but to use them fairly, protect confidentiality, and explain decisions that affect the team. Different situations create different duties, so the context and the voices of those affected matter.\n\nFinally, test the interpretation by asking what responsible care would preserve, what misuse or neglect would look like, and where the holder's authority ends. Something is held in trust when care is owed beyond mere ownership or convenience: there is a purpose, a relationship of reliance, and an obligation to act with regard for those affected. Be explicit about what is known, what is inferred, and what remains unclear rather than assuming every responsibility is unlimited or belongs to one person alone.",
+      "expected_doorway": {
+        "title": "Simulation No. 10 — The Trust Exchange",
+        "url": null
+      },
+      "assertions": [
+        "Exactly three substantive paragraphs following identification, obligations, and contextual testing.",
+        "Identifies what may be entrusted, including responsibility, relationship, resource, promise, knowledge, role, or shared place.",
+        "Identifies affected people, purpose, obligations, governing promises/rules, and limits of authority.",
+        "Distinguishes responsible care from ownership, misuse, neglect, and unlimited responsibility.",
+        "Distinguishes what is known, inferred, and unclear.",
+        "Does not replace the conceptual question with generic action-planning advice.",
+        "Suggested doorway title is recorded from the screenshot; URL remains unset pending verification."
+      ],
+      "provenance": {
+        "source_path": "visitor-facing Guide screenshot supplied by user on 2026-10-25",
+        "source_ref": "user-approved screenshot in conversation dated 2026-10-25",
+        "source_status": "USER_APPROVED_GOLD_STANDARD",
+        "evidence_boundary": "Screenshot confirms the displayed response and presentation; it does not prove the doorway destination or generalization across held-out queries."
+      },
+      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control.",
