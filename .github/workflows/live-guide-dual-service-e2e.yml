@@ -186,10 +186,15 @@ jobs:
                   raise SystemExit(f"{name}: compound explanatory question was misrouted to Glossary")
               if len(paragraphs) < 3 or len(response) < 250:
                   raise SystemExit(f"{name}: explanatory composition lost depth or paragraph structure")
-              if re.search(
-                  r"\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\b|\bUSE\b",
-                  response,
-                  re.I,
+              # Internal labels remain case-insensitive, but the product acronym
+              # USE is reserved for uppercase; the ordinary verb "use" is valid prose.
+              if (
+                  re.search(
+                      r"\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\b",
+                      response,
+                      re.I,
+                  )
+                  or re.search(r"\bUSE\b", response)
               ):
                   raise SystemExit(f"{name}: internal implementation language leaked into visitor prose")
               recommendation = payload.get("recommendation")
