@@ -32,10 +32,9 @@ jobs:
       - name: Wait for both production services and verify the live clarification boundary
         run: |
           python - <<'PY'
-          import hashlib
           import json
+          import os
           import re
-          import subprocess
           import time
           import urllib.error
           import urllib.parse
@@ -48,38 +47,13 @@ jobs:
               raise SystemExit("Cannot determine expected production version from main.py")
           expected_version = match.group(1)
 
-          # Match the exact runtime source manifest, not just APP_VERSION. The
-          # version/fingerprint intentionally remain stable across small patches,
-          # so they cannot prove that deployed Python modules include this commit.
-          root_path = Path(".")
-          excluded_parts = {
-              ".git", ".venv", "venv", "__pycache__", ".pytest_cache",
-              "tests", "QA", "scripts", "node_modules",
-          }
-          # Git's tracked-file index gives the same deployed source set without
-          # recursively walking .git, large document trees, or generated assets.
-          tracked_paths = subprocess.check_output(
-              ["git", "ls-files", "-z"], stderr=subprocess.STDOUT
-          ).decode("utf-8").split("\0")
-          source_files = []
-          for relative_name in tracked_paths:
-              if not relative_name or not relative_name.endswith(".py"):
-                  continue
-              relative = Path(relative_name)
-              if any(part in excluded_parts for part in relative.parts):
-                  continue
-              if relative.is_symlink():
-                  continue
-              source_files.append(relative)
-          digest = hashlib.sha256()
-          for path in sorted(source_files, key=lambda item: item.relative_to(root_path).as_posix()):
-              relative_name = path.relative_to(root_path).as_posix()
-              digest.update(relative_name.encode("utf-8"))
-              digest.update(b"\0")
-              digest.update(path.read_bytes())
-              digest.update(b"\0")
-          expected_source_sha256 = digest.hexdigest()
-          print(f"Expected runtime source SHA-256: {expected_source_sha256}")
+          # Render supplies RENDER_GIT_COMMIT to the running service. Compare
+          # that immutable deployment SHA with this workflow's exact GITHUB_SHA;
+          # APP_VERSION/fingerprint alone do not distinguish patch deployments.
+          expected_commit_sha = os.environ.get("GITHUB_SHA", "").strip()
+          if not expected_commit_sha:
+              raise SystemExit("GITHUB_SHA is unavailable; cannot verify exact deployment identity.")
+          print(f"Expected deployed commit SHA: {expected_commit_sha}")
 
           services = {
               "primary": "https://living-archive-backend.onrender.com",
@@ -113,35 +87,46 @@ jobs:
                   if name in ready:
                       continue
                   try:
-                      # The visitor-facing clarification path exposes source_sha256
-                      # and does not invoke a model, so it proves both release identity
-                      # and the live boundary without depending on the audit endpoint.
-                      status, payload = post_query(
-                          base_url, clarification_query, timeout=10
+                      # This cheap audit endpoint exposes Render's deployed commit
+                      # SHA; after it matches, verify the visitor-facing clarification
+                      # boundary and ensure both responses share the same source hash.
+                      request = urllib.request.Request(
+                          base_url + "/api/integration-audit",
+                          headers={"Accept": "application/json"},
+                          method="GET",
                       )
-                      clarification = payload.get("clarification") or {}
+                      with urllib.request.urlopen(request, timeout=10) as response:
+                          status = response.status
+                          payload = json.loads(response.read().decode("utf-8"))
                       last_state[name] = {
                           "status": status,
                           "version": payload.get("version"),
                           "fingerprint": payload.get("fingerprint"),
+                          "deployment_commit_sha": payload.get("deployment_commit_sha"),
                           "source_sha256": payload.get("source_sha256"),
-                          "intent": payload.get("intent"),
-                          "clarification_required": clarification.get("required"),
                       }
                       if (
                           status == 200
                           and payload.get("version") == expected_version
                           and str(payload.get("fingerprint") or "").startswith(f"USE-{expected_version}-")
-                          and payload.get("source_sha256") == expected_source_sha256
-                          and payload.get("intent") == "CLARIFICATION_REQUIRED"
-                          and payload.get("recommendation") is None
-                          and clarification.get("required") is True
+                          and payload.get("deployment_commit_sha") == expected_commit_sha
                       ):
-                          ready.add(name)
-                          print(
-                              f"{name}: exact source identity and clarification boundary PASS; "
-                              f"version={expected_version}; source_sha256={expected_source_sha256}"
+                          boundary_status, boundary_payload = post_query(
+                              base_url, clarification_query, timeout=25
                           )
+                          if (
+                              boundary_status == 200
+                              and boundary_payload.get("version") == expected_version
+                              and boundary_payload.get("source_sha256") == payload.get("source_sha256")
+                              and boundary_payload.get("intent") == "CLARIFICATION_REQUIRED"
+                              and boundary_payload.get("recommendation") is None
+                              and boundary_payload.get("clarification", {}).get("required") is True
+                          ):
+                              ready.add(name)
+                              print(
+                                  f"{name}: deployed commit and clarification boundary PASS; "
+                                  f"version={expected_version}; commit={expected_commit_sha}"
+                              )
                   except Exception as exc:
                       last_state[name] = {"error": f"{type(exc).__name__}: {str(exc)[:180]}"}
               if len(ready) == len(services):
