@@ -32,7 +32,7 @@ def test_method_comparison_rejects_generic_problem_solving_advice():
     assert "Systems analysis" in recovered
     assert "Philosophy" in recovered
     assert "Contemplative reflection" in recovered
-    assert len(recovered.split("\\n\\n")) == 3
+    assert len(recovered.split("\n\n")) == 3
 
 
 def test_method_comparison_requires_three_paragraphs_and_all_four_methods():
@@ -42,7 +42,7 @@ def test_method_comparison_requires_three_paragraphs_and_all_four_methods():
         "Philosophy clarifies concepts and examines reasons for belief."
     )
     recovered = enforce_response_contracts(QUESTION, incomplete)
-    assert len(recovered.split("\\n\\n")) == 3
+    assert len(recovered.split("\n\n")) == 3
     assert "Contemplative reflection" in recovered
 
 
