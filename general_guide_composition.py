@@ -1180,7 +1180,7 @@ def compose(
         operation=OPERATION,
         messages=[
             {"role": "system", "content": _GENERAL_GUIDE_SYSTEM + (
-                "\\n\\n" + integrity_recovery_instruction.strip()
+                "\n\n" + integrity_recovery_instruction.strip()
                 if integrity_recovery_instruction else ""
             )},
             {"role": "user", "content": user_content[:10000]},
