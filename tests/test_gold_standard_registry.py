@@ -404,6 +404,23 @@ def test_gold_standard_rejects_three_paragraph_meta_answer_fallback():
         parser(json.dumps({"response": meta_answer}))
 
 
+def test_leadership_authority_recovery_is_direct_three_paragraph_gold_standard():
+    import sys
+    sys.path.insert(0, str(ROOT))
+    import deterministic_answer_recovery as recovery
+
+    query = "What distinguishes leadership from positional authority?"
+    answer = recovery.compose_recovery(query)
+    paragraphs = [part.strip() for part in answer.split("\\n\\n") if part.strip()]
+
+    assert len(paragraphs) == 3
+    assert paragraphs[0].startswith("Positional authority comes from a formal role")
+    assert "The difference becomes clear in practice" in paragraphs[1]
+    assert "authority alone does not establish leadership" in paragraphs[2]
+    assert "Please try again shortly" not in answer
+    assert "This is a general conceptual distinction" not in answer
+
+
 def test_gold_standard_default_is_default_on_for_ordinary_questions():
     import sys
     sys.path.insert(0, str(ROOT))
