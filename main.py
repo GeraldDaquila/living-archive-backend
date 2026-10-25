@@ -4375,20 +4375,35 @@ def _basic_inquiry_has_internal_annotation(response):
     ))
 
 
-def _guide_historical_origin_mismatch(query, response_text):
-    """Detect the known failure where a history question receives generic action-planning prose."""
-    q = re.sub(r"\s+", " ", _normalize_query(query)).strip().casefold()
-    response = re.sub(r"\s+", " ", str(response_text or "")).strip().casefold()
-    historical_question = bool(
-        re.search(r"\bphilippines\b", q)
-        and re.search(r"\b(?:matriarch(?:al|y)|patriarch(?:al|y)|gender roles?)\b", q)
-        and re.search(r"\b(?:where|how|origin|evolv|histor|come from|develop)\b", q)
-    )
-    generic_planning_answer = bool(re.match(
-        r"^(?:a practical way to approach|a practical way to think about|to approach this)\b",
+def _guide_generic_practical_template_mismatch(query, response_text):
+    """Catch the specialist's generic action-planning template when it substitutes for an answer."""
+    q = re.sub(r"\\s+", " ", _normalize_query(query)).strip().casefold()
+    response = re.sub(r"\\s+", " ", str(response_text or "")).strip().casefold()
+    generic_template = bool(re.match(
+        r"^(?:a practical way to approach|a practical way to think about|to approach this)\\b",
         response,
     ))
-    return historical_question and generic_planning_answer
+    if not generic_template:
+        return False
+    # This template is appropriate only when the visitor explicitly asks for a
+    # practical approach, next steps, a plan, or how to do/solve something.
+    asks_for_action = bool(re.search(
+        r"\\b(?:how do i|how can i|how should i|what should i do|steps to|practical way|make a plan|plan for|solve|fix|implement|approach this practically)\\b",
+        q,
+    ))
+    return not asks_for_action
+
+
+def _guide_historical_origin_mismatch(query, response_text):
+    """Detect the reproduced historical question receiving generic planning prose."""
+    q = re.sub(r"\\s+", " ", _normalize_query(query)).strip().casefold()
+    response = re.sub(r"\\s+", " ", str(response_text or "")).strip().casefold()
+    historical_question = bool(
+        re.search(r"\\bphilippines\\b", q)
+        and re.search(r"\\b(?:matriarch(?:al|y)|patriarch(?:al|y)|gender roles?)\\b", q)
+        and re.search(r"\\b(?:where|how|origin|evolv|histor|come from|develop)\\b", q)
+    )
+    return historical_question and _guide_generic_practical_template_mismatch(query, response_text)
 
 
 def _guide_historical_origin_recovery():
@@ -4412,10 +4427,10 @@ def _guide_finalize_visitor_payload(payload, query):
     if not isinstance(payload, dict):
         return payload
     response_text = str(payload.get("response") or "")
-    # Specialist routing must never bypass the Gold Standard floor. Replace the
-    # reproduced generic action-planning template when it answers a historical
-    # question with advice instead of explaining the requested origins/evolution.
-    if _guide_historical_origin_mismatch(query, response_text):
+    # The Gold Standard is the floor across all specialist routes. A generic
+    # practical-planning template is not a valid substitute for an explanatory
+    # answer; the known historical-origin case has a grounded bounded recovery.
+    if _guide_generic_practical_template_mismatch(query, response_text) and _guide_historical_origin_mismatch(query, response_text):
         safe = dict(payload)
         safe["response"] = _sanitize_basic_inquiry_response(_guide_historical_origin_recovery())
         safe["processing"] = "final_visitor_boundary_historical_answer_recovery"
