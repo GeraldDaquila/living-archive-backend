@@ -7732,38 +7732,63 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         else _find_cross_question_standard_response(query, response)
     )
     if _cross_question_standard is not None:
-        _normalized_query = re.sub(r"\s+", " ", str(query or "").strip().casefold())
-        if "constitutional reasoning" in _normalized_query and "archive" in _normalized_query:
-            response = (
-                "In the Living Archive’s sense, constitutional reasoning means asking how a question should be understood in light of the principles, governing relationships, and institutional structure that give the Archive its coherence. It looks beyond an isolated rule or immediate answer to the foundations that shape how ideas and responsibilities fit together. The Constitutional Register is described by the Archive as a reference collection for its enduring vocabulary, governing relationships, institutions, and constitutional architecture.\n\n"
-                "In practice, this means asking what principles are at stake, how the relevant parts relate, whose responsibilities or authority are involved, and whether a proposed interpretation fits the wider structure rather than one fragment taken alone. Those are questions to investigate against the Archive’s actual texts, not a license to treat every inferred connection as established fact.\n\n"
-                "This is a bounded explanation based on the Register’s stated purpose, not a claim that the landing page supplies a complete formal definition of constitutional reasoning. The Register is the most relevant place to continue examining the Archive’s own terms and relationships."
-            )
-            authoritative_doorway = {
-                "title": "Living Archive Constitutional Register",
-                "url": "https://geralddaquila.com/living-archive-constitutional-register/",
-            }
+        # Do not patch a single query with a canned replacement. Re-enter the
+        # shared provider-neutral composer once, preserving vetted canonical
+        # evidence and explicitly requiring question/answer alignment.
+        # The retry mode bypasses cached compositions and exact-reference lookup.
+        print(
+            "The Guide response integrity boundary: rejected cross-question "
+            f"Gold Standard reuse; retrying evidence-grounded composition; "
+            f"incoming_query={_normalize_query(query)[:120]}"
+        )
+        retry_result = None
+        if reasoning_mode != "deterministic_only":
+            try:
+                retry_result = general_guide_composition.compose(
+                    use_core=use_core,
+                    query=query,
+                    context_data=composition_context,
+                    history_text=_history_text(history),
+                    integrity_recovery=True,
+                )
+            except Exception as exc:
+                print(
+                    "The Guide response integrity recovery failed safely: "
+                    f"{type(exc).__name__}."
+                )
+        retry_response = _sanitize_basic_inquiry_response(
+            str((retry_result or {}).get("response") or "").strip()
+        )
+        retry_still_leaks = bool(
+            retry_response
+            and _find_cross_question_standard_response(query, retry_response)
+        )
+        if retry_response and not retry_still_leaks and not _basic_inquiry_contains_html_markup(retry_response):
+            response = retry_response
+            if not authoritative_doorway:
+                retry_title = str((retry_result or {}).get("doorway_title") or "").strip()
+                retry_url = str((retry_result or {}).get("doorway_url") or "").strip()
+                if retry_title and retry_url and retry_url.startswith("https://geralddaquila.com/"):
+                    authoritative_doorway = {"title": retry_title, "url": retry_url}
             answer_basis = {
-                "kind": "archive_reference",
-                "label": "Living Archive reference",
-                "explanation": "This bounded explanation uses the Constitutional Register’s stated purpose and identifies where the formal framework can be examined.",
+                "kind": "archive_supported" if composition_context.get("generation_authority_protected_docs") else "general_knowledge",
+                "label": "Living Archive reference" if composition_context.get("generation_authority_protected_docs") else "General knowledge",
+                "explanation": "The response was recomposed for the visitor’s actual question after a cross-question reference mismatch was detected.",
             }
+            print("The Guide response integrity recovery: PASS; retry answer matched the incoming question boundary.")
         else:
             response = (
-                "I wasn’t able to produce an answer that reliably addresses your specific question. "
-                "I don’t want to substitute a general description of the Living Archive for an explanation of the concept you asked about. "
-                "Please try the question again; the Guide should answer the subject directly or clearly state what its available sources do not establish."
+                "I couldn’t produce a reliable answer to that question just now. "
+                "I don’t want to substitute an answer to a different question or present an unsupported interpretation as the Archive’s position. "
+                "Please try again shortly; the Guide should address your question directly or clearly identify what the available sources do not establish."
             )
             authoritative_doorway = None
             answer_basis = {
                 "kind": "answer_integrity_failure",
                 "label": "Answer needs recovery",
-                "explanation": "A response that belonged to a different approved question was rejected.",
+                "explanation": "The original response belonged to a different approved question, and the evidence-grounded retry did not pass the integrity check.",
             }
-        print(
-            "The Guide response integrity boundary: rejected cross-question "
-            f"Gold Standard reuse; incoming_query={_normalize_query(query)[:120]}"
-        )
+            print("The Guide response integrity recovery: FAIL-CLOSED; retry did not pass question/answer alignment.")
 
     payload = {
         "ok": True,
