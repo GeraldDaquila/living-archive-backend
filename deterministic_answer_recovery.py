@@ -117,7 +117,21 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
 
     # Retrospective accountability must outrank generic decision advice:
     # evaluate process using what was knowable then, not the outcome known now.
-    if _is_historical_cultural_explanation(q):
+    if re.search(r"\\b(?:living archive|the archive)\\b", lower) and re.search(r"\\b(?:what is|what are|define|what does)\\b", lower):
+        # Answer institutional orientation at a bounded, established level.
+        # The Guide is an orientation doorway into the Living Archive, which is
+        # a connected body of canonical resources rather than a generic Q&A
+        # service. Do not claim that the current retrieval result is the whole
+        # Archive or invent institutional details not established here.
+        answer = (
+            "The Living Archive is a connected body of resources for exploring ideas, relationships, and patterns across human life. "
+            "The Guide helps visitors find a useful place to begin and see how resources relate, while the Archive itself is broader than any single page or answer.\n\n"
+            "It is not simply a chatbot that produces answers on demand, nor is it one fixed text that exhausts a subject. "
+            "A useful response should explain the question as far as the available evidence allows, distinguish established Archive framing from general explanation, and avoid treating a missing search result as proof that the Archive has nothing more to say.\n\n"
+            "The practical difference is that the Archive is meant to be explored as connected knowledge, with relevant canonical resources serving as doorways into deeper study. "
+            "This is a general institutional orientation, not a claim that the material retrieved for any one question represents the whole Archive."
+        )
+    elif _is_historical_cultural_explanation(q):
         answer = _historical_cultural_recovery()
     elif is_harm_repair_question(q):
         answer = _harm_repair_response()
