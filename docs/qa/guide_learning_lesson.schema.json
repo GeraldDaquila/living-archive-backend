@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geralddaquila.com/schemas/guide-learning-lesson-1.0.0.json",
+  "title": "Living Archive Guide Learning Lesson",
+  "description": "A proposed reusable behavioral lesson extracted from approved gold-standard evidence. This schema defines reviewable data only; it does not train or change runtime behavior.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "lesson_id",
+    "lesson_version",
+    "lesson_kind",
+    "status",
+    "lesson",
+    "source_benchmark_ids",
+    "applies_when",
+    "does_not_apply_when",
+    "quality_dimensions",
+    "evidence_policy",
+    "evaluation_case_ids",
+    "approval"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "lesson_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "lesson_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "lesson_kind": {
+      "enum": [
+        "answer_composition",
+        "human_voice",
+        "archive_grounding",
+        "doorway_relevance",
+        "general_knowledge_boundary",
+        "uncertainty_handling"
+      ]
+    },
+    "status": {
+      "enum": [
+        "proposed",
+        "under_review",
+        "approved",
+        "retired"
+      ]
+    },
+    "lesson": {
+      "type": "string",
+      "minLength": 20
+    },
+    "source_benchmark_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "applies_when": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 8
+      }
+    },
+    "does_not_apply_when": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 8
+      }
+    },
+    "quality_dimensions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "answer_first",
+          "human_voice",
+          "concrete_clarity",
+          "archive_grounding",
+          "general_knowledge_accuracy",
+          "response_shape",
+          "doorway_relevance",
+          "uncertainty_honesty",
+          "non_regression"
+        ]
+      }
+    },
+    "evidence_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority",
+        "limits"
+      ],
+      "properties": {
+        "authority": {
+          "enum": [
+            "living_archive_canonical_source",
+            "user_approved_gold_standard",
+            "general_knowledge_reference",
+            "mixed_with_explicit_separation"
+          ]
+        },
+        "limits": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 8
+          }
+        }
+      }
+    },
+    "evaluation_case_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "human_approved",
+        "approved_by",
+        "approved_at",
+        "notes"
+      ],
+      "properties": {
+        "human_approved": {
+          "type": "boolean"
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
