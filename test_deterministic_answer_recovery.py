@@ -77,7 +77,7 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
 
     def test_institutional_orientation_answers_what_it_is_and_is_not(self):
         answer = compose_recovery("What is the Living Archive, and what is it not?")
-        paragraphs = [part for part in answer.split("\\n\\n") if part.strip()]
+        paragraphs = [part for part in answer.split("\n\n") if part.strip()]
         self.assertEqual(len(paragraphs), 3)
         self.assertIn("connected body of resources", answer)
         self.assertIn("not simply a chatbot", answer)
