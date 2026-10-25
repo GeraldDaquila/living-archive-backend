@@ -1,3 +1,4 @@
+import ast
 import json
 from pathlib import Path
 
@@ -75,4 +76,15 @@ def test_learning_suite_does_not_claim_runtime_learning_or_change_frozen_core():
     test_source = (ROOT / "tests" / "test_guide_learning_offline_evaluation.py").read_text(encoding="utf-8")
     assert "not a claim that model learning or automatic scoring is implemented" in suite["purpose"]
     assert "does not train or change runtime behavior" in schema["description"]
-    assert "import use_core" not in test_source
+    parsed = ast.parse(test_source)
+    imported_modules = {
+        alias.name.split(".")[0]
+        for node in ast.walk(parsed)
+        if isinstance(node, ast.Import)
+        for alias in node.names
+    } | {
+        node.module.split(".")[0]
+        for node in ast.walk(parsed)
+        if isinstance(node, ast.ImportFrom) and node.module
+    }
+    assert "use_core" not in imported_modules
