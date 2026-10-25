@@ -1,0 +1,18 @@
+{
+  "benchmark_id": "general-guide-stewardship-living-archive-meaning-gold-standard-2026-10-25",
+  "query": "What does stewardship mean in the Living Archive?",
+  "expected_response": "In the Living Archive, stewardship means caring for what has been entrusted to us rather than treating it as if only our immediate needs matter. Its First Principles express this as ‘stewardship follows understanding’: as our understanding grows, so does our responsibility to consider how we act on it, whom our choices affect, and what we pass on to others. Understanding is not only something to acquire; it should help us act with greater care and judgment.\n\nIn everyday life, stewardship appears in small choices: keeping a promise, maintaining a shared space, using resources thoughtfully, or considering how a decision affects people who depend on us. For example, when sharing an idea from the Archive, a steward preserves its context and distinguishes what a source actually says from personal interpretation, so others can assess the idea fairly and use it responsibly.\n\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is genuinely yours to care for, acting responsibly within your limits, and considering the consequences for others and for the future. The aim is to preserve trust and usefulness—and, where possible, leave what you were entrusted with no worse and ideally better for those who come after.",
+  "expected_doorway": {
+    "title": "Choosing Stewardship Before Resentment",
+    "url": null
+  },
+  "assertions": [
+    "Exactly three substantive paragraphs in the approved visitor-facing response.",
+    "Answers the Archive-specific meaning question directly; do not hand off to the Glossary.",
+    "Grounds the meaning in the First Principle ‘stewardship follows understanding’.",
+    "Includes concrete everyday application and preserves the distinction between source claims and personal interpretation.",
+    "Explains boundaries without prescribing self-sacrifice or control.",
+    "Preserves the approved continuation title; destination URL remains unset until independently verified.",
+    "A single Search submission renders the answer without requiring a second click."
+  ]
+}
