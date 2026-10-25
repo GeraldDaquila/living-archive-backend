@@ -9,6 +9,9 @@ def test_archive_stewardship_recovery_expresses_stewardship_follows_understandin
     paragraphs = [p.strip() for p in answer.split("\n\n") if p.strip()]
     assert len(paragraphs) == 3
     assert "stewardship follows understanding" in paragraphs[0].lower()
+    assert "what has been entrusted to us" in paragraphs[0].lower()
+    assert "keeping a promise" in paragraphs[1].lower()
+    assert "no worse and ideally better" in paragraphs[2].lower()
     assert "For example" in paragraphs[1]
     assert "controlling everything or sacrificing yourself" in paragraphs[2]
     assert "general explanation rather than" not in answer
