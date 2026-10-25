@@ -7461,8 +7461,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     "title": _generic_first["title"],
                     "url": _generic_first["url"],
                 })
+                # Lead with the human meaning, not internal Archive classification.
+                # The matched source sentences remain the substance; this opening
+                # simply gives first-time visitors a natural point of entry.
                 response = _sanitize_basic_inquiry_response(
-                    "The Archive’s material offers this starting point: "
+                    "One useful place to begin is with how our view of the world "
+                    "shapes the way we live. "
                     + " ".join(item["sentence"] for item in _generic_selected)
                 )
                 authoritative_doorway = _generic_doorway
