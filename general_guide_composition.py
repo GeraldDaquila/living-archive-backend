@@ -1112,13 +1112,13 @@ def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
     if _requires_archive_scoped_stewardship(question):
-        paragraphs = [part.strip() for part in re.split(r"\\n\\s*\\n+", candidate) if part.strip()]
+        paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", candidate) if part.strip()]
         if (
             len(paragraphs) != 3
-            or not re.search(r"\\bLiving Archive\\b", paragraphs[0], re.I)
+            or not re.search(r"\bLiving Archive\b", paragraphs[0], re.I)
             or not _has_everyday_example(candidate)
             or re.search(
-                r"\\b(?:rather than a claim|general explanation rather than|precise meaning can vary by field)\\b",
+                r"\b(?:rather than a claim|general explanation rather than|precise meaning can vary by field)\b",
                 candidate,
                 re.I,
             )
