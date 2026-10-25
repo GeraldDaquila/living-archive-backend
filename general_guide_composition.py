@@ -536,6 +536,22 @@ def _requires_concrete_concept_explanation(query: str) -> bool:
     return asks_meaning and (archive_context or abstract_terms)
 
 
+def _requires_archive_scoped_meaning(query: str) -> bool:
+    """Require the full Guide explanatory standard for Archive-scoped meaning questions."""
+    q = _normalize_space(query)
+    asks_meaning = bool(re.search(
+        r"^(?:what does|what is|what's|explain|define)\\b",
+        q,
+        re.I,
+    )) and bool(re.search(r"\\b(?:mean|meaning|definition|understand|role|purpose)\\b", q, re.I))
+    archive_scope = bool(re.search(
+        r"\\b(?:in|within|inside)\\s+the\\s+living\\s+archive\\b|\\bthe living archive['’]s\\b",
+        q,
+        re.I,
+    ))
+    return asks_meaning and archive_scope
+
+
 def _has_everyday_example(response: str) -> bool:
     """Conservative signal that the answer applies an idea to ordinary life."""
     return bool(re.search(
@@ -734,10 +750,24 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
 
         if _requires_concrete_concept_explanation(query):
             paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-            if len(paragraphs) < 2:
-                raise ValueError("abstract concept definition must use readable paragraph breaks")
+            minimum_paragraphs = 3 if _requires_archive_scoped_meaning(query) else 2
+            if len(paragraphs) < minimum_paragraphs:
+                raise ValueError(
+                    "Archive-scoped meaning questions require the three-paragraph Guide Gold Standard"
+                    if minimum_paragraphs == 3
+                    else "abstract concept definition must use readable paragraph breaks"
+                )
             if not _has_everyday_example(response):
                 raise ValueError("abstract concept definition requires one useful everyday example")
+            if _requires_archive_scoped_meaning(query):
+                if not re.search(r"\b(?:Living Archive|Archive)\b", paragraphs[0], re.I):
+                    raise ValueError("Archive-scoped meaning answer must answer in the named institutional context")
+                if re.search(
+                    r"\b(?:rather than a claim|general explanation rather than|precise meaning can vary by field)\b",
+                    response,
+                    re.I,
+                ):
+                    raise ValueError("Archive-scoped meaning answer must not retreat into generic disclaimer language")
 
         if _requires_discernment_synthesis(query):
             paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
