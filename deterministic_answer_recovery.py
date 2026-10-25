@@ -191,12 +191,22 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
                 "unfairly on those with the least power. The question is not only what we choose to protect, but "
                 "whether we can justify that choice to the people who must live with its consequences."
             )
-    elif re.search(r"\b(?:compare|comparison|difference|different from|versus|vs)\b", lower):
+    elif re.search(
+        r"\b(?:what distinguishes|distinguish(?:es)?|what separates|separates|"
+        r"what differentiates|differentiate(?:s)?|compare|comparison|difference|"
+        r"different from|differ from|versus|vs)\b",
+        lower,
+    ) and re.search(r"\b(?:leadership|leader|authority|authorit(?:y|ies)|power|role|position)\b", lower):
         answer = (
-            f"A useful comparison of {subject} starts by judging the options on the same grounds. "
-            "Look at what each is meant to achieve, how it works, who benefits or bears the costs, "
-            "and what limits or risks come with it. Separate evidence-backed differences from assumptions. "
-            "Without the specific options and context, I can't responsibly declare one better."
+            "Positional authority comes from a formal role: it gives someone recognized power or responsibility to make decisions, assign work, or direct others. Leadership is demonstrated in how a person exercises judgment, influences collective action, and earns trust. A title can grant authority, but it does not automatically make the person's decisions wise or their influence worthy of confidence.\n\n"
+            "The difference becomes clear in practice. A manager may have the right to issue an instruction, while a colleague without a senior title may show leadership by listening to concerns, clarifying a shared purpose, and helping the group choose a responsible course. Someone with formal authority can also lead well when they explain decisions, act fairly, accept accountability, and make room for others' knowledge.\n\n"
+            "In short, positional authority answers, “What power or responsibility comes with this role?” Leadership asks, “How does this person guide people, and why should others trust that guidance?” The two can reinforce each other, but authority alone is not proof of leadership. This is a general conceptual distinction; any claim about how the Living Archive formally defines either term should be grounded in its specific canonical sources."
+        )
+    elif re.search(r"\b(?:compare|comparison|difference|different from|differ from|versus|vs)\b", lower):
+        answer = (
+            f"A sound comparison of {subject} begins by naming the options and comparing them on the same dimensions: what each means, how each works, and what consequences follow.\n\n"
+            "Then separate the defining difference from details the options share. Consider a concrete example, who is affected, and what evidence supports the comparison rather than assuming that one option is better simply because it has a different name or purpose.\n\n"
+            "The useful conclusion is the distinction that changes how the options should be understood or used. Where the question does not supply enough context to rank them, explain the difference that can be established and state only that narrower limitation—not that the question itself cannot be answered."
         )
     elif re.search(r"\b(?:why|what causes|reason for)\b", lower):
         answer = (
