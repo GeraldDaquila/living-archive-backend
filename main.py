@@ -7960,7 +7960,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 for part in re.split(r"\n\s*\n+", _last_retry_text)
                 if part.strip()
             ]
-            if len(_last_retry_paragraphs) >= 3:
+            _retry_is_meta_answer = bool(re.search(
+                r"\\b(?:the question about|deserves a direct answer|the most useful next step is to identify|"
+                r"i don['’]?t have enough verified context|the inquiry need not stop here|"
+                r"separate established facts from assumptions)\\b",
+                _last_retry_text,
+                re.I,
+            ))
+            if len(_last_retry_paragraphs) >= 3 and not _retry_is_meta_answer:
                 response = _last_retry_text
                 print("The Guide final payload boundary: evidence-grounded three-paragraph recomposition PASS.")
             else:
