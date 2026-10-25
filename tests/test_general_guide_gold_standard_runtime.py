@@ -185,7 +185,7 @@ def test_first_principles_gold_standard_names_all_six_published_principles():
     )
     assert result is not None
     answer = result["expected_response"]
-    assert len(answer.split("\\n\\n")) == 3
+    assert len(answer.split("\n\n")) == 3
     for principle in (
         "reality is intelligible",
         "human beings participate in reality",
