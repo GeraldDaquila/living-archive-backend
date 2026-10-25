@@ -61,3 +61,18 @@ def test_compound_cosmology_question_stays_in_conceptual_general_guide():
 def test_simple_cosmology_definition_is_not_forced_into_compound_classifier():
     # The bounded glossary path remains available for a plain definition.
     assert not main._is_conceptual_explanatory_request("What does cosmology mean?")
+
+
+def test_cosmology_provider_exhaustion_fallback_answers_the_actual_question():
+    query = "What is cosmology, and why does it matter to how people live?"
+    result = main._basic_inquiry_round1_deterministic_response(
+        query, {}, {"context_blocks": ""}
+    )
+    assert result["provider"] == "bounded_archive_informed_cosmology_recovery"
+    response = result["response"]
+    assert len(response.split("\n\n")) == 3
+    assert "Cosmology is an understanding" in response
+    assert "separation-based worldview" in response
+    assert "unity-informed worldview" in response
+    assert "not labels for judging a person" in response
+    assert result["doorway_title"] == ""
