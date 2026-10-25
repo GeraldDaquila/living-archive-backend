@@ -516,6 +516,47 @@ def _question_requests_enumeration(query: str) -> bool:
     ))
 
 
+def _requires_intergenerational_stewardship(query: str) -> bool:
+    """Recognize questions connecting stewardship with responsibility across generations."""
+    q = _normalize_space(query).casefold()
+    stewardship = bool(re.search(r"\b(?:stewardship|steward)\b", q))
+    generations = bool(re.search(
+        r"\b(?:intergenerational|future generations?|generations to come|"
+        r"those who come after|people who come after|next generations?)\b",
+        q,
+    ))
+    asks_relationship = bool(re.search(
+        r"\b(?:how|why|what role|relationship|relate|connect|matter|responsib)\b",
+        q,
+    ))
+    return stewardship and generations and asks_relationship
+
+
+def _has_intergenerational_stewardship_explanation(response: str) -> bool:
+    """Require a three-movement explanation, not a single-paragraph generality."""
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
+    text = _normalize_space(response).casefold()
+    return (
+        len(paragraphs) == 3
+        and bool(re.search(r"\b(?:stewardship|steward)\b", paragraphs[0], re.I))
+        and bool(re.search(r"\b(?:intergenerational|future generations?|those who come after|generations to come)\b", paragraphs[0], re.I))
+        and bool(re.search(r"\b(?:for example|in practice|institution|knowledge|capabilities|relationships|resources)\b", paragraphs[1], re.I))
+        and bool(re.search(r"\b(?:does not mean|doesn't mean|not mean|not about)\b", paragraphs[2], re.I))
+        and bool(re.search(r"\b(?:responsib|care|control|limits?)\w*\b", paragraphs[2], re.I))
+        and bool(re.search(r"\b(?:because|so that|which means|as a result|over time|what remains)\b", text, re.I))
+    )
+
+
+def _intergenerational_stewardship_recovery() -> str:
+    """Explain stewardship across generations with a concrete example and bounded responsibility."""
+    return (
+        "Stewardship connects to intergenerational responsibility because the way we care for something now shapes what remains possible for people who come after us. In the Living Archive's constitutional framing, stewardship is more than managing what we have inherited: it is participating responsibly in an enduring order, with attention to reciprocity, cultivation, and the quality of what is passed on. "
+        "Responsibility therefore reaches beyond immediate performance to the relationships, knowledge, capabilities, and institutions that future generations will have to rely on.\n\n"
+        "For example, an institution may meet today's targets while allowing trust to erode, losing practical knowledge, or leaving the next group without the skills and resources to continue the work. A stewardship approach looks at both today's results and what those results leave behind: whether people can learn, participate, maintain what matters, and carry responsibility forward. The point is not simply to preserve an institution unchanged, but to leave people with sounder conditions for responsible action.\n\n"
+        "Intergenerational responsibility does not mean predicting every future need or making one generation answer for everything. It means taking reasonable care with the consequences within our influence, listening to those affected, and strengthening the conditions others will inherit rather than passing avoidable costs along. Stewardship is thus neither control over the future nor self-sacrifice without limits; it is accountable care for what has been entrusted to us and for the possibilities our choices help create."
+    )
+
+
 def _requires_cosmology_generalization_standards(query: str) -> bool:
     """Recognize requests for standards governing inference from one Archive text to a whole cosmology."""
     q = _normalize_space(query).casefold()
@@ -1209,6 +1250,10 @@ def _requires_archive_scoped_stewardship(question: str) -> bool:
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    if _requires_intergenerational_stewardship(question) and not _has_intergenerational_stewardship_explanation(candidate):
+        candidate = _intergenerational_stewardship_recovery()
+    if _requires_intergenerational_stewardship(question) and not _has_intergenerational_stewardship_explanation(candidate):
+        raise RuntimeError("Intergenerational-stewardship response contract failed after recovery.")
     if _requires_archive_scoped_stewardship(question):
         paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", candidate) if part.strip()]
         if (
