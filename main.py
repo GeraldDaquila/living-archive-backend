@@ -7475,23 +7475,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     "sentences; returned the Archive-only limitation."
                 )
 
-            # requested concepts, the selected doorway, and the explanation.
-            response = _archive_limitation_response(query)
-            archive_evidence_unavailable = True
-            authoritative_doorway = None
-            composition_context.pop("authoritative_doorway", None)
-            composition_context.pop("authoritative_doorway_title", None)
-            composition_context["evidence_sufficiency_unavailable"] = True
-            print(
-                "The Guide conceptual boundary: vetted canonical evidence set "
-                "did not support the requested explanation; returned Archive-only limitation. "
-                f"diagnostics=terms:{len(_conceptual_terms)},"
-                f"coverage:{_conceptual_coverage:.3f},"
-                f"vetted_docs:{len(_conceptual_authority_docs)},"
-                f"usable_docs:{len(_conceptual_combined_body)},"
-                f"best_source:{str((_conceptual_best_doc or {}).get('title') or 'none')[:100]!r}"
-            )
-
     # Expose a small, deterministic provenance contract for the visitor UI.
     # This describes the answer's basis; it does not claim that every sentence
     # is directly quoted from a source. A recommendation is only supplied when
