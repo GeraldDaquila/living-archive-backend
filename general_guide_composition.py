@@ -1134,24 +1134,24 @@ def _method_comparison_recovery() -> str:
 
 
 def _archive_scoped_stewardship_recovery() -> str:
-    """Canonical three-paragraph recovery grounded in the Archive's First Principles."""
+    """Archive-specific three-paragraph answer, preserving the approved stewardship standard."""
     return (
-        "In the Living Archive, stewardship follows understanding: as we learn more about "
-        "the world, one another, and the consequences of our choices, we also become more "
-        "responsible for how we use that understanding. Stewardship means caring for what "
-        "has been entrusted to us—knowledge, relationships, shared resources, or work that "
-        "others depend on—instead of treating it as if only our immediate needs matter. "
-        "It connects learning with responsible action and with the knowledge we pass on.\n\n"
-        "In everyday practice, this can be as simple as keeping a promise, maintaining a "
-        "shared space, using resources thoughtfully, or sharing an Archive idea without "
-        "stripping away the context that gives it meaning. For example, when explaining a "
-        "source, a steward distinguishes what the source actually says from their own "
-        "interpretation, so another person can understand it and assess it fairly.\n\n"
-        "Stewardship does not mean controlling everything or sacrificing yourself for "
-        "everyone else. It means recognizing what is genuinely yours to care for, acting "
-        "responsibly within your limits, and considering who may bear the consequences of "
-        "your choices. The aim is to preserve trust and usefulness, and where possible "
-        "leave what you were entrusted with in better condition for those who come after."
+        "In the Living Archive, stewardship means caring for what has been entrusted to us "
+        "rather than treating it as if only our immediate needs matter. Its First Principles "
+        "express this as “stewardship follows understanding”: as our understanding grows, so "
+        "does our responsibility to consider how we act on it, whom our choices affect, and "
+        "what we pass on to others. Understanding is not only something to acquire; it should "
+        "help us act with greater care and judgment.\n\n"
+        "In everyday life, stewardship appears in small choices: keeping a promise, maintaining "
+        "a shared space, using resources thoughtfully, or considering how a decision affects "
+        "people who depend on us. For example, when sharing an idea from the Archive, a steward "
+        "preserves its context and distinguishes what a source actually says from personal "
+        "interpretation, so others can assess the idea fairly and use it responsibly.\n\n"
+        "Stewardship does not mean controlling everything or sacrificing yourself for everyone "
+        "else. It means recognizing what is genuinely yours to care for, acting responsibly "
+        "within your limits, and considering the consequences for others and for the future. "
+        "The aim is to preserve trust and usefulness—and, where possible, leave what you were "
+        "entrusted with no worse and ideally better for those who come after."
     )
 
 
