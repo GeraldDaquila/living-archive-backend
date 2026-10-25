@@ -1766,6 +1766,32 @@
         "evidence_boundary": "Screenshot confirms displayed answer and presentation. Suggested doorway destination remains unverified; URL intentionally unset."
       },
       "freeze_policy": "Do not alter expected_response without explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-complexity-and-uncertainty-gold-standard-2026-10-26",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the relationship between complexity and uncertainty?",
+      "expected_response": "Complexity and uncertainty are related, but they are not the same. Complexity arises when many parts of a situation interact, influence one another, and produce effects that are difficult to understand by examining each part alone. Uncertainty is the limit of what we can confidently know about the situation, how it will develop, or what a particular action will cause. A situation can be complex because its relationships are interdependent, uncertain because important information is missing, or both.\n\nComplexity often increases uncertainty because interactions and feedback can produce unexpected outcomes. A small change may travel through a network of relationships, trigger further changes, and make the eventual result difficult to predict. Yet uncertainty can also exist in a simple situation—for example, when one crucial fact is unknown—and a complex situation can become more understandable when its patterns, history, and relationships are well evidenced. More information helps, but it does not always remove uncertainty when the system itself keeps changing.\n\nThe practical distinction is to ask two questions: what makes this situation hard to understand—the way its parts interact, or what we do not yet know? Then respond accordingly. Map dependencies and feedback when complexity is central; identify assumptions, gather relevant evidence, and keep multiple plausible outcomes in view when uncertainty remains. When both are present, avoid false precision: make decisions proportionate to the evidence, watch how the situation responds, and revise your understanding as new information emerges.",
+      "expected_doorway": {
+        "title": "",
+        "url": null
+      },
+      "assertions": [
+        "Exactly three substantive paragraphs.",
+        "Clearly distinguishes complexity (interacting parts and relationships) from uncertainty (limits of knowledge and prediction).",
+        "Explains how complexity can increase uncertainty without treating them as identical.",
+        "Notes that simple situations can be uncertain and complex situations can sometimes be well understood.",
+        "Offers practical questions and responses for each, including evidence, feedback, and revising judgments.",
+        "Directly answers the visitor's question; never substitutes an unrelated answer about accountability, trust, or repairing harm."
+      ],
+      "provenance": {
+        "source_path": "visitor-facing Guide screenshot supplied by user on 2026-10-25",
+        "source_ref": "user-approved failure screenshot in conversation dated 2026-10-25",
+        "source_status": "USER_APPROVED_GOLD_STANDARD",
+        "evidence_boundary": "Screenshot establishes a cross-question failure: the displayed answer addressed a different question. The replacement response is a proposed canonical benchmark for this exact question and requires validation before being treated as verified live output."
+      },
+      "freeze_policy": "Do not alter expected_response without explicit user authorization and a separately documented benchmark-version change."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control.",
