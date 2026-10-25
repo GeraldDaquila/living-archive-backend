@@ -1534,7 +1534,9 @@
       "provenance": {
         "source_status": "User-authorized calibration correction based on the visitor-facing regression screenshot dated 2026-10-25.",
         "source_note": "The visitor UI offered the doorway titled First Principles. Until its full canonical content is verified, this answer explicitly avoids inventing an official exhaustive Archive list.",
-        "approval_note": "Three-paragraph answer-first format is required by the existing stewardship gold standard and the user’s explicit instruction to restore that presentation standard."
+        "approval_note": "Three-paragraph answer-first format is required by the existing stewardship gold standard and the user’s explicit instruction to restore that presentation standard.",
+        "source_url": "https://geralddaquila.com/",
+        "source_path": "docs/qa/gold_standard_registry.json"
       },
       "freeze_policy": "Exact-match only. Do not generalize this answer to all questions about first principles; preserve source-grounded composition for other questions."
     }
