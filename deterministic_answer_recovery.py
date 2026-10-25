@@ -3,7 +3,11 @@ import re
 
 
 def _clean(value):
-    return re.sub(r"\s+", " ", str(value or "")).strip()
+    # Preserve deliberate paragraph breaks in canonical bounded recoveries.
+    # Collapse horizontal spacing within each paragraph without flattening prose.
+    text = str(value or "").replace("\r\n", "\n").replace("\r", "\n")
+    paragraphs = [re.sub(r"[ \t\f\v]+", " ", part).strip() for part in re.split(r"\n\s*\n+", text)]
+    return "\n\n".join(part for part in paragraphs if part)
 
 
 def _subject(question):
