@@ -1548,5 +1548,116 @@
       "approval_state": "Explicitly approved by user as a gold standard after review of the live visitor-facing screenshot on 2026-10-25; assessment 9.3/10, meets expectations."
     }
   ],
-  "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control."
+  "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control.",
+  "learning_contract": {
+    "contract_id": "living-archive-guide-continuous-learning-loop",
+    "contract_version": "1.0.0",
+    "status": "SPECIFIED_NOT_YET_IMPLEMENTED",
+    "purpose": "Use approved gold standards as a floor for continual improvement of The Guide, extracting reusable lessons that improve answers to unseen questions while remaining grounded in the Living Archive corpus and cosmology.",
+    "governing_principles": [
+      "Gold standards are immutable, exact-question acceptance references unless the user explicitly authorizes a versioned change.",
+      "Learn reusable principles behind success; do not copy or generalize an approved answer's wording to unrelated questions.",
+      "The Living Archive corpus and explicitly documented cosmology are the grounding authority for Archive-specific claims.",
+      "General knowledge may be answered when appropriate, but must not be misrepresented as sourced from or canonical doctrine of the Living Archive.",
+      "Self-evaluation is a capability, not a claim of consciousness or human-like awareness.",
+      "Every claimed improvement must be supported by reproducible tests and measured evidence, including questions not used during calibration.",
+      "Preserve the frozen use_core.py and all other explicitly protected components."
+    ],
+    "learning_cycle": [
+      {
+        "stage": "observe",
+        "requirement": "Collect permitted query-level quality signals, user feedback when provided, runtime outcomes, and detected failures; minimize and protect personal data."
+      },
+      {
+        "stage": "evaluate",
+        "requirement": "Evaluate relevance, directness, completeness, factual accuracy, corpus grounding, uncertainty, humane voice, answer structure, and doorway relevance against versioned criteria."
+      },
+      {
+        "stage": "extract_lessons",
+        "requirement": "Turn repeated successes and failures into explicit, reviewable lesson candidates with evidence, scope, confidence, and known counterexamples."
+      },
+      {
+        "stage": "generalize",
+        "requirement": "Associate a lesson with a capability or question family, not a universal answer template; define where the lesson must not apply."
+      },
+      {
+        "stage": "test",
+        "requirement": "Run exact gold-standard regression tests, negative controls, adversarial cases, and held-out/unseen-question tests; separately verify grounding and visitor-facing behavior."
+      },
+      {
+        "stage": "propose",
+        "requirement": "Generate versioned candidate changes to guidance, retrieval, composition, routing, or evaluation; do not silently mutate production behavior."
+      },
+      {
+        "stage": "promote",
+        "requirement": "Initially require human approval before production promotion. Promotion requires all required tests to pass, no protected-core changes, reviewable diffs, deployment identity, and rollback readiness."
+      },
+      {
+        "stage": "monitor",
+        "requirement": "Compare post-deployment outcomes against a baseline, watch for regressions or drift, and roll back or suspend a candidate when acceptance criteria fail."
+      }
+    ],
+    "quality_dimensions": [
+      "Question intent and relevance",
+      "Directness and completeness",
+      "Accuracy and calibrated uncertainty",
+      "Traceable grounding in canonical Living Archive evidence for Archive-specific claims",
+      "Faithfulness to documented Living Archive cosmology without overstating consensus or certainty",
+      "Humane, natural, concrete voice without unnecessary jargon",
+      "Appropriate answer shape and formatting for the question",
+      "Relevant, optional doorway presented after the substantive answer",
+      "Generalization to held-out questions without answer-template overfitting"
+    ],
+    "data_and_authority_boundaries": [
+      "A registry entry alone does not train a model or automatically improve unseen answers.",
+      "User feedback, inferred satisfaction, model self-critique, and generated answers are signals or candidates, not authoritative truth by themselves.",
+      "Only explicitly approved standards are eligible for exact-answer runtime enforcement; candidates and recovered historical records remain evaluation-only unless separately approved.",
+      "Never treat a generated lesson as canonical Archive doctrine without evidence in the corpus and an explicit review process.",
+      "Do not collect or retain sensitive visitor content beyond the minimum permitted and necessary for evaluation; define access, retention, and deletion controls before enabling persistent telemetry.",
+      "Do not automatically promote self-generated answers, lessons, or code changes into production."
+    ],
+    "acceptance_gates": [
+      "All existing approved gold-standard tests pass unchanged unless a user-authorized, versioned change is documented.",
+      "Held-out question suite improves or remains within explicitly approved non-regression thresholds.",
+      "Archive-specific claims have traceable canonical evidence or are qualified as general interpretation rather than source fact.",
+      "Human voice, answer-first behavior, question-appropriate response length, and doorway relevance pass review.",
+      "Protected core file hashes remain unchanged.",
+      "Candidate, test results, source corpus/version, lesson set/version, runtime identity, and deployment commit are recorded.",
+      "Rollback path is available and exercised before autonomous promotion is considered."
+    ],
+    "rollout_stages": [
+      {
+        "stage": "1_contract_and_baseline",
+        "mode": "documentation_and_offline_tests",
+        "production_mutation": false
+      },
+      {
+        "stage": "2_shadow_evaluation",
+        "mode": "evaluate_and_propose_only",
+        "production_mutation": false
+      },
+      {
+        "stage": "3_reviewed_adaptation",
+        "mode": "human_approved_candidates_only",
+        "production_mutation": false
+      },
+      {
+        "stage": "4_guarded_promotion",
+        "mode": "only_after_measured_reliability_and_explicit_authorization",
+        "production_mutation": true
+      },
+      {
+        "stage": "5_continuous_monitoring",
+        "mode": "measure_drift_regressions_and_held_out_quality",
+        "production_mutation": "only through the authorized promotion gate"
+      }
+    ],
+    "current_capability_boundary": "The current exact-match registry enforces approved answers for matching questions. This contract documents the target learning architecture; it does not claim that lesson extraction, persistent learning memory, shadow evaluation, or adaptive promotion is already implemented.",
+    "initial_implementation_order": [
+      "Version the lesson schema and evaluation rubric.",
+      "Build offline evaluation over approved standards, negative controls, and held-out questions.",
+      "Add evidence-linked lesson candidates and a shadow-mode report without changing visitor-facing behavior.",
+      "Review reliability, privacy controls, and measured generalization before any adaptation is promoted."
+    ]
+  }
 }
