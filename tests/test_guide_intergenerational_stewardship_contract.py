@@ -3,6 +3,7 @@ import pytest
 from general_guide_composition import (
     _has_intergenerational_stewardship_explanation,
     _intergenerational_stewardship_recovery,
+    _parse_factory,
     _requires_intergenerational_stewardship,
     enforce_response_contracts,
 )
