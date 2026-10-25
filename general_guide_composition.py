@@ -957,7 +957,7 @@ def compose(
         return {
             "response": registered_standard["expected_response"],
             "doorway_title": "",
-            "response_shape": "direct" if len(registered_standard["expected_response"].split("\\n\\n")) <= 2 else "explanatory",
+            "response_shape": "direct" if len(registered_standard["expected_response"].split("\n\n")) <= 2 else "explanatory",
             "provider": "gold_standard_registry",
             "model": "approved-reference",
         }
