@@ -257,9 +257,22 @@ jobs:
                   raise SystemExit(f"{name}: SSE answer lacks a recognizable everyday anchor")
               if not re.search(r"(?i)does not mean controlling|doesn't mean controlling|sacrificing yourself|within your limits|what is yours to care for", answer):
                   raise SystemExit(f"{name}: SSE answer omitted the boundary between care and control")
-              if not isinstance(final_payload.get("recommendation"), dict):
-                  raise SystemExit(f"{name}: SSE stream lost the independent canonical recommendation")
-              print(f"{name}: SSE delivery PASS; chars={len(answer)}; paragraphs={len(paragraphs)}; final envelope preserved")
+              streamed_recommendation = events["response_complete"].get("recommendation")
+              if streamed_recommendation != final_payload.get("recommendation"):
+                  raise SystemExit(
+                      f"{name}: SSE completion recommendation diverged from the authoritative payload: "
+                      f"{streamed_recommendation!r} != {final_payload.get('recommendation')!r}"
+                  )
+              if streamed_recommendation is not None and not isinstance(streamed_recommendation, dict):
+                  raise SystemExit(f"{name}: SSE recommendation field has an invalid shape")
+              if isinstance(streamed_recommendation, dict) and (
+                  not streamed_recommendation.get("title") or not streamed_recommendation.get("url")
+              ):
+                  raise SystemExit(f"{name}: SSE recommendation is missing its canonical title or URL")
+              print(
+                  f"{name}: SSE delivery PASS; chars={len(answer)}; paragraphs={len(paragraphs)}; "
+                  f"canonical recommendation preserved={streamed_recommendation is not None}"
+              )
 
           # The Guide resource-discovery regression now respects the native Catalogue boundary.
           # A resource-finding question must cross into the Catalogue's own search surface;
