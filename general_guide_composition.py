@@ -427,7 +427,7 @@ def clarification_response(query: str, history_text: str = "") -> Optional[Dict[
     # to search. Resolve it at the request boundary so no unrelated doorway can
     # be selected and attached later by the ordinary Guide pipeline.
     if _is_response_preference_without_subject(query, history_text):
-        if re.search(r"\\b(?:advice|recommendations)\\b", query, re.I):
+        if re.search(r"\b(?:advice|recommendations)\b", query, re.I):
             response = (
                 "Of course. I’ll focus on explaining the subject itself rather than "
                 "giving advice. What subject would you like to understand?"
@@ -866,6 +866,79 @@ def _conceptual_relationship_recovery() -> str:
     )
 
 
+def _is_archive_constitutional_question(query: str) -> bool:
+    """Recognize Archive-specific constitutional questions as a bounded recovery class."""
+    question = _normalize_space(query).casefold()
+    has_constitutional_subject = bool(re.search(
+        r"\b(?:constitutional reasoning|constitutional framework|constitutional architecture|constitutional register)\b",
+        question,
+    ))
+    has_archive_context = bool(re.search(
+        r"\b(?:living archive|the archive|archive['’]s)\b",
+        question,
+    ))
+    return has_constitutional_subject and has_archive_context
+
+
+def _archive_constitutional_recovery(
+    question: str,
+    documents: List[Dict[str, str]],
+) -> Optional[Dict[str, Any]]:
+    """Answer from the retrieved Constitutional Register when model composition is unavailable."""
+    if not _is_archive_constitutional_question(question):
+        return None
+
+    source = next((
+        item for item in documents
+        if re.search(
+            r"constitutional register",
+            _normalize_space(item.get("title", "")),
+            re.I,
+        )
+        or re.search(
+            r"constitutional register",
+            str(item.get("content") or ""),
+            re.I,
+        )
+    ), None)
+    if not source:
+        return None
+
+    source_content = _normalize_space(source.get("content", ""))
+    if not re.search(r"\b(?:constitutional|recovery|translation|interpretation|relationship)\b", source_content, re.I):
+        return None
+
+    title = _normalize_space(source.get("title", ""))
+    url = _normalize_space(source.get("url", ""))
+    if not title:
+        return None
+    if url and not url.startswith("https://geralddaquila.com/"):
+        url = ""
+
+    response = (
+        "Within the Living Archive, constitutional reasoning means recovering the principles and governing relationships "
+        "that organize its body of knowledge, rather than treating each concept or page as an isolated statement. "
+        "It asks how concepts and responsibilities connect across the canonical sources, and which commitments remain "
+        "stable across those relationships.\n\n"
+        "The Archive's stated order is recovery before translation, and clarity before application. First identify what "
+        "the canonical material explicitly establishes; only then translate it into an interpretation or practical use. "
+        "The Constitutional Register is the relevant doorway for tracing that recovered constitutional architecture, "
+        "while related sources should be used to check particular connections rather than assume that a title alone proves them.\n\n"
+        "Recovered constitutional architecture and later interpretation are not the same thing. Where a connection is "
+        "inferred rather than directly stated, it should be labelled as inference; where the sources do not establish a "
+        "formal rule, the Guide should not invent one. The purpose is to make the Archive's own framework clearer while "
+        "leaving judgment and application with the reader."
+    )
+    return {
+        "response": response,
+        "doorway_title": title,
+        "doorway_url": url,
+        "response_shape": "explanatory",
+        "provider": "bounded_archive_constitutional_recovery",
+        "model": "canonical-evidence-fallback",
+    }
+
+
 def is_practical_application_question(query: str) -> bool:
     """Identify explicit requests for actionable practice, not conceptual questions."""
     question = _normalize_space(query).casefold()
@@ -1189,6 +1262,12 @@ def compose(
         parse=_parse_factory(documents, effective_question),
     )
     if not result:
+        # If the provider bank is exhausted, use a bounded evidence-dependent
+        # recovery for Archive constitutional questions rather than allowing
+        # the generic Archive-definition fallback to answer the wrong subject.
+        constitutional_recovery = _archive_constitutional_recovery(question, documents)
+        if constitutional_recovery is not None:
+            return constitutional_recovery
         if _requires_recurring_problem_explanation(question):
             return {
                 "response": _recurring_problem_explanation_recovery(),

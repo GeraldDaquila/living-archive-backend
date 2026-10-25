@@ -30,6 +30,7 @@ jobs:
       - name: Wait for both production services and verify the live clarification boundary
         run: |
           python - <<'PY'
+          import hashlib
           import json
           import re
           import time
@@ -43,6 +44,31 @@ jobs:
           if not match:
               raise SystemExit("Cannot determine expected production version from main.py")
           expected_version = match.group(1)
+
+          # Match the exact runtime source manifest, not just APP_VERSION. The
+          # version/fingerprint intentionally remain stable across small patches,
+          # so they cannot prove that deployed Python modules include this commit.
+          root_path = Path(".")
+          excluded_parts = {
+              "__pycache__", ".git", ".venv", "venv", "QA", "scripts", "node_modules",
+          }
+          source_files = []
+          for path in root_path.rglob("*.py"):
+              if path.is_symlink():
+                  continue
+              relative = path.relative_to(root_path)
+              if any(part in excluded_parts for part in relative.parts):
+                  continue
+              source_files.append(path)
+          digest = hashlib.sha256()
+          for path in sorted(source_files, key=lambda item: item.relative_to(root_path).as_posix()):
+              relative_name = path.relative_to(root_path).as_posix()
+              digest.update(relative_name.encode("utf-8"))
+              digest.update(b"\0")
+              digest.update(path.read_bytes())
+              digest.update(b"\0")
+          expected_source_sha256 = digest.hexdigest()
+          print(f"Expected runtime source SHA-256: {expected_source_sha256}")
 
           services = {
               "primary": "https://living-archive-backend.onrender.com",
@@ -90,12 +116,14 @@ jobs:
                           "status": status,
                           "version": payload.get("version"),
                           "fingerprint": payload.get("fingerprint"),
+                          "source_sha256": payload.get("source_sha256"),
                           "ok": payload.get("ok"),
                       }
                       if (
                           status == 200
                           and payload.get("version") == expected_version
                           and str(payload.get("fingerprint") or "").startswith(f"USE-{expected_version}-")
+                          and payload.get("source_sha256") == expected_source_sha256
                       ):
                           # Exercise the clarification boundary only once the release identity matches.
                           boundary_status, boundary_payload = post_query(
