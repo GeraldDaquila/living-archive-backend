@@ -1486,7 +1486,7 @@
     },
     {
       "benchmark_id": "general-guide-living-archive-cosmology-gold-standard-2026-10-25",
-      "status": "FROZEN_REFERENCE_ONLY",
+      "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "What is the cosmology of the Living Archive?",
       "expected_response": "The Living Archive approaches cosmology as the underlying understanding of how life works and how we belong within it—not simply as a theory about the physical universe. It asks what we assume about ourselves, other people, safety, power, love, growth, and our place in the wider world, because those assumptions quietly shape how we think, decide, and live.\n\nOne contrast explored in the Archive is between a separation-based worldview and a unity-informed worldview. A separation-based view tends to organize life around competition, control, earned worth, and fear of loss. A unity-informed view sees people as distinct but connected, treats worth as inherent, and understands growth as something that can emerge through relationship, responsibility, and cooperation. These are ways of interpreting and living experience, not labels for judging a person.\n\nIn this sense, the Archive invites us to examine the worldview we are living from and consider how it shapes our relationships, choices, and responsibilities. This is a starting explanation rather than a claim that one article exhausts the Archive’s whole cosmology. If you would like to explore the source behind this distinction, begin with “The Worldview of a Conscious Human.”",
@@ -1500,13 +1500,16 @@
         "Directly answers the cosmology question in plain, humane language.",
         "Distinguishes the article's worldview framework from a claim that one article exhausts the Living Archive's entire cosmology.",
         "Does not diagnose or judge the visitor.",
-        "A single Search submission renders the substantive answer without requiring a second click."
+        "A single Search submission renders the substantive answer without requiring a second click.",
+        "Approved as a user-facing gold standard after visual review of the rendered Guide response."
       ],
       "provenance": {
         "source_path": "WordPress post 29209",
         "source_url": "https://geralddaquila.com/2026/02/07/the-worldview-of-a-conscious-human/",
         "source_status": "published canonical source inspected through Cowboy MCP",
-        "approval_note": "Applied as the narrow calibration reference requested by the user: follow the stewardship three-paragraph standard for this exact General Guide question. Wording is grounded in the published article and explicitly limits the scope of the claim."
+        "approval_note": "Applied as the narrow calibration reference requested by the user: follow the stewardship three-paragraph standard for this exact General Guide question. Wording is grounded in the published article and explicitly limits the scope of the claim.",
+        "user_approval": "User explicitly approved promotion to gold standard on 2026-10-25 after reviewing the live visitor-facing screenshot.",
+        "visitor_e2e_evidence": "Screenshot supplied by user on 2026-10-25 shows the exact query submitted and the three-paragraph answer rendered in the Guide UI, with the expected source doorway and Start another question control."
       },
       "freeze_policy": "Exact-match only. Do not generalize this response to other cosmology questions; broader questions continue through normal evidence-grounded composition."
     }
