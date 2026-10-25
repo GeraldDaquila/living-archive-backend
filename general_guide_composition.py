@@ -572,12 +572,12 @@ def _requires_entrusted_stewardship_identification(query: str) -> bool:
     """Recognize conceptual questions asking how to identify what is held in trust."""
     q = _normalize_space(query).casefold()
     asks_identification = bool(re.search(
-        r"\\b(?:how (?:does|can|do|would) (?:one|you|we|i) identify|"
-        r"how to identify|identify what is being held in trust|what is held in trust)\\b",
+        r"\b(?:how (?:does|can|do|would) (?:one|you|we|i) identify|"
+        r"how to identify|identify what is being held in trust|what is held in trust)\b",
         q,
     ))
     trust_context = bool(re.search(
-        r"\\b(?:held in trust|being held in trust|entrusted|entrustment|in trust)\\b",
+        r"\b(?:held in trust|being held in trust|entrusted|entrustment|in trust)\b",
         q,
     ))
     return asks_identification and trust_context
@@ -586,17 +586,17 @@ def _requires_entrusted_stewardship_identification(query: str) -> bool:
 def _has_entrusted_stewardship_identification(response: str) -> bool:
     """Require a direct explanation of entrusted subject, beneficiaries, duties, and limits."""
     text = _normalize_space(response).casefold()
-    paragraphs = [p for p in re.split(r"\\n\\s*\\n+", str(response or "")) if p.strip()]
+    paragraphs = [p for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
     required_groups = (
-        r"\\b(?:entrust|held in trust|entrusted|what has been placed in your care)\\w*\\b",
-        r"\\b(?:who|people|community|beneficiar|depend on|affected by)\\w*\\b",
-        r"\\b(?:obligation|responsibilit|duty|commitment|care for|protect|maintain)\\w*\\b",
-        r"\\b(?:misuse|neglect|breach|boundary|limits?|not yours alone|not solely yours)\\w*\\b",
-        r"\\b(?:for example|in practice|ask yourself|look at|identify)\\w*\\b",
+        r"\b(?:entrust|held in trust|entrusted|what has been placed in your care)\w*\b",
+        r"\b(?:who|people|community|beneficiar|depend on|affected by)\w*\b",
+        r"\b(?:obligation|responsibilit|duty|commitment|care for|protect|maintain)\w*\b",
+        r"\b(?:misuse|neglect|breach|boundary|limits?|not yours alone|not solely yours)\w*\b",
+        r"\b(?:for example|in practice|ask yourself|look at|identify)\w*\b",
     )
     generic_planning = re.search(
-        r"\\b(?:define the outcome you want|identify the main constraint|choose one step small enough|"
-        r"before acting|adjust rather than assuming the first attempt)\\b",
+        r"\b(?:define the outcome you want|identify the main constraint|choose one step small enough|"
+        r"before acting|adjust rather than assuming the first attempt)\b",
         text,
     )
     return len(paragraphs) == 3 and all(re.search(pattern, text) for pattern in required_groups) and not generic_planning
@@ -605,8 +605,8 @@ def _has_entrusted_stewardship_identification(response: str) -> bool:
 def _entrusted_stewardship_identification_recovery() -> str:
     """Directly explain how to recognize what a situation places in trust."""
     return (
-        "To identify what is being held in trust, look for what has been placed in someone's care, authority, or keeping without becoming theirs to use only for personal advantage. It may be a responsibility, a relationship, a resource, a promise, knowledge, a role, or a shared place. Ask what was entrusted, explicitly or implicitly, and what would be lost or damaged if it were neglected or misused. The answer is not always an object; sometimes what is entrusted is another person's confidence, a duty, or the ability to make a decision responsibly.\\n\\n"
-        "Next, identify who or what depends on that care and what obligations follow. Consider the people affected, the purpose for which the thing was entrusted, the promises or rules that govern it, and any limits on the holder's authority. For example, a manager may be entrusted with a team's time and information: the duty is not to treat them as personal property, but to use them fairly, protect confidentiality, and explain decisions that affect the team. Different situations create different duties, so the context and the voices of those affected matter.\\n\\n"
+        "To identify what is being held in trust, look for what has been placed in someone's care, authority, or keeping without becoming theirs to use only for personal advantage. It may be a responsibility, a relationship, a resource, a promise, knowledge, a role, or a shared place. Ask what was entrusted, explicitly or implicitly, and what would be lost or damaged if it were neglected or misused. The answer is not always an object; sometimes what is entrusted is another person's confidence, a duty, or the ability to make a decision responsibly.\n\n"
+        "Next, identify who or what depends on that care and what obligations follow. Consider the people affected, the purpose for which the thing was entrusted, the promises or rules that govern it, and any limits on the holder's authority. For example, a manager may be entrusted with a team's time and information: the duty is not to treat them as personal property, but to use them fairly, protect confidentiality, and explain decisions that affect the team. Different situations create different duties, so the context and the voices of those affected matter.\n\n"
         "Finally, test the interpretation by asking what responsible care would preserve, what misuse or neglect would look like, and where the holder's authority ends. Something is held in trust when care is owed beyond mere ownership or convenience: there is a purpose, a relationship of reliance, and an obligation to act with regard for those affected. Be explicit about what is known, what is inferred, and what remains unclear rather than assuming every responsibility is unlimited or belongs to one person alone."
     )
 
