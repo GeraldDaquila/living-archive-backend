@@ -1530,15 +1530,22 @@
         "Distinguishes the general concept from the source-grounded Archive commitments.",
         "Answers the visitor before offering the optional doorway.",
         "Does not describe the Archive's principles as unquestionable doctrines.",
-        "A single Search submission renders the substantive answer without requiring a follow-up question."
+        "A single Search submission renders the substantive answer without requiring a follow-up question.",
+        "Visitor-facing E2E evidence: the supplied live screenshot shows the exact query, all six principles in the three-paragraph answer, the First Principles doorway, and the Start another question control.",
+        "Preserve the agreed three-paragraph answer-first presentation; do not regress to a single-paragraph summary."
       ],
       "provenance": {
         "source_path": "WordPress page 70305",
         "source_url": "https://geralddaquila.com/first-principles/",
         "source_status": "published canonical source inspected through Cowboy MCP",
-        "approval_note": "Added at the user's direction to restore the previously agreed three-paragraph, answer-first Guide presentation. Content grounded in the published First Principles page."
+        "approval_note": "User explicitly requested this response be added to the gold-standard entry after reviewing the live visitor-facing screenshot on 2026-10-25. Rated 9.3/10 and judged to meet expectations. Screenshot confirms the exact query, three-paragraph answer, all six principles, and the First Principles doorway.",
+        "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
+        "visitor_e2e_evidence": "User-provided screenshot dated 2026-10-25 shows the exact visitor query and the three-paragraph answer rendered in the Guide UI, followed by the First Principles link and Start another question control.",
+        "evidence_boundary": "Approval applies to the observed answer and presentation for this exact query. It does not establish that unrelated queries should use the same wording or that every deployment environment has independently passed a fresh replay."
       },
-      "freeze_policy": "Exact-match only. Do not generalize this response to other questions; broader questions continue through normal evidence-grounded composition."
+      "freeze_policy": "Exact-match only. Do not generalize this response to other questions; broader questions continue through normal evidence-grounded composition.",
+      "rating_out_of_10": 9.3,
+      "approval_state": "Explicitly approved by user as a gold standard after review of the live visitor-facing screenshot on 2026-10-25; assessment 9.3/10, meets expectations."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control."
