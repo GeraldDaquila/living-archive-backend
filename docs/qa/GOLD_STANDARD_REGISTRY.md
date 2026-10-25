@@ -549,3 +549,14 @@ Both records are separate candidates and must not be counted as user-approved fr
 - **Test:** `tests/test_gold_standard_registry.py::test_water_boiling_point_general_knowledge_gold_standard_preserves_live_answer_and_disclosure`
 - **Related negative regression control:** `general-guide-water-boiling-point-failure-control-2026-10-24` remains in the registry to ensure the former Archive-only refusal does not return.
 - **Freeze policy:** Preserve the approved response and provenance boundary; changes require explicit user authorization and a documented benchmark-version update.
+
+
+### GS-GUIDE-011 — Philippine gender dynamics: public masculinity and women's practical authority
+- **Status:** USER_APPROVED_GOLD_STANDARD
+- **Rating:** 9/10
+- **Exact question:** “On surface, the Philippines is very much a macho society. Where is the matriarchal reality come from and how it evolved?”
+- **Expected contract:** Three purposeful paragraphs. Explain how public masculine ideals can coexist with women's influence in family and community life; distinguish influence from equality; describe historical layers while acknowledging community and regional variation.
+- **Canonical recommendation:** Is the Philippines Matriarchal or Patriarchal? Understanding Gender Dynamics and Hidden Female Power — https://geralddaquila.com/2026/10/12/matriarchy-in-the-shadows-unraveling-gender-dynamics-in-the-philippines/
+- **Assertions:** Direct answer first; no generic practical-advice fallback; no universal precolonial-matriarchy claim; preserve humane language; keep the Archive doorway separate and clickable.
+- **Provenance:** User-provided live Guide screenshot dated 2026-10-25; title and URL verified against the published WordPress post.
+- **Evidence boundary:** The approved benchmark captures the observed answer and doorway, not a claim that every general historical statement is verbatim Archive doctrine. Historical specificity would require comparing regional and period-specific sources.

@@ -352,3 +352,24 @@ def test_water_boiling_point_general_knowledge_gold_standard_preserves_live_answ
     disclosure = "The Guide considers your question alongside the Living Archive’s ideas, themes, and pathways to help you find where to begin. From there, you can explore the Archive for yourself."
     assert disclosure in fixture["provenance"]["expanded_how_results_are_found_disclosure"]
     assert "does not claim the science answer is sourced from or canonical doctrine" in fixture["provenance"]["evidence_boundary"]
+
+
+def test_philippines_gender_dynamics_gold_standard_preserves_live_answer_and_doorway():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-philippines-gender-dynamics-2026-10-25"
+    )
+    fixture_path = ROOT / "tests" / "fixtures" / "general_guide_philippines_gender_dynamics_gold_standard.json"
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+    assert record["status"] == fixture["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == fixture["query"]
+    assert record["expected_response"] == fixture["expected_response"]
+    assert record["expected_doorway"]["title"] == fixture["expected_doorway_title"]
+    assert record["expected_doorway"]["url"] == fixture["expected_doorway_url"]
+    assert record["rating_out_of_10"] == fixture["rating_out_of_10"] == 9
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
+    for phrase in ("public masculinity", "precolonial", "Spanish colonial", "unpaid work"):
+        assert phrase.casefold() in record["expected_response"].casefold()
+    assert "not be mistaken for equality" in record["expected_response"]
+    assert "not a claim that the general explanation is verbatim" in record["provenance"]["evidence_boundary"]
