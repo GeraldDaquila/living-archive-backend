@@ -203,6 +203,9 @@ def test_general_guide_does_not_chain_after_slow_first_failure(monkeypatch):
     )
 
     assert result is None
-    assert calls == [("gemini", provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS)]
-    assert provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS == 1.25
-    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 2.8
+    assert calls == [("gemini", 6.0)]
+    assert provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS == 6.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 18.0
+    assert provider_bank.GENERAL_GUIDE_SLOW_FAILURE_STOP_SECONDS == 2.8
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
+    assert clock.value == 6.0

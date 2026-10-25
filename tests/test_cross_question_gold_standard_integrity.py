@@ -50,3 +50,27 @@ def test_composer_has_general_constitutional_grounding_contract():
     assert "recovery before translation" in source
     assert "integrity_recovery: bool = False" in source
     assert "INTEGRITY RECOVERY" in source
+
+
+def test_guide_provider_budget_allows_real_inference_before_failing_closed():
+    import ast
+
+    source = (ROOT / "provider_bank.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    constants = {}
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id in {
+                    "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS",
+                    "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES",
+                    "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS",
+                }:
+                    constants[target.id] = ast.literal_eval(node.value)
+
+    assert constants["GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS"] >= 5.0
+    assert constants["GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS"] >= (
+        constants["GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS"]
+        * (1 + constants["GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES"])
+    )
+    assert constants["GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES"] <= 2
