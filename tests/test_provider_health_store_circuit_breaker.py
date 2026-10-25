@@ -59,3 +59,23 @@ def test_circuit_does_not_open_when_shared_store_is_unconfigured(monkeypatch):
     monkeypatch.delenv("USE_PROVIDER_HEALTH_STATE_URL", raising=False)
     assert store._request("GET") is None
     assert store._CIRCUIT_OPEN_UNTIL == 0.0
+
+
+def test_normal_requests_are_not_marked_as_half_open_probes(monkeypatch):
+    _reset_circuit()
+
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self, _limit):
+            return json.dumps({"contract_version": store.CONTRACT_VERSION, "states": {}}).encode()
+
+    monkeypatch.setenv("USE_PROVIDER_BANK_SHARED_SECRET", "test-secret")
+    monkeypatch.setattr(store, "urlopen", lambda *args, **kwargs: Response())
+    assert store._request("GET") == {"contract_version": store.CONTRACT_VERSION, "states": {}}
+    assert store._CIRCUIT_PROBE_IN_FLIGHT is False
+    assert store._CIRCUIT_OPEN_UNTIL == 0.0
