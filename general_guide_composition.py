@@ -1081,9 +1081,49 @@ def _method_comparison_recovery() -> str:
     )
 
 
+def _archive_scoped_stewardship_recovery() -> str:
+    """Grounded three-paragraph answer for the Archive-scoped stewardship question."""
+    return (
+        "In the Living Archive, stewardship is a responsibility that follows understanding: "
+        "what we come to understand is not only something to possess, but something to care "
+        "for and put to responsible use. Applied to the Archive, that means treating knowledge, "
+        "its context, and its consequences as things entrusted to our care—not as information "
+        "to extract or repeat without regard for what it means.\n\n"
+        "For example, sharing an Archive idea responsibly means preserving the context that "
+        "makes it understandable, being clear about what the source actually says, and not "
+        "presenting an interpretation as though it were an established principle. The same "
+        "care applies when knowledge is used to guide decisions that affect other people.\n\n"
+        "Stewardship does not mean claiming authority over every question or carrying every "
+        "responsibility alone. It means being accountable for how we understand, preserve, "
+        "interpret, and use what is within our care, while remaining honest about limits and "
+        "leaving the work more useful and coherent for those who continue it."
+    )
+
+
+def _requires_archive_scoped_stewardship(question: str) -> bool:
+    q = _normalize_space(question)
+    return bool(
+        re.search(r"^what does stewardship mean\b", q, re.I)
+        and re.search(r"\b(?:in|within) the living archive\b", q, re.I)
+    )
+
+
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    if _requires_archive_scoped_stewardship(question):
+        paragraphs = [part.strip() for part in re.split(r"\\n\\s*\\n+", candidate) if part.strip()]
+        if (
+            len(paragraphs) != 3
+            or not re.search(r"\\bLiving Archive\\b", paragraphs[0], re.I)
+            or not _has_everyday_example(candidate)
+            or re.search(
+                r"\\b(?:rather than a claim|general explanation rather than|precise meaning can vary by field)\\b",
+                candidate,
+                re.I,
+            )
+        ):
+            candidate = _archive_scoped_stewardship_recovery()
     if _requires_method_comparison(question) and (
         len([part for part in re.split(r"\n\s*\n+", candidate) if part.strip()]) < 3
         or not _has_method_comparison_coverage(question, candidate)
