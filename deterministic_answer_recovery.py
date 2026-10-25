@@ -122,18 +122,17 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     # Retrospective accountability must outrank generic decision advice:
     # evaluate process using what was knowable then, not the outcome known now.
     if re.search(r"\b(?:living archive|the archive)\b", lower) and re.search(r"\b(?:what is|what are|define|what does)\b", lower):
-        # Answer institutional orientation at a bounded, established level.
-        # The Guide is an orientation doorway into the Living Archive, which is
-        # a connected body of canonical resources rather than a generic Q&A
-        # service. Do not claim that the current retrieval result is the whole
-        # Archive or invent institutional details not established here.
+        # Constitutional-sensemaking orientation: explain the Archive's purpose,
+        # distinguish it from a generic answer engine, and keep evidence,
+        # interpretation, uncertainty, and human responsibility visible.
         answer = (
-            "The Living Archive is a connected body of resources for exploring ideas, relationships, and patterns across human life. "
-            "The Guide helps visitors find a useful place to begin and see how resources relate, while the Archive itself is broader than any single page or answer.\n\n"
-            "It is not simply a chatbot that produces answers on demand, nor is it one fixed text that exhausts a subject. "
-            "A useful response should explain the question as far as the available evidence allows, distinguish established Archive framing from general explanation, and avoid treating a missing search result as proof that the Archive has nothing more to say.\n\n"
-            "The practical difference is that the Archive is meant to be explored as connected knowledge, with relevant canonical resources serving as doorways into deeper study. "
-            "This is a general institutional orientation, not a claim that the material retrieved for any one question represents the whole Archive."
+            "The Living Archive is a public knowledge commons and an orientation ecosystem for understanding human life through connected ideas, relationships, and systems. "
+            "It brings perspectives from different domains into conversation so people can see patterns, examine how parts affect one another, and explore what may support human flourishing. "
+            "Its purpose is not simply to store information, but to help people find their bearings within a wider body of thought and inquiry.\n\n"
+            "It is not a chatbot that treats every question as a request for a quick, self-contained answer, a collection of unrelated pages, or an authority that claims final certainty. "
+            "The Archive invites disciplined inquiry: established claims should be distinguishable from interpretation and inference; uncertainty should be acknowledged rather than hidden; and no framework should relieve people of the responsibility to think, judge, and act with care.\n\n"
+            "The Guide serves this purpose through constitutional sensemaking. It helps a person locate a question within the Archive's wider relationships, identify useful canonical resources, and understand how the pieces may fit together without pretending that every connection is proven or every question settled. "
+            "In practice, a question about a relationship, institution, or community can open onto wider patterns of responsibility, power, history, and care. The aim is not to decide for the visitor, but to make the landscape clearer so that further inquiry and human judgment can be better grounded."
         )
     elif _is_historical_cultural_explanation(q):
         answer = _historical_cultural_recovery()
