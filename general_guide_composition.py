@@ -1126,12 +1126,12 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
             # recurring meta-answer/failure template so the provider bank retries
             # instead of treating commentary about answering as the answer itself.
             if re.search(
-                r"\\b(?:the question about .{1,180} deserves a direct answer|"
+                r"\b(?:the question about .{1,180} deserves a direct answer|"
                 r"the most useful next step is to identify|"
                 r"i don['’]?t have enough verified context|"
                 r"the right answer depends on addressing the question directly|"
                 r"i have not been able to produce that complete explanation|"
-                r"please try again shortly)\\b",
+                r"please try again shortly)\b",
                 response,
                 re.I,
             ):
