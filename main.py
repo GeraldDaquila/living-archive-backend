@@ -7374,7 +7374,107 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 f"vetted doorway={'available' if authoritative_doorway else 'unavailable'}."
             )
         elif not _conceptual_human_voice_supported and not locals().get("conceptual_subject_recovery"):
-            # Fail closed unless vetted canonical source bodies support the
+            # General conceptual recovery: answer from relevant sentences in the
+            # already-vetted canonical bodies, without imposing the specialized
+            # trust/community/stewardship contract on unrelated concepts.
+            # Require multiple meaningful query terms to occur in the same source
+            # sentence; do not infer Archive doctrine from a title or doorway alone.
+            _generic_stop_terms = {
+                "what", "when", "where", "which", "who", "whom", "whose",
+                "does", "did", "doing", "have", "has", "had", "will", "would",
+                "could", "should", "can", "may", "might", "the", "and", "for",
+                "from", "with", "into", "about", "that", "this", "these",
+                "those", "their", "there", "then", "than", "your", "you",
+                "are", "was", "were", "being", "been", "its", "it", "not",
+                "how", "why", "explain", "describe", "tell", "me", "please",
+                "living", "archive", "concept", "concepts", "idea", "ideas",
+                "role", "purpose", "significance", "importance", "meaning",
+                "nature", "relationship", "function", "value", "impact",
+            }
+            _generic_query_terms = {
+                token for token in re.findall(r"[a-z0-9]+", _normalize_query(query))
+                if len(token) > 3 and token not in _generic_stop_terms
+            }
+            _generic_sentence_candidates = []
+            for _generic_item in _conceptual_vetted_docs:
+                _generic_doc = _generic_item["doc"]
+                _generic_body = _generic_item["body"]
+                _generic_url = str(
+                    _generic_doc.get("url") or _generic_doc.get("canonical_url") or ""
+                ).strip()
+                if not _generic_body or not re.match(
+                    r"^https://geralddaquila\\.com/\\S+$", _generic_url, re.I
+                ):
+                    continue
+                for _generic_sentence in re.split(r"(?<=[.!?])\\s+", _generic_body):
+                    _generic_sentence = re.sub(r"\\s+", " ", _generic_sentence).strip()
+                    if len(_generic_sentence) < 45 or len(_generic_sentence) > 600:
+                        continue
+                    _generic_normalized_sentence = _normalize_query(_generic_sentence)
+                    _generic_hits = {
+                        term for term in _generic_query_terms
+                        if re.search(r"\\b" + re.escape(term) + r"\\b", _generic_normalized_sentence)
+                    }
+                    _generic_min_hits = 1 if len(_generic_query_terms) <= 1 else 2
+                    if len(_generic_hits) >= _generic_min_hits:
+                        _generic_sentence_candidates.append({
+                            "sentence": _generic_sentence,
+                            "hits": len(_generic_hits),
+                            "title": str(_generic_doc.get("title") or "").strip(),
+                            "url": _generic_url,
+                        })
+            _generic_sentence_candidates.sort(
+                key=lambda item: (-item["hits"], len(item["sentence"]))
+            )
+            _generic_selected = []
+            _generic_seen_sentences = set()
+            for _generic_candidate in _generic_sentence_candidates:
+                _generic_key = _normalize_query(_generic_candidate["sentence"])
+                if _generic_key in _generic_seen_sentences:
+                    continue
+                _generic_seen_sentences.add(_generic_key)
+                _generic_selected.append(_generic_candidate)
+                if len(_generic_selected) == 3:
+                    break
+            if _generic_selected and _generic_query_terms:
+                _generic_first = _generic_selected[0]
+                _generic_doorway = _normalize_authoritative_recommendation({
+                    "title": _generic_first["title"],
+                    "url": _generic_first["url"],
+                })
+                response = _sanitize_basic_inquiry_response(
+                    "The Archive’s material offers this starting point: "
+                    + " ".join(item["sentence"] for item in _generic_selected)
+                )
+                authoritative_doorway = _generic_doorway
+                if authoritative_doorway:
+                    composition_context["authoritative_doorway"] = authoritative_doorway
+                    composition_context["authoritative_doorway_title"] = authoritative_doorway.get("title") or ""
+                    archive_evidence_unavailable = False
+                    composition_context.pop("evidence_sufficiency_unavailable", None)
+                    composition_context["conceptual_subject_recovery"] = "vetted_sentence_synthesis"
+                    print(
+                        "The Guide conceptual boundary: used question-matched sentences "
+                        "from vetted canonical bodies; "
+                        f"sentences={len(_generic_selected)}; doorway=verified."
+                    )
+                else:
+                    response = _archive_limitation_response(query)
+                    archive_evidence_unavailable = True
+            else:
+                # No sufficiently matched source sentence: do not manufacture an
+                # Archive-specific cosmology or use an unrelated doorway as proof.
+                response = _archive_limitation_response(query)
+                archive_evidence_unavailable = True
+                authoritative_doorway = None
+                composition_context.pop("authoritative_doorway", None)
+                composition_context.pop("authoritative_doorway_title", None)
+                composition_context["evidence_sufficiency_unavailable"] = True
+                print(
+                    "The Guide conceptual boundary: no question-matched canonical "
+                    "sentences; returned the Archive-only limitation."
+                )
+
             # requested concepts, the selected doorway, and the explanation.
             response = _archive_limitation_response(query)
             archive_evidence_unavailable = True
