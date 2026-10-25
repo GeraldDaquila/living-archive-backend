@@ -26,9 +26,9 @@ def test_perception_preserves_visitor_agency_and_avoids_false_intimacy():
 
 
 def test_composition_contract_advances_for_perception_policy():
-    assert guide.CONTRACT_VERSION == "v1.26"
+    assert guide.CONTRACT_VERSION == "v1.27"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.26"
+    assert snapshot["contract_version"] == "v1.27"
     assert snapshot["provider_neutral"] is True
 
 
@@ -36,7 +36,7 @@ def test_stewardship_presentation_is_a_systemwide_explanatory_standard():
     prompt = guide._GENERAL_GUIDE_SYSTEM
     assert "System-wide answer presentation standard" in prompt
     assert "applies to every ordinary Guide topic" in prompt
-    assert "three purposeful paragraphs as the default" in prompt
+    assert "A substantive explanatory or conceptual question defaults to three purposeful paragraphs" in prompt
     assert "complete before an optional Archive doorway appears" in prompt
     assert "not only stewardship or Archive-specific questions" in prompt
     assert "simple, self-contained factual lookup may be one or two sentences" in prompt
@@ -111,8 +111,8 @@ def test_conceptual_relationships_require_reasoning_but_allow_proportionate_leng
 
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.26"
-    assert guide.contract_snapshot()["contract_version"] == "v1.26"
+    assert guide.CONTRACT_VERSION == "v1.27"
+    assert guide.contract_snapshot()["contract_version"] == "v1.27"
 
 
 def test_incomplete_comparison_question_clarifies_before_retrieval():
@@ -146,8 +146,8 @@ def test_ordinary_explanatory_question_is_not_interrupted():
 
 
 def test_composition_contract_version_advances_for_clarification_boundary():
-    assert guide.CONTRACT_VERSION == "v1.26"
-    assert guide.contract_snapshot()["contract_version"] == "v1.26"
+    assert guide.CONTRACT_VERSION == "v1.27"
+    assert guide.contract_snapshot()["contract_version"] == "v1.27"
 
 
 def test_plain_stewardship_explanation_rejects_unsolicited_spectrum_list():
@@ -227,7 +227,7 @@ def test_gold_standard_is_the_default_general_presentation_contract():
     assert "normally three purposeful, readable paragraphs" in prompt
     assert "Do not append a generic clarification prompt merely to prolong the exchange" in prompt
     assert "place any verified, directly relevant Archive resource in a distinct, clearly labeled doorway section" in prompt
-    assert "This is a quality and sequence standard, not a rigid paragraph-count rule" in prompt
+    assert "For a substantive explanatory, conceptual, educational, social, or Archive-related question, present three connected, readable paragraphs by default" in prompt
 
 
 

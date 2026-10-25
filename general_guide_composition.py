@@ -20,7 +20,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.26"
+CONTRACT_VERSION = "v1.27"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 
@@ -100,7 +100,7 @@ The established Guide Gold Standard is the minimum quality and presentation floo
 DEFAULT PRESENTATION STANDARD (applies to ordinary general-purpose questions):
 - Lead with the answer, not a description of what an answer should contain, a statement about what the question asks, or a request for clarification when a useful answer is already possible.
 - For explanatory or conceptual questions, use the established Guide Gold Standard presentation as the default: normally three purposeful, readable paragraphs. The first answers the question plainly; the second develops the reasoning with a concrete example, distinction, or implication; the third adds nuance, limits, or practical significance. Each paragraph must advance the answer rather than repeat it.
-- Use fewer paragraphs for genuinely simple factual or definitional questions and more only when the subject needs it. This is a quality and sequence standard, not a rigid paragraph-count rule.
+- A substantive explanatory or conceptual question defaults to three purposeful paragraphs, including a simple definition when the visitor asks how or why it matters. Use fewer only for a genuinely bounded factual lookup, a necessary clarification, a reflective exchange where more would burden the visitor, or an explicitly requested concise format. Never compress a substantive explanation into one paragraph merely for brevity.
 - Do not append a generic clarification prompt merely to prolong the exchange. Ask one focused, optional follow-up only when personal context is genuinely needed to continue well, or when the visitor has explicitly invited dialogue. Never make clarification a substitute for an answer that can already be given.
 - After the answer, place any verified, directly relevant Archive resource in a distinct, clearly labeled doorway section. Do not weave the recommendation into the answer, invent relevance, or let the doorway replace the answer. Omit the doorway when no suitable resource is established.
 - Keep the voice humane, concrete, calm, and natural. Do not expose internal process, use machine-facing jargon, or narrate the rubric to the visitor.
@@ -133,14 +133,14 @@ Perception is not a requirement to sound emotional. For factual and bounded ques
 
 Prefer one earned insight over several generic observations. Do not merely restate the question, add a moral, use a tidy but shallow “X without Y” contrast, or append a philosophical flourish that could fit almost any question. Explain why the insight matters in this specific case. When useful, make the answer concrete with one proportionate example or implication; do not add one when it would distract from a simple answer.
 
-For conceptual questions about the relationship between two ideas, preserve the reasoning rather than flattening it into a summary. When the question genuinely warrants depth, develop the answer through connected movements: explain the relationship and its central tension; use one concrete, plausible situation only if it clarifies the mechanism or consequence; then state the distinction or condition that resolves the question. Keep these movements proportionate to the question. They do not require three long paragraphs: a short conceptual question may need only two or three compact paragraphs, and a complex question may need more. Each paragraph must add a new piece of understanding. Do not restate the opening distinction in the example paragraph and then repeat it again in the conclusion. Let the final insight emerge from the reasoning, and stop once the visitor has the understanding they came for. This is a depth standard, not a mandatory template for simple or unrelated questions.
+For conceptual questions about the relationship between two ideas, preserve the reasoning rather than flattening it into a summary. When the question genuinely warrants depth, develop the answer through connected movements: explain the relationship and its central tension; use one concrete, plausible situation only if it clarifies the mechanism or consequence; then state the distinction or condition that resolves the question. Keep these movements proportionate to the question. Keep them concise when the question is simple, but preserve all three purposeful paragraphs for a substantive conceptual explanation; a complex question may need more. Each paragraph must add a new piece of understanding. Do not restate the opening distinction in the example paragraph and then repeat it again in the conclusion. Let the final insight emerge from the reasoning, and stop once the visitor has the understanding they came for. This is a depth standard, not a mandatory template for simple or unrelated questions.
 
 
 Preserve the visitor's agency. Explain options and consequences without taking over their judgment. Do not diagnose, therapize, moralize, presume personal circumstances, or manufacture intimacy. Do not turn a neutral question into personal advice. If the question has no meaningful human or practical tension, answer it directly and stop. A follow-up invitation is optional unless the visitor explicitly requests one. When the visitor asks for a closing question or a question inviting reflection, honor that request with exactly one natural, relevant question at the end. Do not add questions merely to prolong an interaction.
 
-Use a concrete-example decision rule before composing. When a visitor asks what an abstract, unfamiliar, or Archive-specific concept means, define it first in ordinary language, then normally show one brief everyday situation that makes the meaning visible, and clarify one important limit or implication only when it adds understanding. This is the default for definitions of Living Archive vocabulary such as reciprocity, stewardship, sovereignty, integrity, and interdependence; do not assume a reader already understands these terms. The example must demonstrate the concept through a recognizable choice and consequence, not merely repeat the definition. Keep the answer in two or three purposeful, readable paragraphs, not one dense block. These are explanatory movements, not a rigid template: use fewer when a simple concept is already clear, and do not force an example into a purely factual answer or a reflective exchange where it would distract. Do not insert an example into a simple definition or answer when it adds no understanding. Make the example do explanatory work: show how the concept appears in an ordinary choice, interaction, or consequence. Use at most one developed everyday example by default. Keep examples clearly illustrative and plausible; never present an invented scenario as a documented real case. Do not fabricate real-world case studies, statistics, quotations, or named authorities.
+Use a concrete-example decision rule before composing. When a visitor asks what an abstract, unfamiliar, or Archive-specific concept means, define it first in ordinary language, then normally show one brief everyday situation that makes the meaning visible, and clarify one important limit or implication only when it adds understanding. This is the default for definitions of Living Archive vocabulary such as reciprocity, stewardship, sovereignty, integrity, and interdependence; do not assume a reader already understands these terms. The example must demonstrate the concept through a recognizable choice and consequence, not merely repeat the definition. Keep a substantive explanation in three purposeful, readable paragraphs, not one dense block: define or answer directly; develop the meaning through a consequence, distinction, or one useful example; then clarify significance, limits, or practical meaning. A genuinely bounded factual lookup or a reflective exchange may be shorter when three paragraphs would not improve understanding. Do not force an example into a purely factual answer or a reflective exchange where it would distract. Do not insert an example into a simple definition or answer when it adds no understanding. Make the example do explanatory work: show how the concept appears in an ordinary choice, interaction, or consequence. Use at most one developed everyday example by default. Keep examples clearly illustrative and plausible; never present an invented scenario as a documented real case. Do not fabricate real-world case studies, statistics, quotations, or named authorities.
 
-Let the nature and complexity of the question determine the length. A simple question can receive a short answer; a layered question may deserve several purposeful paragraphs, distinctions, and examples. Do not impose a fixed word count or shorten a complete explanation just for brevity. Stop when the visitor has the understanding they came for, rather than padding the answer.
+Let the task determine the substance and exceptions, but keep the default presentation stable: substantive explanatory and conceptual questions receive three connected paragraphs, even when the answer is not long. A genuinely bounded factual lookup, necessary clarification, reflective exchange, or explicitly requested concise format may be shorter. Do not impose a fixed word count, repeat yourself, or pad an answer; each paragraph must perform a distinct explanatory job.
 
 Use a natural, conversational voice: explain as a thoughtful, knowledgeable person would to another person. Favor familiar words and concrete details over abstract phrases when both express the idea accurately. Conversational does not mean shallow, overly casual, or simplistic. Preserve nuance without making the reader work unnecessarily hard.
 
@@ -156,7 +156,7 @@ Do not manufacture a follow-up question merely to continue the interaction. If t
 
 Never expose implementation or processing language. Never mention USE, providers, models, routing, retrieval, synthesis, evidence boundaries, prompts, system instructions, handoffs, processing layers, or similar machinery. Never add bracketed editorial/debugging/evidence labels.
 
-Presentation matters. Preserve readable paragraph breaks and meaningful Markdown structure. When giving multiple practical actions, format them as a real Markdown list with one action per line; never compress numbered actions into a single paragraph. Use short labels only when they help the reader scan the steps. For compound explanatory questions that ask both what something is and why it matters (including “why now” questions), use 3 purposeful paragraphs: first answer or define the subject directly; then explain why it matters in the present context; then add one useful implication, distinction, or practical meaning that helps the visitor understand what follows. For other explanatory or conceptual answers, use 2–4 purposeful paragraphs when that improves comprehension. A short Markdown section heading is allowed when it genuinely clarifies a change of idea, but do not add headings mechanically. Do not turn a short direct answer into an essay.
+Presentation matters. Preserve readable paragraph breaks and meaningful Markdown structure. When giving multiple practical actions, format them as a real Markdown list with one action per line; never compress numbered actions into a single paragraph. Use short labels only when they help the reader scan the steps. For compound explanatory questions that ask both what something is and why it matters (including “why now” questions), use 3 purposeful paragraphs: first answer or define the subject directly; then explain why it matters in the present context; then add one useful implication, distinction, or practical meaning that helps the visitor understand what follows. For other substantive explanatory or conceptual answers, use three purposeful paragraphs by default; use more only when the subject genuinely requires it, and fewer only for a bounded factual lookup, a necessary clarification, a reflective exchange, or an explicitly requested concise format. A short Markdown section heading is allowed when it genuinely clarifies a change of idea, but do not add headings mechanically. Do not turn a short direct answer into an essay.
 
 Return ONLY valid JSON:
 {"response":"visitor-facing answer","doorway_title":"","response_shape":"direct|explanatory|conceptual|reflective|navigational|general"}
@@ -166,9 +166,9 @@ Return ONLY valid JSON:
 
 This standard applies to every ordinary Guide topic and every provider/recovery path that produces a substantive explanation, not only stewardship or Archive-specific questions. It governs how a visitor receives an answer; it does not require identical content, a fixed word count, artificial empathy, or an Archive recommendation for every question.
 
-For a substantive explanatory, conceptual, educational, social, or Archive-related question, normally present two or three connected, readable paragraphs, with three purposeful paragraphs as the default when the question has more than one part or asks for meaning and significance. The paragraphs should work together like a good teacher's explanation: (1) answer the actual question directly in plain language; (2) develop the meaning with the most useful distinction, consequence, or one recognizable example; and (3) clarify why it matters, the relevant limit, or what the visitor should understand next. Each paragraph must add understanding rather than repeat the previous one. Use three paragraphs when that makes the answer clearer and more complete; do not compress a layered question into a single paragraph just to be concise.
+For a substantive explanatory, conceptual, educational, social, or Archive-related question, present three connected, readable paragraphs by default—even if the question is phrased simply. The three purposeful movements are: (1) answer the actual question directly in plain language; (2) develop the meaning with the most useful distinction, consequence, or one recognizable example; and (3) clarify why it matters, a relevant limit, or what the visitor should understand next. The paragraphs should work together like a good teacher's explanation: (1) answer the actual question directly in plain language; (2) develop the meaning with the most useful distinction, consequence, or one recognizable example; and (3) clarify why it matters, the relevant limit, or what the visitor should understand next. Each paragraph must add understanding rather than repeat the previous one. Use three paragraphs when that makes the answer clearer and more complete; do not compress a layered question into a single paragraph just to be concise.
 
-Adapt this standard to the question. A simple, self-contained factual lookup may be one or two sentences; answer it directly and include a material qualification when needed. A lived or reflective exchange may be shorter and should not be forced into a teaching essay. A direct navigation request should give a clear destination and its specific relevance without padding. Explicit requests for brevity, lists, steps, or a different format should be honored when compatible with a complete and accurate answer. Do not add a follow-up question unless it genuinely helps or was requested.
+Adapt this standard only where the task warrants an exception. A simple, self-contained factual lookup may be one or two sentences; answer it directly and include a material qualification when needed. A lived or reflective exchange may be shorter and should not be forced into a teaching essay. A substantive question asking how, why, what something means, or how one thing affects another is not a factual lookup and should retain the three-paragraph default. A direct navigation request should give a clear destination and its specific relevance without padding. Explicit requests for brevity, lists, steps, or a different format should be honored when compatible with a complete and accurate answer. Do not add a follow-up question unless it genuinely helps or was requested.
 
 The answer must be complete before an optional Archive doorway appears. Keep the doorway separate from the answer and attach it only when the selected resource is demonstrably relevant. For Archive-specific claims, distinguish what the published source says from general explanation, do not fabricate an exhaustive doctrine or canonical list, and acknowledge the boundary of the source without retreating from what can responsibly be explained. If Archive evidence is unavailable, still answer from reliable general knowledge when the question permits it; do not use the evidence limitation as a substitute for answering.
 
@@ -472,6 +472,60 @@ def _requires_discernment_synthesis(query: str) -> bool:
     return bool(
         re.search(r"\brelationship between\b", q)
         and re.search(r"\b(?:agency|responsibility|freedom|care|accountability|rights|obligations|independence|interdependence)\b", q)
+    )
+
+
+def _requires_fragmented_knowledge_explanation(query: str) -> bool:
+    """Recognize questions about how fragmented knowledge obstructs wise action."""
+    q = _normalize_space(query).casefold()
+    knowledge_fragmented = bool(re.search(
+        r"\b(?:fragmented|fragmented\s+up|disconnected|siloed|scattered)\b.{0,55}\b(?:knowledge|information|understanding|insight)\b|"
+        r"\b(?:knowledge|information|understanding|insight)\b.{0,55}\b(?:fragmented|disconnected|siloed|scattered)\b",
+        q,
+    ))
+    asks_impact = bool(re.search(
+        r"\b(?:impede|impedes|impeding|undermine|undermines|undermining|hinder|hinders|"
+        r"affect|affects|damage|damages|obstruct|obstructs|why|how)\b", q
+    ))
+    wise_action = bool(re.search(r"\b(?:wise action|wise decisions?|sound judgment|good judgment)\b", q))
+    return knowledge_fragmented and asks_impact and wise_action
+
+
+def _has_fragmented_knowledge_explanation(response: str) -> bool:
+    """Reject generic action checklists that do not explain fragmentation's mechanism."""
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
+    if len(paragraphs) != 3:
+        return False
+    first, second, third = paragraphs
+    direct_explanation = bool(re.search(
+        r"\b(?:fragmented|siloed|disconnected|scattered)\b", first, re.I
+    )) and bool(re.search(r"\b(?:knowledge|information|understanding)\b", first, re.I))
+    mechanism = bool(re.search(
+        r"\b(?:context|relationships|connections|contradict|incomplete|isolated|whole|"
+        r"patterns|trade-offs|consequences|assumptions)\b", second, re.I
+    ))
+    concrete_example = bool(re.search(
+        r"\b(?:for example|for instance|imagine|a team|an organization|an organisation|"
+        r"two departments|a community|a decision)\b", second, re.I
+    ))
+    implication = bool(re.search(
+        r"\b(?:wise|judgment|responsib|uncertaint|limit|humility|check|revise|"
+        r"affected|consequence|decision)\b", third, re.I
+    ))
+    generic_advice = bool(re.search(
+        r"\b(?:define the outcome you want|identify the main constraint|"
+        r"choose one step small enough to test|check the result against the original goal)\b",
+        response, re.I
+    ))
+    return direct_explanation and mechanism and concrete_example and implication and not generic_advice
+
+
+def _fragmented_knowledge_recovery() -> str:
+    """Substantive three-paragraph explanation when generation substitutes generic advice."""
+    return (
+        "Fragmented knowledge impedes wise action when useful facts, experience, and perspectives remain separated, so no one can see enough of the situation to judge what a decision may set in motion. A piece of information can be accurate on its own yet misleading when stripped of its context or its relationship to other parts of the problem. Wisdom depends not only on having information, but on understanding how the pieces bear on one another.\n\n"
+        "For example, one team may know why a process is failing, another may understand how a proposed fix affects people, and a third may hold the history of earlier attempts. If those insights never meet, a decision can solve the visible symptom while recreating the original problem somewhere else. Bringing the knowledge together helps reveal dependencies, trade-offs, and consequences that no single fragment could show.\n\n"
+        "Integration does not mean forcing every view into one story or pretending uncertainty disappears. It means comparing sources, listening to people who hold different parts of the picture, and making clear what is known, what is inferred, and what remains missing. Wise action becomes more likely when decisions reflect the whole available picture, stay open to correction, and account for the people who will live with the consequences."
     )
 
 
@@ -1375,6 +1429,10 @@ def _requires_archive_scoped_stewardship(question: str) -> bool:
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    if _requires_fragmented_knowledge_explanation(question) and not _has_fragmented_knowledge_explanation(candidate):
+        candidate = _fragmented_knowledge_recovery()
+    if _requires_fragmented_knowledge_explanation(question) and not _has_fragmented_knowledge_explanation(candidate):
+        raise RuntimeError("Fragmented-knowledge explanation contract failed after recovery.")
     if _requires_intergenerational_stewardship(question) and not _has_intergenerational_stewardship_explanation(candidate):
         candidate = _intergenerational_stewardship_recovery()
     if _requires_concept_misuse_explanation(question) and not _has_concept_misuse_explanation(question, candidate):
