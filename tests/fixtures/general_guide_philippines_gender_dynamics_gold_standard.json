@@ -1,0 +1,29 @@
+{
+  "benchmark_id": "general-guide-philippines-gender-dynamics-2026-10-25",
+  "status": "USER_APPROVED_GOLD_STANDARD",
+  "subsystem": "general-purpose-guide",
+  "query": "On surface, the Philippines is very much a macho society. Where is the matriarchal reality come from and how it evolved?",
+  "expected_response": "The short answer is that public masculinity and women's influence in family and community life can coexist because they describe different kinds of power. A culture may praise male authority in public while women still hold substantial influence over household resources, kinship ties, care, property, or everyday decisions. That does not make the Philippines simply matriarchal: influence is not evenly shared, and a woman's responsibility for keeping a family together is not the same as having equal power. The useful starting point is to distinguish public ideals from the actual distribution of authority in different settings.\n\nHistorically, there was no single Philippine pattern that changed in the same way everywhere. Accounts of some precolonial communities describe women holding economic, ritual, or leadership roles, but those roles varied by community and should not be generalized into a universal precolonial matriarchy. Spanish colonial rule and Catholic institutions helped strengthen patriarchal norms in law, religion, and public respectability; they did not simply erase women's economic activity, property interests, or influence through family networks. In later periods, schooling, wage work, migration, urbanization, and changing household arrangements further reshaped who earned, cared, decided, and exercised influence. These forces layered over one another rather than replacing one social order with another overnight.\n\nThat layered history helps explain the tension you notice: masculine ideals can remain visible in public language while women's practical authority continues in less visible parts of social life. But neither 'macho society' nor 'matriarchy' captures every region, class, generation, or household, and private influence should not be mistaken for equality in institutions or public life. The strongest explanation therefore looks at specific periods and communities and asks who controls resources, makes decisions, performs unpaid work, and can challenge authority. The Archive reading below is a useful doorway into that question; a fully evidenced historical account would need to compare the relevant historical and regional sources rather than treat the country as culturally uniform.",
+  "expected_doorway_title": "Is the Philippines Matriarchal or Patriarchal? Understanding Gender Dynamics and Hidden Female Power",
+  "expected_doorway_url": "https://geralddaquila.com/2026/10/12/matriarchy-in-the-shadows-unraveling-gender-dynamics-in-the-philippines/",
+  "rating_out_of_10": 9,
+  "assertions": [
+    "Answer the visitor's historical-cultural question directly before presenting the optional doorway.",
+    "Exactly three substantive paragraphs; do not compress the response into one paragraph.",
+    "Distinguish public masculine ideals, family/community influence, and institutional equality.",
+    "Describe precolonial, Spanish colonial/Catholic, and later social/economic influences without claiming a uniform Philippine history.",
+    "Do not generalize some precolonial communities into a universal matriarchy.",
+    "Use humane, grounded language; no generic practical-advice fallback or machine-oriented jargon.",
+    "Render the relevant Archive reading as a separate, visible, working clickable doorway.",
+    "Do not present the general explanation as verbatim canonical doctrine; historical claims require source comparison."
+  ],
+  "provenance": {
+    "source_date": "2026-10-25",
+    "source": "User-provided live Guide screenshot reviewed and explicitly approved for Gold Standard registry inclusion.",
+    "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
+    "approval_evidence": "User asked: 'comment? rating? met expectations? gold standard? add into registry if it passes hurdle'; this observed response was assessed 9/10 and as passing the Gold Standard hurdle.",
+    "source_path": "docs/qa/gold_standard_registry.json",
+    "source_ref": "qa/register-philippines-gender-dynamics-gold-standard",
+    "evidence_boundary": "Expected response transcribed from the user-provided live screenshot. Doorway title and URL verified against the published WordPress post. Approval is for this observed response and doorway behavior, not a claim that the general explanation is verbatim canonical Archive doctrine."
+  }
+}
