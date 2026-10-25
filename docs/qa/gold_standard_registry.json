@@ -1710,6 +1710,35 @@
         "evidence_boundary": "Screenshot confirms displayed answer and presentation, but does not establish corpus-grounding for every claim or validate the suggested destination."
       },
       "freeze_policy": "Do not alter expected_response without explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-intergenerational-stewardship-gold-standard-2026-10-25",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How does stewardship relate to intergenerational responsibility?",
+      "expected_response": "Stewardship connects to intergenerational responsibility because the way we care for something now shapes what remains possible for people who come after us. In the Living Archive's constitutional framing, stewardship is more than managing what we have inherited; it is participating responsibly in an enduring order, with attention to reciprocity, cultivation, and the quality of what is passed on. Responsibility therefore reaches beyond immediate performance to the relationships, knowledge, capabilities, and institutions that future generations will have to rely on.\n\nFor example, an institution may meet today's targets while allowing trust to erode, losing practical knowledge, or leaving the next group without the skills and resources to continue the work. A stewardship approach looks at both today's results and what those results leave behind: whether people can learn, participate, maintain what matters, and carry responsibility forward. The point is not simply to preserve an institution unchanged, but to leave people with sounder conditions for responsible action.\n\nIntergenerational responsibility does not mean predicting every future need or making one generation answer for everything. It means taking reasonable care with the consequences within our influence, listening to those affected, and strengthening the conditions others will inherit rather than passing avoidable costs along. Stewardship is this patient care: neither control over the future nor self-sacrifice without limits; it is accountable care for what has been entrusted to us and for the possibilities our choices help create.",
+      "expected_doorway": {
+        "title": "Regenerative Governance Principles",
+        "url": null
+      },
+      "assertions": [
+        "Exactly three substantive paragraphs before the optional continuation doorway.",
+        "Answers the relationship between stewardship and intergenerational responsibility directly in the opening paragraph.",
+        "Uses the Living Archive's constitutional framing, including reciprocity, cultivation, and the quality of what is passed on.",
+        "Explains how present institutional choices affect the knowledge, skills, trust, resources, and capabilities available to future generations.",
+        "Explicitly rejects both unlimited self-sacrifice and the idea that stewardship requires predicting or controlling every future need.",
+        "The optional continuation doorway appears after the complete answer; its URL remains unset pending independent verification.",
+        "Preserve the visitor-facing response wording verbatim as the approved reference; do not substitute the earlier generic trust-and-garden fallback."
+      ],
+      "provenance": {
+        "source_path": "visitor-facing Guide screenshot supplied by user on 2026-10-25",
+        "source_ref": "user-approved screenshot in conversation dated 2026-10-25",
+        "source_status": "USER_APPROVED_GOLD_STANDARD",
+        "review_rating": "9.2/10",
+        "approval_basis": "After reviewing the live visitor-facing response and receiving a Pass assessment, the user explicitly requested that this response be added to the Gold Standard Registry.",
+        "evidence_boundary": "Screenshot confirms the displayed response, three-paragraph structure, and visible doorway title. It does not independently verify canonical source traceability, destination URL, or backend runtime identity."
+      },
+      "freeze_policy": "Preserve expected_response verbatim. Do not change wording or doorway title without explicit user authorization and a separately documented benchmark-version change."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control.",
