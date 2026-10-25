@@ -1122,6 +1122,22 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                 raise ValueError(
                     "substantive explanatory answer must meet the three-paragraph Guide Gold Standard"
                 )
+            # Paragraph count is necessary but not sufficient. Reject the
+            # recurring meta-answer/failure template so the provider bank retries
+            # instead of treating commentary about answering as the answer itself.
+            if re.search(
+                r"\\b(?:the question about .{1,180} deserves a direct answer|"
+                r"the most useful next step is to identify|"
+                r"i don['’]?t have enough verified context|"
+                r"the right answer depends on addressing the question directly|"
+                r"i have not been able to produce that complete explanation|"
+                r"please try again shortly)\\b",
+                response,
+                re.I,
+            ):
+                raise ValueError(
+                    "Gold Standard candidate is meta-answer/failure text, not a substantive answer to the visitor's question"
+                )
 
         # This question class has a structural contract: reject generic trust/cooperation
         # prose and require an answer about consequences across generations. The final
