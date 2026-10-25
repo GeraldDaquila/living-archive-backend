@@ -359,3 +359,10 @@ def test_cosmology_query_has_bounded_metaphysical_vocabulary_bridge():
     assert '"cosmology": {"metaphysics", "worldview", "creation", "universe", "origins"}' in gate
     assert "_generic_expanded_terms.update(_generic_concept_aliases.get(_generic_term, set()))" in gate
     assert "do not infer Archive doctrine from a title or doorway alone" in gate
+
+
+def test_concept_alias_expansion_does_not_raise_single_concept_evidence_threshold():
+    gate = _final_conceptual_gate()
+    assert "_generic_original_query_terms = set(_generic_query_terms)" in gate
+    assert "_generic_min_hits = 1 if len(_generic_original_query_terms) <= 1 else 2" in gate
+    assert "Alias expansion broadens candidate discovery; it must not inflate" in gate
