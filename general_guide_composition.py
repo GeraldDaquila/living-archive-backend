@@ -952,13 +952,13 @@ def _is_broad_existential_question(query: str) -> bool:
     """
     q = _normalize_space(query).casefold()
     if not q or re.search(
-        r"\\b(?:living archive|archive's|archive’s|our doctrine|canonical principles)\\b",
+        r"\b(?:living archive|archive's|archive’s|our doctrine|canonical principles)\b",
         q,
     ):
         return False
     if re.search(
-        r"\\b(?:suicid|kill myself|end my life|not worth living|no reason to live|"
-        r"can't go on|cannot go on|hopeless|want to die|feel empty|feeling empty)\\b",
+        r"\b(?:suicid|kill myself|end my life|not worth living|no reason to live|"
+        r"can't go on|cannot go on|hopeless|want to die|feel empty|feeling empty)\b",
         q,
     ):
         return False
