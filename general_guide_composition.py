@@ -1103,8 +1103,8 @@ def _archive_scoped_stewardship_recovery() -> str:
 def _requires_archive_scoped_stewardship(question: str) -> bool:
     q = _normalize_space(question)
     return bool(
-        re.search(r"^what does stewardship mean\\b", q, re.I)
-        and re.search(r"\\b(?:in|within) the living archive\\b", q, re.I)
+        re.search(r"^what does stewardship mean\b", q, re.I)
+        and re.search(r"\b(?:in|within) the living archive\b", q, re.I)
     )
 
 
