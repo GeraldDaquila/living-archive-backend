@@ -96,7 +96,7 @@ jobs:
               answer,
           ):
               raise SystemExit(f"Generic investigation checklist regression returned: {answer!r}")
-          if re.search(r"(?i)\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\b|\bUSE\b", answer):
+          if re.search(r"\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\b", answer, re.I) or re.search(r"\bUSE\b", answer):
               raise SystemExit(f"Internal implementation language leaked into visitor response: {answer!r}")
           print(
               f"PRIMARY LIVE LEVERAGE-POINT GOLD STANDARD PASS; version={expected_version}; "
