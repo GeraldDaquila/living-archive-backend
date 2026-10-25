@@ -478,12 +478,12 @@ def _requires_discernment_synthesis(query: str) -> bool:
 def _requires_concept_misuse_explanation(query: str) -> bool:
     """Recognize compound questions requiring both a concept definition and misuse mechanism."""
     q = _normalize_space(query).casefold()
-    asks_definition = bool(re.search(r"\\b(?:what is|what are|define|explain)\\b", q))
+    asks_definition = bool(re.search(r"\b(?:what is|what are|define|explain)\b", q))
     asks_misuse = bool(re.search(
-        r"\\b(?:misus(?:e|ed|ing)|abus(?:e|ed|ing)|exploit(?:ed|ing)?|weaponiz\\w*|"
-        r"manipulat\\w*|harmful use|used for harm|used against people)\\b", q
+        r"\b(?:misus(?:e|ed|ing)|abus(?:e|ed|ing)|exploit(?:ed|ing)?|weaponiz\w*|"
+        r"manipulat\w*|harmful use|used for harm|used against people)\b", q
     ))
-    asks_for_explanation = bool(re.search(r"\\b(?:why|how|when|what makes)\\b", q))
+    asks_for_explanation = bool(re.search(r"\b(?:why|how|when|what makes)\b", q))
     return asks_definition and asks_misuse and asks_for_explanation
 
 
@@ -491,7 +491,7 @@ def _concept_misuse_subject(query: str) -> str:
     """Extract the named concept from a compound definition-and-misuse question."""
     q = _normalize_space(query).strip(" ?.!;:")
     match = re.search(
-        r"\\bwhat is\\s+(?:a|an|the)\\s+(.+?)(?:,?\\s+and\\s+(?:why|how|when)\\b|$)",
+        r"\bwhat is\s+(?:a|an|the)\s+(.+?)(?:,?\s+and\s+(?:why|how|when)\b|$)",
         q, re.I,
     )
     return (match.group(1).strip(" ,;:") if match else "").casefold()
@@ -499,26 +499,26 @@ def _concept_misuse_subject(query: str) -> str:
 
 def _has_concept_misuse_explanation(query: str, response: str) -> bool:
     """Reject generic inquiry checklists where a definition and misuse explanation were requested."""
-    paragraphs = [p.strip() for p in re.split(r"\\n\\s*\\n+", str(response or "")) if p.strip()]
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
     subject = _concept_misuse_subject(query)
     if len(paragraphs) != 3 or not subject:
         return False
     first, second, third = paragraphs
     subject_words = [word for word in re.findall(r"[a-z0-9]+", subject) if word not in {"a", "an", "the"}]
-    names_concept = bool(subject_words) and all(re.search(r"\\b" + re.escape(word) + r"\\b", first, re.I) for word in subject_words)
-    defines_concept = bool(re.search(r"\\b(?:is|means|refers to|describes)\\b", first, re.I))
+    names_concept = bool(subject_words) and all(re.search(r"\b" + re.escape(word) + r"\b", first, re.I) for word in subject_words)
+    defines_concept = bool(re.search(r"\b(?:is|means|refers to|describes)\b", first, re.I))
     explains_misuse = bool(re.search(
-        r"\\b(?:misus\\w*|abus\\w*|exploit\\w*|manipulat\\w*|conceal\\w*|"
-        r"control\\w*|concentrat\\w*|benefit|costs|dependenc\\w*|bottleneck\\w*)\\b", second, re.I
+        r"\b(?:misus\w*|abus\w*|exploit\w*|manipulat\w*|conceal\w*|"
+        r"control\w*|concentrat\w*|benefit|costs|dependenc\w*|bottleneck\w*)\b", second, re.I
     ))
-    includes_example = bool(re.search(r"\\b(?:for example|for instance|imagine|a team|an organization|an organisation|at work)\\b", second, re.I))
+    includes_example = bool(re.search(r"\b(?:for example|for instance|imagine|a team|an organization|an organisation|at work)\b", second, re.I))
     explains_boundary = bool(re.search(
-        r"\\b(?:responsib\\w*|accountab\\w*|scrutiny|transparen\\w*|affected people|"
-        r"consequences|challenge|correct\\w*|limits?)\\b", third, re.I
+        r"\b(?:responsib\w*|accountab\w*|scrutiny|transparen\w*|affected people|"
+        r"consequences|challenge|correct\w*|limits?)\b", third, re.I
     ))
     generic_checklist = bool(re.search(
-        r"\\b(?:separate the immediate event|consider the evidence for each explanation|"
-        r"these are ways to investigate the question|a confident answer needs the relevant details)\\b",
+        r"\b(?:separate the immediate event|consider the evidence for each explanation|"
+        r"these are ways to investigate the question|a confident answer needs the relevant details)\b",
         response, re.I
     ))
     return names_concept and defines_concept and explains_misuse and includes_example and explains_boundary and not generic_checklist
@@ -529,8 +529,8 @@ def _concept_misuse_recovery(query: str) -> str:
     subject = _concept_misuse_subject(query)
     if subject in {"leverage point", "leverage points"}:
         return (
-            "A leverage point is a place in a system where a relatively small change can produce a much larger effect because it influences how other parts behave. The leverage comes from the relationships, rules, incentives, or dependencies around that point—not simply from how large the action looks. Understanding the point means seeing what it affects and why those connections matter.\\n\\n"
-            "For example, changing how an organization shares information can help many teams coordinate their work. But someone who controls that same information could hide problems, steer decisions, or give themselves an advantage while others bear the costs. A leverage point is misused when a person exploits a system's dependency, bottleneck, rule, or information gap for private advantage rather than addressing the consequences for everyone affected.\\n\\n"
+            "A leverage point is a place in a system where a relatively small change can produce a much larger effect because it influences how other parts behave. The leverage comes from the relationships, rules, incentives, or dependencies around that point—not simply from how large the action looks. Understanding the point means seeing what it affects and why those connections matter.\n\n"
+            "For example, changing how an organization shares information can help many teams coordinate their work. But someone who controls that same information could hide problems, steer decisions, or give themselves an advantage while others bear the costs. A leverage point is misused when a person exploits a system's dependency, bottleneck, rule, or information gap for private advantage rather than addressing the consequences for everyone affected.\n\n"
             "The distinction is not whether leverage is powerful, but how it is exercised and held accountable. Responsible use makes the mechanism and trade-offs visible, considers who may be harmed, and remains open to scrutiny and correction. Misuse concentrates advantage, conceals consequences, or leaves others dependent without a fair way to question the decision."
         )
     return ""
