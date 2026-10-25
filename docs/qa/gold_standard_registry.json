@@ -1483,6 +1483,32 @@
         "expanded_how_results_are_found_disclosure": "The Guide considers your question alongside the Living Archive’s ideas, themes, and pathways to help you find where to begin. From there, you can explore the Archive for yourself."
       },
       "freeze_policy": "Preserve the approved response, absence of an unrelated doorway, and provenance boundary. Changes require explicit user authorization and a documented benchmark-version update."
+    },
+    {
+      "benchmark_id": "general-guide-living-archive-cosmology-gold-standard-2026-10-25",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the cosmology of the Living Archive?",
+      "expected_response": "The Living Archive approaches cosmology as the underlying understanding of how life works and how we belong within it—not simply as a theory about the physical universe. It asks what we assume about ourselves, other people, safety, power, love, growth, and our place in the wider world, because those assumptions quietly shape how we think, decide, and live.\n\nOne contrast explored in the Archive is between a separation-based worldview and a unity-informed worldview. A separation-based view tends to organize life around competition, control, earned worth, and fear of loss. A unity-informed view sees people as distinct but connected, treats worth as inherent, and understands growth as something that can emerge through relationship, responsibility, and cooperation. These are ways of interpreting and living experience, not labels for judging a person.\n\nIn this sense, the Archive invites us to examine the worldview we are living from and consider how it shapes our relationships, choices, and responsibilities. This is a starting explanation rather than a claim that one article exhausts the Archive’s whole cosmology. If you would like to explore the source behind this distinction, begin with “The Worldview of a Conscious Human.”",
+      "expected_doorway": {
+        "title": "The Worldview of a Conscious Human",
+        "url": "https://geralddaquila.com/2026/02/07/the-worldview-of-a-conscious-human/"
+      },
+      "assertions": [
+        "Answer is complete before any optional doorway.",
+        "Exactly three paragraphs.",
+        "Directly answers the cosmology question in plain, humane language.",
+        "Distinguishes the article's worldview framework from a claim that one article exhausts the Living Archive's entire cosmology.",
+        "Does not diagnose or judge the visitor.",
+        "A single Search submission renders the substantive answer without requiring a second click."
+      ],
+      "provenance": {
+        "source_path": "WordPress post 29209",
+        "source_url": "https://geralddaquila.com/2026/02/07/the-worldview-of-a-conscious-human/",
+        "source_status": "published canonical source inspected through Cowboy MCP",
+        "approval_note": "Prepared as a candidate based on the published source and the stewardship three-paragraph standard; user approval of exact wording remains required before production authority."
+      },
+      "freeze_policy": "Do not promote to production answer authority until exact wording is explicitly approved by the user."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control."
