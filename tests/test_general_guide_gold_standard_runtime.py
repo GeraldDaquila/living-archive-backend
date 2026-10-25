@@ -212,9 +212,9 @@ def test_continuous_learning_contract_is_explicit_and_does_not_claim_implementat
     assert contract["status"] == "SPECIFIED_NOT_YET_IMPLEMENTED"
     assert any("held-out/unseen-question tests" in item for item in contract["governing_principles"])
     assert any("does not train a model" in item for item in contract["data_and_authority_boundaries"])
-    assert any("human approval" in item for item in contract["learning_cycle"][-2]["requirement"])
+    assert "human approval" in contract["learning_cycle"][-2]["requirement"]
     assert any("held-out question suite" in item for item in contract["acceptance_gates"])
-    assert any("current exact-match registry" in contract["current_capability_boundary"] for _ in [0])
+    assert "current exact-match registry" in contract["current_capability_boundary"]
     assert [stage["stage"] for stage in contract["rollout_stages"]] == [
         "1_contract_and_baseline",
         "2_shadow_evaluation",
