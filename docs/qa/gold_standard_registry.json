@@ -1627,6 +1627,35 @@
         "evidence_boundary": "Screenshot confirms the displayed response and presentation; it does not by itself prove generalization across held-out queries."
       },
       "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-living-archive-meaning-gold-standard-2026-10-25",
+      "query": "What does stewardship mean in the Living Archive?",
+      "expected_response": "In the Living Archive, stewardship means caring for what has been entrusted to us rather than treating it as if only our immediate needs matter. Its First Principles express this as ‘stewardship follows understanding’: as our understanding grows, so does our responsibility to consider how we act on it, whom our choices affect, and what we pass on to others. Understanding is not only something to acquire; it should help us act with greater care and judgment.\n\nIn everyday life, stewardship appears in small choices: keeping a promise, maintaining a shared space, using resources thoughtfully, or considering how a decision affects people who depend on us. For example, when sharing an idea from the Archive, a steward preserves its context and distinguishes what a source actually says from personal interpretation, so others can assess the idea fairly and use it responsibly.\n\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is genuinely yours to care for, acting responsibly within your limits, and considering the consequences for others and for the future. The aim is to preserve trust and usefulness—and, where possible, leave what you were entrusted with no worse and ideally better for those who come after.",
+      "expected_doorway": {
+        "title": "Choosing Stewardship Before Resentment",
+        "url": null
+      },
+      "assertions": [
+        "Exactly three substantive paragraphs in the approved visitor-facing response.",
+        "Answers the Archive-specific meaning question directly; do not hand off to the Glossary.",
+        "Grounds the meaning in the First Principle ‘stewardship follows understanding’.",
+        "Includes concrete everyday application and preserves the distinction between source claims and personal interpretation.",
+        "Explains boundaries without prescribing self-sacrifice or control.",
+        "Preserves the approved continuation title; destination URL remains unset until independently verified.",
+        "A single Search submission renders the answer without requiring a second click."
+      ],
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "provenance": {
+        "source_path": "visitor-facing Guide screenshot supplied by user on 2026-10-25",
+        "source_ref": "user-approved-live-response-2026-10-25",
+        "source_status": "USER_APPROVED_GOLD_STANDARD",
+        "review_rating": "9.2/10",
+        "approval_basis": "User explicitly requested addition to the Gold Standard registry after reviewing the visitor-facing screenshot on 2026-10-25.",
+        "evidence_boundary": "Screenshot confirms the displayed answer, three-paragraph structure, and visible doorway title. It does not independently verify canonical source traceability, destination URL, or backend runtime identity."
+      },
+      "freeze_policy": "Preserve expected_response verbatim. Do not change wording or doorway title without explicit user authorization and a separately documented benchmark-version change."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control.",
