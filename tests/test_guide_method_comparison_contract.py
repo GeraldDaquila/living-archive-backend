@@ -26,8 +26,13 @@ def test_method_comparison_rejects_generic_problem_solving_advice():
         "Check the result against the original goal and adjust rather than assuming "
         "the first attempt must be final."
     )
-    with pytest.raises(ValueError, match="method-comparison answer"):
-        enforce_response_contracts(QUESTION, generic)
+    recovered = enforce_response_contracts(QUESTION, generic)
+    assert recovered != generic
+    assert "Empirical inquiry" in recovered
+    assert "Systems analysis" in recovered
+    assert "Philosophy" in recovered
+    assert "Contemplative reflection" in recovered
+    assert len(recovered.split("\\n\\n")) == 3
 
 
 def test_method_comparison_requires_three_paragraphs_and_all_four_methods():
@@ -36,8 +41,9 @@ def test_method_comparison_requires_three_paragraphs_and_all_four_methods():
         "examines relationships and feedback loops.\n\n"
         "Philosophy clarifies concepts and examines reasons for belief."
     )
-    with pytest.raises(ValueError, match="three-paragraph"):
-        enforce_response_contracts(QUESTION, incomplete)
+    recovered = enforce_response_contracts(QUESTION, incomplete)
+    assert len(recovered.split("\\n\\n")) == 3
+    assert "Contemplative reflection" in recovered
 
 
 def test_method_comparison_accepts_substantive_coverage_of_all_four_methods():
