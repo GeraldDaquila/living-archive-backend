@@ -1683,6 +1683,33 @@
         "evidence_boundary": "Screenshot confirms the displayed response and presentation; it does not prove the doorway destination or generalization across held-out queries."
       },
       "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-faithful-stewardship-values-conflict-gold-standard-2026-10-25",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What does faithful stewardship require when values conflict?",
+      "expected_response": "Faithful stewardship when values conflict begins by naming what is actually in tension, rather than treating one value as automatically decisive. Clarify what has been entrusted, which commitments or duties are relevant, what each value protects, and what the situation's context makes possible or impossible. Separate what is known from assumptions, and distinguish a genuine conflict between obligations from a conflict between a principle and personal preference.\n\nNext, consider who is affected and what each possible choice would protect, risk, or harm. Give particular attention to people who bear the consequences but have less power to shape the decision. Look for options that honor more than one value, and identify any duties that cannot responsibly be traded away, such as honesty, keeping faith with an explicit commitment, or preventing avoidable harm. Where no option preserves everything, explain why one obligation must take priority in this case instead of disguising the trade-off as a perfect solution.\n\nA faithful decision should be proportionate to the evidence, transparent about its reasoning, and accountable to those affected. State which values guided the choice, what costs or limits remain, and what new information would lead you to reconsider it. Stewardship is not simply defending a preferred value; it is caring for what has been entrusted while acknowledging competing responsibilities, avoiding self-serving exceptions, and remaining willing to repair harm if the decision proves mistaken.",
+      "expected_doorway": {
+        "title": "The Stewardship Landscape",
+        "url": null
+      },
+      "assertions": [
+        "Exactly three substantive paragraphs: identify the tension, weigh obligations and effects, then explain accountability and revision.",
+        "Distinguishes conflicts between obligations from conflict between a principle and personal preference.",
+        "Considers affected parties, including people with less power to shape decisions.",
+        "Makes trade-offs explicit when no option preserves every value.",
+        "Requires transparent reasoning, evidence-proportionate judgment, accountability, and willingness to repair harm.",
+        "Does not divert the normative question into a Glossary-only lookup or generic action-planning fallback.",
+        "Suggested doorway title is recorded from screenshot; destination URL is unset pending verification."
+      ],
+      "provenance": {
+        "source_path": "visitor-facing Guide screenshot supplied by user on 2026-10-25",
+        "source_ref": "user-approved screenshot in conversation dated 2026-10-25",
+        "source_status": "USER_APPROVED_GOLD_STANDARD",
+        "evidence_boundary": "Screenshot confirms displayed answer and presentation, but does not establish corpus-grounding for every claim or validate the suggested destination."
+      },
+      "freeze_policy": "Do not alter expected_response without explicit user authorization and a separately documented benchmark-version change."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control.",
