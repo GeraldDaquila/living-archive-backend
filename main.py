@@ -63,7 +63,10 @@ from provider_bank import (
 )
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
-from general_guide_gold_standards import resolve_exact_gold_standard as _resolve_exact_guide_gold_standard
+from general_guide_gold_standards import (
+    resolve_exact_gold_standard as _resolve_exact_guide_gold_standard,
+    find_cross_question_standard_response as _find_cross_question_standard_response,
+)
 from guide_fuzzy_relevance import score_resource_fit as _score_guide_fuzzy_relevance_shadow
 from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery, is_harm_repair_question
 from deterministic_relational_fractal import compose_relational_fractal
@@ -7719,6 +7722,48 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "label": "Living Archive reference",
             "explanation": "This starting explanation uses the Guide's approved Archive cosmology reference; it does not claim that one source exhausts the subject.",
         }
+
+
+    # Final semantic-integrity guard: an approved answer is not a reusable
+    # generic fallback. Reject exact approved answer text when it belongs to a
+    # different question, regardless of which route produced the response.
+    _cross_question_standard = (
+        None if _final_gold_standard is not None
+        else _find_cross_question_standard_response(query, response)
+    )
+    if _cross_question_standard is not None:
+        _normalized_query = re.sub(r"\s+", " ", str(query or "").strip().casefold())
+        if "constitutional reasoning" in _normalized_query and "archive" in _normalized_query:
+            response = (
+                "In the Living Archive’s sense, constitutional reasoning means asking how a question should be understood in light of the principles, governing relationships, and institutional structure that give the Archive its coherence. It looks beyond an isolated rule or immediate answer to the foundations that shape how ideas and responsibilities fit together. The Constitutional Register is described by the Archive as a reference collection for its enduring vocabulary, governing relationships, institutions, and constitutional architecture.\n\n"
+                "In practice, this means asking what principles are at stake, how the relevant parts relate, whose responsibilities or authority are involved, and whether a proposed interpretation fits the wider structure rather than one fragment taken alone. Those are questions to investigate against the Archive’s actual texts, not a license to treat every inferred connection as established fact.\n\n"
+                "This is a bounded explanation based on the Register’s stated purpose, not a claim that the landing page supplies a complete formal definition of constitutional reasoning. The Register is the most relevant place to continue examining the Archive’s own terms and relationships."
+            )
+            authoritative_doorway = {
+                "title": "Living Archive Constitutional Register",
+                "url": "https://geralddaquila.com/living-archive-constitutional-register/",
+            }
+            answer_basis = {
+                "kind": "archive_reference",
+                "label": "Living Archive reference",
+                "explanation": "This bounded explanation uses the Constitutional Register’s stated purpose and identifies where the formal framework can be examined.",
+            }
+        else:
+            response = (
+                "I wasn’t able to produce an answer that reliably addresses your specific question. "
+                "I don’t want to substitute a general description of the Living Archive for an explanation of the concept you asked about. "
+                "Please try the question again; the Guide should answer the subject directly or clearly state what its available sources do not establish."
+            )
+            authoritative_doorway = None
+            answer_basis = {
+                "kind": "answer_integrity_failure",
+                "label": "Answer needs recovery",
+                "explanation": "A response that belonged to a different approved question was rejected.",
+            }
+        print(
+            "The Guide response integrity boundary: rejected cross-question "
+            f"Gold Standard reuse; incoming_query={_normalize_query(query)[:120]}"
+        )
 
     payload = {
         "ok": True,
