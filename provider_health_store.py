@@ -63,6 +63,7 @@ def _request(method, payload=None):
         return None
 
     now = time.monotonic()
+    recovery_probe = False
     with _CIRCUIT_LOCK:
         if now < _CIRCUIT_OPEN_UNTIL:
             print(
@@ -70,11 +71,13 @@ def _request(method, payload=None):
                 f"method={method}, state=open, retry_in_seconds={_CIRCUIT_OPEN_UNTIL - now:.1f}"
             )
             return None
-        # Only one request probes recovery after the circuit opens. Other
-        # callers fall back locally rather than stampeding the shared bridge.
-        if _CIRCUIT_PROBE_IN_FLIGHT:
-            return None
-        _CIRCUIT_PROBE_IN_FLIGHT = True
+        # Only single-flight the half-open recovery probe. Normal healthy-state
+        # GET/POST traffic remains concurrent and is not needlessly suppressed.
+        if _CIRCUIT_OPEN_UNTIL > 0.0:
+            if _CIRCUIT_PROBE_IN_FLIGHT:
+                return None
+            _CIRCUIT_PROBE_IN_FLIGHT = True
+            recovery_probe = True
 
     headers = {
         "Accept": "application/json",
@@ -105,11 +108,12 @@ def _request(method, payload=None):
     finally:
         elapsed = time.monotonic() - started
         with _CIRCUIT_LOCK:
-            _CIRCUIT_PROBE_IN_FLIGHT = False
-            if outcome == "ok":
-                _CIRCUIT_OPEN_UNTIL = 0.0
-            else:
+            if recovery_probe:
+                _CIRCUIT_PROBE_IN_FLIGHT = False
+            if outcome != "ok":
                 _CIRCUIT_OPEN_UNTIL = time.monotonic() + CIRCUIT_COOLDOWN_SECONDS
+            elif recovery_probe:
+                _CIRCUIT_OPEN_UNTIL = 0.0
         print(
             "USE provider health store timing: "
             f"method={method}, outcome={outcome}, elapsed_seconds={elapsed:.3f}, "
