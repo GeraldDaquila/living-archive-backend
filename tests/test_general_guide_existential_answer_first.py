@@ -1,6 +1,7 @@
 """Regression tests for answer-first handling of broad existential questions."""
 
 import general_guide_composition as guide
+import main
 
 
 def test_broad_existential_question_receives_substantive_answer_before_clarification():
@@ -58,3 +59,16 @@ def test_existential_recovery_is_provider_independent_and_has_no_unverified_door
     assert result["response_shape"] == "explanatory"
     assert len(result["response"].split("\n\n")) == 3
     assert "The Living Archive says" not in result["response"]
+
+
+def test_deterministic_provider_exhaustion_path_preserves_existential_answer_first_contract():
+    result = main._basic_inquiry_round1_deterministic_response(
+        "What is the meaning of life?",
+        {},
+        {"context_blocks": ""},
+        recommendation_available=False,
+    )
+
+    assert result["provider"] == "bounded_existential_general_knowledge_recovery"
+    assert len(result["response"].split("\\n\\n")) == 3
+    assert result["doorway_title"] == ""
