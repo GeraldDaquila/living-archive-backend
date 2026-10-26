@@ -6909,26 +6909,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         print("The Guide reasoning provider mode: invalid value; using auto.")
         reasoning_mode = "auto"
 
+    # This response is governed by a deterministic, topic-specific contract and
+    # is replaced by that same recovery after downstream gates. Select it before
+    # composition so an unnecessary provider-bank call cannot be discarded later.
+    healthy_community_short_circuit = _is_healthy_community_orientation_question(query)
+    if healthy_community_short_circuit:
+        reasoning_mode = "deterministic_only"
+
     composition_result = None
     # This narrow practical-question class has a bounded, provider-independent
     # answer. Do not send it through the general composition envelope: that
     # envelope can exceed provider token budgets before the fallback is reached.
-    # This newcomer question class is answered by the governed, topic-specific
-    # recovery below. Calling the LLM first and then replacing its answer later
-    # wasted a full provider-bank turn; short-circuit before generation instead.
-    if _is_healthy_community_orientation_question(query):
-        deterministic_result = {
-            "response": _healthy_community_answer_recovery(),
-            "provider": "bounded_healthy_community_orientation_recovery",
-            "model": "deterministic-contract-recovery",
-        }
-        llm_output = str(deterministic_result["response"])
-        print(
-            "The Guide General Composition: "
-            "mode=bounded_healthy_community_orientation_recovery, "
-            "llm_composer_invoked=false, canonical_selection=preserved"
-        )
-    elif (
+    if (
         _is_practical_stewardship_question(query)
         and not _is_conceptual_explanatory_request(query)
         and not general_guide_composition.is_conceptual_relationship_question(query)
@@ -6945,15 +6937,23 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "llm_composer_invoked=false, archive_recommendation=none"
         )
     elif reasoning_mode == "deterministic_only":
-        deterministic_result = _basic_inquiry_round1_deterministic_response(
-            correction_subject or query, {}, composition_context,
-            recommendation_available=bool(authoritative_doorway),
-        )
+        if healthy_community_short_circuit:
+            deterministic_result = {
+                "response": _healthy_community_answer_recovery(),
+                "provider": "bounded_healthy_community_orientation_recovery",
+                "model": "deterministic-contract-recovery",
+            }
+        else:
+            deterministic_result = _basic_inquiry_round1_deterministic_response(
+                correction_subject or query, {}, composition_context,
+                recommendation_available=bool(authoritative_doorway),
+            )
         llm_output = str((deterministic_result or {}).get("response") or "")
         print(
             "The Guide General Composition: "
-            f"mode=deterministic_only, provider={(deterministic_result or {}).get('provider') or 'unknown'}, "
-            "model=none, llm_composer_invoked=false, "
+            f"mode={'bounded_healthy_community_orientation_recovery' if healthy_community_short_circuit else 'deterministic_only'}, "
+            f"provider={(deterministic_result or {}).get('provider') or 'unknown'}, "
+            f"model={(deterministic_result or {}).get('model') or 'none'}, llm_composer_invoked=false, "
             f"archive_evidence={'unavailable' if archive_evidence_unavailable else 'available'}, "
             f"navigation_candidate={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
         )
