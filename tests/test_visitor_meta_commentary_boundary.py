@@ -134,3 +134,25 @@ def test_definition_and_significance_question_accepts_direct_three_paragraph_ans
         "Institutional memory matters when it preserves context as well as records; outdated assumptions must still be questioned as circumstances change."
     )
     assert not is_generic_nonanswer(question, answer)
+
+
+
+def test_composition_boundary_preserves_general_explanation_when_archive_evidence_is_insufficient():
+    from general_guide_composition import _GENERAL_GUIDE_SYSTEM
+
+    assert "still answer an ordinary, answerable conceptual question from established general knowledge" in _GENERAL_GUIDE_SYSTEM
+    assert "never turn a retrieval shortfall into a refusal to explain a familiar general concept" in _GENERAL_GUIDE_SYSTEM
+    assert "omit an unverified doorway" in _GENERAL_GUIDE_SYSTEM
+
+
+def test_definition_significance_answer_can_be_general_without_claiming_archive_authority():
+    from general_guide_composition import is_generic_nonanswer
+
+    question = "What is institutional memory, and why does it matter?"
+    answer = (
+        "Institutional memory is the knowledge an organization retains about its decisions, experience, practices, and lessons over time. "
+        "It helps people understand not only what was done, but why.\n\n"
+        "For example, when a team records why a policy changed and what happened afterward, new members can build on that experience instead of repeating an earlier mistake or treating an old decision as unexplained tradition.\n\n"
+        "Institutional memory matters because it supports continuity and learning when people leave or leadership changes. Records alone are not enough: preserving context, uncertainty, and the reasons behind decisions helps successors judge what still applies and what should change."
+    )
+    assert not is_generic_nonanswer(question, answer)
