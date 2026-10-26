@@ -5766,6 +5766,13 @@ def _normalize_authoritative_recommendation(doorway):
     return {"title": title, "url": url}
 
 
+def _enforce_registered_gold_standard_doorway(doorway, gold_standard):
+    """Prevent an unregistered retrieval doorway from surviving an exact approved answer."""
+    if gold_standard is not None and not str(gold_standard.get("doorway_title") or "").strip():
+        return None
+    return doorway
+
+
 # v489.09 regression probes: valid Archive URLs survive validation and stewardship questions retain a canonical doorway
 # validator, while non-HTTPS and off-domain destinations remain rejected.
 _v48908_probe_url = "https://geralddaquila.com/knowledge-memory-living-codices/"
@@ -8052,6 +8059,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         raise RuntimeError(
             "Intergenerational-stewardship Gold Standard failed at the final visitor payload boundary."
         )
+
+    # Final authority boundary: an exact approved Gold Standard with no
+    # registered doorway must not inherit a recommendation selected earlier
+    # from retrieval context. Reassert this immediately before payload assembly,
+    # after every downstream rewrite and recovery path has finished.
+    authoritative_doorway = _enforce_registered_gold_standard_doorway(
+        authoritative_doorway, _final_gold_standard
+    )
+    if (
+        _final_gold_standard is not None
+        and not str(_final_gold_standard.get("doorway_title") or "").strip()
+    ):
+        composition_context.pop("authoritative_doorway", None)
+        composition_context.pop("authoritative_doorway_title", None)
 
     payload = {
         "ok": True,
