@@ -248,3 +248,39 @@ def test_gold_standard_is_system_wide_floor_and_task_formats_must_earn_exception
     assert "The task format changes the shape, never lowers the quality floor" in prompt
     assert "A specialist's preferred format is not an exception merely because it is specialist-specific" in prompt
     assert "This floor governs fallbacks too" in prompt
+
+
+
+def test_meta_answer_fallback_is_rejected_even_when_it_has_three_paragraphs():
+    import general_guide_composition as guide
+
+    fallback = (
+        "I can’t give this question the careful explanation it deserves. I don’t want to replace the answer you asked for.\n\n"
+        "A complete response should address your actual question directly. That explanation has not been produced reliably.\n\n"
+        "Please try again shortly. The Guide should either provide that three-part explanation."
+    )
+    assert len([p for p in fallback.split("\n\n") if p.strip()]) == 3
+    assert guide.is_meta_answer_failure(fallback)
+
+
+def test_substantive_three_paragraph_answer_passes_shared_quality_gate():
+    import general_guide_composition as guide
+
+    answer = (
+        "Operational discipline turns humane intentions into reliable actions by making commitments and responsibilities clear.\n\n"
+        "For example, a leader who explains decisions, checks handoffs, and addresses missed commitments fairly helps people understand what is expected.\n\n"
+        "Humane discipline is not rigid rule-following. It creates reliability while leaving room to listen, learn, and adapt when circumstances change."
+    )
+    assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
+    assert not guide.is_meta_answer_failure(answer)
+
+
+def test_valid_answer_can_discuss_separating_facts_from_assumptions():
+    import general_guide_composition as guide
+
+    answer = (
+        "A careful explanation separates established facts from assumptions when evidence is mixed. This helps distinguish supported conclusions from uncertainty.\n\n"
+        "A team reviewing a missed deadline can confirm the timeline before inferring why it happened, preventing a guess from becoming a claimed cause.\n\n"
+        "The goal is not to avoid judgment, but to keep judgments proportionate to evidence and revise them when new information appears."
+    )
+    assert not guide.is_meta_answer_failure(answer)
