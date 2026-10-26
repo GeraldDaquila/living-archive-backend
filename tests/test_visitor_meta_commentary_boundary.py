@@ -79,3 +79,32 @@ def test_final_boundary_preserves_ordinary_handoff_prose():
     response = enforce_response_contracts(question, candidate)
     assert "clear handoff" in response
     assert "The Guide should explain" not in response
+
+
+
+def test_catalogue_style_retrieval_blocks_are_not_accepted_as_answers():
+    from general_guide_composition import _sanitize_candidate
+
+    leaked = (
+        '"Fragility does not always emerge through dramatic collapse; more often, it appears through subtle erosion: declining trust, institutional paralysis, systemic inefficiency, and widening gaps between governance structures and lived reality." (Complexity and Institutional Fragility)\\n\\n'
+        '"Exploring the Stewardship of Organizations, Leadership, and Institutional Life Discover essays on power, governance, stewardship, organizational design, and the constitutional foundations of healthy institutions." (Institutional Cornerstones) "Document Type: Canonical Landing Page Status: Foundational Institutional Collection Purpose: To introduce the principal essays exploring stewardship at the institutional scale through organizations, governance, leadership, and systems of collective responsibility." (Institutional Cornerstones)\\n\\n'
+        '"Translating Constitutional Architecture into Organizational Life Discover how stewardship becomes institutional practice across organizations and communities." (Institutional Stewardship) "Document Type: Canonical Reference Hub Status: Foundational Institutional Infrastructure Collection Authority: Institutional translation of the Constitutional Architecture."'
+    )
+    cleaned = _sanitize_candidate(leaked)
+    assert "Document Type" not in cleaned
+    assert "Collection Purpose" not in cleaned
+    assert "Institutional Cornerstones" not in cleaned
+    assert "Institutional Stewardship" not in cleaned
+    assert "Fragility does not always emerge" not in cleaned
+    assert "Exploring the Stewardship of Organizations" not in cleaned
+
+
+def test_catalogue_only_candidate_is_rejected_instead_of_becoming_answer():
+    from general_guide_composition import _sanitize_candidate
+
+    catalogue_only = (
+        '"Exploring the Stewardship of Organizations, Leadership, and Institutional Life." '
+        'Document Type: Canonical Landing Page Status: Foundational Institutional Collection Purpose: '
+        'To introduce the principal essays exploring stewardship at the institutional scale.'
+    )
+    assert _sanitize_candidate(catalogue_only) == ""
