@@ -149,7 +149,7 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
 
         question = "What is institutional memory, and why does it matter?"
         answer = compose_recovery(question)
-        paragraphs = [part.strip() for part in answer.split("\\n\\n") if part.strip()]
+        paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
         self.assertEqual(len(paragraphs), 3)
         self.assertNotIn("Your question asks:", answer)
         self.assertNotIn("I couldn't verify a reliable answer", answer)
