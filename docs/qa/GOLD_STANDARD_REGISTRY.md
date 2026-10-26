@@ -573,3 +573,23 @@ Both records are separate candidates and must not be counted as user-approved fr
 - **Provenance:** User-provided live Guide screenshot dated 2026-10-26; response assessed as meeting expectations and passing the Gold Standard hurdle; user explicitly requested registry inclusion.
 - **Evidence boundary:** Screenshot confirms displayed response and three-paragraph presentation. It does not independently verify canonical source traceability, doorway URL, or backend runtime identity.
 - **Freeze policy:** Preserve the approved response verbatim. Changes require explicit user authorization and a documented benchmark-version update.
+
+### GS-GUIDE-012 — Competing stakeholder obligations
+- **Benchmark ID:** `general-guide-competing-stakeholder-obligations-gold-standard-2026-10-26`
+- **Status:** USER_APPROVED_GOLD_STANDARD
+- **Rating:** 8.8/10
+- **Exact question:** “How can leaders hold competing stakeholder obligations?”
+- **Approved response:**
+
+  Leaders can hold competing stakeholder obligations by treating them as responsibilities to weigh openly, not as a contest in which one group must automatically win. Start by naming each obligation, the people who depend on it, and the legitimate interests or rights at stake. Separate commitments that must be honored from preferences that can be negotiated, and make any real conflict explicit rather than promising everyone everything.
+
+  Then compare the consequences of realistic options: who benefits, who carries the cost, what harm may be irreversible, and whether people affected have had a meaningful chance to be heard. Apply consistent criteria such as duty, fairness, evidence, proportionality, and long-term effects. Where one obligation must take priority, explain why that criterion applies and look for ways to reduce or repair the burden placed on others.
+
+  No decision will always satisfy every stakeholder, and equal consideration does not mean identical outcomes. Responsible leadership means giving each obligation a fair hearing, being transparent about trade-offs, refusing to shift costs onto people with less power merely because they are easier to ignore, and revisiting the decision when evidence or circumstances change. Trust grows when people can see both the reasoning and the accountability behind a difficult choice.
+- **Continuation doorway shown:** “The Sovereign Leader: How to Practice Stewardship When Systems Fail.” Destination URL remains unset pending independent verification.
+- **Expected contract:** Exactly three substantive paragraphs; answer first; explain how obligations are identified, compared, prioritized and reviewed; account for unequal power and unavoidable trade-offs; finish with transparent reasoning and accountability.
+- **Assertions:** No automatic winner among stakeholder groups; distinguish binding commitments from negotiable preferences; use explicit and consistent decision criteria; no promise that every stakeholder can be satisfied; doorway remains distinct from answer and must have a verified canonical URL before being considered validated.
+- **Provenance:** User-provided live Guide screenshot dated 2026-10-26; assessed 8.8/10 and meeting expectations; user explicitly requested registry inclusion.
+- **Evidence boundary:** Screenshot confirms the displayed answer, three-paragraph composition, and doorway title. It does not independently verify the canonical doorway URL or backend runtime identity.
+- **Freeze policy:** Preserve the approved response verbatim. Changes require explicit user authorization and a documented benchmark-version update.
+
