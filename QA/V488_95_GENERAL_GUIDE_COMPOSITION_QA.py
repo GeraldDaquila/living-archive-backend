@@ -401,7 +401,7 @@ def main():
     assert_true("_question_requests_enumeration" in composition.__dict__, "list-intent classifier is missing")
     try:
         composition._parse_factory([], "Explain stewardship")(
-            '{"response":"A spectrum of stewardship includes:\\n- personal care\\n- community care","doorway_title":"","response_shape":"explanatory"}'
+            '{"response":"A spectrum of stewardship includes:\\n- personal care\\n- community care\\n\\nThese forms of care can overlap.\\n\\nThe appropriate emphasis depends on the situation.","doorway_title":"","response_shape":"explanatory"}'
         )
     except ValueError as exc:
         assert_true("unsolicited list" in str(exc), "stewardship list gate rejected the wrong condition")
