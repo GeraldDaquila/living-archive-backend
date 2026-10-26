@@ -8029,7 +8029,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         )
                         _systemwide_paragraphs = [
                             part.strip()
-                            for part in re.split(r"\\n\\s*\\n+", _systemwide_recovery)
+                            for part in re.split(r"\n\s*\n+", _systemwide_recovery)
                             if part.strip()
                         ]
                         _systemwide_is_meta = general_guide_composition.is_meta_answer_failure(
