@@ -4679,8 +4679,8 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
         # Shared definition recovery must replace the weak legacy fallback at
         # the provider-exhaustion boundary, and must still pass semantic gates.
         if re.match(
-            r"(?i)^what is (?:an? |the )?(.+?),? and why does it matter\\??$",
-            re.sub(r"\\s+", " ", str(query or "")).strip(),
+            r"(?i)^what is (?:an? |the )?(.+?),? and why does it matter\??$",
+            re.sub(r"\s+", " ", str(query or "")).strip(),
         ):
             _shared_definition = _compose_provider_exhaustion_recovery(
                 query,
