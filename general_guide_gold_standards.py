@@ -25,7 +25,10 @@ def _normalize_question(value: Any) -> str:
         "\u02bc": "'",
         "\uff07": "'",
     }))
-    return re.sub(r"\s+", " ", text).strip().casefold()
+    normalized = re.sub(r"\s+", " ", text).strip().casefold()
+    # Treat terminal question punctuation as presentation, not a different
+    # question. Some request paths normalize it away before final resolution.
+    return re.sub(r"[?.!]+$", "", normalized).strip()
 
 
 def load_approved_standards() -> Dict[str, Dict[str, str]]:
