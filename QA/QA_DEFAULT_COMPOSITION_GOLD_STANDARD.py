@@ -47,6 +47,10 @@ def main():
         "Prefer operational specificity over abstract virtue lists",
         "Make the example do analytical work",
         "check paragraph function as well as paragraph count",
+        "do not let a general relational explanation stand in for Archive-specific substance",
+        "Make conceptual answers operational",
+        "evidence-to-doorway relevance check",
+        "Separate three things explicitly when needed",
     ):
         assert contract_phrase in source, f"Missing default composition contract: {contract_phrase}"
 
