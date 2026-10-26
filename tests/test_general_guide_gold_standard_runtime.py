@@ -135,7 +135,7 @@ def test_main_final_payload_boundary_reapplies_exact_standard_after_rewrites():
     assert '_gold_forbids_doorway = bool(_final_gold_standard.get("forbids_doorway"))' in final_block
     assert '_apply_registered_gold_standard_doorway(' in final_block
     assert 'authoritative_doorway = {"title": _gold_title, "url": _gold_url or None}' not in final_block
-    assert 'Otherwise retain the independently selected, relevance-checked' in final_block
+    assert 'Only a complete, validated Gold Standard title/URL pair may override' in final_block
 
 
 def test_water_gold_standard_keeps_general_knowledge_provenance():
