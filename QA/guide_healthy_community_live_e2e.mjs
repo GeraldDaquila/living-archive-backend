@@ -49,7 +49,13 @@ const controllerRequests = [];
 const controllerResponses = [];
 const controllerBodyReads = [];
 const pageErrors = [];
+const pageConsole = [];
 page.on("pageerror", error => pageErrors.push(error.message));
+page.on("console", message => {
+  if (message.type() === "error" || message.type() === "warning") {
+    pageConsole.push({ type: message.type(), text: message.text() });
+  }
+});
 page.on("request", request => {
   if (request.url().includes("living-archive-guide-") && request.url().endsWith(".js?ver=5")) {
     controllerRequests.push({ url: request.url(), atMs: elapsed() });
@@ -211,15 +217,33 @@ try {
   const conceptualQuery = "What is the role of trust in community stewardship?";
   await input.fill(conceptualQuery);
   await submit.evaluate(element => setTimeout(() => element.click(), 0));
-  await page.waitForFunction(() => {
-    // The landing page can contain multiple historical Guide instances with
-    // duplicate legacy IDs. Acceptance must inspect the active Woody instance,
-    // not whichever #archive-response-text happens to appear first in the DOM.
-    const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
-    const el = root?.querySelector("#archive-response-text");
-    const text = (el?.innerText || "").toLowerCase();
-    return !!el && text.length > 100 && /trust/.test(text) && /community|stewardship/.test(text);
-  }, null, { timeout: 60_000 });
+  try {
+    await page.waitForFunction(() => {
+      // The landing page can contain multiple historical Guide instances with
+      // duplicate legacy IDs. Acceptance must inspect the active Woody instance,
+      // not whichever #archive-response-text happens to appear first in the DOM.
+      const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
+      const el = root?.querySelector("#archive-response-text");
+      const text = (el?.innerText || "").toLowerCase();
+      return !!el && text.length > 100 && /trust/.test(text) && /community|stewardship/.test(text);
+    }, null, { timeout: 60_000 });
+  } catch (error) {
+    await Promise.all(apiBodyReads);
+    const conceptualDiagnostics = apiResponses
+      .filter(item => item.payload && item.payload.query === conceptualQuery)
+      .map(item => ({
+        status: item.status,
+        intent: item.payload?.intent,
+        answer_basis: item.payload?.answer_basis,
+        response: item.payload?.response,
+        recommendation: item.payload?.recommendation
+      }));
+    const visibleText = await answer.innerText().catch(() => "");
+    throw new Error(
+      "Conceptual trust/stewardship response did not render in the active Woody instance. " +
+      JSON.stringify({ visibleText, conceptualDiagnostics, pageConsole, pageErrors, waitError: error.message })
+    );
+  }
   const conceptualText = await answer.innerText();
   await Promise.all(apiBodyReads);
   const conceptualResponses = apiResponses.filter(item =>
