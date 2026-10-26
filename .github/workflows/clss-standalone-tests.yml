@@ -33,3 +33,10 @@ jobs:
           python-version: "3.12"
       - name: Run CLSS structural tests
         run: python -m unittest discover -s tests -p "test_clss*.py" -v
+      - name: Set up PHP for syntax validation
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          coverage: none
+      - name: Check candidate WordPress plugin syntax
+        run: php -l clss/wordpress/clss-guided-reflection-prototype.php
