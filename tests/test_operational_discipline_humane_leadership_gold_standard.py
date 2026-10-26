@@ -2,6 +2,7 @@ import json
 import unittest
 from pathlib import Path
 
+import main
 from general_guide_composition import operational_discipline_humane_leadership_recovery
 from general_guide_gold_standards import resolve_exact_gold_standard
 
@@ -32,6 +33,30 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
         self.assertIn("clear responsibilities", paragraphs[1])
         self.assertIn("not rigid rule-following", paragraphs[2])
         self.assertNotIn("Please try again shortly", response)
+
+
+    def test_unregistered_retrieval_doorway_is_suppressed_for_exact_gold_standard(self):
+        selected_doorway = {
+            "title": "Foundational Stewardship Cases",
+            "url": "https://geralddaquila.com/level-1-case-catalog/",
+        }
+        no_doorway_standard = {"doorway_title": "", "doorway_url": None}
+        self.assertIsNone(
+            main._enforce_registered_gold_standard_doorway(
+                selected_doorway, no_doorway_standard
+            )
+        )
+        self.assertEqual(
+            main._enforce_registered_gold_standard_doorway(selected_doorway, None),
+            selected_doorway,
+        )
+        registered_standard = {"doorway_title": "Approved page"}
+        self.assertEqual(
+            main._enforce_registered_gold_standard_doorway(
+                selected_doorway, registered_standard
+            ),
+            selected_doorway,
+        )
 
     def test_recovery_is_narrowly_scoped(self):
         self.assertIsNone(
