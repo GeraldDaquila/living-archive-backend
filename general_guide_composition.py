@@ -242,6 +242,29 @@ def _sanitize_candidate(text: Any) -> str:
         return ""
 
     raw = _INTERNAL_BRACKET.sub(" ", raw)
+    # Retrieval excerpts and page metadata are evidence for composition, never
+    # visitor-facing prose. Remove the whole title/Meta Description fragment
+    # before sentence cleanup so a source catalogue cannot masquerade as an answer.
+    raw = re.sub(
+        r'(?is)["“][^"”\n]{5,180}["”]\s*Meta Description\s*:?\s*.*?(?=(?:\s*["“])|$)',
+        " ",
+        raw,
+    )
+    raw = re.sub(r"(?i)\bMeta Description\s*:?\s*[^.\n]*(?:[.]|$)", " ", raw)
+    # Strip presentation-only emoji glyphs at the shared composition boundary.
+    # Keep ordinary punctuation and all substantive words intact.
+    raw = re.sub(
+        "[\U0001F1E6-\U0001FAFF\U00002600-\U000027BF\uFE0F\u200D]",
+        "",
+        raw,
+    )
+    # Remove parenthetical retrieval/source labels, not parenthetical reasoning.
+    raw = re.sub(
+        r"\s*\((?:\s*⭐?\s*)?(?:Complexity and Institutional Fragility|Institutional Cornerstones)\)\s*",
+        " ",
+        raw,
+        flags=re.I,
+    )
     # Repair common provider formatting failures deterministically. Providers
     # vary between colon/en-dash/em-dash labels, Unicode dashes, and inline
     # numbered actions. Normalize those markers before paragraph cleanup.
