@@ -7,6 +7,7 @@ on:
       - "general_guide_gold_standards.py"
       - "docs/qa/gold_standard_registry.json"
       - "tests/test_operational_discipline_humane_leadership_gold_standard.py"
+      - "tests/test_general_guide_gold_standard_doorway_policy.py"
       - ".github/workflows/guide-operational-discipline-gold-standard.yml"
   push:
     branches:
@@ -27,8 +28,10 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install runtime dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt pytest
       - name: Compile production Guide runtime and composer
         run: python -m py_compile main.py general_guide_composition.py general_guide_gold_standards.py
       - name: Run Gold Standard registry and fallback regressions
         run: python -m unittest discover -s tests -p 'test_operational_discipline_humane_leadership_gold_standard.py' -v
+      - name: Run canonical doorway URL boundary regressions
+        run: python -m pytest -q tests/test_general_guide_gold_standard_doorway_policy.py

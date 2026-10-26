@@ -5720,6 +5720,31 @@ def _normalize_authoritative_recommendation(doorway):
     return {"title": title, "url": url}
 
 
+def _apply_registered_gold_standard_doorway(doorway, gold_standard):
+    """Apply only a complete, verified Gold Standard doorway pair.
+
+    Frozen answer records may intentionally leave the destination URL unset.
+    A title without its canonical URL is not a navigable recommendation and
+    must never replace a separately selected, validated doorway. If no valid
+    independent doorway exists, the public response carries no recommendation.
+    """
+    if gold_standard is not None and bool(gold_standard.get("forbids_doorway")):
+        return None
+
+    title = str((gold_standard or {}).get("doorway_title") or "").strip()
+    url = str((gold_standard or {}).get("doorway_url") or "").strip()
+    if title and url:
+        approved_pair = _normalize_authoritative_recommendation(
+            {"title": title, "url": url}
+        )
+        if approved_pair is not None:
+            return approved_pair
+
+    # Incomplete/unverified Gold Standard metadata has no authority to invent
+    # a doorway. Keep only an independently selected, canonical, valid pair.
+    return _normalize_authoritative_recommendation(doorway)
+
+
 def _enforce_registered_gold_standard_doorway(doorway, gold_standard, query=""):
     """Preserve the default doorway unless an approved standard explicitly forbids handoff.
 
@@ -7833,13 +7858,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         _gold_title = str(_final_gold_standard.get("doorway_title") or "").strip()
         _gold_url = str(_final_gold_standard.get("doorway_url") or "").strip()
         _gold_forbids_doorway = bool(_final_gold_standard.get("forbids_doorway"))
-        if _gold_title:
-            authoritative_doorway = {"title": _gold_title, "url": _gold_url or None}
-        elif _gold_forbids_doorway:
-            authoritative_doorway = None
-        # Otherwise retain the independently selected, relevance-checked
-        # canonical doorway. Freezing answer wording must not disable the
-        # system-wide answer-then-doorway presentation contract.
+        authoritative_doorway = _apply_registered_gold_standard_doorway(
+            authoritative_doorway, _final_gold_standard
+        )
+        # Only a complete, validated Gold Standard title/URL pair may override
+        # independent canonical selection. A title with no verified URL is
+        # metadata, not a visitor-facing doorway.
         if authoritative_doorway:
             answer_basis = {
                 "kind": "archive_supported",
