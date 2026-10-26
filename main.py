@@ -8025,13 +8025,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # default explanatory composition contract; topical concepts such as the
     # risks of charisma must still receive the answer before any doorway.
     _final_explicit_navigation_request = bool(re.search(
-        r"\\b(?:where can i find|where do i find|show me|take me to|link me to|"
-        r"browse|find the|open the|go to|give me the link)\\b",
+        r"\b(?:where can i find|where do i find|show me|take me to|link me to|"
+        r"browse|find the|open the|go to|give me the link)\b",
         query,
         re.I,
     ))
     _final_title_like_discovery = bool(discovery_subject) and not re.search(
-        r"\\b(?:what|why|how|when|who|where|which|can|could|should|would|is|are|does|do|did|explain|describe|discuss|analy[sz]e|compare|assess|evaluate)\\b",
+        r"\b(?:what|why|how|when|who|where|which|can|could|should|would|is|are|does|do|did|explain|describe|discuss|analy[sz]e|compare|assess|evaluate)\b",
         query,
         re.I,
     )
@@ -8153,9 +8153,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         _systemwide_nonanswer = (
                             general_guide_composition.is_generic_nonanswer(query, _systemwide_recovery)
                             or bool(re.search(
-                                r"\\bthe question about .{1,100} can be approached by first identifying\\b|"
-                                r"\\bthe most useful next step is to identify the main issue\\b|"
-                                r"\\bstart by identifying the main issue and then consider\\b",
+                                r"\bthe question about .{1,100} can be approached by first identifying\b|"
+                                r"\bthe most useful next step is to identify the main issue\b|"
+                                r"\bstart by identifying the main issue and then consider\b",
                                 _systemwide_recovery,
                                 re.I,
                             ))
