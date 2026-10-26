@@ -53,4 +53,4 @@ def test_conceptual_question_does_not_suppress_a_verified_doorway(monkeypatch):
     assert result is not None
     assert result["doorway_title"] == "A Canonical Resource"
     assert result["response_shape"] == "explanatory"
-    assert len(result["response"].split("\\n\\n")) == 3
+    assert len(result["response"].split("\n\n")) == 3
