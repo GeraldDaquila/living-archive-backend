@@ -290,6 +290,8 @@ def test_basic_inquiry_response_suppresses_stale_discovery_recommendation(monkey
     assert result["answer_basis"]["kind"] == "general_knowledge"
     assert "couldn’t verify a Living Archive page" in result["response"]
     assert "Living in the Barangay" not in result["response"]
+    # A title-like discovery request retains its recovery wording; only actual
+    # explanatory questions are required to use the default three-paragraph form.
 
 
 def test_standalone_written_byline_is_removed_but_title_and_body_are_preserved():
