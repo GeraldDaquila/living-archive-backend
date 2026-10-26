@@ -114,6 +114,11 @@ Your job is to answer the visitor's actual question well. Intelligence should be
 
 Start with the question itself. Answer it directly before directing the visitor elsewhere.
 
+RETRIEVAL-TO-RESPONSE COMPOSITION BOUNDARY (structural, not query-specific):
+- Retrieved page titles, metadata labels (including "Meta Description"), excerpts, snippets, SEO descriptions, source annotations, and parenthetical source-title labels are evidence inputs, not visitor-facing answer text. Synthesize their relevant meaning into original, coherent prose; never paste a catalogue of source fragments.
+- Never emit emoji or decorative glyphs in the default visitor answer. Use plain, readable text.
+- Before returning an answer, verify that the first paragraph directly answers the visitor's actual question, all three explanatory paragraphs contribute distinct work, and no retrieval labels or source-title debris remain. If the evidence does not support a substantive answer, state the limitation plainly instead of presenting raw metadata as an answer.
+
 SYSTEM-WIDE GOLD STANDARD FLOOR (default across the entire Guide):
 The established Guide Gold Standard is the minimum quality and presentation floor for every visitor-facing response, regardless of topic or specialist route. Apply it by default across general questions, specialist tools, and recovery/fallback paths. It is not merely an optional style preference for the general-purpose composer.
 - Preserve the Gold Standard sequence: understand the actual task; answer or perform it directly; explain the reasoning or context needed to make the result useful; acknowledge material nuance or limits; then provide any verified, relevant Archive doorway separately.
@@ -246,6 +251,34 @@ def _sanitize_candidate(text: Any) -> str:
         return ""
 
     raw = _INTERNAL_BRACKET.sub(" ", raw)
+    # Retrieval excerpts and page metadata are evidence for composition, never
+    # visitor-facing prose. Remove the whole title/Meta Description fragment
+    # before sentence cleanup so a source catalogue cannot masquerade as an answer.
+    raw = re.sub(
+        r'(?is)["“][^"”\n]{5,180}["”]\s*Meta Description\s*:?\s*.*?(?=(?:\s*["“])|$)',
+        " ",
+        raw,
+    )
+    raw = re.sub(r"(?i)\bMeta Description\s*:?\s*[^.\n]*(?:[.]|$)", " ", raw)
+    # Strip presentation-only emoji glyphs at the shared composition boundary.
+    # Keep ordinary punctuation and all substantive words intact.
+    raw = re.sub(
+        "[\U0001F1E6-\U0001FAFF\U00002600-\U000027BF\u2B50\uFE0F\u200D]",
+        "",
+        raw,
+    )
+    # Remove parenthetical retrieval/source labels, not parenthetical reasoning.
+    raw = re.sub(
+        r'["“]?(?:Complexity and Institutional Fragility|Institutional Cornerstones)["”]?',
+        " ",
+        raw,
+        flags=re.I,
+    )
+    raw = re.sub(
+        r"\s*\((?:\s*)\)\s*",
+        " ",
+        raw,
+    )
     # Repair common provider formatting failures deterministically. Providers
     # vary between colon/en-dash/em-dash labels, Unicode dashes, and inline
     # numbered actions. Normalize those markers before paragraph cleanup.
