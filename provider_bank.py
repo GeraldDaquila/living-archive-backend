@@ -603,9 +603,9 @@ def _http_json(url, headers, payload, provider, model, timeout=None):
         headers={**headers, "Content-Type": "application/json"}, method="POST"
     )
     # urllib's timeout is an inactivity timeout on socket operations, not a
-    # total response deadline: a server can drip-feed bytes and keep read() alive
-    # far beyond the configured provider budget. Enforce one monotonic wall-clock
-    # deadline across headers and the complete response body.
+    # total response deadline: a server can drip-feed body bytes and keep read()
+    # alive far beyond the configured provider budget. Start one monotonic
+    # deadline before the request and enforce it across response-body reads.
     deadline = time.monotonic() + timeout
 
     def read_body_bounded(response, *, max_bytes=None):
@@ -628,20 +628,27 @@ def _http_json(url, headers, payload, provider, model, timeout=None):
             if sock is not None:
                 sock.settimeout(max(0.001, remaining))
             reader = getattr(response, "read1", None)
-            sized_read = callable(reader)
-            # Real urllib HTTPResponse objects support read1. Keep a simple
-            # read() fallback for compatible test doubles and alternate response
-            # adapters; the production urllib path always takes the bounded path.
-            if not sized_read:
-                reader = getattr(response, "read", None)
+            # Real urllib HTTPResponse objects support read1. Keep a one-shot
+            # read() fallback for minimal response adapters; only the production
+            # read1 path can enforce a deadline between incremental body reads.
             if not callable(reader):
-                raise TimeoutError("provider HTTP response is not readable")
+                fallback_reader = getattr(response, "read", None)
+                if not callable(fallback_reader):
+                    raise TimeoutError("provider HTTP response is not readable")
+                chunk = fallback_reader()
+                if time.monotonic() >= deadline:
+                    raise TimeoutError(
+                        "provider HTTP response exceeded total wall-clock timeout"
+                    )
+                if max_bytes is not None:
+                    chunk = (chunk or b"")[:max_bytes]
+                return chunk or b""
             request_size = 65536
             if max_bytes is not None:
                 request_size = min(request_size, max_bytes - total)
                 if request_size <= 0:
                     break
-            chunk = reader(request_size) if sized_read else reader()
+            chunk = reader(request_size)
             if time.monotonic() >= deadline:
                 raise TimeoutError(
                     "provider HTTP response exceeded total wall-clock timeout"
