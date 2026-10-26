@@ -44,45 +44,68 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
         self.assertNotIn("Please try again shortly", response)
 
 
-    def test_unregistered_retrieval_doorway_is_suppressed_for_exact_gold_standard(self):
+    def test_blank_gold_standard_doorway_preserves_independently_selected_doorway(self):
         selected_doorway = {
             "title": "Foundational Stewardship Cases",
             "url": "https://geralddaquila.com/level-1-case-catalog/",
         }
-        no_doorway_standard = {"doorway_title": "", "doorway_url": None}
-        self.assertIsNone(
-            main._enforce_registered_gold_standard_doorway(
-                selected_doorway, no_doorway_standard
-            )
-        )
-        # Even if an upstream request path prevents registry resolution, this
-        # approved doorway-free question must never inherit a retrieval link.
-        self.assertIsNone(
-            main._enforce_registered_gold_standard_doorway(
-                selected_doorway,
-                None,
-                "What is the role of operational discipline in humane leadership?",
-            )
-        )
+        standard = resolve_exact_gold_standard(QUESTION)
+        self.assertIsNotNone(standard)
+        self.assertEqual(standard["doorway_title"], "")
+        self.assertFalse(standard["forbids_doorway"])
         self.assertEqual(
-            main._enforce_registered_gold_standard_doorway(selected_doorway, None),
+            main._enforce_registered_gold_standard_doorway(selected_doorway, standard),
             selected_doorway,
         )
-        registered_standard = {"doorway_title": "Approved page"}
+        # If an upstream path did not resolve the standard, the shared default
+        # remains intact; relevance and canonical URL checks happen upstream.
         self.assertEqual(
-            main._enforce_registered_gold_standard_doorway(
-                selected_doorway, registered_standard
-            ),
+            main._enforce_registered_gold_standard_doorway(selected_doorway, None, QUESTION),
             selected_doorway,
         )
 
+    def test_explicit_no_handoff_standard_suppresses_doorway(self):
+        selected_doorway = {
+            "title": "Foundational Stewardship Cases",
+            "url": "https://geralddaquila.com/level-1-case-catalog/",
+        }
+        standard = resolve_exact_gold_standard(
+            "Explain stewardship, but do not send me to another page yet."
+        )
+        self.assertIsNotNone(standard)
+        self.assertTrue(standard["forbids_doorway"])
+        self.assertIsNone(
+            main._enforce_registered_gold_standard_doorway(selected_doorway, standard)
+        )
 
-    def test_universal_json_sender_suppresses_unapproved_doorway(self):
+
+    def test_universal_json_sender_preserves_default_doorway_for_approved_answer(self):
+        messages = []
+        selected_doorway = {
+            "title": "Foundational Stewardship Cases",
+            "url": "https://geralddaquila.com/level-1-case-catalog/",
+        }
+        payload = {
+            "ok": True,
+            "query": QUESTION,
+            "response": operational_discipline_humane_leadership_recovery(QUESTION),
+            "recommendation": selected_doorway,
+        }
+
+        async def fake_send(message):
+            messages.append(message)
+
+        asyncio.run(main._use_send_json(fake_send, payload))
+        body = json.loads(messages[-1]["body"].decode("utf-8"))
+        self.assertEqual(body["recommendation"], selected_doorway)
+        self.assertEqual(body["response"], operational_discipline_humane_leadership_recovery(QUESTION))
+
+    def test_universal_json_sender_honors_explicit_no_handoff_standard(self):
         messages = []
         payload = {
             "ok": True,
-            "query": "What is the role of operational discipline in humane leadership?",
-            "response": operational_discipline_humane_leadership_recovery(QUESTION),
+            "query": "Explain stewardship, but do not send me to another page yet.",
+            "response": "A substantive answer.",
             "recommendation": {
                 "title": "Foundational Stewardship Cases",
                 "url": "https://geralddaquila.com/level-1-case-catalog/",
@@ -95,7 +118,6 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
         asyncio.run(main._use_send_json(fake_send, payload))
         body = json.loads(messages[-1]["body"].decode("utf-8"))
         self.assertIsNone(body["recommendation"])
-        self.assertEqual(body["response"], operational_discipline_humane_leadership_recovery(QUESTION))
 
     def test_recovery_is_narrowly_scoped(self):
         self.assertIsNone(
