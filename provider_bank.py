@@ -1,5 +1,5 @@
 """Provider-neutral model bank for USE."""
-import base64, json, mimetypes, os, re, threading, urllib.error, urllib.parse, urllib.request
+import base64, json, mimetypes, os, re, socket, threading, urllib.error, urllib.parse, urllib.request
 from collections import OrderedDict
 import time
 
@@ -589,6 +589,58 @@ def _provider_http_timeout():
     return max(5.0, min(10.0, configured))
 
 
+def _http_response_socket(response):
+    """Find urllib/http.client's underlying socket without assuming one wrapper shape."""
+    candidates = (
+        getattr(getattr(getattr(getattr(response, "fp", None), "fp", None), "raw", None), "_sock", None),
+        getattr(getattr(getattr(response, "fp", None), "raw", None), "_sock", None),
+        getattr(getattr(response, "fp", None), "_sock", None),
+        getattr(response, "_sock", None),
+    )
+    return next((candidate for candidate in candidates if callable(getattr(candidate, "settimeout", None))), None)
+
+
+def _read_http_body_with_deadline(response, deadline, max_bytes=None):
+    """Read in bounded chunks, resetting socket timeout to the remaining wall-clock budget.
+
+    urllib's timeout is an inactivity timeout, not a total response deadline. A
+    provider that trickles bytes can therefore hold a request far longer than its
+    configured timeout. Chunked reads plus a shrinking socket timeout enforce the
+    existing timeout as an absolute deadline without changing provider policy.
+    """
+    body = bytearray()
+    stream = getattr(response, "fp", None)
+    reader = (
+        getattr(stream, "read1", None)
+        or getattr(response, "read1", None)
+        or getattr(response, "read", None)
+    )
+    if not callable(reader):
+        raise TypeError("HTTP response does not expose a readable body")
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError("provider HTTP response exceeded its absolute deadline")
+        sock = _http_response_socket(response)
+        if sock is not None:
+            try:
+                sock.settimeout(remaining)
+            except (OSError, ValueError):
+                pass
+        chunk = reader(65536)
+        if not chunk:
+            break
+        body.extend(chunk)
+        if max_bytes is not None and len(body) >= max_bytes:
+            del body[max_bytes:]
+            break
+        if time.monotonic() >= deadline:
+            raise TimeoutError("provider HTTP response exceeded its absolute deadline")
+    if time.monotonic() > deadline:
+        raise TimeoutError("provider HTTP response exceeded its absolute deadline")
+    return bytes(body)
+
+
 def _http_json(url, headers, payload, provider, model, timeout=None):
     if timeout is None:
         timeout = _provider_http_timeout()
@@ -597,23 +649,35 @@ def _http_json(url, headers, payload, provider, model, timeout=None):
             timeout = max(1.0, min(10.0, float(timeout)))
         except (TypeError, ValueError):
             timeout = _provider_http_timeout()
+    deadline = time.monotonic() + timeout
     req = urllib.request.Request(
         url, data=json.dumps(payload).encode("utf-8"),
         headers={**headers, "Content-Type": "application/json"}, method="POST"
     )
     try:
         with urllib.request.urlopen(req, timeout=timeout) as response:
-            return json.loads(response.read().decode("utf-8", errors="replace"))
+            body = _read_http_body_with_deadline(response, deadline)
+        return json.loads(body.decode("utf-8", errors="replace"))
     except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
+        try:
+            body = _read_http_body_with_deadline(exc, deadline, max_bytes=400).decode(
+                "utf-8", errors="replace"
+            )
+        except TimeoutError:
+            body = "provider error body exceeded absolute HTTP deadline"
         try: retry_after = float(exc.headers.get("Retry-After", ""))
         except (TypeError, ValueError): retry_after = None
         raise ProviderCallError(
             provider + "/" + model + " HTTP " + str(exc.code) + ": " + body[:400],
             provider, model, exc.code, retry_after, "http_error"
         ) from exc
+    except TimeoutError as exc:
+        raise ProviderCallError(
+            str(exc), provider, model, category="timeout"
+        ) from exc
     except urllib.error.URLError as exc:
-        raise ProviderCallError(str(exc), provider, model, category="network_failure") from exc
+        category = "timeout" if isinstance(exc.reason, (TimeoutError, socket.timeout)) else "network_failure"
+        raise ProviderCallError(str(exc), provider, model, category=category) from exc
 
 def _json_object(raw):
     text = str(raw or "").strip()
