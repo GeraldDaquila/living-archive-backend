@@ -627,7 +627,15 @@ def _read_http_body_with_deadline(response, deadline, max_bytes=None):
                 sock.settimeout(remaining)
             except (OSError, ValueError):
                 pass
-        chunk = reader(65536)
+        try:
+            chunk = reader(65536)
+        except TypeError:
+            # Preserve compatibility with minimal response doubles that expose
+            # only a no-argument read(); real urllib streams use sized read1().
+            if reader is getattr(response, "read", None) and not callable(getattr(stream, "read1", None)):
+                chunk = reader()
+            else:
+                raise
         if not chunk:
             break
         body.extend(chunk)
