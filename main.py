@@ -7190,7 +7190,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # because deterministic recoveries and downstream rewrites can bypass the
     # provider-candidate parser. One evidence-grounded retry is allowed; if it
     # still cannot meet the contract, fail honestly in three readable paragraphs.
-    if general_guide_composition._requires_three_paragraph_default(query):
+    if general_guide_composition._requires_three_paragraph_default(query) and not discovery_subject:
         _paragraphs = [
             part.strip()
             for part in re.split(r"\n\s*\n+", response)
@@ -7953,8 +7953,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # can escape to a substantive explanatory question.
     _final_comparative_subjects = _comparative_subject_terms(query)
     _final_requires_gold_standard = (
-        general_guide_composition._requires_three_paragraph_default(query)
-        or len(_final_comparative_subjects) == 2
+        not discovery_subject
+        and (
+            general_guide_composition._requires_three_paragraph_default(query)
+            or len(_final_comparative_subjects) == 2
+        )
     )
     print(
         "The Guide final payload contract: "
