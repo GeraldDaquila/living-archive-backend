@@ -4664,6 +4664,7 @@ def _explicit_closing_question_requested(query):
     )
 def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_data, *, recommendation_available=False):
     """Keep specialist recoveries; improve only the generic provider-exhaustion answer."""
+    import general_guide_composition as _guide_composition
     result = _basic_inquiry_round1_deterministic_response(
         query, interpretation, context_data,
         recommendation_available=recommendation_available,
@@ -4675,6 +4676,27 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
             underlying_question=str((interpretation or {}).get("underlying_question") or ""),
             desired_movement=str((interpretation or {}).get("desired_movement") or ""),
         )
+        # Shared definition recovery must replace the weak legacy fallback at
+        # the provider-exhaustion boundary, and must still pass semantic gates.
+        if re.match(
+            r"(?i)^what is (?:an? |the )?(.+?),? and why does it matter\\??$",
+            re.sub(r"\\s+", " ", str(query or "")).strip(),
+        ):
+            _shared_definition = _compose_provider_exhaustion_recovery(
+                query,
+                underlying_question=str((interpretation or {}).get("underlying_question") or ""),
+                desired_movement=str((interpretation or {}).get("desired_movement") or ""),
+            )
+            if _shared_definition and not _guide_composition.is_generic_nonanswer(query, _shared_definition) and not _guide_composition.is_meta_answer_failure(_shared_definition):
+                result["response"] = _shared_definition
+            else:
+                result = {
+                    "response": "",
+                    "doorway_title": "",
+                    "recommendation": None,
+                    "provider": "rejected_non_substantive_recovery",
+                    "model": "quality-gate-rejection",
+                }
         if is_harm_repair_question(query):
             # The generic first retrieved document is not evidence that its page
             # is a suitable continuation for a harm-repair adequacy question.
@@ -5118,7 +5140,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         )
     return {
         "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
-        "doorway_title": title,
+        "doorway_title": title if recommendation_available else "",
         "provider": "deterministic_question_preserving_recovery",
         "model": "",
     }
