@@ -62,10 +62,12 @@ class InputContractTests(unittest.TestCase):
             self.assertEqual(packet["perspective"], perspective)
             self.assertEqual(packet["answers"][3]["text"], "")
 
-    def test_rejects_invalid_perspective(self):
-        packet = valid_input("observer")
-        with self.assertRaises(ContractError):
-            validate_input(packet)
+    def test_rejects_invalid_or_malformed_perspective(self):
+        for perspective in ("observer", [], None):
+            packet = valid_input()
+            packet["perspective"] = perspective
+            with self.subTest(perspective=perspective), self.assertRaises(ContractError):
+                validate_input(packet)
 
     def test_rejects_missing_or_duplicate_answer_ids(self):
         packet = valid_input()
@@ -111,6 +113,10 @@ class OutputContractTests(unittest.TestCase):
         output["doorway"]["stage_id"] = "made_up"
         with self.assertRaises(ContractError):
             validate_output(output, self.packet)
+        output = copy.deepcopy(self.output)
+        output["doorway"]["stage_id"] = []
+        with self.assertRaises(ContractError):
+            validate_output(output, self.packet)
 
     def test_allows_no_doorway_without_destination(self):
         output = copy.deepcopy(self.output)
@@ -127,6 +133,10 @@ class OutputContractTests(unittest.TestCase):
             validate_output(output, self.packet)
         output = copy.deepcopy(self.output)
         output["evidence_map"][0]["evidence_kind"] = "proven_bad_person"
+        with self.assertRaises(ContractError):
+            validate_output(output, self.packet)
+        output = copy.deepcopy(self.output)
+        output["evidence_map"][0]["evidence_kind"] = []
         with self.assertRaises(ContractError):
             validate_output(output, self.packet)
 
