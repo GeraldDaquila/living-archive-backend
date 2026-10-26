@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install runtime dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt pytest
       - name: Compile production Guide runtime and composer
         run: python -m py_compile main.py general_guide_composition.py general_guide_gold_standards.py
       - name: Run Gold Standard registry and fallback regressions
