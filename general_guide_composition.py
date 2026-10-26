@@ -74,7 +74,9 @@ _INTERNAL_LANGUAGE = re.compile(
     r"machine-facing|implementation metadata|system instruction|debugging annotation|"
     r"the guide should (?:explain|answer|provide|first)|the response should address|"
     r"the answer should (?:address|explain|include)|the guide must (?:explain|answer)|"
-    r"the user should be directed|this answer should (?:explain|include))\b",
+    r"the user should be directed|this answer should (?:explain|include)|"
+    r"(?:diagnostic|specialist) tool.{0,120}(?:offered afterward|replace the answer)|"
+    r"should not replace the answer to the conceptual question)\b",
     re.I,
 )
 _INTERNAL_SYSTEM_NAME = re.compile(r"\bUSE\b")
@@ -85,6 +87,26 @@ _INTERNAL_BRACKET = re.compile(
     r"route|handoff)(?:[^\]]*)\]\s*",
     re.I,
 )
+
+def _remove_visitor_meta_commentary(text: str) -> str:
+    """Enforce the visitor-language boundary after deterministic recoveries too."""
+    cleaned = _sanitize_candidate(text)
+    kept_paragraphs = []
+    for paragraph in re.split(r"\n\s*\n+", cleaned):
+        # Sentence-level removal preserves substantive prose when a late recovery
+        # appends commentary about Guide routing or response process.
+        sentences = re.split(r"(?<=[.!?])\s+(?=[A-Z0-9\"“])", paragraph.strip())
+        kept = [
+            sentence.strip()
+            for sentence in sentences
+            if sentence.strip()
+            and not _INTERNAL_LANGUAGE.search(sentence)
+            and not _INTERNAL_SYSTEM_NAME.search(sentence)
+        ]
+        if kept:
+            kept_paragraphs.append(" ".join(kept))
+    return "\n\n".join(kept_paragraphs).strip()
+
 
 _GENERAL_GUIDE_SYSTEM = """You are the all-purpose composition layer of The Guide, the public-facing general utility of the Living Archive.
 
@@ -1603,6 +1625,7 @@ def enforce_response_contracts(question: str, response: str) -> str:
         candidate = _responsibility_boundary_recovery()
     if _requires_responsibility_boundary_answer(question) and not _has_responsibility_boundary_explanation(candidate):
         raise RuntimeError("Responsibility-boundary response contract failed after recovery.")
+    candidate = _remove_visitor_meta_commentary(candidate)
     return candidate
 
 
