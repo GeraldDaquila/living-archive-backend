@@ -8020,16 +8020,42 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         response = _sanitize_basic_inquiry_response(_bounded_recovery)
                         print("The Guide final payload boundary: used substantive question-specific three-paragraph recovery.")
                     else:
-                        # Do not dress commentary about answer quality up as a
-                        # three-paragraph answer. If no substantive deterministic
-                        # recovery exists after the evidence-grounded retry, report
-                        # the failure plainly; this is an error state, not a Gold
-                        # Standard response and must not be treated as one.
-                        response = (
-                            "I couldn’t produce a reliable answer to that question just now. "
-                            "Please try again shortly; I won’t present commentary about an answer as though it were the answer itself."
+                        # System-wide Gold Standard recovery: when provider composition and
+                        # the evidence-grounded retry both fail, use the shared deterministic
+                        # composer rather than a one-off apology template. Only accept a
+                        # substantive three-paragraph answer; never imply Archive sourcing.
+                        _systemwide_recovery = _sanitize_basic_inquiry_response(
+                            _compose_provider_exhaustion_recovery(query)
                         )
-                        print("The Guide final payload boundary: substantive recovery unavailable; returned explicit non-answer error state.")
+                        _systemwide_paragraphs = [
+                            part.strip()
+                            for part in re.split(r"\\n\\s*\\n+", _systemwide_recovery)
+                            if part.strip()
+                        ]
+                        _systemwide_is_meta = general_guide_composition.is_meta_answer_failure(
+                            _systemwide_recovery
+                        )
+                        if len(_systemwide_paragraphs) >= 3 and not _systemwide_is_meta:
+                            response = _systemwide_recovery
+                            authoritative_doorway = None
+                            answer_basis = {
+                                "kind": "general_knowledge",
+                                "label": "General knowledge",
+                                "explanation": "A bounded general-knowledge recovery was used after the primary composition path failed; no Archive source attribution is implied.",
+                            }
+                            print("The Guide final payload boundary: system-wide three-paragraph recovery PASS; unverified doorway suppressed.")
+                        else:
+                            response = (
+                                "I couldn’t produce a reliable answer to that question just now. "
+                                "Please try again shortly; I won’t present commentary about an answer as though it were the answer itself."
+                            )
+                            authoritative_doorway = None
+                            answer_basis = {
+                                "kind": "answer_integrity_failure",
+                                "label": "Answer needs recovery",
+                                "explanation": "Neither the primary composition path nor the bounded three-paragraph recovery produced a substantive answer.",
+                            }
+                            print("The Guide final payload boundary: substantive recovery unavailable; returned explicit non-answer error state.")
     if (
         general_guide_composition._requires_intergenerational_stewardship(query)
         and not general_guide_composition._has_intergenerational_stewardship_explanation(response)
