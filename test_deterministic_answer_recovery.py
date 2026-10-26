@@ -144,5 +144,18 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         self.assertIn("general", snapshot["question_shapes"])
 
 
+    def test_provider_exhaustion_recovery_answers_instead_of_repeating_question_and_refusing(self):
+        from deterministic_answer_recovery import compose_recovery
+
+        question = "What is institutional memory, and why does it matter?"
+        answer = compose_recovery(question)
+        paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
+        self.assertEqual(len(paragraphs), 3)
+        self.assertNotIn("Your question asks:", answer)
+        self.assertNotIn("I couldn't verify a reliable answer", answer)
+        self.assertNotIn("I could not identify a sufficiently relevant Archive resource", answer)
+        self.assertGreater(len(answer), 250)
+
+
 if __name__ == "__main__":
     unittest.main()
