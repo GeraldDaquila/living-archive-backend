@@ -1791,6 +1791,105 @@ def operational_discipline_humane_leadership_recovery(query: str) -> Optional[st
     )
 
 
+def _default_gold_standard_evidence_recovery(
+    question: str,
+    documents: List[Dict[str, str]],
+) -> Optional[Dict[str, Any]]:
+    """Preserve the default explanatory composition contract when every model fails.
+
+    This shared recovery applies the same evidence and three-paragraph rules to
+    explanatory questions generally; it is not a question-specific canned answer.
+    It uses source sentences only, and declines when the retrieved evidence cannot
+    support a useful answer rather than inventing Archive-specific claims.
+    """
+    if not _requires_three_paragraph_default(question):
+        return None
+
+    stop = {
+        "what", "when", "where", "which", "who", "whom", "whose", "why", "how",
+        "does", "do", "did", "is", "are", "was", "were", "be", "been", "being",
+        "the", "a", "an", "and", "or", "but", "to", "of", "in", "on", "for",
+        "with", "from", "by", "as", "at", "it", "this", "that", "these", "those",
+        "than", "beyond", "about", "into", "through", "rather", "just", "not",
+        "can", "could", "would", "should", "will", "may", "might", "mean", "means",
+        "meaning", "explain", "define", "describe", "tell", "me", "please",
+    }
+    terms = {
+        token.casefold()
+        for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", question)
+        if token.casefold() not in stop
+    }
+    if not terms:
+        return None
+
+    candidates = []
+    for document in documents or []:
+        if not isinstance(document, dict):
+            continue
+        title = _normalize_space(document.get("title", ""))
+        url = _normalize_space(document.get("url") or document.get("canonical_url") or "")
+        raw = _sanitize_candidate(document.get("content") or document.get("text") or document.get("excerpt") or "")
+        if not raw:
+            continue
+        sentences = [
+            _normalize_space(sentence)
+            for sentence in re.split(r"(?<=[.!?])\s+|\n+", raw)
+        ]
+        for sentence in sentences:
+            words = {
+                token.casefold()
+                for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", sentence)
+                if token.casefold() not in stop
+            }
+            overlap = len(terms & words)
+            if overlap >= 1 and 45 <= len(sentence) <= 500:
+                candidates.append((overlap / max(1, len(terms)), overlap, sentence, title, url))
+
+    if not candidates:
+        return None
+
+    selected = []
+    seen = set()
+    for item in sorted(candidates, key=lambda value: (value[0], value[1]), reverse=True):
+        key = item[2].casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        selected.append(item)
+        if len(selected) == 6:
+            break
+    if len(selected) < 6:
+        return None
+
+    def render(items):
+        return " ".join(
+            (f'“{sentence}”' if not sentence.endswith(('"', "”")) else sentence)
+            + (f" ({title})" if title else "")
+            for _, _, sentence, title, _ in items
+        )
+
+    response = "\n\n".join((
+        render(selected[0:2]),
+        render(selected[2:4]),
+        render(selected[4:6]),
+    ))
+    if is_generic_nonanswer(question, response) or is_meta_answer_failure(response):
+        return None
+
+    urls = {item[4] for item in selected if item[4].startswith("https://geralddaquila.com/")}
+    titles = {item[3] for item in selected if item[4] in urls and item[3]}
+    doorway_url = next(iter(urls)) if len(urls) == 1 else ""
+    doorway_title = next(iter(titles)) if doorway_url and len(titles) == 1 else ""
+    return {
+        "response": response,
+        "doorway_title": doorway_title,
+        "doorway_url": doorway_url if doorway_title else "",
+        "response_shape": "explanatory",
+        "provider": "gold_standard_evidence_recovery",
+        "model": "extractive-deterministic",
+    }
+
+
 def compose(
     *,
     use_core: Any,
@@ -1968,6 +2067,9 @@ def compose(
         constitutional_recovery = _archive_constitutional_recovery(question, documents)
         if constitutional_recovery is not None:
             return constitutional_recovery
+        evidence_recovery = _default_gold_standard_evidence_recovery(question, documents)
+        if evidence_recovery is not None:
+            return evidence_recovery
         if _requires_recurring_problem_explanation(question):
             return {
                 "response": _recurring_problem_explanation_recovery(),
