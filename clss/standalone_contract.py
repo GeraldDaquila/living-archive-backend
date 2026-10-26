@@ -49,7 +49,7 @@ def validate_input(packet: Any) -> dict:
         raise ContractError("input must be an object")
     if packet.get("contract_version") != CONTRACT_VERSION:
         raise ContractError("unsupported contract_version")
-    if packet.get("perspective") not in PERSPECTIVES:
+    if not isinstance(packet.get("perspective"), str) or packet.get("perspective") not in PERSPECTIVES:
         raise ContractError("perspective must be self or third_party")
     answers = packet.get("answers")
     if not isinstance(answers, list) or len(answers) != len(QUESTIONS):
@@ -61,7 +61,7 @@ def validate_input(packet: Any) -> dict:
         if not isinstance(item, dict):
             raise ContractError("each answer must be an object")
         answer_id, text = item.get("answer_id"), item.get("text")
-        if answer_id not in expected_ids or answer_id in seen:
+        if not isinstance(answer_id, str) or answer_id not in expected_ids or answer_id in seen:
             raise ContractError("answer IDs must be unique known IDs q1-q9")
         if not isinstance(text, str):
             raise ContractError("answer text must be a string; use empty string for unknown")
@@ -99,13 +99,13 @@ def validate_output(output: Any, input_packet: dict) -> dict:
             raise ContractError("claim_id must be a unique non-empty string")
         claim_ids.add(cid)
         refs = claim.get("answer_refs")
-        if not isinstance(refs, list) or not refs:
+        if not isinstance(refs, list) or not refs or not all(isinstance(ref, str) for ref in refs):
             raise ContractError("each interpretive claim requires answer references")
         if any(ref not in answer_ids for ref in refs):
             raise ContractError("claim references an absent answer ID")
-        if claim.get("evidence_kind") not in EVIDENCE_KINDS:
+        if not isinstance(claim.get("evidence_kind"), str) or claim.get("evidence_kind") not in EVIDENCE_KINDS:
             raise ContractError("invalid evidence_kind")
-        if claim.get("coherence_dimension") not in DIMENSIONS:
+        if not isinstance(claim.get("coherence_dimension"), str) or claim.get("coherence_dimension") not in DIMENSIONS:
             raise ContractError("invalid coherence_dimension")
         if not isinstance(claim.get("statement"), str) or not claim["statement"].strip():
             raise ContractError("claim statement is required")
@@ -121,16 +121,16 @@ def validate_output(output: Any, input_packet: dict) -> dict:
         raise ContractError("next_step.action is required")
     if not isinstance(step.get("rationale"), str) or not isinstance(step.get("evidence_refs"), list):
         raise ContractError("next_step requires rationale and evidence_refs")
-    if any(ref not in answer_ids for ref in step["evidence_refs"]):
+    if not all(isinstance(ref, str) for ref in step["evidence_refs"]) or any(ref not in answer_ids for ref in step["evidence_refs"]):
         raise ContractError("next_step references an absent answer ID")
     doorway = output.get("doorway")
-    if not isinstance(doorway, dict) or doorway.get("status") not in {
+    if not isinstance(doorway, dict) or not isinstance(doorway.get("status"), str) or doorway.get("status") not in {
         "recommended", "insufficient_evidence", "not_needed"
     }:
         raise ContractError("invalid doorway status")
     if doorway["status"] == "recommended":
         stage_id = doorway.get("stage_id")
-        if stage_id not in DOORWAYS:
+        if not isinstance(stage_id, str) or stage_id not in DOORWAYS:
             raise ContractError("recommended doorway must use a registered stage_id")
         title, url = DOORWAYS[stage_id]
         if doorway.get("title") != title or doorway.get("url") != url:
