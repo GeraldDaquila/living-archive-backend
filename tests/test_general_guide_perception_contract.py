@@ -248,3 +248,30 @@ def test_gold_standard_is_system_wide_floor_and_task_formats_must_earn_exception
     assert "The task format changes the shape, never lowers the quality floor" in prompt
     assert "A specialist's preferred format is not an exception merely because it is specialist-specific" in prompt
     assert "This floor governs fallbacks too" in prompt
+
+
+
+def test_gold_standard_meta_answer_detector_rejects_failure_form_not_just_short_answers():
+    import general_guide_composition as guide
+
+    screenshot_fallback = (
+        "I can’t give this question the careful explanation it deserves with the reliable information available to me right now. "
+        "I don’t want to replace the answer you asked for with a generic prompt or an unsupported claim.\\n\\n"
+        "A complete response should address your actual question directly, develop the key distinction or reasoning, and explain any important nuance in ordinary language. "
+        "That explanation has not been produced reliably in this response.\\n\\n"
+        "Please try again shortly. The Guide should either provide that three-part explanation or clearly identify what the available information does not establish."
+    )
+    assert len([p for p in screenshot_fallback.split("\\n\\n") if p.strip()]) == 3
+    assert guide.is_meta_answer_failure(screenshot_fallback)
+
+
+def test_gold_standard_meta_answer_detector_accepts_substantive_three_paragraph_answer():
+    import general_guide_composition as guide
+
+    substantive = (
+        "Operational discipline is the steady practice of turning humane intentions into reliable actions. It means keeping commitments and making responsibilities clear.\\n\\n"
+        "For example, a leader who explains decisions, checks whether a handoff worked, and addresses missed commitments fairly helps people work without guessing what is expected.\\n\\n"
+        "Humane discipline is not rigid rule-following. Standards should create reliability while leaving room to listen, learn, and adapt when circumstances change."
+    )
+    assert len([p for p in substantive.split("\\n\\n") if p.strip()]) == 3
+    assert not guide.is_meta_answer_failure(substantive)
