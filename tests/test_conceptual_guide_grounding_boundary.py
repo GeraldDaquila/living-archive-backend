@@ -426,7 +426,7 @@ def test_healthy_community_recovery_short_circuits_redundant_canonical_searches(
     inquiry = SOURCE[inquiry_start:inquiry_end]
     classifier = "healthy_community_short_circuit = _is_healthy_community_orientation_question(query)"
     context_fetch = "context_data = use_core.fetch_canonical_context(resource_query)"
-    supplement = "if (\n        not healthy_community_short_circuit\n        and not (trust_stewardship_short_circuit and authoritative_doorway)\n        and _guide_requires_canonical_subject_supplement("
+    supplement = "if (\n        not healthy_community_short_circuit\n        and _guide_requires_canonical_subject_supplement("
     assert classifier in inquiry
     assert inquiry.index(classifier) < inquiry.index(context_fetch)
     assert supplement in inquiry
@@ -454,7 +454,10 @@ def test_trust_community_stewardship_uses_bounded_three_paragraph_recovery():
     assert classifier in inquiry
     assert inquiry.index(classifier) < inquiry.index(context_fetch)
     assert '"provider": "bounded_trust_community_stewardship_recovery"' in inquiry
-    assert "and not (trust_stewardship_short_circuit and authoritative_doorway)" in inquiry
+    assert 'if healthy_community_short_circuit or trust_stewardship_short_circuit:\n        discovery_subject = ""' in inquiry
+    assert "if trust_stewardship_short_circuit and authoritative_doorway:" in inquiry
+    assert "recovered_docs = []" in inquiry
+    assert "_wordpress_fetch_selected_canonical_body(" in inquiry
 
     final_contract_start = SOURCE.index("_final_comparative_subjects = _comparative_subject_terms(query)")
     final_contract_end = SOURCE.index("if _final_requires_gold_standard:", final_contract_start)
