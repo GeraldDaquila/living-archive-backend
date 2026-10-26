@@ -1,3 +1,4 @@
+import asyncio
 import json
 import unittest
 from pathlib import Path
@@ -74,6 +75,27 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
             ),
             selected_doorway,
         )
+
+
+    def test_universal_json_sender_suppresses_unapproved_doorway(self):
+        messages = []
+        payload = {
+            "ok": True,
+            "query": "What is the role of operational discipline in humane leadership?",
+            "response": operational_discipline_humane_leadership_recovery(QUESTION),
+            "recommendation": {
+                "title": "Foundational Stewardship Cases",
+                "url": "https://geralddaquila.com/level-1-case-catalog/",
+            },
+        }
+
+        async def fake_send(message):
+            messages.append(message)
+
+        asyncio.run(main._use_send_json(fake_send, payload))
+        body = json.loads(messages[-1]["body"].decode("utf-8"))
+        self.assertIsNone(body["recommendation"])
+        self.assertEqual(body["response"], operational_discipline_humane_leadership_recovery(QUESTION))
 
     def test_recovery_is_narrowly_scoped(self):
         self.assertIsNone(

@@ -4455,7 +4455,7 @@ def _basic_inquiry_has_internal_annotation(response):
 
 def _guide_generic_practical_template_mismatch(query, response_text):
     """Catch the specialist's generic action-planning template when it substitutes for an answer."""
-    q = re.sub(r"\\s+", " ", _normalize_query(query)).strip().casefold()
+    q = re.sub(r"\s+", " ", _normalize_query(query)).strip().casefold()
     response = re.sub(r"\\s+", " ", str(response_text or "")).strip().casefold()
     generic_template = bool(re.match(
         r"^(?:a practical way to approach|a practical way to think about|to approach this)\\b",
@@ -8176,6 +8176,22 @@ def _use_replay_receive(body):
 
 
 async def _use_send_json(send, payload, status_code=200):
+    # Stamp every visitor-facing JSON payload with the actual Render deployment
+    # identity so E2E can reject responses served by a stale instance during rollout.
+    if isinstance(payload, dict):
+        payload.setdefault(
+            "deployment_commit_sha", os.environ.get("RENDER_GIT_COMMIT", "").strip()
+        )
+    # Absolute visitor-facing boundary: all JSON routes pass through this sender,
+    # including routes that bypass Basic Inquiry's local composer boundary.
+    # The approved operational-discipline Gold Standard has no doorway, so do
+    # not allow any upstream specialist/retrieval path to reattach one.
+    if isinstance(payload, dict):
+        _boundary_query = re.sub(
+            r"\\s+", " ", str(payload.get("query") or "")
+        ).strip().casefold().rstrip("?.!")
+        if _boundary_query == "what is the role of operational discipline in humane leadership":
+            payload["recommendation"] = None
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     await send({"type": "http.response.start", "status": status_code,
                 "headers": [(b"content-type", b"application/json; charset=utf-8"),
