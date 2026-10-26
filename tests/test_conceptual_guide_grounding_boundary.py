@@ -464,4 +464,9 @@ def test_trust_community_stewardship_uses_bounded_three_paragraph_recovery():
     final_contract = SOURCE[final_contract_start:final_contract_end]
     assert "_final_discovery_only = bool(discovery_subject) and not (" in final_contract
     assert "_is_conceptual_explanatory_request(query)" in final_contract
-    assert 'if reasoning_mode != "deterministic_only" and composition_result:' in SOURCE
+    # Both recovery sites must share one absolute request deadline and the
+    # same single-repair gate, rather than independently restarting a provider budget.
+    assert "_guide_can_attempt_composition_repair(" in inquiry
+    assert "already_attempted=composition_repair_attempted" in inquiry
+    assert "deadline_monotonic=request_deadline" in inquiry
+    assert "composition_repair_attempted = True" in inquiry

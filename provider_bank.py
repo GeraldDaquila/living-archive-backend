@@ -19,6 +19,7 @@ from provider_resilience import (
     record_success,
     state_summary,
 )
+from guide_request_budget import bounded_provider_timeout as _bounded_request_provider_timeout, remaining_seconds as _request_remaining_seconds
 from provider_health_store import (
     export_health_states,
     load_remote_states,
@@ -2433,7 +2434,12 @@ def _hrn_workers_fast_candidate(pool):
     ), None)
 
 
-def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None):
+def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None, deadline_monotonic=None):
+    if deadline_monotonic is not None and _request_remaining_seconds(
+        deadline_monotonic, now=time.monotonic()
+    ) < 1.0:
+        print("USE provider bank request budget: operation=" + str(operation) + ", action=skip_expired_request")
+        return None
     _sync_shared_state()
     # Do not infer strict schemas from the operation. A specialist must
     # explicitly request one; otherwise the bank uses JSON-object mode.
@@ -2443,6 +2449,11 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         effective_messages = _apply_hrn_visitor_contract(effective_messages)
     elif operation == "hrn_voice_repair":
         effective_messages = _apply_hrn_voice_repair_contract(effective_messages)
+    if deadline_monotonic is not None and _request_remaining_seconds(
+        deadline_monotonic, now=time.monotonic()
+    ) < 1.0:
+        print("USE provider bank request budget: operation=" + str(operation) + ", action=skip_after_state_sync")
+        return None
     pool = select(use_core, operation=operation, schema=effective_schema)
     if not pool: return None
     if operation in {"hrn_perception", "hrn_relational"} and len(pool) > 1:
@@ -2647,11 +2658,13 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 if operation == "hrn_relational"
                 else GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
             )
-            candidate_timeout = _provider_call_timeout(operation, item) or 0.0
-            # Admit a fallback only when its full bounded call can fit inside the
-            # remaining WordPress/mirror budget. Checking elapsed time alone can
-            # start a 2-second call with less than 1 second remaining.
-            if elapsed + candidate_timeout > fast_failure_window:
+            candidate_timeout = _bounded_request_provider_timeout(
+                _provider_call_timeout(operation, item), deadline_monotonic,
+                now=time.monotonic() if deadline_monotonic is not None else None,
+            ) or 0.0
+            # Admit a fallback only when its full bounded call can fit inside both
+            # the operation window and the shared visitor-request deadline.
+            if candidate_timeout <= 0.0 or elapsed + candidate_timeout > fast_failure_window:
                 print(
                     "USE provider bank fast-failure fallback: "
                     f"operation={operation}, action=skip_extra_candidate, "
@@ -2698,11 +2711,21 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             continue
         attempt_started = time.monotonic() if operation in {"hrn_perception", "general_guide_composition"} else None
         try:
+            attempt_timeout = _bounded_request_provider_timeout(
+                _provider_call_timeout(operation, item), deadline_monotonic,
+                now=time.monotonic() if deadline_monotonic is not None else None,
+            )
+            if deadline_monotonic is not None and (
+                attempt_timeout is None or attempt_timeout <= 0.0
+            ):
+                state["probe_in_flight"] = False
+                print("USE provider bank request budget: operation=" + str(operation) + ", action=skip_before_provider_call")
+                break
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
                   ", state=" + str(state.get("state") or "healthy"))
             raw_output = _quota_guarded_call(
                 use_core, item, effective_messages, effective_max_tokens, effective_schema,
-                timeout_override=_provider_call_timeout(operation, item)
+                timeout_override=attempt_timeout
             )
             try:
                 parsed = parse(raw_output)
@@ -2917,9 +2940,19 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         "content": str(raw_output or "")[:12000],
                     })
                     recovery_messages.append({"role": "user", "content": correction_content})
+                recovery_timeout = _bounded_request_provider_timeout(
+                    _provider_call_timeout(operation, item), deadline_monotonic,
+                    now=time.monotonic() if deadline_monotonic is not None else None,
+                )
+                if deadline_monotonic is not None and (
+                    recovery_timeout is None or recovery_timeout <= 0.0
+                ):
+                    state["probe_in_flight"] = False
+                    print("USE provider bank request budget: operation=" + str(operation) + ", action=skip_contract_repair")
+                    break
                 recovered = parse(_quota_guarded_call(
                     use_core, item, recovery_messages, effective_max_tokens, recovery_mode_schema,
-                    timeout_override=_provider_call_timeout(operation, item)
+                    timeout_override=recovery_timeout
                 ))
                 if not isinstance(recovered, dict):
                     raise ValueError("provider contract recovery returned a non-object")

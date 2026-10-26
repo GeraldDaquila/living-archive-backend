@@ -209,3 +209,66 @@ def test_general_guide_does_not_chain_after_slow_first_failure(monkeypatch):
     assert provider_bank.GENERAL_GUIDE_SLOW_FAILURE_STOP_SECONDS == 2.8
     assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
     assert clock.value == 6.0
+
+def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
+    _isolate(monkeypatch)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+
+    def consume_remaining_budget(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        calls.append((item["provider"], timeout_override))
+        clock.value = 4.8
+        raise RuntimeError("simulated failure near request deadline")
+
+    monkeypatch.setattr(provider_bank, "_call", consume_remaining_budget)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+        deadline_monotonic=5.0,
+    )
+
+    assert result is None
+    assert calls == [("gemini", 5.0)]
+    assert clock.value == pytest.approx(4.8)
+
+
+def test_request_budget_refuses_provider_call_when_less_than_one_second_remains(monkeypatch):
+    _isolate(monkeypatch)
+
+    class Clock:
+        value = 4.25
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    calls = []
+    monkeypatch.setattr(
+        provider_bank, "_call",
+        lambda *args, **kwargs: calls.append(kwargs.get("timeout_override")),
+    )
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "system", "content": "Return one JSON object."}],
+        max_tokens=1200,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+        deadline_monotonic=5.0,
+    )
+
+    assert result is None
+    assert calls == []
+
+
+def test_shared_request_budget_allows_only_one_repair_with_six_seconds_reserved():
+    from guide_request_budget import can_attempt_repair
+
+    assert can_attempt_repair(24.0, already_attempted=False, now=18.0)
+    assert not can_attempt_repair(24.0, already_attempted=True, now=10.0)
+    assert not can_attempt_repair(24.0, already_attempted=False, now=18.01)

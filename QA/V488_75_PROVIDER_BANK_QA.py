@@ -99,8 +99,16 @@ def main():
     assert 'if operation in {"hrn_relational", "hrn_voice_repair"}:' in provider
     # Provider-specific HRN transport budgets stay bounded; the proven Gemma
     # 4 26B lane gets a narrowly scoped extra second for its observed latency.
-    assert "candidate_timeout = _provider_call_timeout(operation, item) or 0.0" in provider
-    assert "timeout_override=_provider_call_timeout(operation, item)" in provider
+    # General Guide provider attempts now inherit the visitor's absolute
+    # request deadline. The helper preserves legacy operation timeouts when no
+    # request deadline is supplied, and clamps fallback/contract-repair calls
+    # to the actual time remaining.
+    assert "candidate_timeout = _bounded_request_provider_timeout(" in provider
+    assert "timeout_override=attempt_timeout" in provider
+    assert "timeout_override=recovery_timeout" in provider
+    assert "deadline_monotonic=None" in provider
+    assert "action=skip_before_provider_call" in provider
+    assert "action=skip_contract_repair" in provider
     assert 'HRN_PROVIDER_CALL_TIMEOUT_SECONDS = 1.5' in provider
     assert 'HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5' in provider
     assert 'model == "@cf/google/gemma-4-26b-a4b-it"' in provider

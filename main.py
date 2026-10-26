@@ -63,6 +63,10 @@ from provider_bank import (
 )
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
+from guide_request_budget import (
+    REQUEST_BUDGET_SECONDS as GUIDE_REQUEST_BUDGET_SECONDS,
+    can_attempt_repair as _guide_can_attempt_composition_repair,
+)
 from general_guide_gold_standards import (
     resolve_exact_gold_standard as _resolve_exact_guide_gold_standard,
     find_cross_question_standard_response as _find_cross_question_standard_response,
@@ -6467,6 +6471,8 @@ def _established_archive_cosmology_recovery(query):
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
+    request_deadline = time.monotonic() + GUIDE_REQUEST_BUDGET_SECONDS
+    composition_repair_attempted = False
     query = str(query or "").strip()
     # Classify the bounded newcomer intent before retrieval so the same question
     # does not pay for general discovery and then discard that work for recovery.
@@ -6956,6 +6962,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 query=query,
                 context_data=composition_context,
                 history_text=_history_text(history),
+                deadline_monotonic=request_deadline,
             )
             if composition_result:
                 llm_output = composition_result.get("response", "")
@@ -7873,7 +7880,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             f"incoming_query={_normalize_query(query)[:120]}"
         )
         retry_result = None
-        if reasoning_mode != "deterministic_only" and composition_result:
+        if (
+            reasoning_mode != "deterministic_only"
+            and composition_result
+            and _guide_can_attempt_composition_repair(
+                request_deadline, already_attempted=composition_repair_attempted
+            )
+        ):
+            composition_repair_attempted = True
             try:
                 retry_result = general_guide_composition.compose(
                     use_core=use_core,
@@ -7881,12 +7895,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     context_data=composition_context,
                     history_text=_history_text(history),
                     integrity_recovery=True,
+                    deadline_monotonic=request_deadline,
                 )
             except Exception as exc:
                 print(
                     "The Guide response integrity recovery failed safely: "
                     f"{type(exc).__name__}."
                 )
+        else:
+            print(
+                "The Guide response integrity recovery: skipped; "
+                "shared request deadline or single-repair limit reached."
+            )
         retry_response = _sanitize_basic_inquiry_response(
             str((retry_result or {}).get("response") or "").strip()
         )
@@ -7986,7 +8006,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 # same vetted evidence/context as the request. Do not make the
                 # generic recovery template the normal answer to a real question.
                 _last_retry = None
-                if reasoning_mode != "deterministic_only" and composition_result:
+                if (
+                    reasoning_mode != "deterministic_only"
+                    and composition_result
+                    and _guide_can_attempt_composition_repair(
+                        request_deadline, already_attempted=composition_repair_attempted
+                    )
+                ):
+                    composition_repair_attempted = True
                     try:
                         _last_retry = general_guide_composition.compose(
                             use_core=use_core,
@@ -7994,12 +8021,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                             context_data=composition_context,
                             history_text=_history_text(history),
                             integrity_recovery=True,
+                            deadline_monotonic=request_deadline,
                         )
                     except Exception as exc:
                         print(
                             "The Guide final payload composition retry failed safely: "
                             f"{type(exc).__name__}."
                         )
+                else:
+                    print(
+                        "The Guide final payload composition retry: skipped; "
+                        "shared request deadline or single-repair limit reached."
+                    )
                 _last_retry_text = _sanitize_basic_inquiry_response(
                     str((_last_retry or {}).get("response") or "").strip()
                 )
