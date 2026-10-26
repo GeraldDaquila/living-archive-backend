@@ -361,5 +361,7 @@ for _control_question in (
     "How should a team choose its next step?",
 ):
     _control_answer = compose_recovery(_control_question)
-    if "choose one step small enough to test" not in _control_answer:
-        raise RuntimeError("Historical-cultural Gold Standard contract failed: practical control question regressed.")
+    if len([part for part in _control_answer.split("\\n\\n") if part.strip()]) != 3:
+        raise RuntimeError("System-wide recovery contract failed: practical control question lost the three-paragraph default.")
+    if "least power" in _control_answer:
+        raise RuntimeError("Ethical trade-off recovery contract failed: ordinary practical question was misclassified.")
