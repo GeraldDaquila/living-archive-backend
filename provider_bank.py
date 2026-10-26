@@ -72,7 +72,8 @@ HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
 # so the WordPress bridge can use its remaining deadline for mirror recovery.
 # The total arbitration window is 18 seconds, with at most two fallback candidates.
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 18.0
-GENERAL_GUIDE_SLOW_FAILURE_STOP_SECONDS = 2.8
+# General Guide failures continue through the bounded candidate window; the
+# shared request deadline and fallback admission gate are the stopping controls.
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 2
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 6.0
 
@@ -3100,13 +3101,9 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 + ", rejection_class=" + rejection_class
                 + ", error=" + re.sub(r"\\s+", " ", last_error)[:220]
             )
-            if operation in {"hrn_perception", "general_guide_composition"}:
+            if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
-                slow_failure_stop = (
-                    HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS
-                    if operation == "hrn_perception"
-                    else GENERAL_GUIDE_SLOW_FAILURE_STOP_SECONDS
-                )
+                slow_failure_stop = HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS
                 if candidate_elapsed > slow_failure_stop:
                     print(
                         "USE provider bank fast-failure fallback: "
@@ -3121,13 +3118,9 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             last_error = str(exc)
             _failure(exc, provider, model, operation=operation)
             print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", error=" + last_error[:300])
-            if operation in {"hrn_perception", "general_guide_composition"}:
+            if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
-                slow_failure_stop = (
-                    HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS
-                    if operation == "hrn_perception"
-                    else GENERAL_GUIDE_SLOW_FAILURE_STOP_SECONDS
-                )
+                slow_failure_stop = HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS
                 if candidate_elapsed > slow_failure_stop:
                     print(
                         "USE provider bank fast-failure fallback: "
