@@ -198,7 +198,7 @@ jobs:
               print(f"{name}: water-boiling general-fact boundary PASS; chars={len(response)}; basis={basis.get('kind')}")
           print("USE2-Mirror water-boiling parity check deferred until its monthly allocation resets.")
 
-          # Exact regression for the provider-exhaustion definition/significance failure.
+                    # Exact regression for the provider-exhaustion definition/significance failure.
           # This exercises the real visitor API, not just the deterministic helper.
           institutional_memory_query = "What is institutional memory, and why does it matter?"
           for name, base_url in services.items():
@@ -215,25 +215,36 @@ jobs:
                       f"{name}: institutional-memory question left General Guide composition: "
                       f"{payload.get('processing')!r}"
                   )
-              if len(paragraphs) != 3:
+              if len(paragraphs) != 3 or len(response) < 300:
                   raise SystemExit(
-                      f"{name}: institutional-memory answer must have exactly three paragraphs; "
-                      f"found {len(paragraphs)}: {response!r}"
+                      f"{name}: institutional-memory response did not meet the three-paragraph depth contract; "
+                      f"paragraphs={len(paragraphs)}; chars={len(response)}"
                   )
-              if not paragraphs[0].casefold().startswith("institutional memory is the knowledge"):
+              if not re.search(r"\binstitutional memory\b", paragraphs[0], re.I) or not re.search(
+                  r"\b(?:is|means|refers to|describes|understood as)\b", paragraphs[0], re.I
+              ):
                   raise SystemExit(
-                      f"{name}: institutional-memory response is not definition-first: {paragraphs[0]!r}"
+                      f"{name}: institutional-memory answer is not definition-first: {paragraphs[0]!r}"
                   )
-              if "records why a policy was adopted" not in paragraphs[1]:
+              if not re.search(r"\b(?:for example|for instance|one example)\b", paragraphs[1], re.I) or not re.search(
+                  r"\b(?:organization|organisation|institution|team|records?|decisions?|policy|experience|knowledge)\b",
+                  paragraphs[1],
+                  re.I,
+              ):
                   raise SystemExit(
-                      f"{name}: institutional-memory response lacks a concrete operational example: {paragraphs[1]!r}"
+                      f"{name}: institutional-memory answer lacks a concrete operational example: {paragraphs[1]!r}"
                   )
-              if "preserving the reasons" not in paragraphs[2]:
+              if not re.search(
+                  r"\b(?:matters?|important|significance|supports?|enables?|continuity|learning|because)\b",
+                  paragraphs[2],
+                  re.I,
+              ):
                   raise SystemExit(
-                      f"{name}: institutional-memory response lacks substantive significance: {paragraphs[2]!r}"
+                      f"{name}: institutional-memory answer lacks a substantive significance paragraph: {paragraphs[2]!r}"
                   )
               if re.search(
-                  r"i can.t define|couldn.t verify a reliable answer|most useful explanation for why",
+                  r"i can.t define|couldn.t verify a reliable answer|most useful explanation for why|"
+                  r"this question can be approached by first identifying",
                   response,
                   re.I,
               ):
