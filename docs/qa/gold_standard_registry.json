@@ -1873,7 +1873,7 @@
         "review_rating": "Accepted for registry; no numeric rating assigned in this entry."
       },
       "freeze_policy": "Do not change expected_response or doorway title without a separately documented, user-authorized benchmark-version change."
-    }
+    },
     {
       "benchmark_id": "general-guide-operational-discipline-humane-leadership-gold-standard-2026-10-26",
       "status": "USER_APPROVED_GOLD_STANDARD",
@@ -1898,7 +1898,7 @@
         "evidence_boundary": "The screenshot documents a three-paragraph meta-answer failure. The registered substantive answer is a deterministic recovery benchmark and must still be verified in live end-to-end behavior."
       },
       "freeze_policy": "Preserve expected_response verbatim. Do not change wording without explicit user authorization and a separately documented benchmark-version change."
-    },
+    }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control.",
   "learning_contract": {
