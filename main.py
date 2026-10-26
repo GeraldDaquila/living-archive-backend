@@ -5109,10 +5109,40 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "the feeling of emptiness in everyday life, or the deeper philosophical or Buddhist idea?"
         )
     else:
-        # Provider exhaustion must not turn a general, answerable question into
-        # a three-paragraph refusal. Use the shared bounded recovery as the
-        # final general-knowledge fallback and keep navigation independent:
-        # no doorway is emitted unless a separate relevance gate validates it.
+        # A retrieval shortfall is not proof that an ordinary concept is
+        # unanswerable. Retry the shared composer without Archive snippets so
+        # its explicit general-knowledge path can answer without false Archive
+        # attribution. This is a single bounded retry, not a recursive call.
+        try:
+            general_result = _guide_composition.compose(
+                use_core=use_core,
+                query=question,
+                context_data={
+                    "intent": "TOPICAL_INQUIRY",
+                    "context_blocks": "",
+                    "canonical_link_context": "",
+                    "generation_authority_protected_docs": [],
+                    "question_authority_protected_docs": [],
+                },
+                history_text="",
+            )
+            general_response = str((general_result or {}).get("response") or "").strip()
+            if (
+                general_response
+                and not _guide_composition.is_generic_nonanswer(question, general_response)
+                and not _guide_composition.is_meta_answer_failure(general_response)
+            ):
+                return {
+                    "response": general_response,
+                    "doorway_title": "",
+                    "provider": "contextless_general_knowledge_recovery",
+                    "model": str((general_result or {}).get("model") or ""),
+                }
+        except Exception as exc:
+            print(f"The Guide contextless general-knowledge retry failed safely: {type(exc).__name__}.")
+
+        # If the bounded retry also fails, provide the shared substantive
+        # recovery rather than repeating the question and refusing to answer.
         fallback_response = _compose_provider_exhaustion_recovery(
             question,
             underlying_question=str(interpretation.get("underlying_question") or ""),
