@@ -59,7 +59,8 @@ def test_final_visitor_boundary_uses_shared_gold_standard_recovery_instead_of_ge
     source = (ROOT / "main.py").read_text(encoding="utf-8")
     marker = "_systemwide_recovery = _sanitize_basic_inquiry_response("
     assert marker in source
-    boundary = source[source.index(marker):source.index("if (\\n        general_guide_composition._requires_intergenerational_stewardship", source.index(marker))]
+    boundary_start = source.index(marker)
+    boundary = source[boundary_start:boundary_start + 4000]
     assert "_compose_provider_exhaustion_recovery(query)" in boundary
     assert "len(_systemwide_paragraphs) >= 3" in boundary
     assert "authoritative_doorway = None" in boundary
