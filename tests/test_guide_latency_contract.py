@@ -70,9 +70,10 @@ class GuideLatencyContractTests(unittest.TestCase):
         self.assertLess(source_position, compose_position)
 
     def test_final_paragraph_guard_never_reenters_composer(self):
-        start = MAIN_SOURCE.index(
+        marker = MAIN_SOURCE.index(
             "# LAST-MILE GOLD STANDARD CONTRACT: enforce the presentation floor"
         )
+        start = MAIN_SOURCE.rfind("\n", 0, marker) + 1
         end = MAIN_SOURCE.index(
             "if general_guide_composition._requires_responsibility_boundary_answer(query)",
             start,
