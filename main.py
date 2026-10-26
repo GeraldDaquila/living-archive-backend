@@ -4857,22 +4857,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         }
 
 
-    # This newcomer question class is answered by the governed, topic-specific
-    # recovery below. Calling the LLM first and then replacing its answer later
-    # wasted a full provider-bank turn; short-circuit before generation instead.
-    if _is_healthy_community_orientation_question(query):
-        deterministic_result = {
-            "response": _healthy_community_answer_recovery(),
-            "provider": "bounded_healthy_community_orientation_recovery",
-            "model": "deterministic-contract-recovery",
-        }
-        llm_output = str(deterministic_result["response"])
-        print(
-            "The Guide General Composition: "
-            "mode=bounded_healthy_community_orientation_recovery, "
-            "llm_composer_invoked=false, canonical_selection=preserved"
-        )
-    elif (
+    if (
         _is_practical_stewardship_question(query)
         and not _is_conceptual_explanatory_request(query)
         and not general_guide_composition.is_conceptual_relationship_question(query)
@@ -6928,7 +6913,22 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # This narrow practical-question class has a bounded, provider-independent
     # answer. Do not send it through the general composition envelope: that
     # envelope can exceed provider token budgets before the fallback is reached.
-    if (
+    # This newcomer question class is answered by the governed, topic-specific
+    # recovery below. Calling the LLM first and then replacing its answer later
+    # wasted a full provider-bank turn; short-circuit before generation instead.
+    if _is_healthy_community_orientation_question(query):
+        deterministic_result = {
+            "response": _healthy_community_answer_recovery(),
+            "provider": "bounded_healthy_community_orientation_recovery",
+            "model": "deterministic-contract-recovery",
+        }
+        llm_output = str(deterministic_result["response"])
+        print(
+            "The Guide General Composition: "
+            "mode=bounded_healthy_community_orientation_recovery, "
+            "llm_composer_invoked=false, canonical_selection=preserved"
+        )
+    elif (
         _is_practical_stewardship_question(query)
         and not _is_conceptual_explanatory_request(query)
         and not general_guide_composition.is_conceptual_relationship_question(query)
