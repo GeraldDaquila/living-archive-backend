@@ -5143,6 +5143,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
 
         # If the bounded retry also fails, provide the shared substantive
         # recovery rather than repeating the question and refusing to answer.
+        from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery
         fallback_response = _compose_provider_exhaustion_recovery(
             question,
             underlying_question=str(interpretation.get("underlying_question") or ""),
