@@ -216,6 +216,24 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "Then separate the defining difference from details the options share. Consider a concrete example, who is affected, and what evidence supports the comparison rather than assuming that one option is better simply because it has a different name or purpose.\n\n"
             "The useful conclusion is the distinction that changes how the options should be understood or used. Where the question does not supply enough context to rank them, explain the difference that can be established and state only that narrower limitation—not that the question itself cannot be answered."
         )
+    elif re.search(r"\bwhat (?:kinds? of )?questions? should (?:be asked|we ask|people ask)\b", lower) and re.search(r"\bbefore\b", lower):
+        # Shared pre-action inquiry composition. Turn "what questions before X?"
+        # into a useful, answer-first set of decision lenses rather than a
+        # generic reliability disclaimer. The question family is reusable
+        # across redesigns, launches, restructurings, and other consequential work.
+        action_match = re.search(r"\bbefore\s+(.+?)[?.!]*$", q, re.I)
+        action = _clean(action_match.group(1) if action_match else subject).strip(" .?!;:")
+        answer = (
+            f"Before {action}, ask what problem actually needs solving, who is affected, and what purpose the change is meant to serve. "
+            "What evidence shows the current arrangement is failing, and which parts are working well enough to preserve? "
+            "These questions prevent a redesign from starting with a preferred solution before the need and intended outcome are clear.\n\n"
+            "Next, ask how authority and responsibilities are distributed, whose knowledge is missing, and who may gain or lose power under the proposed change. "
+            "Which rights, obligations, or safeguards must not be weakened? What realistic alternatives exist, what could each option cost, and how would people affected challenge assumptions or raise concerns without penalty? "
+            "These questions expose consequences that may be invisible to the people designing the change.\n\n"
+            "Finally, ask how success will be judged, who will review the decision independently, and what would trigger correction or reversal if the change causes harm. "
+            "Set observable criteria, make reasons transparent, involve affected people before decisions are locked in, and schedule a review after implementation. "
+            "The goal is not to eliminate uncertainty; it is to make the change understandable, contestable, and correctable rather than relying on confidence or good intentions alone."
+        )
     elif re.search(r"\b(?:risks?|dangers?|hazards?)\b", lower) and re.search(r"\bwithout\b", lower):
         # Shared risk-without-constraint composition: explain mechanism,
         # practical consequence, and safeguard across this question family.
@@ -390,6 +408,17 @@ if not all(term in _historical_cultural_answer.casefold() for term in _historica
     raise RuntimeError("Historical-cultural Gold Standard contract failed: explanatory depth or nuance missing.")
 if "choose one step small enough to test" in _historical_cultural_answer:
     raise RuntimeError("Historical-cultural Gold Standard contract failed: practical template leaked.")
+_preaction_question = "What kinds of questions should be asked before redesigning a governance system?"
+_preaction_answer = compose_recovery(_preaction_question)
+_preaction_paragraphs = [part.strip() for part in _preaction_answer.split("\n\n") if part.strip()]
+if len(_preaction_paragraphs) != 3:
+    raise RuntimeError("Pre-action inquiry recovery contract failed: expected three paragraphs.")
+for _required in ("what problem", "who is affected", "authority", "alternatives", "review", "correction"):
+    if _required not in _preaction_answer.casefold():
+        raise RuntimeError("Pre-action inquiry recovery contract failed: missing decision lens " + _required)
+if "I couldn't produce a reliable answer" in _preaction_answer:
+    raise RuntimeError("Pre-action inquiry recovery contract failed: refusal-style fallback leaked.")
+
 for _control_question in (
     "How do I plan a practical test of a new workflow?",
     "How should a team choose its next step?",
