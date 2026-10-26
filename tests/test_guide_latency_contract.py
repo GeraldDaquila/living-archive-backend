@@ -50,9 +50,8 @@ class GuideLatencyContractTests(unittest.TestCase):
         branches = [
             node for node in ast.walk(function)
             if isinstance(node, ast.If)
-            and isinstance(node.test, ast.Call)
-            and isinstance(node.test.func, ast.Name)
-            and node.test.func.id == "_is_healthy_community_orientation_question"
+            and isinstance(node.test, ast.Name)
+            and node.test.id == "healthy_community_short_circuit"
         ]
         self.assertEqual(len(branches), 1, "Expected one explicit governed newcomer branch.")
         self.assertFalse(
@@ -60,7 +59,7 @@ class GuideLatencyContractTests(unittest.TestCase):
             "The deterministic newcomer branch must not invoke the model composer.",
         )
         source_position = MAIN_SOURCE.index(
-            "if _is_healthy_community_orientation_question(query):",
+            "healthy_community_short_circuit = _is_healthy_community_orientation_question(query)",
             MAIN_SOURCE.index("def _basic_inquiry_response("),
         )
         compose_position = MAIN_SOURCE.index(
