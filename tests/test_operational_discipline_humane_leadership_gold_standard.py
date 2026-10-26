@@ -20,6 +20,14 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
         )
         self.assertEqual(record["status"], "USER_APPROVED_GOLD_STANDARD")
         self.assertEqual(
+            resolve_exact_gold_standard(QUESTION.rstrip("?"))["benchmark_id"],
+            "general-guide-operational-discipline-humane-leadership-gold-standard-2026-10-26",
+        )
+        self.assertEqual(
+            resolve_exact_gold_standard(QUESTION.rstrip("?") + ".")["benchmark_id"],
+            "general-guide-operational-discipline-humane-leadership-gold-standard-2026-10-26",
+        )
+        self.assertEqual(
             len([p for p in record["expected_response"].split("\n\n") if p.strip()]),
             3,
         )
