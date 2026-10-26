@@ -1701,6 +1701,7 @@ def compose(
     context_data: Dict[str, Any],
     history_text: str = "",
     integrity_recovery: bool = False,
+    deadline_monotonic: float | None = None,
 ) -> Optional[Dict[str, Any]]:
     """Compose one ordinary Guide answer through the provider-neutral bank."""
 
@@ -1861,6 +1862,7 @@ def compose(
         ],
         max_tokens=900,
         parse=_parse_factory(documents, effective_question),
+        deadline_monotonic=deadline_monotonic,
     )
     if not result:
         # If the provider bank is exhausted, use a bounded evidence-dependent
