@@ -143,6 +143,28 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "The Guide serves this purpose through constitutional sensemaking. It helps a person locate a question within the Archive's wider relationships, identify useful canonical resources, and understand how the pieces may fit together without pretending that every connection is proven or every question settled. "
             "In practice, a question about a relationship, institution, or community can open onto wider patterns of responsibility, power, history, and care. The aim is not to decide for the visitor, but to make the landscape clearer so that further inquiry and human judgment can be better grounded."
         )
+    elif re.search(r"\b(?:in|within)\s+(?:the\s+)?(?:living\s+)?archive(?:'s)?\s+(?:framework|approach|understanding|terms|perspective)\b", lower) and re.search(r"\b(?:what does|what is|what are|meaning|mean)\b", lower):
+        # Archive-framework concept questions need a substantive bounded answer,
+        # not a generic "couldn't verify" disclaimer. Explain the concept in
+        # relation to the Archive's known orientation, while avoiding claims of
+        # a formal doctrine unless a canonical source has actually been retrieved.
+        concept_match = re.search(
+            r"\bwhat does\s+(.+?)\s+mean\s+(?:in|within)\s+(?:the\s+)?(?:living\s+)?archive",
+            q,
+            re.I,
+        )
+        concept = _clean(concept_match.group(1) if concept_match else subject).strip(" .?!;:")
+        answer = (
+            f"In the Living Archive's framework, {concept} should be understood in relation to human flourishing, the relationships that shape people's lives, and the systems through which choices and consequences unfold. "
+            f"It is not only a label for an individual trait or outcome; the useful question is how {concept} develops through the interaction of personal capacities, relationships, institutions, and the conditions people inherit or create. "
+            "That relational view helps connect individual experience with the wider patterns that enable or constrain it.\n\n"
+            f"Practically, this means asking what changes in a person's capacities and judgment over time, what relationships and environments support or obstruct that change, and how those effects are distributed across a community. "
+            f"For {concept}, avoid treating a single measure or visible achievement as the whole story: examine the person's agency and well-being alongside the quality of their relationships and the conditions in which they participate. "
+            "These are interpretive lenses for inquiry, not a claim that one metric or one causal explanation settles the question.\n\n"
+            "The Archive's wider orientation is to make connections visible while distinguishing established evidence from interpretation. "
+            "So use this framework to ask better questions, compare perspectives, and identify what a canonical Archive text specifically establishes; do not treat this bounded explanation as a substitute for a retrieved formal definition. "
+            "If a specific codex or constitutional text defines the concept more precisely, that source should take precedence over this general orientation."
+        )
     elif _is_historical_cultural_explanation(q):
         answer = _historical_cultural_recovery()
     elif is_harm_repair_question(q):
