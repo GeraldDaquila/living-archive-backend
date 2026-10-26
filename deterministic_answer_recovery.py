@@ -309,6 +309,17 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     return answer
 
 
+_risk_constraint_question = "What are the risks of charisma without constitutional restraint?"
+_risk_constraint_answer = compose_recovery(_risk_constraint_question)
+_risk_constraint_paragraphs = [
+    part.strip() for part in re.split(r"\n\s*\n+", _risk_constraint_answer) if part.strip()
+]
+if len(_risk_constraint_paragraphs) != 3:
+    raise RuntimeError("Risk/constraint recovery contract failed: expected three substantive paragraphs.")
+for _required in ("charisma", "constitutional restraint", "dissent", "accountable"):
+    if not re.search(r"\b" + re.escape(_required) + r"\b", _risk_constraint_answer, re.I):
+        raise RuntimeError("Risk/constraint recovery contract failed: missing substantive mechanism or safeguard.")
+
 def contract_snapshot():
     return {
         "contract_version": "v2",
