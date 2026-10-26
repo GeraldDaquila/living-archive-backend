@@ -108,3 +108,29 @@ def test_catalogue_only_candidate_is_rejected_instead_of_becoming_answer():
         'To introduce the principal essays exploring stewardship at the institutional scale.'
     )
     assert _sanitize_candidate(catalogue_only) == ""
+
+
+
+def test_definition_and_significance_question_rejects_neighboring_problem_solving_frame():
+    from general_guide_composition import is_generic_nonanswer
+
+    question = "What is institutional memory, and why does it matter?"
+    off_task = (
+        "The most useful explanation for why institutional memory, and why does it matter begins by distinguishing "
+        "the immediate event from the conditions that made it more likely. A visible incident may be the trigger without being the whole cause.\n\n"
+        "Look at the evidence, incentives, constraints, relationships, and decisions involved, and compare more than one plausible explanation.\n\n"
+        "These are possibilities to test, not conclusions about a specific case. The strongest explanation accounts for the available facts."
+    )
+    assert is_generic_nonanswer(question, off_task)
+
+
+def test_definition_and_significance_question_accepts_direct_three_paragraph_answer():
+    from general_guide_composition import is_generic_nonanswer
+
+    question = "What is institutional memory, and why does it matter?"
+    answer = (
+        "Institutional memory is the knowledge an organization retains from its decisions, experience, practices, and lessons over time.\n\n"
+        "For example, recording why a policy was adopted helps new leaders understand the problem it was meant to solve instead of repeating an earlier mistake.\n\n"
+        "Institutional memory matters when it preserves context as well as records; outdated assumptions must still be questioned as circumstances change."
+    )
+    assert not is_generic_nonanswer(question, answer)

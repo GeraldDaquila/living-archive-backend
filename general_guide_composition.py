@@ -578,10 +578,51 @@ _GENERIC_NONANSWER_PATTERNS = (
 )
 
 
+def _definition_significance_subject(query: str) -> str:
+    """Extract the subject from a common definition-plus-significance question."""
+    normalized = _normalize_space(query)
+    match = re.match(
+        r"(?i)^what\s+is\s+(?:an?\s+|the\s+)?(.+?)\s*[,;:]?\s+and\s+why\s+does\s+it\s+matter\??$",
+        normalized,
+    )
+    if not match:
+        return ""
+    subject = _normalize_space(match.group(1)).strip(" .?!")
+    return subject if subject and len(subject.split()) <= 8 else ""
+
+
+def _has_direct_definition_for_subject(query: str, response: str) -> bool:
+    """Require a definition-first opening for definition-and-significance questions."""
+    subject = _definition_significance_subject(query)
+    if not subject:
+        return True
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", response) if p.strip()]
+    if not paragraphs:
+        return False
+    first = _normalize_space(paragraphs[0])
+    # The requested subject must be named in the opening and defined, not merely
+    # mentioned while the response explains a neighboring problem-solving method.
+    escaped_subject = re.escape(subject)
+    subject_present = bool(re.search(r"(?i)\b" + escaped_subject + r"\b", first))
+    definition_cue = bool(re.search(
+        r"(?i)\b(?:is|means|refers to|describes|is the|is a form of|is the practice of|"
+        r"consists of|is the accumulated|is the retained)\b",
+        first,
+    ))
+    definition_content = bool(re.search(
+        r"(?i)\b(?:knowledge|experience|decisions|lessons|records|understanding|"
+        r"practices|information|history|learning|memory|continuity)\b",
+        first,
+    ))
+    return subject_present and definition_cue and definition_content
+
+
 def is_generic_nonanswer(query: str, response: str) -> bool:
-    """Reject generic composition filler even when it has three paragraphs."""
+    """Reject generic composition filler and off-task openings even when formatted well."""
     text = _normalize_space(response).casefold()
     if not text:
+        return True
+    if not _has_direct_definition_for_subject(query, response):
         return True
     if any(re.search(pattern, text, re.I) for pattern in _GENERIC_NONANSWER_PATTERNS):
         return True
@@ -2242,6 +2283,20 @@ def contract_snapshot() -> Dict[str, Any]:
 # itself without making an external API call at startup.
 if _sanitize_candidate("Answer this. [evidence excerpt bounded by USE]") != "Answer this.":
     raise RuntimeError("General Guide composition invariant failed: visitor-language sanitizer.")
+if not is_generic_nonanswer(
+    "What is institutional memory, and why does it matter?",
+    "The most useful explanation for why institutional memory, and why does it matter begins by distinguishing the immediate event from the conditions that made it more likely. A visible incident may be the trigger without being the whole cause.\n\n"
+    "Look at the evidence, incentives, constraints, relationships, and decisions involved, and compare more than one plausible explanation.\n\n"
+    "These are possibilities to test, not conclusions about a specific case. The strongest explanation accounts for the available facts."
+):
+    raise RuntimeError("General Guide composition invariant failed: off-task definition answer was accepted.")
+if is_generic_nonanswer(
+    "What is institutional memory, and why does it matter?",
+    "Institutional memory is the knowledge an organization retains from its decisions, experience, practices, and lessons over time.\n\n"
+    "For example, recording why a policy was adopted helps new leaders understand the problem it was meant to solve instead of repeating an earlier mistake.\n\n"
+    "Institutional memory matters when it preserves context as well as records; outdated assumptions must still be questioned as circumstances change."
+):
+    raise RuntimeError("General Guide composition invariant failed: direct institutional-memory definition was rejected.")
 if _sanitize_candidate("Steps: - **First action**: one. - **Second action**: two.") != "Steps:\n- **First action**: one.\n- **Second action**: two.":
     raise RuntimeError("General Guide composition invariant failed: inline practical-list normalization.")
 if _question_shape("What is stewardship and why does it matter now?") != "explanatory":
