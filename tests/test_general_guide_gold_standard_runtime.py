@@ -315,25 +315,25 @@ def test_generic_composition_gate_accepts_actual_definition_and_applied_distinct
 
 
 def test_shared_definition_recovery_answers_institutional_memory_when_provider_bank_is_exhausted():
-    from deterministic_answer_recovery import compose_recovery
-    from general_guide_composition import is_generic_nonanswer, is_meta_answer_failure
+    import deterministic_answer_recovery as recovery
+    import general_guide_composition as composition
 
     question = "What is institutional memory, and why does it matter?"
-    answer = compose_recovery(question)
-    paragraphs = [part.strip() for part in answer.split("\\n\\n") if part.strip()]
+    answer = recovery.compose_recovery(question)
+    paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
 
     assert len(paragraphs) == 3
     assert paragraphs[0].casefold().startswith("institutional memory is the knowledge")
     assert "records why a policy was adopted" in paragraphs[1]
     assert "preserving the reasons" in paragraphs[2]
-    assert not is_generic_nonanswer(question, answer)
-    assert not is_meta_answer_failure(answer)
+    assert not composition.is_generic_nonanswer(question, answer)
+    assert not composition.is_meta_answer_failure(answer)
     assert "Living Archive's formal definition" not in answer
 
 
 def test_shared_definition_recovery_generalizes_to_neighboring_concepts():
-    from deterministic_answer_recovery import compose_recovery
-    from general_guide_composition import is_generic_nonanswer
+    import deterministic_answer_recovery as recovery
+    import general_guide_composition as composition
 
     cases = {
         "What is collective memory, and why does it matter?": "shared understanding of a group's past",
@@ -343,19 +343,31 @@ def test_shared_definition_recovery_generalizes_to_neighboring_concepts():
         "What is institutional responsibility, and why does it matter?": "obligation to answer for its decisions",
     }
     for question, required in cases.items():
-        answer = compose_recovery(question)
-        assert len([part for part in answer.split("\\n\\n") if part.strip()]) == 3
+        answer = recovery.compose_recovery(question)
+        assert len([part for part in answer.split("\n\n") if part.strip()]) == 3
         assert required in answer
-        assert not is_generic_nonanswer(question, answer)
+        assert not composition.is_generic_nonanswer(question, answer)
+
+
+def test_provider_exhaustion_boundary_applies_question_aware_recovery_and_doorway_gate():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    start = source.index("def _basic_inquiry_provider_exhaustion_response(")
+    end = source.index("\n\ndef _basic_inquiry_round1_deterministic_response(", start)
+    boundary = source[start:end]
+
+    assert "_compose_provider_exhaustion_recovery(" in boundary
+    assert "_guide_composition.is_generic_nonanswer(query, _shared_definition)" in boundary
+    assert '"doorway_title": title if recommendation_available else ""' in source
+    assert "rejected_non_substantive_recovery" in boundary
 
 
 def test_unknown_definition_does_not_get_circular_metacommentary_or_false_archive_attribution():
-    from deterministic_answer_recovery import compose_recovery
-    from general_guide_composition import is_generic_nonanswer
+    import deterministic_answer_recovery as recovery
+    import general_guide_composition as composition
 
     question = "What is quantum stewardship, and why does it matter?"
-    answer = compose_recovery(question)
-    assert len([part for part in answer.split("\\n\\n") if part.strip()]) == 3
+    answer = recovery.compose_recovery(question)
+    assert len([part for part in answer.split("\n\n") if part.strip()]) == 3
     assert "I can't define Quantum stewardship reliably" in answer
     assert "Living Archive" not in answer
-    assert not is_generic_nonanswer(question, answer)
+    assert not composition.is_generic_nonanswer(question, answer)
