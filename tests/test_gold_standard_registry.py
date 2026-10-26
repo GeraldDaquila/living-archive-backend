@@ -426,7 +426,7 @@ def test_leadership_authority_recovery_is_direct_three_paragraph_gold_standard()
 
     query = "What distinguishes leadership from positional authority?"
     answer = recovery.compose_recovery(query)
-    paragraphs = [part.strip() for part in answer.split("\\n\\n") if part.strip()]
+    paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
 
     assert len(paragraphs) == 3
     assert paragraphs[0].startswith("Positional authority comes from a formal role")

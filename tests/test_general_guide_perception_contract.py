@@ -26,9 +26,9 @@ def test_perception_preserves_visitor_agency_and_avoids_false_intimacy():
 
 
 def test_composition_contract_advances_for_perception_policy():
-    assert guide.CONTRACT_VERSION == "v1.27"
+    assert guide.CONTRACT_VERSION == "v1.28"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.27"
+    assert snapshot["contract_version"] == "v1.28"
     assert snapshot["provider_neutral"] is True
 
 
@@ -75,44 +75,45 @@ def test_writer_preserves_natural_explanatory_reasoning_without_forced_balance()
     assert "one concrete, plausible situation only if it clarifies the mechanism or consequence" in prompt
 
 
-def test_conceptual_relationships_require_reasoning_but_allow_proportionate_length():
+def test_conceptual_relationships_require_three_paragraph_default():
     query = "What is the relationship between personal agency and responsibility to others?"
     assert guide._requires_discernment_synthesis(query)
     parse = guide._parse_factory([], query)
     import json
-    compressed = json.dumps({"response":"Agency means making choices. Responsibility means caring about others.","doorway_title":"","response_shape":"conceptual"})
     import pytest
+    compressed = json.dumps({"response":"Agency means making choices. Responsibility means caring about others.","doorway_title":"","response_shape":"conceptual"})
     with pytest.raises(ValueError):
         parse(compressed)
     complete = json.dumps({"response": "\n\n".join([
-        "Personal agency and responsibility to others are not opposing forces but interdependent aspects of the same moral life. Agency is the capacity to make choices and act on them; responsibility is the recognition that those choices have consequences for people who are affected by them. You cannot exercise genuine agency without acknowledging that your actions exist within a web of relationships, and you cannot fulfill responsibility to others without the freedom to choose how to act.",
-        "The tension arises when agency is understood as pure independence—the idea that you are a self-contained individual whose choices are yours alone. In reality, our decisions are shaped by the people we are connected to, and those people are shaped by our decisions. For example, a manager who exercises agency to restructure a team is not just making a personal career move; they are altering the working conditions, security, and morale of the people on that team. The manager's freedom to decide is real, but it is bounded by the legitimate needs and rights of the employees. Ignoring that boundary doesn't make the choice more free; it makes it less responsible.",
-        "The key distinction is between agency as the ability to act and agency as the right to act without regard for impact. True agency includes the willingness to be accountable for the effects of your choices. Responsibility to others is not a constraint on your freedom; it is the condition that makes your freedom meaningful. When you act with awareness of how your choices affect others, you are not surrendering your agency—you are exercising it fully."
+        "Personal agency and responsibility to others are interdependent aspects of the same moral life. Agency is the capacity to make choices and act on them; responsibility is recognizing that those choices affect other people. Genuine agency does not require ignoring the relationships in which our choices take effect.",
+        "The tension appears when agency is treated as independence from consequences. For example, a manager who restructures a team is exercising real choice, but that decision also changes employees’ working conditions, security, and morale. Responsible leadership considers the people affected and explains the decision fairly.",
+        "The key distinction is between the ability to act and the claim to act without regard for impact. Responsibility does not erase agency; it makes agency accountable and relational. Considering the effects of our choices allows freedom to be exercised more fully rather than surrendered."
     ]), "doorway_title": "", "response_shape": "conceptual"})
     parsed = parse(complete)["response"]
     assert len(parsed.split("\n\n")) == 3
     assert "interdependent aspects of the same moral life" in parsed
-    assert "manager who exercises agency to restructure a team" in parsed
-    assert "condition that makes your freedom meaningful" in parsed
+    assert "manager who restructures a team" in parsed
+    assert "Responsibility does not erase agency" in parsed
 
     compact = json.dumps({
         "response": (
             "Agency is the ability to make choices; responsibility recognizes that those choices affect other people. "
             "The tension appears when independence is mistaken for freedom from consequences.\n\n"
             "Agency does not mean acting without regard for impact. Responsibility gives freedom a relational boundary "
-            "without removing the person's ability to choose."
+            "without removing the person’s ability to choose.\n\n"
+            "This matters because agency and responsibility work together: people retain meaningful choice while considering "
+            "how their actions affect others."
         ),
         "doorway_title": "",
         "response_shape": "conceptual",
     })
     compact_parsed = parse(compact)["response"]
-    assert len(compact_parsed.split("\n\n")) == 2
+    assert len(compact_parsed.split("\n\n")) == 3
     assert "does not mean" in compact_parsed
 
-
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.27"
-    assert guide.contract_snapshot()["contract_version"] == "v1.27"
+    assert guide.CONTRACT_VERSION == "v1.28"
+    assert guide.contract_snapshot()["contract_version"] == "v1.28"
 
 
 def test_incomplete_comparison_question_clarifies_before_retrieval():
@@ -146,8 +147,8 @@ def test_ordinary_explanatory_question_is_not_interrupted():
 
 
 def test_composition_contract_version_advances_for_clarification_boundary():
-    assert guide.CONTRACT_VERSION == "v1.27"
-    assert guide.contract_snapshot()["contract_version"] == "v1.27"
+    assert guide.CONTRACT_VERSION == "v1.28"
+    assert guide.contract_snapshot()["contract_version"] == "v1.28"
 
 
 def test_plain_stewardship_explanation_rejects_unsolicited_spectrum_list():
