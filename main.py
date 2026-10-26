@@ -7113,20 +7113,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # A topical newcomer answer must preserve a relevant doorway even when
         # the ordinary vector context had no recommendation or the independent
         # practical-stewardship fallback would otherwise suppress it.
-        _topic_doorway = (
-            None if authoritative_doorway
-            else _healthy_community_canonical_recommendation(query, context_data)
-        )
-        if _topic_doorway:
-            authoritative_doorway = _normalize_authoritative_recommendation(_topic_doorway)
-            archive_evidence_unavailable = False
-            composition_context["authoritative_doorway"] = authoritative_doorway
-            composition_context.pop("evidence_sufficiency_unavailable", None)
+        if not authoritative_doorway:
+            _topic_doorway = _healthy_community_canonical_recommendation(query, context_data)
+            if _topic_doorway:
+                authoritative_doorway = _normalize_authoritative_recommendation(_topic_doorway)
+                archive_evidence_unavailable = False
+                composition_context["authoritative_doorway"] = authoritative_doorway
+                composition_context.pop("evidence_sufficiency_unavailable", None)
+            else:
+                composition_context.pop("authoritative_doorway", None)
+                composition_context.pop("authoritative_doorway_title", None)
+                print("The Guide healthy-community boundary: no relevant canonical recommendation passed topic fit.")
         else:
-            authoritative_doorway = None
-            composition_context.pop("authoritative_doorway", None)
-            composition_context.pop("authoritative_doorway_title", None)
-            print("The Guide healthy-community boundary: no relevant canonical recommendation passed topic fit.")
+            # Preserve the early approved doorway; do not clear it merely because
+            # the redundant late recovery is intentionally skipped.
+            composition_context["authoritative_doorway"] = authoritative_doorway
 
     # Single owner for the responsibility-boundary answer contract. This runs
     # after all generation, discovery, sanitization, and topic-specific rewrites,
