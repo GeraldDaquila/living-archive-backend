@@ -1956,6 +1956,33 @@
         "evidence_boundary": "Screenshot confirms the displayed answer, three-paragraph presentation, and doorway title. The live API response separately returned the same doorway title with the URL recorded here; the screenshot alone does not establish backend runtime identity."
       },
       "freeze_policy": "Preserve expected_response verbatim. Do not change wording without explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-charisma-constitutional-restraint-gold-standard-2026-10-26",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What are the risks of charisma without constitutional restraint?",
+      "expected_response": "The risk of charisma without constitutional restraint is that influence or capacity can operate without the checks that keep it answerable to a shared purpose. When people or institutions rely on charisma, its appeal or immediate effectiveness can make it seem self-justifying. Without constitutional restraint, those affected may have no dependable way to question decisions, limit excess, or correct harm.\n\nIn practice, the danger is a shift from serving a common purpose to protecting the person, group, or mechanism that holds the influence. Decisions may become harder to challenge, dissent may be treated as disloyalty, and mistakes can persist because the same influence that drives action also weakens independent scrutiny. The problem is not necessarily charisma itself; it is the absence of a reliable way to test how it is used and who bears its consequences.\n\nThe safeguard is to make authority and consequences visible, distribute decision-making where appropriate, protect principled dissent, and establish review that does not depend on the goodwill of the person exercising influence. Those safeguards let charisma contribute its benefits while keeping its use accountable to constitutional restraint. They also give the community a practical way to correct course when the effects depart from the shared purpose.",
+      "expected_doorway": {
+        "title": "The Constitutional Architecture of the Stewardship Institute",
+        "url": null
+      },
+      "assertions": [
+        "User explicitly approved this live visitor-facing response for Gold Standard registry inclusion.",
+        "Exactly three substantive paragraphs.",
+        "Paragraph one answers directly and identifies the mechanism by which charisma can operate without checks.",
+        "Paragraph two explains practical consequences including weakened challenge, dissent, and independent scrutiny.",
+        "Paragraph three identifies safeguards and explains their role in correction and accountability.",
+        "Doorway remains separate from the answer; its canonical URL must be verified before runtime enforcement of a link.",
+        "This exact-query reference does not replace the shared default composition contract or authorize reuse for paraphrases."
+      ],
+      "provenance": {
+        "source_path": "visitor-provided production screenshot",
+        "source_ref": "user-approved live response screenshot, 2026-10-26",
+        "source_status": "USER_APPROVED_GOLD_STANDARD",
+        "evidence_boundary": "The screenshot establishes the visitor-facing response shown to the user and the user's explicit request to enter it into the registry. It does not independently verify the doorway URL."
+      },
+      "freeze_policy": "Preserve this approved response. Change expected_response only with explicit user authorization and a separately documented benchmark-version change."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control. New approved record added on October 26, 2026: the screenshot-approved governance-beyond-administration response is registered as USER_APPROVED_GOLD_STANDARD with exact three-paragraph wording and a separately verified live doorway URL.",
