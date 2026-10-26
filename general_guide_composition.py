@@ -259,7 +259,7 @@ def _sanitize_candidate(text: Any) -> str:
     # Strip presentation-only emoji glyphs at the shared composition boundary.
     # Keep ordinary punctuation and all substantive words intact.
     raw = re.sub(
-        "[\U0001F1E6-\U0001FAFF\U00002600-\U000027BF\uFE0F\u200D]",
+        "[\U0001F1E6-\U0001FAFF\U00002600-\U000027BF\u2B50\uFE0F\u200D]",
         "",
         raw,
     )
