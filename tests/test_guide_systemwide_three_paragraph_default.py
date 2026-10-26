@@ -66,3 +66,24 @@ def test_final_visitor_boundary_uses_shared_gold_standard_recovery_instead_of_ge
     assert "authoritative_doorway = None" in boundary
     assert '"kind": "general_knowledge"' in boundary
     assert "I couldn’t produce a reliable answer to that question just now." in boundary
+
+def test_default_composition_quality_gate_requires_substance_not_just_three_paragraphs():
+    source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
+    for requirement in (
+        "COMPOSITION QUALITY GATE — mandatory for every substantive answer",
+        'For a "how can" question, name the practical method or decision principle immediately',
+        "Give each paragraph a different job",
+        "Do not introduce the name of an Archive assessment, framework, governance instrument, or internal tool into the body of a general answer",
+        "every sentence must answer the visitor's question",
+    ):
+        assert requirement in source
+
+
+def test_default_composition_quality_gate_is_not_limited_to_stakeholder_question():
+    source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
+    prompt_start = source.index("_GENERAL_GUIDE_SYSTEM =")
+    prompt_end = source.index("\n\ndef _normalize_space", prompt_start)
+    prompt = source[prompt_start:prompt_end]
+    assert "COMPOSITION QUALITY GATE — mandatory for every substantive answer" in prompt
+    assert "A plausible thematic association is not enough" in prompt
+    assert "not only named question classes" in prompt
