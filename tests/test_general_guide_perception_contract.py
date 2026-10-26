@@ -282,9 +282,9 @@ def test_substantive_answers_may_discuss_separating_facts_from_assumptions():
 
     substantive = (
         "A careful explanation begins by separating established facts from assumptions when the evidence is mixed. "
-        "That distinction helps the reader see which conclusions are supported and which remain uncertain.\\n\\n"
+        "That distinction helps the reader see which conclusions are supported and which remain uncertain.\n\n"
         "For example, a team reviewing a missed deadline can confirm the timeline before inferring why it happened. "
-        "That prevents an early guess from being treated as a proven cause.\\n\\n"
+        "That prevents an early guess from being treated as a proven cause.\n\n"
         "The goal is not to avoid judgment, but to make judgments proportionate to the evidence and revise them when new information appears."
     )
     assert not guide.is_meta_answer_failure(substantive)
