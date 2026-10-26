@@ -209,3 +209,60 @@ def test_general_guide_does_not_chain_after_slow_first_failure(monkeypatch):
     assert provider_bank.GENERAL_GUIDE_SLOW_FAILURE_STOP_SECONDS == 2.8
     assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
     assert clock.value == 6.0
+
+
+def test_provider_http_timeout_is_an_absolute_deadline_when_body_trickles(monkeypatch):
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    socket_timeouts = []
+
+    class FakeSocket:
+        def settimeout(self, value):
+            socket_timeouts.append(value)
+
+    fake_socket = FakeSocket()
+    raw = type("Raw", (), {"_sock": fake_socket})()
+    buffered = type("Buffered", (), {"raw": raw})()
+
+    class FakeStream:
+        def __init__(self):
+            self.fp = buffered
+            self.reads = 0
+
+        def read1(self, _size):
+            self.reads += 1
+            clock.value += 2.0
+            return b'{"response":' if self.reads == 1 else b'"slow"}'
+
+    class FakeResponse:
+        def __init__(self):
+            self.fp = FakeStream()
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+    monkeypatch.setattr(
+        provider_bank.urllib.request,
+        "urlopen",
+        lambda _request, timeout=None: FakeResponse(),
+    )
+
+    with pytest.raises(provider_bank.ProviderCallError) as caught:
+        provider_bank._http_json(
+            "https://provider.invalid/v1/chat/completions",
+            {},
+            {"messages": []},
+            "openrouter",
+            "openrouter/free",
+            timeout=3.0,
+        )
+
+    assert caught.value.category == "timeout"
+    assert socket_timeouts == [3.0, 1.0]
+    assert clock.value == 4.0
