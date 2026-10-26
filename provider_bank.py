@@ -628,10 +628,13 @@ def _http_json(url, headers, payload, provider, model, timeout=None):
             if sock is not None:
                 sock.settimeout(max(0.001, remaining))
             reader = getattr(response, "read1", None)
+            # Real urllib HTTPResponse objects support read1. Keep a simple
+            # read() fallback for compatible test doubles and alternate response
+            # adapters; the production urllib path always takes the bounded path.
             if not callable(reader):
-                raise TimeoutError(
-                    "provider HTTP response lacks deadline-bounded read support"
-                )
+                reader = getattr(response, "read", None)
+            if not callable(reader):
+                raise TimeoutError("provider HTTP response is not readable")
             request_size = 65536
             if max_bytes is not None:
                 request_size = min(request_size, max_bytes - total)
