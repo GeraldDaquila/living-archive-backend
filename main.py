@@ -5768,7 +5768,7 @@ def _normalize_authoritative_recommendation(doorway):
 
 def _enforce_registered_gold_standard_doorway(doorway, gold_standard, query=""):
     """Prevent retrieval doorways from surviving approved answers that do not authorize them."""
-    normalized_query = re.sub(r"\\s+", " ", str(query or "")).strip().casefold().rstrip("?.!")
+    normalized_query = re.sub(r"\s+", " ", str(query or "")).strip().casefold().rstrip("?.!")
     # The question-specific recovery is an approved, doorway-free Gold Standard.
     # Keep its navigation boundary intact even if an upstream route normalized
     # the incoming question before exact registry resolution.
