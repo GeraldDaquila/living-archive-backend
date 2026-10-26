@@ -216,6 +216,26 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "Then separate the defining difference from details the options share. Consider a concrete example, who is affected, and what evidence supports the comparison rather than assuming that one option is better simply because it has a different name or purpose.\n\n"
             "The useful conclusion is the distinction that changes how the options should be understood or used. Where the question does not supply enough context to rank them, explain the difference that can be established and state only that narrower limitation—not that the question itself cannot be answered."
         )
+    elif re.search(r"\b(?:risks?|dangers?|hazards?)\b", lower) and re.search(r"\bwithout\b", lower):
+        # Shared risk-without-constraint composition: explain mechanism,
+        # practical consequence, and safeguard across this question family.
+        match = re.search(r"\b(?:risks?|dangers?|hazards?)\s+(?:of|from)\s+(.+?)\s+without\s+(.+)$", q, re.I)
+        if match:
+            force = _clean(match.group(1)).strip(" .?!;:")
+            constraint = _clean(match.group(2)).strip(" .?!;:")
+        else:
+            force, constraint = subject, "meaningful limits and accountability"
+        answer = (
+            f"The risk of {force} without {constraint} is that influence or capacity can operate without the checks that keep it answerable to a shared purpose. "
+            f"When people or institutions rely on {force}, its appeal or immediate effectiveness can make it seem self-justifying. "
+            f"Without {constraint}, those affected may have no dependable way to question decisions, limit excess, or correct harm.\n\n"
+            f"In practice, the danger is a shift from serving a common purpose to protecting the person, group, or mechanism that holds the influence. "
+            "Decisions may become harder to challenge, dissent may be treated as disloyalty, and mistakes can persist because the same influence that drives action also weakens independent scrutiny. "
+            f"The problem is not necessarily {force} itself; it is the absence of a reliable way to test how it is used and who bears its consequences.\n\n"
+            f"The safeguard is to make authority and consequences visible, distribute decision-making where appropriate, protect principled dissent, and establish review that does not depend on the goodwill of the person exercising influence. "
+            f"Those safeguards let {force} contribute its benefits while keeping its use accountable to {constraint}. "
+            "They also give the community a practical way to correct course when the effects depart from the shared purpose."
+        )
     elif re.search(r"\b(?:why|what causes|reason for)\b", lower):
         answer = (
             f"The most useful explanation for why {subject} begins by distinguishing the immediate event from the conditions that made it more likely. "
