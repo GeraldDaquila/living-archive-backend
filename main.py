@@ -8131,10 +8131,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     print("The Guide final payload boundary: evidence-grounded three-paragraph recomposition PASS.")
                 else:
                     _bounded_recovery = general_guide_composition.operational_discipline_humane_leadership_recovery(query)
-                    if _bounded_recovery:
-                        response = _sanitize_basic_inquiry_response(_bounded_recovery)
-                        print("The Guide final payload boundary: used substantive question-specific three-paragraph recovery.")
+                    _bounded_recovery_text = _sanitize_basic_inquiry_response(_bounded_recovery or "")
+                    _bounded_recovery_paragraphs = [
+                        part.strip()
+                        for part in re.split(r"\\n\\s*\\n+", _bounded_recovery_text)
+                        if part.strip()
+                    ]
+                    _bounded_recovery_is_substantive = bool(
+                        _bounded_recovery_text
+                        and len(_bounded_recovery_paragraphs) == 3
+                        and not general_guide_composition.is_meta_answer_failure(_bounded_recovery_text)
+                        and not general_guide_composition.is_generic_nonanswer(query, _bounded_recovery_text)
+                    )
+                    if _bounded_recovery_is_substantive:
+                        response = _bounded_recovery_text
+                        print("The Guide final payload boundary: substantive three-paragraph bounded recovery PASS.")
                     else:
+                        if _bounded_recovery:
+                            print("The Guide final payload boundary: rejected bounded recovery that failed the shared Gold Standard contract.")
                         # System-wide Gold Standard recovery: when provider composition and
                         # the evidence-grounded retry both fail, use the shared deterministic
                         # composer rather than a one-off apology template. Only accept a
