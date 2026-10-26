@@ -108,6 +108,7 @@ jobs:
                       if (
                           status == 200
                           and payload.get("version") == expected_version
+                          and payload.get("deployment_commit_sha") == os.environ.get("GITHUB_SHA")
                           and str(payload.get("fingerprint") or "").startswith(f"USE-{expected_version}-")
                           and bool(payload.get("source_sha256"))
                       ):
