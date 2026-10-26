@@ -408,6 +408,17 @@ if not all(term in _historical_cultural_answer.casefold() for term in _historica
     raise RuntimeError("Historical-cultural Gold Standard contract failed: explanatory depth or nuance missing.")
 if "choose one step small enough to test" in _historical_cultural_answer:
     raise RuntimeError("Historical-cultural Gold Standard contract failed: practical template leaked.")
+_preaction_question = "What kinds of questions should be asked before redesigning a governance system?"
+_preaction_answer = compose_recovery(_preaction_question)
+_preaction_paragraphs = [part.strip() for part in _preaction_answer.split("\\n\\n") if part.strip()]
+if len(_preaction_paragraphs) != 3:
+    raise RuntimeError("Pre-action inquiry recovery contract failed: expected three paragraphs.")
+for _required in ("what problem", "who is affected", "authority", "alternatives", "review", "correction"):
+    if _required not in _preaction_answer.casefold():
+        raise RuntimeError("Pre-action inquiry recovery contract failed: missing decision lens " + _required)
+if "I couldn't produce a reliable answer" in _preaction_answer:
+    raise RuntimeError("Pre-action inquiry recovery contract failed: refusal-style fallback leaked.")
+
 for _control_question in (
     "How do I plan a practical test of a new workflow?",
     "How should a team choose its next step?",
