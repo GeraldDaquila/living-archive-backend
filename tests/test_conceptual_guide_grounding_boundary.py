@@ -382,7 +382,6 @@ def test_conceptual_recovery_uses_human_opening_not_internal_archive_classificat
     assert "question-matched canonical " in gate
     assert "do not infer Archive doctrine from a title or doorway alone" in gate
 
-
 def test_healthy_community_newcomer_uses_three_paragraph_recovery_before_composition():
     start = SOURCE.index("def _healthy_community_answer_recovery():")
     end = SOURCE.index("\n\ndef _has_substantive_topic_intent", start)
