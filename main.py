@@ -8176,6 +8176,12 @@ def _use_replay_receive(body):
 
 
 async def _use_send_json(send, payload, status_code=200):
+    # Stamp every visitor-facing JSON payload with the actual Render deployment
+    # identity so E2E can reject responses served by a stale instance during rollout.
+    if isinstance(payload, dict):
+        payload.setdefault(
+            "deployment_commit_sha", os.environ.get("RENDER_GIT_COMMIT", "").strip()
+        )
     # Absolute visitor-facing boundary: all JSON routes pass through this sender,
     # including routes that bypass Basic Inquiry's local composer boundary.
     # The approved operational-discipline Gold Standard has no doorway, so do
