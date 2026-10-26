@@ -5622,7 +5622,12 @@ def _general_guide_authoritative_doorway(query, context_data):
         shadow_observation_candidates = list(evidence_docs)
 
         comparative_subjects = _comparative_subject_terms(query)
-        if comparative_subjects:
+        # A conceptual relationship question asks how concepts relate; it does
+        # not require every useful canonical doorway to mention both concepts.
+        # Requiring each candidate to independently cover both sides rejects
+        # legitimate one-sided gateways before normal relevance ranking runs.
+        relationship_query = general_guide_composition.is_conceptual_relationship_question(query)
+        if comparative_subjects and not relationship_query:
             evidence_docs = [item for item in evidence_docs if _comparative_candidate_has_direct_fit(query, item)]
 
         # Conflict-specific relevance is independent of general stewardship
