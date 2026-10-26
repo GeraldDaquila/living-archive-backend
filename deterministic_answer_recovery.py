@@ -143,7 +143,7 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "The Guide serves this purpose through constitutional sensemaking. It helps a person locate a question within the Archive's wider relationships, identify useful canonical resources, and understand how the pieces may fit together without pretending that every connection is proven or every question settled. "
             "In practice, a question about a relationship, institution, or community can open onto wider patterns of responsibility, power, history, and care. The aim is not to decide for the visitor, but to make the landscape clearer so that further inquiry and human judgment can be better grounded."
         )
-    elif re.search(r"\b(?:in|within)\s+(?:the\s+)?(?:living\s+)?archive(?:'s)?\s+(?:framework|approach|understanding|terms|perspective)\b", lower) and re.search(r"\b(?:what does|what is|what are|meaning|mean)\b", lower):
+    elif re.search(r"\b(?:in|within)\s+(?:the\s+)?(?:living\s+)?archive(?:['’]s)?\s+(?:framework|approach|understanding|terms|perspective)\b", lower) and re.search(r"\b(?:what does|what is|what are|meaning|mean)\b", lower):
         # Archive-framework concept questions need a substantive bounded answer,
         # not a generic "couldn't verify" disclaimer. Explain the concept in
         # relation to the Archive's known orientation, while avoiding claims of
