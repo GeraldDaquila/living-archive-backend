@@ -7205,6 +7205,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     response = _sanitize_basic_inquiry_response(
         general_guide_composition.enforce_response_contracts(query, response)
     )
+    # Apply the default paragraph contract at the final visitor boundary too:
+    # this single final payload gate is authoritative; no earlier composition retry.
     # Paragraph quality is enforced at the final payload boundary below. Do not
     # run a second composition here: the later, single final repair is the only
     # allowed paragraph-contract recovery after downstream response rewrites.
