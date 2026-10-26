@@ -118,6 +118,59 @@ def test_cosmology_question_is_not_replaced_by_an_exact_benchmark_answer(monkeyp
     assert "shapes what they notice" in result["response"]
     assert "The Worldview of a Conscious Human" == result["doorway_title"]
 
+def test_default_composition_evidence_recovery_keeps_three_paragraph_contract_when_providers_exhausted(monkeypatch):
+    import general_guide_composition as composition
+
+    query = "What is governance, beyond administration?"
+    source_sentences = [
+        "Governance establishes how a group makes decisions and remains accountable for their consequences.",
+        "Governance goes beyond administration because it determines purposes, authority, and the rules by which decisions are made.",
+        "Administration carries out decisions through processes, records, schedules, and the coordination of daily work.",
+        "Good governance clarifies who may decide, who is affected, and how a decision can be questioned or reviewed.",
+        "For example, administration may schedule a public meeting, while governance determines who has a voice in the decision and how competing interests are weighed.",
+        "Governance does not replace administration; it gives administration a legitimate direction and a structure for accountability.",
+    ]
+    documents = [{
+        "title": "Governance Foundations",
+        "url": "https://geralddaquila.com/governance-foundations/",
+        "content": " ".join(source_sentences),
+    }]
+
+    monkeypatch.setattr(composition, "route_with_model_bank", lambda **kwargs: None)
+    result = composition.compose(
+        use_core=object(),
+        query=query,
+        context_data={"generation_authority_protected_docs": documents},
+    )
+
+    assert result is not None
+    assert result["provider"] == "gold_standard_evidence_recovery"
+    assert result["response_shape"] == "explanatory"
+    assert len(result["response"].split("\n\n")) == 3
+    assert "Governance goes beyond administration" in result["response"]
+    assert "who has a voice" in result["response"]
+    assert "does not replace administration" in result["response"]
+    assert result["doorway_title"] == "Governance Foundations"
+    assert result["doorway_url"] == "https://geralddaquila.com/governance-foundations/"
+
+
+def test_default_composition_evidence_recovery_does_not_invent_when_retrieval_is_insufficient(monkeypatch):
+    import general_guide_composition as composition
+
+    monkeypatch.setattr(composition, "route_with_model_bank", lambda **kwargs: None)
+    result = composition.compose(
+        use_core=object(),
+        query="What is governance, beyond administration?",
+        context_data={"generation_authority_protected_docs": [{
+            "title": "Unrelated source",
+            "url": "https://geralddaquila.com/unrelated/",
+            "content": "This source discusses gardening and soil health in a community garden.",
+        }]},
+    )
+
+    assert result is None
+
+
 def test_main_final_payload_boundary_reapplies_exact_standard_after_rewrites():
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
     resolver_call = '_final_gold_standard = _resolve_exact_guide_gold_standard(query)'
