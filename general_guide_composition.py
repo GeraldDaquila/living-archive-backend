@@ -2295,12 +2295,10 @@ def compose(
                 # reject a candidate that cannot satisfy the requested subject.
                 return None
             candidate["response_shape"] = "explanatory"
-        if not re.search(
-            r"\b(?:where can i find|where do i find|show me|take me to|link me to|browse|find the)\b",
-            question,
-            re.I,
-        ):
-            candidate["doorway_title"] = ""
+        # Preserve provider-validated canonical doorways for conceptual questions.
+        # _parse_factory already checks doorway metadata against retrieved sources;
+        # the visitor can receive the answer first and the doorway separately.
+
 
     if is_practical_application_question(question):
         if not has_observable_practical_actions(candidate["response"]):
