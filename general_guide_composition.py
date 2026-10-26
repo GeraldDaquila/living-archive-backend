@@ -419,6 +419,28 @@ def _requires_three_paragraph_default(query: str) -> bool:
     return True
 
 
+_META_ANSWER_FAILURE_PATTERNS = (
+    r"\bi can(?:not|['’]t) give this question the careful explanation it deserves\b",
+    r"\bi don['’]?t want to replace the answer you asked for\b",
+    r"\ba complete response should address your actual question directly\b",
+    r"\bthat explanation has not been produced reliably\b",
+    r"\bplease try again shortly\b",
+    r"\bthe guide should either provide that three-part explanation\b",
+    r"\bi couldn['’]?t produce a reliable answer to that question just now\b",
+    r"\bcommentary about an answer as though it were the answer itself\b",
+    r"\bthe question about .{1,180} deserves a direct answer\b",
+    r"\bthe most useful next step is to identify\b",
+    r"\bi don['’]?t have enough verified context\b",
+    r"\bi have not been able to produce that complete explanation\b",
+)
+
+
+def is_meta_answer_failure(response: str) -> bool:
+    """Shared quality gate: reject commentary about failure instead of an answer."""
+    text = _normalize_space(response).casefold()
+    if not text:
+        return True
+    return any(re.search(pattern, text, re.I) for pattern in _META_ANSWER_FAILURE_PATTERNS)
 def _question_shape(query: str) -> str:
     q = _normalize_space(query).casefold()
     if _requires_distress_sensitive_pacing(q):
@@ -1125,16 +1147,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
             # Paragraph count is necessary but not sufficient. Reject the
             # recurring meta-answer/failure template so the provider bank retries
             # instead of treating commentary about answering as the answer itself.
-            if re.search(
-                r"\b(?:the question about .{1,180} deserves a direct answer|"
-                r"the most useful next step is to identify|"
-                r"i don['’]?t have enough verified context|"
-                r"the right answer depends on addressing the question directly|"
-                r"i have not been able to produce that complete explanation|"
-                r"please try again shortly)\b",
-                response,
-                re.I,
-            ):
+            if is_meta_answer_failure(response):
                 raise ValueError(
                     "Gold Standard candidate is meta-answer/failure text, not a substantive answer to the visitor's question"
                 )
