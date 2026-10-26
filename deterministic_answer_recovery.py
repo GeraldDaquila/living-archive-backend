@@ -85,7 +85,7 @@ def _is_ethical_tradeoff(question):
     competing_values = bool(re.search(
         r"\b(?:disagree|competing|conflict|trade.?offs?|priorit(?:y|ies)|"
         r"protect(?:ing)?|worth protecting|deeply value|important to each|"
-        r"lose something|irreversible|bear the costs|fair(?:ly|ness)|"
+        r"lose something|irreversible|bear the costs|"
         r"stakeholders?|obligations?|duties|interests)\b", q
     ))
     asks_for_judgment = bool(re.search(
