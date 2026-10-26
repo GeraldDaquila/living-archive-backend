@@ -310,3 +310,4 @@ def test_generic_composition_gate_accepts_actual_definition_and_applied_distinct
     assert not composition.is_generic_nonanswer(
         "What is governance, beyond administration?", substantive_response
     )
+
