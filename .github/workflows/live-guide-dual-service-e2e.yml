@@ -7,6 +7,8 @@ on:
       - "main.py"
       - "streaming_transport.py"
       - "general_guide_composition.py"
+      - "general_guide_gold_standards.py"
+      - "docs/qa/gold_standard_registry.json"
       - "deterministic_answer_recovery.py"
       - "tests/test_archive_constitutional_recovery.py"
       - "provider_bank.py"
