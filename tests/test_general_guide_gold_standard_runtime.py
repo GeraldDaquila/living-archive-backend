@@ -311,3 +311,51 @@ def test_generic_composition_gate_accepts_actual_definition_and_applied_distinct
         "What is governance, beyond administration?", substantive_response
     )
 
+
+
+
+def test_shared_definition_recovery_answers_institutional_memory_when_provider_bank_is_exhausted():
+    from deterministic_answer_recovery import compose_recovery
+    from general_guide_composition import is_generic_nonanswer, is_meta_answer_failure
+
+    question = "What is institutional memory, and why does it matter?"
+    answer = compose_recovery(question)
+    paragraphs = [part.strip() for part in answer.split("\\n\\n") if part.strip()]
+
+    assert len(paragraphs) == 3
+    assert paragraphs[0].casefold().startswith("institutional memory is the knowledge")
+    assert "records why a policy was adopted" in paragraphs[1]
+    assert "preserving the reasons" in paragraphs[2]
+    assert not is_generic_nonanswer(question, answer)
+    assert not is_meta_answer_failure(answer)
+    assert "Living Archive's formal definition" not in answer
+
+
+def test_shared_definition_recovery_generalizes_to_neighboring_concepts():
+    from deterministic_answer_recovery import compose_recovery
+    from general_guide_composition import is_generic_nonanswer
+
+    cases = {
+        "What is collective memory, and why does it matter?": "shared understanding of a group's past",
+        "What is organizational learning, and why does it matter?": "uses experience and evidence",
+        "What is governance, and why does it matter?": "establishes purpose, makes decisions",
+        "What is administration, and why does it matter?": "coordination and execution",
+        "What is institutional responsibility, and why does it matter?": "obligation to answer for its decisions",
+    }
+    for question, required in cases.items():
+        answer = compose_recovery(question)
+        assert len([part for part in answer.split("\\n\\n") if part.strip()]) == 3
+        assert required in answer
+        assert not is_generic_nonanswer(question, answer)
+
+
+def test_unknown_definition_does_not_get_circular_metacommentary_or_false_archive_attribution():
+    from deterministic_answer_recovery import compose_recovery
+    from general_guide_composition import is_generic_nonanswer
+
+    question = "What is quantum stewardship, and why does it matter?"
+    answer = compose_recovery(question)
+    assert len([part for part in answer.split("\\n\\n") if part.strip()]) == 3
+    assert "I can't define Quantum stewardship reliably" in answer
+    assert "Living Archive" not in answer
+    assert not is_generic_nonanswer(question, answer)
