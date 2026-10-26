@@ -6516,7 +6516,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if healthy_community_short_circuit:
         # The approved topic-specific doorway is deterministic for this bounded
         # intent; do not launch the generic multi-search doorway recovery first.
-        authoritative_doorway = _healthy_community_canonical_recommendation(query, context_data)
+        authoritative_doorway = _normalize_authoritative_recommendation(
+            _healthy_community_canonical_recommendation(query, context_data)
+        )
     else:
         authoritative_doorway = _select_direct_attribute_doorway(
             query,
