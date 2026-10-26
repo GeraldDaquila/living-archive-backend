@@ -354,6 +354,23 @@ def test_water_boiling_point_general_knowledge_gold_standard_preserves_live_answ
     assert "does not claim the science answer is sourced from or canonical doctrine" in fixture["provenance"]["evidence_boundary"]
 
 
+def test_rules_dignity_adaptability_gold_standard_is_registered():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-rules-dignity-adaptability-gold-standard-2026-10-26"
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "How can rules protect human dignity while remaining adaptable?"
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
+    assert "who has the power to decide" in record["expected_response"]
+    assert "Distinguish losses that can be repaired" in record["expected_response"]
+    assert "Sometimes a genuine trade-off remains" in record["expected_response"]
+    assert record["expected_doorway"]["title"] == "Living Among Sovereign Beings — Love, Authority, and the End of Control"
+    assert record["expected_doorway"]["url"] is None
+    assert "Preserve expected_response verbatim" in record["freeze_policy"]
+
+
 def test_governance_beyond_administration_gold_standard_is_registered():
     registry = _registry()
     record = next(
