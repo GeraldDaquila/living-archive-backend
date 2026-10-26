@@ -5152,7 +5152,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         return {
             "response": fallback_response,
             "doorway_title": "",
-            "provider": "bounded_provider_exhaustion_recovery",
+            "provider": "deterministic_question_preserving_recovery",
             "model": "deterministic-contract-recovery",
         }
     return {
