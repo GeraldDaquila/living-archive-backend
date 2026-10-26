@@ -8020,9 +8020,23 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # immediately before payload assembly, so no late single-paragraph template
     # can escape to a substantive explanatory question.
     _final_comparative_subjects = _comparative_subject_terms(query)
-    _final_discovery_only = bool(discovery_subject) and not (
-        _is_conceptual_explanatory_request(query)
-        or general_guide_composition.is_conceptual_relationship_question(query)
+    # A retrieval/discovery candidate is not proof that the visitor asked
+    # for navigation. Only an explicit navigation request may suppress the
+    # default explanatory composition contract; topical concepts such as the
+    # risks of charisma must still receive the answer before any doorway.
+    _final_explicit_navigation_request = bool(re.search(
+        r"\b(?:where can i find|where do i find|show me|take me to|link me to|"
+        r"browse|find the|open the|go to|give me the link)\b",
+        query,
+        re.I,
+    ))
+    _final_title_like_discovery = bool(discovery_subject) and not re.search(
+        r"\b(?:what|why|how|when|who|where|which|can|could|should|would|is|are|does|do|did|explain|describe|discuss|analy[sz]e|compare|assess|evaluate)\b",
+        query,
+        re.I,
+    )
+    _final_discovery_only = bool(discovery_subject) and (
+        _final_explicit_navigation_request or _final_title_like_discovery
     )
     _final_requires_gold_standard = (
         not _final_discovery_only
@@ -8051,7 +8065,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             for part in re.split(r"\n\s*\n+", response)
             if part.strip()
         ]
-        if len(_last_paragraphs) < 3 or _meta_answer:
+        _current_response_nonanswer = general_guide_composition.is_generic_nonanswer(query, response) or general_guide_composition.is_meta_answer_failure(response)
+        if len(_last_paragraphs) < 3 or _meta_answer or _current_response_nonanswer:
             # A known regression query gets a deterministic, direct answer at
             # the final visitor boundary. This is a semantic recovery, not a
             # paragraph-count filler; it prevents provider failure from turning
@@ -8110,7 +8125,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 _retry_is_meta_answer = general_guide_composition.is_meta_answer_failure(
                     _last_retry_text
                 )
-                if len(_last_retry_paragraphs) >= 3 and not _retry_is_meta_answer:
+                _retry_nonanswer = general_guide_composition.is_generic_nonanswer(query, _last_retry_text)
+                if len(_last_retry_paragraphs) >= 3 and not _retry_is_meta_answer and not _retry_nonanswer:
                     response = _last_retry_text
                     print("The Guide final payload boundary: evidence-grounded three-paragraph recomposition PASS.")
                 else:
@@ -8134,7 +8150,17 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         _systemwide_is_meta = general_guide_composition.is_meta_answer_failure(
                             _systemwide_recovery
                         )
-                        if len(_systemwide_paragraphs) >= 3 and not _systemwide_is_meta:
+                        _systemwide_nonanswer = (
+                            general_guide_composition.is_generic_nonanswer(query, _systemwide_recovery)
+                            or bool(re.search(
+                                r"\bthe question about .{1,100} can be approached by first identifying\b|"
+                                r"\bthe most useful next step is to identify the main issue\b|"
+                                r"\bstart by identifying the main issue and then consider\b",
+                                _systemwide_recovery,
+                                re.I,
+                            ))
+                        )
+                        if len(_systemwide_paragraphs) >= 3 and not _systemwide_is_meta and not _systemwide_nonanswer:
                             response = _systemwide_recovery
                             authoritative_doorway = None
                             answer_basis = {
