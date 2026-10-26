@@ -8,7 +8,7 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         cases = {
             "Why do public institutions lose trust?": "evidence",
             "How can a community allocate a limited budget?": "outcome",
-            "What is institutional responsibility?": "is best understood",
+            "What is institutional responsibility?": "obligation to answer",
             "Compare personal agency and responsibility.": "comparison",
             "Should we change the policy now?": "decision",
             "Help me understand a difficult situation.": "known",
@@ -95,8 +95,9 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
 
     def test_answerable_definition_is_direct_and_not_a_meta_template(self):
         answer = compose_recovery("What is institutional responsibility?")
-        self.assertIn("is best understood", answer)
-        self.assertIn("general explanation", answer)
+        self.assertIn("obligation to answer", answer)
+        self.assertIn("For example", answer)
+        self.assertNotIn("is best understood by what it means", answer)
         self.assertNotIn("Your question asks for a clear account", answer)
         self.assertNotIn("A useful explanation should establish", answer)
         self.assertNotIn("What detail or context would make this question", answer)
