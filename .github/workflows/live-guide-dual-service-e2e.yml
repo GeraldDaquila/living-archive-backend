@@ -14,6 +14,7 @@ on:
       - "provider_bank.py"
       - "tests/test_cross_question_gold_standard_integrity.py"
       - "tests/test_general_guide_perception_contract.py"
+      - "tests/test_operational_discipline_humane_leadership_gold_standard.py"
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
       - ".github/workflows/live-guide-dual-service-e2e.yml"
   workflow_dispatch:
