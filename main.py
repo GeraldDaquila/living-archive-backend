@@ -7205,6 +7205,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     response = _sanitize_basic_inquiry_response(
         general_guide_composition.enforce_response_contracts(query, response)
     )
+    # The former "used three-paragraph fail-honest recovery" fallback is removed
+    # from this early gate; the final payload boundary owns the single substantive repair.
     # Apply the default paragraph contract at the final visitor boundary too:
     # this single final payload gate is authoritative; no earlier composition retry.
     # Paragraph quality is enforced at the final payload boundary below. Do not
