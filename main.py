@@ -4683,6 +4683,48 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
             result["doorway_title"] = ""
             result["recommendation"] = None
         result["provider"] = "bounded_provider_exhaustion_recovery"
+
+    # Provider exhaustion is still part of the shared visitor-answer contract.
+    # Do not let a polished, three-paragraph non-answer bypass the quality gate
+    # simply because the ordinary composer returned no candidate.
+    if isinstance(result, dict):
+        import general_guide_composition as _guide_composition
+        response_text = str(result.get("response") or "")
+        if _guide_composition.is_generic_nonanswer(query, response_text) or _guide_composition.is_meta_answer_failure(response_text):
+            try:
+                _fallback_documents = use_core.context_blocks_to_documents(
+                    str((context_data or {}).get("context_blocks") or "")
+                )
+            except Exception:
+                _fallback_documents = []
+            _fallback_documents = [item for item in _fallback_documents if isinstance(item, dict)]
+            _constitutional_fallback = _guide_composition._archive_constitutional_recovery(
+                query, _fallback_documents
+            )
+            if _constitutional_fallback and not _guide_composition.is_generic_nonanswer(
+                query, str(_constitutional_fallback.get("response") or "")
+            ):
+                result = dict(_constitutional_fallback)
+            else:
+                # Prefer the question-preserving deterministic answer over the
+                # generic provider-exhaustion prose. If it also fails the shared
+                # gate, do not mislabel the weak answer as an accepted recovery.
+                _bounded = _basic_inquiry_round1_deterministic_response(
+                    query, interpretation, context_data,
+                    recommendation_available=False,
+                )
+                if isinstance(_bounded, dict) and not _guide_composition.is_generic_nonanswer(
+                    query, str(_bounded.get("response") or "")
+                ) and not _guide_composition.is_meta_answer_failure(str(_bounded.get("response") or "")):
+                    result = dict(_bounded)
+                else:
+                    result = {
+                        "response": "",
+                        "doorway_title": "",
+                        "recommendation": None,
+                        "provider": "rejected_non_substantive_recovery",
+                        "model": "quality-gate-rejection",
+                    }
     return result
 
 
