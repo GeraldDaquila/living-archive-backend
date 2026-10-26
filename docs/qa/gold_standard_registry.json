@@ -2009,6 +2009,33 @@
         "evidence_boundary": "Screenshot establishes the response shown to the user and the explicit request to register it. It does not independently verify the doorway URL."
       },
       "freeze_policy": "Preserve approved response. Change expected_response only with explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-human-development-archive-framework-gold-standard-2026-10-26",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What does human development mean in the Archive’s framework?",
+      "expected_response": "In the Living Archive’s framework, human development should be understood in relation to human flourishing, the relationships that shape people’s lives, and the systems through which choices and consequences unfold. It is not only a label for an individual trait or outcome; the useful question is how human development develops through the interaction of personal capacities, relationships, institutions, and the conditions people inherit or create. That relational view helps connect individual experience with the wider patterns that enable or constrain it.\n\nPractically, this means asking what changes in a person’s capacities and judgment over time, what relationships and environments support or obstruct that change, and how those effects are distributed across a community. For human development, avoid treating a single measure or visible achievement as the whole story: examine the person’s agency and well-being alongside the quality of their relationships and the conditions in which they participate. These are interpretive lenses for inquiry, not a claim that one metric or one causal explanation settles the question.\n\nThe Archive’s wider orientation is to make connections visible while distinguishing established evidence from interpretation. So use this framework to ask better questions, compare perspectives, and identify what a canonical Archive text specifically establishes; do not treat this bounded explanation as a substitute for a retrieved formal definition. If a specific codex or constitutional text defines the concept more precisely, that source should take precedence over this general orientation.",
+      "expected_doorway": {
+        "title": "Living Archives",
+        "url": null
+      },
+      "assertions": [
+        "User explicitly requested registration of the current live visitor-facing response.",
+        "Exactly three substantive paragraphs with distinct roles: conceptual explanation, practical application, and evidence/interpretation boundary.",
+        "Defines human development in the Archive's stated relational orientation from the opening sentence, rather than discussing how a definition should be written.",
+        "Explains capacities, judgment, relationships, institutions, human flourishing, and surrounding conditions without claiming a single metric or causal explanation is sufficient.",
+        "Distinguishes general interpretive orientation from a formal definition supported by a retrieved canonical source.",
+        "Doorway title is recorded separately; its canonical URL and specific relevance are not verified and must not be invented.",
+        "This record is an approved reference for the exact response and does not replace the shared default composition contract or authorize generic canned responses to other questions."
+      ],
+      "provenance": {
+        "source_path": "visitor-provided production screenshot",
+        "source_ref": "live response screenshot, 2026-10-26",
+        "source_status": "USER_APPROVED_GOLD_STANDARD",
+        "evidence_boundary": "Screenshot establishes the response shown to the user and the explicit request to register it. It does not independently verify the doorway URL or establish that the response is a formal canonical definition."
+      },
+      "freeze_policy": "Preserve approved response exactly. Change expected_response only with explicit user authorization and a separately documented benchmark-version change."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control. New approved record added on October 26, 2026: the screenshot-approved governance-beyond-administration response is registered as USER_APPROVED_GOLD_STANDARD with exact three-paragraph wording and a separately verified live doorway URL.",
