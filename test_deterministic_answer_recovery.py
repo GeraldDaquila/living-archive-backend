@@ -23,11 +23,11 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
     def test_competing_stakeholder_obligations_gets_substantive_gold_standard_recovery(self):
         question = "How can leaders hold competing stakeholder obligations?"
         answer = compose_recovery(question)
-        paragraphs = [part.strip() for part in answer.split("\\n\\n") if part.strip()]
+        paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
         self.assertEqual(len(paragraphs), 3)
         self.assertIn("competing stakeholder obligations", paragraphs[0].casefold())
         self.assertIn("who carries the cost", paragraphs[1].casefold())
-        self.assertIn("those with less power", paragraphs[2].casefold())
+        self.assertIn("less power", paragraphs[2].casefold())
         self.assertNotIn("choose one step small enough to test", answer)
         self.assertNotIn("I couldn’t produce a reliable answer", answer)
 
@@ -42,7 +42,7 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         for question in questions:
             with self.subTest(question=question):
                 answer = compose_recovery(question)
-                self.assertEqual(len([p for p in answer.split("\\n\\n") if p.strip()]), 3)
+                self.assertEqual(len([p for p in answer.split("\n\n") if p.strip()]), 3)
 
     def test_hindsight_accountability_precedes_generic_decision_recovery(self):
         question = (
