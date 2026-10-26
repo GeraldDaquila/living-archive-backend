@@ -8030,7 +8030,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         query,
         re.I,
     ))
-    _final_discovery_only = bool(discovery_subject) and _final_explicit_navigation_request
+    _final_title_like_discovery = bool(discovery_subject) and not re.search(
+        r"\\b(?:what|why|how|when|who|where|which|can|could|should|would|is|are|does|do|did|explain|describe|discuss|analy[sz]e|compare|assess|evaluate)\\b",
+        query,
+        re.I,
+    )
+    _final_discovery_only = bool(discovery_subject) and (
+        _final_explicit_navigation_request or _final_title_like_discovery
+    )
     _final_requires_gold_standard = (
         not _final_discovery_only
         and (
@@ -8143,7 +8150,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         _systemwide_is_meta = general_guide_composition.is_meta_answer_failure(
                             _systemwide_recovery
                         )
-                        _systemwide_nonanswer = general_guide_composition.is_generic_nonanswer(query, _systemwide_recovery)
+                        _systemwide_nonanswer = (
+                            general_guide_composition.is_generic_nonanswer(query, _systemwide_recovery)
+                            or bool(re.search(
+                                r"\\bthe question about .{1,100} can be approached by first identifying\\b|"
+                                r"\\bthe most useful next step is to identify the main issue\\b|"
+                                r"\\bstart by identifying the main issue and then consider\\b",
+                                _systemwide_recovery,
+                                re.I,
+                            ))
+                        )
                         if len(_systemwide_paragraphs) >= 3 and not _systemwide_is_meta and not _systemwide_nonanswer:
                             response = _systemwide_recovery
                             authoritative_doorway = None
