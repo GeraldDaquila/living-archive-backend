@@ -25,7 +25,15 @@ def test_perception_preserves_visitor_agency_and_avoids_false_intimacy():
     assert "honor that request with exactly one natural, relevant question at the end" in prompt
 
 
-def test_composition_contract_advances_for_perception_policy():
+def test_shared_composition_question_intent_fidelity_policy():
+    prompt = guide._GENERAL_GUIDE_SYSTEM
+    assert "QUESTION-INTENT FIDELITY (shared composition rule)" in prompt
+    assert "do not substitute a familiar generic advice framework" in prompt
+    assert "explain the mechanism named in the question first" in prompt
+    assert "answers a neighboring question instead of the actual one" in prompt
+
+
+def test_composition_contract_remains_provider_neutral():
     assert guide.CONTRACT_VERSION == "v1.29"
     snapshot = guide.contract_snapshot()
     assert snapshot["contract_version"] == "v1.29"
