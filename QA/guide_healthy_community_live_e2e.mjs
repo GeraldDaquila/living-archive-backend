@@ -212,7 +212,11 @@ try {
   await input.fill(conceptualQuery);
   await submit.evaluate(element => setTimeout(() => element.click(), 0));
   await page.waitForFunction(() => {
-    const el = document.querySelector("#archive-response-text");
+    // The landing page can contain multiple historical Guide instances with
+    // duplicate legacy IDs. Acceptance must inspect the active Woody instance,
+    // not whichever #archive-response-text happens to appear first in the DOM.
+    const root = document.querySelector(".archive-stage-wrapper[data-guide-instance='woody']");
+    const el = root?.querySelector("#archive-response-text");
     const text = (el?.innerText || "").toLowerCase();
     return !!el && text.length > 100 && /trust/.test(text) && /community|stewardship/.test(text);
   }, null, { timeout: 60_000 });
