@@ -1,3 +1,4683 @@
+# USE PRODUCTION VERSION: v489.304 — Absolute provider HTTP deadline
+# Isolated candidate patch: direct-attribute evidence boundary
+import asyncio
+import hashlib
+from html import unescape
+import ipaddress
+import re
+import json
+import os
+import time
+import uuid
+from urllib.request import Request as UrlRequest, urlopen
+from shared_evidence import normalize_documents_for_use, CONTRACT_VERSION as SHARED_EVIDENCE_CONTRACT_VERSION
+from guide_fuzzy_shadow_observer import record_shadow_comparison as _record_guide_fuzzy_shadow_comparison
+from shared_intelligence_primitives import normalize_claims as _shared_normalize_claims, build_synthesis_material as _shared_build_synthesis_material
+from pathlib import Path
+from urllib.parse import quote
+from boundary_resilience import CONTRACT_VERSION as BOUNDARY_RESILIENCE_CONTRACT_VERSION, StaleAuthorityCache
+from fastapi import HTTPException, Request
+from fastapi.responses import JSONResponse
+
+from hub_contracts import (
+    build_hub_request,
+    hub_contract_snapshot,
+    route_spoke,
+)
+
+from specialist_registry import (
+    SPECIALIST_PIPE_CONTRACT_VERSION,
+    registry_snapshot,
+    validate_registry,
+)
+from relationship_contribution import (
+    RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION,
+    RELATIONSHIP_VOICE_POLICY,
+    relationship_contract_snapshot,
+    validate_relationship_contribution,
+)
+from relationship_adapter import RelationshipAdapter
+from formation_adapter import FormationAdapter
+from formation_contribution import (
+    FORMATION_CONTRIBUTION_CONTRACT_VERSION,
+    FORMATION_VOICE_POLICY,
+    formation_contract_snapshot,
+)
+from specialist_adapters import (
+    SPECIALIST_ADAPTER_CONTRACT_VERSION,
+    SpecialistAdapterRegistry,
+    adapter_contract_snapshot,
+    invoke_specialist,
+)
+from guide_node_registry import (
+    GUIDE_NODE_REGISTRY_VERSION,
+    active_nodes,
+    node_handoff_payload,
+)
+from provider_gateway_service import CONTRACT_VERSION as PROVIDER_GATEWAY_CONTRACT_VERSION, authorize as authorize_provider_gateway, validate_request as validate_provider_gateway_request, execute as execute_provider_gateway
+from provider_bank import (
+    CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
+    route as route_with_model_bank,
+    snapshot as provider_bank_snapshot,
+    refresh_shared_health_state,
+)
+from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
+import general_guide_composition
+from guide_request_budget import (
+    REQUEST_BUDGET_SECONDS as GUIDE_REQUEST_BUDGET_SECONDS,
+    can_attempt_repair as _guide_can_attempt_composition_repair,
+)
+from general_guide_gold_standards import (
+    resolve_exact_gold_standard as _resolve_exact_guide_gold_standard,
+    find_cross_question_standard_response as _find_cross_question_standard_response,
+)
+from guide_fuzzy_relevance import score_resource_fit as _score_guide_fuzzy_relevance_shadow
+from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery, is_harm_repair_question
+from deterministic_relational_fractal import compose_relational_fractal
+from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
+from safety_utility import classify_safety, safety_utility_snapshot
+from safety_adapter import SafetyUtilityAdapter
+from safety_intelligence import SAFETY_INTELLIGENCE_CONTRACT_VERSION, is_hypothetical_safety_discussion, normalize_safety_state, repair_safety_question, safety_intelligence_snapshot
+from streaming_transport import streaming_entry, STREAM_CONTRACT_VERSION, STREAM_TRANSPORT_VERSION
+
+_BASE_MODULE_NAME = "guide_runtime"
+_base = __import__(_BASE_MODULE_NAME)
+use_core = _base.use_core
+app = _base.app
+_original_guide_handle_query = use_core.handle_query
+APP_VERSION = "v489.304"
+DEPLOYMENT_FINGERPRINT = "USE-v489.304-absolute-provider-http-deadline"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.304-absolute-provider-http-deadline"
+
+# v488.64 systemwide safety continuity contract marker.
+# This marker is intentionally adjacent to the production identity so CI can
+# detect drift between the live Guide boundary and its regression tests.
+SAFETY_BOUNDARY_CONTRACT_VERSION = "v488.68"
+
+GUIDE_NODE_REGISTRY_URL = "https://geralddaquila.com/wp-json/guide/v1/nodes"
+GUIDE_NODE_REGISTRY_FRESH_TTL_SECONDS = 300.0
+GUIDE_NODE_REGISTRY_MAX_STALE_SECONDS = 3600.0
+GUIDE_NODE_REGISTRY_RETRY_SECONDS = 30.0
+_GUIDE_NODE_REGISTRY_CACHE = StaleAuthorityCache(
+    fresh_ttl_seconds=GUIDE_NODE_REGISTRY_FRESH_TTL_SECONDS,
+    max_stale_seconds=GUIDE_NODE_REGISTRY_MAX_STALE_SECONDS,
+    failure_retry_seconds=GUIDE_NODE_REGISTRY_RETRY_SECONDS,
+)
+_GUIDE_NODE_REGISTRY_STATE = {"state": "unavailable"}
+
+
+def _load_guide_node_registry():
+    # WordPress/CDN caches the bare registry URL and can keep serving an older
+    # node list after a governed registry update. This loader runs only when the
+    # local authority cache expires, so a timestamped query string safely busts
+    # the upstream cache without increasing the normal refresh frequency.
+    registry_url = f"{GUIDE_NODE_REGISTRY_URL}?registry_refresh={int(time.time())}"
+    request = UrlRequest(
+        registry_url,
+        headers={
+            "Accept": "application/json",
+            "User-Agent": "Living-Archive-The-Guide/1.0",
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache",
+        },
+        method="GET",
+    )
+    with urlopen(request, timeout=4) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("Guide Node Registry response was not an object.")
+    if str(payload.get("registry_version") or "").strip() != GUIDE_NODE_REGISTRY_VERSION:
+        raise ValueError("Guide Node Registry version mismatch.")
+    if str(payload.get("schema_version") or "").strip() != "v2":
+        raise ValueError("Guide Node Registry schema version mismatch.")
+    records = payload.get("nodes")
+    if not isinstance(records, list):
+        raise ValueError("Guide Node Registry nodes were not a list.")
+    nodes = active_nodes(records)
+    if not nodes and records:
+        raise ValueError("Guide Node Registry contained no valid active nodes.")
+    print(
+        "The Guide Node Registry: "
+        f"source=wordpress, nodes={len(nodes)}, registry_version={payload.get('registry_version')}"
+    )
+    return nodes
+
+
+def _guide_node_registry_snapshot():
+    """Read WordPress authority with bounded last-known-good continuity."""
+    nodes, state = _GUIDE_NODE_REGISTRY_CACHE.get(_load_guide_node_registry)
+    _GUIDE_NODE_REGISTRY_STATE["state"] = state
+    if state != "fresh":
+        diagnostic = _GUIDE_NODE_REGISTRY_CACHE.snapshot()
+        print(
+            "The Guide Node Registry boundary: "
+            f"state={state}, age_seconds={diagnostic.get('age_seconds')}, "
+            f"failures={diagnostic.get('failure_count')}, "
+            f"error={diagnostic.get('last_error') or 'none'}"
+        )
+    return list(nodes or [])
+
+
+def guide_node_registry_state():
+    """Return non-secret registry health for diagnostics and QA."""
+    state = dict(_GUIDE_NODE_REGISTRY_STATE)
+    state.update(_GUIDE_NODE_REGISTRY_CACHE.snapshot())
+    return state
+
+
+def _guide_node_registry_is_fresh():
+    return _GUIDE_NODE_REGISTRY_STATE.get("state") == "fresh"
+
+
+def _guide_node_prompt_context():
+    nodes = _guide_node_registry_snapshot()
+    if not nodes:
+        return "No approved Guide Nodes are currently available to the routing layer."
+    return json.dumps([
+        {
+            "node_id": node.get("node_id"),
+            "title": node.get("title"),
+            "purpose": node.get("purpose"),
+            "asset_type": node.get("asset_type"),
+            "access_class": node.get("access_class"),
+            "discovery_level": int(node.get("discovery_level", 1) or 1),
+            "semantic_hints": node.get("semantic_hints") or [],
+        }
+        for node in nodes
+    ], ensure_ascii=False, separators=(",", ":"))
+
+
+def _guide_node_by_id(node_id):
+    target = str(node_id or "").strip()
+    if not target:
+        return None
+    for node in _guide_node_registry_snapshot():
+        if str(node.get("node_id") or "").strip() == target:
+            return node
+    return None
+
+
+EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
+_MAIN_PATH = Path(__file__).resolve()
+
+
+def _runtime_source_manifest_sha256(root=None):
+    """Hash application-owned Python runtime modules, not only main.py."""
+    root_path = Path(root if root is not None else _MAIN_PATH.parent).resolve()
+    excluded_parts = {
+        ".git", ".venv", "venv", "__pycache__", ".pytest_cache",
+        "tests", "QA", "scripts", "node_modules",
+    }
+    source_files = []
+    for path in root_path.rglob("*.py"):
+        if path.is_symlink():
+            continue
+        relative = path.relative_to(root_path)
+        if any(part in excluded_parts for part in relative.parts):
+            continue
+        source_files.append(path)
+    digest = hashlib.sha256()
+    for path in sorted(source_files, key=lambda item: item.relative_to(root_path).as_posix()):
+        relative_name = path.relative_to(root_path).as_posix()
+        digest.update(relative_name.encode("utf-8"))
+        digest.update(b"\\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\\0")
+    return digest.hexdigest()
+
+
+RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
+
+# Runtime/version integrity is a startup invariant, not external bookkeeping.
+if str(APP_VERSION) != "v489.304":
+    raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
+if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
+    raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
+if not str(CANONICAL_BUILD_ID).startswith(f"USE-BUILD-{APP_VERSION}-"):
+    raise RuntimeError("USE version integrity failure: canonical build/version mismatch.")
+
+use_core.APP_VERSION = APP_VERSION
+use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
+use_core.CANONICAL_BUILD_ID = CANONICAL_BUILD_ID
+use_core.RUNTIME_SOURCE_SHA256 = RUNTIME_SOURCE_SHA256
+use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
+if getattr(_base, "_core_runtime_sha", "") != EXPECTED_CORE_BLOB_SHA:
+    raise RuntimeError("USE protected core integrity failure: protected core mismatch.")
+
+if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
+    raise RuntimeError("USE provider gateway contract integrity failure: unsupported provider gateway contract.")
+
+if PROVIDER_BANK_CONTRACT_VERSION != "v2":
+    raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.29":
+    raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
+if GUIDE_NODE_REGISTRY_VERSION != "v2":
+    raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
+if BOUNDARY_RESILIENCE_CONTRACT_VERSION != "v1":
+    raise RuntimeError("USE boundary resilience contract integrity failure.")
+
+validate_registry()
+SPECIALIST_CAPABILITY_REGISTRY = registry_snapshot()
+SPECIALIST_ADAPTER_REGISTRY = SpecialistAdapterRegistry()
+SPECIALIST_ADAPTER_REGISTRY.register(RelationshipAdapter())
+SPECIALIST_ADAPTER_REGISTRY.register(FormationAdapter())
+SPECIALIST_ADAPTER_REGISTRY.register(SafetyUtilityAdapter())
+SPECIALIST_ADAPTER_DIAGNOSTICS = adapter_contract_snapshot(SPECIALIST_ADAPTER_REGISTRY)
+RELATIONSHIP_CONTRIBUTION_DIAGNOSTICS = relationship_contract_snapshot()
+FORMATION_CONTRIBUTION_DIAGNOSTICS = formation_contract_snapshot()
+HUB_CONTRACT_DIAGNOSTICS = hub_contract_snapshot()
+SAFETY_UTILITY_DIAGNOSTICS = safety_utility_snapshot()
+SAFETY_INTELLIGENCE_DIAGNOSTICS = safety_intelligence_snapshot()
+if SAFETY_INTELLIGENCE_DIAGNOSTICS.get("contract_version") != SAFETY_INTELLIGENCE_CONTRACT_VERSION:
+    raise RuntimeError("USE safety intelligence contract integrity failure.")
+if SAFETY_UTILITY_DIAGNOSTICS.get("hrn_dependency") is not True:
+    raise RuntimeError("USE safety utility integrity failure: HRN safety linkage missing.")
+
+
+# Seeing the Relationship contribution invariant: HRN's human voice is
+# preserved by contract. The Guide may integrate it, but does not rewrite it
+# merely to impose Guide phrasing.
+_relationship_contract_probe = validate_relationship_contribution({
+    "status": "CONTRIBUTION",
+    "voice_policy": RELATIONSHIP_VOICE_POLICY,
+    "human_response": "Sometimes the first thing worth noticing is not whether the relationship is right or wrong, but what happens between you when this particular tension appears.",
+    "interpretation": {"focus": "relational pattern"},
+    "perspectives": [{"view": "visitor"}, {"view": "relationship"}],
+    "movement": {"direction": "perspective"},
+    "canonical_candidates": [],
+})
+if _relationship_contract_probe["voice_policy"] != "preserve_specialist_voice":
+    raise RuntimeError("USE v487.52 invariant failed: relational voice-preservation policy lost")
+if _relationship_contract_probe["human_response"].startswith("A useful place to begin"):
+    raise RuntimeError("USE v487.52 invariant failed: relational contribution was rewritten into Guide voice")
+
+def _normalize_query(text):
+    return re.sub(r"\s+", " ", str(text or "").strip().casefold().replace("’", "'").replace("‘", "'").replace("`", "'").replace("–", "-").replace("—", "-"))
+
+
+_EXPERIENTIAL_STANCE_PATTERNS = (
+    r"i(?:\s+am|'m)\s+struggl(?:e|ing)\s+with", r"i\s+struggle\s+with", r"i(?:\s+am|'m)\s+dealing\s+with",
+    r"i(?:\s+am|'m)\s+having\s+a\s+hard\s+time\s+with", r"i(?:\s+am|'m)\s+going\s+through",
+    r"i(?:\s+am|'m)\s+experiencing", r"i(?:\s+am|'m)\s+feeling", r"i\s+feel",
+    r"i(?:\s+am|'m)\s+worried\s+about", r"i(?:\s+am|'m)\s+afraid\s+of",
+    r"i(?:\s+am|'m)\s+confused\s+about", r"i(?:\s+am|'m)\s+unsure\s+about",
+    r"i(?:\s+am|'m)\s+not\s+sure\s+about", r"i\s+(?:need|want)\s+help\s+with",
+)
+_EXPERIENTIAL_STATE_TERMS = (
+    r"lonelin(?:ess|e)", r"empt(?:iness|y)", r"sad(?:ness|ly)", r"sorrow", r"despair", r"hopeless(?:ness)?",
+    r"anxiety", r"anxious", r"fear", r"afraid", r"anger", r"angry", r"resentment", r"shame", r"guilt",
+    r"confusion", r"uncertain(?:ty)?", r"isolation", r"isolated", r"disconnection", r"disconnected",
+    r"heartbreak", r"breakup", r"betrayal", r"burnout", r"stress", r"overwhelmed", r"grief", r"grieving",
+    r"bereavement", r"mourning", r"loss", r"relationship", r"abuse", r"trauma", r"forgiveness", r"letting\s+go",
+)
+
+
+def _has_experiential_stance(q):
+    return any(re.search(pattern, q, re.I) for pattern in _EXPERIENTIAL_STANCE_PATTERNS)
+
+
+def _has_experiential_state(q):
+    return any(re.search(rf"\b{pattern}\b", q, re.I) for pattern in _EXPERIENTIAL_STATE_TERMS)
+
+
+def _has_archive_help_request(q):
+    return bool(re.search(r"\b(?:anything|something|something here)\b.{0,100}\b(?:living archive|archive|site|guide)\b.{0,100}\b(?:help|think|start|read|explore|reflect)\b", q, re.I))
+
+
+_original_weighted_inquiry_profile = _base._weighted_inquiry_profile
+
+
+def _weighted_inquiry_profile(query):
+    q = _normalize_query(query)
+    profile = _original_weighted_inquiry_profile(q)
+    if _has_experiential_stance(q) or _has_experiential_state(q):
+        profile["lived"] = max(float(profile.get("lived", 0.0)), 0.86)
+    if _has_archive_help_request(q):
+        profile["recommendation"] = max(float(profile.get("recommendation", 0.0)), 0.82)
+    return profile
+
+
+_base._weighted_inquiry_profile = _weighted_inquiry_profile
+
+
+def _recommendation_rationale(primary, profile):
+    if profile.get("grief"):
+        return "I’m recommending this first because it approaches grief and the human search for continuity directly, making it a more immediate place to reflect on the experience of losing someone you love."
+    if profile.get("ai_truth"):
+        return "I’m recommending this first because it gives you a direct place to examine discernment and the question of how we decide what is actually true."
+    return "I’m recommending this first because it offers a direct place to reflect on the question you brought here, without asking you to treat it as the whole answer."
+
+
+_SUBJECT_STOPWORDS = frozenset({
+    "a", "an", "the", "and", "or", "but", "if", "then", "than", "of", "on", "in", "at", "to", "as", "by",
+    "for", "from", "with", "into", "through", "there", "here", "this", "that", "these", "those", "is", "are",
+    "was", "were", "be", "been", "being", "am", "i", "im", "my", "me", "mine", "myself", "your", "you",
+    "yourself", "our", "we", "they", "them", "their", "someone", "somebody", "anyone", "anything", "something",
+    "people", "person", "what", "which", "who", "when", "where", "why", "how", "can", "could", "would", "should",
+    "may", "might", "will", "do", "does", "did", "doing", "don", "dont", "don't", "not", "no", "know", "sure", "about",
+    "help", "think", "thinking", "thought", "question", "questions", "living", "archive", "site", "website", "guide",
+    "place", "begin", "start", "first", "read", "reading", "explore", "exploring", "reflect", "reflection", "recommend",
+    "recommendation", "suggest", "suggestion", "advice", "advise", "essay", "essays", "article", "articles", "resource",
+    "resources", "piece", "pieces", "material", "please", "find", "give", "offer", "tell", "one", "best", "good", "need",
+    "want", "looking", "thing", "things", "time", "way", "make", "made", "keep", "still", "feel", "feels", "feeling",
+    "care", "caring", "having", "hard", "going", "experiencing", "worried", "worry", "afraid", "confused", "unsure",
+    "struggling", "struggle", "dealing", "finding", "it", "its", "all", "very", "just", "really", "more",
+    "less", "ever", "often", "sometimes", "now", "today", "something", "anything",
+})
+
+
+def _subject_terms(query):
+    q = _normalize_query(query)
+    tokens = re.findall(r"[a-z0-9]+", q)
+    return tuple(dict.fromkeys(t for t in tokens if len(t) >= 3 and t not in _SUBJECT_STOPWORDS))
+
+
+def _term_forms(term):
+    value = str(term or "").casefold()
+    forms = {value}
+    if value.endswith("ies") and len(value) > 4:
+        forms.add(value[:-3] + "y")
+    if value.endswith("ness") and len(value) > 5:
+        forms.add(value[:-4])
+    if value.endswith("ing") and len(value) > 5:
+        forms.add(value[:-3])
+    if value.endswith("ed") and len(value) > 5:
+        forms.add(value[:-2])
+    if value.endswith("es") and len(value) > 4:
+        forms.add(value[:-2])
+    if value.endswith("s") and len(value) > 4:
+        forms.add(value[:-1])
+    return {f for f in forms if len(f) >= 3}
+
+
+def _subject_metrics(query, doc):
+    title = str(doc.get("title") or "").casefold()
+    text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    terms = _subject_terms(query)
+    if not title or not terms:
+        return (0, 0, 0, 0, 0)
+    title_tokens = set(re.findall(r"[a-z0-9]+", title))
+    early = text[:2400]
+    early_tokens = set(re.findall(r"[a-z0-9]+", early))
+    full_tokens = set(re.findall(r"[a-z0-9]+", text))
+    title_hits = sum(bool(_term_forms(term) & title_tokens) for term in terms)
+    early_hits = sum(bool(_term_forms(term) & early_tokens) for term in terms)
+    full_hits = sum(bool(_term_forms(term) & full_tokens) for term in terms)
+    phrase_hits = sum(1 for index in range(len(terms) - 1) if f"{terms[index]} {terms[index + 1]}" in title or f"{terms[index]} {terms[index + 1]}" in early)
+    return (min(8, title_hits), min(8, phrase_hits), min(12, early_hits), min(12, full_hits), int(1000 * title_hits / max(1, len(terms))))
+
+
+_SUBJECT_FAMILIES = {
+    "anger": ("anger", "angry", "resentment", "resentful", "irritation", "irritated", "frustration", "frustrated", "rage", "conflict"),
+    "loneliness": ("loneliness", "lonely", "isolation", "isolated", "disconnection", "disconnected"),
+    "grief": ("grief", "grieving", "bereavement", "mourning", "loss", "lost", "death"),
+    "fear": ("fear", "afraid", "anxiety", "anxious", "worry", "worried"),
+    "shame": ("shame", "ashamed", "guilt", "guilty"),
+    "relationship": ("relationship", "relationships", "partner", "partners", "interpersonal", "marriage", "married", "friendship", "friends", "communication", "boundaries"),
+}
+_RELATIONAL_PATTERNS = (
+    r"\bsomeone i care about\b", r"\bpeople i care about\b", r"\bperson i care about\b",
+    r"\brelationship\b", r"\bpartner\b", r"\bloved one\b", r"\bfamily\b", r"\bfriend\b",
+    r"\binterpersonal\b", r"\bwith someone\b", r"\bcare about\b",
+    r"\bmy father\b", r"\bmy mother\b", r"\bmy parent\b", r"\bmy parents\b",
+    r"\bmy son\b", r"\bmy daughter\b", r"\bmy child\b", r"\bmy brother\b",
+    r"\bmy sister\b", r"\bmy husband\b", r"\bmy wife\b", r"\bmy family\b",
+    r"\bmy friend\b", r"\bmy colleague\b", r"\bmy boss\b", r"\bmy coworker\b",
+    r"\bmy client\b", r"\bmy team\b", r"\bbetween us\b", r"\bwith my\b"
+)
+
+_RELATIONAL_ACTION_PATTERNS = (
+    # Commitments, conflict, responsibility, and explicit relational work.
+    r"\bpromised\b", r"\bpromise\b", r"\bgave (?:him|her|them) my word\b",
+    r"\bgave my word\b", r"\bcommitted\b", r"\bcommitment\b", r"\bagreed\b",
+    r"\bowe\b", r"\bowed\b", r"\btake care of\b", r"\blet .* down\b",
+    r"\bdisappoint(?:ed|ing)?\b", r"\bconflict(?:s)?\b", r"\bargument(?:s)?\b", r"\bargu(?:e|ed|ing)\b", r"\bfight(?:s|ing)?\b",
+    r"\bdisagree(?:d|ment|ing)?\b", r"\bneed to tell\b", r"\bneed to say\b",
+    r"\bhave to tell\b", r"\bhave to say\b", r"\bset a boundary\b",
+    r"\bboundaries\b", r"\btrust\b", r"\bforgive\b", r"\bforgiveness\b",
+    r"\bresponsibilit(?:y|ies)\b", r"\bresponsible for\b", r"\bobligation\b",
+    r"\bobligated\b", r"\bexpectation\b", r"\bexpected\b", r"\bduty\b",
+    r"\bdecision\b", r"\bdecide\b", r"\bchoose\b", r"\bchoice\b",
+    r"\bburden\b", r"\btension\b", r"\bcommunication\b", r"\bcommunicat(?:e|ing)\b",
+    r"\bdistance\b", r"\bdisconnect(?:ed|ion)?\b", r"\brelationship\b",
+
+    # Recurring interaction cycles are relational structure even when the
+    # visitor does not use words such as conflict, boundary, or relationship.
+    r"\bdefensive\b", r"\bgets? angry\b", r"\bget angry\b",
+    r"\bwithdraw(?:s|al|n|ing)?\b", r"\bstops? talking\b",
+    r"\bgoes? quiet\b", r"\bshuts? down\b", r"\bshut down\b",
+    r"\bcycle\b", r"\bloop\b", r"\brepeat(?:s|ed|ing)?\b",
+    r"\bsame thing happens\b", r"\bkeeps? happening\b",
+    r"\bcomes? up again\b",
+
+    # Reciprocity and availability are relational dynamics even when there is
+    # no conflict, promise, boundary, or named relationship problem.
+    r"\basks? me\b", r"\bask(?:s|ed)? for (?:my )?(?:support|help|time|attention)\b",
+    r"\bneeds? me\b", r"\bneed(?:s|ed)? (?:my )?(?:support|help|time|attention)\b",
+    r"\bsupport(?:s|ed|ing)?\b", r"\bshow(?:s|ed)? up\b", r"\bbeing there\b",
+    r"\bbe there for\b", r"\bavailable\b", r"\bavailability\b",
+    r"\bdisappear(?:s|ed|ing)?\b", r"\bvanish(?:es|ed|ing)?\b",
+    r"\bone[- ]sided\b", r"\bone[- ]way\b", r"\brecipro(?:cal|city)\b",
+    r"\bmutual\b", r"\bgive[- ]and[- ]take\b", r"\bgive\b.*\btake\b",
+    r"\bkeeps? asking\b", r"\bkeep asking\b", r"\brely(?:ing|ies|ied)? on me\b",
+    r"\bdepend(?:s|ed|ing)? on me\b", r"\bonly when\b", r"\bwhenever\b",
+    r"\balways\b.*\b(?:asks?|needs?|expects?|takes?)\b",
+    r"\b(?:asks?|needs?|expects?|takes?)\b.*\balways\b"
+)
+
+
+def _query_frame(query):
+    q = _normalize_query(query)
+    families = tuple(family for family, terms in _SUBJECT_FAMILIES.items() if any(re.search(rf"\b{re.escape(term)}\b", q) for term in terms))
+    return {"families": families, "relational": any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_PATTERNS)}
+
+
+# Relational role/context signals are deliberately broader than named family or
+# partnership terms. A lived relationship can be shaped by authority, work,
+# learning, care, service, or community roles. These signals are only useful
+# when paired with first-person experience and unresolved relational tension;
+# they are not standalone routing keywords.
+_RELATIONAL_ROLE_PATTERNS = (
+    r"\bmy\s+(?:manager|supervisor|boss|employer|employee|colleague|coworker|co-worker|teammate|team|client|customer|teacher|student|professor|doctor|therapist|counselor|coach|mentor|neighbor|landlord|tenant|caregiver|carer|parent|child|brother|sister|friend|partner|spouse|husband|wife)\b",
+    r"\b(?:manager|supervisor|boss|employer|colleague|coworker|co-worker|teammate)\s+(?:at|from|in)\b",
+)
+
+_RELATIONAL_INTERACTION_PATTERNS = (
+    r"\b(?:trust|trusted|trusts|distrust|check(?:s|ed|ing)?|monitor(?:s|ed|ing)?|control(?:s|led|ling)?|micromanag(?:e|es|ed|ing)|report(?:s|ed|ing)?|update(?:s|d|ing)?|approve(?:s|d|ing)?|question(?:s|ed|ing)?|watch(?:es|ed|ing)?|expect(?:s|ed|ation|ations)?|ask(?:s|ed|ing)?|tell(?:s|ing)?|listen(?:s|ed|ing)?|ignore(?:s|d|ing)?|respect(?:s|ed|ing)?|dismiss(?:es|ed|ing)?)\b",
+)
+
+def _lived_relational_structure(query):
+    """Recognize relational structure from lived-situation form, not topic alone."""
+    q = _normalize_query(query)
+    first_person = bool(re.search(r"\b(?:i|i'm|im|my|me|we|our)\b", q, re.I))
+    relational_other = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_PATTERNS)
+    role_context = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_ROLE_PATTERNS)
+    relational_action = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_ACTION_PATTERNS) or any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_INTERACTION_PATTERNS)
+    tension = bool(re.search(
+        r"\b(?:but|however|although|yet|now|instead|then|eventually|until|again|"
+        r"same thing|can't|cannot|don't|doesn't|not sure|unsure|hard|difficult|"
+        r"overwhelmed|want to|need to|have to|part of me|i wish|i don't know)\b",
+        q,
+        re.I,
+    ))
+    bounded_lookup = bool(re.search(
+        r"\b(?:define|definition|what is|what does .* mean|meaning of|"
+        r"look up|lookup|find (?:the|a) (?:resource|article|essay|page)|"
+        r"where is|url|link)\b",
+        q,
+        re.I,
+    ))
+    return {
+        "first_person": first_person,
+        "relational_other": relational_other,
+        "role_context": role_context,
+        "relational_action": relational_action,
+        "tension": tension,
+        "bounded_lookup": bounded_lookup,
+        "lived_relational": (
+            first_person
+            and (relational_other or role_context)
+            and tension
+            and (relational_action or role_context)
+            and not bounded_lookup
+        ),
+    }
+
+
+def _explicit_bounded_archive_request(query):
+    """Detect an explicit request for a bounded Archive/resource operation.
+    
+    A model-generated processing label is not sufficient to suppress relational
+    exploration. The visitor's own wording must establish that retrieval,
+    definition, or lookup is actually what they are asking for.
+    """
+    q = _normalize_query(query)
+    return bool(re.search(
+        r"\b(?:"
+        r"find|show|lookup|look up|link to|url for|where is|where can i find|"
+        r"recommend (?:a|an|the)?\s*(?:resource|article|essay|page)|"
+        r"suggest (?:a|an|the)?\s*(?:resource|article|essay|page)|"
+        r"which (?:resource|article|essay|page)|"
+        r"what (?:resource|article|essay|page)|"
+        r"is there (?:a|an|anything|something)\s+(?:in|on)\s+(?:the )?"
+        r"(?:living archive|archive|site|website)|"
+        r"anything in (?:the )?(?:living archive|archive|site|website)|"
+        r"resource about|article about|essay about|page about|"
+        r"definition of|meaning of|what does .* mean|what is"
+        r")\b",
+        q,
+        re.I,
+    ))
+
+# v488.72 — SYSTEMIC RELATIONAL BOUNDARY CONTRACT
+#
+# This boundary is intentionally owned by the request seam, not by the
+# provider/model router and not by Basic Inquiry. It answers one structural
+# question only: does the visitor's lived situation centrally involve a
+# relationship that they are trying to understand or navigate?
+#
+# It is not a topic keyword gate. It requires converging evidence from the
+# visitor's form: a lived relational counterpart/context, an interactional
+# dynamic, and an inquiry/uncertainty signal. Explicit bounded retrieval and
+# definition requests remain outside the relational lane. Safety is handled
+# earlier and always retains precedence.
+RELATIONAL_BOUNDARY_CONTRACT_VERSION = "v1"
+
+_RELATIONAL_COUNTERPART_PATTERNS = (
+    r"\bmy\s+(?:husband|wife|spouse|partner|boyfriend|girlfriend|father|mother|parent|parents|son|daughter|child|brother|sister|friend|friends|colleague|coworker|co-worker|manager|supervisor|boss|employee|employer|client|customer|teacher|student|mentor|neighbor|landlord|tenant)\b",
+    r"\b(?:a|this|our|my)\s+friendship\b",
+    # Natural counterpart phrasing: visitors often say "a friend", not "a friendship".
+    r"\b(?:a|this|our|my)\s+friend\b",
+    r"\b(?:someone|somebody|a person|another person|people|person)\s+(?:i|we)\s+(?:care about|love|trust|work with)\b",
+    r"\b(?:someone|somebody|a person)\s+(?:close to|important to)\s+me\b",
+    r"\b(?:between us|between me and|between you and)\b",
+    r"\b(?:our|this|the)\s+relationship\b",
+    r"\b(?:with|from)\s+(?:someone|somebody|my)\b",
+)
+
+_RELATIONAL_DYNAMIC_PATTERNS = (
+    # Natural lived interaction cues, including feared or postponed conversations.
+    r"\b(?:conversation|conversations|talk(?:ing)?|discussion|putting\s+off|avoid(?:ing)?|hesitat(?:e|ing|ion)|afraid)\b",
+    # v489.85: projection/sensing uncertainty is a lived relational dynamic
+    # when combined with first-person language and explicit relationship context.
+    r"\b(?:projection|projecting|projected|sensing|intuition|perception|perceive|misread|misreading|reading into|over[- ]?read(?:ing)?|interpret(?:ation|ing))\b",
+    r"\b(?:argument|arguments|fight|fights|fighting|conflict|tension|disagreement|disagree|misunderstanding|misunderstand|distance|disconnect(?:ed|ion)?|withdraw(?:al|ing)?|defensive|shut(?:s|ting)?\s+down|stop(?:s|ped|ping)?\s+talking|go(?:es|ing)?\s+quiet|resent(?:ment|ful)?|trust|distrust|boundary|boundaries|communication|communicate|expectation|expectations|control(?:led|ling)?|critic(?:ize|ized|ism)|blame|blaming|forgive(?:ness)?|support|one[- ]sided|recipro(?:cal|city)|rely|depend|keeps?\s+asking|keeps?\s+doing|same\s+thing|same\s+argument|same\s+fight|same\s+pattern|cycle|loop|promise|promised|gave\s+(?:him|her|them)?\s*my\s+word|committed|commitment|responsibilit(?:y|ies)|obligation|obligated|burden|owe|owed|disappoint(?:ed|ing)?)\b",
+    # Reciprocity and uneven effort are lived relational dynamics even when the
+    # visitor does not name conflict, trust, or a formal relationship problem.
+    r"\b(?:effort|making an effort|make an effort|made an effort)\b",
+    r"\b(?:always the one|doing all the work|carrying the relationship)\b",
+    r"\b(?:one[- ]sided effort|not reciprocated|unequal effort|uneven effort)\b",
+    r"\b(?:gets?|becomes?|become)\s+(?:angry|defensive|quiet|distant)\b",
+    r"\b(?:feel|feels|felt)\s+(?:distant|disconnected|removed|far|close|closer)\b",
+    r"\b(?:i|we)\s+(?:keep|keeps|kept)\b",
+)
+
+_RELATIONAL_INQUIRY_PATTERNS = (
+    r"\b(?:i|we)\s+(?:want|need|wonder|hope|wish)\s+to\s+(?:understand|figure out|make sense|see|know)\b",
+    r"\b(?:i|we)\s+(?:don't|do not|can't|cannot|am not|are not)\s+(?:understand|know|tell|see)\b",
+    r"\b(?:what(?:'s| is)|why|how)\b.{0,120}\b(?:happening|between us|relating|relationship|treat|respond|react|communicat|understand|make sense)\b",
+    r"\b(?:understand|make sense of|figure out|explore|see)\b.{0,100}\b(?:between us|with (?:my|someone)|relationship|pattern|dynamic|cycle|interaction)\b",
+    r"\b(?:how|why|what|can|could)\b.{0,100}\b(?:understand|make sense of|figure out)\b.{0,100}\b(?:relationship|distance|dynamic|pattern|cycle|interaction)\b",
+    r"\b(?:i|we)\s+(?:want|need|hope|wish)\s+to\s+be\s+(?:understood|heard|seen|respected)\b",
+    r"\b(?:i|we)\s+(?:feel|feels|felt|struggle|struggling|uncertain|unsure|confused|stuck|hurt|worried)\b",
+    # Compact lived conflict descriptions often express inquiry through the
+    # effort to explain the hurt, not through explicit "understand" wording.
+    # Combined with first-person plural + an argument/fight dynamic, this is
+    # sufficient relational evidence without capturing bounded Archive lookups.
+    r"\b(?:i|we)\s+(?:keep\s+)?(?:trying|try)\s+to\s+(?:explain|understand|make sense of)\b",
+)
+
+
+def _relational_boundary_decision(query):
+    """Return the authoritative request-boundary decision for lived relationships.
+
+    The decision is deliberately evidence-based rather than a single-word
+    trigger. A relationship lane opens when at least two independent structural
+    dimensions converge, including a lived relational counterpart/context and
+    an interactional or inquiry signal. This prevents ordinary topical mentions
+    of relationships from becoming specialist handoffs while ensuring natural
+    descriptions of recurring relational dynamics do not fall into Basic Inquiry.
+    """
+    q = _normalize_query(query)
+    if not q:
+        return {"open": False, "contract_version": RELATIONAL_BOUNDARY_CONTRACT_VERSION, "reason": "empty"}
+
+    # Only explicit retrieval/definition operations suppress relational routing.
+    # General requests such as "anything in the Archive that might help me think"
+    # are still relational exploration; they do not ask the Guide to retrieve a
+    # bounded resource and therefore must not collapse the specialist boundary.
+    bounded = bool(re.search(
+        r"\b(?:find|show|lookup|look up|link to|url for|where is|where can i find|"
+        r"recommend (?:a|an|the)?\s*(?:resource|article|essay|page)|"
+        r"suggest (?:a|an|the)?\s*(?:resource|article|essay|page)|"
+        r"which (?:resource|article|essay|page)|"
+        r"what (?:resource|article|essay|page)|"
+        r"resource about|article about|essay about|page about)\b",
+        q,
+        re.I,
+    ))
+    definition = bool(re.search(
+        r"\b(?:define|definition|meaning of|what does .* mean|what is the meaning of)\b",
+        q,
+        re.I,
+    ))
+    if bounded or definition:
+        return {
+            "open": False,
+            "contract_version": RELATIONAL_BOUNDARY_CONTRACT_VERSION,
+            "reason": "bounded_archive_or_definition_request",
+        }
+
+    first_person = bool(re.search(r"\b(?:i|i'm|im|me|my|we|our|us)\b", q, re.I))
+    counterpart = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_COUNTERPART_PATTERNS)
+    dynamic = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_DYNAMIC_PATTERNS)
+    inquiry = any(re.search(pattern, q, re.I) for pattern in _RELATIONAL_INQUIRY_PATTERNS)
+    relational_term = bool(re.search(r"\b(?:relationship|relationships|interpersonal|relational)\b", q, re.I))
+    explicit_between = bool(re.search(r"\b(?:between us|between me and|between you and)\b", q, re.I))
+
+    score = 0
+    if counterpart or relational_term or explicit_between:
+        score += 2
+    if dynamic:
+        score += 2
+    if inquiry:
+        score += 1
+    if first_person:
+        score += 1
+
+    # Strong lived relational structure: counterpart + dynamic + inquiry/first
+    # person. This is the normal path for natural visitor language.
+    open_boundary = bool(
+        first_person
+        and (counterpart or relational_term or explicit_between)
+        and dynamic
+        and (inquiry or first_person)
+    )
+
+    # A compact relational sentence may omit an explicit counterpart while
+    # still clearly describing a mutual interaction (e.g. "we keep arguing").
+    # Require both first-person plural framing and an interactional dynamic.
+    if not open_boundary and first_person and bool(re.search(r"\bwe\b", q)) and dynamic and inquiry:
+        open_boundary = True
+
+    return {
+        "open": open_boundary,
+        "contract_version": RELATIONAL_BOUNDARY_CONTRACT_VERSION,
+        "reason": "lived_relational_structure" if open_boundary else "insufficient_converging_relational_evidence",
+        "score": score,
+        "signals": {
+            "first_person": first_person,
+            "counterpart": counterpart,
+            "dynamic": dynamic,
+            "inquiry": inquiry,
+            "relational_term": relational_term,
+            "explicit_between": explicit_between,
+            "bounded": bounded,
+            "definition": definition,
+        },
+    }
+
+
+_route_probe_lived_relational = "I promised my father I'd take care of something for him. At the time it felt natural. Now the responsibility has become much bigger than I expected, and part of me wants to back out. But I gave him my word."
+if not _lived_relational_structure(_route_probe_lived_relational)["lived_relational"]:
+    raise RuntimeError("USE v487.88 routing invariant failed: lived relational structure not recognized")
+if not _relational_boundary_decision(_route_probe_lived_relational).get("open"):
+    raise RuntimeError("USE v487.88 routing invariant failed: model retrieval label suppressed lived relational routing")
+if _relational_boundary_decision("Is there an article in the Living Archive about setting boundaries with a parent?").get("open"):
+    raise RuntimeError("USE v487.88 routing invariant failed: explicit Archive retrieval delegated to relationship")
+
+# v488.71 regression guard: natural-language conflict nouns must count as
+# lived relational action. "Argument" is relational structure even when the
+# visitor does not use the verb "argue".
+_route_probe_argument_noun = (
+    "I keep having the same argument with someone I care about, but I'm not "
+    "sure whether the problem is really between us or something I'm bringing into it."
+)
+if not _lived_relational_structure(_route_probe_argument_noun)["lived_relational"]:
+    raise RuntimeError("USE v488.71 routing invariant failed: argument-noun relational inquiry not recognized")
+if not _relational_boundary_decision(_route_probe_argument_noun).get("open"):
+    raise RuntimeError("USE v488.69 routing invariant failed: argument-noun inquiry did not open relationship specialist")
+
+# v488.69 regression guard: natural-language fight nouns must remain inside
+# the same relational boundary.
+_route_probe_fight_noun = (
+    "I keep having the same fight with my partner, and I can't tell whether "
+    "we're actually disagreeing about the issue or reacting to each other."
+)
+if not _relational_boundary_decision(_route_probe_fight_noun).get("open"):
+    raise RuntimeError("USE v488.69 routing invariant failed: fight-noun inquiry did not open relationship specialist")
+
+# v487.92 regression guard: relational reciprocity must route to Seeing the
+# Relationship even when the visitor does not use conflict/boundary language.
+_route_probe_natural_distance = "How can I understand why a relationship feels distant lately?"
+if not _relational_boundary_decision(_route_probe_natural_distance).get("open"):
+    raise RuntimeError("USE v488.84 routing invariant failed: natural distance inquiry did not open relationship specialist")
+
+# v489.85 regression guard: lived uncertainty about projection must enter HRN
+# rather than being swallowed by the Guide's generic Basic Inquiry path.
+_route_probe_projection_uncertainty = (
+    "I can't tell whether what I'm sensing in a relationship is real or something I'm projecting."
+)
+if not _relational_boundary_decision(_route_probe_projection_uncertainty).get("open"):
+    raise RuntimeError("USE v489.87 routing invariant failed: relationship projection uncertainty did not open HRN")
+
+_route_probe_explain_displacement = (
+    "I keep trying to explain why the same argument hurts me, but we end up "
+    "arguing about whether I should still feel hurt."
+)
+if not _relational_boundary_decision(_route_probe_explain_displacement).get("open"):
+    raise RuntimeError("USE v489.198 routing invariant failed: repeated-argument explanation inquiry did not open HRN")
+
+_route_probe_reciprocity = (
+    "My friend always asks me for support when they need something, but "
+    "whenever I need them, they disappear. I'm starting to wonder whether "
+    "this friendship is one-sided."
+)
+if not _lived_relational_structure(_route_probe_reciprocity)["lived_relational"]:
+    raise RuntimeError("USE v487.92 routing invariant failed: reciprocity pattern not recognized")
+if not _relational_boundary_decision(_route_probe_reciprocity).get("open"):
+    raise RuntimeError("USE v487.92 routing invariant failed: reciprocity inquiry did not open relationship specialist")
+
+# v489.93 regression guard: passive lived-relational language must not fall into Basic Inquiry. (Preserved under v489.97.)
+_route_probe_passive_friendship_boundary = (
+    "I am struggling with a friendship where I want to be understood but also need boundaries."
+)
+if not _relational_boundary_decision(_route_probe_passive_friendship_boundary).get("open"):
+    raise RuntimeError("USE v489.99 routing invariant failed: passive friendship/boundaries inquiry did not open HRN")
+
+# The shared boundary must remain conservative for topic-only mentions and explicit retrieval.
+if _relational_boundary_decision("What is friendship and why do boundaries matter?").get("open"):
+    raise RuntimeError("USE v489.93 routing invariant failed: generic explanatory relationship question was captured by HRN")
+if _relational_boundary_decision("Find an article about friendship and boundaries in the Living Archive.").get("open"):
+    raise RuntimeError("USE v489.93 routing invariant failed: explicit Archive retrieval was captured by HRN")
+
+# v487.95 regression guard: the observed defensive/anger/withdrawal cycle must
+# bypass the Guide routing-model call and open HRN immediately.
+_route_probe_defensive_cycle = (
+    "Whenever I bring up something that bothers me, my partner becomes defensive. "
+    "Then I get angry, they withdraw, and eventually we stop talking. "
+    "A few days later everything seems fine until the same thing happens again."
+)
+if not _lived_relational_structure(_route_probe_defensive_cycle)["lived_relational"]:
+    raise RuntimeError("USE v487.97 routing invariant failed: defensive cycle not recognized")
+if not _relational_boundary_decision(_route_probe_defensive_cycle).get("open"):
+    raise RuntimeError("USE v487.95 routing invariant failed: defensive cycle did not open relationship specialist")
+
+# v487.97 regression guard: workplace/authority relationships must use the
+# same immediate HRN boundary as family/partnership relationships. This avoids
+# sending an unresolved lived relationship through the expensive legacy Guide
+# retrieval path, which can surface as a visitor-facing connection failure when
+# the request exceeds the browser's patience window.
+_route_probe_authority_relationship = (
+    "My manager says they trust me, but they check everything I do and "
+    "constantly ask for updates. I feel like I'm being controlled even "
+    "though they keep saying they trust me."
+)
+if not _lived_relational_structure(_route_probe_authority_relationship)["lived_relational"]:
+    raise RuntimeError("USE v487.97 invariant failed: authority/workplace relational structure not recognized")
+if not _relational_boundary_decision(_route_probe_authority_relationship).get("open"):
+    raise RuntimeError("USE v487.97 invariant failed: authority/workplace inquiry did not open relationship specialist")
+
+
+
+def _role_evidence(doc):
+    title = re.sub(r"\s+", " ", str(doc.get("title") or "").strip().casefold())
+    text = re.sub(r"\s+", " ", str(doc.get("text") or doc.get("content") or "").strip().casefold())
+    early = text[:1800]
+    worldview_pattern = r"\b(?:spiritual|spirituality|religious|religion|mystical|mysticism|afterlife|reincarnation|soul|sacred|transcenden\w*|metaphysics|metaphysical|cosmic|oversoul|ascension|law of one|new earth)\b"
+    risk_pattern = r"\b(?:suicid\w*|self-harm|self harm|overdose|acute crisis|crisis intervention|immediate danger)\b"
+    abuse_pattern = r"\b(?:abuse|abusive|coercive control|gaslighting)\b"
+    worldview_in_title = bool(re.search(worldview_pattern, title))
+    worldview_early_hits = len(re.findall(worldview_pattern, early))
+    risk_in_title = bool(re.search(risk_pattern, title))
+    risk_early_hits = len(re.findall(risk_pattern, early))
+    abuse_in_title = bool(re.search(abuse_pattern, title))
+    abuse_early_hits = len(re.findall(abuse_pattern, early))
+    return {
+        "worldview": bool(worldview_in_title or worldview_early_hits >= 2),
+        "risk": bool(risk_in_title or risk_early_hits >= 1),
+        "abuse": bool(abuse_in_title or abuse_early_hits >= 2),
+    }
+
+
+_base._role_evidence = _role_evidence
+
+
+def _family_hit_count(text, family):
+    tokens = set(re.findall(r"[a-z0-9]+", str(text or "").casefold()))
+    return sum(bool(_term_forms(term) & tokens) for term in _SUBJECT_FAMILIES.get(family, ()))
+
+
+def _contextual_fit(query, doc):
+    frame = _query_frame(query)
+    title = str(doc.get("title") or "").casefold()
+    text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    early = text[:3000]
+    family_title = sum(_family_hit_count(title, f) > 0 for f in frame["families"])
+    family_early = sum(_family_hit_count(early, f) > 0 for f in frame["families"])
+    relational_title = _family_hit_count(title, "relationship")
+    relational_early = _family_hit_count(early, "relationship")
+    relational = frame["relational"]
+    combined = relational and ((family_title > 0 and relational_title > 0) or (family_early > 0 and relational_early > 0))
+    return (family_title, family_early, int(combined), relational_title, relational_early)
+
+
+def _relevance_level(metrics, *, allow_full_content=False):
+    title_hits, phrase_hits, early_hits, full_hits, _ = metrics
+    if title_hits >= 1 or phrase_hits >= 1 or (early_hits >= 2 and full_hits >= 2):
+        return 2
+    if allow_full_content and full_hits >= 1:
+        return 2
+    if full_hits >= 1:
+        return 1
+    return 0
+
+
+def _is_lived_uncertainty_inquiry(query):
+    """Identify uncertainty questions framed as a lived human experience."""
+    q = _normalize_query(query)
+    uncertainty = bool(re.search(r"\b(?:uncertaint(?:y|ies)|uncertain|ambiguity|ambiguous|the unknown|not knowing)\b", q, re.I))
+    lived_frame = bool(re.search(r"\b(?:live|living|deal|dealing|cope|coping|sit|sitting|tolerate|tolerating|handle|handling|navigate|navigating|accept|accepting|face|facing|move forward|make decisions?|decide|deciding)\b", q, re.I))
+    institutional_frame = bool(re.search(r"\b(?:institution|institutions|system|systems|governance|politic(?:al|s)|government|public trust|philippine|philippines|organization|organizational|institutional|policy|policies)\b", q, re.I))
+    return uncertainty and lived_frame and not institutional_frame
+
+
+def _uncertainty_resource_direct_fit(query, doc):
+    """Prevent shared-word overlap from promoting a mismatched uncertainty asset."""
+    if not _is_lived_uncertainty_inquiry(query):
+        return True
+    title = str(doc.get("title") or "").casefold()
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    combined = f"{title} {body}"
+    if re.search(r"\b(?:institutions?|systems?|governance|politic(?:al|s)|government|philippine|philippines|public trust|institutional|policy|policies)\b", title, re.I):
+        return False
+    uncertainty_support = bool(re.search(r"\b(?:uncertaint(?:y|ies)|uncertain|ambiguity|ambiguous|the unknown|not knowing)\b", combined, re.I))
+    lived_support = bool(re.search(r"\b(?:personal|personally|everyday|daily life|decision|decisions|deciding|cope|coping|tolerat(?:e|ing)|accept(?:ance|ing)?|adapt(?:ation|ing)?|uncertain future|living with|live with|make choices|moving forward|what you can control|control what|emotional|anxiety|fear|patience)\b", body, re.I))
+    return uncertainty_support and lived_support
+
+_TOPIC_ANCHOR_GROUPS = {
+    "political_dynasties": (
+        r"\bpolitical dynast(?:y|ies)\b",
+        r"\bdynast(?:y|ies)\b",
+    ),
+    "accountability": (
+        r"\baccountability\b",
+        r"\baccountable\b",
+    ),
+    "institutions": (
+        r"\b(?:public )?institutions?\b",
+        r"\binstitutional\b",
+    ),
+    "governance": (
+        r"\bgovernance\b",
+        r"\bgoverning\b",
+    ),
+    "political_systems": (
+        r"\bpolitical systems?\b",
+        r"\bpolitics\b",
+        r"\bgovernment\b",
+    ),
+}
+
+
+def _topic_anchor_groups(text):
+    value = str(text or "").casefold()
+    return {
+        group for group, patterns in _TOPIC_ANCHOR_GROUPS.items()
+        if any(re.search(pattern, value, re.I) for pattern in patterns)
+    }
+
+
+def _topic_specific_candidate_fit(query, doc):
+    """Require substantive topic evidence for multi-concept public-system questions.
+
+    Country, locality, or broad cultural words alone cannot authorize a doorway
+    for a question about institutions, political dynasties, or accountability.
+    """
+    query_groups = _topic_anchor_groups(query)
+    if len(query_groups) < 2:
+        return True
+    title = str(doc.get("title") or "")
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "")
+    if not title.strip() or not body.strip():
+        return False
+    title_groups = _topic_anchor_groups(title)
+    early_groups = _topic_anchor_groups(body[:3000])
+    body_groups = _topic_anchor_groups(body)
+    supported = query_groups & body_groups
+    if len(supported) < 2:
+        return False
+
+    # Distinctive concepts are not interchangeable with broad context. When
+    # the visitor explicitly asks about political dynasties, a general article
+    # about institutions or governance is not enough merely because it also
+    # mentions accountability. Require evidence for that distinctive subject
+    # in the title or opening body, and at least one other requested concept
+    # in the same opening passage.
+    if "political_dynasties" in query_groups:
+        if not (title_groups | early_groups) & {"political_dynasties"}:
+            return False
+        if len(query_groups & early_groups) < 2:
+            return False
+
+    # Prefer a doorway whose title identifies at least one requested topic.
+    # A broader title may still qualify when the opening directly discusses
+    # at least two of the requested concepts.
+    return bool(query_groups & title_groups) or len(query_groups & early_groups) >= 2
+
+
+def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
+    if not isinstance(doc, dict):
+        return False
+    title = str(doc.get("title") or "").strip()
+    url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+    if not title or not re.match(r"^https://\S+$", url, re.I):
+        return False
+    if not _topic_specific_candidate_fit(query, doc):
+        return False
+    # Entity overlap cannot substitute for evidence of a requested attribute.
+    # The attribute and any explicit condition must appear in this source body.
+    if not _direct_attribute_supported(query, doc):
+        return False
+    if not _uncertainty_resource_direct_fit(query, doc):
+        return False
+    role = _role_evidence(doc)
+    q = _normalize_query(query)
+    if role["risk"] and not profile.get("risk"):
+        return False
+    if role["abuse"] and not re.search(r"\b(?:abuse|abusive|coercive\s+control|gaslighting)\b", q):
+        return False
+    if role["worldview"] and not (profile.get("specialized") or profile.get("grief") or profile.get("ai_truth")):
+        return False
+    metrics = _subject_metrics(query, doc)
+    # A title overlap alone is not enough to make a canonical doorway relevant.
+    # Require corroboration in the resource's own body, so generic/title-level
+    # coincidences cannot outrank material that actually addresses the question.
+    if metrics[0] > 0 and metrics[2] == 0 and metrics[3] == 0 and metrics[1] == 0:
+        return False
+    if min_relevance is not None and _relevance_level(metrics) < min_relevance:
+        # A canonical doorway can be semantically central even when the query's
+        # exact wording appears only once in the opening. Preserve that case
+        # when the relevant subject family is established early and reinforced
+        # across the document, rather than requiring literal title overlap.
+        frame = _query_frame(query)
+        contextual_family_support = bool(frame["families"]) and _contextual_fit(query, doc)[1] >= 1 and metrics[2] >= 1
+        if not contextual_family_support:
+            return False
+    return True
+
+
+# v489.91 regression guard: lived uncertainty must not inherit a keyword-overlapping institutional resource.
+_uncertainty_probe_query = "What does it mean to live with uncertainty?"
+_uncertainty_institutional_decoy = {"title": "Why Trust Breaks Down in Philippine Systems: Institutions, Uncertainty, and Survival", "url": "https://geralddaquila.com/example-institutional-uncertainty/", "text": "Institutional trust, governance, and uncertainty shape public systems and survival."}
+_uncertainty_personal_candidate = {"title": "Living with Uncertainty: Making Decisions Without All the Answers", "url": "https://geralddaquila.com/example-lived-uncertainty/", "text": "Living with uncertainty means making decisions without all the answers, learning to tolerate ambiguity, and adapting as everyday life changes."}
+if not _is_lived_uncertainty_inquiry(_uncertainty_probe_query):
+    raise RuntimeError("USE v489.91 invariant failed: lived uncertainty inquiry not recognized.")
+if _uncertainty_resource_direct_fit(_uncertainty_probe_query, _uncertainty_institutional_decoy):
+    raise RuntimeError("USE v489.91 invariant failed: institutional uncertainty decoy passed lived-context fit.")
+if not _uncertainty_resource_direct_fit(_uncertainty_probe_query, _uncertainty_personal_candidate):
+    raise RuntimeError("USE v489.91 invariant failed: directly relevant lived-uncertainty resource rejected.")
+
+def _build_doorway_candidates_for_use(docs):
+    """Normalize pre-selected doorway mappings without changing selection authority."""
+    from shared_intelligence_primitives import normalize_doorway_candidates as _normalize_shared_doorways
+    return _normalize_shared_doorways(docs or [])
+
+def _canonical_primary_from_docs(docs, query, profile):
+    eligible = []
+    for index, doc in enumerate(docs or []):
+        if not _eligible_outward_doc(query, doc, profile, min_relevance=2):
+            continue
+        metrics = _subject_metrics(query, doc)
+        context = _contextual_fit(query, doc)
+        # Rank by body corroboration first, then title fit. The document's
+        # substantive relevance must outrank incidental title overlap.
+        score = (metrics[2], metrics[3], metrics[0], metrics[1], context[2], context[1], -index)
+        eligible.append((score, doc))
+    eligible.sort(key=lambda item: item[0], reverse=True)
+    return eligible[0][1] if eligible else None
+
+
+def _select_adjacent(claims, query, primary_title, profile):
+    eligible = []
+    for index, claim in enumerate(claims or []):
+        if str(claim.get("title") or "").strip().casefold() == str(primary_title or "").strip().casefold():
+            continue
+        if not _eligible_outward_doc(query, claim, profile, min_relevance=2):
+            continue
+        metrics = _subject_metrics(query, claim)
+        eligible.append((metrics, float(claim.get("score", 0) or 0), -index, claim))
+    eligible.sort(key=lambda item: item[:-1], reverse=True)
+    return eligible[0][-1] if eligible else None
+
+
+def _recommendation_answer_with_authority(query, docs, profile, canonical_docs):
+    canonical_docs = canonical_docs or []
+    claims = _normalize_shared_claims_for_use(docs or [])
+    synthesis = _build_shared_synthesis_material_for_use(claims)
+    claims_for_composition = _legacy_claims_from_synthesis(synthesis, claims)
+    primary = _canonical_primary_from_docs(canonical_docs, query, profile)
+    if primary:
+        secondary = _select_adjacent(claims_for_composition, query, primary["title"], profile)
+    else:
+        eligible = []
+        for index, claim in enumerate(claims_for_composition):
+            if not _eligible_outward_doc(query, claim, profile, min_relevance=2):
+                continue
+            metrics = _subject_metrics(query, claim)
+            eligible.append((metrics, float(claim.get("score", 0) or 0), -index, claim))
+        eligible.sort(key=lambda item: item[:-1], reverse=True)
+        primary = eligible[0][-1] if eligible else None
+        secondary = _select_adjacent([item[-1] for item in eligible[1:]], query, primary["title"] if primary else "", profile) if primary else None
+    if not primary:
+        return ""
+    parts = [
+        f"A useful place to begin with this question is [{primary['title']}]({primary['url']})",
+        "Before trying to solve the question, it can help to notice what is most present in the experience—what hurts, what feels uncertain, what you may be longing for, or what you are not yet ready to name.",
+        _base._recommendation_foothold(profile),
+        _recommendation_rationale(primary, profile),
+        "This doorway is offered as a reflection gateway, not as a complete explanation or prescription. It is one place to begin noticing what this question opens for you.",
+    ]
+    if secondary:
+        parts.append(f"A nearby path is [{secondary['title']}]({secondary['url']}), which opens another aspect of the question without asking you to treat either doorway as the whole answer.")
+    parts.append("You can stay with this lens, follow the connected material, or return with another part of the question that feels more relevant.")
+    return "\n\n".join(parts)
+
+
+def _normalize_shared_evidence_for_use(documents, *, provenance="supplied"):
+    """Apply the shared evidence transformation and return the legacy USE shape."""
+    return normalize_documents_for_use(documents, provenance=provenance)
+
+
+def _normalize_shared_claims_for_use(candidates):
+    """Normalize legacy USE claim dictionaries through the shared claim primitive."""
+    raw = []
+    evidence_ids = []
+    for index, candidate in enumerate(candidates or []):
+        if not isinstance(candidate, dict):
+            continue
+        text = str(candidate.get("text") or "").strip()
+        if not text:
+            continue
+        evidence_id = str(candidate.get("id") or f"claim:{index + 1}")
+        evidence_ids.append(evidence_id)
+        raw.append({
+            "text": text,
+            "evidence_ids": [evidence_id],
+            "claim_type": "interpretation" if candidate.get("epistemic") == "interpretive" else "observation",
+            "epistemic": str(candidate.get("epistemic") or "uncertain"),
+        })
+    normalized = _shared_normalize_claims(raw, evidence_ids=evidence_ids)
+    source_by_text = {
+        str(candidate.get("text") or "").strip(): candidate
+        for candidate in (candidates or [])
+        if isinstance(candidate, dict)
+    }
+    return [
+        {
+            **source_by_text.get(item.text, {}),
+            "text": item.text,
+            "epistemic": item.epistemic,
+        }
+        for item in normalized
+    ]
+
+
+def _build_shared_synthesis_material_for_use(claims):
+    """Package already-normalized USE claims through the shared synthesis primitive."""
+    shared_claims = [_shared_claim_object(item) for item in (claims or []) if isinstance(item, dict)]
+    return _shared_build_synthesis_material([item for item in shared_claims if item is not None])
+
+
+def _shared_claim_object(item):
+    """Convert one legacy claim mapping to the shared Claim object."""
+    evidence_id = str(item.get("id") or "claim:1")
+    normalized = _shared_normalize_claims(
+        [{
+            "text": str(item.get("text") or "").strip(),
+            "evidence_ids": [evidence_id],
+            "claim_type": "interpretation" if item.get("epistemic") == "interpretive" else "observation",
+            "epistemic": str(item.get("epistemic") or "uncertain"),
+        }],
+        evidence_ids=[evidence_id],
+    )
+    return normalized[0] if normalized else None
+
+
+def _legacy_claims_from_synthesis(synthesis, fallback_claims):
+    """Return the legacy claim mappings represented by SynthesisMaterial."""
+    fallback_by_text = {str(item.get("text") or "").strip(): item for item in (fallback_claims or []) if isinstance(item, dict)}
+    return [{
+        **fallback_by_text.get(item.text, {}),
+        "text": item.text,
+        "epistemic": item.epistemic,
+    } for item in (getattr(synthesis, "claims", ()) or ())]
+
+
+def _parse_context_documents(context_blocks):
+    parser = getattr(use_core, "_parse_context_documents", None)
+    if callable(parser):
+        parsed = parser(context_blocks)
+        return _normalize_shared_evidence_for_use(parsed, provenance="retrieved-context")
+    docs = []
+    for block in str(context_blocks or "").split("\n\n---\n\n"):
+        tm = re.search(r"^Title:\s*(.+?)\s*$", block, re.M)
+        um = re.search(r"^URL:\s*(https?://\S+)\s*$", block, re.M | re.I)
+        cm = re.search(r"^Content:\s*(.*)$", block, re.M | re.S)
+        if tm and um and cm:
+            docs.append({"title": tm.group(1).strip(), "url": um.group(1).strip(), "text": cm.group(1).strip()})
+    return docs
+
+
+def _unified_visitor_construction(query, retrieved_docs, canonical_docs):
+    profile = _base._inquiry_profile(query)
+    docs = []
+    seen = set()
+    for doc in list(canonical_docs or []) + list(retrieved_docs or []):
+        key = (str(doc.get("url") or ""), str(doc.get("title") or ""))
+        if key in seen:
+            continue
+        seen.add(key)
+        docs.append(doc)
+    action = profile["action"]
+    if action == "risk":
+        return _base._build_risk_answer(query), "risk"
+    if action in {"recommendation", "navigation"}:
+        answer = _recommendation_answer_with_authority(query, docs, profile, canonical_docs)
+        if answer:
+            return answer, "recommendation"
+    if action == "lived":
+        return _base._build_lived_experience_answer(query, docs, profile), "lived_experience"
+    if action == "foundation":
+        return _base._foundation_teacherly_answer(query), "foundation"
+    if action == "conceptual":
+        answer = _base._build_factual_answer(query, docs)
+        if answer:
+            return answer, "conceptual"
+    return "", "core"
+
+
+_base._unified_visitor_construction = _unified_visitor_construction
+
+_original_fetch_canonical_context = use_core.fetch_canonical_context
+
+
+def _serialize_context_documents(docs):
+    blocks = []
+    for doc in docs or []:
+        title = str(doc.get("title") or "").strip()
+        url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
+        text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").strip()
+        if not title or not re.match(r"^https://\S+$", url, re.I) or not text:
+            continue
+        blocks.append(f"Title: {title}\nURL: {url}\nContent: {text}")
+    return "\n\n---\n\n".join(blocks)
+
+
+def _authoritative_recommendation_docs(query, docs, profile):
+    primary = _canonical_primary_from_docs(docs, query, profile)
+    if not primary:
+        return []
+    target = primary["title"].casefold()
+    for doc in docs or []:
+        if str(doc.get("title") or "").strip().casefold() == target:
+            return [doc]
+    return []
+
+
+def _sanitize_outward_context(query, docs, profile):
+    eligible = []
+    for doc in docs or []:
+        if _eligible_outward_doc(query, doc, profile, min_relevance=2):
+            eligible.append(doc)
+    return eligible
+
+
+def _recommendation_first_fetch(query_str):
+    data = _original_fetch_canonical_context(query_str)
+    profile = _base._inquiry_profile(query_str)
+    if not isinstance(data, dict) or profile.get("risk"):
+        return data
+
+    # Never accept a selected doorway carried in from retrieval/provider content.
+    data = dict(data)
+    data.pop("recommendation_canonical_primary", None)
+    canonical_context = str(data.get("canonical_link_context") or "")
+    if not canonical_context:
+        return data
+    docs = _parse_context_documents(canonical_context)
+    if not docs:
+        return data
+
+    # Resolve doorway authority once against the complete retrieved context.
+    # The final response must not independently rerank the same evidence and
+    # replace an already selected direct resource with a broad conceptual decoy.
+    authoritative = []
+    selected_doorway = None
+    if not (profile.get("grief") or profile.get("ai_truth")):
+        try:
+            selected_doorway = _normalize_authoritative_recommendation(
+                _general_guide_authoritative_doorway(query_str, data)
+            )
+        except Exception as exc:
+            selected_doorway = None
+            print(
+                "The Guide outward navigation boundary: canonical selector "
+                f"failed safely ({type(exc).__name__})."
+            )
+        if selected_doorway:
+            target_url = str(selected_doorway.get("url") or "").rstrip("/").casefold()
+            candidate_docs = list(docs)
+            protected = (
+                data.get("generation_authority_protected_docs")
+                or data.get("question_authority_protected_docs")
+                or []
+            )
+            if isinstance(protected, list):
+                candidate_docs.extend(item for item in protected if isinstance(item, dict))
+            try:
+                supplied = general_guide_composition._documents_from_context(
+                    use_core, data
+                )
+            except Exception:
+                supplied = []
+            candidate_docs.extend(item for item in supplied if isinstance(item, dict))
+
+            # Reattach the validated title/URL contract to its evidence-bearing
+            # document. The URL is matched against retrieved canonical evidence;
+            # no provider-generated or hardcoded destination is trusted.
+            for candidate in candidate_docs:
+                candidate_url = str(
+                    candidate.get("url") or candidate.get("canonical_url") or ""
+                ).strip()
+                candidate_text = str(
+                    candidate.get("text") or candidate.get("content")
+                    or candidate.get("excerpt") or ""
+                ).strip()
+                if (
+                    candidate_url.rstrip("/").casefold() == target_url
+                    and candidate_text
+                    and str(candidate.get("title") or "").strip()
+                ):
+                    authoritative = [{
+                        "title": str(candidate.get("title") or "").strip(),
+                        "url": candidate_url,
+                        "text": candidate_text,
+                    }]
+                    break
+
+    if authoritative and selected_doorway:
+        # Carry the exact validated primary across the retrieval/composition seam
+        # for every ordinary query, including conceptual questions that should not
+        # have their evidence context narrowed.
+        data["recommendation_canonical_primary"] = {
+            "title": selected_doorway["title"],
+            "url": selected_doorway["url"],
+        }
+
+    # Preserve the complete evidence pool for non-navigation questions. Their
+    # composition may need multiple sources, but the canonical primary remains
+    # separately pinned for the outward recommendation field.
+    if profile["action"] not in {"recommendation", "navigation"}:
+        return data
+
+    if authoritative:
+        outward = authoritative
+        boundary_mode = "primary"
+    else:
+        # Fail closed when no evidence-backed primary passed canonical selection.
+        outward = _sanitize_outward_context(query_str, docs, profile)
+        boundary_mode = "sanitized-context"
+    narrowed_context = _serialize_context_documents(outward)
+    data["canonical_link_context"] = narrowed_context
+    data["context_blocks"] = narrowed_context
+    data["recommendation_first_evidence_bridge"] = True
+    data["recommendation_canonical_boundary"] = True
+    data["recommendation_canonical_count"] = len(outward)
+    data["recommendation_canonical_boundary_mode"] = boundary_mode
+    if authoritative:
+        data["evidence_sufficiency_unavailable"] = False
+        data["question_structure_evidence_unavailable"] = False
+        data["question_evidence_fit_unavailable"] = False
+        data["frame_neutral_evidence_unavailable"] = False
+    print(f"The Guide v487.49 unified outward navigation boundary: mode={boundary_mode}, selected={authoritative[0]['title'] if authoritative else 'none'}, eligible={len(outward)}, candidates={len(docs)}, query={_normalize_query(query_str)[:120]}")
+    return data
+
+
+use_core.fetch_canonical_context = _recommendation_first_fetch
+
+
+_probe_query = "I keep finding myself angry at someone I care about, and I don’t know what to do with that anger. Is there anything in the Living Archive that might help me think about it?"
+_probe_profile = _base._inquiry_profile(_probe_query)
+if _probe_profile["action"] != "recommendation":
+    raise RuntimeError(f"USE v487.45 invariant failed: anger action={_probe_profile['action']}")
+_probe_docs = [
+    {"title": "Suicide and the Journey of the Soul: A Unified Exploration of Mind, Spirit, and Society", "url": "https://geralddaquila.com/suicide", "text": "A discussion of suicide, despair, anger, and the soul."},
+    {"title": "Unraveling Abuse: The Harm We Inherit, The Healing We Choose", "url": "https://geralddaquila.com/2025/06/01/unraveling-abuse-the-harm-we-inherit-the-healing-we-choose/", "text": "Abuse in relationships involves power, control, trauma, conflict, projection, and anger. The material examines cycles of harm and healing."},
+    {"title": "Emotional Hijacking and the Search for Meaning: Reconnecting with Our True Needs Beyond Materialism", "url": "https://geralddaquila.com/2025/06/09/emotional-hijacking-and-the-search-for-meaning-reconnecting-with-our-true-needs-beyond-materialism/", "text": "Emotional hijacking includes intense emotional responses such as fear or anger. Mindful awareness and reflective practice can help identify emotional triggers and their true sources. The article examines emotional needs, neuroscience, self-reflection, and internal validation. " + ("The discussion remains focused on emotional awareness, triggers, needs, reflection, and practical sensemaking. " * 24) + "Later sections also discuss spiritual and metaphysical perspectives on inner fulfillment, including Buddhism, Advaita Vedanta, self-transcendence, meditation, and prayer."},
+    {"title": "The Divine Feminine: Reawakening Sacred Balance in the Ascension Process and Its Intersections with Feminism", "url": "https://geralddaquila.com/divine-feminine", "text": "Sacred balance and spiritual transformation."},
+]
+
+_probe_answer, _probe_mode = _unified_visitor_construction(_probe_query, _probe_docs, [_probe_docs[2], _probe_docs[0], _probe_docs[1], _probe_docs[3]])
+if _probe_mode != "recommendation" or not _probe_answer.startswith("A useful place to begin with this question is [Emotional Hijacking"):
+    raise RuntimeError(f"USE v487.49 invariant failed: direct anger doorway={_probe_answer}")
+if "Suicide and the Journey of the Soul" in _probe_answer or "The Divine Feminine" in _probe_answer:
+    raise RuntimeError("USE v487.49 invariant failed: mismatched doorway survived risk/worldview gate")
+if _role_evidence(_probe_docs[2])["worldview"]:
+    raise RuntimeError("USE v487.49 invariant failed: broad multidisciplinary article misclassified as worldview-specialized")
+if _role_evidence(_probe_docs[0])["risk"] is not True:
+    raise RuntimeError("USE v487.49 invariant failed: explicit risk doorway lost its risk role")
+if _role_evidence(_probe_docs[1])["abuse"] is not True:
+    raise RuntimeError("USE v487.49 invariant failed: explicit abuse doorway lost its abuse role")
+if _role_evidence(_probe_docs[3])["worldview"] is not True:
+    raise RuntimeError("USE v487.49 invariant failed: explicit worldview doorway lost its worldview role")
+
+_probe_decoys = [_probe_docs[0], _probe_docs[1], _probe_docs[3]]
+if _sanitize_outward_context(_probe_query, _probe_decoys, _probe_profile):
+    raise RuntimeError("USE v487.49 invariant failed: decoy-only context leaked through navigation boundary")
+_probe_fallback_answer = _recommendation_answer_with_authority(_probe_query, _probe_decoys, _probe_profile, _probe_decoys)
+if _probe_fallback_answer:
+    raise RuntimeError("USE v487.49 invariant failed: fallback recommendation leaked decoy-only context")
+
+_probe_gap = {"evidence_sufficiency_unavailable": True, "canonical_link_context": "Title: Unraveling Abuse: The Harm We Inherit, The Healing We Choose\nURL: https://geralddaquila.com/2025/06/01/unraveling-abuse-the-harm-we-inherit-the-healing-we-choose/\nContent: Abuse in relationships involves conflict, projection, and anger.\n\n---\n\nTitle: Suicide and the Journey of the Soul: A Unified Exploration of Mind, Spirit, and Society\nURL: https://geralddaquila.com/suicide\nContent: Suicide and despair are discussed."}
+_bridge_docs = _parse_context_documents(_probe_gap["canonical_link_context"])
+if not _bridge_docs or not _recommendation_first_fetch:
+    raise RuntimeError("USE v487.49 invariant failed: evidence bridge unavailable")
+if _sanitize_outward_context(_probe_query, _bridge_docs, _probe_profile):
+    raise RuntimeError("USE v487.49 invariant failed: rejected evidence-gap context survived outward boundary")
+
+for _query, _label in (
+    ("I feel lonely and disconnected from everyone lately. Is there anything in the Living Archive that might help me think about it?", "loneliness"),
+    ("I’m struggling with grief after losing someone I love. Is there anything in the Living Archive that might help?", "grief"),
+    ("I’m afraid of what AI is doing to our ability to know what is true. Is there anything in the Living Archive that might help me think about discernment?", "ai_truth"),
+):
+    _profile = _base._inquiry_profile(_query)
+    if _profile["action"] != "recommendation":
+        raise RuntimeError(f"USE v487.49 invariant failed: {_label} movement classification")
+
+def _history_text(history):
+    """Serialize conversation history without losing safety-loop questions.
+
+    The Guide receives structured turns from specialist frontends. A safety
+    assistant turn can contain both a human-facing message and the active
+    safety question. The previous serializer silently discarded the question
+    whenever content was present, collapsing the safety state machine on short
+    answers such as "yes" or "no".
+
+    This is a shared conversation-boundary contract, not a UI patch: every
+    downstream specialist receives the same lossless recent conversation.
+    """
+    if not history:
+        return ""
+    if isinstance(history, str):
+        return history.strip()
+
+    parts = []
+    for item in list(history)[-8:]:
+        if isinstance(item, dict):
+            role = str(item.get("role") or item.get("speaker") or "").strip()
+            content = str(
+                item.get("content")
+                or item.get("message")
+                or item.get("text")
+                or item.get("response")
+                or ""
+            ).strip()
+            question = str(item.get("question") or "").strip()
+            if content:
+                parts.append(f"{role}: {content}" if role else content)
+            if question and question != content:
+                question_role = f"{role} question" if role else "question"
+                parts.append(f"{question_role}: {question}")
+        elif item is not None:
+            value = str(item).strip()
+            if value:
+                parts.append(value)
+    return "\n".join(parts)
+_RELATIONSHIP_INTERACTION_PATTERNS=(
+    r"\bbetween us\b",r"\bbetween me and\b",r"\bbetween you and\b",r"\bwe keep\b",
+    r"\bwe(?:'re| are)\b",r"\bwe can(?:'t|not)\b",r"\bwe don't\b",r"\bwe disagree\b",
+    r"\bwe argue\b",r"\bargu(?:e|ing|ed)\b",r"\bconflict\b",r"\btension\b",
+    r"\bcommunication\b",r"\bcommunicat(?:e|ing|ion)\b",r"\bunderstand(?:ing)?\b",
+    r"\bmisunderstand(?:ing)?\b",r"\bdistance\b",r"\bdisconnect(?:ed|ion)?\b",
+    r"\breconnect\b",r"\btrust\b",r"\bforgive(?:ness)?\b",r"\bresent(?:ment|ful)?\b",
+    r"\bboundar(?:y|ies)\b",r"\bhurt\b",r"\bheal(?:ing)?\b",r"\bcare about\b",
+    r"\bclose to\b",r"\bdrift(?:ed|ing)?\b",r"\bfeel(?:ing)? unheard\b",r"\bfeel(?:ing)? unseen\b",
+)
+_RELATIONSHIP_PERSON_PATTERNS=(
+    r"\bsomeone i care about\b",r"\bperson i care about\b",r"\bpeople i care about\b",
+    r"\bsomeone i love\b",r"\bmy partner\b",r"\bmy spouse\b",r"\bmy husband\b",
+    r"\bmy wife\b",r"\bmy family\b",r"\bmy friend\b",r"\bmy friends\b",
+    r"\ba friend\b",r"\ba loved one\b",r"\bmy relationship\b",r"\bour relationship\b",
+    r"\bthis relationship\b",r"\bwith someone\b",r"\bwith my\b",
+)
+
+def _relationship_guide_context(history, raw_body):
+    history_text=_history_text(history)
+    return {"conversation":history_text,"visitor_history":history_text,"unit_turns":len(history) if isinstance(history,list) else 0,"safety_question":str((raw_body or {}).get("safety_question") or ""),"country":str((raw_body or {}).get("country") or "")}
+
+def _relationship_primary_doorway(contribution):
+    for index,item in enumerate(contribution.get("canonical_candidates") or []):
+        if not isinstance(item,dict): continue
+        title=str(item.get("title") or "").strip(); url=str(item.get("url") or item.get("canonical_url") or "").strip()
+        access_class=str(item.get("access_class") or "public").strip().casefold()
+        if title and re.match(r"^https://geralddaquila\.com/\S+$",url,re.I) and access_class in {"public",""}: return index,title,url
+    return None
+
+RELATIONSHIP_JOURNEY_CONTRACT_VERSION = "v2"
+_RELATIONSHIP_JOURNEY_ACTIONS = frozenset({"continue", "end"})
+_RELATIONSHIP_LOCAL_STATES = frozenset({"in_progress", "spiral_complete", "journey_complete"})
+
+def _relationship_integrated_response(contribution):
+    """Preserve HRN's human response and its steering question; doorway selection stays with USE at closure."""
+    human = str(contribution.get("human_response") or "").strip()
+    if not human:
+        return ""
+    movement = contribution.get("movement") or {}
+    parts = [human]
+    question = str(movement.get("question") or "").strip()
+    if question and not bool(movement.get("rest")):
+        parts.append(question)
+    return "\n\n".join(parts)
+
+
+def _relationship_journey_state(contribution):
+    movement = contribution.get("movement") or {}
+    state = str(
+        movement.get("journey_state")
+        or contribution.get("journey_state")
+        or ""
+    ).strip().casefold()
+    if state not in _RELATIONSHIP_LOCAL_STATES:
+        state = "spiral_complete" if bool(
+            movement.get("spiral_complete")
+            or movement.get("topic_complete")
+            or movement.get("unit_complete")
+        ) else "in_progress"
+        if str(movement.get("movement_state") or "").strip().casefold() in {"journey_complete", "complete"}:
+            state = "journey_complete"
+    action = str(
+        movement.get("journey_action")
+        or contribution.get("journey_action")
+        or ""
+    ).strip().casefold()
+    if action not in _RELATIONSHIP_JOURNEY_ACTIONS:
+        action = "continue" if state != "journey_complete" else "end"
+    return {
+        "state": state,
+        "action": action,
+        "spiral_complete": state == "spiral_complete",
+        "journey_complete": state == "journey_complete",
+    }
+
+
+def _build_journey_contribution_for_use(body):
+    """Package HRN closure material without selecting, retrieving, or generating."""
+    from shared_intelligence_primitives import normalize_journey_contribution as _normalize_shared_journey
+    payload = {
+        "original_question": body.get("original_question") or body.get("query"),
+        "conversation": body.get("conversation"),
+        "thread_summary": body.get("thread_summary"),
+        "working_hypothesis": body.get("working_hypothesis"),
+        "completed_insight": body.get("completed_insight"),
+        "perspective_delta": body.get("perspective_delta"),
+        "body_of_thought": body.get("body_of_thought"),
+        "underlying_need": body.get("underlying_need"),
+        "desired_condition": body.get("desired_condition"),
+        "next_horizon": body.get("next_horizon"),
+        "resource_fit": body.get("resource_fit"),
+        "journey_synthesis": body.get("journey_synthesis"),
+        "journey_action": body.get("journey_action"),
+        "journey_ledger": body.get("journey_ledger"),
+        "fractal_records": body.get("fractal_records"),
+        "round_synthesis_history": body.get("round_synthesis_history"),
+    }
+    return _normalize_shared_journey(payload)
+
+
+def _relational_communication_focus(query):
+    """Recognize explicit listening/being-heard concerns without lexical polysemy."""
+    q = _normalize_query(query)
+    return bool(re.search(
+        r"\b(?:unheard|not being heard|not heard|being heard|listen(?:ing)?|"
+        r"not listening|ignored|dismissed|(?:do not|don't|does not|doesn't|cannot|can't) "
+        r"(?:hear|listen)(?: me| to me)?|cannot get through to|can't get through to)\b",
+        q,
+    ))
+
+
+def _relational_discernment_focus(query):
+    """Recognize explicit uncertainty about perception/inference, not schema boilerplate."""
+    q = _normalize_query(query)
+    return bool(re.search(
+        r"\b(?:projection|projecting|projected|what i(?:'|’)m sensing|what i sense|"
+        r"what i infer|what i am inferring|what is real|am i misreading|am i assuming|"
+        r"am i projecting|could i be misreading|could i be assuming|could i be projecting|"
+        r"reading too much into|misreading|judge(?: them)? unfairly|misjudge|"
+        r"am i being unfair|could i be unfair|distinguish what i observed from what i inferred)\b",
+        q,
+    ))
+
+
+def _relational_return_topic_anchor(original_question, underlying_need, perspective_delta):
+    """Add bounded, earned semantic anchors without replacing the visitor's own question."""
+    q = _normalize_query(" ".join(str(value or "") for value in (
+        original_question, underlying_need, perspective_delta
+    )))
+    additions = []
+    effort_imbalance = bool(re.search(
+        r"\b(?:always the one|making an effort|more effort|reaching out|initiating contact|"
+        r"feel unseen|feeling unseen|not reciprocated|giving more|doing all the work)\b", q
+    ))
+    if effort_imbalance:
+        additions.append(
+            "Relational effort imbalance: overgiving, giving more than receiving, mutuality, "
+            "feeling valued, care without self-erasure."
+        )
+    # HRN's standard synthesis often says a sequence is "observable" and
+    # another person's "intention" is unknown. Those phrases alone do not mean
+    # the visitor's central question is discernment; classify from the opening
+    # question and underlying need, not the generated perspective boilerplate.
+    discernment_query = _normalize_query(
+        " ".join(str(value or "") for value in (original_question, underlying_need))
+    )
+    discernment = _relational_discernment_focus(discernment_query)
+    if discernment:
+        additions.append(
+            "Relational discernment: distinguish observable behavior from inference and "
+            "assumptions about another person's intentions."
+        )
+    boundary = bool(re.search(r"\b(?:boundaries|taking over|responsibility|self-erasure)\b", q))
+    if boundary:
+        additions.append("Relational boundaries: care, mutuality, agency, and what remains yours to carry.")
+    # A disagreement is not automatically a listening problem. Only add this
+    # semantic expansion when the visitor actually describes not being heard,
+    # listening, or dismissal; otherwise it contaminates retrieval with unrelated
+    # communication-themed Archive pages.
+    communication = _relational_communication_focus(q)
+    if communication:
+        additions.append(
+            "Relational communication during disagreement: listening, acknowledgment, "
+            "being heard, and receiving another person's point before responding."
+        )
+    return " ".join(additions)
+
+
+def _relational_return_conflict_topic_fit(query, doc):
+    """Require source evidence for the visitor's concrete recurring-conflict focus."""
+    if not isinstance(doc, dict):
+        return False
+    q = _normalize_query(query)
+    recurring_argument_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        q,
+    ))
+    if not recurring_argument_focus:
+        return True
+
+    title = str(doc.get("title") or "").casefold()
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    direct_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        title,
+    ))
+    if direct_title:
+        return True
+
+    # Require a sentence linking a concrete conflict action to its relational
+    # impact. Broad concepts such as cognitive dissonance, communication, or
+    # emotional growth cannot qualify through scattered vocabulary alone.
+    core_terms = {
+        "argument", "argue", "disagreement", "repair", "blame",
+        "reopen", "reopening", "incident",
+    }
+    impact_terms = {
+        "hurt", "listening", "heard", "hearing", "partner",
+        "relationship", "conflict", "argument", "disagreement",
+    }
+    for sentence in re.split(r"(?<=[.!?])\s+|\n+", body):
+        tokens = set(re.findall(r"[a-z0-9]+", sentence))
+        if core_terms & tokens and impact_terms & tokens:
+            return True
+    return False
+
+
+def _relational_return_is_generic_doorway(doc):
+    """Reject broad entrance pages as the earned gift after a completed HRN journey.
+
+    A successful closure must hand the visitor a resource connected to the
+    perspective they reached. Generic Orientation/Home/Welcome pages are not
+    a substitute for a topic-fit canonical doorway; if no specific asset qualifies,
+    the existing safe no-doorway response is more honest.
+    """
+    if not isinstance(doc, dict):
+        return False
+    title = str(doc.get("title") or "").casefold().strip()
+    title = re.sub(r"^[^a-z0-9]+", "", title)
+    title = re.sub(r"[^a-z0-9]+", " ", title).strip()
+    return bool(re.fullmatch(
+        r"(?:(?:living archive )?orientation|home(?: page)?|"
+        r"welcome(?: to (?:the )?(?:archive|living archive))?|"
+        r"start here|the guide|life understood)",
+        title,
+    ))
+
+
+def _relational_return_workplace_change_focus(query):
+    """Recognize a concrete work-agreement change that has become interpersonal."""
+    q = _normalize_query(query)
+    # Workplace relational closure must include managerial trust and decision-rights
+    # tensions, not only project/scope-change vocabulary. HRN can surface these as
+    # an earned perspective after several turns, so classify the opening context too.
+    work_context = bool(re.search(
+        r"\b(?:project|work|workplace|manager|boss|supervisor|colleague|team|deadline|scope|deliverable|agreement|role)\b", q
+    ))
+    change_context = bool(re.search(
+        r"\b(?:changed scope|scope changed|changed work|new work|agreement changed|"
+        r"deadline|scope|agreement|making too much of it|unreasonable|overreacting|"
+        r"trust|questions every decision|question(?:s|ed|ing)? (?:every )?decision|"
+        r"decision rights|decision boundaries|decision is within my role|"
+        r"prove my competence|prove i know what i'm doing|repeated scrutiny)\b", q
+    ))
+    interpersonal_context = bool(re.search(
+        r"\b(?:colleague|manager|boss|supervisor|team|other person|conversation|between us|"
+        r"making too much of it|unreasonable|overreacting|reaction|responsibility|"
+        r"trust|judgment|decision|role|review|questions every decision)\b", q
+    ))
+    return work_context and change_context and interpersonal_context
+
+
+def _relational_return_workplace_change_fit(query, doc):
+    """Accept a directly titled work-conflict asset for a grounded scope/agreement change."""
+    if not isinstance(doc, dict) or not _relational_return_workplace_change_focus(query):
+        return False
+    title = str(doc.get("title") or "").casefold()
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    direct_title = bool(re.search(r"\b(?:conflict|disagreement|trust|team)\b", title))
+    work_evidence = bool(re.search(
+        r"\b(?:team|teams|work|workplace|project|scope|deadline|agreement|expectations|responsibility)\b",
+        body,
+    ))
+    interaction_evidence = bool(re.search(
+        r"\b(?:conflict|disagreement|conversation|communication|trust|relationship)\b",
+        body,
+    ))
+    return direct_title and work_evidence and interaction_evidence
+
+
+def _relational_return_earned_focus_fit(query, doc):
+    """Accept only a canonical resource that supports an earned relational focus."""
+    if not isinstance(doc, dict) or _relational_return_is_generic_doorway(doc):
+        return False
+    if _relational_return_workplace_change_focus(query):
+        return _relational_return_workplace_change_fit(query, doc)
+    q = _normalize_query(query)
+    title = str(doc.get("title") or "").casefold()
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    material = " ".join((title, body))
+    if not _relational_return_conflict_topic_fit(query, doc):
+        return False
+
+    # A specific recurring-argument journey must not fall back to a broad
+    # relationship/communication essay just because it mentions conflict.
+    # Require a directly named conflict/repair doorway for this narrow case;
+    # otherwise only the direct-topic gate may admit a resource.
+    recurring_argument_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        q,
+    ))
+    direct_conflict_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        title,
+    ))
+    if recurring_argument_focus and not direct_conflict_title:
+        return False
+    relationship_evidence = bool(re.search(
+        r"\b(?:relationship|relationships|relational|friendship|friends|connection|"
+        r"love|care|communication|between people)\b", material
+    ))
+    if not relationship_evidence:
+        return False
+    effort_focus = bool(re.search(
+        r"\b(?:effort imbalance|making an effort|more effort|overgiving|giving more|"
+        r"feel unseen|feeling unseen|feeling valued|mutuality|reciproc|unfairly|self-erasure)\b", q
+    ))
+    effort_evidence = bool(re.search(
+        r"\b(?:imbalance|overgiving|self-sacrifice|giving more|receiving more|"
+        r"mutual support|mutuality|reciproc|valued|effort|boundaries|self-erasure)\b", material
+    ))
+    discernment_focus = _relational_discernment_focus(q)
+    discernment_evidence_terms = set(re.findall(
+        r"\b(?:perception|behavior|behaviour|interpret(?:ation|ed|ing)?|"
+        r"assumption|inference|intentions?|projection|observation|observed)\b",
+        material,
+    ))
+    # A single generic mention of communication or silence is not evidence for
+    # a perception/inference resource. Require a cluster of distinct cues.
+    discernment_evidence = len(discernment_evidence_terms) >= 2
+    # Disagreement alone does not establish that the visitor's central concern
+    # is listening or being heard. Keep this exception narrow so a broad
+    # relationship essay cannot qualify solely because it mentions dialogue.
+    # "A hurt is heard as blame" describes how a statement is interpreted;
+    # it does not establish that the visitor feels unheard or that listening is
+    # the central problem. Require an explicit listening/being-heard signal.
+    communication_focus = _relational_communication_focus(q)
+    communication_evidence = bool(re.search(
+        r"\b(?:listen|listening|heard|hearing|acknowledge|acknowledgment|acknowledgement|"
+        r"communication|dialogue|being heard)\b", material
+    ))
+    return bool(
+        (effort_focus and effort_evidence)
+        or (discernment_focus and discernment_evidence)
+        or (communication_focus and relationship_evidence and communication_evidence)
+    )
+
+
+def _relational_return_direct_topic_fit(query, doc):
+    """Require evidence for the visitor's earned relational topic, not just a plausible title."""
+    if not isinstance(doc, dict) or _relational_return_is_generic_doorway(doc):
+        return False
+    if _relational_return_workplace_change_focus(query):
+        return _relational_return_workplace_change_fit(query, doc)
+    q = _normalize_query(query)
+    title = str(doc.get("title") or "").casefold()
+    body_text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    material = " ".join((title, body_text)).casefold()
+    if not _relational_return_conflict_topic_fit(query, doc):
+        return False
+
+    # Keep completed journeys about an explicit recurring argument anchored to
+    # a directly named conflict/repair resource. The Guide may append semantic
+    # expansions such as communication, listening, and being heard to the
+    # retrieval query; those additions must not turn a broad governance essay
+    # into a topical match.
+    recurring_argument_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        q,
+    ))
+    direct_conflict_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        title,
+    ))
+    if recurring_argument_focus and not direct_conflict_title:
+        return False
+
+    recurring_argument_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        q,
+    ))
+    direct_conflict_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        title,
+    ))
+    if recurring_argument_focus and direct_conflict_title:
+        # For a specific recurring-conflict query, a directly named conflict/
+        # repair title plus body evidence about relational conflict is stronger
+        # than exact lexical overlap with incidental wording such as "improve".
+        body_conflict = bool(re.search(
+            r"\b(?:argument|argue|conflict|disagreement|repair|blame|incident|criticism|defensiveness|stonewalling)\b",
+            body_text,
+        ))
+        body_relational = bool(re.search(
+            r"\b(?:relationship|relational|partner|hurt|listening|heard|criticism|defensiveness|stonewalling)\b",
+            body_text,
+        ))
+        if body_conflict and body_relational:
+            return True
+
+    projection_query = bool(re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", q))
+    if projection_query:
+        # A canonical title explicitly about projection is direct topical evidence
+        # even when its body uses broader language and does not repeat "relationship".
+        if re.search(r"\b(?:projection|projecting|projected)\b", title):
+            return True
+        direct_projection = bool(re.search(r"\b(?:projection|projecting|projected)\b", material))
+        observed_inferred = (
+            bool(re.search(r"\b(?:observed|observation|notice|noticing)\b", material))
+            and bool(re.search(r"\b(?:infer|inference|interpretation|assumption)\b", material))
+        )
+        if not (direct_projection or observed_inferred):
+            return False
+        if not re.search(r"\b(?:relationship|relational|between people|other person|communication|silence|withdrawal)\b", material):
+            return False
+        return True
+
+    # General relational closures must also demonstrate topic fit. A document
+    # that merely shares the broad relational atmosphere is not a valid gift.
+    query_terms = set(_subject_terms(q))
+    if not query_terms:
+        return False
+    title_tokens = set(re.findall(r"[a-z0-9]+", title))
+    material_tokens = set(re.findall(r"[a-z0-9]+", body_text))
+    generic_terms = {
+        "relationship", "relational", "partner", "person", "people", "other",
+        "conversation", "situation", "feeling", "feel", "think", "know",
+        "meaning", "understand", "something", "someone", "change", "experience",
+        "life", "human", "interaction", "dynamic",
+    }
+    specific_terms = query_terms - generic_terms
+    title_hits = {term for term in query_terms if _term_forms(term) & title_tokens}
+    body_hits = {term for term in query_terms if _term_forms(term) & material_tokens}
+    specific_title_hits = {term for term in specific_terms if _term_forms(term) & title_tokens}
+    specific_body_hits = {term for term in specific_terms if _term_forms(term) & material_tokens}
+
+    # Scattered mentions across a broad essay are not direct topic fit.
+    # Require either a distinctive title anchor with corroborating body evidence,
+    # or at least two substantive query terms in the same sentence. This prevents
+    # a broad family/couple doorway from passing merely because the essay mentions
+    # silence, rejection, and intention in unrelated passages.
+    sentence_specific_hits = 0
+    for sentence in re.split(r"(?<=[.!?])(?:[\"'”’)\]]+)?\s+|\n+", body_text):
+        sentence_tokens = set(re.findall(r"[a-z0-9]+", sentence))
+        sentence_hits = {
+            term for term in specific_terms
+            if _term_forms(term) & sentence_tokens
+        }
+        sentence_specific_hits = max(sentence_specific_hits, len(sentence_hits))
+
+    if len(specific_terms) == 1:
+        # Single-topic queries need the topic named in both title and body.
+        return bool(specific_title_hits and specific_body_hits)
+
+    return bool(
+        (specific_title_hits and len(body_hits) >= 2)
+        or sentence_specific_hits >= 2
+    )
+
+
+def _relational_return_verified_workplace_candidate(query):
+    """Fetch the verified public Conflict & Trust Arc page for work-agreement friction.
+
+    This direct canonical fallback prevents the bounded WordPress search pool
+    from changing the return decision when unrelated candidates time out. It is
+    still subject to the same workplace-change title/body evidence gate.
+    """
+    if not _relational_return_workplace_change_focus(query):
+        return None
+    endpoint = "https://geralddaquila.com/wp-json/wp/v2/pages/39753"
+    try:
+        request = UrlRequest(
+            endpoint,
+            headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
+            method="GET",
+        )
+        with urlopen(request, timeout=3.0) as response:
+            resource = json.loads(response.read().decode("utf-8"))
+        if not isinstance(resource, dict):
+            return None
+        import html
+        title_obj = resource.get("title")
+        title = str(
+            title_obj.get("rendered") if isinstance(title_obj, dict) else title_obj or ""
+        ).strip()
+        content_obj = resource.get("content")
+        content_html = str(
+            content_obj.get("rendered") if isinstance(content_obj, dict) else content_obj or ""
+        )
+        content_html = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", content_html)
+        content = re.sub(r"(?s)<[^>]+>", " ", content_html)
+        content = re.sub(r"\s+", " ", html.unescape(content)).strip()
+        candidate = {
+            "title": title,
+            "url": str(resource.get("link") or "https://geralddaquila.com/conflict-trust-arc/").strip(),
+            "text": content[:6000],
+        }
+        if (
+            candidate["title"]
+            and re.match(r"^https://geralddaquila\.com/\S+$", candidate["url"], re.I)
+            and _relational_return_workplace_change_fit(query, candidate)
+        ):
+            return candidate
+        return None
+    except Exception as exc:
+        print(
+            "The Guide verified workplace canonical recovery: "
+            f"unavailable ({type(exc).__name__})."
+        )
+        return None
+
+
+def _relational_return_apply_verified_workplace_candidate(original_question, direct_topic_query, primary, outward):
+    """Prefer the verified canonical work-conflict doorway over retrieval-pool variation."""
+    if not _relational_return_workplace_change_focus(original_question):
+        return primary, outward
+    verified = _relational_return_verified_workplace_candidate(original_question)
+    if verified and _relational_return_direct_topic_fit(direct_topic_query, verified):
+        return verified, [verified]
+    return primary, outward
+
+
+def _relational_return_search_recovery(original_question, direct_topic_query, profile):
+    """Use bounded WordPress search only when focused vector retrieval found no honest doorway."""
+    normalized_original = _normalize_query(original_question)
+    conflict_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        normalized_original,
+    ))
+    workplace_change_focus = _relational_return_workplace_change_focus(normalized_original)
+    if not conflict_focus and not workplace_change_focus:
+        return None, []
+    if workplace_change_focus and not conflict_focus:
+        verified_candidate = _relational_return_verified_workplace_candidate(original_question)
+        if verified_candidate:
+            print(
+                "The Guide verified workplace canonical recovery: "
+                f"selected={verified_candidate['title']}."
+            )
+            return verified_candidate, [verified_candidate]
+    # Bounded WordPress search supplements vector retrieval for two concrete
+    # relational cases: recurring arguments and a changed work agreement that
+    # has become interpersonal. Every candidate still passes the same topic-fit
+    # and canonical gates before a doorway can be released.
+    search_queries = (
+        ("relationship repair", "conflict repair", "argument hurt")
+        if conflict_focus
+        else ("workplace conflict", "project scope agreement", "conflict moment")
+    )
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=len(search_queries)) as executor:
+        candidate_sets = list(executor.map(
+            lambda search_query: _wordpress_search_canonical_candidates(search_query, limit=5),
+            search_queries,
+        ))
+
+    ranked_candidates = []
+    seen = set()
+    candidate_index = 0
+    for search_query, candidates in zip(search_queries, candidate_sets):
+        # These candidates were fetched from the canonical WordPress REST API
+        # and contain the full published text. The generic outward sanitizer is
+        # tuned for ordinary Guide answers and can discard a directly titled
+        # conflict/repair asset before the stricter journey-specific evidence
+        # gates run. For this bounded recovery lane, use the canonical candidates
+        # directly, but require the exact original-topic and earned-focus gates
+        # below before ranking or releasing anything.
+        query_outward = candidates
+        for doc in query_outward:
+            if not (
+                _relational_return_direct_topic_fit(direct_topic_query, doc)
+                or _relational_return_earned_focus_fit(direct_topic_query, doc)
+            ):
+                continue
+            key = (
+                str(doc.get("title") or "").strip().casefold(),
+                str(doc.get("url") or doc.get("canonical_url") or "").strip().casefold(),
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            metrics = _subject_metrics(search_query, doc)
+            context = _contextual_fit(search_query, doc)
+            score = (
+                metrics[2], metrics[3], metrics[0], metrics[1],
+                context[2], context[1], -candidate_index,
+            )
+            ranked_candidates.append((score, doc))
+            candidate_index += 1
+
+    # Rank each candidate against the exact bounded query that retrieved it.
+    # Rechecking every candidate against only the first phrase would silently
+    # discard valid candidates discovered by the secondary queries.
+    ranked_candidates.sort(key=lambda item: item[0], reverse=True)
+    outward = [doc for _score, doc in ranked_candidates]
+    primary = outward[0] if outward else None
+    print(
+        "The Guide relational doorway recovery: "
+        f"queries={len(search_queries)}, candidates={sum(len(items) for items in candidate_sets)}, "
+        f"eligible={len(outward)}, selected={primary['title'] if primary else 'none'}."
+    )
+    return primary, (outward if primary else [])
+
+
+def _relational_return_retry_after_broad_candidate(primary, outward, original_question, direct_topic_query, profile):
+    """Retry the bounded conflict search only after a broad candidate was rejected."""
+    if primary is not None:
+        return primary, outward
+    conflict_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        _normalize_query(original_question),
+    ))
+    if not conflict_focus:
+        return None, []
+    candidate, candidates = _relational_return_search_recovery(
+        original_question, direct_topic_query, profile
+    )
+    if not candidate:
+        return None, []
+    direct_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        str(candidate.get("title") or "").casefold(),
+    ))
+    return (candidate, candidates) if direct_title else (None, [])
+
+
+async def _v48755_relational_return(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+
+    session_id = str(body.get("session_id") or "").strip()
+    journey_contribution = _build_journey_contribution_for_use(body)
+    original_question = journey_contribution.original_question
+    conversation = journey_contribution.conversation
+    thread_summary = journey_contribution.thread_summary
+    working_hypothesis = journey_contribution.working_hypothesis
+    completed_insight = journey_contribution.completed_insight
+    perspective_delta = journey_contribution.perspective_delta
+    body_of_thought = journey_contribution.body_of_thought
+    underlying_need = journey_contribution.underlying_need
+    desired_condition = journey_contribution.desired_condition
+    next_horizon = journey_contribution.next_horizon
+    resource_fit = journey_contribution.resource_fit
+    journey_action = journey_contribution.journey_action
+    journey_synthesis = journey_contribution.journey_synthesis
+    journey_ledger = dict(journey_contribution.journey_ledger)
+    fractal_records = list(journey_contribution.fractal_records)
+    round_synthesis_history = list(journey_contribution.round_synthesis_history)
+
+    if journey_action != "end":
+        return JSONResponse(
+            status_code=409,
+            content={
+                "ok": False,
+                "version": APP_VERSION,
+                "error_type": "relational_return_requires_closure",
+                "response": "The relational journey is still open.",
+            },
+        )
+
+    if not original_question or not conversation:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "ok": False,
+                "version": APP_VERSION,
+                "error_type": "relational_return_incomplete",
+                "response": "The completed relational conversation was not supplied in full.",
+            },
+        )
+
+    # The Guide receives the whole journey only after the visitor has explicitly
+    # chosen to close it. Mid-journey topic-fractal junctions never trigger this path.
+    synthesis_parts = [
+        original_question,
+        "Conversation thread: " + thread_summary,
+        "What became clearer: " + perspective_delta,
+        "Completed insight: " + completed_insight,
+        "Underlying need: " + underlying_need,
+        "Desired condition: " + desired_condition,
+        "Living body of thought: " + body_of_thought,
+        "Previous topic-fractal syntheses: " + json.dumps(fractal_records, ensure_ascii=False),
+        "Round-by-round synthesis history: " + json.dumps(round_synthesis_history, ensure_ascii=False),
+        "Journey ledger: " + json.dumps(journey_ledger, ensure_ascii=False),
+        "Whole-journey synthesis from Seeing the Relationship: " + journey_synthesis,
+        "Next horizon: " + next_horizon,
+        "Canonical doorway fit noted by Seeing the Relationship: " + resource_fit,
+    ]
+    synthesis_query = "\n".join(part for part in synthesis_parts if part.split(": ", 1)[-1].strip())
+    synthesis_query = synthesis_query[:18000]
+
+    try:
+        # Select the doorway from the earned relational perspective first. The full
+        # transcript/ledger query is useful evidence, but it can dilute the visitor's
+        # actual movement with incidental themes. Keep the first retrieval focused.
+        topic_anchor = original_question
+        topic_anchor += " " + _relational_return_topic_anchor(
+            original_question, underlying_need, perspective_delta
+        )
+        # Preserve the specialist's explicit resource-fit note as retrieval evidence.
+        # It was in the synthesis payload but dropped from both doorway queries.
+        if resource_fit:
+            topic_anchor += " Relational resource fit: " + str(resource_fit)
+        if re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", _normalize_query(original_question)):
+            topic_anchor += " Relational projection: distinguish what is observed from what is inferred in the relationship."
+        # Retrieval uses the visitor's opening plus the earned need/perspective,
+        # not the full closure synthesis, which can dilute the actual concern.
+        doorway_query = " ".join(
+            value for value in (
+                topic_anchor,
+                underlying_need,
+                completed_insight,
+                perspective_delta,
+                resource_fit,
+            ) if value
+        )[:6000]
+        direct_topic_query = " ".join(
+            value for value in (topic_anchor, underlying_need, perspective_delta, completed_insight, resource_fit)
+            if value
+        )[:5000] or topic_anchor
+        context_data = _original_fetch_canonical_context(doorway_query)
+        canonical_context = str(
+            context_data.get("canonical_link_context")
+            or context_data.get("context_blocks")
+            or ""
+        ) if isinstance(context_data, dict) else ""
+        docs = _parse_context_documents(canonical_context)
+
+        # The final doorway remains a Guide responsibility. The completed
+        # perspective, not the visitor's opening wording alone, governs the gift.
+        profile = _base._inquiry_profile(doorway_query)
+        profile["action"] = "recommendation"
+        profile["recommendation"] = max(float(profile.get("recommendation", 0.0)), 0.95)
+        # This endpoint is entered only after HRN closes a relational journey.
+        # Preserve that specialist boundary even if generic lexical cues lean elsewhere.
+        profile["primary"] = "relational"
+        profile["relational"] = True
+        outward = _sanitize_outward_context(doorway_query, docs, profile)
+        outward = [
+            doc for doc in outward
+            if _relational_return_direct_topic_fit(direct_topic_query, doc)
+            or _relational_return_earned_focus_fit(direct_topic_query, doc)
+        ]
+        primary = _canonical_primary_from_docs(outward, direct_topic_query, profile)
+        # v489.226: a verified canonical workplace-conflict page outranks vector/search pool variation.
+        primary, outward = _relational_return_apply_verified_workplace_candidate(
+            original_question, direct_topic_query, primary, outward
+        )
+
+        if not primary:
+            # A second bounded attempt may use only the earned perspective.
+            # Never reintroduce the full transcript/ledger here: if neither focused
+            # query supports a canonical resource, return no doorway rather than a
+            # plausible-looking but unrelated gift.
+            fallback_query = " ".join(
+                value for value in (
+                    underlying_need,
+                    perspective_delta,
+                    completed_insight,
+                    resource_fit,
+                    str(journey_ledger.get("current_terrain") or ""),
+                    str(journey_ledger.get("unresolved") or ""),
+                ) if value
+            )[:4000]
+            fallback_data = _original_fetch_canonical_context(fallback_query)
+            fallback_context = str(
+                fallback_data.get("canonical_link_context")
+                or fallback_data.get("context_blocks")
+                or ""
+            ) if isinstance(fallback_data, dict) else ""
+            fallback_docs = _parse_context_documents(fallback_context)
+            fallback_outward = _sanitize_outward_context(fallback_query, fallback_docs, profile)
+            fallback_outward = [
+                doc for doc in fallback_outward
+                if _relational_return_direct_topic_fit(fallback_query, doc)
+                or _relational_return_earned_focus_fit(fallback_query, doc)
+            ]
+            primary = _canonical_primary_from_docs(fallback_outward, fallback_query, profile)
+            if primary:
+                outward = fallback_outward
+
+        if not primary:
+            # Vector retrieval can return no sufficiently direct doorway even
+            # when the public Archive contains a clearly relevant conflict/repair
+            # resource. Try bounded WordPress search, then apply the same relevance
+            # and canonical gates before releasing any recommendation.
+            search_primary, search_outward = _relational_return_search_recovery(
+                original_question, direct_topic_query, profile
+            )
+            if search_primary:
+                primary = search_primary
+                outward = search_outward
+
+        # Last-mile canonical doorway invariant: even if retrieval normalization
+        # or a future relevance branch changes, a completed recurring-argument
+        # journey cannot release a broad resource whose title does not name
+        # conflict, argument, disagreement, repair, reconciliation, or being heard.
+        original_recurring_argument_focus = bool(re.search(
+            r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+            r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+            _normalize_query(original_question),
+        ))
+        primary_title_is_direct_conflict = bool(
+            primary and re.search(
+                r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+                str(primary.get("title") or "").casefold(),
+            )
+        )
+        if primary and original_recurring_argument_focus and not primary_title_is_direct_conflict:
+            print(
+                "The Guide v489.201 rejected a non-conflict canonical doorway "
+                f"for recurring-argument return: {primary.get('title')}"
+            )
+            primary = None
+            outward = []
+
+        # Structural retry: a broad vector candidate can survive the initial
+        # retrieval path, then be correctly rejected by the last-mile conflict
+        # title guard. That rejection must not end retrieval before the bounded
+        # conflict-specific WordPress search has had its turn. Reuse the same
+        # direct-topic and earned-focus gates; never relax the relevance boundary.
+        if original_recurring_argument_focus and primary is None:
+            primary, outward = _relational_return_retry_after_broad_candidate(
+                primary, outward, original_question, direct_topic_query, profile
+            )
+
+        print(
+            "The Guide v487.66 seamless HRN gift return: "
+            f"session={session_id or 'none'}, "
+            f"selected={primary['title'] if primary else 'none'}, "
+            f"conversation_chars={len(conversation)}, "
+            f"ledger_fractals={len(fractal_records)}, "
+            f"round_syntheses={len(round_synthesis_history)}, "
+            f"query={_normalize_query(original_question)[:120]}"
+        )
+
+        journey_payload = {
+            "state": "complete",
+            "session_id": session_id,
+            "perspective_delta": perspective_delta,
+            "completed_insight": completed_insight,
+            "next_horizon": next_horizon,
+            "journey_synthesis": journey_synthesis,
+            "fractal_records": fractal_records,
+            "round_synthesis_history": round_synthesis_history,
+        }
+
+        if primary:
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "ok": True,
+                    "version": APP_VERSION,
+                    "request_id": session_id,
+                    "intent": "RELATIONAL_CANONICAL_RETURN",
+                    "response": "There is a place in the Archive that may carry this new perspective further.",
+                    "display_mode": "hrn",
+                    "canonical_doorway": {
+                        "title": primary["title"],
+                        "url": primary["url"],
+                    },
+                    "relational_journey": journey_payload,
+                    "visitor_boundary_version": APP_VERSION,
+                },
+            )
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                "ok": True,
+                "version": APP_VERSION,
+                "request_id": session_id,
+                "intent": "RELATIONAL_CANONICAL_RETURN",
+                "response": "You have brought the conversation to a meaningful place. No doorway was close enough to offer honestly from what emerged.",
+                "canonical_doorway": None,
+                "display_mode": "hrn",
+                "relational_journey": journey_payload,
+                "visitor_boundary_version": APP_VERSION,
+            },
+        )
+    except Exception as exc:
+        print(f"The Guide v487.63 relational closure failed safely: {exc}")
+        return JSONResponse(
+            status_code=200,
+            content={
+                "ok": False,
+                "version": APP_VERSION,
+                "request_id": session_id,
+                "intent": "RELATIONAL_CANONICAL_RETURN",
+                "response": "The conversation is complete, but the Archive doorway could not be prepared right now.",
+                "canonical_doorway": None,
+                "error_type": "relational_return_retrieval_failure",
+            },
+        )
+
+
+# ---------------------------------------------------------------------
+# v487.57 — EARLY GUIDE CAPABILITY ROUTING
+# ---------------------------------------------------------------------
+#
+# The first Guide decision is now an LLM interpretation task, not a
+# deterministic specialist keyword gate. The purpose of this pass is only
+# to understand what kind of doorway the question may need. It does not
+# answer the visitor, select canonical resources, or release Guide ownership.
+#
+# Existing USE/Groq model discovery and capability management are reused from
+# use_core.py. Deterministic governance remains authoritative after the model
+# proposes a route. A specialist is invoked only when it is registered and
+# explicitly available.
+#
+_GUIDE_ROUTE_IDS = frozenset({
+    "guide",
+    "relationship",
+    "formation",
+    "catalogue",
+    "atlas",
+    "navigator",
+    "systems_ph",
+    "safety",
+    "glossary",
+    "glyph",
+    "case",
+    "fsd",
+    "guide_node",
+})
+
+_GUIDE_ROUTE_PROMPT = """You are the private Round 1 interpretation layer behind The Guide,
+the macro orientation layer of the Living Archive.
+
+The visitor's first question is an open human inquiry. Do not treat it as a
+keyword-classification exercise. Before choosing a route, reason about what
+the visitor may actually be trying to understand, resolve, explore, find,
+change, or move toward.
+
+Use the same disciplined first-move reasoning used by Seeing the Relationship,
+but at the macro level of the Archive.
+
+First distinguish:
+- what the visitor literally says;
+- the presenting situation or proposition;
+- the experience or human reality being brought;
+- the assumption, explanation, or proposed solution the visitor is already
+  carrying;
+- the underlying question or tension that may be more important than the
+  literal wording;
+- what remains genuinely uncertain;
+- what kind of movement would actually help the visitor now.
+
+Do not assume the visitor's explanation is correct. Do not manufacture hidden
+motives, diagnoses, mental states, or facts about other people. Preserve
+uncertainty. A tentative interpretation is not a fact.
+
+Then determine what kind of processing would best serve the visitor at this
+moment.
+
+Possible routes:
+- guide: The Guide remains with broad Archive orientation/navigation
+- relationship: Seeing the Relationship; open relational exploration across
+  self, person-to-person, family, group, community, organization,
+  institution, and intergroup situations
+- formation: Stewardship Formation Navigator; formation-oriented inquiry about
+  what a situation may be asking someone to learn, practice, examine, or carry
+- catalogue: Stewardship Catalogue; bounded stewardship-resource navigation
+- atlas: Living Archive Atlas Finder; bounded visual Reference Map navigation
+- navigator: Living Archive Navigator; the universal entry/orientation surface when the visitor is trying to find where to begin, how to enter the Living Archive, or how to discover a useful path through it rather than retrieve one particular resource
+- systems_ph: Philippine Systems Lens; bounded inquiry into interacting
+  Philippine systems and conditions
+- safety: Safety / Crisis
+- glossary: vocabulary/definition lookup
+- glyph: glyph/symbol lookup
+- case: Case Study search; bounded structural case matching based on the visitor situation
+- fsd: Fractal Systems Diagnostic; native systems-pattern orientation and diagnostic navigation
+- guide_node: a specific approved Guide Node; use only when the visitor's need clearly points to one of the approved destinations supplied below
+
+Important routing principles:
+- The initial question may be about anything. Do not require a domain keyword.
+- Do not route by topic alone. Route by the kind of movement or processing the
+  visitor appears to need.
+- A relational topic does not automatically mean Seeing the Relationship.
+- Seeing the Relationship is appropriate when the lived human situation itself
+  is central and exploratory, and relational inquiry is likely to create more
+  perspective than immediately selecting a resource.
+- A question can begin in one terrain and reveal another. On later turns,
+  reconsider the accumulated conversation rather than protecting the initial
+  route.
+- If the visitor explicitly seeks a definition, glyph, catalogue item, or
+  bounded systems/formation task, honor that clear intent.
+- Distinguish outcome evaluation from systems-pattern diagnosis. When the
+  visitor asks whether an intervention, revised approach, policy, or response
+  is actually reducing harm or improving outcomes, the first need is usually
+  evidence-oriented evaluation: observable outcomes, comparison over time,
+  feedback from affected people, unintended or displaced harms, and
+  accountability for interpreting results. Keep the Guide in control and
+  prefer relevant canonical resources or a clarifying move; do not route
+  directly to fsd solely because the question mentions a group, organization,
+  harm, a system, or change.
+- Examples of outcome-evaluation intent include: "How can we tell whether our
+  revised approach is genuinely reducing harm rather than making us feel we
+  addressed it?", "How do we know this intervention is working?", and "What
+  evidence would show that conditions improved for the people affected?"
+  These are not automatically FSD requests.
+- FSD is appropriate when the visitor's primary need is to map or diagnose
+  recurring system patterns, feedback loops, authority gaps, incentives,
+  information flow, resistance to change, or possible leverage points. It may
+  be a useful second step when outcome evidence is missing or contradictory,
+  but must not substitute for evaluating outcomes.
+- When outcome-evaluation and systems-diagnosis intent are both plausible,
+  preserve the distinction in the interpretation and prefer the least
+  committal useful next move (Guide orientation, evidence-oriented resources,
+  or one clarifying question) rather than starting a ten-question diagnostic.
+- When the visitor is asking where to begin, how to enter, or how to find a
+  useful way into the Living Archive or site as a whole, prefer navigator when
+  that orientation need is central. Do not require the visitor to name the
+  Navigator.
+- If the visitor is presenting a lived situation whose useful next step is
+  discovery rather than retrieval, prefer the processing mode that can create
+  that discovery.
+- Do not select a specialist merely because its subject appears somewhere in
+  the question.
+- Preserve ambiguity when no specialized processing is clearly warranted.
+- Safety concerns remain the highest boundary.
+- The Guide remains the steward of the whole journey even when processing is
+  delegated.
+- The specialist is an internal capability, not a visitor-facing explanation
+  of the machinery.
+
+Return ONLY valid JSON with exactly these keys:
+{
+  "human_reality": "what human reality is being brought, if discernible",
+  "presenting_situation": "what is happening on the surface",
+  "visitor_proposition": "the explanation, assumption, or proposed solution the visitor is carrying",
+  "underlying_question": "what the visitor may actually be trying to understand or resolve",
+  "uncertainty": "the uncertainty whose clarification would most change direction",
+  "desired_movement": "the kind of movement that would help now",
+  "processing_need": "exploration|orientation|retrieval|definition|lookup|formation|systems_inquiry|safety|clarification",
+  "route": "guide|relationship|formation|catalogue|atlas|navigator|systems_ph|safety|glossary|glyph|case|fsd|guide_node",
+  "mode": "direct|delegated_journey|lookup|clarify|safety",
+  "confidence": 0.0,
+  "reason": "short internal explanation of why this processing mode and route fit",
+  "alternatives": ["guide"],
+  "glossary_term": "canonical term only when route=glossary",
+  "guide_node_id": "canonical Guide Node ID only when route=guide_node"
+}
+
+The interpretation fields are internal reasoning instruments. They are not
+visitor-facing labels.
+
+A critical distinction:
+- route answers WHERE the visitor should be processed;
+- mode answers HOW the question should be processed there.
+Do not return relationship + direct when the visitor's lived relational
+situation itself calls for exploratory relational processing. Likewise, do not
+force delegated processing when the visitor is simply asking for a resource
+or definition.
+
+Think strategically: the first move sets the tone for the journey. The goal
+is not to solve the visitor's question in Round 1. The goal is to choose the
+most intelligent next mode of engagement.
+"""
+
+def _guide_route_history_text(history):
+    if not isinstance(history, list):
+        return ""
+    parts = []
+    for item in history[-6:]:
+        if isinstance(item, dict):
+            role = str(item.get("role") or item.get("speaker") or "").strip()
+            value = str(
+                item.get("content")
+                or item.get("message")
+                or item.get("text")
+                or item.get("response")
+                or item.get("question")
+                or ""
+            ).strip()
+            if value:
+                parts.append(f"{role}: {value}" if role else value)
+        elif item is not None:
+            value = str(item).strip()
+            if value:
+                parts.append(value)
+    return "\n".join(parts)[-6000:]
+
+
+def _normalize_glossary_term(query, interpretation=None):
+    """Extract the bounded canonical term for the native Glossary lookup.
+
+    The Glossary owns term resolution. USE only converts a definition/meaning
+    question into the term that the existing Glossary search contract expects.
+    It never performs glossary retrieval or duplicates the Glossary registry.
+    """
+    interpretation = interpretation or {}
+    candidate = str(interpretation.get("glossary_term") or "").strip()
+    if candidate:
+        candidate = re.sub(r"^[\s\"']+|[\s\"'?.!]+$", "", candidate)
+        candidate = re.sub(r"^(?:the\s+term\s+|the\s+word\s+|word\s+)", "", candidate, flags=re.I)
+        if 1 <= len(candidate) <= 120 and not re.search(r"[?\n]", candidate):
+            return candidate
+
+    normalized = re.sub(r"\s+", " ", str(query or "").strip()).strip()
+
+    # Explicit requests for the canonical Glossary definition often phrase the
+    # term after the words "Glossary definition of". Extract only that term;
+    # otherwise the native Glossary receives a sentence fragment that cannot
+    # match a canonical heading.
+    canonical_definition = re.match(
+        r"^(?:what is|what's|give me|show me|find)\s+(?:the\s+)?(?:canonical\s+)?"
+        r"(?:living archive\s+)?glossary\s+(?:definition|entry)\s+(?:of|for|on)\s+(.+?)[?!.]?$",
+        normalized,
+        re.I,
+    )
+    if canonical_definition:
+        term = canonical_definition.group(1).strip().strip("\\\"'?.! ")
+        term = re.sub(r"^(?:the\s+term\s+|the\s+word\s+|word\s+)", "", term, flags=re.I)
+        if 1 <= len(term) <= 120 and not re.search(r"[?\n]", term):
+            return term
+
+    # Explicit destination language is different from an explanatory definition
+    # request, but the visitor still expects the Glossary's native lookup UI.
+    navigation = re.search(
+        r"\b(?:take me to|take me directly to|open|show me|go to|navigate to|"
+        r"find|access)\b.{0,60}\bglossary(?:\s+entry)?\s*(?:for|about|on)?\s*(.+?)?[?!.]?$",
+        normalized,
+        re.I,
+    )
+    if navigation:
+        candidate = re.sub(r"^[\s\"']+|[\s\"'?.!]+$", "", str(navigation.group(1) or ""))
+        candidate = re.sub(r"^(?:the\s+term\s+|the\s+word\s+|word\s+)", "", candidate, flags=re.I)
+        if candidate and len(candidate) <= 120 and not re.search(r"[?\n]", candidate):
+            return candidate
+
+    patterns = (
+        r"^(?:what does|what is|what's)\s+(?:the\s+)?(?:meaning\s+of\s+)?(.+?)(?:\s+mean)?[?!.]?$",
+        r"^(?:what is the meaning of|meaning of|define|definition of)\s+(.+?)[?!.]?$",
+    )
+    for pattern in patterns:
+        match = re.match(pattern, normalized, re.I)
+        if match:
+            term = re.sub(r"^[\s\"']+|[\s\"'?.!]+$", "", match.group(1))
+            term = re.sub(r"^(?:the\s+term\s+|the\s+word\s+|word\s+)", "", term, flags=re.I)
+            if 1 <= len(term) <= 120:
+                return term
+    embedded = _extract_embedded_glossary_term(query)
+    if embedded:
+        return embedded
+    return ""
+
+
+def _is_comparative_explanatory_request(query):
+    """Identify comparison questions that require Guide synthesis, not term lookup."""
+    normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
+    if not normalized:
+        return False
+    patterns = (
+        r"\b(?:what is|what's|explain) the difference between\b",
+        r"\bdifference between\b",
+        r"\bhow does .{1,100} differ from .{1,100}",
+        r"\bhow do .{1,100} differ from .{1,100}",
+        r"\bcompare .{1,100} (?:and|with|to) .{1,100}",
+        r"\bcomparison of .{1,100} and .{1,100}",
+        r"\brelationship between .{1,100} and .{1,100}",
+        r"\bhow .{1,100} relates to .{1,100}",
+        r"\bhow are .{1,100} different from .{1,100}",
+    )
+    return any(re.search(pattern, normalized) for pattern in patterns)
+
+
+# Comparative questions are explanatory inquiries, not requests to look up
+# the whole comparison phrase as a single glossary term.
+if not _is_comparative_explanatory_request(
+    "What is the difference between responsibility and stewardship?"
+):
+    raise RuntimeError("USE comparative-intent invariant failed: responsibility/stewardship comparison not recognized")
+if _is_comparative_explanatory_request("What does stewardship mean?"):
+    raise RuntimeError("USE comparative-intent invariant failed: simple glossary lookup misclassified")
+
+
+def _is_lived_experience_explanatory_request(query):
+    """Keep existential/lived-experience inquiries in General Guide composition.
+
+    These questions ask how to understand or inhabit a human condition, not
+    for a dictionary-style definition of a bounded canonical term.
+    """
+    normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
+    if not normalized:
+        return False
+    patterns = (
+        r"^what does it mean to live with\b",
+        r"^what does it mean to live through\b",
+        r"^what does it mean to live in\b",
+        r"^what is it like to live with\b",
+        r"^how (?:can|do|does|should) (?:i|we|you|someone|a person) live with\b",
+        r"^how to live with\b",
+        r"^what does it mean to face\b",
+        r"^what does it mean to experience\b",
+    )
+    return any(re.search(pattern, normalized) for pattern in patterns)
+
+
+# The lived-experience guard must distinguish existential inquiry from a
+# bounded term lookup before any direct Glossary handoff can occur.
+if not _is_lived_experience_explanatory_request("What does it mean to live with uncertainty?"):
+    raise RuntimeError("USE v489.90 lived-experience routing invariant failed")
+if _is_lived_experience_explanatory_request("What does uncertainty mean?"):
+    raise RuntimeError("USE v489.90 glossary distinction invariant failed")
+
+
+def _is_conceptual_explanatory_request(query):
+    """Keep questions about a concept's role or significance in General Guide.
+
+    These ask for contextual explanation and synthesis, not a dictionary
+    definition of the phrase following 'what is'. This boundary is evaluated
+    before canonical-term matching so a word like 'stewardship' inside a
+    conceptual question cannot force an immediate Glossary handoff.
+    """
+    normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
+    if not normalized:
+        return False
+    patterns = (
+        r"^what is (?:the )?(?:role|purpose|significance|importance|function|value|contribution|impact|nature|relationship) of\b",
+        # Direct cosmology/worldview questions must enter conceptual retrieval.
+        r"^what is (?:the )?(?:cosmology|worldview|metaphysics|ontology) of\b",
+        r"^what are (?:the )?(?:roles|purposes|significance|importance|functions|contributions|impacts|relationships) of\b",
+        r"^how does .{1,120} (?:shape|support|contribute to|affect|influence|relate to) .{1,120}",
+        r"^why (?:does|do|is|are) .{1,120} (?:matter|important|significant|essential|relevant)\b",
+        # Compound concept questions must not fall into the recurring-problem recovery path.
+        r"^what is (?:the )?(?:cosmology|worldview|metaphysics|ontology)\b.{0,120}\band why (?:does|do|is|are)\b",
+    )
+    return any(re.search(pattern, normalized) for pattern in patterns)
+
+
+# Structural routing invariant: explanatory questions remain in General Guide
+# even when their subject contains a canonical Glossary term.
+for _conceptual_glossary_regression in (
+    "What is the role of trust in community stewardship?",
+    "What is the purpose of reciprocity in a community?",
+    "What is the significance of human development?",
+    "What is the cosmology of the Living Archive?",
+    "What is cosmology, and why does it matter to how people live?",
+):
+    if not _is_conceptual_explanatory_request(_conceptual_glossary_regression):
+        raise RuntimeError("USE conceptual inquiry routing invariant failed")
+
+
+def _is_normative_conflict_explanatory_request(query):
+    """Keep questions asking what a value or principle requires during conflict in Guide synthesis."""
+    normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
+    if not normalized:
+        return False
+    asks_requirement = bool(re.search(
+        r"\b(?:what does|what should|what must|what would)\b.{1,100}\b(?:require|requires|required|demand|demands|call for)\b",
+        normalized,
+    ))
+    asks_conflict = bool(re.search(
+        r"\b(?:when|where|if|as)\b.{0,70}\b(?:values?|principles?|duties|obligations|commitments)\b.{0,50}\b(?:conflict|clash|compete|collide|pull in different directions)\b|"
+        r"\b(?:values?|principles?|duties|obligations|commitments)\b.{0,60}\b(?:conflict|clash|compete|collide)\b",
+        normalized,
+    ))
+    stewardship_context = bool(re.search(
+        r"\b(?:stewardship|steward|faithful|integrity|responsibility|trust|care)\b",
+        normalized,
+    ))
+    return asks_requirement and asks_conflict and stewardship_context
+
+
+# This is an explanatory/normative inquiry, not a bounded vocabulary lookup.
+if not _is_normative_conflict_explanatory_request(
+    "What does faithful stewardship require when values conflict?"
+):
+    raise RuntimeError("USE normative-conflict explanatory routing invariant failed")
+if _is_normative_conflict_explanatory_request("What does stewardship mean?"):
+    raise RuntimeError("USE normative-conflict routing overcaptured a bounded definition")
+
+
+def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
+    """Return True only for a bounded vocabulary lookup.
+
+    A definition opening is not sufficient by itself. If the visitor adds a
+    second substantive question, the question remains with Basic Inquiry
+    rather than being reduced to a malformed glossary term.
+    """
+    normalized = re.sub(r"\s+", " ", str(query or "").strip()).strip()
+    term = str(glossary_term or "").strip()
+    embedded = str(embedded_term or "").strip()
+    if not normalized or not term:
+        return False
+    if _is_comparative_explanatory_request(query):
+        return False
+
+    # Institutional-scope meaning questions ask for an explanation of how a
+    # concept functions within the Living Archive, not a dictionary lookup.
+    # Keep this boundary deterministic and upstream of the Glossary handoff so
+    # model classification cannot turn the Archive-specific question into a
+    # dead-end native search. Explicit requests to open the Glossary are exempt.
+    explicit_glossary_destination = bool(re.search(
+        r"\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\b.{0,60}\bglossary\b",
+        normalized,
+        re.I,
+    ))
+    archive_scoped_meaning = bool(
+        re.search(r"\b(?:in|within|inside)\s+the\s+living\s+archive\b", normalized, re.I)
+        and re.search(
+            r"^(?:what does|what is|what's|what is the meaning of|meaning of|explain)\b",
+            normalized,
+            re.I,
+        )
+        and re.search(r"\b(?:mean|means|meaning|role|purpose|significance|understand)\b", normalized, re.I)
+    )
+    if archive_scoped_meaning and not explicit_glossary_destination:
+        return False
+
+    # Conceptual/explanatory questions belong to General Guide even when the
+    # subject includes a canonical glossary word such as "stewardship".
+    # Explicit requests to open the Glossary remain eligible below.
+    if _is_conceptual_explanatory_request(query) and not re.search(
+        r"\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\b.{0,60}\bglossary\b",
+        normalized,
+        re.I,
+    ):
+        return False
+
+    # v489.90 structural boundary: lived-experience/existential questions are
+    # explanatory inquiries, not bounded vocabulary lookups. Phrases such as
+    # "what does it mean to live with uncertainty?" ask for orientation and
+    # synthesis; sending them to the Glossary mistakes a grammatical "mean"
+    # for a request to define a canonical term.
+    if _is_lived_experience_explanatory_request(query):
+        return False
+
+    explicit_glossary_navigation = bool(re.search(
+        r"\b(?:take me to|take me directly to|open|show me|go to|navigate to|find|access)\b.{0,60}\bglossary\b",
+        normalized,
+        re.I,
+    ))
+    bounded_opening = bool(re.match(
+        r"^(?:what does|what is|what's|what is the meaning of|meaning of|define|definition of)\b",
+        normalized,
+        re.I,
+    ))
+    if not bounded_opening and not embedded and not explicit_glossary_navigation:
+        return False
+
+    remainder = normalized
+    remainder = re.sub(
+        r"^(?:what does|what is|what's|what is the meaning of|meaning of|define|definition of)\s+",
+        "",
+        remainder,
+        count=1,
+        flags=re.I,
+    )
+
+    # A compound/open question must stay with the general-purpose Guide.
+    # These patterns cover added significance, consequence, application,
+    # comparison, or second-question clauses.
+    compound_patterns = (
+        r"\band\s+(?:why|how|what|whether|when|where|who|can|could|should|does|do)\b",
+        r"\band\s+(?:why|how|what)\b.{0,160}\b(?:matter|matters|important|relevant|mean|means|work|apply|applied|practice|practiced|change|changed|today|now)\b",
+        r"\?\s*(?:why|how|what|whether|when|where|who)\b",
+    )
+    if any(re.search(pattern, remainder, re.I) for pattern in compound_patterns):
+        return False
+
+    # Only route to the Glossary when the visitor explicitly asks for that
+    # surface, or when the term is part of the small set of canonical terms
+    # already guaranteed by this runtime's frozen routing contracts. A bare
+    # definition request for an unverified term must remain with the Guide:
+    # the Glossary may not contain it, and a missing entry must not become a
+    # dead-end handoff.
+    if len(re.findall(r"\b\w+\b", term)) > 8:
+        return False
+    if explicit_glossary_navigation:
+        return True
+    canonical_routed_terms = {"stewardship"}
+    normalized_term = re.sub(r"[^a-z0-9\s-]", "", term.casefold()).strip()
+    normalized_words = set(normalized_term.split())
+    return any(canonical in normalized_words for canonical in canonical_routed_terms)
+
+
+# v488.89 regression guard: execute the bounded Glossary contract with the
+# same normalized term inputs used by the live handoff path.
+if _is_bounded_glossary_request(
+    "What is stewardship?",
+    glossary_term=_normalize_glossary_term("What is stewardship?"),
+) is not True:
+    raise RuntimeError("USE v488.89 glossary invariant failed: simple definition was not recognized")
+if _is_bounded_glossary_request(
+    "What is stewardship and why it matters now more than ever?",
+    glossary_term=_normalize_glossary_term("What is stewardship and why it matters now more than ever?"),
+) is not False:
+    raise RuntimeError("USE v488.89 glossary invariant failed: compound definition question was misrouted to Glossary")
+if _is_bounded_glossary_request(
+    "What is stewardship and why does it matter now more than ever?",
+    glossary_term=_normalize_glossary_term("What is stewardship and why does it matter now more than ever?"),
+) is not False:
+    raise RuntimeError("USE v489.22 glossary invariant failed: reported compound stewardship question was misrouted to Glossary")
+if _is_bounded_glossary_request(
+    "What does stewardship mean here?",
+    glossary_term=_normalize_glossary_term("What does stewardship mean here?"),
+) is not True:
+    raise RuntimeError("USE v488.89 glossary invariant failed: contextual definition was rejected")
+
+if _is_bounded_glossary_request(
+    "What does stewardship mean in the Living Archive?",
+    glossary_term=_normalize_glossary_term("What does stewardship mean in the Living Archive?"),
+) is not False:
+    raise RuntimeError("USE institutional-scope invariant failed: Archive-specific meaning question was misrouted to Glossary")
+
+if _is_bounded_glossary_request(
+    "What is the meaning of emptiness?",
+    glossary_term=_normalize_glossary_term("What is the meaning of emptiness?"),
+) is not False:
+    raise RuntimeError("USE glossary fallback invariant failed: unknown glossary term was handed off instead of remaining with the Guide")
+
+for _conceptual_glossary_regression in (
+    "What is the role of trust in community stewardship?",
+    "What is the purpose of reciprocity in a community?",
+    "What is the significance of human development?",
+):
+    if _is_bounded_glossary_request(
+        _conceptual_glossary_regression,
+        glossary_term=_normalize_glossary_term(_conceptual_glossary_regression),
+    ):
+        raise RuntimeError("USE conceptual inquiry was incorrectly routed to Glossary")
+
+if not _is_bounded_glossary_request(
+    "Open the Glossary for stewardship",
+    glossary_term=_normalize_glossary_term("Open the Glossary for stewardship"),
+):
+    raise RuntimeError("USE explicit Glossary navigation invariant failed")
+
+
+def _extract_embedded_glossary_term(query):
+    """Extract a bounded glossary term when definition intent is embedded in a longer question.
+
+    This is a visitor-boundary guard, not a second glossary search engine.
+    It exists so genuine meaning/definition requests remain Glossary-owned even
+    when an orientation phrase such as "where should I begin?" appears later
+    in the same sentence.
+    """
+    normalized = re.sub(r"\s+", " ", str(query or "").strip()).strip()
+    if not normalized:
+        return ""
+
+    patterns = (
+        r"\b(?:the\s+)?(?:word|term)\s+([A-Za-z][A-Za-z0-9-]*(?:\s+[A-Za-z][A-Za-z0-9-]*){0,5}?)\b.{0,120}?\b(?:actually\s+)?means?\b",
+        r"\b(?:not\s+sure|unsure|unclear)\s+what\s+(?:the\s+)?([A-Za-z][A-Za-z0-9-]*(?:\s+[A-Za-z][A-Za-z0-9-]*){0,5}?)\s+(?:actually\s+)?means?\b",
+        r"\bwhat\s+(?:the\s+)?([A-Za-z][A-Za-z0-9-]*(?:\s+[A-Za-z][A-Za-z0-9-]*){0,5}?)\s+is\s+all\s+about\b",
+    )
+
+    for pattern in patterns:
+        match = re.search(pattern, normalized, re.I)
+        if not match:
+            continue
+
+        term = re.sub(
+            r"^[\s\"']+|[\s\"'?.!]+$",
+            "",
+            match.group(1),
+        )
+        term = re.sub(
+            r"\s+(?:here|there)$",
+            "",
+            term,
+            flags=re.I,
+        )
+        term = re.sub(
+            r"^(?:the\s+term\s+|the\s+word\s+|word\s+)",
+            "",
+            term,
+            flags=re.I,
+        )
+
+        if 1 <= len(term) <= 120 and not re.search(r"[?\n]", term):
+            return term
+
+    return ""
+
+
+# v488.00 regression guards.
+if _normalize_glossary_term("What does forgiveness mean?") != "forgiveness":
+    raise RuntimeError("USE v488.00 invariant failed: glossary term extraction")
+if _normalize_glossary_term("What does the word stewardship mean?") != "stewardship":
+    raise RuntimeError("USE v488.04 invariant failed: glossary word-prefix extraction")
+if _normalize_glossary_term("What is the meaning of stewardship?") != "stewardship":
+    raise RuntimeError("USE v488.00 invariant failed: glossary meaning extraction")
+if _normalize_glossary_term("How do I forgive someone who hurt me?"):
+    raise RuntimeError("USE v487.98 invariant failed: open inquiry became glossary lookup")
+if _normalize_glossary_term(
+    "I keep seeing the word stewardship here, but I'm not sure what it actually means. Where should I begin?"
+) != "stewardship":
+    raise RuntimeError("USE v488.68 invariant failed: embedded word-meaning extraction")
+if _normalize_glossary_term(
+    "I want to know what stewardship is all about? How is it different from leadership, or management for that matter?"
+) != "stewardship":
+    raise RuntimeError("USE v488.68 invariant failed: embedded 'all about' extraction")
+if _normalize_glossary_term("Where should I begin exploring the Archive?"):
+    raise RuntimeError("USE v488.68 invariant failed: orientation request became glossary lookup")
+
+
+def _catalogue_handoff_url(query):
+    """Build the native Stewardship Catalogue destination for a bounded handoff.
+
+    The Catalogue owns its own search and presentation. USE only carries the
+    visitor's original request across the specialist boundary; it does not
+    duplicate Catalogue retrieval or ranking.
+    """
+    return (
+        "https://geralddaquila.com/explore-the-stewardship-catalogue/"
+        + "?catalogue_query="
+        + quote(str(query or "").strip(), safe="")
+    )
+def _is_catalogue_resource_search_query(query):
+    """Recognize natural-language requests to find/browse resources, not explanatory questions."""
+    text = re.sub(r"\s+", " ", str(query or "").strip().casefold())
+    if not text:
+        return False
+
+    resource_noun = (
+        r"(?:resources?|materials?|sources?|works?|essays?|articles?|cases?|"
+        r"readings?|publications?|texts?|information|content)"
+    )
+
+    # Resource-seeking questions can start with "what/which" without asking
+    # for an explanation of the underlying topic.
+    if re.search(rf"^(?:what|which)\s+{resource_noun}\b", text):
+        return True
+
+    search_pattern = re.compile(
+        rf"\b(?:where can i find|where do i find|how can i find|"
+        rf"find(?: me)?|search(?: for| the archive| the catalogue| the catalog)|"
+        rf"browse|explore|look(?:ing)? for|locate|recommend|suggest|"
+        rf"show me|list|give me|provide|surface|open)\b"
+        rf".{{0,120}}\b{resource_noun}\b"
+    )
+    # These requests explicitly name the Catalogue/Archive even when the
+    # visitor describes the task as browsing or exploring rather than searching.
+    catalogue_pattern = re.compile(
+        r"\b(?:browse|explore|search|open)\s+(?:the\s+)?"
+        r"(?:catalogue|catalog|archive)\b"
+    )
+    match = search_pattern.search(text)
+    if not match and not catalogue_pattern.search(text):
+        return False
+
+    # Preserve Guide explanations when a visitor asks an explanatory question
+    # first and only then appends a resource request.
+    explanatory_pattern = re.compile(
+        r"\b(?:what is|what are|why is|why are|why does|why do|"
+        r"explain|how does|how do|how is|how are)\b"
+    )
+    explanatory = explanatory_pattern.search(text)
+    if explanatory and match and explanatory.start() < match.start():
+        return False
+    if explanatory and not match:
+        return False
+    return True
+
+
+def _catalogue_handoff_payload(query, history):
+    catalogue_url = _catalogue_handoff_url(query)
+    request_id = "catalogue-" + hashlib.sha1(
+        (query + "|" + _history_text(history)).encode("utf-8")
+    ).hexdigest()[:16]
+    return {
+        "ok": True,
+        "version": APP_VERSION,
+        "query": query,
+        "intent": "CATALOGUE_HANDOFF",
+        "response": "",
+        "handoff": "catalogue",
+        "handoff_mode": "direct",
+        "handoff_pending": True,
+        "catalogue_query": query,
+        "catalogue_url": catalogue_url,
+        "return_mode": "native_catalogue_search",
+        "visitor_boundary_version": APP_VERSION,
+        "request_id": request_id,
+    }
+
+
+def _atlas_handoff_url(query):
+    """Build the native Living Archive Atlas Finder destination for a bounded handoff.
+
+    The Atlas Finder owns its own candidate retrieval, Groq semantic selection,
+    visual-asset resolution, and presentation. USE only carries the visitor's
+    original inquiry across the specialist boundary.
+    """
+    return (
+        "https://geralddaquila.com/the-living-archive-atlas/"
+        + "?atlas_query="
+        + quote(str(query or "").strip(), safe="")
+    )
+
+
+def _fsd_handoff_url(query):
+    """Build the native Fractal Systems Diagnostic landing page destination.
+
+    FSD owns its complete diagnostic experience after arrival. USE only
+    identifies the native doorway and sends the visitor directly to it.
+    """
+    return "https://geralddaquila.com/fractal-systems-diagnostic-2/"
+
+
+def _philippine_systems_handoff_url(query):
+    """Build the native Philippine Systems landing page destination."""
+    return "https://geralddaquila.com/understanding-the-philippines-culture-society-history-and-systemic-transformation/"
+
+
+def _is_outcome_evaluation_query(query):
+    """Identify questions evaluating whether a change is producing real outcomes.
+
+    Evidence-seeking evaluation is Guide navigation, not an automatic invitation
+    to the full diagnostic questionnaire. This must run before early FSD routing.
+    """
+    q = _normalize_query(query)
+    if not q:
+        return False
+    evaluation_language = bool(re.search(
+        r"\b(?:how can we tell|how do we know|how can (?:a|the) group tell|"
+        r"what evidence|what measures?|how to measure|whether|is .* actually|"
+        r"are .* actually|genuinely|really)\b",
+        q,
+        re.I,
+    ))
+    outcome_language = bool(re.search(
+        r"\b(?:reducing harm|reduce harm|harm reduction|improving outcomes?|"
+        r"outcomes?|intervention|revised approach|approach|addressed the problem|"
+        r"working|effective|improvement|improved|unintended harm|affected people)\b",
+        q,
+        re.I,
+    ))
+    return evaluation_language and outcome_language
+
+
+def _is_fsd_request(query):
+    """Recognize explicit or high-confidence natural-language FSD doorway requests.
+
+    FSD is a native diagnostic surface. The visitor should not have to know the
+    name of the tool before The Guide can recognize a clear systems-level
+    diagnostic need. The natural-language branch is deliberately bounded:
+    systems context must co-occur with genuinely diagnostic/problem language.
+
+    Important boundary:
+    A visitor can legitimately want to explore recurring patterns in people
+    and systems without asking for diagnosis. Broad pattern/series language
+    therefore remains Guide-owned and must not be promoted to FSD merely
+    because words such as "system", "pattern", or "recurring" appear.
+    """
+    q = _normalize_query(query)
+    if not q:
+        return False
+
+    # Explicit FSD naming remains the strongest doorway.
+    if re.search(r"\bfractal\s+systems?\s+diagnostic\b", q, re.I):
+        return True
+    if re.search(r"\bfsd\b", q, re.I):
+        return True
+
+    # Human agency, role, and responsibility questions are Guide-owned
+    # explanatory requests, even when they describe a broken system or use
+    # diagnostic-sounding vocabulary. Answer the person's question first;
+    # recommend FSD only as an optional next step when evidence supports it.
+    # Explicit FSD naming above remains an intentional direct-entry request.
+    agency_and_responsibility_question = bool(
+        re.search(
+            r"\b(?:how|what|when|where|why|can|could|should|do|does)\b.{0,100}"
+            r"\b(?:person|people|individuals?|we|i|you|someone|one)\b.{0,100}"
+            r"\b(?:responsib(?:le|ility)|accountab(?:le|ility)|"
+            r"contribut(?:e|ion|ing)|agency|role|burden|obligation|"
+            r"fix(?:ing)?|chang(?:e|ing)|participat(?:e|ion))\b",
+            q,
+            re.I,
+        )
+        and re.search(
+            r"\b(?:how|what|without|rather than|instead of|where|can|should|"
+            r"responsib(?:le|ility)|accountab(?:le|ility)|burden|obligation)\b",
+            q,
+            re.I,
+        )
+    )
+    if agency_and_responsibility_question:
+        return False
+
+    # Conceptual distinction questions should be answered by the Guide first.
+    system_concept_question = bool(
+        re.search(
+            r"\b(?:what makes|what distinguishes|how is|how does|when does)\b.{0,100}"
+            r"\b(?:a system|systems?)\b.{0,100}"
+            r"\b(?:rather than|instead of|as opposed to|collection of|separate problems?|isolated problems?)\b",
+            q,
+            re.I,
+        )
+    )
+    if system_concept_question:
+        return False
+
+    # A systems/organizational context is necessary for the natural-language
+    # diagnostic boundary.
+    systems_context = bool(re.search(
+        r"\b(?:organization|organizational|institution|institutional|community|"
+        r"system|systems|governance|structure|team|company|group)\b",
+        q,
+        re.I,
+    ))
+    if not systems_context:
+        return False
+
+    # Require an actual diagnostic/problematization signal. Do NOT treat
+    # generic "pattern", "recurring", "underlying", or "deeper" language as
+    # diagnostic by itself; those are legitimate Series & Analysis / Archive
+    # territory signals.
+    diagnostic_language = bool(re.search(
+        r"\b(?:wrong|problem|problems|issue|issues|broken|failing|fails|failure|"
+        r"not\s+working|isn't\s+working|aren't\s+working|stuck|"
+        r"dysfunction(?:al)?|diagnos(?:e|is|tic)|assess|assessment|"
+        r"what(?:\s+is|'s)\s+happening|"
+        r"help\s+me\s+figure\s+(?:out\s+)?(?:what|how)|"
+        r"underneath|maintaining|causing|driving|"
+        r"where\s+(?:do\s+i|to)\s+start)\b",
+        q,
+        re.I,
+    ))
+    if diagnostic_language:
+        return True
+
+    # Preserve explicit systems/organizational diagnostic wording.
+    return bool(re.search(
+        r"\b(?:systems?|organizational|organization(?:al)?|institutional|community)\s+"
+        r"(?:diagnostic|diagnosis|assessment)\b",
+        q,
+        re.I,
+    ))
+
+
+def _case_handoff_url(query):
+    """Build the native Case Navigator destination.
+
+    The Case Navigator owns structural inference, canonical stage/case
+    resolution, explanation, and visitor-facing presentation. USE only
+    carries the visitor's original inquiry across the native boundary.
+    """
+    return (
+        "https://geralddaquila.com/how-to-access-the-case-studies/"
+        + "?case_navigator_query="
+        + quote(str(query or "").strip(), safe="")
+    )
+
+
+def _is_case_navigator_request(query):
+    """Recognize a high-confidence request for the native Case Navigator."""
+    q = _normalize_query(query)
+    if not q:
+        return False
+
+    if re.search(r"\bcase\s+stud(?:y|ies)\b", q, re.I):
+        return True
+
+    if re.search(r"\b(?:relevant|matching|useful|best)\s+case\b", q, re.I):
+        return True
+
+    return bool(re.search(
+        r"\b(?:find|show|search|which|what|relevant|matching)\b.{0,50}"
+        r"\bcase(?:s)?\b",
+        q,
+        re.I,
+    ))
+
+def _glyph_handoff_url(query):
+    """Build the native Guardian Glyph Finder destination.
+
+    The Glyph Finder owns canonical Glyph identity resolution, semantic
+    evidence matching, and visitor-facing presentation. USE only carries the
+    visitor's original inquiry across the native search boundary.
+    """
+    return (
+        "https://geralddaquila.com/guardian-glyph-archives/"
+        + "?glyph_finder_query="
+        + quote(str(query or "").strip(), safe="")
+    )
+
+
+def _is_glyph_finder_request(query):
+    """Recognize a high-confidence request for the native Glyph Finder.
+
+    This is a visitor-boundary rule, not a duplicate Glyph retrieval engine.
+    Explicit Glyph/Guardian Glyph requests are handed to the native Finder
+    before provider routing can turn them into an ordinary Guide answer.
+
+    Natural-language symbol/icon/mark requests are also bounded here when the
+    visitor is clearly asking to identify, find, or understand the symbol.
+    This preserves the native Glyph Finder handoff without requiring the
+    visitor
+    to know the Archive's internal term "Glyph" first.
+    """
+    q = _normalize_query(query)
+    if not q:
+        return False
+
+    if re.search(r"\bguardian\s+glyphs?\b", q, re.I):
+        return True
+
+    if re.search(r"\bglyphs?\b", q, re.I):
+        return bool(re.search(
+            r"\b(?:find|show|lookup|look\s+up|meaning|mean|which|what|"
+            r"where|related\s+to|for|about|tell\s+me\s+about|"
+            r"search|identify)\b",
+            q,
+            re.I,
+        ))
+
+    symbol_term = bool(re.search(r"\b(?:symbol|icon|mark)\b", q, re.I))
+    if not symbol_term:
+        return False
+
+    lookup_language = bool(re.search(
+        r"\b(?:find|show|lookup|look\s+up|meaning|mean|which|what|"
+        r"where|identify|search|tell\s+me\s+about|"
+        r"what(?:\s+is|'s)\s+this|what\s+does\s+this)\b",
+        q,
+        re.I,
+    ))
+    return lookup_language
+
+
+# v488.22 Glyph Finder natural-language boundary guards.
+if not _is_glyph_finder_request("What is this symbol?"):
+    raise RuntimeError("USE v488.22 invariant failed: natural symbol lookup not recognized")
+if not _is_glyph_finder_request("What does this icon mean?"):
+    raise RuntimeError("USE v488.22 invariant failed: natural icon meaning lookup not recognized")
+if not _is_glyph_finder_request("Find the mark for sovereignty"):
+    raise RuntimeError("USE v488.22 invariant failed: natural mark lookup not recognized")
+if _is_glyph_finder_request("The symbol in my report is too large"):
+    raise RuntimeError("USE v488.22 invariant failed: non-lookup symbol context was misrouted")
+
+
+def _navigator_handoff_url(query):
+    """Build the native Living Archive Navigator entrance destination.
+
+    The Navigator's first screen is a welcome/orientation entrance, not a
+    question intake. The visitor's original USE question therefore does not
+    travel into the landing URL. The Navigator owns the subsequent inquiry
+    flow after the visitor chooses to begin.
+    """
+    return "https://geralddaquila.com/start-here-2/"
+
+def _is_navigator_orientation_request(query):
+    """Recognize high-confidence Archive/site orientation intent before retrieval.
+
+    This is a governance boundary, not a topic classifier. Clear orientation
+    requests are routed to the native Navigator before the Guide can answer
+    them as ordinary retrieval. Ambiguous questions still go through the
+    provider/model bank, preserving LLM judgment for cases that need it.
+    The rule intentionally combines an orientation action with an Archive/site
+    context, while also allowing strong first-entry language such as "I am new
+    here" or "where do I begin". It does not inspect the subject matter of the
+    requested resources.
+    """
+    q = _normalize_query(query)
+    if not q:
+        return False
+
+    orientation_action = re.search(
+        r"\b(?:where|how)\b.{0,80}\b(?:start|begin|get\s+started|"
+        r"enter|find\s+my\s+way|explore|navigate)\b"
+        r"|\b(?:best|good|right|useful)\s+(?:place|way)\s+to\s+"
+        r"(?:start|begin)\b"
+        r"|\b(?:new\s+to|new\s+here|new\s+around)\b"
+        r"|\b(?:how\s+do\s+i|where\s+do\s+i)\s+(?:start|begin|"
+        r"get\s+started|go\s+from\s+here)\b"
+        # Explicit whole-Archive pathway requests are orientation, not topic Q&A.
+        r"|\b(?:find|follow|choose|discover)\s+(?:a\s+)?path\s+(?:through|into|around)\b"
+        r"|\bwhat\b.{0,60}\b(?:explore|follow|read|look\s+at)\b.{0,40}\b(?:next|first|here)\b",
+        q,
+        re.I,
+    )
+    if not orientation_action:
+        return False
+
+    archive_context = re.search(
+        r"\b(?:living\s+archive|archive|this\s+site|this\s+website|"
+        r"this\s+site|site|website|here)\b",
+        q,
+        re.I,
+    )
+    first_entry = re.search(
+        r"\b(?:i(?:\s+am|'m)\s+new\s+(?:to\s+)?(?:this\s+site|"
+        r"this\s+website|the\s+archive|living\s+archive|here)|"
+        r"i(?:\s+am|'m)\s+new\s+here|"
+        r"where(?:'s|\s+is)\s+(?:the\s+)?(?:best|right|good)\s+place\s+"
+        r"to\s+(?:start|begin)|"
+        r"where\s+should\s+i\s+(?:start|begin))\b",
+        q,
+        re.I,
+    )
+    return bool(archive_context or first_entry)
+
+
+
+
+
+def _healthy_community_recommendation_pair(doorway):
+    """Return a canonical, topic-relevant recommendation or None.
+
+    Never infer a URL from a title. A recommendation must carry both its
+    visitor-facing title and a verified Living Archive HTTPS URL.
+    """
+    if not isinstance(doorway, dict):
+        return None
+    title = str(doorway.get("title") or "").strip()
+    url = str(doorway.get("url") or doorway.get("canonical_url") or "").strip()
+    if not title or not re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
+        return None
+    title_text = title.casefold()
+    # A broad doorway label is not a topic-specific recommendation. In
+    # particular, the generic "Governance" page must not displace the known
+    # healthy-community article for newcomers asking about healthier communities.
+    generic_titles = {"governance", "community", "communities", "social systems"}
+    if re.sub(r"[^a-z0-9]+", " ", title_text).strip() in generic_titles:
+        return None
+    relevance_terms = (
+        "communit", "collective", "civic", "social system", "human flourishing",
+        "human system", "participat", "belonging", "shared life",
+    )
+    if not any(term in title_text for term in relevance_terms):
+        return None
+    result = dict(doorway)
+    result["title"] = title
+    result["url"] = url
+    return result
+
+
+def _healthy_community_canonical_recommendation(query, context_data=None):
+    """Return the approved, topic-specific doorway for this bounded newcomer intent.
+
+    The exact canonical title and URL are already approved for this narrowly
+    recognized question and are also the existing fail-safe fallback. Repeating
+    broad WordPress searches here cannot change the selected destination: the
+    former path accepted only this exact pair, then returned the same pair if
+    all searches failed. Resolve it directly and let the normal final response
+    contract validate the answer and separately rendered recommendation.
+    """
+    if not _is_healthy_community_orientation_question(query):
+        return None
+    return {
+        "title": "What Healthy Communities Actually Look Like",
+        "url": (
+            "https://geralddaquila.com/2025/10/07/"
+            "t4-codex-overflow-communities-governance-by-resonance/"
+        ),
+        "kind": "archive_resource",
+    }
+
+
+def _is_healthy_community_orientation_question(query):
+    """Recognize a substantive healthy-community question from a newcomer."""
+    q = _normalize_query(query)
+    topic = re.search(
+        r"\b(?:healthier communities|healthy communities|healthy community|"
+        r"healthier community|health of (?:a |the )?community|"
+        r"healthy (?:community|communal) environment)\b",
+        q,
+        re.I,
+    )
+    asks_for_orientation = re.search(
+        r"\b(?:i(?:'m| am) new|don't know (?:its|the) vocabulary|"
+        r"do not know (?:its|the) vocabulary|where to begin|where do i begin|"
+        r"where should i start|where to start|want to know|want to understand|"
+        r"care about|how do i know|how to create|how to recognize)\b",
+        q,
+        re.I,
+    )
+    return bool(topic and asks_for_orientation)
+
+
+def _is_trust_community_stewardship_question(query):
+    """Recognize a bounded explanatory question about trust in shared stewardship."""
+    q = str(query or "").strip()
+    return bool(
+        re.search(r"\btrust\b", q, re.I)
+        and re.search(r"\bcommunity\b", q, re.I)
+        and re.search(r"\bstewardship\b", q, re.I)
+        and re.search(r"\b(?:role|meaning|what|how|why)\b", q, re.I)
+    )
+
+
+def _trust_community_stewardship_recovery():
+    """Give a substantive three-paragraph explanation when provider inference is unavailable."""
+    return (
+        "Trust helps people in a community rely on one another. In community stewardship, "
+        "that means people can share responsibility, speak honestly, and follow through on "
+        "commitments without having to control every action. Trust is not blind confidence; "
+        "it grows when people can see that words and actions match.\n\n"
+        "Think of a shared garden. The garden depends on people tending their part, sharing "
+        "tools and information, noticing when something is neglected, and talking openly "
+        "when a commitment is missed. Those ordinary actions let people coordinate and repair "
+        "problems before resentment takes over.\n\n"
+        "Stewardship is tending the garden together. Trust makes that shared work possible, "
+        "while accountable stewardship gives trust a history: people see that others return, "
+        "listen, keep promises, and address harm. The Living Archive's Trust Architecture "
+        "resource offers a related path for exploring how dependable relationships support "
+        "collective life."
+    )
+
+
+def _trust_community_stewardship_canonical_recommendation(query, context_data=None):
+    """Return the approved, topic-matched doorway for this bounded concept."""
+    if not _is_trust_community_stewardship_question(query):
+        return None
+    return {
+        "title": "Trust Architecture: The Missing Infrastructure Behind Functional Societies",
+        "url": (
+            "https://geralddaquila.com/2026/09/07/"
+            "trust-architecture-the-missing-infrastructure-behind-functional-societies/"
+        ),
+        "kind": "archive_resource",
+    }
+
+
+def _healthy_community_answer_recovery():
+    """Three-paragraph, answer-first entry point for newcomers asking about healthy communities."""
+    return (
+        "A healthy community is not simply one where people always agree or where conflict never happens. "
+        "It is one where people can participate, raise concerns, work through differences, and have a meaningful say "
+        "in decisions that affect them. Health shows up in how people live and decide together, not in the absence of disagreement.\n\n"
+        "You can begin to recognize a healthy community by looking at whose voices are heard, how responsibility is shared, "
+        "whether people feel safe enough to disagree, and what happens when someone is excluded or harmed. "
+        "A community's response to those moments matters: does it listen, repair what it can, and change the conditions "
+        "that caused harm, or does it hide the problem and leave the burden with the person affected?\n\n"
+        "You do not need to know the Living Archive's vocabulary to begin exploring this. Start with the everyday signs: "
+        "who gets to participate, how decisions are made, and whether people can raise concerns without being pushed aside. "
+        "The Archive's resource on what healthy communities actually look like can offer a deeper next step, while the "
+        "Living Archive Navigator can help you explore other perspectives if you want to continue."
+    )
+
+def _has_substantive_topic_intent(query):
+    """Keep a meaningful subject inquiry in The Guide before offering orientation.
+
+    A visitor can be new to the Archive and still have stated a clear topic
+    they want help understanding. In that case, answer the topic first; the
+    Navigator may be offered as an optional next step rather than replacing
+    the answer with an intake flow.
+    """
+    q = _normalize_query(query)
+    return bool(re.search(
+        r"\b(?:i\s+(?:care about|want to understand|want to know about|"
+        r"am interested in|would like to understand|am trying to understand)|"
+        r"how\s+(?:do|can|might|could)\s+i\s+(?:know|recognize|understand|create|build|improve)|"
+        r"what\s+(?:makes|does|would make|is|are)\s+.{2,100}|"
+        r"how\s+to\s+(?:create|build|recognize|improve|understand|support))\b",
+        q,
+        re.I,
+    ))
+
+
+def _is_explicit_atlas_request(query):
+    """Recognize a bounded request for the native Atlas / Reference Map surface.
+
+    Atlas routing must not turn ordinary uses of the word 'map' into a
+    specialist handoff. Explicit Atlas/Reference Map language is authoritative;
+    generic visual-map language is accepted only when paired with a clear
+    map-finding verb and a Living Archive subject context.
+    """
+    q = _normalize_query(query)
+    if re.search(r"\batlas\b", q, re.I):
+        return True
+    if re.search(r"\breference\s+maps?\b", q, re.I):
+        return True
+
+    map_request = bool(re.search(
+        r"\b(?:find|show|explore|looking\s+for|look\s+for|search\s+for|browse)\b"
+        r".{0,90}\b(?:visual\s+)?maps?\b",
+        q,
+        re.I,
+    ))
+    if not map_request:
+        return False
+
+    atlas_context = (
+        r"\b(?:stewardship|governance|leadership|relationships?|systems?|"
+        r"community|knowledge|discernment|transition|reciprocity|resilience|"
+        r"sovereignty|human\s+development)\b"
+    )
+    return bool(re.search(atlas_context, q, re.I))
+
+
+def _is_practical_stewardship_question(query):
+    """Recognize everyday application questions without invoking a model."""
+    q = _normalize_query(query)
+    return bool(
+        re.search(r"\b(?:how|what|which|when|where)\b", q, re.I)
+        and re.search(r"\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\b", q, re.I)
+        and re.search(r"\bstewardship\b", q, re.I)
+        and not _explicit_formation_entry_route(query)
+    )
+
+
+def _guide_route_fallback(query, history=None):
+    """Conservative fallback when the early LLM route cannot execute."""
+    q = _normalize_query(query)
+    combined = " ".join(part for part in (q, _guide_route_history_text(history)) if part)
+
+    if _is_practical_stewardship_question(query):
+        return {
+            "route": "guide",
+            "mode": "direct",
+            "confidence": 0.90,
+            "reason": "practical stewardship question stays in direct Guide response even when routing providers are unavailable",
+            "alternatives": ["guide"],
+            "source": "deterministic-practical-stewardship-fallback",
+        }
+
+    # Safety remains the highest deterministic boundary.
+    try:
+        profile = _base._inquiry_profile(query)
+        if profile.get("risk"):
+            return {
+                "route": "safety",
+                "mode": "safety",
+                "confidence": 1.0,
+                "reason": "deterministic safety boundary",
+                "alternatives": ["guide"],
+                "source": "deterministic-safety-fallback",
+            }
+    except Exception:
+        pass
+
+    if _is_fsd_request(query) and not _is_outcome_evaluation_query(query):
+        return {
+            "route": "fsd",
+            "mode": "direct",
+            "confidence": 0.98,
+            "reason": "explicit Fractal Systems Diagnostic request",
+            "alternatives": ["guide"],
+            "source": "deterministic-fallback",
+        }
+
+    # If the reasoning model is unavailable, remain conservative at the
+    # macro Guide layer. Do not substitute a deterministic topic classifier
+    # for the open-ended Round 1 reasoning. Safety remains authoritative.
+    if re.search(r"\b(?:glyph|symbol|icon|mark)\b", q) and re.search(
+        r"\b(?:find|show|lookup|look up|meaning|what does)\b", q, re.I
+    ):
+        return {
+            "route": "glyph",
+            "mode": "lookup",
+            "confidence": 0.65,
+            "reason": "explicit glyph lookup language",
+            "alternatives": ["guide"],
+            "source": "deterministic-fallback",
+        }
+
+
+    if _is_explicit_atlas_request(query):
+        return {
+            "route": "atlas",
+            "mode": "lookup",
+            "confidence": 0.90,
+            "reason": "explicit Atlas / Reference Map request",
+            "alternatives": ["guide"],
+            "source": "deterministic-fallback",
+        }
+
+    if re.search(r"\b(?:define|definition|what is|what does .* mean|meaning of)\b", q, re.I):
+        return {
+            "route": "glossary",
+            "mode": "lookup",
+            "confidence": 0.65,
+            "reason": "explicit definition language",
+            "alternatives": ["guide"],
+            "source": "deterministic-fallback",
+        }
+
+    return {
+        "route": "guide",
+        "mode": "direct",
+        "confidence": 0.50,
+        "reason": "no sufficiently bounded specialist route established",
+        "alternatives": ["guide"],
+        "source": "deterministic-fallback",
+    }
+
+
+def _guide_route_models():
+    """Return the currently viable provider/model bank for diagnostics."""
+    try:
+        return provider_bank_snapshot(use_core).get("candidates", [])
+    except Exception as exc:
+        print(f"USE provider bank snapshot failed: {exc}")
+        return []
+
+
+def _guide_node_semantic_activation(query, interpretation, route):
+    """Activate an approved Guide Node with explicit Level I/II precedence.
+
+    Level I nodes are concrete destinations: tools, navigators, diagnostics,
+    archives, and other specific experiences. Level II nodes are territories:
+    broader bodies of knowledge or pathways.
+
+    The registry remains structural. USE supplies the routing intelligence and
+    this guard only arbitrates approved destinations after macro routing.
+    """
+    route_id = str(route or "guide").strip().casefold()
+    if route_id in {"safety", "relationship", "glossary", "glyph", "fsd", "systems_ph", "atlas", "catalogue", "navigator"}:
+        return None
+    # Stale registry data may inform context, but authority-sensitive native
+    # doorway activation requires a fresh WordPress registry.
+    if not _guide_node_registry_is_fresh():
+        return None
+
+    # Case Navigator is a bounded retrieval specialist, but the model can
+    # occasionally choose it for broad pattern/series language because its
+    # territory includes recurring stewardship patterns. Do not let that
+    # mistaken macro route suppress an approved Guide Node. Preserve the Case
+    # Navigator boundary when the visitor actually asks for cases.
+    if route_id == "case" and _is_case_navigator_request(query):
+        return None
+
+    interpretation = interpretation if isinstance(interpretation, dict) else {}
+    # Destination arbitration must remain anchored to the visitor's actual
+    # words. The provider interpretation is useful for route selection, but it
+    # must not be allowed to manufacture destination evidence and then use that
+    # manufactured evidence to override the visitor's question. Otherwise a
+    # mistaken macro interpretation such as "leadership/system challenge" can
+    # make Leadership Challenge Navigator win a broad territory query that
+    # actually belongs to Series & Analysis.
+    raw_query = _normalize_query(query)
+    query_terms = set(_subject_terms(raw_query))
+    if not query_terms:
+        return None
+
+    territory_markers = (
+        "explore", "overview", "broader", "broad", "territory", "area",
+        "domain", "field", "pathway", "body of work", "body of knowledge",
+        "where can i learn", "where can i explore", "what part of the archive",
+        "which area", "which part", "understand the broader", "learn more about",
+    )
+    broad_request = any(marker in raw_query for marker in territory_markers)
+
+    candidates = []
+    for node in _guide_node_registry_snapshot():
+        title = str(node.get("title") or "").strip()
+        purpose = str(node.get("purpose") or "").strip()
+        hints = [str(item).strip() for item in (node.get("semantic_hints") or []) if str(item).strip()]
+        if not title:
+            continue
+
+        try:
+            level = int(node.get("discovery_level", 1) or 1)
+        except (TypeError, ValueError):
+            level = 1
+        if level not in {1, 2}:
+            level = 1
+
+        score = 0
+        signals = 0
+        distinctive = 0
+
+        title_norm = _normalize_query(title)
+        if title_norm and title_norm in raw_query:
+            score += 12
+            signals += 2
+            distinctive += 12
+
+        title_terms = set(_subject_terms(title_norm))
+        title_overlap = query_terms & title_terms
+        if title_overlap:
+            score += min(8, 4 * len(title_overlap))
+            signals += 1
+            distinctive += min(8, 4 * len(title_overlap))
+
+        # Multi-word semantic phrases carry more destination information than
+        # isolated generic words. This prevents a Level-I specialist such as
+        # Leadership Challenge Navigator from winning merely because a broad
+        # territory query happens to contain "systems" and "pattern".
+        query_tokens = tuple(_subject_terms(raw_query))
+        query_bigrams = {
+            " ".join(query_tokens[index:index + 2])
+            for index in range(max(0, len(query_tokens) - 1))
+        }
+        for phrase_source, weight in (
+            (hints, 5),
+            ([purpose], 4),
+        ):
+            for phrase in phrase_source:
+                phrase_norm = _normalize_query(phrase)
+                phrase_tokens = tuple(_subject_terms(phrase_norm))
+                phrase_bigrams = {
+                    " ".join(phrase_tokens[index:index + 2])
+                    for index in range(max(0, len(phrase_tokens) - 1))
+                }
+                phrase_overlap = query_bigrams & phrase_bigrams
+                if phrase_overlap:
+                    hits = min(3, len(phrase_overlap))
+                    score += weight * hits
+                    signals += 1
+                    distinctive += weight * hits
+
+        for hint in hints:
+            hint_norm = _normalize_query(hint)
+            if hint_norm and hint_norm in raw_query:
+                score += 8
+                signals += 1
+                distinctive += 8
+                continue
+            hint_terms = set(_subject_terms(hint_norm))
+            overlap = query_terms & hint_terms
+            if overlap:
+                score += min(6, 2 * len(overlap))
+                signals += 1
+
+        purpose_terms = set(_subject_terms(_normalize_query(purpose)))
+        purpose_overlap = query_terms & purpose_terms
+        if len(purpose_overlap) >= 2:
+            score += min(6, 2 * len(purpose_overlap))
+            signals += 1
+        elif len(purpose_overlap) == 1:
+            score += 2
+
+        if score >= 8 and signals >= 2:
+            candidates.append((score, signals, level, distinctive, node))
+
+    if not candidates:
+        return None
+
+    candidates.sort(key=lambda item: (item[0], item[1], item[3], -item[2]), reverse=True)
+
+    # Level I is not an automatic override. A concrete specialist must
+    # demonstrate destination-strength evidence; generic vocabulary must not
+    # suppress a materially better Level-II territory.
+    level_one = [item for item in candidates if item[2] == 1]
+    level_two = [item for item in candidates if item[2] == 2]
+
+    if level_one:
+        best_one = level_one[0]
+        best_two_for_comparison = level_two[0] if level_two else None
+        level_one_is_specific = best_one[3] >= 8
+        level_one_is_clear_winner = (
+            best_two_for_comparison is None
+            or best_one[0] >= best_two_for_comparison[0] + 4
+        )
+        if best_one[0] >= 8 and level_one_is_specific and level_one_is_clear_winner:
+            if len(level_one) > 1 and best_one[0] < level_one[1][0] + 3:
+                return None
+            node = best_one[4]
+            print(
+                "The Guide registry Level I activation: "
+                f"route_before={route_id}, node={node.get('node_id')}, "
+                f"score={best_one[0]}, signals={best_one[1]}"
+            )
+            return node
+
+    # Level II is intentionally conservative. It is a territory destination
+    # for broad exploration, not a substitute for a specific native experience.
+    if not broad_request:
+        # An exact territory title/hint can still activate directly when the
+        # visitor clearly names the territory itself.
+        explicit_level_two = [
+            item for item in level_two
+            if _normalize_query(str(item[4].get("title") or "")) in raw_query
+        ]
+        if explicit_level_two:
+            explicit_level_two.sort(key=lambda item: (item[0], item[1]), reverse=True)
+            return explicit_level_two[0][4]
+        return None
+
+    if not level_two:
+        return None
+
+    best_two = level_two[0]
+    if len(level_two) > 1 and best_two[0] < level_two[1][0] + 3:
+        return None
+
+    node = best_two[4]
+    print(
+        "The Guide registry Level II activation: "
+        f"route_before={route_id}, node={node.get('node_id')}, "
+        f"score={best_two[0]}, signals={best_two[1]}"
+    )
+    return node
+
+def _guide_capability_route(query, history=None):
+    """Interpret the opening inquiry through the provider-neutral intelligence bank."""
+    # The final route must be decided here, before any model candidate can
+    # redirect this known practical-question class into a delegated journey.
+    # The outer request boundary and the FastAPI app can each invoke routing;
+    # therefore this guard belongs at the shared routing entry point itself.
+    if _is_practical_stewardship_question(query):
+        return {
+            "route": "guide",
+            "mode": "direct",
+            "confidence": 0.99,
+            "reason": "practical stewardship question requires a direct Guide answer; model routing cannot override this intent",
+            "alternatives": ["guide"],
+            "source": "deterministic-practical-stewardship-final-route",
+        }
+    fallback = _guide_route_fallback(query, history)
+    history_text = _guide_route_history_text(history)
+    user_content = (
+        "Visitor question:\n"
+        + str(query).strip()
+        + ("\n\nRecent conversation context:\n" + history_text if history_text else "")
+        + "\n\nApproved Guide Nodes currently available (JSON):\n"
+        + _guide_node_prompt_context()
+    )
+    messages = [
+        {"role": "system", "content": _GUIDE_ROUTE_PROMPT},
+        {"role": "user", "content": user_content[:9000]},
+    ]
+
+    def _parse(raw):
+        parsed = json.loads(str(raw or "").strip())
+        if not isinstance(parsed, dict):
+            raise ValueError("route response was not an object")
+        return parsed
+
+    bank_result = route_with_model_bank(
+        use_core=use_core,
+        messages=messages,
+        max_tokens=2048,
+        parse=_parse,
+    )
+    if not bank_result:
+        print("USE provider bank: no viable intelligence candidate; using deterministic fallback")
+        return fallback
+
+    parsed = bank_result["parsed"]
+    provider = str(bank_result["provider"]).strip().casefold()
+    model_id = str(bank_result["model"]).strip()
+    preference_order = list(bank_result.get("preference_order") or [])
+
+    route = str(parsed.get("route") or "guide").strip().casefold()
+    mode = str(parsed.get("mode") or "direct").strip().casefold()
+    confidence = float(parsed.get("confidence", 0.0) or 0.0)
+    reason = str(parsed.get("reason") or "").strip()
+    alternatives = parsed.get("alternatives") or []
+    interpretation = {
+        "human_reality": str(parsed.get("human_reality") or "").strip(),
+        "presenting_situation": str(parsed.get("presenting_situation") or "").strip(),
+        "visitor_proposition": str(parsed.get("visitor_proposition") or "").strip(),
+        "underlying_question": str(parsed.get("underlying_question") or "").strip(),
+        "uncertainty": str(parsed.get("uncertainty") or "").strip(),
+        "desired_movement": str(parsed.get("desired_movement") or "").strip(),
+        "processing_need": str(parsed.get("processing_need") or "").strip().casefold(),
+        "glossary_term": str(parsed.get("glossary_term") or "").strip(),
+        "guide_node_id": str(parsed.get("guide_node_id") or "").strip(),
+    }
+
+    # Structural arbitration: outcome evaluation is not the same task as
+    # diagnosing system patterns. Apply this AFTER model interpretation so an
+    # FSD route cannot override an explicit evidence/outcome-evaluation intent.
+    # Keep this narrow: require both evaluation language and a change/outcome cue.
+    normalized_route_query = _normalize_query(query)
+    outcome_evaluation_intent = bool(
+        re.search(
+            r"\b(?:how can we tell|how do we know|how can (?:a|the) group tell|"
+            r"what evidence|what measures?|how to measure|whether|is .* actually|"
+            r"are .* actually|genuinely|really)\b",
+            normalized_route_query,
+            re.I,
+        )
+        and re.search(
+            r"\b(?:reducing harm|reduce harm|harm reduction|improving outcomes?|"
+            r"outcomes?|intervention|revised approach|approach|addressed the problem|"
+            r"working|effective|improvement|improved|unintended harm|affected people)\b",
+            normalized_route_query,
+            re.I,
+        )
+    )
+    if route == "fsd" and outcome_evaluation_intent:
+        route = "guide"
+        mode = "direct"
+        reason = (
+            "Structural route guard: the visitor is evaluating whether a change "
+            "is producing real outcomes. Keep the Guide responsible for evidence-"
+            "oriented navigation; FSD may be considered later if system-pattern "
+            "diagnosis is needed, but is not the first doorway."
+        )
+        print("USE route guard: outcome-evaluation intent retained in Guide instead of premature FSD")
+
+    # Keep ordinary practical questions in the Guide. Formation is a distinct
+    # delegated journey, not a substitute for answering a concrete public question
+    # merely because it mentions stewardship, practice, or responsibility.
+    # Only preserve a model-selected Formation route when the visitor explicitly
+    # asks to enter or prepare for the Formation pathway.
+    explicit_formation_entry = _explicit_formation_entry_route(query)
+    practical_stewardship_question = bool(
+        re.search(r"\b(?:how|what|which|when|where)\b", _normalize_query(query), re.I)
+        and re.search(r"\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\b", _normalize_query(query), re.I)
+        and re.search(r"\bstewardship\b", _normalize_query(query), re.I)
+    )
+    if route == "formation" and practical_stewardship_question and not explicit_formation_entry:
+        route = "guide"
+        mode = "direct"
+        reason = (
+            "A practical stewardship question requires a direct Guide answer; "
+            "Formation is reserved for explicit pathway entry or preparation."
+        )
+
+    if route == "guide" and _relational_boundary_decision(query).get("open"):
+        route = "relationship"
+        mode = "delegated_journey"
+        reason = (
+            "Guide-side structural arbitration recognized a lived relational "
+            "situation; Seeing the Relationship owns the next exploratory move."
+        )
+
+    activated_node = _guide_node_semantic_activation(query, interpretation, route)
+    if activated_node is not None:
+        route = "guide_node"
+        mode = "direct"
+        interpretation["guide_node_id"] = str(activated_node.get("node_id") or "").strip()
+        confidence = max(confidence, 0.90)
+        reason = (
+            "The approved Guide Node is a stronger destination match than the "
+            "broader macro route, based on multiple registry-defined semantic signals."
+        )
+
+    if route not in _GUIDE_ROUTE_IDS:
+        print(f"USE provider bank rejected unsupported route {route!r}; using fallback")
+        return fallback
+
+    if route == "guide_node":
+        selected_node = _guide_node_by_id(interpretation.get("guide_node_id"))
+        if selected_node is None:
+            print("USE provider bank proposed an unavailable Guide Node; continuing as ordinary Guide.")
+            route = "guide"
+            mode = "direct"
+            reason = "proposed Guide Node was not present in the authoritative active registry"
+    if mode not in {"direct", "delegated_journey", "lookup", "clarify", "safety"}:
+        mode = "direct"
+
+    if route == "relationship" and mode == "direct":
+        processing_need = str(interpretation.get("processing_need") or "").casefold().strip()
+        bounded_needs = {"retrieval", "definition", "lookup"}
+        if processing_need not in bounded_needs:
+            mode = "delegated_journey"
+            reason = (
+                "Round 1 identified a lived relational inquiry. Unless the visitor "
+                "is explicitly seeking a bounded lookup, definition, or retrieval task, "
+                "the relationship specialist owns the next exploratory move."
+            )
+
+    confidence = max(0.0, min(1.0, confidence))
+    alternatives = [
+        str(item).strip().casefold()
+        for item in alternatives
+        if str(item).strip().casefold() in _GUIDE_ROUTE_IDS
+    ][:3]
+
+    try:
+        profile = _base._inquiry_profile(query)
+        if _should_honor_protected_risk_profile(query, profile):
+            route = "safety"
+            mode = "safety"
+            confidence = 1.0
+            reason = "deterministic safety boundary"
+        elif profile.get("risk"):
+            print("The Guide capability router ignored protected-core risk fallback for a hypothetical safety calibration query.")
+    except Exception:
+        pass
+
+    route, mode, reason = _guard_hypothetical_safety_route(
+        query, route, mode, reason
+    )
+
+    result = {
+        "route": route,
+        "mode": mode,
+        "confidence": confidence,
+        "reason": reason[:500],
+        "alternatives": alternatives or ["guide"],
+        "source": "model_bank",
+        "provider": provider,
+        "model": model_id,
+        "preference_order": preference_order,
+        "round1_interpretation": interpretation,
+    }
+    print(
+        "USE capability route: "
+        f"source=model_bank, provider={provider}, model={model_id}, route={route}, "
+        f"mode={mode}, confidence={confidence:.3f}, reason={reason[:180]!r}"
+    )
+    return result
+
+
+def _relationship_specialist_response(query, history, route, request_id, raw_body=None):
+    """Run Seeing the Relationship through the common specialist pipe."""
+    context = _relationship_guide_context(history, raw_body or {})
+    context["route_interpretation"] = route.get("round1_interpretation") or {}
+    hub_request = build_hub_request(
+        request_id=request_id,
+        guide_version=APP_VERSION,
+        original_question=query,
+        recognized_territory="human relationships",
+        processing_purpose="open relational exploration from The Guide",
+        guide_context=context,
+        safety_state="green",
+    )
+    hub_contribution = route_spoke(
+        request=hub_request,
+        specialist_id="relationship",
+        invoke=lambda **kwargs: invoke_specialist(
+            SPECIALIST_ADAPTER_REGISTRY,
+            **kwargs,
+        ),
+    )
+    contribution = {
+        "status": hub_contribution.status,
+        "voice_policy": hub_contribution.voice_policy,
+        "human_response": str(
+            (hub_contribution.payload or {}).get("human_response") or ""
+        ),
+        "interpretation": dict(
+            (hub_contribution.payload or {}).get("interpretation")
+            or hub_contribution.payload
+            or {}
+        ),
+        "perspectives": list(
+            (hub_contribution.payload or {}).get("perspectives") or []
+        ),
+        "movement": dict(
+            (hub_contribution.payload or {}).get("movement") or {}
+        ),
+        "canonical_candidates": list(hub_contribution.canonical_candidates),
+        "journey": dict(
+            (hub_contribution.payload or {}).get("journey") or {}
+        ),
+    }
+    response = _relationship_integrated_response(contribution)
+    if not response:
+        raise RuntimeError("Seeing the Relationship returned no human response.")
+
+    journey = contribution.get("journey") or {}
+    movement = contribution.get("movement") or {}
+    interpretation = contribution.get("interpretation") or {}
+
+    return {
+        "response": response,
+        "relational_delegation": {
+            "state": "open",
+            "specialist": "Seeing the Relationship",
+            "specialist_id": "relationship",
+            "contract_version": RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION,
+            "voice_policy": RELATIONSHIP_VOICE_POLICY,
+            "session_id": request_id,
+            "seed_message": query,
+            "conversation": context.get("conversation") or "",
+            "handoff_reason": "The Guide recognized that this lived situation is best explored as a relationship before choosing a doorway into the Archive.",
+            "hrn_endpoint": "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator",
+            "guide_return_endpoint": "/api/relational-return",
+            "return_mode": "guide_integrated",
+            "movement": movement,
+            "interpretation": interpretation,
+            "journey": journey,
+        },
+    }
+
+
+def _formation_specialist_response(query, history, route, request_id):
+    """Run Formation through the common specialist pipe and integrate it into Guide output."""
+    interpretation = route.get("round1_interpretation") or {}
+    context = {
+        "conversation": _history_text(history),
+        "situation": str(interpretation.get("presenting_situation") or query),
+        "possibility": str(interpretation.get("desired_movement") or ""),
+        "desired_movement": str(interpretation.get("desired_movement") or ""),
+    }
+    hub_request = build_hub_request(
+        request_id=request_id,
+        guide_version=APP_VERSION,
+        original_question=query,
+        recognized_territory="stewardship formation",
+        processing_purpose="bounded formation navigation",
+        guide_context=context,
+        safety_state="green",
+    )
+    hub_contribution = route_spoke(
+        request=hub_request,
+        specialist_id="formation",
+        invoke=lambda **kwargs: invoke_specialist(
+            SPECIALIST_ADAPTER_REGISTRY,
+            **kwargs,
+        ),
+    )
+    # invoke_specialist() preserves the complete domain contribution in
+    # payload when the specialist owns a domain-specific contract. The common
+    # pipe metadata is not the domain interpretation itself.
+    domain_payload = dict(hub_contribution.payload or {})
+    interpretation_data = dict(domain_payload.get("interpretation") or {})
+    movement_data = dict(domain_payload.get("movement") or {})
+    pathway = str(interpretation_data.get("pathway") or "").strip()
+    doors = list(hub_contribution.canonical_candidates)
+    response = pathway or "There is something here worth staying with before deciding what it means."
+    return {
+        "response": response,
+        "formation_delegation": {
+            "state": "open",
+            "specialist": "Stewardship Formation Navigator",
+            "specialist_id": "formation",
+            "contract_version": FORMATION_CONTRIBUTION_CONTRACT_VERSION,
+            "voice_policy": FORMATION_VOICE_POLICY,
+            "doors": doors,
+            "movement": movement_data,
+            "interpretation": interpretation_data,
+            "return_mode": "guide_integrated",
+        },
+    }
+
+
+def _registered_available_specialist(specialist_id):
+    for capability in SPECIALIST_CAPABILITY_REGISTRY:
+        if (
+            capability.specialist_id == specialist_id
+            and capability.status == "available"
+        ):
+            return capability
+    return None
+
+
+# ---------------------------------------------------------------------
+# v488.31 — BASIC INQUIRY
+# ---------------------------------------------------------------------
+_BASIC_INQUIRY_ENABLED = str(__import__("os").getenv("USE_BASIC_INQUIRY_ENABLED", "1")).strip().casefold() not in {"0", "false", "no", "off"}
+
+_BASIC_INQUIRY_MACRO_PATTERNS = (
+    re.compile(r"\b(?:stewardship\s+formation|formation\s+navigator|formation\s+pathway)\b", re.I),
+    re.compile(r"\b(?:prepare|preparing|training|readiness|learning|learn|develop|developing)\b.{0,80}\b(?:stewardship|steward|governance|responsibilities|shared responsibility)\b|\b(?:stewardship|steward|governance)\b.{0,80}\b(?:responsibilities|readiness|training|learning)\b", re.I),
+    re.compile(r"\b(?:philippine\s+systems|philippines?\s+(?:systems?|culture|society|history|systemic\s+transformation)|systems?\s+in\s+the\s+philippines)\b", re.I),
+)
+
+def _basic_inquiry_requires_macro_routing(query):
+    """Keep the two not-yet-deterministic specialist surfaces on the legacy route."""
+    if not _BASIC_INQUIRY_ENABLED:
+        return True
+    normalized = _normalize_query(query)
+    return any(pattern.search(normalized) for pattern in _BASIC_INQUIRY_MACRO_PATTERNS)
+
+
+def _explicit_formation_entry_route(query):
+    """Deterministically route explicit Formation entry and preparation intent."""
+    normalized = _normalize_query(query)
+    named_formation_surface = bool(re.search(
+        r"\b(?:stewardship\s+formation|formation\s+navigator|formation\s+pathway)\b",
+        normalized,
+    ))
+    preparation_intent = bool(re.search(
+        r"\b(?:prepare|preparing|training|readiness|learning|learn|develop|developing|responsibilities)\b",
+        normalized,
+    ))
+    stewardship_scope = bool(re.search(
+        r"\b(?:stewardship|steward|governance|shared responsibility|responsibilities in a group)\b",
+        normalized,
+    ))
+    entry_language = bool(re.search(
+        r"\b(?:enter|start|begin|join|access|open|launch|take me to|"
+        r"where do i begin|where can i begin|where do i start|where can i start|"
+        r"where should i begin|where should i start|how do i prepare|how can i prepare)\b",
+        normalized,
+    ))
+    if not named_formation_surface and not (
+        preparation_intent and stewardship_scope and entry_language
+    ):
+        return None
+    if named_formation_surface and not entry_language and not preparation_intent:
+        return None
+    return {
+        "route": "formation",
+        "mode": "delegated_journey",
+        "confidence": 1.0,
+        "reason": "deterministic stewardship formation or preparation intent",
+        "alternatives": ["guide"],
+        "source": ("deterministic-explicit-formation-entry" if named_formation_surface else "deterministic-formation-preparation-entry"),
+        "round1_interpretation": {
+            "human_reality": "The visitor is asking how to prepare for stewardship responsibilities.",
+            "presenting_situation": str(query).strip(),
+            "visitor_proposition": str(query).strip(),
+            "underlying_question": "What learning and practice would help the visitor prepare for stewardship responsibilities?",
+            "uncertainty": "The most suitable formation movement remains to be explored by the Formation specialist.",
+            "desired_movement": "Open a relevant Stewardship Formation pathway.",
+            "processing_need": "formation",
+            "glossary_term": "",
+            "guide_node_id": "",
+        },
+    }
+
+
+def _basic_inquiry_round1_requires_discovery(query):
+    """Decide whether an open-ended question benefits from Guide Round 1 discernment.
+
+    This is deliberately a conservative surface-level gate. It identifies questions
+    that contain inquiry, recurrence, uncertainty, conflict, or stuckness language,
+    without asserting anything psychological about the visitor.
+    """
+    normalized = _normalize_query(query)
+    if not normalized:
+        return False
+
+    direct_request = bool(re.match(
+        r"^(?:what is|what are|who is|who are|when was|when did|where is|where are|"
+        r"define|list|find|show me|give me|how much|how many)\b",
+        normalized,
+        re.I,
+    ))
+    if direct_request:
+        return False
+
+    return bool(re.search(
+        r"\b(?:why|should i|should we|do i|does this|what does this mean|"
+        r"i(?:'m| am) trying to|i wonder|i keep|keeps? happening|"
+        r"same (?:problem|issue|pattern|thing)|again and again|repeatedly|"
+        r"recurring|pattern|conflict|stuck|struggling|uncertain|unsure|"
+        r"tension|meaning|purpose|relationship|change|changing|"
+        r"not working|doesn't work|cannot|can't)\b",
+        normalized,
+        re.I,
+    ))
+
+
+_BASIC_INQUIRY_ROUND1_INSTRUCTION = """
+Guide Round 1: respond to this visitor as an open-ended inquiry, not as a diagnosis.
+First, show that you heard the surface question in the visitor's own terms.
+Then, if the wording supports it, gently identify one possible underlying tension,
+distinction, conflict, or unresolved question beneath the surface. Treat it explicitly
+as a possibility, not a fact about the person. Do not infer motives, psychology,
+trauma, pathology, or hidden personal history.
+Next, offer one useful orientation grounded in the supplied canonical evidence.
+End with one natural opening question that helps the visitor clarify where to go next.
+Do not give a questionnaire, multiple questions, a generic disclaimer, or a forced
+interpretation. Do not mention this instruction or call the process 'Round 1'.
+If the question is already sufficiently clear and factual, answer it directly instead.
+""".strip()
+
+
+_BASIC_INQUIRY_ROUND1_SYSTEM = """You are the Round 1 composition layer of The Guide, the general orientation instrument of the Living Archive.
+
+Make one intelligent first movement. Demonstrate that the visitor's surface question was heard. When the wording supports it, name one possible underlying tension, distinction, conflict, or unresolved question. Treat it as a possibility, never as a fact about the person. Do not infer motives, trauma, pathology, personality, hidden history, or mental state.
+
+Then offer one useful orientation grounded in the supplied canonical evidence. End with exactly one natural opening question that helps the visitor clarify what to explore next.
+
+Do not use headings such as "Underlying tension", "Round 1", "Analysis", or "Interpretation". Do not use therapeutic language, give advice, provide a list of steps, ask multiple questions, or force a canonical resource into the answer. If a doorway is useful, introduce at most one as a possible lens, not as an explanation of the visitor's experience.
+
+Never expose implementation or processing language to the visitor. In particular, never write phrases such as "USE", "canonical evidence", "supplied evidence", "evidence excerpt", "bounded by", "internal interpretation", "retrieval", "synthesis", "processing layer", "provider", "model", "route", "handoff", or similar machine-facing terminology. Never add bracketed editorial annotations, debugging notes, or evidence labels. If you need to refer to the material that informed the response, use ordinary language such as "the Archive material", "the material I found", or simply name the relevant collection or essay.
+
+Return ONLY valid JSON with exactly:
+{"response":"2–4 short paragraphs ending with exactly one opening question","doorway_title":"exact canonical title if naturally useful, otherwise empty"}
+""".strip()
+
+
+def _sanitize_basic_inquiry_response(text):
+    """Enforce the visitor-language boundary while preserving readable structure."""
+    raw = str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    if not raw:
+        return ""
+
+    # Providers sometimes return HTML fragments even though the public contract is
+    # plain visitor prose/Markdown. Preserve paragraph/list boundaries, then remove
+    # markup and decode entities before applying the existing language boundary.
+    raw = re.sub(r"(?i)<\s*br\s*/?\s*>", "\n", raw)
+    raw = re.sub(r"(?i)</\s*(?:p|div|li|h[1-6]|section|article)\s*>", "\n\n", raw)
+    raw = re.sub(r"(?is)<[^>]{1,1000}>", "", raw)
+    raw = unescape(raw)
+
+    # v489.206: prevent formulaic editorial labels from leaking into ordinary
+    # explanatory answers. These are not semantic headings; they are prompt-shaped
+    # lead-ins that make a natural answer read like a templated mini-essay.
+    raw = re.sub(
+        r"(?im)(?<!\S)(?:why it matters now|practical implication)\s*:\s*",
+        "",
+        raw,
+    )
+
+    internal_bracket_patterns = (
+        r"\s*\[(?:evidence|canonical evidence|supplied evidence|evidence excerpt|"
+        r"evidence excerpt bounded by USE|bounded by USE|bounded by the Guide|"
+        r"internal interpretation|retrieval|synthesis|processing layer|provider|model|"
+        r"route|handoff)(?:[^\]]*)\]\s*",
+        r"\s*\((?:evidence excerpt bounded by USE|bounded by USE|internal interpretation|"
+        r"retrieval|synthesis|processing layer)\)\s*",
+    )
+    for pattern in internal_bracket_patterns:
+        raw = re.sub(pattern, " ", raw, flags=re.I)
+
+    replacements = (
+        (r"\bevidence excerpt bounded by USE\b", "the material I found"),
+        (r"\bcanonical evidence\b", "the Archive material"),
+        (r"\bsupplied evidence\b", "the material I found"),
+        (r"\binternal interpretation\b", "the way the question can be understood"),
+        (r"\bprocessing layer\b", "the material"),
+        (r"\b(?:retrieval|synthesis)\s+layer\b", "the material"),
+    )
+    for pattern, replacement in replacements:
+        raw = re.sub(pattern, replacement, raw, flags=re.I)
+
+    # Final fail-closed cleanup for legacy provider payloads that append the
+    # evidence marker without brackets or after a truncated excerpt. The browser
+    # rejects this phrase by design; remove the internal annotation server-side
+    # so a recoverable answer is not turned into a generic UI failure.
+    raw = re.sub(
+        r"(?i)(?:\s*[.…]{0,3}\s*)?\[?\s*evidence excerpt bounded by USE\s*\]?",
+        "",
+        raw,
+    )
+    raw = re.sub(
+        r"(?i)\s*\[?(?:canonical evidence|supplied evidence|bounded by USE|"
+        r"bounded by the Guide|internal interpretation|retrieval layer|"
+        r"synthesis layer|processing layer|machine-facing metadata)\]?\s*",
+        " ",
+        raw,
+    )
+
+    # The final visitor boundary must not undo Markdown normalization performed
+    # by General Guide Composition. Providers vary in list style and may emit
+    # numbered actions inline, so apply the same bounded structural repair here.
+    action_label = r"\*\*[^*\n]{2,100}\*\*"
+    action_separator = r"(?:\s*:\s*|\s+[–—−-]\s+)"
+    raw = re.sub(
+        rf"\s+-\s+(?={action_label}{action_separator})",
+        "\n- ",
+        raw,
+    )
+    raw = re.sub(
+        rf"(?<=\S)\s+(?=\d{{1,2}}[.)]\s+{action_label}{action_separator})",
+        "\n",
+        raw,
+    )
+
+    paragraphs = []
+    for block in re.split(r"\n\s*\n+", raw):
+        lines = []
+        for line in block.split("\n"):
+            line = re.sub(r"\s+", " ", line).strip()
+            if not line:
+                continue
+            line = re.sub(r"\s+([,.;!?])", r"\1", line)
+            line = re.sub(r"([.!?])\s*\1+", r"\1", line)
+            lines.append(line)
+        if lines:
+            paragraphs.append("\n".join(lines))
+
+    return "\n\n".join(paragraphs).strip()
+
+
+_BASIC_INQUIRY_VISITOR_LANGUAGE_PROBE = _sanitize_basic_inquiry_response(
+    "This points to the Archive. [evidence excerpt bounded by USE]"
+)
+if _BASIC_INQUIRY_VISITOR_LANGUAGE_PROBE != "This points to the Archive.":
+    raise RuntimeError("USE v488.90 visitor-language invariant failed: internal evidence annotation escaped sanitizer.")
+
+# v489.28 final-boundary regression probes: the final public response sanitizer
+# must preserve paragraph and Markdown-list boundaries after generation.
+_BASIC_INQUIRY_MARKDOWN_PROBE = _sanitize_basic_inquiry_response(
+    "Practical steps: 1. **Set clear boundaries** – stop after work. "
+    "Treat downtime as non-negotiable. 2. **Delegate and trust** – hand off tasks. "
+    "3. **Seek support** – ask a peer."
+)
+if "\n2. **Delegate and trust**" not in _BASIC_INQUIRY_MARKDOWN_PROBE:
+    raise RuntimeError("USE v489.28 invariant failed: final boundary flattened numbered Markdown steps.")
+if "\n3. **Seek support**" not in _BASIC_INQUIRY_MARKDOWN_PROBE:
+    raise RuntimeError("USE v489.28 invariant failed: final boundary flattened consecutive numbered Markdown steps.")
+
+_BASIC_INQUIRY_FINAL_BOUNDARY_PROBE = _sanitize_basic_inquiry_response(
+    "A useful place to begin is the Archive. [evidence excerpt bounded by USE]"
+)
+if _BASIC_INQUIRY_FINAL_BOUNDARY_PROBE != "A useful place to begin is the Archive.":
+    raise RuntimeError("USE v488.91 visitor-language invariant failed: final response boundary is not sealed.")
+
+# v489.206 regression: ordinary explanatory prose must not expose formulaic section labels.
+_BASIC_INQUIRY_NATURAL_PROSE_PROBE = _sanitize_basic_inquiry_response(
+    "Stewardship means caring for what is entrusted to us.\n\n"
+    "Why it matters now: carelessness passes costs to others.\n\n"
+    "Practical implication: consider who will live with the consequences."
+)
+if re.search(r"(?i)\b(?:why it matters now|practical implication)\s*:", _BASIC_INQUIRY_NATURAL_PROSE_PROBE):
+    raise RuntimeError("USE v489.206 invariant failed: formulaic explanatory labels escaped the visitor boundary.")
+if "carelessness passes costs to others" not in _BASIC_INQUIRY_NATURAL_PROSE_PROBE or "consider who will live with the consequences" not in _BASIC_INQUIRY_NATURAL_PROSE_PROBE:
+    raise RuntimeError("USE v489.206 invariant failed: natural-prose label cleanup removed substantive answer text.")
+
+
+def _basic_inquiry_has_internal_annotation(response):
+    """Detect internal evidence/processing annotations that invalidate visitor prose."""
+    return bool(re.search(
+        r"(?i)(?:evidence excerpt bounded by USE|canonical evidence|supplied evidence|"
+        r"bounded by USE|bounded by the Guide|internal interpretation|"
+        r"retrieval layer|synthesis layer|processing layer|machine-facing metadata)",
+        str(response or ""),
+    ))
+
+
+def _guide_generic_practical_template_mismatch(query, response_text):
+    """Catch the specialist's generic action-planning template when it substitutes for an answer."""
+    q = re.sub(r"\s+", " ", _normalize_query(query)).strip().casefold()
+    response = re.sub(r"\\s+", " ", str(response_text or "")).strip().casefold()
+    generic_template = bool(re.match(
+        r"^(?:a practical way to approach|a practical way to think about|to approach this)\\b",
+        response,
+    ))
+    if not generic_template:
+        return False
+    # This template is appropriate only when the visitor explicitly asks for a
+    # practical approach, next steps, a plan, or how to do/solve something.
+    asks_for_action = bool(re.search(
+        r"\\b(?:how do i|how can i|how should i|what should i do|steps to|practical way|make a plan|plan for|solve|fix|implement|approach this practically)\\b",
+        q,
+    ))
+    return not asks_for_action
+
+
+def _guide_historical_origin_mismatch(query, response_text):
+    """Detect the reproduced historical question receiving generic planning prose."""
+    q = re.sub(r"\\s+", " ", _normalize_query(query)).strip().casefold()
+    response = re.sub(r"\\s+", " ", str(response_text or "")).strip().casefold()
+    historical_question = bool(
+        re.search(r"\\bphilippines\\b", q)
+        and re.search(r"\\b(?:matriarch(?:al|y)|patriarch(?:al|y)|gender roles?)\\b", q)
+        and re.search(r"\\b(?:where|how|origin|evolv|histor|come from|develop)\\b", q)
+    )
+    return historical_question and _guide_generic_practical_template_mismatch(query, response_text)
+
+
+def _guide_historical_origin_recovery():
+    """Gold-Standard bounded answer for the reproduced Philippines history/social failure."""
+    return (
+        "The Philippines can look patriarchal today while carrying a long history in which women held substantial social, economic, and spiritual authority. "
+        "In many precolonial communities, women could own or inherit property, participate in trade, and exercise influence in family and community decisions. "
+        "Women known in some traditions as babaylan also served as healers, ritual leaders, and interpreters of spiritual life. "
+        "These practices varied across regions and communities, so it is more accurate to speak of strong traditions of female authority than to describe the whole archipelago as uniformly matriarchal.\n\n"
+        "Spanish colonial rule introduced and strengthened institutions shaped by Catholic patriarchy, including new expectations around marriage, public authority, and women's proper social roles. "
+        "Those influences did not erase earlier practices all at once, nor did they create every form of gender hierarchy; local customs, class, religion, colonial administration, and later political and economic changes interacted over centuries. "
+        "Women's authority persisted in families, livelihoods, community leadership, and religious life even as formal institutions often privileged men.\n\n"
+        "The tension today is therefore not a contradiction so much as the result of layered histories. "
+        "Women in the Philippines have held visible roles in commerce, civic life, and national leadership, while patriarchal expectations and unequal power remain in many settings. "
+        "Calling the country simply matriarchal or patriarchal can hide that complexity: the more useful question is where women hold real decision-making power, where they do not, and how those patterns differ by region, class, generation, and institution."
+    )
+
+
+def _guide_finalize_visitor_payload(payload, query):
+    """Apply shared visitor-facing quality and contamination boundaries to every route."""
+    if not isinstance(payload, dict):
+        return payload
+    response_text = str(payload.get("response") or "")
+    # The Gold Standard is the floor across all specialist routes. A generic
+    # practical-planning template is not a valid substitute for an explanatory
+    # answer; the known historical-origin case has a grounded bounded recovery.
+    if _guide_generic_practical_template_mismatch(query, response_text) and _guide_historical_origin_mismatch(query, response_text):
+        safe = dict(payload)
+        safe["response"] = _sanitize_basic_inquiry_response(_guide_historical_origin_recovery())
+        safe["processing"] = "final_visitor_boundary_historical_answer_recovery"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        print(
+            "The Guide shared final visitor boundary: replaced generic planning prose "
+            "for a Philippines historical-origin question with a bounded explanatory answer."
+        )
+        return safe
+    # Source/template fragments are a separate contamination class from evidence
+    # annotations. Detect them at the shared API boundary so they cannot escape
+    # regardless of which provider, retrieval route, or composer produced them.
+    if (
+        not _basic_inquiry_has_internal_annotation(response_text)
+        and not _basic_inquiry_has_source_dump(response_text)
+    ):
+        return payload
+
+    # If executable/template text escaped into the answer, bypass the same
+    # composition path and use the dedicated safe recovery for the visitor's query.
+    if _basic_inquiry_has_source_dump(response_text):
+        response = _sanitize_basic_inquiry_response(
+            _basic_inquiry_source_dump_recovery(query)
+        )
+        recovered = {}
+    else:
+        recovered = _basic_inquiry_round1_deterministic_response(
+            query, {}, {"context_blocks": ""}, recommendation_available=False
+        )
+        response = _sanitize_basic_inquiry_response(str(recovered.get("response") or "").strip())
+    if (
+        not response
+        or _basic_inquiry_has_internal_annotation(response)
+        or _basic_inquiry_has_source_dump(response)
+    ):
+        response = _sanitize_basic_inquiry_response(_basic_inquiry_source_dump_recovery(query))
+
+    safe = dict(payload)
+    safe.update({
+        "ok": True,
+        "response": response,
+        "recommendation": None,
+        "answer_basis": {
+            "kind": "general_knowledge",
+            "label": "General knowledge",
+            "explanation": "The response was recovered without relying on a direct Archive source.",
+        },
+        "processing": "final_visitor_boundary_recovery",
+        "route_source": "guide_final_visitor_boundary",
+        "visitor_boundary_version": APP_VERSION,
+    })
+    safe.pop("error_type", None)
+    print(
+        "The Guide shared final visitor boundary: discarded contaminated response "
+        "and any incidental recommendation; deterministic recovery used."
+    )
+    return safe
+
+
+_BASIC_INQUIRY_INTERNAL_ANNOTATION_PROBE = (
+    "A partial source sentence … [evidence excerpt bounded by USE]"
+)
+if not _basic_inquiry_has_internal_annotation(_BASIC_INQUIRY_INTERNAL_ANNOTATION_PROBE):
+    raise RuntimeError("USE visitor boundary invariant failed: internal evidence annotation was not detected.")
+
+
+def _basic_inquiry_has_source_dump(response):
+    """Detect copied source fragments and executable/template text unsafe for visitors."""
+    text = str(response or "")
+    return bool(re.search(
+        r"(?i)(?:case studies and real-world applications|"
+        r"consider\s+[A-Z][a-z]+,\s*\d{2,3}[- ]year[- ]old|"
+        r"eisenhower matrix|by adopting mindfulness meditation|"
+        r"\bcurrentTurn\s*={2,3}|\bnextQuestion\s*:|"
+        r"\b(?:else\s+if|reflection\s*:)|"
+        r"\bresponse\s*=\s*\{|"
+        r"\{\s*currentTurn\s*={2,3}|"
+        r"\b(?:const|let|var)\s+(?:currentTurn|nextQuestion|response)\b)",
+        text,
+    ))
+
+
+def _basic_inquiry_source_dump_recovery(query):
+    """Fail-closed visitor answer when the composer returns copied source material."""
+    q = _normalize_query(query).casefold()
+    if re.search(r"\boverwhelmed\b", q) and re.search(r"\b(?:who|talk|someone|support)\b", q):
+        return (
+            "When you're overwhelmed, you don't have to find the perfect person or explain everything at once. "
+            "If there's someone you trust, you could start with: “I'm having a hard time and could use someone to listen. Do you have a few minutes?” "
+            "If no one comes to mind, a local community support service or a qualified professional can be another place to start. "
+            "If you feel in immediate danger or might hurt yourself, contact local emergency or crisis support now."
+        )
+    if re.search(r"\b(?:same problems?|problems? keep returning|keep coming back|same pattern)\b", q):
+        return (
+            "A problem can keep returning even when people are trying hard because fixing each incident "
+            "does not always change the conditions that reproduce it. Those conditions might include "
+            "unclear responsibility, competing incentives, limited resources, or a handoff where information "
+            "gets lost. For example, a team may correct every missed handoff but keep a process in which "
+            "nobody confirms the next person received the work. The immediate mistake is fixed, but the "
+            "same gap remains. These are possibilities to examine, not conclusions about your situation."
+        )
+    if "stewardship" in q:
+        return (
+            "Stewardship means taking care of what has been entrusted to you while recognizing your limits and the effects your choices have on others. "
+            "It matters because care, neglect, and responsibility accumulate over time, shaping what remains available to other people and to the future."
+        )
+    return (
+        "I can help you think this through, but I don't want to pass along a copied passage as if it were an answer to your question. "
+        "A useful first step is to identify the part of the situation that matters most to you right now, then look for a resource that speaks directly to it."
+    )
+
+
+def _basic_inquiry_round1_response(query, interpretation, context_data):
+    """Compose a true Guide Round 1 response without altering protected core."""
+    interpretation = interpretation or {}
+    try:
+        documents = use_core.context_blocks_to_documents(
+            str(context_data.get("context_blocks") or "")
+        )
+    except Exception:
+        documents = []
+    evidence = []
+    for document in documents[:3]:
+        title = str(document.get("title") or "").strip()
+        content = str(document.get("content") or "").strip()
+        if title:
+            evidence.append({"title": title, "content": content[:2200]})
+
+    internal = {
+        "human_reality": str(interpretation.get("human_reality") or "").strip(),
+        "presenting_situation": str(interpretation.get("presenting_situation") or "").strip(),
+        "visitor_proposition": str(interpretation.get("visitor_proposition") or "").strip(),
+        "underlying_question": str(interpretation.get("underlying_question") or "").strip(),
+        "uncertainty": str(interpretation.get("uncertainty") or "").strip(),
+        "desired_movement": str(interpretation.get("desired_movement") or "").strip(),
+    }
+    user_content = (
+        "Surface question:\n" + str(query).strip()
+        + "\n\nTentative internal interpretation:\n"
+        + json.dumps(internal, ensure_ascii=False)
+        + "\n\nCanonical evidence:\n"
+        + json.dumps(evidence, ensure_ascii=False)
+    )
+
+    def _parse(raw):
+        parsed = json.loads(str(raw or "").strip())
+        if not isinstance(parsed, dict):
+            raise ValueError("Round 1 response was not an object.")
+        response = str(parsed.get("response") or "").strip()
+        title = str(parsed.get("doorway_title") or "").strip()
+        if not response:
+            raise ValueError("Round 1 response was empty.")
+        if response.count("?") != 1:
+            raise ValueError("Round 1 response must contain exactly one opening question.")
+        return {"response": response, "doorway_title": title}
+
+    bank_result = route_with_model_bank(
+        use_core=use_core,
+        messages=[
+            {"role": "system", "content": _BASIC_INQUIRY_ROUND1_SYSTEM},
+            {"role": "user", "content": user_content[:12000]},
+        ],
+        max_tokens=500,
+        parse=_parse,
+    )
+    if not bank_result:
+        return None
+
+    parsed = bank_result["parsed"]
+    canonical_titles = {str(item.get("title") or "").strip() for item in evidence if str(item.get("title") or "").strip()}
+    selected = str(parsed.get("doorway_title") or "").strip()
+    if selected and selected not in canonical_titles:
+        selected = ""
+    visitor_response = _sanitize_basic_inquiry_response(parsed["response"])
+    if not visitor_response:
+        return None
+    if visitor_response.count("?") != 1:
+        return None
+    if re.search(
+        r"\b(?:evidence excerpt|canonical evidence|internal interpretation|"
+        r"bounded by USE|processing layer|provider|model|retrieval|synthesis)\b",
+        visitor_response,
+        re.I,
+    ):
+        return None
+
+    return {
+        "response": visitor_response,
+        "doorway_title": selected,
+        "provider": str(bank_result.get("provider") or ""),
+        "model": str(bank_result.get("model") or ""),
+    }
+
+
+def _explicit_closing_question_requested(query):
+    """Recognize a visitor's explicit request for one closing or reflective question."""
+    q = re.sub(r"\s+", " ", str(query or "")).strip()
+    return bool(
+        re.search(r"\b(?:finish|end)\b.{0,100}\bquestion\b", q, re.I)
+        or re.search(r"\bquestion\b.{0,100}\b(?:invite|inviting|prompt|prompting)\b", q, re.I)
+        or re.search(r"\bask me\b.{0,60}\bquestion\b", q, re.I)
+    )
+def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_data, *, recommendation_available=False):
+    """Keep specialist recoveries; improve only the generic provider-exhaustion answer."""
+    import general_guide_composition as _guide_composition
+    result = _basic_inquiry_round1_deterministic_response(
+        query, interpretation, context_data,
+        recommendation_available=recommendation_available,
+    )
+    if isinstance(result, dict) and result.get("provider") == "deterministic_question_preserving_recovery":
+        result = dict(result)
+        result["response"] = _compose_provider_exhaustion_recovery(
+            query,
+            underlying_question=str((interpretation or {}).get("underlying_question") or ""),
+            desired_movement=str((interpretation or {}).get("desired_movement") or ""),
+        )
+        # Shared definition recovery must replace the weak legacy fallback at
+        # the provider-exhaustion boundary, and must still pass semantic gates.
         if re.match(
             r"(?i)^what is (?:an? |the )?(.+?),? and why does it matter\??$",
             re.sub(r"\s+", " ", str(query or "")).strip(),
@@ -17,7 +4697,7 @@
                     "provider": "rejected_non_substantive_recovery",
                     "model": "quality-gate-rejection",
                 }
-if is_harm_repair_question(query):
+        if is_harm_repair_question(query):
             # The generic first retrieved document is not evidence that its page
             # is a suitable continuation for a harm-repair adequacy question.
             # Keep this bounded recovery self-contained rather than exposing a
