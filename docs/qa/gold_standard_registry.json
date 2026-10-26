@@ -1881,21 +1881,25 @@
       "query": "What is the role of operational discipline in humane leadership?",
       "expected_response": "Operational discipline is the steady practice of turning humane intentions into reliable actions. In leadership, it means keeping commitments, making decisions clearly, following through, and ensuring that people can depend on agreed ways of working. It gives care a practical form: respect is not only expressed in words, but shown in how work is organized and how people are treated.\n\nThis discipline matters because good intentions alone do not prevent confusion, unfairness, or repeated mistakes. For example, a leader who sets clear responsibilities, explains why a decision was made, checks whether a handoff worked, and addresses missed commitments fairly makes it easier for people to contribute without guessing what is expected. Consistent processes also help a team notice problems early rather than relying on individual heroics to keep everything moving.\n\nHumane operational discipline is not rigid rule-following or control for its own sake. Standards should create reliability while leaving room to listen, learn, and adapt when circumstances change or a process harms the people it is meant to serve. The leader’s task is to hold commitments and boundaries consistently, apply them fairly, and improve the way work is done—so accountability strengthens dignity and trust instead of becoming punishment.",
       "expected_doorway": {
-        "title": "",
+        "title": "From Awakening to Stewardship",
         "url": null
       },
       "assertions": [
-        "Exactly three substantive, connected paragraphs.",
+        "Exactly three substantive, connected paragraphs, preserving the screenshot-approved answer verbatim.",
         "Directly explains operational discipline in humane leadership rather than describing what an answer should contain.",
         "Connects humane intentions to reliable commitments, clear responsibilities, fair accountability, and follow-through.",
         "Distinguishes humane discipline from rigid rule-following or control.",
+        "The visitor-facing screenshot confirms the separate doorway label “From Awakening to Stewardship” appears after the complete answer.",
+        "Keep the doorway separate from the three-paragraph answer; do not fabricate a destination URL when the screenshot does not establish it.",
         "Does not expose provider failure, fallback mechanics, or internal implementation language."
       ],
       "provenance": {
         "source_path": "visitor-facing Guide screenshot supplied by user on 2026-10-26",
-        "source_ref": "user-provided screenshot dated 2026-10-26",
+        "source_ref": "user-provided live visitor screenshot dated 2026-10-26",
         "source_status": "USER_APPROVED_GOLD_STANDARD",
-        "evidence_boundary": "The screenshot documents a three-paragraph meta-answer failure. The registered substantive answer is a deterministic recovery benchmark and must still be verified in live end-to-end behavior."
+        "review_rating": "9/10",
+        "approval_basis": "The user reviewed the live visitor response, rated it as meeting expectations, and explicitly requested registry inclusion.",
+        "evidence_boundary": "Screenshot confirms the exact displayed three-paragraph answer and the visible doorway title. It does not independently verify the destination URL, canonical content relevance, or all backend runtime paths."
       },
       "freeze_policy": "Preserve expected_response verbatim. Do not change wording without explicit user authorization and a separately documented benchmark-version change."
     }
