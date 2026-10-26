@@ -85,11 +85,13 @@ def _is_ethical_tradeoff(question):
     competing_values = bool(re.search(
         r"\b(?:disagree|competing|conflict|trade.?offs?|priorit(?:y|ies)|"
         r"protect(?:ing)?|worth protecting|deeply value|important to each|"
-        r"lose something|irreversible|bear the costs|fair(?:ly|ness)?)\b", q
+        r"lose something|irreversible|bear the costs|"
+        r"stakeholders?|obligations?|duties|interests)\b", q
     ))
     asks_for_judgment = bool(re.search(
-        r"\b(?:how should we decide|how do we decide|what should we protect|"
-        r"what if|who should decide|which should|what is fair|fair process|what does .{0,80} look like)\b", q
+        r"\b(?:how can|how should|how do we|how should we decide|how do we decide|"
+        r"what should we protect|what if|who should decide|which should|what is fair|"
+        r"fair process|balance|reconcile|hold .{0,70} obligations?|what does .{0,80} look like)\b", q
     ))
     return competing_values and asks_for_judgment
 
@@ -177,6 +179,12 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
                 "represented, and review the decision when new evidence or consequences emerge. The aim is to handle "
                 "disagreement responsibly, not to erase it."
             )
+        elif re.search(r"\b(?:stakeholders?|obligations?|duties)\b", lower):
+            answer = (
+                "Leaders can hold competing stakeholder obligations by treating them as responsibilities to weigh openly, not as a contest in which one group must automatically win. Start by naming each obligation, the people who depend on it, and the legitimate interests or rights at stake. Separate commitments that must be honored from preferences that can be negotiated, and make any real conflict explicit rather than promising everyone everything.\n\n"
+                "Then compare the consequences of realistic options: who benefits, who carries the cost, what harm may be irreversible, and whether people affected have had a meaningful chance to be heard. Apply consistent criteria such as duty, fairness, evidence, proportionality, and long-term effects. Where one obligation must take priority, explain why that criterion applies and look for ways to reduce or repair the burden placed on others.\n\n"
+                "No decision will always satisfy every stakeholder, and equal consideration does not mean identical outcomes. Responsible leadership means giving each obligation a fair hearing, being transparent about trade-offs, refusing to shift costs onto people with less power merely because they are easier to ignore, and revisiting the decision when evidence or circumstances change. Trust grows when people can see both the reasoning and the accountability behind a difficult choice."
+            )
         else:
             answer = (
                 "When protecting one important thing puts something else at risk, the decision cannot be made fairly "
@@ -210,24 +218,33 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         )
     elif re.search(r"\b(?:why|what causes|reason for)\b", lower):
         answer = (
-            f"To understand why {subject}, separate the immediate event from the conditions that made it more likely. "
-            "Consider the evidence for each explanation, the incentives and constraints involved, and what other "
-            "explanation could fit the same facts. These are ways to investigate the question, not conclusions "
-            "about a particular case; a confident answer needs the relevant details."
+            f"The most useful explanation for why {subject} begins by distinguishing the immediate event from the conditions that made it more likely. "
+            "A visible incident may be the trigger without being the whole cause.\n\n"
+            "Look at the evidence, incentives, constraints, relationships, and decisions involved, and compare more than one plausible explanation. "
+            "For example, a repeated failure may reflect unclear responsibilities or conflicting incentives rather than a lack of effort by one person.\n\n"
+            "These are possibilities to test, not conclusions about a specific case. The strongest explanation accounts for the available facts, "
+            "acknowledges what remains uncertain, and identifies what new information could confirm or change the interpretation."
         )
     elif re.search(r"\b(?:should i|should we|is it worth|whether to|decision|decide)\b", lower):
         answer = (
-            f"The decision about {subject} depends on what matters most, which consequences are reversible, "
-            "and who would carry the costs. Set out realistic options, the strongest reason for and against each, "
-            "and what information would change your mind. If the decision is reversible, a limited trial may be "
-            "wiser than treating it as permanent; include people significantly affected before deciding."
+            f"The decision about {subject} depends on the responsibilities involved, the consequences of each option, and who will carry the costs. "
+            "Begin by separating what must be protected from what can be negotiated.\n\n"
+            "Compare realistic alternatives, the strongest reason for and against each, which effects are reversible, and what evidence would change your mind. "
+            "Include people significantly affected, especially those whose interests may otherwise be overlooked.\n\n"
+            "A responsible decision does not require certainty, but it does require clear reasons, proportionate attention to risk, and willingness to correct course. "
+            "If a choice is reversible, a limited trial may be wiser than treating it as permanent; if it creates lasting harm, use a more demanding standard of care."
         )
     elif re.search(r"\b(?:how|steps|approach|what can i do|what should we do|how to)\b", lower):
         answer = (
-            f"A practical way to approach {subject} is to define the outcome you want, identify the main constraint, "
-            "and choose one step small enough to test. Before acting, consider who else is affected and what could "
-            "go wrong. Check the result against the original goal and adjust rather than assuming the first attempt "
-            "must be final."
+            f"A practical way to approach {subject} is to begin by clarifying the outcome and the responsibilities involved. "
+            "Identify what is known, which constraints or obligations matter, and who will be affected by the available choices. "
+            "This makes the real decision clearer than jumping immediately to a generic action plan.\n\n"
+            "Next, compare a small number of realistic options against the purpose you are trying to serve. Consider likely "
+            "benefits, foreseeable harms, who carries the costs, and what evidence would change the choice. Where other people "
+            "are affected, include their knowledge and concerns rather than treating them as an afterthought.\n\n"
+            "Finally, act on the best-supported option, explain the reasoning and limits, and review the consequences. "
+            "A useful approach should improve understanding and accountability, not promise certainty or shift responsibility "
+            "onto people who lack the authority to resolve the problem."
         )
     elif re.search(r"\b(?:what is|what are|define|definition|meaning of|what does .* mean)\b", lower):
         # A definition question with a clear subject is answerable at the level
@@ -238,23 +255,29 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         display_subject = subject[:1].upper() + subject[1:]
         answer = (
             f"{display_subject} is best understood by what it means and how it operates in practice. "
-            "A useful definition distinguishes the idea from nearby concepts and makes its implications clear. "
-            "The precise meaning can vary by field or institution, so this is a general explanation rather than a "
-            "claim that the Living Archive uses a particular formal definition."
+            "The definition matters because it shapes what people notice, what they expect, and what they count as a reasonable action.\n\n"
+            "A useful explanation distinguishes the idea from nearby concepts and makes its implications visible in a concrete situation. "
+            "For instance, two terms may sound similar while assigning different responsibilities or implying different standards of judgment.\n\n"
+            "The precise meaning can vary by field or institution, so this is a general explanation rather than a claim that the Living Archive uses a particular formal definition. "
+            "Where the distinction matters for a decision, check how the relevant people or institution define and apply the term."
         )
     elif re.search(r"\b(?:meaning|make sense|understand|interpret|reflect|relationship)\b", lower):
         answer = (
-            f"A useful starting point for {subject} is to separate what is known from what is inferred, then ask "
-            "which distinction or tension matters most. Notice what is observable, what depends on interpretation, "
-            "and what missing fact could change the picture. This keeps the inquiry open without treating every "
-            "explanation as equally well supported."
+            f"A useful starting point for {subject} is to separate what is known from what is inferred, then ask which distinction or tension matters most. "
+            "This prevents a first interpretation from being mistaken for the whole picture.\n\n"
+            "Notice what is observable, what depends on interpretation, and which relationships or circumstances shape the situation. "
+            "Consider another plausible reading and ask what evidence would support or weaken each one.\n\n"
+            "This keeps the inquiry open without treating every explanation as equally well supported. A sound understanding should clarify what can be concluded, "
+            "what remains uncertain, and what further evidence would genuinely matter."
         )
     else:
         answer = (
-            f"The question about {subject} deserves a direct answer, not a guess presented as certainty. "
-            "The most useful next step is to identify the specific claim or outcome at issue, separate established "
-            "facts from assumptions, and examine what evidence would distinguish plausible explanations. I don't "
-            "have enough verified context to assert a case-specific conclusion, but the inquiry need not stop here."
+            f"The question about {subject} can be approached by first identifying the main issue and the decision or understanding at stake. "
+            "A useful answer should distinguish what is established from what is inferred rather than fill gaps with confidence.\n\n"
+            "The next step is to examine the most relevant facts, relationships, and plausible explanations. "
+            "Ask which evidence would distinguish them, whose perspective may be missing, and whether any assumption is doing more work than the facts justify.\n\n"
+            "This provides a grounded starting point without pretending to know details the question has not supplied. "
+            "Where the evidence is incomplete, say what can reasonably be concluded and what remains open, instead of replacing the answer with a generic refusal."
         )
 
     movement = _clean(desired_movement)
@@ -288,7 +311,10 @@ for _question in (
     _answer = compose_recovery(_question)
     if not _answer or len(_answer) < 80:
         raise RuntimeError("Deterministic answer recovery contract failed: response too short.")
-    if re.search(r"\b(?:provider bank|retrieval layer|canonical evidence|machine-facing|USE)\b", _answer, re.I):
+    if (
+        re.search(r"\b(?:provider bank|retrieval layer|canonical evidence|machine-facing)\b", _answer, re.I)
+        or re.search(r"\bUSE\b", _answer)
+    ):
         raise RuntimeError("Deterministic answer recovery contract failed: internal language leaked.")
 
 _tradeoff_answer = compose_recovery(
@@ -338,5 +364,7 @@ for _control_question in (
     "How should a team choose its next step?",
 ):
     _control_answer = compose_recovery(_control_question)
-    if "choose one step small enough to test" not in _control_answer:
-        raise RuntimeError("Historical-cultural Gold Standard contract failed: practical control question regressed.")
+    if len([part for part in _control_answer.split("\n\n") if part.strip()]) != 3:
+        raise RuntimeError("System-wide recovery contract failed: practical control question lost the three-paragraph default.")
+    if "least power" in _control_answer:
+        raise RuntimeError("Ethical trade-off recovery contract failed: ordinary practical question was misclassified.")

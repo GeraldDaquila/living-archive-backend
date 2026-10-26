@@ -54,3 +54,15 @@ def test_general_guide_prompt_makes_three_paragraphs_the_default_without_conflic
     assert "For a substantive explanatory, conceptual, educational, social, or Archive-related question, present three connected, readable paragraphs by default" in source
     assert "For other explanatory or conceptual answers, use 2–4 purposeful paragraphs when that improves comprehension." not in source
     assert "a short conceptual question may need only two or three compact paragraphs" not in source
+
+def test_final_visitor_boundary_uses_shared_gold_standard_recovery_instead_of_generic_apology():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    marker = "_systemwide_recovery = _sanitize_basic_inquiry_response("
+    assert marker in source
+    boundary_start = source.index(marker)
+    boundary = source[boundary_start:boundary_start + 4000]
+    assert "_compose_provider_exhaustion_recovery(query)" in boundary
+    assert "len(_systemwide_paragraphs) >= 3" in boundary
+    assert "authoritative_doorway = None" in boundary
+    assert '"kind": "general_knowledge"' in boundary
+    assert "I couldn’t produce a reliable answer to that question just now." in boundary

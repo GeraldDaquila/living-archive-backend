@@ -19,6 +19,31 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
                 self.assertGreater(len(answer), 120)
                 self.assertIn(expected, answer.casefold())
 
+
+    def test_competing_stakeholder_obligations_gets_substantive_gold_standard_recovery(self):
+        question = "How can leaders hold competing stakeholder obligations?"
+        answer = compose_recovery(question)
+        paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
+        self.assertEqual(len(paragraphs), 3)
+        self.assertIn("competing stakeholder obligations", paragraphs[0].casefold())
+        self.assertIn("who carries the cost", paragraphs[1].casefold())
+        self.assertIn("less power", paragraphs[2].casefold())
+        self.assertNotIn("choose one step small enough to test", answer)
+        self.assertNotIn("I couldn’t produce a reliable answer", answer)
+
+    def test_substantive_recovery_defaults_to_three_paragraphs_across_question_shapes(self):
+        questions = (
+            "Why do public institutions lose trust?",
+            "How can a community allocate a limited budget?",
+            "What is institutional responsibility?",
+            "Should we change the policy now?",
+            "Help me understand a difficult situation.",
+        )
+        for question in questions:
+            with self.subTest(question=question):
+                answer = compose_recovery(question)
+                self.assertEqual(len([p for p in answer.split("\n\n") if p.strip()]), 3)
+
     def test_hindsight_accountability_precedes_generic_decision_recovery(self):
         question = (
             "If the group made the best decision it could with the information available at the time, "
@@ -63,8 +88,9 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
 
     def test_ethical_tradeoff_does_not_trigger_for_ordinary_practical_question(self):
         answer = compose_recovery("How can a team coordinate a project rollout?")
-        self.assertIn("define the outcome you want", answer)
-        self.assertIn("choose one step small enough to test", answer)
+        self.assertIn("clarifying the outcome", answer)
+        self.assertIn("who will be affected", answer)
+        self.assertEqual(len([p for p in answer.split("\n\n") if p.strip()]), 3)
         self.assertNotIn("least power", answer)
 
     def test_answerable_definition_is_direct_and_not_a_meta_template(self):
