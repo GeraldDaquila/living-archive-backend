@@ -265,10 +265,15 @@ def _sanitize_candidate(text: Any) -> str:
     )
     # Remove parenthetical retrieval/source labels, not parenthetical reasoning.
     raw = re.sub(
-        r"\s*\((?:\s*⭐?\s*)?(?:Complexity and Institutional Fragility|Institutional Cornerstones)\)\s*",
+        r'["“]?(?:Complexity and Institutional Fragility|Institutional Cornerstones)["”]?',
         " ",
         raw,
         flags=re.I,
+    )
+    raw = re.sub(
+        r"\s*\((?:\s*)\)\s*",
+        " ",
+        raw,
     )
     # Repair common provider formatting failures deterministically. Providers
     # vary between colon/en-dash/em-dash labels, Unicode dashes, and inline
