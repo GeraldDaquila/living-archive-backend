@@ -64,14 +64,14 @@ function clss_grp_render_v2() {
       ["What still needs to be checked before I make or accept this decision?","Name the most important information gap and a fair, practical way to examine it."]
     ],
     third_party:[
-      ["What decision about this person's role are we facing?","State the decision, the role, why it matters now, and who is affected."],
-      ["What examples support my current view of this person's leadership?","Separate what I directly observed, documented outcomes, what others reported, reputation, and my own interpretation."],
+      ["What decision about this person’s role are we facing?","State the decision, the role, why it matters now, and who is affected."],
+      ["What examples support my current view of this person’s leadership?","Separate what I directly observed, documented outcomes, what others reported, reputation, and my own interpretation."],
       ["How does this person respond when resources are scarce or priorities conflict?","Recall a specific trade-off, what they chose, who was affected, and what followed. Note what I saw myself versus what I was told."],
       ["What happens when this person receives difficult feedback?","Look for specific examples of listening, clarification, taking responsibility, repair, retaliation, or repeated avoidance. One event alone does not establish a pattern."],
-      ["What effects does this person's leadership have on other people and how the work gets done?","Consider trust, clarity, fairness, capability, and longer-term effects. Other conditions may also help explain what happened."],
-      ["What do this person's actions around authority and responsibility show—and what remains unknown?","Describe actions and results. Do not state assumed motives or private thoughts as facts."],
-      ["Is this responsibility being freely accepted and understood by the people affected?","Consider the person's expressed willingness, relevant consent, clear expectations, and whether people can raise concerns safely."],
-      ["Are the role's authority, responsibilities, support, and review date clear?","Identify what the person may decide, the limits, feedback channels, support, and agreed review point."],
+      ["What effects does this person’s leadership have on other people and how the work gets done?","Consider trust, clarity, fairness, capability, and longer-term effects. Other conditions may also help explain what happened."],
+      ["What do this person’s actions around authority and responsibility show—and what remains unknown?","Describe actions and results. Do not state assumed motives or private thoughts as facts."],
+      ["Is this responsibility being freely accepted and understood by the people affected?","Consider the person’s expressed willingness, relevant consent, clear expectations, and whether people can raise concerns safely."],
+      ["Are the role’s authority, responsibilities, support, and review date clear?","Identify what the person may decide, the limits, feedback channels, support, and agreed review point."],
       ["What still needs to be checked before a responsible decision can be made?","Name the most important information gap and the fairest practical way to examine it."]
     ]
   };
@@ -104,7 +104,7 @@ function clss_grp_render_v2() {
     kicker.textContent="Question "+(state.index+1)+" of "+list.length;
     title.textContent=item[0];
     help.textContent=item[1];
-    perspectiveLabel.textContent=state.perspective==="self"?"Self-reflection":"Reflection on another person's leadership";
+    perspectiveLabel.textContent=state.perspective==="self"?"Self-reflection":"Reflection on another person’s leadership";
     input.value=state.answers[state.index]||"";
     bar.style.width=((state.index+1)/list.length*100)+"%";
     question.querySelector("[data-back]").disabled=state.index===0;
@@ -132,10 +132,10 @@ function clss_grp_render_v2() {
       html+="</ul><p>A blank answer is missing information, not evidence against anyone.</p>";
     }
     html+="<h3>A careful next step</h3><p>Choose one important point from these notes. If it could affect another person or a significant decision, check it with another source or ask a fair, open question. Consider another possible explanation before deciding what it means.</p>";
-    html+="<p class=\"clss-dp-note\">This page organizes the notes you entered. It does not independently verify them, determine anyone's motives, score leadership, or decide whether someone should be appointed. Do not use this reflection alone to make a hiring, promotion, or removal decision.</p>";
+    html+="<p class=\"clss-dp-note\">This page organizes the notes you entered. It does not independently verify them, determine anyone’s motives, score leadership, or decide whether someone should be appointed. Do not use this reflection alone to make a hiring, promotion, or removal decision.</p>";
     html+="<h3>Where to go next</h3><p>No resource is selected automatically. Use a CLSS resource only after you have identified a specific question that it can help you examine.</p>";
     summary.innerHTML=html;
-    perspectiveLabel.textContent=state.perspective==="self"?"Self-reflection":"Reflection on another person's leadership";
+    perspectiveLabel.textContent=state.perspective==="self"?"Self-reflection":"Reflection on another person’s leadership";
   }
 
   root.querySelectorAll("[data-choose-perspective]").forEach(function(button){
