@@ -1847,6 +1847,32 @@
         "evidence_boundary": "Screenshot confirms the displayed response, three-paragraph structure, and visible doorway title. It does not independently verify canonical source traceability, destination URL, or backend runtime identity."
       },
       "freeze_policy": "Preserve expected_response verbatim. Do not change wording or doorway title without explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-leadership-vs-positional-authority-gold-standard-2026-10-26",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What distinguishes leadership from positional authority?",
+      "expected_response": "Positional authority comes from a formal role: it gives someone recognized power or responsibility to make decisions, assign work, or direct others. Leadership is demonstrated in how a person exercises judgment, influences collective action, and earns trust. A title can grant authority, but it does not automatically make the person’s decisions wise or their influence worthy of confidence.\n\nThe difference becomes clear in practice. A manager may have the right to issue an instruction, while a colleague without a senior title may show leadership by listening to concerns, clarifying a shared purpose, and helping the group choose a responsible course. Someone with formal authority can also lead well when they explain decisions, act fairly, accept accountability, and make room for others’ knowledge.\n\nIn short, positional authority answers, “What power or responsibility comes with this role?” Leadership asks, “How does this person guide collective action, and what makes that guidance worth following?” The two can reinforce each other, but authority alone does not establish leadership; the distinction lies in how responsibility is exercised and what that conduct makes possible for others.",
+      "expected_doorway": {
+        "title": "Why Power Changes People",
+        "url": null
+      },
+      "assertions": [
+        "Substantive answer precedes any optional doorway.",
+        "Exactly three purposeful paragraphs: distinction, practical illustration, and synthesis.",
+        "Distinguishes role-conferred authority from leadership demonstrated through judgment, influence, and earned trust.",
+        "Doorway title is the one shown in the accepted visitor screenshot; its URL remains unverified and must not be invented.",
+        "Treat this as an exact-question benchmark, not as a mandatory response template for every question."
+      ],
+      "provenance": {
+        "source_path": "visitor-facing live screenshot supplied by user",
+        "source_ref": "conversation-2026-10-26",
+        "approval_record": "User explicitly requested registration as Gold Standard on 2026-10-26 after reviewing the live response and doorway.",
+        "evidence_boundary": "The screenshot establishes the displayed answer and doorway title. It does not independently establish the destination URL or prove the doorway's full content relevance.",
+        "review_rating": "Accepted for registry; no numeric rating assigned in this entry."
+      },
+      "freeze_policy": "Do not change expected_response or doorway title without a separately documented, user-authorized benchmark-version change."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control.",
