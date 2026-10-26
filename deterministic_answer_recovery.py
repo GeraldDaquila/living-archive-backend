@@ -12,6 +12,15 @@ def _clean(value):
 
 def _subject(question):
     value = _clean(question).rstrip(" ?.!;:")
+    # Remove a trailing significance clause before stripping the question lead-in.
+    # Without this normalization, "What is X, and why does it matter?" is
+    # treated as a definition of the whole question rather than of X.
+    value = re.sub(
+        r",?\s+and\s+why\s+does\s+it\s+matter\??$",
+        "",
+        value,
+        flags=re.I,
+    )
     value = re.sub(
         r"^(?:please\s+)?(?:can you\s+|could you\s+)?"
         r"(?:help me understand|tell me about|explain|describe|discuss|analyze|analyse|"
