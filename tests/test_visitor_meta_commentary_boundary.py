@@ -3,6 +3,32 @@
 from general_guide_composition import _INTERNAL_LANGUAGE, enforce_response_contracts
 
 
+def test_shared_sanitizer_removes_retrieval_metadata_source_labels_and_emoji():
+    from general_guide_composition import _sanitize_candidate
+
+    leaked = (
+        '"Why Modern Systems Become Vulnerable Under Pressure" Meta Description: '
+        'Explore how complexity contributes to fragility. '
+        '"Complexity and Institutional Fragility" '
+        'Institutional Cornerstones (⭐ Institutional Cornerstones)'
+    )
+    cleaned = _sanitize_candidate(leaked)
+    assert "Meta Description" not in cleaned
+    assert "⭐" not in cleaned
+    assert "✨" not in cleaned
+    assert "Complexity and Institutional Fragility" not in cleaned
+    assert "Institutional Cornerstones" not in cleaned
+
+
+def test_default_composition_instructions_forbid_raw_retrieval_material():
+    from general_guide_composition import _GENERAL_GUIDE_SYSTEM
+
+    assert "RETRIEVAL-TO-RESPONSE COMPOSITION BOUNDARY" in _GENERAL_GUIDE_SYSTEM
+    assert 'including "Meta Description"' in _GENERAL_GUIDE_SYSTEM
+    assert "Never emit emoji or decorative glyphs" in _GENERAL_GUIDE_SYSTEM
+    assert "first paragraph directly answers the visitor's actual question" in _GENERAL_GUIDE_SYSTEM
+
+
 def test_shared_boundary_rejects_guide_process_instructions():
     leaked_response = (
         "A system exists when its parts influence one another.\n\n"
