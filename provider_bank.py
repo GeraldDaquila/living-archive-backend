@@ -620,6 +620,20 @@ def _read_http_body_with_deadline(response, deadline, max_bytes=None):
         reader, sized_read = getattr(response, "read", None), False
     if not callable(reader):
         raise TypeError("HTTP response does not expose a readable body")
+    if not sized_read:
+        # Minimal response doubles may expose only read(), which returns the
+        # whole body at once. Real urllib responses expose read1() and use the
+        # chunked absolute-deadline loop below.
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError("provider HTTP response exceeded its absolute deadline")
+        chunk = reader()
+        if time.monotonic() > deadline:
+            raise TimeoutError("provider HTTP response exceeded its absolute deadline")
+        body.extend(chunk or b"")
+        if max_bytes is not None:
+            del body[max_bytes:]
+        return bytes(body)
     while True:
         remaining = deadline - time.monotonic()
         if remaining <= 0:
@@ -630,7 +644,7 @@ def _read_http_body_with_deadline(response, deadline, max_bytes=None):
                 sock.settimeout(remaining)
             except (OSError, ValueError):
                 pass
-        chunk = reader(65536) if sized_read else reader()
+        chunk = reader(65536)
         if not chunk:
             break
         body.extend(chunk)
