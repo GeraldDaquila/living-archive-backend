@@ -250,6 +250,34 @@ def _sanitize_candidate(text: Any) -> str:
     if not raw:
         return ""
 
+    # Reject retrieval/catalogue blocks as units before sentence-level cleanup.
+    # Metadata labels can occur after otherwise grammatical source excerpts, so
+    # stripping only the label leaves fragments that look like an answer.
+    retrieval_metadata = re.compile(
+        r"(?i)\b(?:document\s+type|document\s+status|page\s+status|"
+        r"collection\s+purpose|collection\s+description|content\s+type|"
+        r"meta\s+description|seo\s+description|a\s+useful\s+place\s+to\s+continue|"
+        r"canonical\s+(?:landing\s+page|reference\s+hub|resource)|"
+        r"foundational\s+(?:institutional|collection)|"
+        r"status\s*:)"
+    )
+    source_title_attribution = re.compile(
+        r"[“\"'][^\"'\n]{20,500}[”\"']\s*\([^()]{3,140}\)"
+    )
+    paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", raw) if part.strip()]
+    retained = []
+    for paragraph in paragraphs:
+        if retrieval_metadata.search(paragraph):
+            continue
+        # A block made of quoted source prose attributed to a page title is
+        # retrieval evidence, not a composed explanation. Drop that block.
+        if source_title_attribution.search(paragraph) and len(re.findall(r"[“\"']", paragraph)) >= 2:
+            continue
+        retained.append(paragraph)
+    raw = "\n\n".join(retained)
+    if not raw:
+        return ""
+
     raw = _INTERNAL_BRACKET.sub(" ", raw)
     # Retrieval excerpts and page metadata are evidence for composition, never
     # visitor-facing prose. Remove the whole title/Meta Description fragment
