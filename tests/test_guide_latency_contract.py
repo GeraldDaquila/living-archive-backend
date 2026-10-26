@@ -6,6 +6,7 @@ invariants that prevent a late formatting failure from triggering another LLM tu
 """
 import ast
 import unittest
+import textwrap
 from pathlib import Path
 
 
@@ -76,7 +77,7 @@ class GuideLatencyContractTests(unittest.TestCase):
             "if general_guide_composition._requires_responsibility_boundary_answer(query)",
             start,
         )
-        final_guard = ast.parse(MAIN_SOURCE[start:end])
+        final_guard = ast.parse(textwrap.dedent(MAIN_SOURCE[start:end]))
         self.assertFalse(
             _contains_composer_call(final_guard),
             "A last-mile formatting failure must fail honestly, not start another LLM turn.",
