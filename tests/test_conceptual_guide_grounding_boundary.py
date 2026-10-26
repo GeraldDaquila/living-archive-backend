@@ -462,8 +462,9 @@ def test_trust_community_stewardship_uses_bounded_three_paragraph_recovery():
     final_contract_start = SOURCE.index("_final_comparative_subjects = _comparative_subject_terms(query)")
     final_contract_end = SOURCE.index("if _final_requires_gold_standard:", final_contract_start)
     final_contract = SOURCE[final_contract_start:final_contract_end]
-    assert "_final_discovery_only = bool(discovery_subject) and not (" in final_contract
-    assert "_is_conceptual_explanatory_request(query)" in final_contract
+    assert "_final_title_like_discovery = bool(discovery_subject)" in final_contract
+    assert "_final_explicit_navigation_request" in final_contract
+    assert "_final_discovery_only = bool(discovery_subject) and (" in final_contract
     # Both recovery sites must share one absolute request deadline and the
     # same single-repair gate, rather than independently restarting a provider budget.
     assert "_guide_can_attempt_composition_repair(" in inquiry
