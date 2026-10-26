@@ -90,7 +90,7 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         answer = compose_recovery("How can a team coordinate a project rollout?")
         self.assertIn("clarifying the outcome", answer)
         self.assertIn("who will be affected", answer)
-        self.assertEqual(len([p for p in answer.split("\\n\\n") if p.strip()]), 3)
+        self.assertEqual(len([p for p in answer.split("\n\n") if p.strip()]), 3)
         self.assertNotIn("least power", answer)
 
     def test_answerable_definition_is_direct_and_not_a_meta_template(self):
