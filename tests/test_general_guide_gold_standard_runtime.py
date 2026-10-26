@@ -146,7 +146,7 @@ def test_default_composition_evidence_recovery_keeps_three_paragraph_contract_wh
     assert result is not None
     assert result["provider"] == "gold_standard_evidence_recovery"
     assert result["response_shape"] == "explanatory"
-    assert len(result["response"].split("\\n\\n")) == 3
+    assert len(result["response"].split("\n\n")) == 3
     assert "Governance goes beyond administration" in result["response"]
     assert "who has a voice" in result["response"]
     assert "does not replace administration" in result["response"]
