@@ -426,9 +426,38 @@ def test_healthy_community_recovery_short_circuits_redundant_canonical_searches(
     inquiry = SOURCE[inquiry_start:inquiry_end]
     classifier = "healthy_community_short_circuit = _is_healthy_community_orientation_question(query)"
     context_fetch = "context_data = use_core.fetch_canonical_context(resource_query)"
-    supplement = "if (\n        not healthy_community_short_circuit\n        and _guide_requires_canonical_subject_supplement("
+    supplement = "if (\n        not healthy_community_short_circuit\n        and not (trust_stewardship_short_circuit and authoritative_doorway)\n        and _guide_requires_canonical_subject_supplement("
     assert classifier in inquiry
     assert inquiry.index(classifier) < inquiry.index(context_fetch)
     assert supplement in inquiry
     assert inquiry.index(classifier) < inquiry.index(supplement)
     assert "llm_composer_invoked=false" in inquiry
+
+
+def test_trust_community_stewardship_uses_bounded_three_paragraph_recovery():
+    helper_start = SOURCE.index("def _trust_community_stewardship_recovery():")
+    helper_end = SOURCE.index("\n\ndef _trust_community_stewardship_canonical_recommendation", helper_start)
+    recovery = SOURCE[helper_start:helper_end]
+    assert recovery.count(r"\n\n") == 2
+    for phrase in (
+        "Trust helps people in a community rely on one another",
+        "Think of a shared garden",
+        "Stewardship is tending the garden together",
+    ):
+        assert phrase in recovery
+
+    inquiry_start = SOURCE.index("def _basic_inquiry_response(")
+    inquiry_end = SOURCE.index("def _v48831_basic_inquiry_seam_self_audit", inquiry_start)
+    inquiry = SOURCE[inquiry_start:inquiry_end]
+    classifier = "trust_stewardship_short_circuit = _is_trust_community_stewardship_question(query)"
+    context_fetch = "context_data = use_core.fetch_canonical_context(resource_query)"
+    assert classifier in inquiry
+    assert inquiry.index(classifier) < inquiry.index(context_fetch)
+    assert '"provider": "bounded_trust_community_stewardship_recovery"' in inquiry
+    assert "and not (trust_stewardship_short_circuit and authoritative_doorway)" in inquiry
+
+    final_contract_start = SOURCE.index("_final_comparative_subjects = _comparative_subject_terms(query)")
+    final_contract_end = SOURCE.index("if _final_requires_gold_standard:", final_contract_start)
+    final_contract = SOURCE[final_contract_start:final_contract_end]
+    assert "not discovery_subject" not in final_contract
+    assert 'if reasoning_mode != "deterministic_only" and composition_result:' in SOURCE
