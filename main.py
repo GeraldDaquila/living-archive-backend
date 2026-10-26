@@ -5398,11 +5398,11 @@ def _comparative_candidate_has_direct_fit(query, document):
     def concept_pattern(subject):
         words = set(re.findall(r"[a-z0-9]+", subject.casefold()))
         if words & {"leadership", "leader", "leaders", "lead"}:
-            return r"\\b(?:leadership|leader|leaders|leading|lead)\\b"
+            return r"\b(?:leadership|leader|leaders|leading|lead)\b"
         if words & {"authority", "authorities", "positional", "position", "power", "role"}:
-            return r"\\b(?:positional authority|formal authority|authority|authorities|position(?:al)?|role[- ]based power|formal power|institutional power|power|role|roles)\\b"
+            return r"\b(?:positional authority|formal authority|authority|authorities|position(?:al)?|role[- ]based power|formal power|institutional power|power|role|roles)\b"
         escaped = [re.escape(word) for word in words if word]
-        return r"\\b(?:" + "|".join(escaped) + r")\\b" if escaped else r"(?!)"
+        return r"\b(?:" + "|".join(escaped) + r")\b" if escaped else r"(?!)"
 
     title_fit = any(re.search(concept_pattern(subject), title) for subject in subjects)
     body_fit = all(re.search(concept_pattern(subject), body) for subject in subjects)
