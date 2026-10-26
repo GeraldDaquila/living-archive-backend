@@ -144,11 +144,6 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         self.assertIn("general", snapshot["question_shapes"])
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
-
     def test_provider_exhaustion_recovery_answers_instead_of_repeating_question_and_refusing(self):
         from deterministic_answer_recovery import compose_recovery
 
@@ -160,3 +155,7 @@ if __name__ == "__main__":
         self.assertNotIn("I couldn't verify a reliable answer", answer)
         self.assertNotIn("I could not identify a sufficiently relevant Archive resource", answer)
         self.assertGreater(len(answer), 250)
+
+
+if __name__ == "__main__":
+    unittest.main()
