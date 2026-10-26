@@ -421,6 +421,13 @@ def test_leadership_authority_recovery_is_direct_three_paragraph_gold_standard()
     assert "This is a general conceptual distinction" not in answer
 
 
+def test_comparative_doorway_concept_patterns_use_real_word_boundaries():
+    main_source = (ROOT / "main.py").read_text(encoding="utf-8")
+    assert 'return r"\\b(?:leadership|leader|leaders|leading|lead)\\b"' in main_source
+    assert 'return r"\\b(?:positional authority|formal authority|authority|authorities|position(?:al)?|role[- ]based power|formal power|institutional power|power|role|roles)\\b"' in main_source
+    assert 'return r"\\b(?:" + "|".join(escaped) + r")\\b"' in main_source
+
+
 def test_distinguishing_question_extracts_both_compared_subjects_for_doorway_relevance():
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert r"what distinguishes (.+?) from (.+?)" in main_source
