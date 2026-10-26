@@ -381,3 +381,33 @@ def test_conceptual_recovery_uses_human_opening_not_internal_archive_classificat
     assert "The Archive’s material offers this starting point:" not in gate
     assert "question-matched canonical " in gate
     assert "do not infer Archive doctrine from a title or doorway alone" in gate
+
+
+def test_healthy_community_newcomer_uses_three_paragraph_recovery_before_composition():
+    start = SOURCE.index("def _healthy_community_answer_recovery():")
+    end = SOURCE.index("\n\ndef _has_substantive_topic_intent", start)
+    recovery = SOURCE[start:end]
+    assert recovery.count(r"\n\n") == 2
+
+    inquiry_start = SOURCE.index("def _basic_inquiry_response(")
+    inquiry_end = SOURCE.index("def _v48831_basic_inquiry_seam_self_audit", inquiry_start)
+    inquiry = SOURCE[inquiry_start:inquiry_end]
+    short_circuit = "healthy_community_short_circuit = _is_healthy_community_orientation_question(query)"
+    composer = "composition_result = general_guide_composition.compose("
+    assert short_circuit in inquiry
+    assert inquiry.index(short_circuit) < inquiry.index(composer)
+    assert "if healthy_community_short_circuit:" in inquiry
+    assert '"provider": "bounded_healthy_community_orientation_recovery"' in inquiry
+
+
+def test_early_paragraph_guard_does_not_trigger_a_second_composition():
+    start = SOURCE.index(
+        "# Paragraph quality is enforced at the final payload boundary below."
+    )
+    end = SOURCE.index(
+        "if general_guide_composition._requires_responsibility_boundary_answer(query)",
+        start,
+    )
+    guard = SOURCE[start:end]
+    assert "general_guide_composition.compose(" not in guard
+    assert "single final repair" in guard
