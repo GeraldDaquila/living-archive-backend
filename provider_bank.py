@@ -610,11 +610,14 @@ def _read_http_body_with_deadline(response, deadline, max_bytes=None):
     """
     body = bytearray()
     stream = getattr(response, "fp", None)
-    reader = (
-        getattr(stream, "read1", None)
-        or getattr(response, "read1", None)
-        or getattr(response, "read", None)
-    )
+    stream_reader = getattr(stream, "read1", None)
+    response_reader = getattr(response, "read1", None)
+    if callable(stream_reader):
+        reader, sized_read = stream_reader, True
+    elif callable(response_reader):
+        reader, sized_read = response_reader, True
+    else:
+        reader, sized_read = getattr(response, "read", None), False
     if not callable(reader):
         raise TypeError("HTTP response does not expose a readable body")
     while True:
@@ -627,15 +630,7 @@ def _read_http_body_with_deadline(response, deadline, max_bytes=None):
                 sock.settimeout(remaining)
             except (OSError, ValueError):
                 pass
-        try:
-            chunk = reader(65536)
-        except TypeError:
-            # Preserve compatibility with minimal response doubles that expose
-            # only a no-argument read(); real urllib streams use sized read1().
-            if reader is getattr(response, "read", None) and not callable(getattr(stream, "read1", None)):
-                chunk = reader()
-            else:
-                raise
+        chunk = reader(65536) if sized_read else reader()
         if not chunk:
             break
         body.extend(chunk)
