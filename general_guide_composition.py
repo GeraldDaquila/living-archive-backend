@@ -201,6 +201,10 @@ The answer must be complete before an optional Archive doorway appears. Keep the
 COMPOSITION QUALITY GATE — mandatory for every substantive answer, not only named question classes:
 
 Before finalizing, make sure the answer is substantively composed, not merely divided into three paragraphs.
+- For a definition question, the opening sentence must actually define the named subject in plain language and distinguish its core function from the nearest likely confusion. Do not say that a concept is "best understood by what it means," announce that a useful explanation would distinguish it, or describe what definitions do; perform the explanation instead.
+- For "X beyond Y" questions, explicitly explain both X and Y and state the substantive difference between them. Do not merely repeat the phrase "beyond Y" or discuss how the distinction matters without naming what the distinction is.
+- The second paragraph must demonstrate the distinction through a concrete, plausible example or an applied consequence. A sentence that only promises an example, says two terms may differ, or tells the visitor what a useful explanation should do does not satisfy this requirement.
+- The final paragraph may qualify scope, variation, or limits only after the answer has established a useful general meaning. Do not retreat into a generic disclaimer or send the visitor elsewhere to supply the missing definition.
 - Answer the exact question in the opening sentence. For a "how can" question, name the practical method or decision principle immediately; do not lead with a broad slogan that could answer many unrelated questions.
 - Give each paragraph a different job: (1) direct answer and governing principle; (2) reasoning applied to a recognizable situation, with one concrete example when it would clarify the mechanism; (3) the meaningful limit, trade-off, accountability, or implication. Do not repeat the same thesis in increasingly abstract language to fill the three-paragraph shape.
 - Prefer concrete verbs and ordinary language over stacked abstractions or institutional-sounding phrases. If the question asks how to make a decision, explain how to compare options, what criteria matter, and what to do when the criteria conflict.
@@ -491,6 +495,12 @@ _GENERIC_NONANSWER_PATTERNS = (
     r"\bcheck how the relevant people or institution define and apply the term\b",
     r"\bwhat people notice, what they expect, and what they count as a reasonable action\b",
     r"\bfor instance, two terms may sound similar while assigning different responsibilities\b",
+    r"\bgovernance beyond administration is best understood by what it means\b",
+    r"\ba useful explanation distinguishes the idea\b",
+    r"\bthe precise meaning can vary by field or institution\b",
+    r"\bcheck how the relevant people or institution define and apply the term\b",
+    r"\bthe answer is best understood by looking at how the concept operates\b",
+    r"\bwhat matters is not just defining the term but understanding its implications\b",
 )
 
 

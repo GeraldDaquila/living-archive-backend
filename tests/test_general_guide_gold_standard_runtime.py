@@ -226,3 +226,35 @@ def test_continuous_learning_contract_is_explicit_and_does_not_claim_implementat
         "4_guarded_promotion",
         "5_continuous_monitoring",
     ]
+
+def test_generic_composition_gate_rejects_meta_explanation_and_disclaimer_filler():
+    import general_guide_composition as composition
+
+    weak_response = (
+        "Governance beyond administration is best understood by what it means and how it operates in practice. "
+        "The definition matters because it shapes what people notice, what they expect, and what they count as a reasonable action.\n\n"
+        "A useful explanation distinguishes the idea from nearby concepts and makes its implications visible in a concrete situation. "
+        "For instance, two terms may sound similar while assigning different responsibilities or implying different standards of judgment.\n\n"
+        "The precise meaning can vary by field or institution, so this is a general explanation rather than a claim that the Living Archive uses a particular formal definition. "
+        "Where the distinction matters for a decision, check how the relevant people or institution define and apply the term."
+    )
+    assert composition.is_generic_nonanswer(
+        "What is governance, beyond administration?", weak_response
+    )
+
+
+def test_generic_composition_gate_accepts_actual_definition_and_applied_distinction():
+    import general_guide_composition as composition
+
+    substantive_response = (
+        "Governance is how a group sets direction, exercises authority, makes collective decisions, and holds decision-makers accountable. "
+        "Administration carries out established decisions and procedures; governance also determines who may make those decisions, what principles guide them, and how they can be challenged.\n\n"
+        "For example, an administrator may apply a budget rule, while governance determines who sets the spending priorities, how affected people are heard, and what happens when the rule places an unfair burden on one group. "
+        "The distinction matters because efficient execution cannot by itself make the underlying decision legitimate.\n\n"
+        "Governance does not replace administration: institutions need both sound decisions and reliable execution. "
+        "The central question is whether authority and priorities are exercised transparently, responsibly, and with a way to review decisions when their consequences show that a change is needed."
+    )
+    assert not composition.is_generic_nonanswer(
+        "What is governance, beyond administration?", substantive_response
+    )
+
