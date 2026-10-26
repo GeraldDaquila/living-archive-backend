@@ -459,5 +459,6 @@ def test_trust_community_stewardship_uses_bounded_three_paragraph_recovery():
     final_contract_start = SOURCE.index("_final_comparative_subjects = _comparative_subject_terms(query)")
     final_contract_end = SOURCE.index("if _final_requires_gold_standard:", final_contract_start)
     final_contract = SOURCE[final_contract_start:final_contract_end]
-    assert "not discovery_subject" not in final_contract
+    assert "_final_discovery_only = bool(discovery_subject) and not (" in final_contract
+    assert "_is_conceptual_explanatory_request(query)" in final_contract
     assert 'if reasoning_mode != "deterministic_only" and composition_result:' in SOURCE
