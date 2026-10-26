@@ -5109,13 +5109,21 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "the feeling of emptiness in everyday life, or the deeper philosophical or Buddhist idea?"
         )
     else:
-        opening = f"Your question asks: {question.rstrip('?')}." if question else "The question is worth answering directly."
-        explanation = "I couldn't verify a reliable answer from the material available in this request, so I won't present a guess as fact."
-        closing = (
-            "If you would like to explore this further, the Archive resource below may offer a useful next step."
-            if recommendation_available
-            else "I could not identify a sufficiently relevant Archive resource to recommend here."
+        # Provider exhaustion must not turn a general, answerable question into
+        # a three-paragraph refusal. Use the shared bounded recovery as the
+        # final general-knowledge fallback and keep navigation independent:
+        # no doorway is emitted unless a separate relevance gate validates it.
+        fallback_response = _compose_provider_exhaustion_recovery(
+            question,
+            underlying_question=str(interpretation.get("underlying_question") or ""),
+            desired_movement=str(interpretation.get("desired_movement") or ""),
         )
+        return {
+            "response": fallback_response,
+            "doorway_title": "",
+            "provider": "bounded_provider_exhaustion_recovery",
+            "model": "deterministic-contract-recovery",
+        }
     return {
         "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
         "doorway_title": title,
