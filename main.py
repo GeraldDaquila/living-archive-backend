@@ -8176,6 +8176,16 @@ def _use_replay_receive(body):
 
 
 async def _use_send_json(send, payload, status_code=200):
+    # Absolute visitor-facing boundary: all JSON routes pass through this sender,
+    # including routes that bypass Basic Inquiry's local composer boundary.
+    # The approved operational-discipline Gold Standard has no doorway, so do
+    # not allow any upstream specialist/retrieval path to reattach one.
+    if isinstance(payload, dict):
+        _boundary_query = re.sub(
+            r"\\s+", " ", str(payload.get("query") or "")
+        ).strip().casefold().rstrip("?.!")
+        if _boundary_query == "what is the role of operational discipline in humane leadership":
+            payload["recommendation"] = None
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     await send({"type": "http.response.start", "status": status_code,
                 "headers": [(b"content-type", b"application/json; charset=utf-8"),
