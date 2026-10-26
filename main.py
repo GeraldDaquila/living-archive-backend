@@ -1,4 +1,4 @@
-# USE CANDIDATE VERSION: v489.298 — Single-pass Gold Standard latency correction
+# USE PRODUCTION VERSION: v489.298 — Single-pass Gold Standard latency correction
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
@@ -7206,29 +7206,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     response = _sanitize_basic_inquiry_response(
         general_guide_composition.enforce_response_contracts(query, response)
     )
-    # LAST-MILE GOLD STANDARD CONTRACT: enforce the presentation floor without
-    # re-entering the provider bank. The composer already rejects malformed
-    # candidates; deterministic rewrites must preserve the same contract. A
-    # late second generation attempt multiplied latency and could repeat the
-    # same failure, so the final boundary now fails honestly within this turn.
-    if general_guide_composition._requires_three_paragraph_default(query):
-        _paragraphs = [
-            part.strip()
-            for part in re.split(r"\n\s*\n+", response)
-            if part.strip()
-        ]
-        if len(_paragraphs) < 3:
-            response = (
-                "I can’t give this question the careful explanation it deserves with the reliable information available to me right now. "
-                "I don’t want to compress a substantive explanation into a short answer that leaves out the reasoning or important limits.\n\n"
-                "A complete answer needs to address your question directly, explain the relevant relationships or evidence, and make clear what remains uncertain. "
-                "The response available in this turn did not meet that standard, so I will not present it as a finished explanation.\n\n"
-                "Please try again shortly. I will keep Archive-specific claims bounded by what the available sources support rather than inventing detail to fill the gap."
-            )
-            print(
-                "The Guide final Gold Standard boundary: used three-paragraph fail-honest recovery; "
-                "second_composition_attempt=false."
-            )
+    # Paragraph quality is enforced at the final payload boundary below. Do not
+    # run a second composition here: the later, single final repair is the only
+    # allowed paragraph-contract recovery after downstream response rewrites.
     if general_guide_composition._requires_responsibility_boundary_answer(query) and not general_guide_composition._has_responsibility_boundary_explanation(response):
         raise RuntimeError("Responsibility-boundary contract failed at final visitor boundary.")
 
