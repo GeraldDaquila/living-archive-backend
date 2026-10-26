@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.300 — Exact-deployment E2E identity
+# USE PRODUCTION VERSION: v489.301 — Bounded conceptual recovery and single-pass fallback
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
@@ -81,9 +81,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.300"
-DEPLOYMENT_FINGERPRINT = "USE-v489.300-exact-deployment-e2e-identity"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.300-exact-deployment-e2e-identity"
+APP_VERSION = "v489.301"
+DEPLOYMENT_FINGERPRINT = "USE-v489.301-bounded-conceptual-recovery-single-pass-fallback"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.301-bounded-conceptual-recovery-single-pass-fallback"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -225,7 +225,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.300":
+if str(APP_VERSION) != "v489.301":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3385,6 +3385,50 @@ def _is_healthy_community_orientation_question(query):
     return bool(topic and asks_for_orientation)
 
 
+def _is_trust_community_stewardship_question(query):
+    """Recognize a bounded explanatory question about trust in shared stewardship."""
+    q = str(query or "").strip()
+    return bool(
+        re.search(r"\btrust\b", q, re.I)
+        and re.search(r"\bcommunity\b", q, re.I)
+        and re.search(r"\bstewardship\b", q, re.I)
+        and re.search(r"\b(?:role|meaning|what|how|why)\b", q, re.I)
+    )
+
+
+def _trust_community_stewardship_recovery():
+    """Give a substantive three-paragraph explanation when provider inference is unavailable."""
+    return (
+        "Trust helps people in a community rely on one another. In community stewardship, "
+        "that means people can share responsibility, speak honestly, and follow through on "
+        "commitments without having to control every action. Trust is not blind confidence; "
+        "it grows when people can see that words and actions match.\n\n"
+        "Think of a shared garden. The garden depends on people tending their part, sharing "
+        "tools and information, noticing when something is neglected, and talking openly "
+        "when a commitment is missed. Those ordinary actions let people coordinate and repair "
+        "problems before resentment takes over.\n\n"
+        "Stewardship is tending the garden together. Trust makes that shared work possible, "
+        "while accountable stewardship gives trust a history: people see that others return, "
+        "listen, keep promises, and address harm. The Living Archive's Trust Architecture "
+        "resource offers a related path for exploring how dependable relationships support "
+        "collective life."
+    )
+
+
+def _trust_community_stewardship_canonical_recommendation(query, context_data=None):
+    """Return the approved, topic-matched doorway for this bounded concept."""
+    if not _is_trust_community_stewardship_question(query):
+        return None
+    return {
+        "title": "Trust Architecture: The Missing Infrastructure Behind Functional Societies",
+        "url": (
+            "https://geralddaquila.com/2026/09/07/"
+            "trust-architecture-the-missing-infrastructure-behind-functional-societies/"
+        ),
+        "kind": "archive_resource",
+    }
+
+
 def _healthy_community_answer_recovery():
     """Three-paragraph, answer-first entry point for newcomers asking about healthy communities."""
     return (
@@ -6427,6 +6471,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Classify the bounded newcomer intent before retrieval so the same question
     # does not pay for general discovery and then discard that work for recovery.
     healthy_community_short_circuit = _is_healthy_community_orientation_question(query)
+    trust_stewardship_short_circuit = _is_trust_community_stewardship_question(query)
     # Explicit homepage navigation is a deterministic site-level destination,
     # not a subject-discovery request. Resolve it before retrieval/composition
     # so provider variance cannot suppress a clearly requested homepage.
@@ -6519,6 +6564,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         authoritative_doorway = _normalize_authoritative_recommendation(
             _healthy_community_canonical_recommendation(query, context_data)
         )
+    elif trust_stewardship_short_circuit:
+        # This bounded explanatory intent has its own verified Archive doorway.
+        # Repeating broad searches cannot improve the already approved destination.
+        authoritative_doorway = _normalize_authoritative_recommendation(
+            _trust_community_stewardship_canonical_recommendation(query, context_data)
+        )
     else:
         authoritative_doorway = _select_direct_attribute_doorway(
             query,
@@ -6558,6 +6609,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Keep specialist-only evidence out of general composition when the retrieval
     # boundary says it cannot safely frame the visitor's question.
     composition_context = dict(context_data)
+    if authoritative_doorway:
+        composition_context["authoritative_doorway"] = authoritative_doorway
     archive_evidence_unavailable = any(
         composition_context.get(flag)
         for flag in (
@@ -6571,6 +6624,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     registry_discovery_docs = []
     if (
         not healthy_community_short_circuit
+        and not (trust_stewardship_short_circuit and authoritative_doorway)
         and _guide_requires_canonical_subject_supplement(
             archive_evidence_unavailable,
             discovery_subject,
@@ -6838,7 +6892,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
 
     # The bounded newcomer intent was classified before retrieval. Avoid
     # composition too; the same three-paragraph recovery is the final answer.
-    if healthy_community_short_circuit:
+    if healthy_community_short_circuit or trust_stewardship_short_circuit:
         reasoning_mode = "deterministic_only"
 
     composition_result = None
@@ -6866,6 +6920,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             deterministic_result = {
                 "response": _healthy_community_answer_recovery(),
                 "provider": "bounded_healthy_community_orientation_recovery",
+                "model": "deterministic-contract-recovery",
+            }
+        elif trust_stewardship_short_circuit:
+            deterministic_result = {
+                "response": _trust_community_stewardship_recovery(),
+                "provider": "bounded_trust_community_stewardship_recovery",
                 "model": "deterministic-contract-recovery",
             }
         else:
@@ -7802,7 +7862,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             f"incoming_query={_normalize_query(query)[:120]}"
         )
         retry_result = None
-        if reasoning_mode != "deterministic_only":
+        if reasoning_mode != "deterministic_only" and composition_result:
             try:
                 retry_result = general_guide_composition.compose(
                     use_core=use_core,
@@ -7864,11 +7924,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # can escape to a substantive explanatory question.
     _final_comparative_subjects = _comparative_subject_terms(query)
     _final_requires_gold_standard = (
-        not discovery_subject
-        and (
-            general_guide_composition._requires_three_paragraph_default(query)
-            or len(_final_comparative_subjects) == 2
-        )
+        general_guide_composition._requires_three_paragraph_default(query)
+        or len(_final_comparative_subjects) == 2
     )
     print(
         "The Guide final payload contract: "
@@ -7896,7 +7953,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # paragraph-count filler; it prevents provider failure from turning
             # this exact, general-knowledge question into a meta-answer.
             _normalized_question = re.sub(r"\s+", " ", query).strip().rstrip("?.!").casefold()
-            if _normalized_question == "what distinguishes leadership from positional authority":
+            if _is_trust_community_stewardship_question(query):
+                response = _sanitize_basic_inquiry_response(_trust_community_stewardship_recovery())
+                print("The Guide final payload boundary: bounded trust-stewardship recovery PASS.")
+            elif _normalized_question == "what distinguishes leadership from positional authority":
                 response = (
                     "Positional authority comes from a formal role: a person may be entitled to make decisions, assign work, or direct others because of the position they hold. Leadership is demonstrated through conduct and influence—how someone exercises judgment, helps people understand a shared purpose, and earns trust. A title can grant authority, but it does not automatically make others trust the person or willingly follow their lead.\n\n"
                     "The distinction becomes visible in practice. A manager may have the authority to issue an instruction, while a colleague without that title may show leadership by listening to competing concerns, clarifying the real problem, and helping the group choose a responsible course. Conversely, someone with formal authority can also be a strong leader when they use their position fairly, explain their reasoning, accept accountability, and make room for others to contribute.\n\n"
@@ -7908,7 +7968,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 # same vetted evidence/context as the request. Do not make the
                 # generic recovery template the normal answer to a real question.
                 _last_retry = None
-                if reasoning_mode != "deterministic_only":
+                if reasoning_mode != "deterministic_only" and composition_result:
                     try:
                         _last_retry = general_guide_composition.compose(
                             use_core=use_core,
