@@ -82,8 +82,8 @@ use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
 APP_VERSION = "v489.298"
-DEPLOYMENT_FINGERPRINT = "USE-v489.298-single-pass-gold-standard-latency-correction"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.298-single-pass-gold-standard-latency-correction"
+DEPLOYMENT_FINGERPRINT = "USE-v489.297-human-voice-conceptual-fallback"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.297-human-voice-conceptual-fallback"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -6915,9 +6915,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         print("The Guide reasoning provider mode: invalid value; using auto.")
         reasoning_mode = "auto"
 
-    # This response is governed by a deterministic, topic-specific contract and
-    # is replaced by that same recovery after downstream gates. Select it before
-    # composition so an unnecessary provider-bank call cannot be discarded later.
+    # Resolve this bounded newcomer question before general composition. The
+    # deterministic recovery already satisfies the three-paragraph answer contract,
+    # so generating and later discarding a provider answer would add latency only.
     healthy_community_short_circuit = _is_healthy_community_orientation_question(query)
     if healthy_community_short_circuit:
         reasoning_mode = "deterministic_only"
@@ -7212,10 +7212,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     response = _sanitize_basic_inquiry_response(
         general_guide_composition.enforce_response_contracts(query, response)
     )
-    # The former "used three-paragraph fail-honest recovery" fallback is removed
-    # from this early gate; the final payload boundary owns the single substantive repair.
-    # Apply the default paragraph contract at the final visitor boundary too:
-    # this single final payload gate is authoritative; no earlier composition retry.
     # Paragraph quality is enforced at the final payload boundary below. Do not
     # run a second composition here: the later, single final repair is the only
     # allowed paragraph-contract recovery after downstream response rewrites.
