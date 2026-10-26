@@ -2660,7 +2660,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             )
             candidate_timeout = _bounded_request_provider_timeout(
                 _provider_call_timeout(operation, item), deadline_monotonic,
-                now=time.monotonic(),
+                now=time.monotonic() if deadline_monotonic is not None else None,
             ) or 0.0
             # Admit a fallback only when its full bounded call can fit inside both
             # the operation window and the shared visitor-request deadline.
@@ -2713,7 +2713,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         try:
             attempt_timeout = _bounded_request_provider_timeout(
                 _provider_call_timeout(operation, item), deadline_monotonic,
-                now=time.monotonic(),
+                now=time.monotonic() if deadline_monotonic is not None else None,
             )
             if deadline_monotonic is not None and (
                 attempt_timeout is None or attempt_timeout <= 0.0
@@ -2942,7 +2942,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     recovery_messages.append({"role": "user", "content": correction_content})
                 recovery_timeout = _bounded_request_provider_timeout(
                     _provider_call_timeout(operation, item), deadline_monotonic,
-                    now=time.monotonic(),
+                    now=time.monotonic() if deadline_monotonic is not None else None,
                 )
                 if deadline_monotonic is not None and (
                     recovery_timeout is None or recovery_timeout <= 0.0
