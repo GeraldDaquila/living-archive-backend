@@ -43,6 +43,10 @@ def main():
         "explain what each safeguard does in practice",
         "Make examples diagnostic, not decorative",
         "Avoid conceptual conflation",
+        "Use a causal spine across the three paragraphs",
+        "Prefer operational specificity over abstract virtue lists",
+        "Make the example do analytical work",
+        "check paragraph function as well as paragraph count",
     ):
         assert contract_phrase in source, f"Missing default composition contract: {contract_phrase}"
 
