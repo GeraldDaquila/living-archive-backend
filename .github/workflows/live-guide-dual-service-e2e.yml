@@ -239,7 +239,7 @@ jobs:
                       f"status={status}, version={payload.get('version')}"
                   )
               response = str(payload.get("response") or "").strip()
-              paragraphs = [part.strip() for part in re.split(r"\\n\\s*\\n+", response) if part.strip()]
+              paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
               if response != expected_discipline_answer:
                   raise SystemExit(
                       f"{name}: operational-discipline response diverged from its approved Gold Standard: "
