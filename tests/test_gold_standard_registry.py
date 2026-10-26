@@ -501,7 +501,7 @@ def test_fragmented_knowledge_gold_standard_is_runtime_resolvable_and_three_para
     assert "_registered_exact_gold_standard(question)" in composition_source
     assert "def _requires_three_paragraph_default(query: str) -> bool:" in composition_source
     assert "substantive explanatory answer must meet the three-paragraph Guide Gold Standard" in composition_source
-    assert 'CONTRACT_VERSION = "v1.28"' in composition_source
+    assert 'CONTRACT_VERSION = "v1.29"' in composition_source
     assert "def resolve_exact_gold_standard(question: str)" in standards_source
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert 'snapshot.get("contract_version") != "v1.28"' in main_source
