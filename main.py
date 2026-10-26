@@ -8134,7 +8134,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     _bounded_recovery_text = _sanitize_basic_inquiry_response(_bounded_recovery or "")
                     _bounded_recovery_paragraphs = [
                         part.strip()
-                        for part in re.split(r"\\n\\s*\\n+", _bounded_recovery_text)
+                        for part in re.split(r"\n\s*\n+", _bounded_recovery_text)
                         if part.strip()
                     ]
                     _bounded_recovery_is_substantive = bool(
