@@ -5717,14 +5717,14 @@ def _normalize_authoritative_recommendation(doorway):
 
 
 def _enforce_registered_gold_standard_doorway(doorway, gold_standard, query=""):
-    """Prevent retrieval doorways from surviving approved answers that do not authorize them."""
-    normalized_query = re.sub(r"\s+", " ", str(query or "")).strip().casefold().rstrip("?.!")
-    # The question-specific recovery is an approved, doorway-free Gold Standard.
-    # Keep its navigation boundary intact even if an upstream route normalized
-    # the incoming question before exact registry resolution.
-    if normalized_query == "what is the role of operational discipline in humane leadership":
-        return None
-    if gold_standard is not None and not str(gold_standard.get("doorway_title") or "").strip():
+    """Preserve the default doorway unless an approved standard explicitly forbids handoff.
+
+    A blank doorway in a Gold Standard means that the answer text is frozen, not
+    that every relevant Archive doorway must be suppressed. The independently
+    selected doorway has already passed the canonical relevance and URL gates.
+    Only an explicit no-handoff assertion overrides that default.
+    """
+    if gold_standard is not None and bool(gold_standard.get("forbids_doorway")):
         return None
     return doorway
 
@@ -7825,21 +7825,25 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         response = _final_gold_standard["expected_response"]
         _gold_title = str(_final_gold_standard.get("doorway_title") or "").strip()
         _gold_url = str(_final_gold_standard.get("doorway_url") or "").strip()
-        authoritative_doorway = (
-            {"title": _gold_title, "url": _gold_url or None}
-            if _gold_title else None
-        )
+        _gold_forbids_doorway = bool(_final_gold_standard.get("forbids_doorway"))
+        if _gold_title:
+            authoritative_doorway = {"title": _gold_title, "url": _gold_url or None}
+        elif _gold_forbids_doorway:
+            authoritative_doorway = None
+        # Otherwise retain the independently selected, relevance-checked
+        # canonical doorway. Freezing answer wording must not disable the
+        # system-wide answer-then-doorway presentation contract.
         if authoritative_doorway:
             answer_basis = {
                 "kind": "archive_supported",
                 "label": "Informed by the Living Archive",
-                "explanation": "This response matches an approved Guide reference and its registered Archive doorway.",
+                "explanation": "This response is paired with a separately selected, relevant Living Archive resource.",
             }
         else:
             answer_basis = {
                 "kind": "general_knowledge" if _final_gold_standard.get("benchmark_id") == "general-guide-water-boiling-point-general-knowledge-gold-standard-2026-10-24" else "archive_supported",
                 "label": "General knowledge" if _final_gold_standard.get("benchmark_id") == "general-guide-water-boiling-point-general-knowledge-gold-standard-2026-10-24" else "Living Archive reference answer",
-                "explanation": "This is the exact approved reference answer for your question; no additional page handoff is attached.",
+                "explanation": "This is the exact approved reference answer; no relevant canonical doorway was selected.",
             }
         print("The Guide final gold-standard boundary: applied exact approved reference; " + str(_final_gold_standard.get("benchmark_id") or "unlabelled"))
 
@@ -8034,17 +8038,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "Intergenerational-stewardship Gold Standard failed at the final visitor payload boundary."
         )
 
-    # Final authority boundary: an exact approved Gold Standard with no
-    # registered doorway must not inherit a recommendation selected earlier
-    # from retrieval context. Reassert this immediately before payload assembly,
-    # after every downstream rewrite and recovery path has finished.
+    # Final authority boundary: only an explicit no-handoff instruction may
+    # suppress an independently verified doorway at the final visitor boundary.
     authoritative_doorway = _enforce_registered_gold_standard_doorway(
         authoritative_doorway, _final_gold_standard, query
     )
-    if (
-        _final_gold_standard is not None
-        and not str(_final_gold_standard.get("doorway_title") or "").strip()
-    ):
+    if _final_gold_standard is not None and bool(_final_gold_standard.get("forbids_doorway")):
         composition_context.pop("authoritative_doorway", None)
         composition_context.pop("authoritative_doorway_title", None)
 
@@ -8171,13 +8170,12 @@ async def _use_send_json(send, payload, status_code=200):
         )
     # Absolute visitor-facing boundary: all JSON routes pass through this sender,
     # including routes that bypass Basic Inquiry's local composer boundary.
-    # The approved operational-discipline Gold Standard has no doorway, so do
-    # not allow any upstream specialist/retrieval path to reattach one.
+    # A blank doorway field means "no doorway registered in this frozen answer,"
+    # not "suppress every relevant resource." Only explicit no-handoff standards
+    # override the shared answer-then-doorway contract.
     if isinstance(payload, dict):
-        _boundary_query = re.sub(
-            r"\\s+", " ", str(payload.get("query") or "")
-        ).strip().casefold().rstrip("?.!")
-        if _boundary_query == "what is the role of operational discipline in humane leadership":
+        _boundary_standard = _resolve_exact_guide_gold_standard(payload.get("query") or "")
+        if _boundary_standard is not None and bool(_boundary_standard.get("forbids_doorway")):
             payload["recommendation"] = None
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     await send({"type": "http.response.start", "status": status_code,

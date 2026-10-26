@@ -131,7 +131,10 @@ def test_main_final_payload_boundary_reapplies_exact_standard_after_rewrites():
     )
     assert final_contract_position < resolver_position < payload_position
     assert 'response = _final_gold_standard["expected_response"]' in main_source
-    assert 'authoritative_doorway = (' in main_source[resolver_position:payload_position]
+    final_block = main_source[resolver_position:payload_position]
+    assert '_gold_forbids_doorway = bool(_final_gold_standard.get("forbids_doorway"))' in final_block
+    assert 'elif _gold_forbids_doorway:' in final_block
+    assert 'Otherwise retain the independently selected, relevance-checked' in final_block
 
 
 def test_water_gold_standard_keeps_general_knowledge_provenance():

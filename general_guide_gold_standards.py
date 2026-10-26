@@ -63,6 +63,7 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
             if (
                 previous.get("doorway_title", "") != doorway_title
                 or previous.get("doorway_url", "") != (str(doorway_url) if doorway_url else "")
+                or bool(previous.get("forbids_doorway")) != no_handoff
             ):
                 raise ValueError(
                     "Conflicting approved gold-standard doorways share an exact question."
@@ -74,6 +75,7 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
             "status": str(record.get("status") or ""),
             "doorway_title": doorway_title,
             "doorway_url": str(doorway_url) if doorway_url else "",
+            "forbids_doorway": no_handoff,
         }
     return standards
 
