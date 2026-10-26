@@ -7260,14 +7260,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 general_guide_composition._conceptual_relationship_recovery()
             )
             print("The Guide final relationship-answer boundary: restored concept-to-concept explanation.")
-        if not re.search(
-            r"\b(?:where can i find|where do i find|show me|take me to|link me to|browse|find the)\b",
-            query,
-            re.I,
-        ):
-            authoritative_doorway = None
-            composition_context.pop("authoritative_doorway", None)
-            print("The Guide final relationship-answer boundary: suppressed unrequested doorway.")
+        # A conceptual relationship question does not have to explicitly ask
+        # for a link to benefit from a separately validated canonical doorway.
+        # Preserve the selected doorway here; earlier relevance, evidence,
+        # safety, and URL gates remain authoritative. Do not turn an explanatory
+        # question into a navigation-only answer or suppress its next step.
+        if authoritative_doorway:
+            print("The Guide final relationship-answer boundary: preserved validated doorway alongside explanation.")
 
     # Final newcomer/topic contract: answer the expressed subject before generic
     # uncertainty recovery can send the visitor back to intake or ask them to restate it.
