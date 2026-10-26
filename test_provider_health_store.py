@@ -1,6 +1,9 @@
 import unittest
+import threading
+import time
 from unittest.mock import patch
 
+import provider_health_store
 from provider_health_store import TIMEOUT_SECONDS, export_health_states, merge_health_state, save_remote_states
 import provider_bank
 import provider_gateway_service
@@ -205,6 +208,41 @@ class ProviderHealthStoreTests(unittest.TestCase):
             )
         self.assertEqual(result, "ok")
         self.assertEqual(request.call_args.kwargs.get("timeout"), 12)
+
+    def test_successful_shared_health_read_is_cached_briefly(self):
+        with patch.object(provider_health_store, "_READ_CACHE", None), \
+             patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \
+             patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \
+             patch.object(provider_health_store, "_request", return_value={
+                 "contract_version": "v1",
+                 "states": {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "healthy"}},
+             }) as request:
+            first = provider_health_store.load_remote_states()
+            second = provider_health_store.load_remote_states()
+        self.assertEqual(first, second)
+        request.assert_called_once_with("GET")
+
+    def test_concurrent_cold_reads_share_one_bridge_attempt(self):
+        with patch.object(provider_health_store, "_READ_CACHE", None), \
+             patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \
+             patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \
+             patch.object(provider_health_store, "_request", side_effect=lambda method: (
+                 time.sleep(0.05) or {
+                     "contract_version": "v1",
+                     "states": {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "healthy"}},
+                 }
+             )) as request:
+            results = []
+            threads = [threading.Thread(target=lambda: results.append(provider_health_store.load_remote_states())) for _ in range(8)]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+        request.assert_called_once_with("GET")
+        self.assertEqual(len(results), 8)
+        self.assertTrue(all(result and "groq:model-a" in result for result in results))
 
     def test_missing_credentials_fails_closed_without_network(self):
         with patch("provider_health_store._configuration", return_value=("", "")):
