@@ -365,6 +365,12 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             f"Those safeguards let {force} contribute its benefits while keeping its use accountable to {constraint}. "
             "They also give the community a practical way to correct course when the effects depart from the shared purpose."
         )
+    elif re.search(r"\bwhat (?:is|are)\b", lower) and re.search(r",\s*and\s+why\s+does\s+it\s+matter\??", lower):
+        # A definition-plus-significance question is still a definition request.
+        # Its trailing "why does it matter" must not route it into the generic
+        # causal explanation template, which previously produced a fluent but
+        # non-substantive answer during provider exhaustion.
+        answer = compose_definition_significance(subject)
     elif re.search(r"\b(?:why|what causes|reason for)\b", lower):
         answer = (
             f"The most useful explanation for why {subject} begins by distinguishing the immediate event from the conditions that made it more likely. "
