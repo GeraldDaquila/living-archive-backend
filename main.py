@@ -4455,7 +4455,7 @@ def _basic_inquiry_has_internal_annotation(response):
 
 def _guide_generic_practical_template_mismatch(query, response_text):
     """Catch the specialist's generic action-planning template when it substitutes for an answer."""
-    q = re.sub(r"\\s+", " ", _normalize_query(query)).strip().casefold()
+    q = re.sub(r"\s+", " ", _normalize_query(query)).strip().casefold()
     response = re.sub(r"\\s+", " ", str(response_text or "")).strip().casefold()
     generic_template = bool(re.match(
         r"^(?:a practical way to approach|a practical way to think about|to approach this)\\b",
