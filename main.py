@@ -8053,6 +8053,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "Intergenerational-stewardship Gold Standard failed at the final visitor payload boundary."
         )
 
+    # Final authority boundary: an exact approved Gold Standard with no
+    # registered doorway must not inherit a recommendation selected earlier
+    # from retrieval context. Reassert this immediately before payload assembly,
+    # after every downstream rewrite and recovery path has finished.
+    if (
+        _final_gold_standard is not None
+        and not str(_final_gold_standard.get("doorway_title") or "").strip()
+    ):
+        authoritative_doorway = None
+        composition_context.pop("authoritative_doorway", None)
+        composition_context.pop("authoritative_doorway_title", None)
+
     payload = {
         "ok": True,
         "version": APP_VERSION,
