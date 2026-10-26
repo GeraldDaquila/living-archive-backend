@@ -72,7 +72,8 @@ HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
 # so the WordPress bridge can use its remaining deadline for mirror recovery.
 # The total arbitration window is 18 seconds, with at most two fallback candidates.
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 18.0
-GENERAL_GUIDE_SLOW_FAILURE_STOP_SECONDS = 2.8
+# General Guide failures continue through the bounded candidate window; the
+# shared request deadline and fallback admission gate are the stopping controls.
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 2
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 6.0
 
