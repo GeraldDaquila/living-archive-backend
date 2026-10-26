@@ -11,6 +11,7 @@ import json
 import os
 import threading
 import time
+from time import monotonic as _monotonic
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -25,6 +26,16 @@ CIRCUIT_COOLDOWN_SECONDS = 5.0
 _CIRCUIT_LOCK = threading.Lock()
 _CIRCUIT_OPEN_UNTIL = 0.0
 _CIRCUIT_PROBE_IN_FLIGHT = False
+# Shared health is advisory and changes far less frequently than visitor requests.
+# A short process-local read cache avoids repeated WordPress reads, while a
+# single-flight event prevents concurrent cold-cache requests from stampeding
+# the bridge. Cache data is health metadata only and never includes visitor input.
+_READ_CACHE_TTL_SECONDS = 2.0
+_READ_CACHE_LOCK = threading.Lock()
+_READ_CACHE = None
+_READ_CACHE_UNTIL = 0.0
+_READ_IN_FLIGHT = None
+_READ_IN_FLIGHT_RESULT = None
 STATE_FIELDS = (
     "provider", "model", "operation", "state", "failures", "consecutive_failures",
     "cooldown_until", "quarantine_until", "last_error", "last_success",
@@ -122,21 +133,59 @@ def _request(method, payload=None):
 
 
 def load_remote_states():
-    result = _request("GET")
-    if not isinstance(result, dict):
-        return None
-    states = result.get("states")
-    if not isinstance(states, dict) or len(states) > 100:
-        return None
-    cleaned = {}
-    for key, value in states.items():
-        if not isinstance(key, str) or not isinstance(value, dict):
-            continue
-        if len(key) > 191 or ":" not in key:
-            continue
-        cleaned[key] = {field: value[field] for field in STATE_FIELDS if field in value}
-        cleaned[key]["probe_in_flight"] = False
-    return cleaned
+    """Return a validated shared snapshot, coalescing concurrent cold reads."""
+    global _READ_CACHE, _READ_CACHE_UNTIL, _READ_IN_FLIGHT, _READ_IN_FLIGHT_RESULT
+    now = _monotonic()
+    with _READ_CACHE_LOCK:
+        if _READ_CACHE is not None and now < _READ_CACHE_UNTIL:
+            return {key: dict(value) for key, value in _READ_CACHE.items()}
+        event = _READ_IN_FLIGHT
+        owner = event is None
+        if owner:
+            event = threading.Event()
+            _READ_IN_FLIGHT = event
+            _READ_IN_FLIGHT_RESULT = None
+
+    if not owner:
+        # The owner gets the only bridge attempt. Waiters may use its result,
+        # but never issue a parallel request just because the bridge is slow.
+        event.wait(TIMEOUT_SECONDS + 0.10)
+        with _READ_CACHE_LOCK:
+            if _READ_CACHE is not None and _monotonic() < _READ_CACHE_UNTIL:
+                return {key: dict(value) for key, value in _READ_CACHE.items()}
+            result = _READ_IN_FLIGHT_RESULT
+            if isinstance(result, dict):
+                return {key: dict(value) for key, value in result.items()}
+            return None
+
+    cleaned = None
+    try:
+        result = _request("GET")
+        if not isinstance(result, dict):
+            return None
+        states = result.get("states")
+        if not isinstance(states, dict) or len(states) > 100:
+            return None
+        cleaned = {}
+        for key, value in states.items():
+            if not isinstance(key, str) or not isinstance(value, dict):
+                continue
+            if len(key) > 191 or ":" not in key:
+                continue
+            cleaned[key] = {field: value[field] for field in STATE_FIELDS if field in value}
+            cleaned[key]["probe_in_flight"] = False
+        return cleaned
+    finally:
+        with _READ_CACHE_LOCK:
+            if cleaned is not None:
+                _READ_CACHE = cleaned
+                _READ_CACHE_UNTIL = _monotonic() + _READ_CACHE_TTL_SECONDS
+                _READ_IN_FLIGHT_RESULT = cleaned
+            else:
+                _READ_IN_FLIGHT_RESULT = None
+            if _READ_IN_FLIGHT is event:
+                _READ_IN_FLIGHT = None
+            event.set()
 
 
 def export_health_states(states):
