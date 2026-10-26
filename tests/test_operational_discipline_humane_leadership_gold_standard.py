@@ -54,6 +54,15 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
                 selected_doorway, no_doorway_standard
             )
         )
+        # Even if an upstream request path prevents registry resolution, this
+        # approved doorway-free question must never inherit a retrieval link.
+        self.assertIsNone(
+            main._enforce_registered_gold_standard_doorway(
+                selected_doorway,
+                None,
+                "What is the role of operational discipline in humane leadership?",
+            )
+        )
         self.assertEqual(
             main._enforce_registered_gold_standard_doorway(selected_doorway, None),
             selected_doorway,
