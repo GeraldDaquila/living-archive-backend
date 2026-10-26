@@ -3100,13 +3100,9 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 + ", rejection_class=" + rejection_class
                 + ", error=" + re.sub(r"\\s+", " ", last_error)[:220]
             )
-            if operation in {"hrn_perception", "general_guide_composition"}:
+            if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
-                slow_failure_stop = (
-                    HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS
-                    if operation == "hrn_perception"
-                    else GENERAL_GUIDE_SLOW_FAILURE_STOP_SECONDS
-                )
+                slow_failure_stop = HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS
                 if candidate_elapsed > slow_failure_stop:
                     print(
                         "USE provider bank fast-failure fallback: "
@@ -3121,13 +3117,9 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             last_error = str(exc)
             _failure(exc, provider, model, operation=operation)
             print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", error=" + last_error[:300])
-            if operation in {"hrn_perception", "general_guide_composition"}:
+            if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
-                slow_failure_stop = (
-                    HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS
-                    if operation == "hrn_perception"
-                    else GENERAL_GUIDE_SLOW_FAILURE_STOP_SECONDS
-                )
+                slow_failure_stop = HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS
                 if candidate_elapsed > slow_failure_stop:
                     print(
                         "USE provider bank fast-failure fallback: "
