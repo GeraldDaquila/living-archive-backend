@@ -313,14 +313,76 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         # Canonical Archive claims still require the normal evidence boundary
         # before they can be attributed.
         display_subject = subject[:1].upper() + subject[1:]
-        answer = (
-            f"{display_subject} is best understood by what it means and how it operates in practice. "
-            "The definition matters because it shapes what people notice, what they expect, and what they count as a reasonable action.\n\n"
-            "A useful explanation distinguishes the idea from nearby concepts and makes its implications visible in a concrete situation. "
-            "For instance, two terms may sound similar while assigning different responsibilities or implying different standards of judgment.\n\n"
-            "The precise meaning can vary by field or institution, so this is a general explanation rather than a claim that the Living Archive uses a particular formal definition. "
-            "Where the distinction matters for a decision, check how the relevant people or institution define and apply the term."
-        )
+        # A bounded, reusable general-knowledge definition bank supports common
+        # concepts when providers are exhausted. These are ordinary definitions,
+        # not statements of official Living Archive doctrine.
+        definition_bank = {
+            "institutional memory": {
+                "definition": "the knowledge an organization retains from its decisions, experience, practices, and lessons over time",
+                "example": "When a team records why a policy was adopted and what happened after it changed, new staff can understand the original problem instead of repeating an earlier mistake or treating an old decision as unexplained tradition.",
+                "significance": "It supports continuity and learning when people leave or leadership changes. Records without context can mislead, so preserving the reasons, uncertainty, and conditions behind decisions helps successors judge what still applies and what needs to change."
+            },
+            "collective memory": {
+                "definition": "the shared understanding of a group's past, carried through stories, records, practices, and public remembrance",
+                "example": "A community may preserve the story of a flood and the decisions that helped it recover so that new residents understand both what happened and why certain preparations matter.",
+                "significance": "It can support identity and learning, but memories are selective and may differ across groups. Comparing recollections with evidence helps keep a shared past from erasing experiences that were overlooked."
+            },
+            "organizational learning": {
+                "definition": "the process by which an organization uses experience and evidence to improve how it works",
+                "example": "After a service fails, a team looks beyond the immediate mistake, identifies the conditions that caused it, tests a change, and checks whether the new process actually reduces repeat failures.",
+                "significance": "Learning requires more than collecting reports: people need to be able to raise concerns, examine assumptions, and change routines when evidence shows they are not working."
+            },
+            "institutional responsibility": {
+                "definition": "an organization's obligation to answer for its decisions, duties, and effects on people, including problems produced by its own rules and systems",
+                "example": "If a public office repeatedly loses applications, responsibility includes examining the process, explaining what went wrong, correcting the failure, and reducing the chance it will recur—not only blaming the employee who handled one case.",
+                "significance": "The obligation does not mean an institution can control every outcome. It means making responsibilities clear, giving reasons, listening to affected people, correcting preventable harm, and accepting appropriate oversight."
+            },
+            "governance": {
+                "definition": "the way a group or institution establishes purpose, makes decisions, distributes authority, and holds decision-makers accountable",
+                "example": "A meeting agenda and minutes may help administer a decision, while governance determines who has a voice, who may decide, and how the decision can be challenged or reviewed.",
+                "significance": "Clear governance helps decisions remain understandable and answerable; it does not replace day-to-day administration or guarantee that every decision will be good."
+            },
+            "administration": {
+                "definition": "the practical coordination and execution of work, decisions, records, and procedures",
+                "example": "Administration may schedule a public meeting, distribute the papers, record attendance, and follow up on assigned tasks after the relevant decision has been made.",
+                "significance": "Reliable administration helps plans become action, but efficient execution cannot by itself determine whether a decision's purpose, authority, or consequences are sound."
+            },
+            "stewardship": {
+                "definition": "taking care of something entrusted to you while considering its value to others and the future",
+                "example": "A person practicing stewardship of a shared space maintains it, uses resources carefully, and considers how decisions affect the people who rely on it.",
+                "significance": "Stewardship is not control over everything or self-sacrifice without limits; it is responsible care for what is genuinely entrusted to you and attention to the effects of your choices."
+            },
+            "reciprocity": {
+                "definition": "a relationship of mutual response in which people give, receive, and support one another over time",
+                "example": "Neighbors may take turns checking on an older resident or helping with errands; one person might give more during a difficult week and receive help later.",
+                "significance": "Reciprocity does not require immediate or equal repayment. It should not be used to demand access, obedience, or repayment from someone who cannot freely offer it."
+            },
+            "institutional trust": {
+                "definition": "the confidence that an institution will act competently, fairly, and consistently enough for people to rely on it",
+                "example": "People are more able to rely on a public service when it explains decisions, handles similar cases consistently, corrects mistakes, and provides a meaningful way to appeal.",
+                "significance": "Trust should be earned by observable conduct rather than claimed as a virtue. Consistent failures, hidden reasons, or blocked complaints can weaken it even when an institution says its intentions are good."
+            }
+        }
+        normalized_subject = re.sub(r"\s+", " ", subject).strip().casefold()
+        entry = definition_bank.get(normalized_subject)
+        if entry:
+            answer = (
+                f"{display_subject} is {entry['definition']}. "
+                "Its meaning is practical: it describes knowledge, responsibilities, or ways of working that affect what people can understand and do.\n\n"
+                f"For example, {entry['example']}\n\n"
+                f"{display_subject} matters because {entry['significance']}"
+            )
+        else:
+            # For an unfamiliar term, state the limit without circular prose or
+            # unsupported attribution. Do not claim an institutional definition.
+            answer = (
+                f"I can't define {display_subject} reliably from the information available in this response alone. "
+                "I don't want to invent a definition or imply that a guess is established knowledge.\n\n"
+                f"The meaning of {display_subject} can depend on the field or institution using it. "
+                "Separate the term's ordinary meaning, any formal definition, and the way it is applied in practice.\n\n"
+                "For a general concept, a reliable dictionary or subject reference can establish the ordinary meaning; for an institution's specific use, its published governing text is the authority to check. "
+                "That is a limit on this unfamiliar term, not a claim that the question is unanswerable in principle."
+            )
     elif re.search(r"\b(?:meaning|make sense|understand|interpret|reflect|relationship)\b", lower):
         answer = (
             f"A useful starting point for {subject} is to separate what is known from what is inferred, then ask which distinction or tension matters most. "
