@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.299 — Healthy-community single-pass retrieval correction
+# USE PRODUCTION VERSION: v489.300 — Exact-deployment E2E identity
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
@@ -81,9 +81,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.299"
-DEPLOYMENT_FINGERPRINT = "USE-v489.299-healthy-community-single-pass-retrieval-correction"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.299-healthy-community-single-pass-retrieval-correction"
+APP_VERSION = "v489.300"
+DEPLOYMENT_FINGERPRINT = "USE-v489.300-exact-deployment-e2e-identity"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.300-exact-deployment-e2e-identity"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -225,7 +225,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.299":
+if str(APP_VERSION) != "v489.300":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -10062,6 +10062,7 @@ def provider_health_readiness():
             "contract": "provider-health-readiness-v1",
             "version": APP_VERSION,
             "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "deployment_commit_sha": os.environ.get("RENDER_GIT_COMMIT", "").strip(),
             "shared_health": {
                 "configured": configured,
                 "available": available,
@@ -10082,6 +10083,7 @@ def provider_health_readiness():
             "contract": "provider-health-readiness-v1",
             "version": APP_VERSION,
             "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "deployment_commit_sha": os.environ.get("RENDER_GIT_COMMIT", "").strip(),
             "shared_health": {
                 "configured": False,
                 "available": False,
