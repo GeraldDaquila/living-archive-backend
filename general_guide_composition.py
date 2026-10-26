@@ -422,30 +422,30 @@ def _requires_three_paragraph_default(query: str) -> bool:
 
 _META_ANSWER_FAILURE_PATTERNS = (
     # Explicit answer-quality disclaimers and retry templates are failures, not answers.
-    r"\\bi can(?:not|['’]t) give this question the careful explanation it deserves\\b",
-    r"\\bi don['’]?t want to replace the answer you asked for\\b",
-    r"\\ba complete response should address your actual question directly\\b",
-    r"\\bthat explanation has not been produced reliably\\b",
-    r"\\bplease try again shortly\\b",
-    r"\\bthe guide should either provide that three-part explanation\\b",
-    r"\\bi couldn['’]?t produce a reliable answer to that question just now\\b",
-    r"\\bcommentary about an answer as though it were the answer itself\\b",
-    r"\\bthe question about .{1,180} deserves a direct answer\\b",
-    r"\\bthe most useful next step is to identify\\b",
-    r"\\bi don['’]?t have enough verified context\\b",
-    r"\\bthe inquiry need not stop here\\b",
-    r"\\bseparate established facts from assumptions\\b",
-    r"\\bi have not been able to produce that complete explanation\\b",
+    r"\bi can(?:not|['’]t) give this question the careful explanation it deserves\b",
+    r"\bi don['’]?t want to replace the answer you asked for\b",
+    r"\ba complete response should address your actual question directly\b",
+    r"\bthat explanation has not been produced reliably\b",
+    r"\bplease try again shortly\b",
+    r"\bthe guide should either provide that three-part explanation\b",
+    r"\bi couldn['’]?t produce a reliable answer to that question just now\b",
+    r"\bcommentary about an answer as though it were the answer itself\b",
+    r"\bthe question about .{1,180} deserves a direct answer\b",
+    r"\bthe most useful next step is to identify\b",
+    r"\bi don['’]?t have enough verified context\b",
+    r"\bthe inquiry need not stop here\b",
+    r"\bseparate established facts from assumptions\b",
+    r"\bi have not been able to produce that complete explanation\b",
 )
 
 
 def is_meta_answer_failure(response: str) -> bool:
-    \"\"\"Return True when prose describes an answer failure instead of answering.
+    """Return True when prose describes an answer failure instead of answering.
 
     This shared final-quality contract is intentionally independent of paragraph
     count and question-specific recovery. It is applied both to provider candidates
-    and to the last-mile visitor payload so fallback rewrites cannot bypass it.
-    \"\"\"
+    and to the last-mile visitor payload so no fallback path can bypass it.
+    """
     text = _normalize_space(response).casefold()
     if not text:
         return True
