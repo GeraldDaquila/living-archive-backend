@@ -121,7 +121,7 @@ def test_cosmology_question_is_not_replaced_by_an_exact_benchmark_answer(monkeyp
 def test_default_composition_evidence_recovery_keeps_three_paragraph_contract_when_providers_exhausted(monkeypatch):
     import general_guide_composition as composition
 
-    query = "What is governance, beyond administration?"
+    query = "How does governance differ from administration in practice?"
     source_sentences = [
         "Governance establishes how a group makes decisions and remains accountable for their consequences.",
         "Governance goes beyond administration because it determines purposes, authority, and the rules by which decisions are made.",
@@ -160,7 +160,7 @@ def test_default_composition_evidence_recovery_does_not_invent_when_retrieval_is
     monkeypatch.setattr(composition, "route_with_model_bank", lambda **kwargs: None)
     result = composition.compose(
         use_core=object(),
-        query="What is governance, beyond administration?",
+        query="How does governance differ from administration in practice?",
         context_data={"generation_authority_protected_docs": [{
             "title": "Unrelated source",
             "url": "https://geralddaquila.com/unrelated/",

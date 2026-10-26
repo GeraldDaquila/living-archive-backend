@@ -354,6 +354,23 @@ def test_water_boiling_point_general_knowledge_gold_standard_preserves_live_answ
     assert "does not claim the science answer is sourced from or canonical doctrine" in fixture["provenance"]["evidence_boundary"]
 
 
+def test_governance_beyond_administration_gold_standard_is_registered():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-governance-beyond-administration-gold-standard-2026-10-26"
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "What is governance, beyond administration?"
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
+    assert record["expected_doorway"]["title"] == "Governance & Institution Building"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/governance-institution-building/"
+    assert "If administration is the act of steering a ship" in record["expected_response"]
+    assert "community garden" in record["expected_response"]
+    assert "intended to orient authority toward stewardship" in record["expected_response"]
+    assert "Preserve expected_response verbatim" in record["freeze_policy"]
+
+
 def test_leadership_vs_positional_authority_gold_standard_is_registered():
     registry = _registry()
     record = next(
