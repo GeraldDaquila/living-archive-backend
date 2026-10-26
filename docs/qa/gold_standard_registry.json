@@ -1929,9 +1929,36 @@
         "evidence_boundary": "Screenshot confirms the displayed answer, three-paragraph composition, and doorway title. The doorway URL and backend runtime identity were not independently established by this screenshot."
       },
       "freeze_policy": "Preserve the approved response verbatim. Changes require explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-governance-beyond-administration-gold-standard-2026-10-26",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is governance, beyond administration?",
+      "expected_response": "Governance is the design of the underlying architecture that determines how authority is used, how decisions are made, and how a community or organization remains coherent over time. While administration focuses on the efficient execution of existing tasks and the management of daily operations, governance addresses the fundamental principles and structures that guide those operations. If administration is the act of steering a ship, governance is the design of the vessel and the determination of the destination and the rules by which the crew operates.\n\nTo see this distinction in practice, consider a community garden. Administration involves the scheduling of watering shifts, the purchase of seeds, and the maintenance of tools to ensure the garden functions smoothly today. Governance, however, involves deciding how new members are admitted, how disputes over plot usage are resolved, and how the garden will be preserved for the next generation of gardeners. Governance sets the values and the decision-making processes that allow the administrative tasks to happen in a way that reflects the community’s shared intent.\n\nThis distinction matters because administration can be highly efficient even within a broken or unjust system. A well-administered organization can still suffer from concentrated power, lack of accountability, or a failure to serve its original purpose. True governance is intended to orient authority toward stewardship and the well-being of the whole, rather than toward the self-preservation of the institution itself. It provides the constitutional framework that allows an organization to adapt to change without losing its core identity or its commitment to those it serves.",
+      "expected_doorway": {
+        "title": "Governance & Institution Building",
+        "url": "https://geralddaquila.com/governance-institution-building/"
+      },
+      "assertions": [
+        "Preserve the screenshot-approved visitor response verbatim as an exact-question benchmark.",
+        "Exactly three substantive paragraphs: direct distinction and framing analogy; concrete community-garden application; significance and limitations of administration.",
+        "Explains governance as the structures and principles that shape authority and decisions, distinct from the operational execution of administration.",
+        "Uses the ship analogy and community-garden example as displayed in the approved screenshot.",
+        "Keeps the doorway separate from the substantive answer and records the URL returned in the live response."
+      ],
+      "provenance": {
+        "source_path": "visitor-facing Guide screenshot supplied by user on 2026-10-26",
+        "source_ref": "user-provided live visitor screenshot dated 2026-10-26",
+        "source_status": "USER_APPROVED_GOLD_STANDARD",
+        "review_rating": "8.8/10",
+        "approval_basis": "User reviewed the displayed response, was told it substantially met expectations and the three-paragraph Gold Standard, and then explicitly requested registry inclusion.",
+        "evidence_boundary": "Screenshot confirms the displayed answer, three-paragraph presentation, and doorway title. The live API response separately returned the same doorway title with the URL recorded here; the screenshot alone does not establish backend runtime identity."
+      },
+      "freeze_policy": "Preserve expected_response verbatim. Do not change wording without explicit user authorization and a separately documented benchmark-version change."
     }
   ],
-  "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control.",
+  "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control. New approved record added on October 26, 2026: the screenshot-approved governance-beyond-administration response is registered as USER_APPROVED_GOLD_STANDARD with exact three-paragraph wording and a separately verified live doorway URL.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
