@@ -39,7 +39,7 @@ class GuideLatencyContractTests(unittest.TestCase):
         returned = next(node for node in ast.walk(function) if isinstance(node, ast.Return))
         response = ast.literal_eval(returned.value)
         self.assertEqual(
-            len([part for part in response.split("\\n\\n") if part.strip()]),
+            len([part for part in response.split("\n\n") if part.strip()]),
             3,
             "The governed newcomer recovery must satisfy the default three-paragraph contract.",
         )
