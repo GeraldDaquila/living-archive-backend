@@ -275,3 +275,24 @@ def test_gold_standard_meta_answer_detector_accepts_substantive_three_paragraph_
     )
     assert len([p for p in substantive.split("\n\n") if p.strip()]) == 3
     assert not guide.is_meta_answer_failure(substantive)
+
+
+def test_substantive_answers_may_discuss_separating_facts_from_assumptions():
+    import general_guide_composition as guide
+
+    substantive = (
+        "A careful explanation begins by separating established facts from assumptions when the evidence is mixed. "
+        "That distinction helps the reader see which conclusions are supported and which remain uncertain.\\n\\n"
+        "For example, a team reviewing a missed deadline can confirm the timeline before inferring why it happened. "
+        "That prevents an early guess from being treated as a proven cause.\\n\\n"
+        "The goal is not to avoid judgment, but to make judgments proportionate to the evidence and revise them when new information appears."
+    )
+    assert not guide.is_meta_answer_failure(substantive)
+
+
+def test_final_visitor_boundary_uses_shared_substantive_contract():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "main.py").read_text(encoding="utf-8")
+    assert "general_guide_composition.is_meta_answer_failure(" in source
