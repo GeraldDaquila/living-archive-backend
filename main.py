@@ -82,8 +82,8 @@ use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
 APP_VERSION = "v489.298"
-DEPLOYMENT_FINGERPRINT = "USE-v489.297-human-voice-conceptual-fallback"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.297-human-voice-conceptual-fallback"
+DEPLOYMENT_FINGERPRINT = "USE-v489.298-single-pass-gold-standard-latency-correction"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.298-single-pass-gold-standard-latency-correction"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
