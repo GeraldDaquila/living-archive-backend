@@ -32,6 +32,20 @@ def main():
     assert composition._requires_three_paragraph_default(other_query) is True
     assert composition.is_generic_nonanswer(other_query, generic_answer) is True
 
+    # Keep the default composition prompt's quality contract structural and
+    # provider-independent: causal calibration, applied mechanisms, safeguards,
+    # and conceptual distinctions must be present for every substantive answer.
+    import inspect
+    source = inspect.getsource(composition)
+    for contract_phrase in (
+        "Calibrate causal claims",
+        "trace the chain from the source of influence or capability",
+        "explain what each safeguard does in practice",
+        "Make examples diagnostic, not decorative",
+        "Avoid conceptual conflation",
+    ):
+        assert contract_phrase in source, f"Missing default composition contract: {contract_phrase}"
+
     print("DEFAULT GOLD STANDARD SUBSTANTIVE COMPOSITION QA: PASS")
 
 
