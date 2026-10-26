@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.303 — Grounded bounded conceptual recovery
+# USE PRODUCTION VERSION: v489.304 — Absolute provider HTTP deadline
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
@@ -81,9 +81,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.303"
-DEPLOYMENT_FINGERPRINT = "USE-v489.303-grounded-bounded-conceptual-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.303-grounded-bounded-conceptual-recovery"
+APP_VERSION = "v489.304"
+DEPLOYMENT_FINGERPRINT = "USE-v489.304-absolute-provider-http-deadline"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.304-absolute-provider-http-deadline"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -225,7 +225,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.303":
+if str(APP_VERSION) != "v489.304":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
