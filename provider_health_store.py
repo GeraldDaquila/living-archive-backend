@@ -11,6 +11,7 @@ import json
 import os
 import threading
 import time
+from time import monotonic as _monotonic
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -134,7 +135,7 @@ def _request(method, payload=None):
 def load_remote_states():
     """Return a validated shared snapshot, coalescing concurrent cold reads."""
     global _READ_CACHE, _READ_CACHE_UNTIL, _READ_IN_FLIGHT, _READ_IN_FLIGHT_RESULT
-    now = time.monotonic()
+    now = _monotonic()
     with _READ_CACHE_LOCK:
         if _READ_CACHE is not None and now < _READ_CACHE_UNTIL:
             return {key: dict(value) for key, value in _READ_CACHE.items()}
@@ -150,7 +151,7 @@ def load_remote_states():
         # but never issue a parallel request just because the bridge is slow.
         event.wait(TIMEOUT_SECONDS + 0.10)
         with _READ_CACHE_LOCK:
-            if _READ_CACHE is not None and time.monotonic() < _READ_CACHE_UNTIL:
+            if _READ_CACHE is not None and _monotonic() < _READ_CACHE_UNTIL:
                 return {key: dict(value) for key, value in _READ_CACHE.items()}
             result = _READ_IN_FLIGHT_RESULT
             if isinstance(result, dict):
@@ -178,7 +179,7 @@ def load_remote_states():
         with _READ_CACHE_LOCK:
             if cleaned is not None:
                 _READ_CACHE = cleaned
-                _READ_CACHE_UNTIL = time.monotonic() + _READ_CACHE_TTL_SECONDS
+                _READ_CACHE_UNTIL = _monotonic() + _READ_CACHE_TTL_SECONDS
                 _READ_IN_FLIGHT_RESULT = cleaned
             else:
                 _READ_IN_FLIGHT_RESULT = None
