@@ -26,9 +26,9 @@ def test_perception_preserves_visitor_agency_and_avoids_false_intimacy():
 
 
 def test_composition_contract_advances_for_perception_policy():
-    assert guide.CONTRACT_VERSION == "v1.28"
+    assert guide.CONTRACT_VERSION == "v1.29"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.28"
+    assert snapshot["contract_version"] == "v1.29"
     assert snapshot["provider_neutral"] is True
 
 
@@ -112,8 +112,8 @@ def test_conceptual_relationships_require_three_paragraph_default():
     assert "does not mean" in compact_parsed
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.28"
-    assert guide.contract_snapshot()["contract_version"] == "v1.28"
+    assert guide.CONTRACT_VERSION == "v1.29"
+    assert guide.contract_snapshot()["contract_version"] == "v1.29"
 
 
 def test_incomplete_comparison_question_clarifies_before_retrieval():
@@ -147,8 +147,8 @@ def test_ordinary_explanatory_question_is_not_interrupted():
 
 
 def test_composition_contract_version_advances_for_clarification_boundary():
-    assert guide.CONTRACT_VERSION == "v1.28"
-    assert guide.contract_snapshot()["contract_version"] == "v1.28"
+    assert guide.CONTRACT_VERSION == "v1.29"
+    assert guide.contract_snapshot()["contract_version"] == "v1.29"
 
 
 def test_plain_stewardship_explanation_rejects_unsolicited_spectrum_list():
@@ -284,3 +284,52 @@ def test_valid_answer_can_discuss_separating_facts_from_assumptions():
         "The goal is not to avoid judgment, but to keep judgments proportionate to evidence and revise them when new information appears."
     )
     assert not guide.is_meta_answer_failure(answer)
+
+
+def test_conceptual_relationship_validation_checks_the_asked_concepts():
+    question = "What is the relationship between agency and circumstance?"
+    correct = (
+        "Agency is the capacity to choose and act, while circumstance describes the conditions "
+        "in which choices are made. Their relationship matters because circumstances shape which "
+        "actions are realistically available, even when they do not determine every choice.\\n\\n"
+        "For example, limited money or authority can narrow a person's options, while support and "
+        "resources can widen them. The same decision may therefore carry different costs for people "
+        "in different circumstances.\\n\\n"
+        "Agency and circumstance must be considered together: one helps explain a person's response, "
+        "and the other helps explain the constraints and possibilities surrounding it. Neither alone "
+        "is a complete account of what happened."
+    )
+    unrelated = (
+        "Accountability and trust reinforce one another when responsibility leads to visible action. "
+        "Accountability starts with acknowledging what happened and who was affected. That makes trust "
+        "more credible because people can judge actions rather than promises.\\n\\n"
+        "When harm occurs, repair turns accountability into action. Listening to affected people and "
+        "changing what allowed the harm to happen can make trust possible again.\\n\\n"
+        "This does not mean harm is forgotten. It means responsibility becomes visible through change."
+    )
+    assert guide.has_conceptual_relationship_explanation(correct, question)
+    assert not guide.has_conceptual_relationship_explanation(unrelated, question)
+
+
+def test_agency_and_circumstance_have_three_paragraph_provider_exhaustion_recovery():
+    question = "What is the relationship between agency and circumstance?"
+    response = guide._conceptual_relationship_recovery(question)
+    assert response is not None
+    paragraphs = response.split("\n\n")
+    assert len(paragraphs) == 3
+    assert all(len(p.split()) >= 35 for p in paragraphs)
+    assert "Agency is a person’s capacity to choose and act" in paragraphs[0]
+    assert "financial pressure" in paragraphs[1]
+    assert "not a claim that the Living Archive defines" in paragraphs[2]
+    assert guide._conceptual_relationship_recovery(
+        "What is the relationship between accountability and trust?"
+    ) is None
+
+
+def test_conceptual_relationship_recovery_is_not_the_old_unrelated_canned_answer():
+    response = guide._conceptual_relationship_recovery(
+        "What is the relationship between agency and circumstance?"
+    )
+    assert response is not None
+    assert "accountability" not in response.casefold()
+    assert "trust and repairing harm" not in response.casefold()
