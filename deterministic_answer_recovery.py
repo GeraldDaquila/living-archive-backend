@@ -311,7 +311,10 @@ for _question in (
     _answer = compose_recovery(_question)
     if not _answer or len(_answer) < 80:
         raise RuntimeError("Deterministic answer recovery contract failed: response too short.")
-    if re.search(r"\b(?:provider bank|retrieval layer|canonical evidence|machine-facing|USE)\b", _answer, re.I):
+    if (
+        re.search(r"\b(?:provider bank|retrieval layer|canonical evidence|machine-facing)\b", _answer, re.I)
+        or re.search(r"\bUSE\b", _answer)
+    ):
         raise RuntimeError("Deterministic answer recovery contract failed: internal language leaked.")
 
 _tradeoff_answer = compose_recovery(
