@@ -185,6 +185,9 @@ def test_hrn_relational_tries_multiple_independent_fast_fallbacks(monkeypatch):
 
 def test_explicit_provider_timeout_can_be_shorter_than_default_floor(monkeypatch):
     observed = {}
+    # This test verifies the passed timeout, not elapsed wall time; keep its
+    # clock deterministic now that provider HTTP bodies have a hard deadline.
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: 100.0)
 
     class FakeResponse:
         def __enter__(self):
