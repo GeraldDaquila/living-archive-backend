@@ -70,7 +70,7 @@ class GuideLatencyContractTests(unittest.TestCase):
 
     def test_final_paragraph_guard_never_reenters_composer(self):
         marker = MAIN_SOURCE.index(
-            "# LAST-MILE GOLD STANDARD CONTRACT: enforce the presentation floor"
+            "# Paragraph quality is enforced at the final payload boundary below."
         )
         start = MAIN_SOURCE.rfind("\n", 0, marker) + 1
         end = MAIN_SOURCE.index(
@@ -82,7 +82,7 @@ class GuideLatencyContractTests(unittest.TestCase):
             _contains_composer_call(final_guard),
             "A last-mile formatting failure must fail honestly, not start another LLM turn.",
         )
-        self.assertIn("second_composition_attempt=false", MAIN_SOURCE[start:end])
+        self.assertIn("single final repair", MAIN_SOURCE[start:end])
 
 
 if __name__ == "__main__":
