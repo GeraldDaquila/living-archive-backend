@@ -410,3 +410,25 @@ def test_early_paragraph_guard_does_not_trigger_a_second_composition():
     guard = SOURCE[start:end]
     assert "general_guide_composition.compose(" not in guard
     assert "single final repair" in guard
+
+
+
+def test_healthy_community_recovery_short_circuits_redundant_canonical_searches():
+    helper_start = SOURCE.index("def _healthy_community_canonical_recommendation(")
+    helper_end = SOURCE.index("\n\ndef _is_healthy_community_orientation_question", helper_start)
+    helper = SOURCE[helper_start:helper_end]
+    assert "_wordpress_search_canonical_candidates(" not in helper
+    assert "What Healthy Communities Actually Look Like" in helper
+    assert "t4-codex-overflow-communities-governance-by-resonance" in helper
+
+    inquiry_start = SOURCE.index("def _basic_inquiry_response(")
+    inquiry_end = SOURCE.index("def _v48831_basic_inquiry_seam_self_audit", inquiry_start)
+    inquiry = SOURCE[inquiry_start:inquiry_end]
+    classifier = "healthy_community_short_circuit = _is_healthy_community_orientation_question(query)"
+    context_fetch = "context_data = use_core.fetch_canonical_context(resource_query)"
+    supplement = "if (\n        not healthy_community_short_circuit\n        and _guide_requires_canonical_subject_supplement("
+    assert classifier in inquiry
+    assert inquiry.index(classifier) < inquiry.index(context_fetch)
+    assert supplement in inquiry
+    assert inquiry.index(classifier) < inquiry.index(supplement)
+    assert "llm_composer_invoked=false" in inquiry
