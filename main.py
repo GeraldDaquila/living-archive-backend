@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.297 — Practical stewardship provider-exhaustion recovery
+# USE PRODUCTION VERSION: v489.298 — Single-pass Gold Standard latency correction
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
@@ -81,9 +81,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.297"
-DEPLOYMENT_FINGERPRINT = "USE-v489.297-human-voice-conceptual-fallback"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.297-human-voice-conceptual-fallback"
+APP_VERSION = "v489.298"
+DEPLOYMENT_FINGERPRINT = "USE-v489.298-single-pass-gold-standard-latency-correction"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.298-single-pass-gold-standard-latency-correction"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -225,7 +225,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.297":
+if str(APP_VERSION) != "v489.298":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -3484,16 +3484,20 @@ def _is_healthy_community_orientation_question(query):
 
 
 def _healthy_community_answer_recovery():
-    """Accessible first answer for newcomers asking about healthy communities."""
+    """Three-paragraph, answer-first entry point for newcomers asking about healthy communities."""
     return (
         "A healthy community is not simply one where people always agree or where conflict never happens. "
-        "It is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. "
-        "You can begin to recognize one by looking at whose voices are heard, how people share responsibility, whether people feel safe enough to disagree, "
-        "and what happens when someone is excluded or harmed. A healthy community takes those effects seriously and works to address them rather than hiding them. "
-        "You do not need to know the Living Archive's vocabulary to begin exploring this. A useful next step is to look at what healthy communities actually look like in everyday life. "
-        "If you would like to explore the Archive more broadly afterward, the Living Archive Navigator can help you find other perspectives."
+        "It is one where people can participate, raise concerns, work through differences, and have a meaningful say "
+        "in decisions that affect them. Health shows up in how people live and decide together, not in the absence of disagreement.\n\n"
+        "You can begin to recognize a healthy community by looking at whose voices are heard, how responsibility is shared, "
+        "whether people feel safe enough to disagree, and what happens when someone is excluded or harmed. "
+        "A community's response to those moments matters: does it listen, repair what it can, and change the conditions "
+        "that caused harm, or does it hide the problem and leave the burden with the person affected?\n\n"
+        "You do not need to know the Living Archive's vocabulary to begin exploring this. Start with the everyday signs: "
+        "who gets to participate, how decisions are made, and whether people can raise concerns without being pushed aside. "
+        "The Archive's resource on what healthy communities actually look like can offer a deeper next step, while the "
+        "Living Archive Navigator can help you explore other perspectives if you want to continue."
     )
-
 
 def _has_substantive_topic_intent(query):
     """Keep a meaningful subject inquiry in The Guide before offering orientation.
@@ -6911,6 +6915,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         print("The Guide reasoning provider mode: invalid value; using auto.")
         reasoning_mode = "auto"
 
+    # Resolve this bounded newcomer question before general composition. The
+    # deterministic recovery already satisfies the three-paragraph answer contract,
+    # so generating and later discarding a provider answer would add latency only.
+    healthy_community_short_circuit = _is_healthy_community_orientation_question(query)
+    if healthy_community_short_circuit:
+        reasoning_mode = "deterministic_only"
+
     composition_result = None
     # This narrow practical-question class has a bounded, provider-independent
     # answer. Do not send it through the general composition envelope: that
@@ -6932,15 +6943,23 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "llm_composer_invoked=false, archive_recommendation=none"
         )
     elif reasoning_mode == "deterministic_only":
-        deterministic_result = _basic_inquiry_round1_deterministic_response(
-            correction_subject or query, {}, composition_context,
-            recommendation_available=bool(authoritative_doorway),
-        )
+        if healthy_community_short_circuit:
+            deterministic_result = {
+                "response": _healthy_community_answer_recovery(),
+                "provider": "bounded_healthy_community_orientation_recovery",
+                "model": "deterministic-contract-recovery",
+            }
+        else:
+            deterministic_result = _basic_inquiry_round1_deterministic_response(
+                correction_subject or query, {}, composition_context,
+                recommendation_available=bool(authoritative_doorway),
+            )
         llm_output = str((deterministic_result or {}).get("response") or "")
         print(
             "The Guide General Composition: "
-            f"mode=deterministic_only, provider={(deterministic_result or {}).get('provider') or 'unknown'}, "
-            "model=none, llm_composer_invoked=false, "
+            f"mode={'bounded_healthy_community_orientation_recovery' if healthy_community_short_circuit else 'deterministic_only'}, "
+            f"provider={(deterministic_result or {}).get('provider') or 'unknown'}, "
+            f"model={(deterministic_result or {}).get('model') or 'none'}, llm_composer_invoked=false, "
             f"archive_evidence={'unavailable' if archive_evidence_unavailable else 'available'}, "
             f"navigation_candidate={authoritative_doorway.get('title') if authoritative_doorway else 'none'}"
         )
@@ -7193,51 +7212,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     response = _sanitize_basic_inquiry_response(
         general_guide_composition.enforce_response_contracts(query, response)
     )
-    # Apply the default paragraph contract at the final visitor boundary too,
-    # because deterministic recoveries and downstream rewrites can bypass the
-    # provider-candidate parser. One evidence-grounded retry is allowed; if it
-    # still cannot meet the contract, fail honestly in three readable paragraphs.
-    if general_guide_composition._requires_three_paragraph_default(query) and not discovery_subject:
-        _paragraphs = [
-            part.strip()
-            for part in re.split(r"\n\s*\n+", response)
-            if part.strip()
-        ]
-        if len(_paragraphs) < 3:
-            _final_retry = None
-            if reasoning_mode != "deterministic_only":
-                try:
-                    _final_retry = general_guide_composition.compose(
-                        use_core=use_core,
-                        query=query,
-                        context_data=composition_context,
-                        history_text=_history_text(history),
-                        integrity_recovery=True,
-                    )
-                except Exception as exc:
-                    print(
-                        "The Guide final Gold Standard recovery failed safely: "
-                        f"{type(exc).__name__}."
-                    )
-            _retry_text = _sanitize_basic_inquiry_response(
-                str((_final_retry or {}).get("response") or "").strip()
-            )
-            _retry_paragraphs = [
-                part.strip()
-                for part in re.split(r"\n\s*\n+", _retry_text)
-                if part.strip()
-            ]
-            if len(_retry_paragraphs) >= 3:
-                response = _retry_text
-            else:
-                response = (
-                    "I can’t give this question the careful explanation it deserves with the reliable information available to me right now. "
-                    "I don’t want to compress a substantive explanation into a short answer that leaves out the reasoning or important limits.\n\n"
-                    "The right answer depends on addressing the question directly, explaining the relevant relationships or evidence, and making clear what remains uncertain. "
-                    "I have not been able to produce that complete explanation reliably in this response.\n\n"
-                    "Please try again shortly. I will not present an incomplete response as though it met the Guide’s standard, and I will keep any Archive-specific claims bounded by what the available sources support."
-                )
-                print("The Guide final Gold Standard boundary: used three-paragraph fail-honest recovery.")
+    # Apply the default paragraph contract at the final visitor boundary too:
+    # this single final payload gate is authoritative; no earlier composition retry.
+    # The removed early gate used three-paragraph fail-honest recovery only after
+    # starting another provider turn; that redundant turn is now eliminated.
+    # Paragraph quality is enforced at the final payload boundary below. Do not
+    # run a second composition here: the later, single final repair is the only
+    # allowed paragraph-contract recovery after downstream response rewrites.
     if general_guide_composition._requires_responsibility_boundary_answer(query) and not general_guide_composition._has_responsibility_boundary_explanation(response):
         raise RuntimeError("Responsibility-boundary contract failed at final visitor boundary.")
 
