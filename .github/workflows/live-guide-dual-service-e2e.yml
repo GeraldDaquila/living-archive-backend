@@ -276,8 +276,21 @@ jobs:
                   response,
               ):
                   raise SystemExit(f"{name}: operational-discipline answer regressed to meta-answer/failure text")
-              if payload.get("recommendation") is not None:
-                  raise SystemExit(f"{name}: exact operational-discipline Gold Standard acquired an unapproved doorway")
+              recommendation = payload.get("recommendation")
+              if discipline_standard.get("forbids_doorway"):
+                  if recommendation is not None:
+                      raise SystemExit(
+                          f"{name}: this Gold Standard explicitly forbids a doorway but received one"
+                      )
+              elif recommendation is not None:
+                  if (
+                      not isinstance(recommendation, dict)
+                      or not recommendation.get("title")
+                      or not str(recommendation.get("url") or "").startswith("https://geralddaquila.com/")
+                  ):
+                      raise SystemExit(
+                          f"{name}: default Gold Standard doorway is not a valid canonical Archive destination"
+                      )
               print(
                   f"{name}: operational-discipline Gold Standard PASS; "
                   f"paragraphs={len(paragraphs)}; response_chars={len(response)}"
