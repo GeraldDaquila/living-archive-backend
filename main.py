@@ -8027,14 +8027,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     response = _last_retry_text
                     print("The Guide final payload boundary: evidence-grounded three-paragraph recomposition PASS.")
                 else:
-                    # Last resort remains explicitly fail-honest; it is not treated
-                    # as an acceptable substantive answer and is observable in logs.
-                    response = (
-                        "I can’t give this question the careful explanation it deserves with the reliable information available to me right now. I don’t want to replace the answer you asked for with a generic prompt or an unsupported claim.\n\n"
-                        "A complete response should address your actual question directly, develop the key distinction or reasoning, and explain any important nuance in ordinary language. That explanation has not been produced reliably in this response.\n\n"
-                        "Please try again shortly. The Guide should either provide that three-part explanation or clearly identify what the available information does not establish, rather than present a one-paragraph fallback as a finished answer."
-                    )
-                    print("The Guide final payload boundary: evidence-grounded recomposition failed; used three-paragraph fail-honest recovery.")
+                    _bounded_recovery = general_guide_composition.operational_discipline_humane_leadership_recovery(query)
+                    if _bounded_recovery:
+                        response = _sanitize_basic_inquiry_response(_bounded_recovery)
+                        print("The Guide final payload boundary: used substantive question-specific three-paragraph recovery.")
+                    else:
+                        # Do not dress commentary about answer quality up as a
+                        # three-paragraph answer. If no substantive deterministic
+                        # recovery exists after the evidence-grounded retry, report
+                        # the failure plainly; this is an error state, not a Gold
+                        # Standard response and must not be treated as one.
+                        response = (
+                            "I couldn’t produce a reliable answer to that question just now. "
+                            "Please try again shortly; I won’t present commentary about an answer as though it were the answer itself."
+                        )
+                        print("The Guide final payload boundary: substantive recovery unavailable; returned explicit non-answer error state.")
     if (
         general_guide_composition._requires_intergenerational_stewardship(query)
         and not general_guide_composition._has_intergenerational_stewardship_explanation(response)
