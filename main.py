@@ -4697,7 +4697,7 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
                     "provider": "rejected_non_substantive_recovery",
                     "model": "quality-gate-rejection",
                 }
-        if is_harm_repair_question(query):
+if is_harm_repair_question(query):
             # The generic first retrieved document is not evidence that its page
             # is a suitable continuation for a harm-repair adequacy question.
             # Keep this bounded recovery self-contained rather than exposing a
