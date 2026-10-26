@@ -35,7 +35,7 @@ def test_shared_boundary_does_not_reject_ordinary_explanatory_prose():
 def test_final_response_contract_cannot_reintroduce_meta_commentary():
     question = "What makes a situation a system rather than a collection of separate problems?"
     response = enforce_response_contracts(question, "A system is a connected set of parts that influence one another.")
-    paragraphs = [part.strip() for part in response.split("\\n\\n") if part.strip()]
+    paragraphs = [part.strip() for part in response.split("\n\n") if part.strip()]
     assert len(paragraphs) == 3
     assert "relationships must be evidenced rather than assumed" in response
     assert not _INTERNAL_LANGUAGE.search(response)
@@ -46,8 +46,8 @@ def test_final_boundary_preserves_ordinary_handoff_prose():
     question = "Explain why teams coordinate their work."
     candidate = (
         "Teams coordinate because each person's work affects what others can do. "
-        "A clear handoff helps the next person continue without losing context.\\n\\n"
-        "For example, a team can share status and constraints before work moves on.\\n\\n"
+        "A clear handoff helps the next person continue without losing context.\n\n"
+        "For example, a team can share status and constraints before work moves on.\n\n"
         "The Guide should explain this distinction first."
     )
     response = enforce_response_contracts(question, candidate)
