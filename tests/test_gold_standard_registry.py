@@ -354,6 +354,21 @@ def test_water_boiling_point_general_knowledge_gold_standard_preserves_live_answ
     assert "does not claim the science answer is sourced from or canonical doctrine" in fixture["provenance"]["evidence_boundary"]
 
 
+def test_leadership_vs_positional_authority_gold_standard_is_registered():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-leadership-vs-positional-authority-gold-standard-2026-10-26"
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "What distinguishes leadership from positional authority?"
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
+    assert record["expected_doorway"]["title"] == "Why Power Changes People"
+    assert record["expected_doorway"]["url"] is None
+    assert "not establish leadership" in record["expected_response"]
+    assert "does not independently establish the destination URL" in record["provenance"]["evidence_boundary"]
+
+
 def test_fragmented_knowledge_gold_standard_preserves_approved_response():
     registry = _registry()
     record = next(
