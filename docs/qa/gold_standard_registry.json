@@ -1983,6 +1983,32 @@
         "evidence_boundary": "The screenshot establishes the visitor-facing response shown to the user and the user's explicit request to enter it into the registry. It does not independently verify the doorway URL."
       },
       "freeze_policy": "Preserve this approved response. Change expected_response only with explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-governance-redesign-preaction-questions-gold-standard-2026-10-26",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What kinds of questions should be asked before redesigning a governance system?",
+      "expected_response": "Before redesigning a governance system, ask what problem actually needs solving, who is affected, and what purpose the change is meant to serve. What evidence shows the current arrangement is failing, and which parts are working well enough to preserve? These questions prevent a redesign from starting with a preferred solution before the need and intended outcome are clear.\n\nNext, ask how authority and responsibilities are distributed, whose knowledge is missing, and who may gain or lose power under the proposed change. Which rights, obligations, or safeguards must not be weakened? What realistic alternatives exist, what could each option cost, and how would people affected challenge assumptions or raise concerns without penalty? These questions expose consequences that may be invisible to the people designing the change.\n\nFinally, ask how success will be judged, who will review the decision independently, and what would trigger correction or reversal if the change causes harm. Set observable criteria, make reasons transparent, involve affected people before decisions are locked in, and schedule a review after implementation. The goal is not to eliminate uncertainty; it is to make the change understandable, contestable, and correctable rather than relying on confidence or good intentions alone.",
+      "expected_doorway": {
+        "title": "Digital Codex Editions, References & Programs",
+        "url": null
+      },
+      "assertions": [
+        "User explicitly requested inclusion of the visitor-facing response in the Gold Standard registry.",
+        "Exactly three substantive paragraphs, each with a distinct function: purpose/evidence; authority/affected perspectives/alternatives; success/review/correction.",
+        "Directly answers the question with concrete pre-action questions rather than refusing or offering generic commentary.",
+        "Addresses power distribution, rights and safeguards, participation, transparent reasons, independent review, and correction.",
+        "Doorway remains separate from the explanation; canonical URL is not verified in this registry entry and must not be invented.",
+        "This exact-query reference does not replace the shared default composition contract or authorize reuse as a canned answer for other questions."
+      ],
+      "provenance": {
+        "source_path": "visitor-provided production screenshot",
+        "source_ref": "user-approved live response screenshot, 2026-10-26",
+        "source_status": "USER_APPROVED_GOLD_STANDARD",
+        "evidence_boundary": "Screenshot establishes the response shown to the user and the explicit request to register it. It does not independently verify the doorway URL."
+      },
+      "freeze_policy": "Preserve approved response. Change expected_response only with explicit user authorization and a separately documented benchmark-version change."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control. New approved record added on October 26, 2026: the screenshot-approved governance-beyond-administration response is registered as USER_APPROVED_GOLD_STANDARD with exact three-paragraph wording and a separately verified live doorway URL.",
