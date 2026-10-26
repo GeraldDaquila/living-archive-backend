@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.301 — Bounded conceptual recovery and single-pass fallback
+# USE PRODUCTION VERSION: v489.302 — Discovery-aware Gold Standard fallback
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
@@ -81,9 +81,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.301"
-DEPLOYMENT_FINGERPRINT = "USE-v489.301-bounded-conceptual-recovery-single-pass-fallback"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.301-bounded-conceptual-recovery-single-pass-fallback"
+APP_VERSION = "v489.302"
+DEPLOYMENT_FINGERPRINT = "USE-v489.302-discovery-aware-gold-standard-fallback"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.302-discovery-aware-gold-standard-fallback"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -225,7 +225,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.301":
+if str(APP_VERSION) != "v489.302":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -7923,9 +7923,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # immediately before payload assembly, so no late single-paragraph template
     # can escape to a substantive explanatory question.
     _final_comparative_subjects = _comparative_subject_terms(query)
+    _final_discovery_only = bool(discovery_subject) and not (
+        _is_conceptual_explanatory_request(query)
+        or general_guide_composition.is_conceptual_relationship_question(query)
+    )
     _final_requires_gold_standard = (
-        general_guide_composition._requires_three_paragraph_default(query)
-        or len(_final_comparative_subjects) == 2
+        not _final_discovery_only
+        and (
+            general_guide_composition._requires_three_paragraph_default(query)
+            or len(_final_comparative_subjects) == 2
+        )
     )
     print(
         "The Guide final payload contract: "
