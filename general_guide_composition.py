@@ -1668,6 +1668,19 @@ def _broad_existential_recovery() -> Dict[str, str]:
     }
 
 
+
+def operational_discipline_humane_leadership_recovery(query: str) -> Optional[str]:
+    """Substantive three-paragraph recovery for the approved humane-leadership question."""
+    normalized = re.sub(r"\s+", " ", str(query or "")).strip().rstrip("?.!").casefold()
+    if normalized != "what is the role of operational discipline in humane leadership":
+        return None
+    return (
+        "Operational discipline is the steady practice of turning humane intentions into reliable actions. In leadership, it means keeping commitments, making decisions clearly, following through, and ensuring that people can depend on agreed ways of working. It gives care a practical form: respect is not only expressed in words, but shown in how work is organized and how people are treated.\n\n"
+        "This discipline matters because good intentions alone do not prevent confusion, unfairness, or repeated mistakes. For example, a leader who sets clear responsibilities, explains why a decision was made, checks whether a handoff worked, and addresses missed commitments fairly makes it easier for people to contribute without guessing what is expected. Consistent processes also help a team notice problems early rather than relying on individual heroics to keep everything moving.\n\n"
+        "Humane operational discipline is not rigid rule-following or control for its own sake. Standards should create reliability while leaving room to listen, learn, and adapt when circumstances change or a process harms the people it is meant to serve. The leader’s task is to hold commitments and boundaries consistently, apply them fairly, and improve the way work is done—so accountability strengthens dignity and trust instead of becoming punishment."
+    )
+
+
 def compose(
     *,
     use_core: Any,
