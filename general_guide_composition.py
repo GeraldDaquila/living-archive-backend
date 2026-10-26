@@ -433,8 +433,6 @@ _META_ANSWER_FAILURE_PATTERNS = (
     r"\bthe question about .{1,180} deserves a direct answer\b",
     r"\bthe most useful next step is to identify\b",
     r"\bi don['’]?t have enough verified context\b",
-    r"\bthe inquiry need not stop here\b",
-    r"\bseparate established facts from assumptions\b",
     r"\bi have not been able to produce that complete explanation\b",
 )
 
