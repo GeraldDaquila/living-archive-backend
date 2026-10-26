@@ -1,0 +1,39 @@
+"""Regression QA for the system-wide default Gold Standard composition gate."""
+
+import general_guide_composition as composition
+
+
+def main():
+    query = "What are the risks of charisma without constitutional restraint?"
+
+    weak_answer = (
+        "The risks are best understood by what it means and how it operates in practice.\n\n"
+        "A useful explanation distinguishes the idea from nearby concepts and makes its implications visible.\n\n"
+        "The precise meaning can vary by field or institution, so this is a general explanation."
+    )
+    assert composition._requires_three_paragraph_default(query) is True
+    assert composition.is_generic_nonanswer(query, weak_answer) is True
+
+    substantive_answer = (
+        "Charisma without constitutional restraint can concentrate power around a leader and weaken independent checks.\n\n"
+        "When followers treat personal loyalty as more important than shared rules, dissent can be silenced and mistakes can go uncorrected.\n\n"
+        "Charisma is not inherently harmful; transparent rules, accountability, and independent review help keep influence answerable to the institution's purpose."
+    )
+    assert composition.is_generic_nonanswer(query, substantive_answer) is False
+
+    # The rejection must apply regardless of whether a question matches a
+    # named special-case handler: it is part of the default composition contract.
+    other_query = "Why can confidence become dangerous in a leader?"
+    generic_answer = (
+        "This is best understood by what it means and how it operates in practice.\n\n"
+        "A useful explanation distinguishes the idea from nearby concepts.\n\n"
+        "The precise meaning can vary by field or institution."
+    )
+    assert composition._requires_three_paragraph_default(other_query) is True
+    assert composition.is_generic_nonanswer(other_query, generic_answer) is True
+
+    print("DEFAULT GOLD STANDARD SUBSTANTIVE COMPOSITION QA: PASS")
+
+
+if __name__ == "__main__":
+    main()

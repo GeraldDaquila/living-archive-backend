@@ -477,6 +477,52 @@ def is_meta_answer_failure(response: str) -> bool:
     if not text:
         return True
     return any(re.search(pattern, text, re.I) for pattern in _META_ANSWER_FAILURE_PATTERNS)
+
+# These are not answers: they describe the act of explaining, restate the
+# question abstractly, or retreat into a generic caveat without naming the
+# subject's actual mechanism. Reject them at the shared composition boundary
+# so the provider bank retries rather than accepting three paragraphs of filler.
+_GENERIC_NONANSWER_PATTERNS = (
+    r"\bbest understood by what it means and how it operates in practice\b",
+    r"\ba useful explanation distinguishes the idea from nearby concepts\b",
+    r"\bthe definition matters because it shapes what people notice\b",
+    r"\bthe precise meaning can vary by field or institution\b",
+    r"\bthis is a general explanation rather than a claim that the living archive uses\b",
+    r"\bcheck how the relevant people or institution define and apply the term\b",
+    r"\bwhat people notice, what they expect, and what they count as a reasonable action\b",
+    r"\bfor instance, two terms may sound similar while assigning different responsibilities\b",
+)
+
+
+def is_generic_nonanswer(query: str, response: str) -> bool:
+    """Reject generic composition filler even when it has three paragraphs."""
+    text = _normalize_space(response).casefold()
+    if not text:
+        return True
+    if any(re.search(pattern, text, re.I) for pattern in _GENERIC_NONANSWER_PATTERNS):
+        return True
+
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", response) if p.strip()]
+    if _requires_three_paragraph_default(query):
+        # A three-paragraph answer must develop, not merely repeat, its thesis.
+        if len(paragraphs) != 3:
+            return True
+        normalized = [_normalize_space(p).casefold() for p in paragraphs]
+        if len(set(normalized)) != 3:
+            return True
+        # Reject answers whose paragraphs are mostly abstract metadiscourse.
+        meta_sentences = sum(
+            1 for sentence in re.split(r"(?<=[.!?])\s+", text)
+            if re.search(
+                r"\b(?:a useful explanation|the precise meaning|this is a general explanation|"
+                r"the definition matters|best understood by what it means)\b",
+                sentence,
+                re.I,
+            )
+        )
+        if meta_sentences >= 1:
+            return True
+    return False
 def _question_shape(query: str) -> str:
     q = _normalize_space(query).casefold()
     if _requires_distress_sensitive_pacing(q):
@@ -1186,6 +1232,10 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
             if is_meta_answer_failure(response):
                 raise ValueError(
                     "Gold Standard candidate is meta-answer/failure text, not a substantive answer to the visitor's question"
+                )
+            if is_generic_nonanswer(query, response):
+                raise ValueError(
+                    "Gold Standard candidate is generic metadiscourse, not a question-specific substantive answer"
                 )
 
         # This question class has a structural contract: reject generic trust/cooperation
@@ -2010,6 +2060,20 @@ if _sanitize_candidate("Steps: - **First action**: one. - **Second action**: two
     raise RuntimeError("General Guide composition invariant failed: inline practical-list normalization.")
 if _question_shape("What is stewardship and why does it matter now?") != "explanatory":
     raise RuntimeError("General Guide composition invariant failed: question-shape classification.")
+if not is_generic_nonanswer(
+    "What are the risks of charisma without constitutional restraint?",
+    "The risks are best understood by what it means and how it operates in practice.\n\n"
+    "A useful explanation distinguishes the idea from nearby concepts and makes its implications visible.\n\n"
+    "The precise meaning can vary by field or institution, so this is a general explanation."
+):
+    raise RuntimeError("General Guide composition invariant failed: generic three-paragraph nonanswer was accepted.")
+if is_generic_nonanswer(
+    "What are the risks of charisma without constitutional restraint?",
+    "Charisma without constitutional restraint can concentrate power around a leader and weaken independent checks.\n\n"
+    "When followers treat personal loyalty as more important than shared rules, dissent can be silenced and mistakes can go uncorrected.\n\n"
+    "Charisma is not inherently harmful; transparent rules, accountability, and independent review help keep influence answerable to the institution's purpose."
+):
+    raise RuntimeError("General Guide composition invariant failed: substantive three-paragraph answer was rejected.")
 
 try:
     _parse_factory([{"title": "Archive Doorway", "url": "https://geralddaquila.com/example/", "content": "Grounding material."}])(
