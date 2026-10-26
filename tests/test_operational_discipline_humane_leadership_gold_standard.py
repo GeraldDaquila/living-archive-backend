@@ -13,13 +13,13 @@ def test_operational_discipline_question_resolves_to_approved_gold_standard():
     assert record is not None
     assert record["benchmark_id"] == "general-guide-operational-discipline-humane-leadership-gold-standard-2026-10-26"
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
-    assert len([p for p in record["expected_response"].split("\\n\\n") if p.strip()]) == 3
+    assert len([p for p in record["expected_response"].split("\n\n") if p.strip()]) == 3
 
 
 def test_operational_discipline_recovery_answers_the_question_in_three_paragraphs():
     response = operational_discipline_humane_leadership_recovery(QUESTION)
     assert response is not None
-    paragraphs = [p for p in response.split("\\n\\n") if p.strip()]
+    paragraphs = [p for p in response.split("\n\n") if p.strip()]
     assert len(paragraphs) == 3
     assert "turning humane intentions into reliable actions" in paragraphs[0]
     assert "clear responsibilities" in paragraphs[1]
