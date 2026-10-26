@@ -51,6 +51,8 @@ def main():
         "Make conceptual answers operational",
         "evidence-to-doorway relevance check",
         "Separate three things explicitly when needed",
+        "Archive-scoped meaning answer is circular meta-definition, not a substantive definition",
+        "Archive-scoped meaning answer must define the actual concept in its opening paragraph",
     ):
         assert contract_phrase in source, f"Missing default composition contract: {contract_phrase}"
 

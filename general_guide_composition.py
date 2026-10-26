@@ -1424,8 +1424,34 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
             if not _has_everyday_example(response):
                 raise ValueError("abstract concept definition requires one useful everyday example")
             if _requires_archive_scoped_meaning(query):
+                # Enforce semantic substance at the final shared composition
+                # boundary. Paragraph count and a mention of "Archive" are not
+                # enough: reject the recurring circular definition/meta-template
+                # that describes what an answer should do without defining the
+                # concept. This must trigger provider retry or substantive recovery.
+                if re.search(
+                    r"\b(?:best understood by what it means|a useful definition distinguishes|makes its implications clear|precise meaning can vary by field|general explanation rather than a claim)\b",
+                    response,
+                    re.I,
+                ):
+                    raise ValueError(
+                        "Archive-scoped meaning answer is circular meta-definition, not a substantive definition"
+                    )
+                opening = paragraphs[0]
+                if not re.search(r"\bhuman development\b", opening, re.I) or not re.search(
+                    r"\b(?:is|means|refers to|describes|involves)\b",
+                    opening,
+                    re.I,
+                ):
+                    raise ValueError(
+                        "Archive-scoped meaning answer must define the actual concept in its opening paragraph"
+                    )
                 if not re.search(r"\b(?:Living Archive|Archive)\b", paragraphs[0], re.I):
                     raise ValueError("Archive-scoped meaning answer must answer in the named institutional context")
+                if not re.search(r"\b(?:capacities|judgment|relationships|agency|flourishing|development)\b", paragraphs[0], re.I):
+                    raise ValueError(
+                        "Archive-scoped meaning answer must give substantive conceptual content in the opening paragraph"
+                    )
                 if re.search(
                     r"\b(?:rather than a claim|general explanation rather than|precise meaning can vary by field)\b",
                     response,
