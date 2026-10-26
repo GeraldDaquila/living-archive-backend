@@ -315,7 +315,7 @@ def test_agency_and_circumstance_have_three_paragraph_provider_exhaustion_recove
     question = "What is the relationship between agency and circumstance?"
     response = guide._conceptual_relationship_recovery(question)
     assert response is not None
-    paragraphs = response.split("\\n\\n")
+    paragraphs = response.split("\n\n")
     assert len(paragraphs) == 3
     assert all(len(p.split()) >= 35 for p in paragraphs)
     assert "Agency is a person’s capacity to choose and act" in paragraphs[0]
