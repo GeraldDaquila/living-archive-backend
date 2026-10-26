@@ -1,0 +1,32 @@
+name: Guide Operational Discipline Gold Standard
+on:
+  pull_request:
+    paths:
+      - "main.py"
+      - "general_guide_composition.py"
+      - "general_guide_gold_standards.py"
+      - "docs/qa/gold_standard_registry.json"
+      - "tests/test_operational_discipline_humane_leadership_gold_standard.py"
+      - ".github/workflows/guide-operational-discipline-gold-standard.yml"
+  push:
+    branches:
+      - "fix/default-gold-standard-fallback-operational-discipline"
+    paths:
+      - "main.py"
+      - "general_guide_composition.py"
+      - "general_guide_gold_standards.py"
+      - "docs/qa/gold_standard_registry.json"
+      - "tests/test_operational_discipline_humane_leadership_gold_standard.py"
+      - ".github/workflows/guide-operational-discipline-gold-standard.yml"
+jobs:
+  targeted-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile production Guide runtime and composer
+        run: python -m py_compile main.py general_guide_composition.py general_guide_gold_standards.py
+      - name: Run Gold Standard registry and fallback regressions
+        run: python -m unittest -v tests/test_operational_discipline_humane_leadership_gold_standard.py
