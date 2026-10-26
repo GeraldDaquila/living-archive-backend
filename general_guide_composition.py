@@ -1564,25 +1564,43 @@ def is_conceptual_relationship_question(query: str) -> bool:
     return any(re.search(pattern, question, re.I) for pattern in _CONCEPTUAL_RELATIONSHIP_PATTERNS)
 
 
-def has_conceptual_relationship_explanation(response: str) -> bool:
-    """Require an explanation of a mechanism linking concepts, not generic advice."""
+def _conceptual_relationship_terms(query: str) -> List[str]:
+    """Extract the two concepts from a plain 'relationship between X and Y' question."""
+    match = re.search(r"\brelationship between\s+(.+?)\s+and\s+(.+?)(?:[?.!]|$)", _normalize_space(query), re.I)
+    if not match:
+        return []
+    stop = {"the", "a", "an", "how", "what", "why", "does", "do", "is", "are", "mean", "means"}
+    concepts = []
+    for raw in match.groups():
+        words = [w.casefold() for w in re.findall(r"[A-Za-z][A-Za-z'-]*", raw) if w.casefold() not in stop]
+        if words:
+            concepts.append(" ".join(words))
+    return concepts if len(concepts) == 2 else []
+
+
+def has_conceptual_relationship_explanation(response: str, question: str = "") -> bool:
+    """Check for a substantive mechanism and, when known, the concepts asked about."""
     text = _normalize_space(response).casefold()
-    return (
-        len(text.split()) >= 65
-        and bool(re.search(r"\b(?:because|when|so that|which means|as a result|this makes|that makes)\b", text, re.I))
-        and bool(re.search(r"\b(?:accountability|trust|repair|harm|responsibility)\b", text, re.I))
-    )
+    mechanism = bool(re.search(
+        r"\b(?:because|when|so that|which means|as a result|this makes|that makes|depends on|shapes|constrains|enables)\b",
+        text, re.I,
+    ))
+    if len(text.split()) < 65 or not mechanism:
+        return False
+    concepts = _conceptual_relationship_terms(question) if question else []
+    return not concepts or all(any(word in text for word in concept.split()) for concept in concepts)
 
 
-def _conceptual_relationship_recovery() -> str:
-    """Explain the mechanism linking accountability, trust, and repair in plain language."""
+def _conceptual_relationship_recovery(question: str) -> Optional[str]:
+    """Provide bounded general-knowledge recovery for a recognized, well-established concept pair."""
+    normalized = _normalize_space(question).casefold()
+    if not (re.search(r"\bagency\b", normalized) and re.search(r"\bcircumstances?\b", normalized)):
+        return None
     return (
-        "Accountability, trust, and repairing harm reinforce one another when responsibility leads to visible action. "
-        "Accountability starts with acknowledging what happened, who was affected, and what responsibility belongs to whom, rather than minimizing the impact or shifting blame. "
-        "That makes trust more credible because people can judge what someone does, not just what they promise. "
-        "When harm occurs, repair turns accountability into action: listen to the people affected, address the consequences, and change what allowed the harm to happen. "
-        "Following through gives people evidence that the harm was taken seriously. Trust may then become possible again—not because the harm is forgotten, but because people can see that responsibility led to meaningful change. "
-        "Are you thinking about this in an organization, a close relationship, or a wider community?"
+        "Agency is a person’s capacity to choose and act; circumstance is the set of conditions in which those choices are made. "
+        "Their relationship is that people exercise agency within circumstances, rather than outside them. Circumstances can open some possibilities, restrict others, and shape the likely consequences of a choice, but they do not always determine a single response.\n\n"
+        "For example, someone facing financial pressure may have fewer realistic options than someone with ample resources. They may still make meaningful choices about seeking help, negotiating a commitment, or deciding what to prioritize, but those choices must be understood in light of the constraints they face. Recognizing agency without recognizing circumstance can unfairly blame people for limits they did not create; recognizing circumstance without agency can overlook their capacity to respond.\n\n"
+        "The relationship is therefore reciprocal but not symmetrical: circumstances shape the range and cost of available actions, while individual and collective actions can sometimes change those circumstances over time. How much agency is available depends on the actual constraints, resources, power, and support in a particular situation. This is a general conceptual explanation, not a claim that the Living Archive defines the terms in exactly this way."
     )
 
 
@@ -2202,6 +2220,22 @@ def compose(
         deadline_monotonic=deadline_monotonic,
     )
     if not result:
+        # Preserve the shared explanatory contract when providers are exhausted.
+        # This bounded general-knowledge recovery is allowed only for a familiar
+        # concept pair and never claims to state Archive doctrine.
+        relationship_recovery = (
+            _conceptual_relationship_recovery(question)
+            if is_conceptual_relationship_question(question)
+            else None
+        )
+        if relationship_recovery is not None:
+            return {
+                "response": relationship_recovery,
+                "doorway_title": "",
+                "response_shape": "explanatory",
+                "provider": "bounded_conceptual_relationship_recovery",
+                "model": "deterministic-contract-recovery",
+            }
         # If the provider bank is exhausted, use a bounded evidence-dependent
         # recovery for Archive constitutional questions rather than allowing
         # the generic Archive-definition fallback to answer the wrong subject.
@@ -2251,8 +2285,15 @@ def compose(
     # deterministic and provider-exhaustion routes can bypass this composer.
 
     if is_conceptual_relationship_question(question):
-        if not has_conceptual_relationship_explanation(candidate["response"]):
-            candidate["response"] = _conceptual_relationship_recovery()
+        if not has_conceptual_relationship_explanation(candidate["response"], question):
+            relationship_recovery = _conceptual_relationship_recovery(question)
+            if relationship_recovery is not None:
+                candidate["response"] = relationship_recovery
+            else:
+                # Do not replace an off-topic candidate with a canned answer
+                # about unrelated concepts. The final response boundary will
+                # reject a candidate that cannot satisfy the requested subject.
+                return None
             candidate["response_shape"] = "explanatory"
         if not re.search(
             r"\b(?:where can i find|where do i find|show me|take me to|link me to|browse|find the)\b",
