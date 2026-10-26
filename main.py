@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.302 — Discovery-aware Gold Standard fallback
+# USE PRODUCTION VERSION: v489.303 — Grounded bounded conceptual recovery
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
@@ -81,9 +81,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.302"
-DEPLOYMENT_FINGERPRINT = "USE-v489.302-discovery-aware-gold-standard-fallback"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.302-discovery-aware-gold-standard-fallback"
+APP_VERSION = "v489.303"
+DEPLOYMENT_FINGERPRINT = "USE-v489.303-grounded-bounded-conceptual-recovery"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.303-grounded-bounded-conceptual-recovery"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -225,7 +225,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.302":
+if str(APP_VERSION) != "v489.303":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -6549,6 +6549,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     source_trace_request = general_guide_composition.is_exact_source_request(query)
     source_trace_claim = _history_text(history) if source_trace_request else ""
     discovery_subject = _guide_subject_discovery_query(query) if not correction_subject and not source_trace_request else ""
+    # These are answer-first explanatory intents, not pure subject-finding requests.
+    if healthy_community_short_circuit or trust_stewardship_short_circuit:
+        discovery_subject = ""
     resource_query = correction_subject or discovery_subject or (source_trace_claim[-1600:] if source_trace_claim else query)
     context_data = use_core.fetch_canonical_context(resource_query)
     if not isinstance(context_data, dict):
@@ -6624,7 +6627,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     registry_discovery_docs = []
     if (
         not healthy_community_short_circuit
-        and not (trust_stewardship_short_circuit and authoritative_doorway)
         and _guide_requires_canonical_subject_supplement(
             archive_evidence_unavailable,
             discovery_subject,
@@ -6637,12 +6639,17 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # text and re-run the same frame-neutral, sufficiency, and question-fit
         # gates before allowing it into the answer composition.
         try:
-            recovered_docs = _wordpress_search_canonical_candidates(
-                resource_query,
-                limit=_guide_subject_supplement_limit(
-                    discovery_subject, _is_conceptual_explanatory_request(query)
-                ),
-            )
+            if trust_stewardship_short_circuit and authoritative_doorway:
+                # The exact approved destination is already known. Fetch its body
+                # below; do not repeat broad subject searches before that fetch.
+                recovered_docs = []
+            else:
+                recovered_docs = _wordpress_search_canonical_candidates(
+                    resource_query,
+                    limit=_guide_subject_supplement_limit(
+                        discovery_subject, _is_conceptual_explanatory_request(query)
+                    ),
+                )
             # Add a small, deterministic set of active registry nodes ranked by
             # their published purpose and semantic hints. Only fetched canonical
             # page bodies can subsequently authorize a recommendation.
