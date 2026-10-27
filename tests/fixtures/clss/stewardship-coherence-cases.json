@@ -4,7 +4,7 @@
   "questionnaire_issue": 999,
   "contract": "docs/CLSS_EVIDENCE_AND_RESPONSE_CONTRACT.md",
   "status": "design_fixtures",
-  "note": "These fixtures define expected reasoning behavior. They are not yet wired into an automated test runner and do not imply that production passes them.",
+  "note": "These fixtures define expected reasoning behavior. An automated integrity suite checks fixture structure and selected machine-checkable safety invariants; it does not yet test semantic reasoning quality or production behavior.",
   "cases": [
     {
       "id": "strong-supported-tension",
