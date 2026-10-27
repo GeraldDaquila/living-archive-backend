@@ -138,3 +138,29 @@ def validate_candidate_response(
         _check_text(text, f"visitor-facing text[{index}]")
 
     return dict(response)
+
+
+def validate_or_fallback(
+    candidate_response: Any,
+    fallback_response: Mapping[str, Any],
+    input_evidence_ids: set[str],
+    *,
+    mode: str,
+) -> tuple[dict[str, Any], str]:
+    """Validate an LLM candidate; reject it and validate fallback on any failure.
+
+    Returns (validated_response, selected_path). If fallback validation also
+    fails, the exception is propagated so callers can fail closed rather than
+    display an unvalidated response.
+    """
+    try:
+        accepted = validate_candidate_response(
+            candidate_response, input_evidence_ids, mode=mode, path="llm"
+        )
+        return accepted, "llm"
+    except (ResponseValidationError, TypeError, KeyError, AttributeError):
+        accepted_fallback = validate_candidate_response(
+            fallback_response, input_evidence_ids, mode=mode, path="deterministic_fallback"
+        )
+        return accepted_fallback, "deterministic_fallback"
+
