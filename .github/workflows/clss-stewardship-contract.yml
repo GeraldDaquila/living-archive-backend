@@ -19,6 +19,8 @@ on:
       - "docs/CLSS_EVIDENCE_AND_RESPONSE_CONTRACT.md"
       - "docs/CLSS_SEMANTIC_RESPONSE_EVALUATION_PROTOCOL.md"
       - "tests/fixtures/clss/semantic-review-records-template.json"
+      - "tests/fixtures/clss/semantic-response-candidates.json"
+      - "tests/test_clss_semantic_candidate_evaluation.py"
       - "tests/test_clss_semantic_review_template.py"
       - "clss_questionnaire_review_bridge.py"
       - "tests/test_clss_contextual_review.py"
@@ -66,4 +68,4 @@ jobs:
         with:
           python-version: "3.x"
       - name: Run CLSS contract, triage, fallback, and reasoning acceptance tests
-        run: python -m unittest -v tests.test_clss_stewardship_fixtures tests.test_clss_response_validator tests.test_clss_fixture_validator_bridge tests.test_clss_evidence_triage tests.test_clss_deterministic_response tests.test_clss_reasoning_acceptance tests.test_clss_reasoning_boundary tests.test_clss_evidence_normalization tests.test_clss_contextual_review tests.test_clss_questionnaire_review_bridge tests.test_clss_semantic_review_template
+        run: python -m unittest -v tests.test_clss_stewardship_fixtures tests.test_clss_response_validator tests.test_clss_fixture_validator_bridge tests.test_clss_evidence_triage tests.test_clss_deterministic_response tests.test_clss_reasoning_acceptance tests.test_clss_reasoning_boundary tests.test_clss_evidence_normalization tests.test_clss_contextual_review tests.test_clss_questionnaire_review_bridge tests.test_clss_semantic_review_template tests.test_clss_semantic_candidate_evaluation
