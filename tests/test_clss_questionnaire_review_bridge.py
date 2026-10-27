@@ -41,7 +41,7 @@ class QuestionnaireReviewBridgeTests(unittest.TestCase):
     def test_normalizes_then_composes_cited_review_and_keeps_gaps_visible(self):
         result = normalize_and_review(ANSWERS, REVIEW, mode="self")
         response = result["response"]
-        self.assertEqual(response["central_incoherence"]["finding_type"], "mixed_evidence")
+        self.assertEqual(response["central_incoherence"]["finding_type"], "supported_tension")
         self.assertEqual(response["mode"], "self")
         self.assertEqual(response["path"], "deterministic_fallback")
         self.assertTrue(result["review_required"])
