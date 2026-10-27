@@ -107,7 +107,7 @@ class StewardshipFixtureIntegrityTests(unittest.TestCase):
         self.assertTrue(missing.isdisjoint(evidence_dimensions))
         self.assertEqual(case["expected_finding_type"], "insufficient_evidence")
         self.assertTrue(
-            any("not adverse" in rule for rule in case["must_not"]),
+            any("missing dimensions as adverse evidence" in rule for rule in case["must_not"]),
             "Missing answers must explicitly be protected from adverse inference",
         )
 
