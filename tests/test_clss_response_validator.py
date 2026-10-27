@@ -128,6 +128,28 @@ class CandidateResponseValidatorTests(unittest.TestCase):
         with self.assertRaisesRegex(ResponseValidationError, "unknown evidence"):
             validate_or_fallback(candidate, fallback, EVIDENCE, mode="third_party")
 
+    def test_rejects_evidence_summary_without_citations(self):
+        response = valid_response()
+        response["what_the_evidence_says"][0]["evidence_ids"] = []
+        with self.assertRaisesRegex(ResponseValidationError, "must cite at least one"):
+            validate_candidate_response(response, EVIDENCE, mode="third_party", path="deterministic_fallback")
+
+    def test_rejects_private_intent_claim_in_limits_section(self):
+        response = valid_response()
+        response["limits"] = ["The leader secretly wants to control the team."]
+        with self.assertRaisesRegex(ResponseValidationError, "private intent"):
+            validate_candidate_response(response, EVIDENCE, mode="third_party", path="deterministic_fallback")
+
+    def test_no_defensible_tension_can_be_returned_without_forcing_a_finding(self):
+        response = valid_response()
+        response["central_incoherence"] = {
+            "text": "The evidence provided currently aligns with the stated responsibility; no defensible tension is established.",
+            "finding_type": "no_defensible_tension",
+            "evidence_ids": ["ev-commit", "ev-conduct"],
+        }
+        accepted = validate_candidate_response(response, EVIDENCE, mode="third_party", path="deterministic_fallback")
+        self.assertEqual(accepted["central_incoherence"]["finding_type"], "no_defensible_tension")
+
     def test_rejects_invalid_path(self):
         with self.assertRaisesRegex(ResponseValidationError, "response path is invalid"):
             validate_candidate_response(valid_response(), EVIDENCE, mode="third_party", path="provider_raw")
