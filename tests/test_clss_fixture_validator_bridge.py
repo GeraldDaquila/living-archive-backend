@@ -106,7 +106,12 @@ class FixtureValidatorBridgeTests(unittest.TestCase):
             if item["id"] == "llm-invalid-output-fallback"
         )
         evidence_ids = set(case["input_evidence_ids"])
-        response = _response_for_fixture(case, evidence_ids)
+        base_case = next(
+            item for item in self.cases
+            if item.get("expected_finding_type") == "supported_tension"
+        )
+        response = _response_for_fixture(base_case, evidence_ids)
+        response["mode"] = case["mode"]
         response["central_incoherence"]["evidence_ids"] = (
             case["invalid_llm_output"]["central_incoherence"]["evidence_ids"]
         )
