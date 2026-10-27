@@ -83,7 +83,7 @@ class CandidateResponseValidatorTests(unittest.TestCase):
     def test_rejects_third_party_private_intent_claim(self):
         response = valid_response()
         response["central_incoherence"]["text"] = "The leader secretly wants to silence colleagues."
-        with self.assertRaisesRegex(ResponseValidationError, "prohibited"):
+        with self.assertRaisesRegex(ResponseValidationError, "private intent"):
             validate_candidate_response(response, EVIDENCE, mode="third_party", path="deterministic_fallback")
 
     def test_rejects_suitability_verdict(self):
