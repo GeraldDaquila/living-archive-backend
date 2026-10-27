@@ -9,6 +9,8 @@ on:
       - "tests/test_clss_response_validator.py"
       - "tests/clss_evidence_triage.py"
       - "tests/test_clss_evidence_triage.py"
+      - "tests/clss_deterministic_response.py"
+      - "tests/test_clss_deterministic_response.py"
       - "tests/test_clss_fixture_validator_bridge.py"
       - ".github/workflows/clss-stewardship-contract.yml"
   pull_request:
@@ -19,6 +21,8 @@ on:
       - "tests/test_clss_response_validator.py"
       - "tests/clss_evidence_triage.py"
       - "tests/test_clss_evidence_triage.py"
+      - "tests/clss_deterministic_response.py"
+      - "tests/test_clss_deterministic_response.py"
       - "tests/test_clss_fixture_validator_bridge.py"
       - ".github/workflows/clss-stewardship-contract.yml"
   workflow_dispatch:
@@ -28,7 +32,7 @@ permissions:
 
 jobs:
   fixture-integrity:
-    name: Validate CLSS fixture integrity
+    name: Validate CLSS contract, triage, and fallback response
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -37,5 +41,5 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: Run CLSS contract and evidence triage tests
-        run: python -m unittest -v tests.test_clss_stewardship_fixtures tests.test_clss_response_validator tests.test_clss_fixture_validator_bridge tests.test_clss_evidence_triage
+      - name: Run CLSS contract, triage, and fallback response tests
+        run: python -m unittest -v tests.test_clss_stewardship_fixtures tests.test_clss_response_validator tests.test_clss_fixture_validator_bridge tests.test_clss_evidence_triage tests.test_clss_deterministic_response
