@@ -57,7 +57,8 @@ class StewardshipFixtureIntegrityTests(unittest.TestCase):
     def test_fixture_document_declares_design_only_status(self):
         self.assertEqual(self.document.get("schema_version"), "1.0")
         self.assertEqual(self.document.get("status"), "design_fixtures")
-        self.assertIn("not yet wired", self.document.get("note", ""))
+        self.assertIn("integrity suite", self.document.get("note", ""))
+        self.assertIn("does not yet test semantic reasoning", self.document.get("note", ""))
 
     def test_all_required_regression_scenarios_exist_once(self):
         ids = [case.get("id") for case in self.cases]
