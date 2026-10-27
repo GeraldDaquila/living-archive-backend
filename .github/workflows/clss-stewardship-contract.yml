@@ -31,6 +31,12 @@ on:
       - ".github/workflows/clss-stewardship-contract.yml"
   pull_request:
     paths:
+      - "docs/CLSS_EVIDENCE_AND_RESPONSE_CONTRACT.md"
+      - "docs/CLSS_SEMANTIC_RESPONSE_EVALUATION_PROTOCOL.md"
+      - "tests/fixtures/clss/semantic-review-records-template.json"
+      - "tests/fixtures/clss/semantic-response-candidates.json"
+      - "tests/test_clss_semantic_candidate_evaluation.py"
+      - "tests/test_clss_semantic_review_template.py"
       - "tests/fixtures/clss/stewardship-coherence-cases.json"
       - "tests/test_clss_stewardship_fixtures.py"
       - "tests/clss_response_validator.py"
