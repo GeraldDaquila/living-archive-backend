@@ -112,6 +112,45 @@ class CLSSSemanticCandidateEvaluationTests(unittest.TestCase):
         self.assertIn("contents are not included", " ".join(x["text"] for x in response["what_the_evidence_says"]).lower())
         self.assertIn("must be rejected", response["central_incoherence"]["text"].lower())
 
+    def test_candidates_preserve_source_provenance_where_it_changes_interpretation(self):
+        strong = self.candidates["strong-supported-tension"]
+        strong_text = " ".join(
+            [strong["central_incoherence"]["text"]]
+            + [entry["text"] for entry in strong["what_the_evidence_says"]]
+        ).lower()
+        self.assertIn("second-hand", strong_text)
+        self.assertIn("first-hand observation", strong_text)
+
+        mixed_sources = self.candidates["conflicting-source-provenance"]
+        mixed_text = " ".join(
+            [mixed_sources["central_incoherence"]["text"]]
+            + [entry["text"] for entry in mixed_sources["what_the_evidence_says"]]
+        ).lower()
+        self.assertIn("second-hand report", mixed_text)
+        self.assertIn("not a verified motive", mixed_text)
+
+    def test_no_candidate_makes_a_suitability_verdict_or_claims_private_motive(self):
+        prohibited_fragments = (
+            "should not be promoted",
+            "not suitable for the role",
+            "is manipulative",
+            "secretly wants",
+            "does not care about",
+            "is unwilling to serve",
+        )
+        for case_id, response in self.candidates.items():
+            all_text = " ".join(
+                [response["central_incoherence"]["text"], response["why_it_matters"]["text"]]
+                + [entry["text"] for entry in response["what_the_evidence_says"]]
+                + [entry["text"] for entry in response["what_could_change_the_interpretation"]]
+                + [response["what_to_do_next"]["action"]]
+                + response["what_to_do_next"]["observable_indicators"]
+                + response["limits"]
+            ).lower()
+            with self.subTest(case=case_id):
+                for fragment in prohibited_fragments:
+                    self.assertNotIn(fragment, all_text)
+
     def test_no_tension_case_does_not_invent_a_hidden_problem(self):
         response = self.candidates["no-defensible-tension"]
         self.assertEqual(response["central_incoherence"]["finding_type"], "no_defensible_tension")
