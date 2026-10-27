@@ -1,0 +1,265 @@
+{
+  "status": "candidate_drafts_not_human_reviewed",
+  "note": "These are authored test candidates grounded in the canonical fixtures. They are not model-generated samples, are not human-approved, and do not establish semantic acceptance. Automated assertions check selected case-specific invariants only.",
+  "cases": [
+    {
+      "case_id": "strong-supported-tension",
+      "response": {
+        "mode": "third_party",
+        "path": "llm",
+        "central_incoherence": {
+          "text": "There is a supported tension between the reported commitment to involve the team and the observed pattern of withholding direction and ending discussion before concerns could be raised.",
+          "finding_type": "supported_tension",
+          "evidence_ids": ["ev-commit", "ev-conduct", "ev-impact"]
+        },
+        "why_it_matters": {
+          "text": "The reported impact is that team members were unsure what had been decided and began checking privately with one another.",
+          "evidence_ids": ["ev-impact"]
+        },
+        "what_the_evidence_says": [
+          {"text": "The commitment is second-hand: colleagues say the leader wants team involvement.", "evidence_ids": ["ev-commit"]},
+          {"text": "The conduct is described as a first-hand observation across several planning meetings.", "evidence_ids": ["ev-conduct"]},
+          {"text": "The reported impact is uncertainty about decisions and private cross-checking among team members.", "evidence_ids": ["ev-impact"]}
+        ],
+        "what_could_change_the_interpretation": [
+          {"text": "Further examples of how decisions were communicated, and whether colleagues had a genuine opportunity to raise concerns, could clarify the pattern.", "evidence_ids": ["ev-conduct", "ev-impact"]}
+        ],
+        "what_to_do_next": {
+          "action": "Review one or two specific planning decisions with the people involved, separating what was directly observed from what was reported.",
+          "owner": "Visitor or an agreed neutral facilitator",
+          "observable_indicators": ["Participants can identify when the direction was shared and whether questions were invited before the decision was closed."]
+        },
+        "limits": ["The evidence supports a tension in conduct and reported impact; it does not establish the leader's private motive."]
+      }
+    },
+    {
+      "case_id": "mixed-evidence-with-repair",
+      "response": {
+        "mode": "third_party",
+        "path": "llm",
+        "central_incoherence": {
+          "text": "The evidence is mixed: defensiveness was observed during one review, followed by a documented acknowledgement, plan change, and later follow-up.",
+          "finding_type": "mixed_evidence",
+          "evidence_ids": ["ev-feedback", "ev-repair"]
+        },
+        "why_it_matters": {
+          "text": "The initial response matters, and so does the subsequent repair; neither alone establishes a lasting pattern or complete resolution.",
+          "evidence_ids": ["ev-feedback", "ev-repair"]
+        },
+        "what_the_evidence_says": [
+          {"text": "One review is described as involving a defensive response to challenge.", "evidence_ids": ["ev-feedback"]},
+          {"text": "The documented follow-up says the leader acknowledged the concern the next day, changed the plan, and checked back two weeks later.", "evidence_ids": ["ev-repair"]}
+        ],
+        "what_could_change_the_interpretation": [
+          {"text": "Further evidence about whether the changed plan held and how later challenges were handled would clarify whether repair was sustained.", "evidence_ids": ["ev-repair", "ev-feedback"]}
+        ],
+        "what_to_do_next": {
+          "action": "Check the agreed plan and follow-up with the people affected, and ask whether the concern recurred.",
+          "owner": "Visitor and relevant participants",
+          "observable_indicators": ["The plan change can be identified, the follow-up is confirmed, and any recurrence is described with a specific example."]
+        },
+        "limits": ["The evidence documents a repair attempt and follow-through, but does not establish that the issue is fully resolved."]
+      }
+    },
+    {
+      "case_id": "time-critical-context",
+      "response": {
+        "mode": "third_party",
+        "path": "llm",
+        "central_incoherence": {
+          "text": "The supplied evidence does not establish a defensible stewardship tension from the unilateral decision alone: it occurred during a safety-critical incident with minutes available, followed by explanation and review.",
+          "finding_type": "no_defensible_tension",
+          "evidence_ids": ["ev-decision", "ev-followup"]
+        },
+        "why_it_matters": {
+          "text": "Proportionality depends on the time available at the moment and whether accountability followed afterward.",
+          "evidence_ids": ["ev-decision", "ev-followup"]
+        },
+        "what_the_evidence_says": [
+          {"text": "The decision is described as unilateral during a safety-critical incident with minutes available to act.", "evidence_ids": ["ev-decision"]},
+          {"text": "The documented outcome says the leader later explained the reasoning, invited review, and recorded lessons learned.", "evidence_ids": ["ev-followup"]}
+        ],
+        "what_could_change_the_interpretation": [
+          {"text": "Evidence that meaningful time was available for consultation, or that review and lessons learned did not occur as described, could change the interpretation.", "evidence_ids": ["ev-decision", "ev-followup"]}
+        ],
+        "what_to_do_next": {
+          "action": "Review the timeline and post-incident record before drawing a broader conclusion about the decision.",
+          "owner": "Relevant incident reviewers",
+          "observable_indicators": ["The timeline documents the available decision window and the post-incident explanation and review."]
+        },
+        "limits": ["This conclusion is limited to the supplied incident and does not establish a general pattern."]
+      }
+    },
+    {
+      "case_id": "insufficient-evidence-labels-only",
+      "response": {
+        "mode": "third_party",
+        "path": "llm",
+        "central_incoherence": {
+          "text": "The evidence is insufficient to establish a stewardship tension: “selfish” and “not a team player” are characterizations, not concrete examples of conduct.",
+          "finding_type": "insufficient_evidence",
+          "evidence_ids": ["ev-label"]
+        },
+        "why_it_matters": {
+          "text": "A fair interpretation needs a specific action and its context rather than repeating a label as fact.",
+          "evidence_ids": ["ev-label"]
+        },
+        "what_the_evidence_says": [
+          {"text": "The only supplied item is an interpretation attributed broadly to other people; it gives no concrete episode.", "evidence_ids": ["ev-label"]}
+        ],
+        "what_could_change_the_interpretation": [
+          {"text": "A specific example of what happened, who observed it, and what effect followed would make the concern assessable.", "evidence_ids": ["ev-label"]}
+        ],
+        "what_to_do_next": {
+          "action": "Ask for one recent, specific episode and separate direct observation from hearsay and interpretation.",
+          "owner": "Visitor",
+          "observable_indicators": ["A dated or contextualized episode identifies an action and its observable effect."]
+        },
+        "limits": ["The current evidence does not establish the characterization or a contradiction."]
+      }
+    },
+    {
+      "case_id": "no-defensible-tension",
+      "response": {
+        "mode": "self",
+        "path": "llm",
+        "central_incoherence": {
+          "text": "The supplied evidence currently aligns with the stated responsibility to make decisions understandable and allow concerns to be raised; no defensible incoherence is established here.",
+          "finding_type": "no_defensible_tension",
+          "evidence_ids": ["ev-obligation", "ev-action", "ev-effect"]
+        },
+        "why_it_matters": {
+          "text": "A useful review should recognize evidence of alignment instead of inventing a concern merely because some information may remain unknown.",
+          "evidence_ids": ["ev-obligation", "ev-action", "ev-effect"]
+        },
+        "what_the_evidence_says": [
+          {"text": "The stated responsibility is to explain decisions and make room for concerns.", "evidence_ids": ["ev-obligation"]},
+          {"text": "The documented outcome records shared decision notes, recorded dissent, and confirmed owners and next steps.", "evidence_ids": ["ev-action"]},
+          {"text": "The reported effect is that team members could state the decision and their next actions.", "evidence_ids": ["ev-effect"]}
+        ],
+        "what_could_change_the_interpretation": [
+          {"text": "A specific contrary episode or outcome could change this assessment; none is established in the supplied evidence.", "evidence_ids": ["ev-action", "ev-effect"]}
+        ],
+        "what_to_do_next": {
+          "action": "Continue the documented practice and revisit the conclusion if a concrete contrary example emerges.",
+          "owner": "Visitor",
+          "observable_indicators": ["Decision notes, recorded dissent, and clear next actions remain available for the next decision."]
+        },
+        "limits": ["This finding is limited to the supplied examples and does not claim that every decision follows the same pattern."]
+      }
+    },
+    {
+      "case_id": "conflicting-source-provenance",
+      "response": {
+        "mode": "third_party",
+        "path": "llm",
+        "central_incoherence": {
+          "text": "The accounts conflict and remain unresolved: one first-hand observation describes an invitation for questions and a deferred decision, while a second-hand report claims the decision had already been made.",
+          "finding_type": "mixed_evidence",
+          "evidence_ids": ["ev-direct", "ev-rumor"]
+        },
+        "why_it_matters": {
+          "text": "The source distinction matters because the second-hand account cannot be treated as established fact and the direct observation does not automatically resolve what happened outside that observation.",
+          "evidence_ids": ["ev-direct", "ev-rumor"]
+        },
+        "what_the_evidence_says": [
+          {"text": "The first-hand observer says questions were invited and the decision was deferred.", "evidence_ids": ["ev-direct"]},
+          {"text": "The second-hand report says a colleague believed the leader had already decided; this remains a report, not a verified motive.", "evidence_ids": ["ev-rumor"]}
+        ],
+        "what_could_change_the_interpretation": [
+          {"text": "A timeline, decision record, or direct clarification from participants could help establish whether consultation was genuine.", "evidence_ids": ["ev-direct", "ev-rumor"]}
+        ],
+        "what_to_do_next": {
+          "action": "Compare the decision timeline and ask participants what had been decided at the point questions were invited.",
+          "owner": "Visitor or neutral facilitator",
+          "observable_indicators": ["The timeline distinguishes when the decision was made, when questions were invited, and what changed after discussion."]
+        },
+        "limits": ["The conflicting accounts do not establish hidden motive or a complete stewardship failure."]
+      }
+    },
+    {
+      "case_id": "third-party-intent-unknown",
+      "response": {
+        "mode": "third_party",
+        "path": "llm",
+        "central_incoherence": {
+          "text": "The evidence is insufficient to determine the person's willingness or intention; not commenting when asked does not establish either consent or reluctance.",
+          "finding_type": "insufficient_evidence",
+          "evidence_ids": ["ev-silence"]
+        },
+        "why_it_matters": {
+          "text": "A decision about responsibility should not be based on assigning a meaning to silence that the evidence does not provide.",
+          "evidence_ids": ["ev-silence"]
+        },
+        "what_the_evidence_says": [
+          {"text": "The only observation is that the person did not comment when asked whether they wanted the responsibility.", "evidence_ids": ["ev-silence"]}
+        ],
+        "what_could_change_the_interpretation": [
+          {"text": "A voluntary, direct answer from the person could clarify their willingness, if they choose to provide one.", "evidence_ids": ["ev-silence"]}
+        ],
+        "what_to_do_next": {
+          "action": "Ask the person privately and without pressure whether they want to discuss the responsibility, and respect a decision not to answer.",
+          "owner": "Person offering or coordinating the responsibility",
+          "observable_indicators": ["A direct response is recorded only if voluntarily given; silence remains unclassified."]
+        },
+        "limits": ["The person's inner commitment and motive remain unknown."]
+      }
+    },
+    {
+      "case_id": "missing-answer-is-not-adverse",
+      "response": {
+        "mode": "self",
+        "path": "llm",
+        "central_incoherence": {
+          "text": "The evidence is insufficient to assess the broader effect or response to feedback. The missing consequences and accountability information is a gap, not evidence against you.",
+          "finding_type": "insufficient_evidence",
+          "evidence_ids": ["ev-conduct"]
+        },
+        "why_it_matters": {
+          "text": "The current answer describes an action but does not establish its impact or how feedback was handled.",
+          "evidence_ids": ["ev-conduct"]
+        },
+        "what_the_evidence_says": [
+          {"text": "You reported sharing the decision and explaining the reasons.", "evidence_ids": ["ev-conduct"]}
+        ],
+        "what_could_change_the_interpretation": [
+          {"text": "An example of the effect on others and what happened when feedback was offered could clarify the picture; those details are currently unknown.", "evidence_ids": ["ev-conduct"]}
+        ],
+        "what_to_do_next": {
+          "action": "If useful, add one concrete example of the decision's effect and whether anyone raised a concern afterward.",
+          "owner": "Visitor",
+          "observable_indicators": ["A concrete example describes an effect or explicitly records that the effect is not known."]
+        },
+        "limits": ["No conclusion is drawn from unanswered dimensions."]
+      }
+    },
+    {
+      "case_id": "llm-invalid-output-fallback",
+      "response": {
+        "mode": "third_party",
+        "path": "deterministic_fallback",
+        "central_incoherence": {
+          "text": "The supplied evidence is not sufficient to establish a defensible conclusion about coherence. The candidate with an unknown evidence reference must be rejected.",
+          "finding_type": "insufficient_evidence",
+          "evidence_ids": ["ev-a", "ev-b"]
+        },
+        "why_it_matters": {
+          "text": "A response must be grounded in evidence that was actually supplied; unsupported labels or verdicts must not be shown.",
+          "evidence_ids": ["ev-a", "ev-b"]
+        },
+        "what_the_evidence_says": [
+          {"text": "The input evidence identifiers are ev-a and ev-b; their contents are not included in this fixture, so no substantive finding can be grounded here.", "evidence_ids": ["ev-a", "ev-b"]}
+        ],
+        "what_could_change_the_interpretation": [
+          {"text": "Provide the actual evidence content and source information before drawing a case-specific conclusion.", "evidence_ids": ["ev-a", "ev-b"]}
+        ],
+        "what_to_do_next": {
+          "action": "Reject the invalid candidate and request a separately validated fallback based only on the actual input evidence.",
+          "owner": "System",
+          "observable_indicators": ["No raw invalid candidate is returned to the visitor and the selected fallback passes the shared validator."]
+        },
+        "limits": ["This fixture tests rejection of an invalid reference; it contains no substantive evidence text from which to infer a stewardship finding."]
+      }
+    }
+  ]
+}
