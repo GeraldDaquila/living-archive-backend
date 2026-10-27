@@ -32,4 +32,4 @@ jobs:
         with:
           python-version: "3.x"
       - name: Run fixture integrity tests
-        run: python -m unittest tests/test_clss_stewardship_fixtures.py tests/test_clss_response_validator.py -v
+        run: python -m unittest -v tests.test_clss_stewardship_fixtures tests.test_clss_response_validator
