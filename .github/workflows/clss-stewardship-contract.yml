@@ -16,6 +16,8 @@ on:
       - "clss_reasoning_boundary.py"
       - "clss_evidence_normalization.py"
       - "clss_contextual_review.py"
+      - "tests/fixtures/clss/semantic-review-records-template.json"
+      - "tests/test_clss_semantic_review_template.py"
       - "clss_questionnaire_review_bridge.py"
       - "tests/test_clss_contextual_review.py"
       - "tests/test_clss_questionnaire_review_bridge.py"
