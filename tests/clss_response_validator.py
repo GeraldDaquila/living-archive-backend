@@ -118,22 +118,27 @@ def validate_candidate_response(
     for index, limit in enumerate(response["limits"]):
         _nonempty_text(limit, f"limits[{index}]")
 
-    # Third-party mode may describe observed actions, but cannot assert private intent.
-    if mode == "third_party":
-        for field in ("central_incoherence", "why_it_matters"):
-            _require(
-                not re.search(r"\b(?:secretly wants|intends to|doesn't care about|does not care about|is unwilling to serve)\b", response[field]["text"], re.I),
-                f"{field}.text asserts third-party private intent",
-            )
-
-    # Scan visitor-facing prose. Structural validation is not a substitute for
-    # semantic entailment checking against the cited evidence.
+    # Gather all visitor-facing prose before applying whole-response safety rules.
     texts = [central["text"], why["text"]]
     texts.extend(item["text"] for item in response["what_the_evidence_says"])
     texts.extend(item["text"] for item in response["what_could_change_the_interpretation"])
     texts.append(next_step["action"])
     texts.extend(next_step["observable_indicators"])
     texts.extend(response["limits"])
+
+    # Third-party mode may describe observed actions, but cannot assert private intent.
+    if mode == "third_party":
+        private_intent = re.compile(
+            r"\b(?:secretly wants|intends to|doesn't care about|does not care about|is unwilling to serve)\b",
+            re.I,
+        )
+        for index, text in enumerate(texts):
+            _require(
+                not private_intent.search(text),
+                f"visitor-facing text[{index}] asserts third-party private intent",
+            )
+
+    # Structural validation is not a substitute for semantic entailment checking.
     for index, text in enumerate(texts):
         _check_text(text, f"visitor-facing text[{index}]")
 
