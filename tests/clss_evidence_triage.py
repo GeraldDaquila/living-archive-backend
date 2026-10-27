@@ -27,13 +27,7 @@ def triage_evidence(
     mode: str,
     missing_dimensions: Sequence[str] = (),
 ) -> dict[str, Any]:
-    """Return a conservative, evidence-linked triage result, not a final finding.
-
-    The function never reads fixture expected labels. It preserves input evidence
-    IDs, flags label-only/unknown evidence as insufficient, and flags an explicit
-    correction alongside a concern as mixed evidence. It will not assert a
-    supported tension or no-tension conclusion from keyword matching.
-    """
+    """Return a conservative, evidence-linked triage result, not a final finding."""
     if mode not in ALLOWED_MODES:
         raise ValueError("mode must be self or third_party")
     if not isinstance(evidence, Sequence) or isinstance(evidence, (str, bytes)):
@@ -69,7 +63,6 @@ def triage_evidence(
     unknown_dimensions = sorted(set(missing_dimensions))
     ids = [item["evidence_id"] for item in normalized]
     dimensions = {item["dimension"] for item in normalized}
-    source_types = {item["source_type"] for item in normalized}
     interpretive_only = bool(normalized) and all(
         item["source_type"] in {"interpretation", "unknown"}
         for item in normalized
@@ -78,15 +71,27 @@ def triage_evidence(
     has_correction = "correction" in dimensions
     has_counterevidence = "counterevidence" in dimensions
 
+    # Only flag a provenance conflict when differing source positions concern
+    # the same dimension. Different sources covering different dimensions are
+    # not, by themselves, contradictory.
+    sources_by_dimension: dict[str, set[str]] = {}
+    for item in normalized:
+        sources_by_dimension.setdefault(item["dimension"], set()).add(item["source_type"])
+    same_dimension_source_conflict = any(
+        "second_hand_report" in source_types
+        and "first_hand_observation" in source_types
+        for source_types in sources_by_dimension.values()
+    )
+
     if not normalized or unknown_dimensions or "unknown" in dimensions or interpretive_only:
         category = "insufficient_evidence"
         reason = "The available material does not establish enough observable, attributable evidence for a defensible conclusion."
     elif has_concern and (has_correction or has_counterevidence):
         category = "mixed_evidence"
         reason = "The evidence includes both a concern-related dimension and a correction or counterevidence dimension; both must be examined."
-    elif "second_hand_report" in source_types and "first_hand_observation" in source_types:
+    elif same_dimension_source_conflict:
         category = "mixed_evidence"
-        reason = "The evidence includes different source positions; their provenance must remain distinct and any disagreement unresolved until checked."
+        reason = "Different source positions address the same dimension; provenance must remain distinct and any disagreement unresolved until checked."
     else:
         category = "insufficient_evidence"
         reason = "A final coherence judgment requires contextual comparison of the actual obligation, conduct, and effects; this deterministic triage does not infer that comparison from keywords."
