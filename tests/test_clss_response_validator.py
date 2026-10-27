@@ -4,6 +4,7 @@ import unittest
 from tests.clss_response_validator import (
     ResponseValidationError,
     validate_candidate_response,
+    validate_or_fallback,
 )
 
 
@@ -97,6 +98,35 @@ class CandidateResponseValidatorTests(unittest.TestCase):
         response["score"] = 8
         with self.assertRaisesRegex(ResponseValidationError, "fields do not match"):
             validate_candidate_response(response, EVIDENCE, mode="third_party", path="deterministic_fallback")
+
+    def test_invalid_llm_candidate_selects_validated_fallback(self):
+        candidate = valid_response()
+        candidate["central_incoherence"]["evidence_ids"] = ["ev-not-in-input"]
+        fallback = valid_response()
+        fallback["path"] = "deterministic_fallback"
+        accepted, path = validate_or_fallback(
+            candidate, fallback, EVIDENCE, mode="third_party"
+        )
+        self.assertEqual(path, "deterministic_fallback")
+        self.assertEqual(accepted["path"], "deterministic_fallback")
+
+    def test_valid_llm_candidate_is_accepted(self):
+        candidate = valid_response()
+        candidate["path"] = "llm"
+        fallback = valid_response()
+        accepted, path = validate_or_fallback(
+            candidate, fallback, EVIDENCE, mode="third_party"
+        )
+        self.assertEqual(path, "llm")
+        self.assertEqual(accepted["path"], "llm")
+
+    def test_invalid_candidate_and_invalid_fallback_fail_closed(self):
+        candidate = valid_response()
+        candidate["central_incoherence"]["evidence_ids"] = ["ev-not-in-input"]
+        fallback = valid_response()
+        fallback["central_incoherence"]["evidence_ids"] = ["ev-also-not-in-input"]
+        with self.assertRaisesRegex(ResponseValidationError, "unknown evidence"):
+            validate_or_fallback(candidate, fallback, EVIDENCE, mode="third_party")
 
     def test_rejects_invalid_path(self):
         with self.assertRaisesRegex(ResponseValidationError, "response path is invalid"):
