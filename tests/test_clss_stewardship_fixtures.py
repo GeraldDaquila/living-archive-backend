@@ -2,7 +2,7 @@
 
 These tests validate fixture structure and machine-checkable invariants. They do
 not claim to evaluate natural-language reasoning quality or production behavior.
-Run with: python -m unittest tests/test_clss_stewardship_fixtures.py -v
+Run with: python -m unittest -v tests.test_clss_stewardship_fixtures
 """
 from __future__ import annotations
 
