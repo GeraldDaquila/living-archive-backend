@@ -103,7 +103,7 @@ def validate_candidate_response(
             label = f"{field}[{index}]"
             _require(isinstance(entry, Mapping) and set(entry.keys()) == {"text", "evidence_ids"}, f"{label} shape is invalid")
             _nonempty_text(entry.get("text"), f"{label}.text")
-            _evidence_refs(entry.get("evidence_ids"), input_evidence_ids, f"{label}.evidence_ids", required=False)
+            _evidence_refs(entry.get("evidence_ids"), input_evidence_ids, f"{label}.evidence_ids", required=(field == "what_the_evidence_says"))
 
     next_step = response.get("what_to_do_next")
     _require(isinstance(next_step, Mapping) and set(next_step.keys()) == {"action", "owner", "observable_indicators"}, "what_to_do_next shape is invalid")
