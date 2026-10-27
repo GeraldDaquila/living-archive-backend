@@ -171,7 +171,11 @@ The LLM returns only a candidate response object. A shared validator checks it b
 
 Any actual remote invocation requires a separately approved privacy design, explicit visitor-facing disclosure, and tests proving what data leaves the browser, where it goes, and whether it is retained.
 
-## 8. Regression suite
+## 8. Semantic evaluation protocol
+
+The fixture integrity tests validate schema and machine-checkable constraints; they do not establish semantic reasoning quality. Human semantic review criteria, required review-record fields, case-specific checks, and the release gate are defined in [CLSS Semantic Response Evaluation Protocol](./CLSS_SEMANTIC_RESPONSE_EVALUATION_PROTOCOL.md). The template at `tests/fixtures/clss/semantic-review-records-template.json` is explicitly `not_evaluated`; it is not evidence that any candidate response has passed human review.
+
+## 9. Regression suite
 
 | Case | Input characteristics | Required result |
 |---|---|---|
