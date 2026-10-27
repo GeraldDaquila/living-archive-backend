@@ -74,6 +74,26 @@ class CLSSContextualReviewTests(unittest.TestCase):
         self.assertEqual(result["central_incoherence"]["finding_type"], "mixed_evidence")
         self.assertIn("conflicting accounts remain unresolved", result["what_could_change_the_interpretation"][0]["text"])
 
+    def test_source_conflict_can_be_reported_without_claiming_full_stewardship_tension(self):
+        conflict_evidence = [
+            {"evidence_id": "ev-direct", "dimension": "conduct", "source_type": "first_hand_observation", "answer_text": "I saw the leader invite questions and defer the decision."},
+            {"evidence_id": "ev-rumor", "dimension": "conduct", "source_type": "second_hand_report", "answer_text": "A colleague said the decision had already been made."},
+        ]
+        result = compose_contextual_review(
+            conflict_evidence,
+            review(
+                obligation_evidence_ids=[],
+                conduct_evidence_ids=[],
+                effect_evidence_ids=[],
+                source_status="conflict",
+                source_conflict_evidence_ids=["ev-direct", "ev-rumor"],
+            ),
+            mode="third_party",
+        )
+        self.assertEqual(result["central_incoherence"]["finding_type"], "mixed_evidence")
+        self.assertEqual(set(result["central_incoherence"]["evidence_ids"]), {"ev-direct", "ev-rumor"})
+        self.assertNotIn("supports a tension", result["central_incoherence"]["text"])
+
     def test_unknown_evidence_reference_is_rejected(self):
         with self.assertRaisesRegex(ContextualReviewError, "unknown evidence ID"):
             compose_contextual_review(
