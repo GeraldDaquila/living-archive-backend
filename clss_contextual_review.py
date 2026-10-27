@@ -87,20 +87,22 @@ def compose_contextual_review(
     ):
         raise ContextualReviewError("observable_indicators must be a non-empty list of text")
 
-    # No final tension without evidence from obligation, conduct, and effect.
+    # A documented source conflict can be reported as mixed evidence even when
+    # the full obligation-conduct-effect chain is not yet available. It must not
+    # be promoted into a final stewardship-tension finding without that chain.
     enough_comparison = bool(obligation_ids and conduct_ids and effect_ids)
-    if not enough_comparison or alignment == "unclear":
+    if source_status == "conflict":
+        finding = "mixed_evidence"
+        central_text = (
+            "The accounts conflict on a material point. Preserve the source distinction "
+            "and verify the disputed detail before treating either account as settled."
+        )
+    elif not enough_comparison or alignment == "unclear":
         finding = "insufficient_evidence"
         central_text = (
             "The available evidence does not yet establish a defensible conclusion "
             "about coherence. The missing link is identified below; its absence is "
             "not evidence against the person."
-        )
-    elif source_status == "conflict":
-        finding = "mixed_evidence"
-        central_text = (
-            "The accounts conflict on a material point. Preserve the source distinction "
-            "and verify the disputed detail before treating either account as settled."
         )
     elif alignment == "supports_tension" and (
         context_status == "material" or repair_status == "material_repair" or counter_ids
