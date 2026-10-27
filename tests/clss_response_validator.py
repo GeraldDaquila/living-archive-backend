@@ -88,7 +88,9 @@ def validate_candidate_response(
     _require(central.get("finding_type") in ALLOWED_FINDING_TYPES, "central finding type is invalid")
     _evidence_refs(
         central.get("evidence_ids"), input_evidence_ids, "central_incoherence.evidence_ids",
-        required=central.get("finding_type") in {"supported_tension", "mixed_evidence"},
+        # Every central finding, including an explicit evidence-gap or no-tension
+        # finding, must point to the actual input evidence it assessed.
+        required=True,
     )
 
     why = response.get("why_it_matters")
