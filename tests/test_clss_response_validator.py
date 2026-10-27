@@ -150,6 +150,17 @@ class CandidateResponseValidatorTests(unittest.TestCase):
         accepted = validate_candidate_response(response, EVIDENCE, mode="third_party", path="deterministic_fallback")
         self.assertEqual(accepted["central_incoherence"]["finding_type"], "no_defensible_tension")
 
+
+    def test_rejects_no_tension_finding_without_evidence_references(self):
+        response = valid_response()
+        response["central_incoherence"] = {
+            "text": "The evidence provided currently aligns with the stated responsibility; no defensible tension is established.",
+            "finding_type": "no_defensible_tension",
+            "evidence_ids": [],
+        }
+        with self.assertRaisesRegex(ResponseValidationError, "must cite at least one"):
+            validate_candidate_response(response, EVIDENCE, mode="third_party", path="deterministic_fallback")
+
     def test_rejects_invalid_path(self):
         with self.assertRaisesRegex(ResponseValidationError, "response path is invalid"):
             validate_candidate_response(valid_response(), EVIDENCE, mode="third_party", path="provider_raw")
