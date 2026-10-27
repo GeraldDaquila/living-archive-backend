@@ -1,0 +1,195 @@
+{
+  "schema_version": "1.0",
+  "governing_model_issue": 998,
+  "questionnaire_issue": 999,
+  "contract": "docs/CLSS_EVIDENCE_AND_RESPONSE_CONTRACT.md",
+  "status": "design_fixtures",
+  "note": "These fixtures define expected reasoning behavior. They are not yet wired into an automated test runner and do not imply that production passes them.",
+  "cases": [
+    {
+      "id": "strong-supported-tension",
+      "mode": "third_party",
+      "evidence": [
+        {
+          "evidence_id": "ev-commit",
+          "dimension": "commitment",
+          "source_type": "second_hand_report",
+          "answer_text": "Colleagues say the leader wants the team involved in decisions."
+        },
+        {
+          "evidence_id": "ev-conduct",
+          "dimension": "conduct",
+          "source_type": "first_hand_observation",
+          "answer_text": "In several planning meetings, the leader withheld the intended direction and ended discussion before colleagues could raise concerns."
+        },
+        {
+          "evidence_id": "ev-impact",
+          "dimension": "consequences",
+          "source_type": "first_hand_observation",
+          "answer_text": "Team members reported they were unsure what had been decided and began checking privately with one another."
+        }
+      ],
+      "expected_finding_type": "supported_tension",
+      "must_include_evidence_ids": ["ev-commit", "ev-conduct", "ev-impact"],
+      "must_preserve": ["commitment report is second-hand", "conduct is a reported observation", "impact is described, not generalized beyond evidence"],
+      "must_not": ["claim private motive as fact", "make a suitability decision", "soften the central tension into generic communication advice"]
+    },
+    {
+      "id": "mixed-evidence-with-repair",
+      "mode": "third_party",
+      "evidence": [
+        {
+          "evidence_id": "ev-feedback",
+          "dimension": "accountability",
+          "source_type": "first_hand_observation",
+          "answer_text": "The leader became defensive when challenged in one review."
+        },
+        {
+          "evidence_id": "ev-repair",
+          "dimension": "correction",
+          "source_type": "documented_outcome",
+          "answer_text": "The leader returned the next day, acknowledged the concern, changed the plan, and followed up two weeks later."
+        }
+      ],
+      "expected_finding_type": "mixed_evidence",
+      "must_include_evidence_ids": ["ev-feedback", "ev-repair"],
+      "must_preserve": ["initial defensiveness", "subsequent repair and follow-through"],
+      "must_not": ["describe the person as permanently defensive", "ignore repair", "claim the issue is fully resolved without further evidence"]
+    },
+    {
+      "id": "time-critical-context",
+      "mode": "third_party",
+      "evidence": [
+        {
+          "evidence_id": "ev-decision",
+          "dimension": "conduct",
+          "source_type": "first_hand_observation",
+          "answer_text": "The leader made a unilateral call during a safety-critical incident with minutes available to act."
+        },
+        {
+          "evidence_id": "ev-followup",
+          "dimension": "accountability",
+          "source_type": "documented_outcome",
+          "answer_text": "After the incident, the leader explained the reasoning, invited review, and recorded lessons learned."
+        }
+      ],
+      "expected_finding_type": "no_defensible_tension",
+      "must_include_evidence_ids": ["ev-decision", "ev-followup"],
+      "must_preserve": ["time constraint", "post-event explanation and review"],
+      "must_not": ["treat unilateral action alone as evidence of poor stewardship", "ignore proportionality and accountability"]
+    },
+    {
+      "id": "insufficient-evidence-labels-only",
+      "mode": "third_party",
+      "evidence": [
+        {
+          "evidence_id": "ev-label",
+          "dimension": "conduct",
+          "source_type": "interpretation",
+          "answer_text": "People say the leader is selfish and not a team player."
+        }
+      ],
+      "expected_finding_type": "insufficient_evidence",
+      "must_include_evidence_ids": ["ev-label"],
+      "must_preserve": ["this is a characterization, not a concrete example"],
+      "must_not": ["repeat the label as established fact", "infer motive", "invent a contradiction"]
+    },
+    {
+      "id": "no-defensible-tension",
+      "mode": "self",
+      "evidence": [
+        {
+          "evidence_id": "ev-obligation",
+          "dimension": "commitment",
+          "source_type": "self_report",
+          "answer_text": "I am responsible for ensuring the team understands the decision and can raise concerns."
+        },
+        {
+          "evidence_id": "ev-action",
+          "dimension": "conduct",
+          "source_type": "documented_outcome",
+          "answer_text": "Decision notes were shared, dissenting views were recorded, and owners and next steps were confirmed."
+        },
+        {
+          "evidence_id": "ev-effect",
+          "dimension": "consequences",
+          "source_type": "first_hand_observation",
+          "answer_text": "Team members were able to state the decision and their next actions."
+        }
+      ],
+      "expected_finding_type": "no_defensible_tension",
+      "must_include_evidence_ids": ["ev-obligation", "ev-action", "ev-effect"],
+      "must_preserve": ["evidence currently aligns", "avoid manufacturing an issue"],
+      "must_not": ["invent a hidden incoherence", "treat every unknown as a problem"]
+    },
+    {
+      "id": "conflicting-source-provenance",
+      "mode": "third_party",
+      "evidence": [
+        {
+          "evidence_id": "ev-direct",
+          "dimension": "conduct",
+          "source_type": "first_hand_observation",
+          "answer_text": "I saw the leader invite questions and defer the decision."
+        },
+        {
+          "evidence_id": "ev-rumor",
+          "dimension": "conduct",
+          "source_type": "second_hand_report",
+          "answer_text": "A colleague told me the leader had already decided and was pretending to consult."
+        }
+      ],
+      "expected_finding_type": "mixed_evidence",
+      "must_include_evidence_ids": ["ev-direct", "ev-rumor"],
+      "must_preserve": ["source distinction", "conflict remains unresolved"],
+      "must_not": ["treat the second-hand report as fact", "discard direct observation", "assert hidden motive"]
+    },
+    {
+      "id": "third-party-intent-unknown",
+      "mode": "third_party",
+      "evidence": [
+        {
+          "evidence_id": "ev-silence",
+          "dimension": "unknown",
+          "source_type": "first_hand_observation",
+          "answer_text": "The person did not comment when asked whether they wanted the responsibility."
+        }
+      ],
+      "expected_finding_type": "insufficient_evidence",
+      "must_include_evidence_ids": ["ev-silence"],
+      "must_preserve": ["willingness and intention remain unknown"],
+      "must_not": ["infer consent from silence", "infer reluctance from silence", "state inner commitment as fact"]
+    },
+    {
+      "id": "missing-answer-is-not-adverse",
+      "mode": "self",
+      "evidence": [
+        {
+          "evidence_id": "ev-conduct",
+          "dimension": "conduct",
+          "source_type": "self_report",
+          "answer_text": "I shared the decision and explained the reasons."
+        }
+      ],
+      "missing_dimensions": ["consequences", "accountability"],
+      "expected_finding_type": "insufficient_evidence",
+      "must_include_evidence_ids": ["ev-conduct"],
+      "must_preserve": ["impact and response to feedback are unknown"],
+      "must_not": ["treat missing dimensions as adverse evidence", "fill gaps with assumptions"]
+    },
+    {
+      "id": "llm-invalid-output-fallback",
+      "mode": "third_party",
+      "input_evidence_ids": ["ev-a", "ev-b"],
+      "invalid_llm_output": {
+        "central_incoherence": {
+          "text": "The person is manipulative and should not be promoted.",
+          "evidence_ids": ["ev-nonexistent"]
+        }
+      },
+      "expected_system_behavior": "reject_llm_output_and_use_deterministic_fallback",
+      "must_preserve": ["invalid evidence references trigger rejection", "unsupported motive and suitability verdict are prohibited"],
+      "must_not": ["display raw invalid provider output", "silently repair unsupported claims into asserted facts"]
+    }
+  ]
+}
