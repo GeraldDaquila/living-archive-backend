@@ -16,7 +16,9 @@ on:
       - "clss_reasoning_boundary.py"
       - "clss_evidence_normalization.py"
       - "clss_contextual_review.py"
+      - "clss_questionnaire_review_bridge.py"
       - "tests/test_clss_contextual_review.py"
+      - "tests/test_clss_questionnaire_review_bridge.py"
       - "tests/test_clss_evidence_normalization.py"
       - "tests/test_clss_reasoning_boundary.py"
       - "tests/test_clss_fixture_validator_bridge.py"
@@ -33,6 +35,14 @@ on:
       - "tests/test_clss_deterministic_response.py"
       - "tests/clss_reasoning_acceptance.py"
       - "tests/test_clss_reasoning_acceptance.py"
+      - "clss_reasoning_boundary.py"
+      - "clss_evidence_normalization.py"
+      - "clss_contextual_review.py"
+      - "clss_questionnaire_review_bridge.py"
+      - "tests/test_clss_contextual_review.py"
+      - "tests/test_clss_questionnaire_review_bridge.py"
+      - "tests/test_clss_evidence_normalization.py"
+      - "tests/test_clss_reasoning_boundary.py"
       - "tests/test_clss_fixture_validator_bridge.py"
       - ".github/workflows/clss-stewardship-contract.yml"
   workflow_dispatch:
@@ -52,4 +62,4 @@ jobs:
         with:
           python-version: "3.x"
       - name: Run CLSS contract, triage, fallback, and reasoning acceptance tests
-        run: python -m unittest -v tests.test_clss_stewardship_fixtures tests.test_clss_response_validator tests.test_clss_fixture_validator_bridge tests.test_clss_evidence_triage tests.test_clss_deterministic_response tests.test_clss_reasoning_acceptance tests.test_clss_reasoning_boundary tests.test_clss_evidence_normalization tests.test_clss_contextual_review
+        run: python -m unittest -v tests.test_clss_stewardship_fixtures tests.test_clss_response_validator tests.test_clss_fixture_validator_bridge tests.test_clss_evidence_triage tests.test_clss_deterministic_response tests.test_clss_reasoning_acceptance tests.test_clss_reasoning_boundary tests.test_clss_evidence_normalization tests.test_clss_contextual_review tests.test_clss_questionnaire_review_bridge
