@@ -1,0 +1,130 @@
+{
+  "fixture_version": "clss-scenarios-v1",
+  "status": "scenario-contract-only-not-model-evaluated",
+  "purpose": "Define adjudication boundaries for later CLSS semantic and model-backed evaluation. These are synthetic cases, not claims about real people.",
+  "scenarios": [
+    {
+      "id": "self-correction-evidence",
+      "perspective": "self",
+      "input_pattern": "Specific account of a decision, feedback received, acknowledged impact, and a concrete repair.",
+      "must_preserve": ["intent and action are distinct", "repair is tied to described action", "sustained change remains unverified unless follow-up evidence is supplied"],
+      "must_not_claim": ["stable virtue or character", "proven long-term improvement from one example"],
+      "next_step": "Agree on a bounded follow-up observation or review."
+    },
+    {
+      "id": "self-intent-action-divergence",
+      "perspective": "self",
+      "input_pattern": "The assessor states an inclusive intention but describes repeatedly excluding affected people from decisions.",
+      "must_preserve": ["reported intention", "described action pattern", "possible impact on participation", "alternative explanations remain open"],
+      "must_not_claim": ["the person is secretly malicious", "stated intention cancels reported impact"],
+      "next_step": "Identify one decision and include the affected perspective before the next similar choice."
+    },
+    {
+      "id": "third-party-single-anecdote",
+      "perspective": "third_party",
+      "input_pattern": "One second-hand story about a leader losing patience in a meeting; no corroboration or pattern.",
+      "must_preserve": ["report is second-hand", "one event does not establish a stable trait", "context and corroboration are unknown"],
+      "must_not_claim": ["the leader is abusive or unfit", "the report is a verified finding"],
+      "next_step": "Seek a direct, contextualized account and corroboration proportionate to the stakes."
+    },
+    {
+      "id": "third-party-motive-allegation",
+      "perspective": "third_party",
+      "input_pattern": "Assessor says a leader blocked a proposal because they were jealous, with no direct statement or corroborating evidence.",
+      "must_preserve": ["blocking action as reported", "motive as assessor inference", "other plausible explanations"],
+      "must_not_claim": ["jealousy is established", "private motive is known"],
+      "next_step": "Examine the stated decision rationale and relevant contemporaneous evidence."
+    },
+    {
+      "id": "sparse-answers",
+      "perspective": "third_party",
+      "input_pattern": "Only q1 and q9 have short entries; all other answers are blank.",
+      "must_preserve": ["blanks as evidence gaps", "low confidence due to sparse evidence", "no adverse inference from omissions"],
+      "must_not_claim": ["absence of evidence means absence of capacity", "negative suitability verdict"],
+      "next_step": "Collect one concrete example for the most consequential unresolved question.",
+      "doorway_status": "insufficient_evidence"
+    },
+    {
+      "id": "internally-contradictory-account",
+      "perspective": "self",
+      "input_pattern": "Assessor says they welcome challenge but also describes ending meetings whenever disagreement begins.",
+      "must_preserve": ["both statements", "tension requiring clarification", "possible contextual distinction"],
+      "must_not_claim": ["silently discard either statement", "resolve contradiction by guessing motive"],
+      "next_step": "Compare a specific recent disagreement with the stated openness to challenge."
+    },
+    {
+      "id": "conflicting-witness-accounts",
+      "perspective": "third_party",
+      "input_pattern": "Two reports disagree about whether consent was sought before a consequential change.",
+      "must_preserve": ["both reports remain conflicting", "consent status unresolved", "need for fair process and relevant records"],
+      "must_not_claim": ["select a preferred witness without evidence", "present either account as verified"],
+      "next_step": "Reconstruct the decision timeline and hear affected parties fairly."
+    },
+    {
+      "id": "benevolent-intent-harmful-impact",
+      "perspective": "third_party",
+      "input_pattern": "Leader says a restrictive decision was intended to protect the team; several people report reduced access and avoidable harm.",
+      "must_preserve": ["stated protective intent", "reported impact", "impact matters even when intent is unclear", "causal scope needs checking"],
+      "must_not_claim": ["good intent erases harm", "harm alone proves malicious intent"],
+      "next_step": "Review affected outcomes with those impacted and identify proportionate repair."
+    },
+    {
+      "id": "coherence-untested-assumption",
+      "perspective": "self",
+      "input_pattern": "Assessor concludes a process is fair because no one has complained, but has no evidence that people can safely dissent.",
+      "must_preserve": ["absence of complaints is not proof of fairness", "safety of feedback is unknown", "assumption is testable"],
+      "must_not_claim": ["silence proves consent or satisfaction"],
+      "next_step": "Create a safe, accessible feedback route and review whether it is used."
+    },
+    {
+      "id": "retaliation-or-suppressed-dissent",
+      "perspective": "third_party",
+      "input_pattern": "Specific reported examples suggest people who raised concerns lost responsibilities; corroboration is incomplete.",
+      "must_preserve": ["seriousness of the reported pattern", "source and corroboration limits", "need for safe review and protection from retaliation"],
+      "must_not_claim": ["allegation is already a final finding", "dismiss the concern because motive is uncertain"],
+      "next_step": "Use an independent, safe process to preserve evidence and hear affected people."
+    },
+    {
+      "id": "system-design-source",
+      "perspective": "third_party",
+      "input_pattern": "Several people make similar errors because responsibilities conflict and no escalation route exists.",
+      "must_preserve": ["system-level explanation is plausible", "individual responsibility is not automatically erased", "need to inspect role design and incentives"],
+      "must_not_claim": ["attribute all failure to one person's character"],
+      "next_step": "Map decision rights, incentives, handoffs, and escalation paths."
+    },
+    {
+      "id": "norm-conformity-trap",
+      "perspective": "third_party",
+      "input_pattern": "Assessor describes a leader as unsuitable solely because their communication style differs from local convention, with no harmful behavior evidence.",
+      "must_preserve": ["distinguish style difference from demonstrated effects", "ask whose expectations define the norm", "seek relevant role outcomes"],
+      "must_not_claim": ["difference equals incoherence", "social conformity is a leadership requirement"],
+      "next_step": "Define role-relevant behaviors and examine their actual effects."
+    },
+    {
+      "id": "conversation-before-doorway",
+      "perspective": "third_party",
+      "input_pattern": "Evidence is incomplete because the assessor has not asked the person about a disputed decision.",
+      "must_preserve": ["missing perspective", "no forced stage recommendation", "fair conversation may be the proportionate next move"],
+      "must_not_claim": ["a canonical doorway is mandatory"],
+      "next_step": "Ask a neutral, specific question and invite the person's account.",
+      "doorway_status": "not_needed"
+    },
+    {
+      "id": "provider-failure",
+      "perspective": "self",
+      "input_pattern": "Interpreter times out, exhausts quota, or returns malformed structured output.",
+      "must_preserve": ["transparent processing limitation", "answers remain unjudged", "safe retry or evidence-organizing fallback"],
+      "must_not_claim": ["canned adverse assessment", "invented interpretation or doorway"],
+      "next_step": "Offer retry or a neutral summary of recorded answers.",
+      "doorway_status": "insufficient_evidence"
+    },
+    {
+      "id": "perspective-pair",
+      "perspective": "both",
+      "input_pattern": "Run substantially identical event facts through self and third-party paths.",
+      "must_preserve": ["same core evidence standards", "self path can invite examination of own intention and learning", "third-party path cannot claim access to unexpressed motive"],
+      "must_not_claim": ["third-party motive certainty unavailable from the evidence", "different factual standards by perspective"],
+      "next_step": "Use the same evidence boundaries with perspective-appropriate follow-up questions."
+    }
+  ]
+}
