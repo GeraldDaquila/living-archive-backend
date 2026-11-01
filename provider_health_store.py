@@ -187,10 +187,14 @@ def _request(method, payload=None):
                 result_box["result"] = result
             else:
                 result_box["outcome"] = "invalid_contract"
-        except (HTTPError, URLError, HTTPException, TimeoutError, OSError, ValueError, json.JSONDecodeError):
-            result_box["outcome"] = "error"
-        except Exception:
-            result_box["outcome"] = "error"
+        except HTTPError as error:
+            # HTTP status is safe operational metadata; never log response bodies,
+            # URLs, request headers, or credentials.
+            result_box["outcome"] = f"http_error_{int(error.code)}"
+        except (URLError, HTTPException, TimeoutError, OSError, ValueError, json.JSONDecodeError) as error:
+            result_box["outcome"] = "transport_error_" + type(error).__name__
+        except Exception as error:
+            result_box["outcome"] = "unexpected_error_" + type(error).__name__
         finally:
             _REQUEST_SLOT.release()
             completed.set()
