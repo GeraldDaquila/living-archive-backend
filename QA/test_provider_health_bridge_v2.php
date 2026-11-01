@@ -70,6 +70,7 @@ class FakeWpdb {
     public $fail_commit = false;
     private $backup = null;
     private $pending_select_keys = null;
+    private $pending_seed_values = null;
     private $pending_bulk_values = null;
 
     public function query($sql) {
@@ -92,6 +93,28 @@ class FakeWpdb {
             }
             $this->backup = null;
             return 0;
+        }
+        if ($sql === 'FAKE_PROVIDER_HEALTH_SEED') {
+            $values = $this->pending_seed_values;
+            $this->pending_seed_values = null;
+            if (!is_array($values) || count($values) % 3 !== 0) {
+                $this->last_error = 'invalid simulated key-reservation arguments';
+                return false;
+            }
+            $record_count = (int)(count($values) / 3);
+            for ($i = 0; $i < $record_count; $i++) {
+                $offset = $i * 3;
+                $key = (string)$values[$offset];
+                if (!isset($this->rows[$key])) {
+                    $this->rows[$key] = array(
+                        'state_key' => $key,
+                        'payload' => (string)$values[$offset + 1],
+                        'updated_at' => (string)$values[$offset + 2],
+                    );
+                    $this->writes++;
+                }
+            }
+            return $record_count;
         }
         if ($sql === 'FAKE_PROVIDER_HEALTH_BULK_UPSERT') {
             $this->bulk_write_queries++;
@@ -124,6 +147,10 @@ class FakeWpdb {
 
     public function prepare($query, ...$args) {
         $values = count($args) === 1 && is_array($args[0]) ? array_values($args[0]) : $args;
+        if (strpos($query, 'INSERT IGNORE INTO') === 0) {
+            $this->pending_seed_values = $values;
+            return 'FAKE_PROVIDER_HEALTH_SEED';
+        }
         if (strpos($query, 'WHERE state_key IN') !== false) {
             $this->pending_select_keys = $values;
             return $query;
@@ -549,7 +576,7 @@ if (getenv('PROVIDER_HEALTH_MARIADB_DSN')) {
     check($rollback_count === 0, 'MariaDB commit failure rolls back the upserted row');
 
     $pdo->exec("DROP TABLE wp_la_provider_health");
-    echo "PASS: MariaDB 11.8 set-based upsert, four-statement batch budget, and transaction rollback\n";
+    echo "PASS: MariaDB 11.8 set-based upsert, five-statement batch budget, and transaction rollback\n";
 }
 
 echo "PASS: WordPress provider-health v2 contract harness\n";
