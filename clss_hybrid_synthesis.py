@@ -137,7 +137,9 @@ def resolve_hybrid_candidate(
             "path": "deterministic_fallback",
             "semantic_status": "not_evaluated",
             "human_review_required": False,
+            "candidate_builder_invoked": False,
             "provider_invoked": False,
+            "transmission_performed": False,
         }
 
     request = build_minimized_candidate_request(normalized, consent=consent)
@@ -157,6 +159,7 @@ def resolve_hybrid_candidate(
         "path": path,
         "semantic_status": "unverified_candidate" if path == "llm" else "not_evaluated",
         "human_review_required": path == "llm",
-        "provider_invoked": True,
+        "candidate_builder_invoked": True,
+        "provider_invoked": False,
         "transmission_performed": False,
     }
