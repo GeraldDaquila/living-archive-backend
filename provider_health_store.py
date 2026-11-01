@@ -193,7 +193,7 @@ def load_remote_states():
     if not owner:
         # The owner gets the only bridge attempt. Waiters may use its result,
         # but never issue a parallel request just because the bridge is slow.
-        event.wait(TIMEOUT_SECONDS + 0.10)
+        event.wait(TIMEOUT_SECONDS)
         with _READ_CACHE_LOCK:
             if _READ_CACHE is not None and _monotonic() < _READ_CACHE_UNTIL:
                 return {key: dict(value) for key, value in _READ_CACHE.items()}
