@@ -240,16 +240,23 @@ def merge_health_state(local, remote, now=None):
     latest_success = max(local_success, remote_success)
 
     if remote_failure > local_failure:
-        for field in ("failures", "consecutive_failures", "last_error", "category", "cooldown_until", "quarantine_until"):
+        for field in ("failures", "consecutive_failures", "last_error", "category", "cooldown_until", "quarantine_until", "last_operation"):
             if field in remote:
                 local[field] = remote[field]
     elif remote_failure == local_failure and remote_failure > 0:
         local["failures"] = max(int(local.get("failures", 0) or 0), int(remote.get("failures", 0) or 0))
+        local_consecutive = int(local.get("consecutive_failures", 0) or 0)
+        remote_consecutive = int(remote.get("consecutive_failures", 0) or 0)
+        local["consecutive_failures"] = max(local_consecutive, remote_consecutive)
         local["cooldown_until"] = max(float(local.get("cooldown_until", 0) or 0), float(remote.get("cooldown_until", 0) or 0))
         local["quarantine_until"] = max(float(local.get("quarantine_until", 0) or 0), float(remote.get("quarantine_until", 0) or 0))
         if remote.get("last_error"):
             local["last_error"] = remote["last_error"]
             local["category"] = remote.get("category", local.get("category", ""))
+        if remote_consecutive > local_consecutive and remote.get("last_operation"):
+            local["last_operation"] = remote["last_operation"]
+        elif not local.get("last_operation") and remote.get("last_operation"):
+            local["last_operation"] = remote["last_operation"]
     if remote_success > local_success:
         local["last_success"] = remote_success
     if remote_failure > local_failure:
