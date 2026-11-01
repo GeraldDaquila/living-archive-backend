@@ -197,6 +197,7 @@ def _request(method, payload=None):
     except RuntimeError:
         _REQUEST_SLOT.release()
         result_box["outcome"] = "worker_start_failed"
+        completed.set()
 
     completed.wait(max(0.0, deadline - _monotonic()))
     if completed.is_set():
