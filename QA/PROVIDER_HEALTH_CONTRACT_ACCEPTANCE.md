@@ -38,7 +38,8 @@ Repair only the shared Provider Bank health-state persistence seam between the U
 2. Reject booleans as counts even though Python treats bool as int.
 3. Reject malformed, partial, zero-write, or wrong-version acknowledgements.
 4. Preserve the existing 250ms timeout and read-side cache/circuit behavior.
-5. Do not report failed writes as successful.
+5. Export the 100 most recently active states using the newest transport/quality event timestamp, with a stable key tie-breaker; do not truncate by dictionary insertion order.
+6. Do not report failed writes as successful.
 
 ### Provider Bank lifecycle and concurrency
 
