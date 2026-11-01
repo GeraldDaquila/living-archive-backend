@@ -159,6 +159,7 @@ $result = la_provider_health_v2_write(new FakeRequest(array(), '{"contract_versi
 check(is_wp_error($result), 'states JSON array rejected');
 $result = la_provider_health_v2_write(new FakeRequest(array(), '{"contract_version":"v2","states":{"groq:model-a":[]}}'));
 check(is_wp_error($result), 'array-shaped state record rejected');
+$GLOBALS['wpdb'] = new FakeWpdb();
 $result = la_provider_health_v2_write(new FakeRequest(array(), '{"contract_version":"v2","states":{}}'));
 check(!is_wp_error($result), 'empty states JSON object accepted');
 
