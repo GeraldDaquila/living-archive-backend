@@ -26,6 +26,70 @@ MAX_EVIDENCE_ITEMS = 8
 CandidateBuilder = Callable[[Mapping[str, Any]], Mapping[str, Any]]
 
 
+CLSS_PROVIDER_SYSTEM_PROMPT = """You are the candidate-synthesis component of CLSS.
+Return exactly one JSON object matching the requested response contract.
+Treat all supplied answers as unverified respondent accounts, not established facts.
+Cite only the supplied evidence IDs. Preserve each source type and provenance.
+Do not merge first-hand observation, second-hand report, self-report,
+documented outcome, interpretation, or unknown into one evidence grade.
+Do not infer private motives or intent, diagnose, score, rank, or decide suitability.
+Missing information is an information gap, never adverse evidence.
+Do not manufacture contradictions, causal claims, or a central tension.
+If the evidence does not establish a defensible relationship, use
+finding_type="insufficient_evidence" or "no_defensible_tension" and explain why.
+Keep the finding cautious and explicitly provisional. The candidate will be
+structurally validated and must receive independent human semantic review.
+Required top-level fields:
+mode, path, central_incoherence, why_it_matters, what_the_evidence_says,
+what_could_change_the_interpretation, what_to_do_next, limits.
+Set path="llm". central_incoherence requires text, finding_type, evidence_ids.
+why_it_matters requires text, evidence_ids.
+Each evidence/change entry requires text and evidence_ids.
+what_to_do_next requires action, owner (string or null), observable_indicators.
+"""
+
+
+class UseProviderCandidateBuilder:
+    """Invoke CLSS through USE's in-process Provider Bank gateway.
+
+    This class has no credentials or direct provider transport. USE Provider
+    Bank remains the sole owner of provider selection, health, quota, and
+    fallback. Instantiate only after visitor-facing consent is established.
+    """
+
+    provider_invoked = False
+    transmission_performed = False
+
+    def __init__(self, use_core: Any, gateway_executor: Callable[..., Mapping[str, Any]] | None = None):
+        self.use_core = use_core
+        self.gateway_executor = gateway_executor
+
+    def __call__(self, request: Mapping[str, Any]) -> Mapping[str, Any]:
+        import json
+
+        executor = self.gateway_executor
+        if executor is None:
+            from provider_gateway_service import execute as executor
+
+        self.provider_invoked = True
+        self.transmission_performed = True
+        result = executor(
+            operation="clss_synthesis",
+            messages=[
+                {"role": "system", "content": CLSS_PROVIDER_SYSTEM_PROMPT},
+                {"role": "user", "content": json.dumps(dict(request), ensure_ascii=False, separators=(",", ":"))},
+            ],
+            max_tokens=1800,
+            use_core=self.use_core,
+        )
+        if not isinstance(result, Mapping) or result.get("ok") is not True:
+            raise CLSSHybridSynthesisError("USE Provider Bank could not produce a CLSS candidate")
+        candidate = result.get("result")
+        if not isinstance(candidate, Mapping):
+            raise CLSSHybridSynthesisError("USE Provider Bank returned no structured CLSS candidate")
+        return dict(candidate)
+
+
 class CLSSHybridSynthesisError(ValueError):
     """Raised when the synthesis request violates its bounded contract."""
 
@@ -160,6 +224,6 @@ def resolve_hybrid_candidate(
         "semantic_status": "unverified_candidate" if path == "llm" else "not_evaluated",
         "human_review_required": path == "llm",
         "candidate_builder_invoked": True,
-        "provider_invoked": False,
-        "transmission_performed": False,
+        "provider_invoked": bool(getattr(candidate_builder, "provider_invoked", False)),
+        "transmission_performed": bool(getattr(candidate_builder, "transmission_performed", False)),
     }
