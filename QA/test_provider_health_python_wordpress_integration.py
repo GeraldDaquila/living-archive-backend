@@ -8,7 +8,12 @@ to this disposable CI environment; production configuration remains HTTPS-only.
 from __future__ import annotations
 
 import os
+from pathlib import Path
 import sys
+
+# Running a script from QA/ puts that directory, not the repository root, at
+# sys.path[0]. Add the root explicitly so the candidate module is importable.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import provider_health_store
 
@@ -65,9 +70,15 @@ def write() -> None:
 
 def update() -> None:
     states = provider_health_store.load_remote_states()
-    require(isinstance(states, dict) and KEY in states, "A fresh process could not read the prior process's state.")
+    require(
+        isinstance(states, dict) and KEY in states,
+        "A fresh process could not read the prior process's state.",
+    )
     record = states[KEY]
-    require(record.get("last_operation") == "hrn_relational", "last_operation was lost on the first cross-language round trip.")
+    require(
+        record.get("last_operation") == "hrn_relational",
+        "last_operation was lost on the first cross-language round trip.",
+    )
     record["last_failure"] = 1001.0
     record["last_operation"] = "general_guide_composition"
     record["consecutive_failures"] = 2
@@ -83,18 +94,38 @@ def update() -> None:
 
 def read() -> None:
     states = provider_health_store.load_remote_states()
-    require(isinstance(states, dict) and KEY in states, "A fresh process could not read the persisted shared state.")
+    require(
+        isinstance(states, dict) and KEY in states,
+        "A fresh process could not read the persisted shared state.",
+    )
     record = states[KEY]
-    require(record.get("last_operation") == "general_guide_composition", "Updated last_operation did not survive the WordPress round trip.")
-    require(record.get("last_failure") == 1001.0, "Updated failure timestamp did not survive the WordPress round trip.")
-    require(record.get("cooldown_until") == 1600.0, "Updated operation cooldown did not survive the WordPress round trip.")
-    require(record.get("probe_in_flight") is False, "Process-local probe ownership was persisted across processes.")
-    print("PASS: third Python process recovered the latest shared state; last_operation survived and probe ownership reset.")
+    require(
+        record.get("last_operation") == "general_guide_composition",
+        "Updated last_operation did not survive the WordPress round trip.",
+    )
+    require(
+        record.get("last_failure") == 1001.0,
+        "Updated failure timestamp did not survive the WordPress round trip.",
+    )
+    require(
+        record.get("cooldown_until") == 1600.0,
+        "Updated operation cooldown did not survive the WordPress round trip.",
+    )
+    require(
+        record.get("probe_in_flight") is False,
+        "Process-local probe ownership was persisted across processes.",
+    )
+    print(
+        "PASS: third Python process recovered the latest shared state; "
+        "last_operation survived and probe ownership reset."
+    )
 
 
 def main() -> None:
     if len(sys.argv) != 2 or sys.argv[1] not in {"write", "update", "read"}:
-        raise SystemExit("Usage: python QA/test_provider_health_python_wordpress_integration.py write|update|read")
+        raise SystemExit(
+            "Usage: python QA/test_provider_health_python_wordpress_integration.py write|update|read"
+        )
     configure_ephemeral_bridge()
     {"write": write, "update": update, "read": read}[sys.argv[1]]()
 
