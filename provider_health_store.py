@@ -121,6 +121,27 @@ def _request(method, payload=None):
     if not url:
         return None
 
+    # Build and serialize the request before reserving the sole transport slot.
+    # A malformed URL or unexpected non-JSON-safe health value must not strand
+    # the process-wide worker semaphore and disable all later bridge attempts.
+    try:
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache, no-store",
+            "X-Living-Archive-Provider-Key": secret,
+            "User-Agent": "Living-Archive-Provider-Health/1.0",
+        }
+        request_url = url
+        if method == "GET":
+            separator = "&" if "?" in request_url else "?"
+            request_url += separator + "_la_health_nonce=" + str(time.time_ns())
+        data = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8") if payload is not None else None
+        request = Request(request_url, data=data, headers=headers, method=method)
+    except (TypeError, ValueError, UnicodeError, OSError) as error:
+        print(f"USE provider health store request preparation failed: method={method}, error_type={type(error).__name__}")
+        return None
+
     now = _monotonic()
     recovery_probe = False
     with _CIRCUIT_LOCK:
@@ -150,19 +171,6 @@ def _request(method, payload=None):
         )
         return None
 
-    headers = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Cache-Control": "no-cache, no-store",
-        "X-Living-Archive-Provider-Key": secret,
-        "User-Agent": "Living-Archive-Provider-Health/1.0",
-    }
-    request_url = url
-    if method == "GET":
-        separator = "&" if "?" in request_url else "?"
-        request_url += separator + "_la_health_nonce=" + str(time.time_ns())
-    data = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8") if payload is not None else None
-    request = Request(request_url, data=data, headers=headers, method=method)
     completed = threading.Event()
     result_box = {"outcome": "error", "result": None}
 
