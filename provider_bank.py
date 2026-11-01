@@ -1254,12 +1254,18 @@ def _eligible(provider, model, operation, schema=None):
         return False, sorted(missing)
     return True, []
 
-@_state_transition
 def candidates(use_core, operation="generic", schema=None):
+    # Provider inventory discovery may call a remote API. Resolve it before
+    # acquiring the in-memory health-state lock.
+    configured_models = _configured(use_core)
+    return _candidates_from_configured(configured_models, operation=operation, schema=schema)
+
+
+@_state_transition
+def _candidates_from_configured(configured_models, operation="generic", schema=None):
     global _LAST_PROVIDER_INVENTORY_DIAGNOSTIC
     out = []
     now = time.time()
-    configured_models = _configured(use_core)
     inventory_signature = (
         bool(str(os.getenv("OPENROUTER_API_KEY") or "").strip()),
         tuple(sorted((provider, tuple(models)) for provider, models in configured_models.items())),
@@ -1356,9 +1362,14 @@ def _hrn_attempt_cap():
     return max(1, min(2, configured))
 
 
-@_state_transition
 def select(use_core, operation="generic", schema=None):
+    # Keep candidate inventory discovery outside the provider-state lock.
     items = candidates(use_core, operation=operation, schema=schema)
+    return _select_from_items(items, operation=operation)
+
+
+@_state_transition
+def _select_from_items(items, operation="generic"):
     if not items: return []
     grouped = OrderedDict()
     for item in items: grouped.setdefault(item["provider"], []).append(item)
