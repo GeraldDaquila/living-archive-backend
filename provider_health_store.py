@@ -200,7 +200,9 @@ def _request(method, payload=None):
         completed.set()
 
     completed.wait(max(0.0, deadline - _monotonic()))
-    if completed.is_set():
+    # Event scheduling can race the caller's timeout wake-up. A result that
+    # becomes visible after the absolute deadline is still late and discarded.
+    if completed.is_set() and _monotonic() <= deadline:
         outcome = result_box["outcome"]
         result = result_box["result"]
     else:
