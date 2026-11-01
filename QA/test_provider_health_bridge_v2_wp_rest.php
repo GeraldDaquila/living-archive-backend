@@ -6,7 +6,7 @@ $secret = (string)getenv('PROVIDER_HEALTH_WP_SECRET');
 if ($base === '' || $secret === '') {
     throw new RuntimeException('Ephemeral WordPress URL and test secret are required.');
 }
-$endpoint = $base . '/wp-json/living-archive/v1/provider-health/';
+$endpoint = $base . '/?rest_route=/living-archive/v1/provider-health';
 
 function wp_check($condition, $message) {
     if (!$condition) {
@@ -45,7 +45,7 @@ function wp_request($url, $method, $body = null, $authenticated = true) {
     return array($status, $decoded, is_string($response) ? $response : '');
 }
 
-list($diagnostic_status, $diagnostic) = wp_request($base . '/wp-json/provider-health-test/v1/auth-diagnostic/', 'GET');
+list($diagnostic_status, $diagnostic) = wp_request($base . '/?rest_route=/provider-health-test/v1/auth-diagnostic', 'GET');
 wp_check($diagnostic_status === 200, 'temporary auth diagnostic endpoint is available');
 wp_check(($diagnostic['auth_without_header'] ?? null) === false, 'auth callback itself rejects a request without credentials');
 wp_check(($diagnostic['get_permission_callback'] ?? null) === 'la_provider_health_authorized', 'GET route retains the expected permission callback');
