@@ -244,6 +244,48 @@ class ProviderHealthStoreTests(unittest.TestCase):
         self.assertEqual(len(results), 8)
         self.assertTrue(all(result and "groq:model-a" in result for result in results))
 
+    def test_total_deadline_bounds_a_stalled_transport_worker(self):
+        started = threading.Event()
+        release = threading.Event()
+        finished = threading.Event()
+        slot = threading.BoundedSemaphore(1)
+
+        def stalled_transport(*args, **kwargs):
+            started.set()
+            release.wait(1.0)
+            finished.set()
+            raise TimeoutError("simulated stalled transport")
+
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \
+             patch.object(provider_health_store, "_REQUEST_SLOT", slot), \
+             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False), \
+             patch.object(provider_health_store, "urlopen", side_effect=stalled_transport):
+            before = time.monotonic()
+            result = provider_health_store._request("GET")
+            elapsed = time.monotonic() - before
+            self.assertIsNone(result)
+            self.assertTrue(started.is_set())
+            self.assertLess(elapsed, TIMEOUT_SECONDS + 0.15)
+            # The worker is bounded to one outstanding slot and is daemonized.
+            release.set()
+            self.assertTrue(finished.wait(0.5))
+
+    def test_stalled_transport_slot_prevents_worker_backlog(self):
+        slot = threading.BoundedSemaphore(1)
+        self.assertTrue(slot.acquire(blocking=False))
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \
+             patch.object(provider_health_store, "_REQUEST_SLOT", slot), \
+             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False), \
+             patch.object(provider_health_store, "urlopen") as request:
+            before = time.monotonic()
+            result = provider_health_store._request("GET")
+            self.assertIsNone(result)
+            self.assertLess(time.monotonic() - before, 0.05)
+            request.assert_not_called()
+        slot.release()
+
     def test_missing_credentials_fails_closed_without_network(self):
         with patch("provider_health_store._configuration", return_value=("", "")):
             self.assertFalse(save_remote_states({}))
