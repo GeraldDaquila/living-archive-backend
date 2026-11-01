@@ -343,6 +343,14 @@ $GLOBALS['wpdb'] = new FakeWpdb();
 $GLOBALS['encode_calls'] = 0;
 $GLOBALS['fail_encode_on'] = 0;
 
+$unsorted_body = valid_body(2);
+$unsorted_body['states'] = array_reverse($unsorted_body['states'], true);
+$normalized_batch = la_provider_health_v2_validate_batch($unsorted_body);
+$normalized_keys = array_column($normalized_batch, 'key');
+$expected_keys = $normalized_keys;
+sort($expected_keys, SORT_STRING);
+check($normalized_keys === $expected_keys, 'validated batches use deterministic ascending key order');
+
 $response = la_provider_health_v2_write(new FakeRequest(valid_body()));
 check(!is_wp_error($response), 'valid batch accepted');
 check($response->data['success'] === true, 'success acknowledgement explicit');
