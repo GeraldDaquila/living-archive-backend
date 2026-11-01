@@ -3159,7 +3159,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             # Local admission pressure is not evidence that the upstream provider
             # is unhealthy. Release any half-open probe claim and allow independent
             # candidates to run; otherwise a local cap could strand recovery forever.
-            state["probe_in_flight"] = False
+            release_probe(state)
             last_error = str(exc)
             print(
                 "USE provider quota admission: "
