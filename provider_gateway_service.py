@@ -27,6 +27,7 @@ ALLOWED_OPERATIONS = frozenset({
     "atlas_vision",
     "mini_use",
     "stewardship_pathway",
+    "clss_synthesis",
 })
 
 def _shared_secret() -> str:
