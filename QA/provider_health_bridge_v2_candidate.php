@@ -3,8 +3,11 @@
  * TEST candidate for the Living Archive Provider Health v2 WordPress bridge.
  *
  * This file is intentionally not loaded by WordPress and contains no secret.
- * Integrate only by replacing the active v1 endpoint callbacks after TEST
- * transaction and cross-language acceptance. The existing table is unchanged.
+ * Integrate only after TEST transaction and cross-language acceptance:
+ * 1. Require this file from the existing plugin's main file.
+ * 2. Replace its v1 route hook with add_action('rest_api_init', 'la_provider_health_v2_register_routes').
+ * 3. Register la_provider_health_v2_install_schema on the main plugin activation hook.
+ * The existing table is unchanged; no active WordPress file is modified here.
  */
 
 if (!defined('LA_PROVIDER_HEALTH_V2_CONTRACT')) {
