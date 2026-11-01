@@ -8,6 +8,7 @@ and expose that degraded state in diagnostics.
 from __future__ import annotations
 
 import json
+import math
 import os
 import threading
 import time
@@ -190,11 +191,30 @@ def load_remote_states():
             event.set()
 
 
+def _state_recency(value):
+    """Rank bounded exports by their newest transport or quality event."""
+    timestamps = []
+    for field in ("last_success", "last_failure", "last_quality_success", "last_quality_failure"):
+        try:
+            timestamp = float(value.get(field, 0) or 0)
+        except (TypeError, ValueError):
+            timestamp = 0.0
+        if not math.isfinite(timestamp) or timestamp < 0:
+            timestamp = 0.0
+        timestamps.append(timestamp)
+    return max(timestamps, default=0.0)
+
+
 def export_health_states(states):
+    """Export the 100 most recently active records with deterministic key ties."""
+    eligible = [
+        (key, value)
+        for key, value in states.items()
+        if isinstance(key, str) and 0 < len(key) <= 191 and isinstance(value, dict)
+    ]
+    eligible.sort(key=lambda item: (-_state_recency(item[1]), item[0]))
     exported = {}
-    for key, value in list(states.items())[:100]:
-        if not isinstance(key, str) or not isinstance(value, dict) or len(key) > 191:
-            continue
+    for key, value in eligible[:100]:
         exported[key] = {
             field: value.get(field)
             for field in STATE_FIELDS
