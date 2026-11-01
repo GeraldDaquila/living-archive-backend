@@ -118,8 +118,6 @@ def test_newer_dirty_version_is_not_cleared_by_older_successful_flush(monkeypatc
 
 
 # Shared bridge acknowledgement and serialization contract tests.
-"""Strict v2 acknowledgement tests for the shared provider-health bridge."""
-
 
 
 def _ack(*, submitted=2, written=2, success=True, version="v2"):
@@ -134,7 +132,7 @@ def _ack(*, submitted=2, written=2, success=True, version="v2"):
 def test_full_exact_acknowledgement_is_accepted(monkeypatch):
     calls = []
     monkeypatch.setattr(
-        store,
+        health_store,
         "_request",
         lambda method, payload=None: calls.append((method, payload)) or _ack(),
     )
@@ -147,38 +145,38 @@ def test_full_exact_acknowledgement_is_accepted(monkeypatch):
 
 
 def test_zero_write_acknowledgement_is_rejected(monkeypatch):
-    monkeypatch.setattr(store, "_request", lambda *args, **kwargs: _ack(written=0))
+    monkeypatch.setattr(health_store, "_request", lambda *args, **kwargs: _ack(written=0))
     assert health_store.save_remote_states({"groq:model-a": {}}) is False
 
 
 def test_partial_write_acknowledgement_is_rejected(monkeypatch):
-    monkeypatch.setattr(store, "_request", lambda *args, **kwargs: _ack(written=1))
+    monkeypatch.setattr(health_store, "_request", lambda *args, **kwargs: _ack(written=1))
     assert health_store.save_remote_states({"groq:model-a": {}, "nvidia:model-b": {}}) is False
 
 
 def test_missing_or_wrong_contract_version_is_rejected(monkeypatch):
-    monkeypatch.setattr(store, "_request", lambda *args, **kwargs: {"success": True, "submitted": 2, "written": 2})
+    monkeypatch.setattr(health_store, "_request", lambda *args, **kwargs: {"success": True, "submitted": 2, "written": 2})
     assert health_store.save_remote_states({"groq:model-a": {}, "nvidia:model-b": {}}) is False
 
-    monkeypatch.setattr(store, "_request", lambda *args, **kwargs: _ack(version="v1"))
+    monkeypatch.setattr(health_store, "_request", lambda *args, **kwargs: _ack(version="v1"))
     assert health_store.save_remote_states({"groq:model-a": {}, "nvidia:model-b": {}}) is False
 
 
 def test_missing_or_false_success_is_rejected(monkeypatch):
-    monkeypatch.setattr(store, "_request", lambda *args, **kwargs: {"contract_version": "v2", "submitted": 2, "written": 2})
+    monkeypatch.setattr(health_store, "_request", lambda *args, **kwargs: {"contract_version": "v2", "submitted": 2, "written": 2})
     assert health_store.save_remote_states({"groq:model-a": {}, "nvidia:model-b": {}}) is False
 
-    monkeypatch.setattr(store, "_request", lambda *args, **kwargs: _ack(success=False))
+    monkeypatch.setattr(health_store, "_request", lambda *args, **kwargs: _ack(success=False))
     assert health_store.save_remote_states({"groq:model-a": {}, "nvidia:model-b": {}}) is False
 
 
 def test_boolean_counts_are_rejected(monkeypatch):
-    monkeypatch.setattr(store, "_request", lambda *args, **kwargs: _ack(submitted=True, written=True))
+    monkeypatch.setattr(health_store, "_request", lambda *args, **kwargs: _ack(submitted=True, written=True))
     assert health_store.save_remote_states({"groq:model-a": {}, "nvidia:model-b": {}}) is False
 
 
 def test_mismatched_submitted_count_is_rejected(monkeypatch):
-    monkeypatch.setattr(store, "_request", lambda *args, **kwargs: _ack(submitted=1, written=2))
+    monkeypatch.setattr(health_store, "_request", lambda *args, **kwargs: _ack(submitted=1, written=2))
     assert health_store.save_remote_states({"groq:model-a": {}, "nvidia:model-b": {}}) is False
 
 
@@ -198,10 +196,10 @@ def test_behavioral_last_operation_is_exported():
 
 
 def test_shared_health_read_rejects_wrong_contract_version(monkeypatch):
-    monkeypatch.setattr(health_store, "_READ_CACHE", None)
-    monkeypatch.setattr(health_store, "_READ_CACHE_UNTIL", 0.0)
+    monkeypatch.setattr(health_health_store, "_READ_CACHE", None)
+    monkeypatch.setattr(health_health_store, "_READ_CACHE_UNTIL", 0.0)
     monkeypatch.setattr(
-        health_store,
+        health_health_store,
         "_request",
         lambda method, payload=None: {"contract_version": "v1", "states": {}},
     )
