@@ -60,6 +60,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install gateway test dependency
+        run: pip install fastapi
       - name: Compile adapter and tests
         run: python -m py_compile clss_hybrid_synthesis.py clss_evidence_triage.py clss_response_validator.py clss_deterministic_response.py provider_gateway_service.py provider_bank.py scripts/clss_synthetic_provider_eval.py tests/test_clss_hybrid_synthesis.py tests/test_clss_hybrid_semantic_gate.py tests/test_clss_use_provider_capability.py
       - name: Run isolated adapter tests
