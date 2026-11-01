@@ -1,0 +1,175 @@
+{
+  "contract_version": "v2",
+  "cases": [
+    {
+      "name": "newer_remote_failure",
+      "now": 31,
+      "local": {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "healthy",
+        "last_failure": 10,
+        "last_success": 5,
+        "last_operation": "general_guide_composition",
+        "failures": 1,
+        "consecutive_failures": 1,
+        "cooldown_until": 20,
+        "quarantine_until": 0,
+        "last_error": "",
+        "category": ""
+      },
+      "remote": {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "open",
+        "last_failure": 30,
+        "last_success": 5,
+        "last_operation": "hrn_relational",
+        "failures": 2,
+        "consecutive_failures": 2,
+        "cooldown_until": 90,
+        "quarantine_until": 0,
+        "last_error": "read operation timed out",
+        "category": "provider_failure"
+      },
+      "expected": {
+        "last_operation": "hrn_relational",
+        "state": "open",
+        "last_error": "read operation timed out",
+        "cooldown_until": 90
+      }
+    },
+    {
+      "name": "equal_timestamp_higher_consecutive_count",
+      "now": 31,
+      "local": {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "open",
+        "last_failure": 30,
+        "last_success": 5,
+        "last_operation": "general_guide_composition",
+        "failures": 2,
+        "consecutive_failures": 1,
+        "cooldown_until": 90,
+        "quarantine_until": 0
+      },
+      "remote": {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "open",
+        "last_failure": 30,
+        "last_success": 5,
+        "last_operation": "hrn_relational",
+        "failures": 3,
+        "consecutive_failures": 2,
+        "cooldown_until": 100,
+        "quarantine_until": 0,
+        "last_error": "request timed out",
+        "category": "provider_failure"
+      },
+      "expected": {
+        "failures": 3,
+        "consecutive_failures": 2,
+        "last_operation": "hrn_relational",
+        "cooldown_until": 100
+      }
+    },
+    {
+      "name": "stale_remote_failure",
+      "now": 45,
+      "local": {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "open",
+        "last_failure": 40,
+        "last_success": 5,
+        "last_operation": "new_operation",
+        "failures": 4,
+        "consecutive_failures": 3,
+        "cooldown_until": 100,
+        "quarantine_until": 0,
+        "last_error": "newer local error",
+        "category": "rate_limited"
+      },
+      "remote": {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "open",
+        "last_failure": 20,
+        "last_success": 5,
+        "last_operation": "stale_remote_operation",
+        "failures": 1,
+        "consecutive_failures": 1,
+        "cooldown_until": 50,
+        "quarantine_until": 0,
+        "last_error": "stale remote error",
+        "category": "provider_failure"
+      },
+      "expected": {
+        "last_operation": "new_operation",
+        "last_error": "newer local error",
+        "cooldown_until": 100,
+        "category": "rate_limited",
+        "state": "open"
+      }
+    },
+    {
+      "name": "expired_transport_cooldown",
+      "now": 30,
+      "local": {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "open",
+        "last_failure": 20,
+        "last_success": 10,
+        "failures": 1,
+        "consecutive_failures": 1,
+        "cooldown_until": 25,
+        "quarantine_until": 0
+      },
+      "remote": {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "open",
+        "last_failure": 20,
+        "last_success": 10,
+        "failures": 1,
+        "consecutive_failures": 1,
+        "cooldown_until": 25,
+        "quarantine_until": 0
+      },
+      "expected": {
+        "state": "half_open",
+        "probe_in_flight": false
+      }
+    },
+    {
+      "name": "newer_quality_success_clears_cooldown",
+      "now": 41,
+      "local": {
+        "provider": "groq",
+        "model": "model-a",
+        "last_quality_failure": 30,
+        "last_quality_success": 10,
+        "quality_failures": 2,
+        "quality_cooldown_until": 330,
+        "quality_error": "reject"
+      },
+      "remote": {
+        "provider": "groq",
+        "model": "model-a",
+        "last_quality_failure": 30,
+        "last_quality_success": 40,
+        "quality_failures": 0,
+        "quality_cooldown_until": 0,
+        "quality_error": ""
+      },
+      "expected": {
+        "quality_failures": 0,
+        "quality_cooldown_until": 0,
+        "quality_error": ""
+      }
+    }
+  ]
+}
