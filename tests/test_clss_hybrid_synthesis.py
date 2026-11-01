@@ -133,7 +133,12 @@ class CLSSHybridSynthesisTests(unittest.TestCase):
             calls.append(kwargs)
             import json
             request = json.loads(kwargs["messages"][1]["content"])
-            return {"ok": True, "result": valid_candidate(request)}
+            return {
+                "ok": True,
+                "result": valid_candidate(request),
+                "provider": "groq",
+                "model": "openai/gpt-oss-120b",
+            }
 
         builder = UseProviderCandidateBuilder(use_core=object(), gateway_executor=gateway_executor)
         result = resolve_hybrid_candidate(
@@ -142,10 +147,14 @@ class CLSSHybridSynthesisTests(unittest.TestCase):
         self.assertEqual(result["path"], "llm")
         self.assertTrue(result["provider_invoked"])
         self.assertTrue(result["transmission_performed"])
+        self.assertEqual(result["transmission_status"], "confirmed")
         self.assertEqual(len(calls), 1)
         self.assertEqual(calls[0]["operation"], "clss_synthesis")
         self.assertEqual(calls[0]["max_tokens"], 1800)
-        self.assertNotIn("context", calls[0]["messages"][1]["content"])
+        import json
+        serialized = json.loads(calls[0]["messages"][1]["content"])
+        self.assertNotIn("context", serialized["evidence"][0])
+        self.assertNotIn("affected_parties", serialized["evidence"][0])
 
     def test_use_provider_builder_is_not_invoked_without_consent(self):
         calls = []
@@ -159,6 +168,7 @@ class CLSSHybridSynthesisTests(unittest.TestCase):
         self.assertEqual(calls, [])
         self.assertFalse(result["provider_invoked"])
         self.assertFalse(result["transmission_performed"])
+        self.assertEqual(result["transmission_status"], "not_attempted")
 
     def test_provider_failure_uses_deterministic_fallback_and_records_attempt(self):
         builder = UseProviderCandidateBuilder(
@@ -170,7 +180,8 @@ class CLSSHybridSynthesisTests(unittest.TestCase):
         )
         self.assertEqual(result["path"], "deterministic_fallback")
         self.assertTrue(result["provider_invoked"])
-        self.assertTrue(result["transmission_performed"])
+        self.assertFalse(result["transmission_performed"])
+        self.assertEqual(result["transmission_status"], "unknown")
         self.assertFalse(result["human_review_required"])
 
 
