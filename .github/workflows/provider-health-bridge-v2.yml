@@ -1,0 +1,31 @@
+name: Provider Health Bridge v2 Contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "QA/provider_health_bridge_v2_candidate.php"
+      - "QA/test_provider_health_bridge_v2.php"
+      - ".github/workflows/provider-health-bridge-v2.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  php-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          coverage: none
+      - name: PHP syntax checks
+        run: |
+          php -l QA/provider_health_bridge_v2_candidate.php
+          php -l QA/test_provider_health_bridge_v2.php
+      - name: Run WordPress bridge contract harness
+        run: php QA/test_provider_health_bridge_v2.php
