@@ -225,6 +225,13 @@ _STATE = {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}
 # route, collect health events locally and persist one coherent snapshot at the
 # route boundary instead of paying a WordPress round trip for every failed model.
 _PERSIST_CONTEXT = threading.local()
+# Failed route-boundary writes remain pending and are retried at the next
+# eligible persistence boundary. The version prevents an older successful
+# flush from clearing a newer route's dirty marker.
+_PENDING_SHARED_STATE_LOCK = threading.Lock()
+_PENDING_SHARED_STATE_FLUSH_LOCK = threading.Lock()
+_PENDING_SHARED_STATE = False
+_PENDING_SHARED_STATE_VERSION = 0
 _LAST_PROVIDER_INVENTORY_DIAGNOSTIC = None
 _SHARED_STATE_DIAGNOSTICS = {
     "mode": "shared_wordpress_database",
@@ -284,31 +291,54 @@ def _sync_shared_state():
     })
 
 
+def _mark_shared_state_pending():
+    """Record a durable-write obligation without retaining an unbounded queue."""
+    global _PENDING_SHARED_STATE, _PENDING_SHARED_STATE_VERSION
+    with _PENDING_SHARED_STATE_LOCK:
+        _PENDING_SHARED_STATE = True
+        _PENDING_SHARED_STATE_VERSION += 1
+
+
+def _flush_pending_shared_state():
+    """Flush the latest bounded snapshot; preserve newer dirtiness during I/O."""
+    global _PENDING_SHARED_STATE, _LAST_SHARED_STATE_WARNING
+    # Serialize bridge writes so an older snapshot cannot overtake a newer one.
+    with _PENDING_SHARED_STATE_FLUSH_LOCK:
+        with _PENDING_SHARED_STATE_LOCK:
+            if not _PENDING_SHARED_STATE:
+                return True
+            snapshot_version = _PENDING_SHARED_STATE_VERSION
+        combined_state = dict(_STATE["models"])
+        combined_state.update(_STATE.setdefault("quality", {}))
+        ok = save_remote_states(export_health_states(combined_state))
+        if ok:
+            with _PENDING_SHARED_STATE_LOCK:
+                if _PENDING_SHARED_STATE_VERSION == snapshot_version:
+                    _PENDING_SHARED_STATE = False
+            _SHARED_STATE_DIAGNOSTICS.update({
+                "mode": "shared_wordpress_database",
+                "available": True,
+                "last_persist": time.time(),
+                "last_error": "",
+            })
+            return True
+        _SHARED_STATE_DIAGNOSTICS["available"] = False
+        _SHARED_STATE_DIAGNOSTICS["mode"] = "local_fallback"
+        _SHARED_STATE_DIAGNOSTICS["last_error"] = "shared health write failed"
+        now = time.time()
+        if now - _LAST_SHARED_STATE_WARNING >= 60:
+            print("USE provider resilience: shared health persistence unavailable; using bounded process-local fallback")
+            _LAST_SHARED_STATE_WARNING = now
+        return False
+
+
 def _persist_shared_state():
-    """Persist the bounded health snapshot; failure never fabricates a provider answer."""
-    global _LAST_SHARED_STATE_WARNING
+    """Persist health changes, retaining a bounded retry marker after failure."""
     if getattr(_PERSIST_CONTEXT, "defer", False):
         _PERSIST_CONTEXT.dirty = True
         return True
-    combined_state = dict(_STATE["models"])
-    combined_state.update(_STATE.setdefault("quality", {}))
-    ok = save_remote_states(export_health_states(combined_state))
-    if ok:
-        _SHARED_STATE_DIAGNOSTICS.update({
-            "mode": "shared_wordpress_database",
-            "available": True,
-            "last_persist": time.time(),
-            "last_error": "",
-        })
-        return True
-    _SHARED_STATE_DIAGNOSTICS["available"] = False
-    _SHARED_STATE_DIAGNOSTICS["mode"] = "local_fallback"
-    _SHARED_STATE_DIAGNOSTICS["last_error"] = "shared health write failed"
-    now = time.time()
-    if now - _LAST_SHARED_STATE_WARNING >= 60:
-        print("USE provider resilience: shared health persistence unavailable; using bounded process-local fallback")
-        _LAST_SHARED_STATE_WARNING = now
-    return False
+    _mark_shared_state_pending()
+    return _flush_pending_shared_state()
 
 class ProviderCallError(RuntimeError):
     def __init__(self, message, provider, model, status_code=None, retry_after=None, category="provider_failure"):
@@ -2460,13 +2490,14 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
 
 
 def _route_result(result):
-    """Flush accumulated route health changes once before returning to the caller."""
+    """Flush route changes and retry any prior failed bounded snapshot."""
     if getattr(_PERSIST_CONTEXT, "defer", False):
         dirty = bool(getattr(_PERSIST_CONTEXT, "dirty", False))
         _PERSIST_CONTEXT.defer = False
         _PERSIST_CONTEXT.dirty = False
         if dirty:
-            _persist_shared_state()
+            _mark_shared_state_pending()
+    _flush_pending_shared_state()
     return result
 
 
