@@ -271,6 +271,40 @@ class ProviderHealthStoreTests(unittest.TestCase):
             release.set()
             self.assertTrue(finished.wait(0.5))
 
+    def test_response_completed_after_absolute_deadline_is_discarded(self):
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        slot = threading.BoundedSemaphore(1)
+
+        def late_body(*args, **kwargs):
+            time.sleep(0.04)
+            return b'{"contract_version":"v2","states":{}}'
+
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \
+             patch.object(provider_health_store, "_REQUEST_SLOT", slot), \
+             patch.object(provider_health_store, "TIMEOUT_SECONDS", 0.01), \
+             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False), \
+             patch.object(provider_health_store, "urlopen", return_value=FakeResponse()), \
+             patch.object(provider_health_store, "_read_response_body", side_effect=late_body):
+            result = provider_health_store._request("GET")
+            self.assertIsNone(result)
+            # Wait for the intentionally late daemon worker to release its slot.
+            deadline = time.monotonic() + 0.5
+            while slot.acquire(blocking=False):
+                slot.release()
+                if time.monotonic() >= deadline:
+                    self.fail("transport worker did not release its bounded slot")
+                time.sleep(0.005)
+            self.assertFalse(slot.acquire(blocking=False))
+        # The response became available after the caller's absolute deadline;
+        # it must not be accepted on a scheduling race.
+
     def test_stalled_transport_slot_prevents_worker_backlog(self):
         slot = threading.BoundedSemaphore(1)
         self.assertTrue(slot.acquire(blocking=False))
