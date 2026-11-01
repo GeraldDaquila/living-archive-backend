@@ -1,0 +1,420 @@
+<?php
+/**
+ * TEST candidate for the Living Archive Provider Health v2 WordPress bridge.
+ *
+ * This file is intentionally not loaded by WordPress and contains no secret.
+ * Integrate only by replacing the active v1 endpoint callbacks after TEST
+ * transaction and cross-language acceptance. The existing table is unchanged.
+ */
+
+if (!defined('LA_PROVIDER_HEALTH_V2_CONTRACT')) {
+    define('LA_PROVIDER_HEALTH_V2_CONTRACT', 'v2');
+}
+if (!defined('LA_PROVIDER_HEALTH_V2_MAX_STATES')) {
+    define('LA_PROVIDER_HEALTH_V2_MAX_STATES', 100);
+}
+
+function la_provider_health_v2_table_name() {
+    global $wpdb;
+    return $wpdb->prefix . 'la_provider_health';
+}
+
+/**
+ * Controlled install/activation hook only. Never call from ordinary GET/POST.
+ * The existing production table already uses this schema and InnoDB.
+ */
+function la_provider_health_v2_install_schema() {
+    global $wpdb;
+    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+    $table = la_provider_health_v2_table_name();
+    $charset = $wpdb->get_charset_collate();
+    $sql = "CREATE TABLE {$table} (
+        state_key varchar(191) NOT NULL,
+        payload longtext NOT NULL,
+        updated_at datetime NOT NULL,
+        PRIMARY KEY  (state_key)
+    ) ENGINE=InnoDB {$charset};";
+    dbDelta($sql);
+}
+
+function la_provider_health_v2_error($code, $message, $status) {
+    return new WP_Error($code, $message, array('status' => (int)$status));
+}
+
+function la_provider_health_v2_validate_batch($body) {
+    if (!is_array($body) || ($body['contract_version'] ?? null) !== LA_PROVIDER_HEALTH_V2_CONTRACT) {
+        return la_provider_health_v2_error(
+            'la_provider_health_contract_mismatch',
+            'A supported provider-health contract version is required.',
+            400
+        );
+    }
+
+    $states = $body['states'] ?? null;
+    if (!is_array($states) || count($states) > LA_PROVIDER_HEALTH_V2_MAX_STATES) {
+        return la_provider_health_v2_error(
+            'la_provider_health_invalid_batch',
+            'A bounded provider-health states object is required.',
+            400
+        );
+    }
+
+    $string_fields = array(
+        'provider', 'operation', 'state', 'category', 'last_operation',
+        'model', 'last_error', 'quality_error',
+    );
+    $key_fields = array('provider', 'operation', 'state', 'category', 'last_operation');
+    $integer_fields = array('failures', 'consecutive_failures', 'quality_failures');
+    $number_fields = array(
+        'cooldown_until', 'quarantine_until', 'last_success', 'last_failure',
+        'last_quality_failure', 'last_quality_success', 'quality_cooldown_until',
+    );
+    $allowed_fields = array_merge(
+        $string_fields,
+        $integer_fields,
+        $number_fields,
+        array('probe_in_flight')
+    );
+
+    $normalized_batch = array();
+    foreach ($states as $key => $record) {
+        if (!is_string($key) || strlen($key) < 1 || strlen($key) > 191
+            || !preg_match('/^[a-z0-9_:@.\/-]{1,191}$/i', $key)) {
+            return la_provider_health_v2_error(
+                'la_provider_health_invalid_key',
+                'A provider-health state key is invalid.',
+                400
+            );
+        }
+        if (!is_array($record)) {
+            return la_provider_health_v2_error(
+                'la_provider_health_invalid_record',
+                'Every provider-health record must be an object.',
+                400
+            );
+        }
+        foreach (array_keys($record) as $field) {
+            if (!is_string($field) || !in_array($field, $allowed_fields, true)) {
+                return la_provider_health_v2_error(
+                    'la_provider_health_unknown_field',
+                    'A provider-health record contains an unsupported field.',
+                    400
+                );
+            }
+        }
+
+        $normalized = array();
+        foreach ($string_fields as $field) {
+            if (!array_key_exists($field, $record)) {
+                continue;
+            }
+            if (!is_string($record[$field])) {
+                return la_provider_health_v2_error(
+                    'la_provider_health_invalid_field_type',
+                    'A provider-health text field has an invalid type.',
+                    400
+                );
+            }
+            if (in_array($field, $key_fields, true)) {
+                $normalized[$field] = sanitize_key($record[$field]);
+            } else {
+                $limit = $field === 'last_error' ? 500 : ($field === 'quality_error' ? 300 : 191);
+                $normalized[$field] = mb_substr(sanitize_text_field($record[$field]), 0, $limit);
+            }
+        }
+
+        if (isset($normalized['state']) && !in_array(
+            $normalized['state'],
+            array('healthy', 'degraded', 'open', 'half_open'),
+            true
+        )) {
+            return la_provider_health_v2_error(
+                'la_provider_health_invalid_state',
+                'A provider-health state value is unsupported.',
+                400
+            );
+        }
+
+        foreach ($integer_fields as $field) {
+            if (!array_key_exists($field, $record)) {
+                continue;
+            }
+            if (!is_int($record[$field]) || $record[$field] < 0) {
+                return la_provider_health_v2_error(
+                    'la_provider_health_invalid_counter',
+                    'Provider-health counters must be non-negative integers.',
+                    400
+                );
+            }
+            $normalized[$field] = $record[$field];
+        }
+
+        foreach ($number_fields as $field) {
+            if (!array_key_exists($field, $record)) {
+                continue;
+            }
+            $value = $record[$field];
+            if ((!is_int($value) && !is_float($value))
+                || !is_finite((float)$value)
+                || (float)$value < 0) {
+                return la_provider_health_v2_error(
+                    'la_provider_health_invalid_timestamp',
+                    'Provider-health timestamps and cooldowns must be finite non-negative numbers.',
+                    400
+                );
+            }
+            $normalized[$field] = (float)$value;
+        }
+
+        if (array_key_exists('probe_in_flight', $record) && !is_bool($record['probe_in_flight'])) {
+            return la_provider_health_v2_error(
+                'la_provider_health_invalid_probe_flag',
+                'The probe ownership flag must be boolean.',
+                400
+            );
+        }
+        // Probe ownership is process-local and is never accepted as durable state.
+        $normalized['probe_in_flight'] = false;
+
+        $encoded = wp_json_encode($normalized);
+        if (!is_string($encoded) || $encoded === '') {
+            return la_provider_health_v2_error(
+                'la_provider_health_serialization_failed',
+                'A provider-health record could not be serialized.',
+                400
+            );
+        }
+        $normalized_batch[] = array(
+            'key' => $key,
+            'record' => $normalized,
+        );
+    }
+
+    return $normalized_batch;
+}
+
+function la_provider_health_v2_merge($old, $incoming, $now = null) {
+    if (!is_array($old) || !$old) {
+        $merged = is_array($incoming) ? $incoming : array();
+        $merged['probe_in_flight'] = false;
+        return $merged;
+    }
+
+    $now = $now === null ? time() : (float)$now;
+    $old_failure = (float)($old['last_failure'] ?? 0);
+    $new_failure = (float)($incoming['last_failure'] ?? 0);
+    $old_success = (float)($old['last_success'] ?? 0);
+    $new_success = (float)($incoming['last_success'] ?? 0);
+    $latest_failure = max($old_failure, $new_failure);
+    $latest_success = max($old_success, $new_success);
+    $merged = array_merge($old, $incoming);
+
+    if ($new_failure > $old_failure) {
+        foreach (array(
+            'failures', 'consecutive_failures', 'last_error', 'category',
+            'cooldown_until', 'quarantine_until', 'last_operation',
+        ) as $field) {
+            if (array_key_exists($field, $incoming)) {
+                $merged[$field] = $incoming[$field];
+            }
+        }
+    } elseif ($new_failure === $old_failure && $new_failure > 0) {
+        $old_consecutive = (int)($old['consecutive_failures'] ?? 0);
+        $new_consecutive = (int)($incoming['consecutive_failures'] ?? 0);
+        $merged['failures'] = max((int)($old['failures'] ?? 0), (int)($incoming['failures'] ?? 0));
+        $merged['consecutive_failures'] = max($old_consecutive, $new_consecutive);
+        $merged['cooldown_until'] = max((float)($old['cooldown_until'] ?? 0), (float)($incoming['cooldown_until'] ?? 0));
+        $merged['quarantine_until'] = max((float)($old['quarantine_until'] ?? 0), (float)($incoming['quarantine_until'] ?? 0));
+        if (!empty($incoming['last_error'])) {
+            $merged['last_error'] = $incoming['last_error'];
+            $merged['category'] = $incoming['category'] ?? ($old['category'] ?? '');
+        }
+        if ($new_consecutive > $old_consecutive && !empty($incoming['last_operation'])) {
+            $merged['last_operation'] = $incoming['last_operation'];
+        } elseif (empty($old['last_operation']) && !empty($incoming['last_operation'])) {
+            $merged['last_operation'] = $incoming['last_operation'];
+        }
+    }
+
+    $merged['last_failure'] = $latest_failure;
+    $merged['last_success'] = $latest_success;
+    $merged['probe_in_flight'] = false;
+
+    $old_quality_failure = (float)($old['last_quality_failure'] ?? 0);
+    $new_quality_failure = (float)($incoming['last_quality_failure'] ?? 0);
+    $old_quality_success = (float)($old['last_quality_success'] ?? 0);
+    $new_quality_success = (float)($incoming['last_quality_success'] ?? 0);
+    $latest_quality_failure = max($old_quality_failure, $new_quality_failure);
+    $latest_quality_success = max($old_quality_success, $new_quality_success);
+    $merged['last_quality_failure'] = $latest_quality_failure;
+    $merged['last_quality_success'] = $latest_quality_success;
+
+    if ($new_quality_failure > $old_quality_failure) {
+        foreach (array('quality_failures', 'quality_cooldown_until', 'quality_error') as $field) {
+            if (array_key_exists($field, $incoming)) {
+                $merged[$field] = $incoming[$field];
+            }
+        }
+    } elseif ($new_quality_failure === $old_quality_failure && $new_quality_failure > 0) {
+        $merged['quality_failures'] = max((int)($old['quality_failures'] ?? 0), (int)($incoming['quality_failures'] ?? 0));
+        $merged['quality_cooldown_until'] = max((float)($old['quality_cooldown_until'] ?? 0), (float)($incoming['quality_cooldown_until'] ?? 0));
+        if (!empty($incoming['quality_error'])) {
+            $merged['quality_error'] = $incoming['quality_error'];
+        }
+    }
+
+    if ($latest_quality_success >= $latest_quality_failure) {
+        $merged['quality_failures'] = 0;
+        $merged['quality_cooldown_until'] = 0.0;
+        $merged['quality_error'] = '';
+    }
+
+    if ($latest_success >= $latest_failure) {
+        $merged['state'] = 'healthy';
+        $merged['consecutive_failures'] = 0;
+        $merged['cooldown_until'] = 0.0;
+        $merged['quarantine_until'] = 0.0;
+        $merged['last_error'] = '';
+        $merged['category'] = '';
+    } else {
+        $merged['state'] = max(
+            (float)($merged['cooldown_until'] ?? 0),
+            (float)($merged['quarantine_until'] ?? 0)
+        ) > $now ? 'open' : 'half_open';
+    }
+
+    return $merged;
+}
+
+function la_provider_health_v2_read() {
+    global $wpdb;
+    $table = la_provider_health_v2_table_name();
+    // Stable capacity policy: lexicographically first 100 keys, always in the
+    // same order. Capacity is explicit and does not depend on query-plan order.
+    $rows = $wpdb->get_results(
+        "SELECT state_key, payload FROM {$table} ORDER BY state_key ASC LIMIT 100",
+        ARRAY_A
+    );
+    if ($rows === false || !empty($wpdb->last_error)) {
+        return la_provider_health_v2_error(
+            'la_provider_health_read_failed',
+            'Shared provider-health state could not be read.',
+            500
+        );
+    }
+
+    $states = array();
+    foreach ((array)$rows as $row) {
+        $key = (string)($row['state_key'] ?? '');
+        $payload = (string)($row['payload'] ?? '');
+        $value = json_decode($payload, true);
+        if ($key === '' || !is_array($value)) {
+            return la_provider_health_v2_error(
+                'la_provider_health_corrupt_row',
+                'A stored provider-health record is invalid.',
+                500
+            );
+        }
+        $value['probe_in_flight'] = false;
+        $states[$key] = $value;
+    }
+
+    $response = rest_ensure_response(array(
+        'contract_version' => LA_PROVIDER_HEALTH_V2_CONTRACT,
+        'states' => (object)$states,
+    ));
+    $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    $response->header('Pragma', 'no-cache');
+    return $response;
+}
+
+function la_provider_health_v2_write($request) {
+    global $wpdb;
+    $body = is_object($request) && method_exists($request, 'get_json_params')
+        ? $request->get_json_params()
+        : null;
+    $batch = la_provider_health_v2_validate_batch($body);
+    if (is_wp_error($batch)) {
+        return $batch;
+    }
+
+    $table = la_provider_health_v2_table_name();
+    if ($wpdb->query('START TRANSACTION') === false) {
+        return la_provider_health_v2_error(
+            'la_provider_health_transaction_start_failed',
+            'Shared provider-health transaction could not be started.',
+            500
+        );
+    }
+
+    try {
+        // Read, merge, and serialize the entire batch before the first write.
+        $prepared = array();
+        foreach ($batch as $entry) {
+            $key = $entry['key'];
+            $existing_raw = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT payload FROM {$table} WHERE state_key = %s FOR UPDATE",
+                    $key
+                )
+            );
+            if (!empty($wpdb->last_error)) {
+                throw new RuntimeException('Provider-health row read failed.');
+            }
+
+            if ($existing_raw === null) {
+                $existing = array();
+            } else {
+                $existing = json_decode((string)$existing_raw, true);
+                if (!is_array($existing)) {
+                    throw new RuntimeException('Stored provider-health row is corrupt.');
+                }
+            }
+
+            $merged = la_provider_health_v2_merge($existing, $entry['record']);
+            $encoded = wp_json_encode($merged);
+            if (!is_string($encoded) || $encoded === '') {
+                throw new RuntimeException('Merged provider-health row could not be serialized.');
+            }
+            $prepared[] = array('key' => $key, 'payload' => $encoded);
+        }
+
+        $written = 0;
+        foreach ($prepared as $entry) {
+            $result = $wpdb->replace(
+                $table,
+                array(
+                    'state_key' => $entry['key'],
+                    'payload' => $entry['payload'],
+                    'updated_at' => current_time('mysql', true),
+                ),
+                array('%s', '%s', '%s')
+            );
+            if ($result === false || !empty($wpdb->last_error)) {
+                throw new RuntimeException('Provider-health row write failed.');
+            }
+            $written++;
+        }
+
+        if ($wpdb->query('COMMIT') === false) {
+            throw new RuntimeException('Provider-health transaction commit failed.');
+        }
+    } catch (Throwable $error) {
+        $wpdb->query('ROLLBACK');
+        return la_provider_health_v2_error(
+            'la_provider_health_batch_rolled_back',
+            'The provider-health batch was not committed.',
+            500
+        );
+    }
+
+    $response = rest_ensure_response(array(
+        'contract_version' => LA_PROVIDER_HEALTH_V2_CONTRACT,
+        'success' => true,
+        'submitted' => count($batch),
+        'written' => $written,
+    ));
+    $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    $response->header('Pragma', 'no-cache');
+    return $response;
+}
