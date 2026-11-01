@@ -125,6 +125,8 @@ A green CI run alone is not production acceptance.
 ### WordPress bridge candidate
 - QA/provider_health_bridge_v2_candidate.php is an isolated, non-loaded candidate; it is not installed on the active WordPress site.
 - POST requires v2, validates the entire bounded batch, pre-serializes records, reads/merges/serializes all rows before the first write, then commits the full write set in one InnoDB transaction.
+- The write path is set-based: one indexed `SELECT ... WHERE state_key IN (...) FOR UPDATE` and one multi-row `INSERT ... ON DUPLICATE KEY UPDATE`, regardless of batch size. Including transaction boundaries, the database statement count is constant (START, SELECT, UPSERT, COMMIT), not O(N) per-record reads and writes.
+- The PHP harness asserts the same one-read/one-upsert query count for both 2-record and maximum 100-record batches. This guards query complexity but does not substitute for measured latency on the actual WordPress database.
 - Any read, serialization, write, or commit failure rolls back and returns no success acknowledgement.
 - GET returns v2, retains the 100 most recently updated records with a deterministic key tie-breaker, and does not create or alter schema.
 - The existing authenticated permission callback is preserved by the route-registration candidate.
