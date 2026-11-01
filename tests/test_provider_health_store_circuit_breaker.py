@@ -1,5 +1,6 @@
 """Regression tests for the advisory provider-health bridge circuit breaker."""
 import json
+from types import SimpleNamespace
 from urllib.error import URLError
 
 import provider_health_store as store
@@ -32,14 +33,19 @@ def test_successful_probe_closes_circuit(monkeypatch):
     calls = []
 
     class Response:
+        def __init__(self):
+            self.body = json.dumps({"contract_version": store.CONTRACT_VERSION, "states": {}}).encode()
+            self.fp = SimpleNamespace(raw=SimpleNamespace(_sock=SimpleNamespace(settimeout=lambda value: None)))
+
         def __enter__(self):
             return self
 
         def __exit__(self, *args):
             return False
 
-        def read(self, _limit):
-            return json.dumps({"contract_version": store.CONTRACT_VERSION, "states": {}}).encode()
+        def read1(self, _limit):
+            body, self.body = self.body, b""
+            return body
 
     def succeed(*args, **kwargs):
         calls.append((args, kwargs))
@@ -65,14 +71,19 @@ def test_normal_requests_are_not_marked_as_half_open_probes(monkeypatch):
     _reset_circuit()
 
     class Response:
+        def __init__(self):
+            self.body = json.dumps({"contract_version": store.CONTRACT_VERSION, "states": {}}).encode()
+            self.fp = SimpleNamespace(raw=SimpleNamespace(_sock=SimpleNamespace(settimeout=lambda value: None)))
+
         def __enter__(self):
             return self
 
         def __exit__(self, *args):
             return False
 
-        def read(self, _limit):
-            return json.dumps({"contract_version": store.CONTRACT_VERSION, "states": {}}).encode()
+        def read1(self, _limit):
+            body, self.body = self.body, b""
+            return body
 
     monkeypatch.setenv("USE_PROVIDER_BANK_SHARED_SECRET", "test-secret")
     monkeypatch.setattr(store, "urlopen", lambda *args, **kwargs: Response())
