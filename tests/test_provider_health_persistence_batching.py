@@ -249,3 +249,118 @@ def test_provider_state_lock_is_released_before_bridge_network_write(monkeypatch
 
     assert acquired.is_set()
     assert provider_bank._PENDING_SHARED_STATE is False
+
+
+def _run_two_state_transitions(first, second):
+    barrier = threading.Barrier(2)
+
+    def run(callback):
+        barrier.wait(timeout=2)
+        callback()
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [pool.submit(run, callback) for callback in (first, second)]
+        for future in futures:
+            future.result(timeout=3)
+
+
+def test_same_model_success_and_failure_transitions_remain_coherent(monkeypatch):
+    _reset_pending_persistence()
+    state = provider_bank.new_state("groq", "model-a")
+    monkeypatch.setattr(provider_bank, "_STATE", {
+        "models": {"groq:model-a": state},
+        "quality": {},
+        "provider_cursor": 0,
+        "model_cursors": {},
+    })
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: None)
+    failure = provider_bank.ProviderCallError(
+        "synthetic concurrent failure", "groq", "model-a", 429, category="rate_limited"
+    )
+
+    _run_two_state_transitions(
+        lambda: provider_bank._failure(failure, "groq", "model-a", operation="generic"),
+        lambda: provider_bank._success("groq", "model-a", "generic"),
+    )
+
+    assert state["state"] in {"healthy", "open"}
+    if state["state"] == "healthy":
+        assert state["failures"] == 0
+        assert state["consecutive_failures"] == 0
+        assert state["last_error"] == ""
+    else:
+        assert state["failures"] == 1
+        assert state["consecutive_failures"] == 1
+        assert state["last_error"] == "synthetic concurrent failure"
+
+
+def test_provider_quarantine_and_sibling_success_are_atomic(monkeypatch):
+    _reset_pending_persistence()
+    primary = provider_bank.new_state("groq", "model-a")
+    sibling = provider_bank.new_state("groq", "model-b")
+    monkeypatch.setattr(provider_bank, "_STATE", {
+        "models": {"groq:model-a": primary, "groq:model-b": sibling},
+        "quality": {},
+        "provider_cursor": 0,
+        "model_cursors": {},
+    })
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: None)
+    failure = provider_bank.ProviderCallError(
+        "synthetic account authentication failure",
+        "groq",
+        "model-a",
+        401,
+        category="authentication",
+    )
+
+    _run_two_state_transitions(
+        lambda: provider_bank._failure(failure, "groq", "model-a", operation="generic"),
+        lambda: provider_bank._success("groq", "model-b", "generic"),
+    )
+
+    if sibling["state"] == "healthy":
+        assert sibling["category"] == ""
+        assert sibling["quarantine_until"] == 0.0
+    else:
+        assert sibling["state"] == "open"
+        assert sibling["category"] == "authentication"
+        assert sibling["quarantine_until"] > 0.0
+
+
+def test_quality_rejection_and_validated_success_are_atomic(monkeypatch):
+    _reset_pending_persistence()
+    model = provider_bank.new_state("groq", "model-a")
+    quality_key = provider_bank._quality_key("hrn_relational", "groq", "model-a")
+    quality = {
+        "provider": "groq",
+        "model": "model-a",
+        "operation": "hrn_relational",
+        "quality_failures": 0,
+        "last_quality_failure": 0.0,
+        "last_quality_success": 0.0,
+        "quality_cooldown_until": 0.0,
+        "quality_error": "",
+    }
+    monkeypatch.setattr(provider_bank, "_STATE", {
+        "models": {"groq:model-a": model},
+        "quality": {quality_key: quality},
+        "provider_cursor": 0,
+        "model_cursors": {},
+    })
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: None)
+
+    _run_two_state_transitions(
+        lambda: provider_bank._record_quality_rejection(
+            "groq", "model-a", "hrn_relational", "prescriptive-language"
+        ),
+        lambda: provider_bank._success("groq", "model-a", "hrn_relational"),
+    )
+
+    assert quality["quality_failures"] in {0, 1}
+    if quality["quality_failures"] == 0:
+        assert quality["quality_cooldown_until"] == 0.0
+        assert quality["quality_error"] == ""
+        assert quality["last_quality_success"] > 0.0
+    else:
+        assert quality["quality_cooldown_until"] > 0.0
+        assert quality["quality_error"] == "prescriptive-language"
