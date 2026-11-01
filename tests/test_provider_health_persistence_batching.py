@@ -480,3 +480,44 @@ def test_quality_rejection_releases_half_open_transport_probe(monkeypatch):
 
     assert state["probe_in_flight"] is False
     assert state["state"] == "half_open"
+
+
+def test_remote_health_merge_cannot_overwrite_newer_local_failure(monkeypatch):
+    _reset_pending_persistence()
+    local = provider_bank.new_state("groq", "model-a")
+    remote = {
+        "groq:model-a": {
+            "provider": "groq",
+            "model": "model-a",
+            "state": "open",
+            "last_failure": 10.0,
+            "last_success": 0.0,
+            "failures": 1,
+            "consecutive_failures": 1,
+            "cooldown_until": 70.0,
+            "quarantine_until": 0.0,
+            "last_error": "stale remote failure",
+            "category": "rate_limited",
+            "last_operation": "old_operation",
+        }
+    }
+    monkeypatch.setattr(provider_bank, "_STATE", {
+        "models": {"groq:model-a": local},
+        "quality": {},
+        "provider_cursor": 0,
+        "model_cursors": {},
+    })
+    monkeypatch.setattr(provider_bank, "load_remote_states", lambda: remote)
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: None)
+    failure = provider_bank.ProviderCallError(
+        "newer local failure", "groq", "model-a", 429, category="rate_limited"
+    )
+
+    _run_two_state_transitions(
+        provider_bank._sync_shared_state,
+        lambda: provider_bank._failure(failure, "groq", "model-a", operation="new_operation"),
+    )
+
+    assert local["last_error"] == "newer local failure"
+    assert local["last_operation"] == "new_operation"
+    assert local["last_failure"] > 10.0
