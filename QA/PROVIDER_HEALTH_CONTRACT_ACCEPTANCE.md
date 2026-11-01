@@ -133,7 +133,7 @@ A green CI run alone is not production acceptance.
 - QA/test_provider_health_bridge_v2.php exercises validation, exact acknowledgement, transaction rollback, serialization failures, deterministic GET capacity, and shared merge fixtures.
 - The dedicated PHP workflow passed PHP 8.3 syntax checks and the WordPress bridge contract harness.
 - The provider-health/pathway Python regression workflow passed (27 tests).
-- The expanded provider-health batching suite passed in the broader v487 validation run. The full v487 workflow was still running at the latest checkpoint.
+- The expanded provider-health batching suite passed: 24 passed in 0.09s. The complete v487 ecosystem validation workflow subsequently completed successfully.
 
 ### Remaining release gates
 - Complete the full v487 ecosystem regression workflow.
