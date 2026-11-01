@@ -1,6 +1,8 @@
 """Provider-bank route batches shared health writes into one route-boundary snapshot."""
+import json
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 import provider_bank
 import provider_health_store as health_store
@@ -557,3 +559,15 @@ def test_concurrent_route_does_not_wait_for_another_health_flush(monkeypatch):
     assert provider_bank._flush_pending_shared_state() is True
     assert provider_bank._PENDING_SHARED_STATE is False
     assert len(writes) == 2
+
+
+def test_shared_python_php_provider_health_merge_fixtures():
+    fixture_path = Path(__file__).resolve().parents[1] / "QA" / "provider_health_merge_fixtures_v2.json"
+    fixtures = json.loads(fixture_path.read_text(encoding="utf-8"))
+    assert fixtures["contract_version"] == "v2"
+
+    for case in fixtures["cases"]:
+        local = dict(case["local"])
+        health_store.merge_health_state(local, case["remote"], now=case["now"])
+        for field, expected in case["expected"].items():
+            assert local.get(field) == expected, case["name"] + ":" + field
