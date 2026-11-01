@@ -123,7 +123,8 @@ class FakeWpdb {
         }
         $rows = array_values($this->rows);
         usort($rows, function($a, $b) {
-            return strcmp($a['state_key'], $b['state_key']);
+            $updated = strcmp($b['updated_at'], $a['updated_at']);
+            return $updated !== 0 ? $updated : strcmp($a['state_key'], $b['state_key']);
         });
         return array_slice($rows, 0, 100);
     }
@@ -289,15 +290,16 @@ for ($i = 100; $i >= 0; $i--) {
     $GLOBALS['wpdb']->rows[$key] = array(
         'state_key' => $key,
         'payload' => json_encode(array('provider' => 'test', 'probe_in_flight' => true)),
-        'updated_at' => '2026-11-01 00:00:00',
+        'updated_at' => gmdate('Y-m-d H:i:s', 1793491200 + $i),
     );
 }
 $response = la_provider_health_v2_read();
 check(!is_wp_error($response), 'GET returns a valid response');
 $read_states = get_object_vars($response->data['states']);
 check(count($read_states) === 100, 'GET respects the explicit 100-row capacity');
-check(array_key_first($read_states) === 'key:000', 'GET uses deterministic ascending key order');
-check($read_states['key:000']['probe_in_flight'] === false, 'GET suppresses process-local probe ownership');
+check(array_key_first($read_states) === 'key:100', 'GET prioritizes most recently updated state');
+check(!isset($read_states['key:000']), 'GET capacity excludes the oldest state, not newer keys');
+check($read_states['key:100']['probe_in_flight'] === false, 'GET suppresses process-local probe ownership');
 
 $fixtures = json_decode(file_get_contents(__DIR__ . '/provider_health_merge_fixtures_v2.json'), true);
 check(is_array($fixtures) && ($fixtures['contract_version'] ?? '') === 'v2', 'shared Python/PHP merge fixtures load');
