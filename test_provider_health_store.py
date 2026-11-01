@@ -361,5 +361,17 @@ class ProviderHealthStoreTests(unittest.TestCase):
         self.assertEqual(result, {"contract_version": "v2", "states": {}})
 
 
+    def test_incomplete_http_response_fails_closed_without_escaping(self):
+        from http.client import IncompleteRead
+
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \
+             patch.object(provider_health_store, "urlopen", side_effect=IncompleteRead(b'{"contract', 20)), \
+             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False):
+            result = provider_health_store._request("GET")
+
+        self.assertIsNone(result)
+
+
 if __name__ == "__main__":
     unittest.main()
