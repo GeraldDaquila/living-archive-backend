@@ -145,7 +145,7 @@ def test_full_exact_acknowledgement_is_accepted(monkeypatch):
 
 
 def test_zero_write_acknowledgement_is_rejected(monkeypatch):
-    monkeypatch.setattr(health_store, "_request", lambda *args, **kwargs: _ack(written=0))
+    monkeypatch.setattr(health_store, "_request", lambda *args, **kwargs: _ack(submitted=1, written=0))
     assert health_store.save_remote_states({"groq:model-a": {}}) is False
 
 
