@@ -15,7 +15,7 @@ from time import monotonic as _monotonic
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-CONTRACT_VERSION = "v1"
+CONTRACT_VERSION = "v2"
 DEFAULT_URL = "https://geralddaquila.com/wp-json/living-archive/v1/provider-health"
 # Shared WordPress health state is advisory. Keep network stalls from consuming an inference attempt.
 # Local circuit state remains authoritative when the shared bridge is slow or unavailable.
@@ -39,7 +39,7 @@ _READ_IN_FLIGHT_RESULT = None
 STATE_FIELDS = (
     "provider", "model", "operation", "state", "failures", "consecutive_failures",
     "cooldown_until", "quarantine_until", "last_error", "last_success",
-    "last_failure", "category", "quality_failures", "last_quality_failure",
+    "last_failure", "category", "last_operation", "quality_failures", "last_quality_failure",
     "last_quality_success", "quality_cooldown_until", "quality_error",
 )
 
@@ -203,10 +203,23 @@ def export_health_states(states):
 
 
 def save_remote_states(states):
+    """Accept only an exact all-or-nothing v2 acknowledgement."""
     if not isinstance(states, dict) or len(states) > 100:
         return False
+    submitted = len(states)
     result = _request("POST", {"contract_version": CONTRACT_VERSION, "states": states})
-    return isinstance(result, dict) and isinstance(result.get("written"), int) and result["written"] >= 0
+    if not isinstance(result, dict):
+        return False
+    if result.get("contract_version") != CONTRACT_VERSION or result.get("success") is not True:
+        return False
+    acknowledged_submitted = result.get("submitted")
+    written = result.get("written")
+    # bool is a subclass of int in Python; reject it explicitly.
+    if isinstance(acknowledged_submitted, bool) or not isinstance(acknowledged_submitted, int):
+        return False
+    if isinstance(written, bool) or not isinstance(written, int):
+        return False
+    return acknowledged_submitted == submitted and written == submitted
 
 
 def merge_health_state(local, remote, now=None):
