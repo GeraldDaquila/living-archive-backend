@@ -362,9 +362,20 @@ def _flush_pending_shared_state():
                 return True
             snapshot_version = _PENDING_SHARED_STATE_VERSION
         with _STATE_LOCK:
-            combined_state = dict(_STATE["models"])
-            combined_state.update(_STATE.setdefault("quality", {}))
-            snapshot = export_health_states(combined_state)
+            # Copy each mutable record while holding the state lock. A shallow
+            # outer-dict copy would leave the snapshot serializer reading live
+            # dictionaries after the lock is released.
+            combined_state = {
+                key: dict(value)
+                for key, value in _STATE["models"].items()
+                if isinstance(value, dict)
+            }
+            combined_state.update({
+                key: dict(value)
+                for key, value in _STATE.setdefault("quality", {}).items()
+                if isinstance(value, dict)
+            })
+        snapshot = export_health_states(combined_state)
         # Network I/O is deliberately outside the provider-state lock.
         ok = save_remote_states(snapshot)
         if ok:
