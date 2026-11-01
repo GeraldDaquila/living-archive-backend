@@ -15,6 +15,7 @@ from tests.clss_response_validator import ResponseValidationError, validate_cand
 ROOT = Path(__file__).parent
 FIXTURE_FILE = ROOT / "fixtures" / "clss" / "stewardship-coherence-cases.json"
 CANDIDATE_FILE = ROOT / "fixtures" / "clss" / "semantic-response-candidates.json"
+REVIEW_TEMPLATE_FILE = ROOT / "fixtures" / "clss" / "semantic-review-records-template.json"
 
 RELEASE_MATRIX = {
     "strengths_only": "no-defensible-tension",
@@ -160,8 +161,10 @@ class CLSSHybridSemanticGateTests(unittest.TestCase):
             mode=fixture["mode"],
             path="llm",
         )
-        self.assertIn("not_reviewed", "not_reviewed")
-        self.assertIn("second-hand report", fixture["must_preserve"][0])
+        self.assertEqual(self.review_template["status"], "not_evaluated")
+        record = next(item for item in self.review_template["records"] if item["case_id"] == case_id)
+        self.assertEqual(record["provenance_preserved"], "not_reviewed")
+        self.assertIn("source distinction", fixture["must_preserve"])
 
     def test_unsupported_causal_claims_are_not_automatically_semantically_accepted(self):
         case_id = "strong-supported-tension"
