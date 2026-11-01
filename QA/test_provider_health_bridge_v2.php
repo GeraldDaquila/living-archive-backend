@@ -285,3 +285,31 @@ check(array_key_first($read_states) === 'key:000', 'GET uses deterministic ascen
 check($read_states['key:000']['probe_in_flight'] === false, 'GET suppresses process-local probe ownership');
 
 echo "PASS: WordPress provider-health v2 contract harness\n";
+
+
+$merged = la_provider_health_v2_merge(
+    array(
+        'last_failure' => 40.0,
+        'last_success' => 5.0,
+        'last_operation' => 'new_operation',
+        'failures' => 4,
+        'consecutive_failures' => 3,
+        'cooldown_until' => 100.0,
+        'last_error' => 'newer local error',
+        'category' => 'rate_limited',
+    ),
+    array(
+        'last_failure' => 20.0,
+        'last_success' => 5.0,
+        'last_operation' => 'stale_remote_operation',
+        'failures' => 1,
+        'consecutive_failures' => 1,
+        'cooldown_until' => 50.0,
+        'last_error' => 'stale remote error',
+        'category' => 'provider_failure',
+    ),
+    45.0
+);
+check($merged['last_operation'] === 'new_operation', 'stale remote failure cannot overwrite operation context');
+check($merged['last_error'] === 'newer local error', 'stale remote failure cannot overwrite error');
+check($merged['cooldown_until'] === 100.0, 'stale remote failure cannot reduce or replace local cooldown');
