@@ -296,9 +296,10 @@ def _sync_shared_state():
     global _LAST_SHARED_STATE_WARNING
     remote = load_remote_states()
     if remote is None:
-        _SHARED_STATE_DIAGNOSTICS["available"] = False
-        _SHARED_STATE_DIAGNOSTICS["mode"] = "local_fallback"
-        _SHARED_STATE_DIAGNOSTICS["last_error"] = "shared health store unavailable or not configured"
+        with _STATE_LOCK:
+            _SHARED_STATE_DIAGNOSTICS["available"] = False
+            _SHARED_STATE_DIAGNOSTICS["mode"] = "local_fallback"
+            _SHARED_STATE_DIAGNOSTICS["last_error"] = "shared health store unavailable or not configured"
         return
     now = time.time()
     with _STATE_LOCK:
@@ -367,16 +368,18 @@ def _flush_pending_shared_state():
             with _PENDING_SHARED_STATE_LOCK:
                 if _PENDING_SHARED_STATE_VERSION == snapshot_version:
                     _PENDING_SHARED_STATE = False
-            _SHARED_STATE_DIAGNOSTICS.update({
-                "mode": "shared_wordpress_database",
-                "available": True,
-                "last_persist": time.time(),
-                "last_error": "",
-            })
+            with _STATE_LOCK:
+                _SHARED_STATE_DIAGNOSTICS.update({
+                    "mode": "shared_wordpress_database",
+                    "available": True,
+                    "last_persist": time.time(),
+                    "last_error": "",
+                })
             return True
-        _SHARED_STATE_DIAGNOSTICS["available"] = False
-        _SHARED_STATE_DIAGNOSTICS["mode"] = "local_fallback"
-        _SHARED_STATE_DIAGNOSTICS["last_error"] = "shared health write failed"
+        with _STATE_LOCK:
+            _SHARED_STATE_DIAGNOSTICS["available"] = False
+            _SHARED_STATE_DIAGNOSTICS["mode"] = "local_fallback"
+            _SHARED_STATE_DIAGNOSTICS["last_error"] = "shared health write failed"
         now = time.time()
         if now - _LAST_SHARED_STATE_WARNING >= 60:
             print("USE provider resilience: shared health persistence unavailable; using bounded process-local fallback")
