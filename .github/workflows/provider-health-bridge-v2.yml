@@ -8,6 +8,7 @@ on:
       - "QA/test_provider_health_bridge_v2.php"
       - "QA/provider_health_v2_ephemeral_wp_plugin.php"
       - "QA/test_provider_health_bridge_v2_wp_rest.php"
+      - "QA/test_provider_health_python_wordpress_integration.py"
       - "QA/provider_health_merge_fixtures_v2.json"
       - ".github/workflows/provider-health-bridge-v2.yml"
   workflow_dispatch:
@@ -89,3 +90,12 @@ jobs:
           docker exec "$WP_CONTAINER" php /tmp/wp-cli.phar --allow-root --path=/var/www/html plugin activate provider-health-v2-test
       - name: Run real WordPress REST integration
         run: php QA/test_provider_health_bridge_v2_wp_rest.php
+      - name: Set up Python for cross-process client integration
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify Python v2 client across independent WordPress-backed processes
+        run: |
+          python QA/test_provider_health_python_wordpress_integration.py write
+          python QA/test_provider_health_python_wordpress_integration.py update
+          python QA/test_provider_health_python_wordpress_integration.py read
