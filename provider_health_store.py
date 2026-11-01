@@ -38,6 +38,8 @@ _READ_CACHE = None
 _READ_CACHE_UNTIL = 0.0
 _READ_IN_FLIGHT = None
 _READ_IN_FLIGHT_RESULT = None
+# At most one bounded health-bridge transport worker may outlive its caller.
+_REQUEST_SLOT = threading.BoundedSemaphore(1)
 STATE_FIELDS = (
     "provider", "model", "operation", "state", "failures", "consecutive_failures",
     "cooldown_until", "quarantine_until", "last_error", "last_success",
@@ -108,12 +110,18 @@ def _read_response_body(response, deadline, max_bytes):
 
 
 def _request(method, payload=None):
+    """Bound caller wait across DNS, TLS, headers, and response-body transport.
+
+    urllib socket timeouts cannot bound every blocking phase. A daemon worker
+    performs the blocking I/O while the caller waits only for the total budget.
+    One process-wide slot prevents timed-out workers from accumulating.
+    """
     global _CIRCUIT_OPEN_UNTIL, _CIRCUIT_PROBE_IN_FLIGHT
     url, secret = _configuration()
     if not url:
         return None
 
-    now = time.monotonic()
+    now = _monotonic()
     recovery_probe = False
     with _CIRCUIT_LOCK:
         if now < _CIRCUIT_OPEN_UNTIL:
@@ -122,13 +130,25 @@ def _request(method, payload=None):
                 f"method={method}, state=open, retry_in_seconds={_CIRCUIT_OPEN_UNTIL - now:.1f}"
             )
             return None
-        # Only single-flight the half-open recovery probe. Normal healthy-state
-        # GET/POST traffic remains concurrent and is not needlessly suppressed.
         if _CIRCUIT_OPEN_UNTIL > 0.0:
             if _CIRCUIT_PROBE_IN_FLIGHT:
                 return None
             _CIRCUIT_PROBE_IN_FLIGHT = True
             recovery_probe = True
+
+    started = _monotonic()
+    deadline = started + TIMEOUT_SECONDS
+    if not _REQUEST_SLOT.acquire(blocking=False):
+        with _CIRCUIT_LOCK:
+            if recovery_probe:
+                _CIRCUIT_PROBE_IN_FLIGHT = False
+            _CIRCUIT_OPEN_UNTIL = _monotonic() + CIRCUIT_COOLDOWN_SECONDS
+        print(
+            "USE provider health store timing: "
+            f"method={method}, outcome=worker_busy, elapsed_seconds={_monotonic() - started:.3f}, "
+            f"timeout_seconds={TIMEOUT_SECONDS:.2f}"
+        )
+        return None
 
     headers = {
         "Accept": "application/json",
@@ -143,38 +163,63 @@ def _request(method, payload=None):
         request_url += separator + "_la_health_nonce=" + str(time.time_ns())
     data = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8") if payload is not None else None
     request = Request(request_url, data=data, headers=headers, method=method)
-    started = _monotonic()
-    deadline = started + TIMEOUT_SECONDS
-    outcome = "error"
+    completed = threading.Event()
+    result_box = {"outcome": "error", "result": None}
+
+    def transport_worker():
+        try:
+            remaining = deadline - _monotonic()
+            if remaining <= 0:
+                raise TimeoutError("total HTTP timeout before request")
+            with urlopen(request, timeout=remaining) as response:
+                body = _read_response_body(response, deadline, 512 * 1024)
+                result = json.loads(body.decode("utf-8", errors="replace"))
+            if isinstance(result, dict) and result.get("contract_version") == CONTRACT_VERSION:
+                result_box["outcome"] = "ok"
+                result_box["result"] = result
+            else:
+                result_box["outcome"] = "invalid_contract"
+        except (HTTPError, URLError, HTTPException, TimeoutError, OSError, ValueError, json.JSONDecodeError):
+            result_box["outcome"] = "error"
+        except Exception:
+            result_box["outcome"] = "error"
+        finally:
+            _REQUEST_SLOT.release()
+            completed.set()
+
+    worker = threading.Thread(
+        target=transport_worker,
+        name="provider-health-bridge",
+        daemon=True,
+    )
     try:
-        remaining = deadline - _monotonic()
-        if remaining <= 0:
-            raise TimeoutError("total HTTP timeout before request")
-        with urlopen(request, timeout=remaining) as response:
-            body = _read_response_body(response, deadline, 512 * 1024)
-            result = json.loads(body.decode("utf-8", errors="replace"))
-        if not isinstance(result, dict) or result.get("contract_version") != CONTRACT_VERSION:
-            outcome = "invalid_contract"
-            return None
-        outcome = "ok"
-        return result
-    except (HTTPError, URLError, HTTPException, TimeoutError, OSError, ValueError, json.JSONDecodeError):
-        # Do not log URLs, headers, exception bodies, or credentials.
-        return None
-    finally:
-        elapsed = _monotonic() - started
-        with _CIRCUIT_LOCK:
-            if recovery_probe:
-                _CIRCUIT_PROBE_IN_FLIGHT = False
-            if outcome != "ok":
-                _CIRCUIT_OPEN_UNTIL = time.monotonic() + CIRCUIT_COOLDOWN_SECONDS
-            elif recovery_probe:
-                _CIRCUIT_OPEN_UNTIL = 0.0
-        print(
-            "USE provider health store timing: "
-            f"method={method}, outcome={outcome}, elapsed_seconds={elapsed:.3f}, "
-            f"timeout_seconds={TIMEOUT_SECONDS:.2f}"
-        )
+        worker.start()
+    except RuntimeError:
+        _REQUEST_SLOT.release()
+        result_box["outcome"] = "worker_start_failed"
+
+    completed.wait(max(0.0, deadline - _monotonic()))
+    if completed.is_set():
+        outcome = result_box["outcome"]
+        result = result_box["result"]
+    else:
+        outcome = "total_deadline_exceeded"
+        result = None
+
+    elapsed = _monotonic() - started
+    with _CIRCUIT_LOCK:
+        if recovery_probe:
+            _CIRCUIT_PROBE_IN_FLIGHT = False
+        if outcome != "ok":
+            _CIRCUIT_OPEN_UNTIL = _monotonic() + CIRCUIT_COOLDOWN_SECONDS
+        elif recovery_probe:
+            _CIRCUIT_OPEN_UNTIL = 0.0
+    print(
+        "USE provider health store timing: "
+        f"method={method}, outcome={outcome}, elapsed_seconds={elapsed:.3f}, "
+        f"timeout_seconds={TIMEOUT_SECONDS:.2f}"
+    )
+    return result
 
 
 def load_remote_states():
