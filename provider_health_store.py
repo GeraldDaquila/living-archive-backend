@@ -88,8 +88,9 @@ def _read_response_body(response, deadline, max_bytes):
         response_fp = getattr(response, "fp", None)
         raw = getattr(response_fp, "raw", None)
         sock = getattr(raw, "_sock", None)
-        if sock is not None:
-            sock.settimeout(remaining)
+        if sock is None:
+            raise TimeoutError("total HTTP timeout: response socket unavailable")
+        sock.settimeout(remaining)
 
         chunk = read_chunk(min(65536, max_bytes + 1 - len(chunks)))
         if not chunk:
