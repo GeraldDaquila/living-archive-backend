@@ -6,7 +6,7 @@ $secret = (string)getenv('PROVIDER_HEALTH_WP_SECRET');
 if ($base === '' || $secret === '') {
     throw new RuntimeException('Ephemeral WordPress URL and test secret are required.');
 }
-$endpoint = $base . '/wp-json/living-archive/v1/provider-health';
+$endpoint = $base . '/wp-json/living-archive/v1/provider-health/';
 
 function wp_check($condition, $message) {
     if (!$condition) {
@@ -28,6 +28,8 @@ function wp_request($url, $method, $body = null, $authenticated = true) {
             'method' => $method,
             'header' => implode("\r\n", $headers),
             'ignore_errors' => true,
+            'follow_location' => 0,
+            'max_redirects' => 0,
             'timeout' => 15,
         ),
     );
