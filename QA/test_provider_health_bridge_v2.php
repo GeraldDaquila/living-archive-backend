@@ -240,14 +240,15 @@ class MariaDbWpdbAdapter {
 
     public function prepare($query, ...$args) {
         $values = count($args) === 1 && is_array($args[0]) ? array_values($args[0]) : $args;
-        foreach ($values as $value) {
-            $position = strpos($query, '%s');
-            if ($position === false) {
-                throw new RuntimeException('More prepare arguments than SQL placeholders.');
-            }
-            $query = substr_replace($query, $this->pdo->quote((string)$value), $position, 2);
+        $parts = explode('%s', $query);
+        if (count($parts) !== count($values) + 1) {
+            throw new RuntimeException('Prepare argument count does not match SQL placeholders.');
         }
-        return $query;
+        $prepared = array_shift($parts);
+        foreach ($values as $index => $value) {
+            $prepared .= $this->pdo->quote((string)$value) . $parts[$index];
+        }
+        return $prepared;
     }
 
     public function get_results($sql, $output) {
