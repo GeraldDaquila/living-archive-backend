@@ -267,6 +267,12 @@ def acquire_probe(state):
         return _acquire_probe(state)
 
 
+def release_probe(state):
+    """Release a recovery-probe claim atomically."""
+    with _STATE_LOCK:
+        state["probe_in_flight"] = False
+
+
 # Failed route-boundary writes remain pending and are retried at the next
 # eligible persistence boundary. The version prevents an older successful
 # flush from clearing a newer route's dirty marker.
@@ -1238,7 +1244,7 @@ def _eligible(provider, model, operation, schema=None):
         return False, sorted(missing)
     return True, []
 
-@_state_locked
+@_state_transition
 def candidates(use_core, operation="generic", schema=None):
     global _LAST_PROVIDER_INVENTORY_DIAGNOSTIC
     out = []
@@ -1340,7 +1346,7 @@ def _hrn_attempt_cap():
     return max(1, min(2, configured))
 
 
-@_state_locked
+@_state_transition
 def select(use_core, operation="generic", schema=None):
     items = candidates(use_core, operation=operation, schema=schema)
     if not items: return []
@@ -2878,7 +2884,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             if deadline_monotonic is not None and (
                 attempt_timeout is None or attempt_timeout <= 0.0
             ):
-                state["probe_in_flight"] = False
+                release_probe(state)
                 print("USE provider bank request budget: operation=" + str(operation) + ", action=skip_before_provider_call")
                 break
             print("USE model bank attempt: provider=" + provider + ", model=" + model +
@@ -3107,7 +3113,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 if deadline_monotonic is not None and (
                     recovery_timeout is None or recovery_timeout <= 0.0
                 ):
-                    state["probe_in_flight"] = False
+                    release_probe(state)
                     print("USE provider bank request budget: operation=" + str(operation) + ", action=skip_contract_repair")
                     break
                 recovered = parse(_quota_guarded_call(
