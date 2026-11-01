@@ -459,3 +459,24 @@ def test_expired_remote_failure_cooldown_becomes_half_open():
 
     assert local["state"] == "half_open"
     assert local["probe_in_flight"] is False
+
+
+def test_quality_rejection_releases_half_open_transport_probe(monkeypatch):
+    _reset_pending_persistence()
+    state = provider_bank.new_state("groq", "model-a")
+    state["state"] = "half_open"
+    state["probe_in_flight"] = True
+    monkeypatch.setattr(provider_bank, "_STATE", {
+        "models": {"groq:model-a": state},
+        "quality": {},
+        "provider_cursor": 0,
+        "model_cursors": {},
+    })
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: None)
+
+    provider_bank._record_quality_rejection(
+        "groq", "model-a", "hrn_relational", "prescriptive-language"
+    )
+
+    assert state["probe_in_flight"] is False
+    assert state["state"] == "half_open"
