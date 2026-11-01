@@ -482,6 +482,21 @@ def _blocked_for_operation(state, operation):
     return _blocked(state)
 
 @_state_transition
+@_state_locked
+def _claim_candidate(provider, model, operation):
+    """Recheck transport and quality state and claim any half-open probe atomically."""
+    state = _state(provider, model)
+    if _blocked_for_operation(state, operation):
+        return state, "transport"
+    quality = _quality_state(operation, provider, model, create=False)
+    quality_until = float(quality.get("quality_cooldown_until", 0) or 0)
+    if quality_until > time.time():
+        return state, "quality"
+    if not acquire_probe(state):
+        return state, "probe"
+    return state, ""
+
+
 def _failure(exc, provider, model, operation=None):
     state = _state(provider, model)
     state["last_operation"] = str(operation or state.get("last_operation") or "")
@@ -2881,20 +2896,24 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 f"requested={requested_max_tokens}, ceiling={model_limit}, effective={effective_max_tokens}"
             )
         provider, model = item["provider"], item["model"]
-        state = _state(provider, model)
-        # The candidate pool is a snapshot created before this attempt loop.
-        # A preceding candidate can open a provider-wide circuit after the pool
-        # was built (for example, daily quota exhaustion). Re-check current state
-        # immediately before every call so stale sibling candidates are not sent
-        # to an account that has just been quarantined.
-        if _blocked_for_operation(state, operation):
+        # Candidate inventory is a snapshot. Recheck both transport and visitor-
+        # contract cooldowns, then claim any half-open probe under one lock.
+        state, exclusion = _claim_candidate(provider, model, operation)
+        if exclusion == "transport":
             print(
                 "USE model bank skip newly blocked candidate: "
                 f"provider={provider}, model={model}, "
                 f"category={state.get('category') or 'unknown'}"
             )
             continue
-        if not acquire_probe(state):
+        if exclusion == "quality":
+            print(
+                "USE provider quality exclusion: "
+                f"operation={operation}, provider={provider}, model={model}, "
+                "reason=concurrent_contract_rejection"
+            )
+            continue
+        if exclusion == "probe":
             continue
         attempt_started = time.monotonic() if operation in {"hrn_perception", "general_guide_composition"} else None
         try:
