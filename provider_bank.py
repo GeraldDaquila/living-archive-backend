@@ -198,6 +198,7 @@ OPERATION_TOKEN_FLOORS = {
     "mini_use": 500,
     "stewardship_pathway": 900,
     "general_guide_composition": 900,
+    "clss_synthesis": 1200,
 }
 
 # Strict JSON schemas are opt-in. HRN composition deliberately uses the
@@ -218,6 +219,10 @@ OPERATION_REQUIREMENTS = {
     # the visitor directly, but does not depend on any provider-specific
     # reasoning feature. Provider selection remains entirely bank-owned.
     "general_guide_composition": frozenset({"json_object", "long_context", "composition"}),
+    # CLSS may propose evidence-linked interpretations only. Its adapter owns
+    # consent, minimization, provenance, semantic validation, and fallback;
+    # this operation requires the bank's structured reasoning-capable lanes.
+    "clss_synthesis": frozenset({"json_object", "long_context", "composition", "reasoning", "relational_analysis"}),
 }
 
 _STATE = {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}}
