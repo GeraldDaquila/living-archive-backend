@@ -497,6 +497,7 @@ def _claim_candidate(provider, model, operation):
     return state, ""
 
 
+@_state_transition
 def _failure(exc, provider, model, operation=None):
     state = _state(provider, model)
     state["last_operation"] = str(operation or state.get("last_operation") or "")
