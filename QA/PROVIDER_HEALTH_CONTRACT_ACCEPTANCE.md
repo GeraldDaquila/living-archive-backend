@@ -55,7 +55,7 @@ Repair only the shared Provider Bank health-state persistence seam between the U
 
 - Agree on field whitelist, normalization, timestamps, equal-timestamp handling, counters, cooldowns, and expired-cooldown state.
 - Preserve `last_operation` because timeout cooldowns are operation-specific.
-- Decide whether `probe_successes` is required for behavioral continuity or is explicitly diagnostic-only.
+- `probe_successes` is diagnostic-only: it is exposed in local diagnostics but does not affect provider admission, ranking, cooldowns, or circuit transitions. It is intentionally not persisted across processes.
 - Do not persist `probe_in_flight`; always restore it as false.
 - Use the same deterministic fixtures against Python and PHP merge implementations.
 
