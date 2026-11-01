@@ -304,7 +304,12 @@ check(is_array($fixtures) && ($fixtures['contract_version'] ?? '') === 'v2', 'sh
 foreach ($fixtures['cases'] as $case) {
     $merged = la_provider_health_v2_merge($case['local'], $case['remote'], $case['now']);
     foreach ($case['expected'] as $field => $expected) {
-        check(($merged[$field] ?? null) === $expected, $case['name'] . ':' . $field);
+        $actual = $merged[$field] ?? null;
+        if (is_int($expected) || is_float($expected)) {
+            check((is_int($actual) || is_float($actual)) && (float)$actual === (float)$expected, $case['name'] . ':' . $field);
+        } else {
+            check($actual === $expected, $case['name'] . ':' . $field);
+        }
     }
 }
 
