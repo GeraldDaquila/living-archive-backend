@@ -193,6 +193,79 @@ class FakeWpdb {
     }
 }
 
+class MariaDbWpdbAdapter {
+    public $prefix = 'wp_';
+    public $last_error = '';
+    public $statement_count = 0;
+    public $batch_read_queries = 0;
+    public $batch_write_queries = 0;
+    public $fail_commit = false;
+    private $pdo;
+
+    public function __construct(PDO $pdo) {
+        $this->pdo = $pdo;
+    }
+
+    public function query($sql) {
+        $this->last_error = '';
+        $this->statement_count++;
+        try {
+            if ($sql === 'START TRANSACTION') {
+                $this->pdo->beginTransaction();
+                return 1;
+            }
+            if ($sql === 'COMMIT') {
+                if ($this->fail_commit) {
+                    $this->last_error = 'simulated commit failure';
+                    return false;
+                }
+                $this->pdo->commit();
+                return 1;
+            }
+            if ($sql === 'ROLLBACK') {
+                if ($this->pdo->inTransaction()) {
+                    $this->pdo->rollBack();
+                }
+                return 1;
+            }
+            if (strpos($sql, 'INSERT INTO') === 0 && strpos($sql, 'ON DUPLICATE KEY UPDATE') !== false) {
+                $this->batch_write_queries++;
+            }
+            return $this->pdo->exec($sql);
+        } catch (Throwable $error) {
+            $this->last_error = $error->getMessage();
+            return false;
+        }
+    }
+
+    public function prepare($query, ...$args) {
+        $values = count($args) === 1 && is_array($args[0]) ? array_values($args[0]) : $args;
+        foreach ($values as $value) {
+            $position = strpos($query, '%s');
+            if ($position === false) {
+                throw new RuntimeException('More prepare arguments than SQL placeholders.');
+            }
+            $query = substr_replace($query, $this->pdo->quote((string)$value), $position, 2);
+        }
+        return $query;
+    }
+
+    public function get_results($sql, $output) {
+        $this->last_error = '';
+        $this->statement_count++;
+        if (strpos($sql, 'WHERE state_key IN') !== false) {
+            $this->batch_read_queries++;
+        }
+        try {
+            $statement = $this->pdo->query($sql);
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $error) {
+            $this->last_error = $error->getMessage();
+            return false;
+        }
+    }
+}
+
 require __DIR__ . '/provider_health_bridge_v2_candidate.php';
 
 function check($condition, $message) {
@@ -428,5 +501,54 @@ $merged = la_provider_health_v2_merge(
 check($merged['last_operation'] === 'new_operation', 'stale remote failure cannot overwrite operation context');
 check($merged['last_error'] === 'newer local error', 'stale remote failure cannot overwrite error');
 check($merged['cooldown_until'] === 100.0, 'stale remote failure cannot reduce or replace local cooldown');
+
+if (getenv('PROVIDER_HEALTH_MARIADB_DSN')) {
+    $pdo = new PDO(
+        (string)getenv('PROVIDER_HEALTH_MARIADB_DSN'),
+        (string)getenv('PROVIDER_HEALTH_MARIADB_USER'),
+        (string)getenv('PROVIDER_HEALTH_MARIADB_PASSWORD'),
+        array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+    );
+    $pdo->exec("DROP TABLE IF EXISTS wp_la_provider_health");
+    $pdo->exec(
+        "CREATE TABLE wp_la_provider_health (
+            state_key varchar(191) NOT NULL,
+            payload longtext NOT NULL,
+            updated_at datetime NOT NULL,
+            PRIMARY KEY (state_key)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+    );
+
+    $mariadb = new MariaDbWpdbAdapter($pdo);
+    $GLOBALS['wpdb'] = $mariadb;
+    $GLOBALS['encode_calls'] = 0;
+    $GLOBALS['fail_encode_on'] = 0;
+    $before_statements = $mariadb->statement_count;
+    $response = la_provider_health_v2_write(new FakeRequest(valid_body(100)));
+    check(!is_wp_error($response), 'MariaDB accepts 100-record transaction');
+    check($response->data['success'] === true, 'MariaDB returns explicit success acknowledgement');
+    check($response->data['submitted'] === 100 && $response->data['written'] === 100, 'MariaDB acknowledgement counts are exact');
+    check($mariadb->batch_read_queries === 1, 'MariaDB uses one locking batch SELECT');
+    check($mariadb->batch_write_queries === 1, 'MariaDB uses one multi-row upsert');
+    check($mariadb->statement_count - $before_statements === 4, '100-record MariaDB write uses exactly four statements including transaction boundaries');
+    $row_count = (int)$pdo->query("SELECT COUNT(*) FROM wp_la_provider_health")->fetchColumn();
+    check($row_count === 100, 'MariaDB committed all 100 records');
+
+    // A commit failure after the real multi-row upsert must roll back the entire transaction.
+    $rollback_body = valid_body(1);
+    $rollback_record = $rollback_body['states']['groq:model-1'];
+    $rollback_body['states'] = array('groq:rollback-probe' => $rollback_record);
+    $mariadb->fail_commit = true;
+    $result = la_provider_health_v2_write(new FakeRequest($rollback_body));
+    check(is_wp_error($result), 'MariaDB commit failure is rejected');
+    check(!$pdo->inTransaction(), 'MariaDB transaction is closed after rollback');
+    $rollback_count = (int)$pdo->query(
+        "SELECT COUNT(*) FROM wp_la_provider_health WHERE state_key = 'groq:rollback-probe'"
+    )->fetchColumn();
+    check($rollback_count === 0, 'MariaDB commit failure rolls back the upserted row');
+
+    $pdo->exec("DROP TABLE wp_la_provider_health");
+    echo "PASS: MariaDB 11.8 set-based upsert, four-statement batch budget, and transaction rollback\n";
+}
 
 echo "PASS: WordPress provider-health v2 contract harness\n";
