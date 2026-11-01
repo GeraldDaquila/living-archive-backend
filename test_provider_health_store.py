@@ -278,11 +278,13 @@ class ProviderHealthStoreTests(unittest.TestCase):
                 return self.parts.pop(0) if self.parts else b""
 
         response = TrickleResponse()
-        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \\
-             patch.object(provider_health_store, "_monotonic", side_effect=lambda: clock.value), \\
-             patch.object(provider_health_store, "urlopen", return_value=response) as request, \\
-             patch.object(provider_health_store.time, "monotonic", return_value=10.0):
-            result = provider_health_store._request("GET")
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")):
+            with patch.object(provider_health_store, "_monotonic", side_effect=lambda: clock.value):
+                with patch.object(provider_health_store, "urlopen", return_value=response) as request:
+                    with patch.object(provider_health_store.time, "monotonic", return_value=10.0):
+                        with patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0):
+                            with patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False):
+                                result = provider_health_store._request("GET")
 
         self.assertIsNone(result)
         request.assert_called_once()
@@ -313,11 +315,13 @@ class ProviderHealthStoreTests(unittest.TestCase):
                 clock.value += 0.04
                 return self.parts.pop(0) if self.parts else b""
 
-        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \\
-             patch.object(provider_health_store, "_monotonic", side_effect=lambda: clock.value), \\
-             patch.object(provider_health_store, "urlopen", return_value=FastResponse()), \\
-             patch.object(provider_health_store.time, "monotonic", return_value=20.0):
-            result = provider_health_store._request("GET")
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")):
+            with patch.object(provider_health_store, "_monotonic", side_effect=lambda: clock.value):
+                with patch.object(provider_health_store, "urlopen", return_value=FastResponse()):
+                    with patch.object(provider_health_store.time, "monotonic", return_value=20.0):
+                        with patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0):
+                            with patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False):
+                                result = provider_health_store._request("GET")
 
         self.assertEqual(result, {"contract_version": "v2", "states": {}})
 
