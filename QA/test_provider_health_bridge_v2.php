@@ -43,8 +43,17 @@ function rest_ensure_response($data) { return new FakeResponse($data); }
 
 class FakeRequest {
     private $body;
-    public function __construct($body) { $this->body = $body; }
+    private $raw_body;
+    public function __construct($body, $raw_body = null) {
+        $this->body = $body;
+        $this->raw_body = $raw_body;
+    }
     public function get_json_params() { return $this->body; }
+    public function get_body() {
+        return $this->raw_body !== null
+            ? $this->raw_body
+            : json_encode((object)$this->body, JSON_FORCE_OBJECT);
+    }
 }
 
 class FakeWpdb {
@@ -144,6 +153,13 @@ check($route[0] === 'living-archive/v1' && $route[1] === '/provider-health', 'v2
 check($route[2][0]['callback'] === 'la_provider_health_v2_read', 'GET callback wired');
 check($route[2][1]['callback'] === 'la_provider_health_v2_write', 'POST callback wired');
 check($route[2][0]['permission_callback'] === 'la_provider_health_authorized', 'existing auth boundary preserved');
+$result = la_provider_health_v2_write(new FakeRequest(array(), '[]'));
+check(is_wp_error($result), 'top-level JSON array rejected');
+$result = la_provider_health_v2_write(new FakeRequest(array(), '{"contract_version":"v2","states":[]}'));
+check(is_wp_error($result), 'states JSON array rejected');
+$result = la_provider_health_v2_write(new FakeRequest(array(), '{"contract_version":"v2","states":{}}'));
+check(!is_wp_error($result), 'empty states JSON object accepted');
+
 
 function valid_body($count = 2) {
     $states = array();
