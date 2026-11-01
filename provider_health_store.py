@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import math
+from http.client import HTTPException
 import os
 import threading
 import time
@@ -157,7 +158,7 @@ def _request(method, payload=None):
             return None
         outcome = "ok"
         return result
-    except (HTTPError, URLError, TimeoutError, OSError, ValueError, json.JSONDecodeError):
+    except (HTTPError, URLError, HTTPException, TimeoutError, OSError, ValueError, json.JSONDecodeError):
         # Do not log URLs, headers, exception bodies, or credentials.
         return None
     finally:
