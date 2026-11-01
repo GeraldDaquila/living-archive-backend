@@ -210,7 +210,11 @@ foreach ($race_results as $index => $race_result) {
 list($race_get_status, $race_get_response) = wp_request($endpoint, 'GET');
 wp_check($race_get_status === 200, 'GET after concurrent new-key writes succeeds');
 $race_state = $race_get_response['states'][$race_key] ?? array();
-wp_check(($race_state['last_failure'] ?? null) === 2002.0, 'concurrent new-key writes retain the newer failure timestamp');
+$race_last_failure = (float)($race_state['last_failure'] ?? 0);
+echo 'DIAGNOSTIC concurrent merge: last_failure=' . $race_last_failure
+    . ', last_operation=' . (string)($race_state['last_operation'] ?? '')
+    . ', consecutive_failures=' . (int)($race_state['consecutive_failures'] ?? 0) . "\\n";
+wp_check($race_last_failure === 2002.0, 'concurrent new-key writes retain the newer failure timestamp');
 wp_check(($race_state['last_operation'] ?? null) === 'general_guide_composition', 'concurrent new-key writes retain the newer operation context');
 wp_check(($race_state['consecutive_failures'] ?? null) === 2, 'concurrent new-key writes retain the higher consecutive failure count');
 
