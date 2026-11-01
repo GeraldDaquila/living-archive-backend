@@ -68,6 +68,43 @@ def configuration_status():
         "shared_secret_configured": secret_configured,
     }
 
+def _read_response_body(response, deadline, max_bytes):
+    """Read in bounded chunks against one monotonic wall-clock deadline.
+
+    urllib's socket timeout is normally an inactivity timeout. Resetting it to
+    the remaining total budget before every read prevents a trickle response
+    from extending this advisory health-store call indefinitely.
+    """
+    read_chunk = getattr(response, "read1", None)
+    if not callable(read_chunk):
+        raise TimeoutError("total HTTP timeout: incremental response reads unavailable")
+
+    chunks = bytearray()
+    while True:
+        remaining = deadline - _monotonic()
+        if remaining <= 0:
+            raise TimeoutError("total HTTP timeout while reading response body")
+
+        response_fp = getattr(response, "fp", None)
+        raw = getattr(response_fp, "raw", None)
+        sock = getattr(raw, "_sock", None)
+        if sock is not None:
+            sock.settimeout(remaining)
+
+        chunk = read_chunk(min(65536, max_bytes + 1 - len(chunks)))
+        if not chunk:
+            break
+        chunks.extend(chunk)
+        if len(chunks) > max_bytes:
+            raise ValueError("provider health response exceeds maximum size")
+        if _monotonic() >= deadline:
+            raise TimeoutError("total HTTP timeout while reading response body")
+
+    if _monotonic() > deadline:
+        raise TimeoutError("total HTTP timeout after response body")
+    return bytes(chunks)
+
+
 def _request(method, payload=None):
     global _CIRCUIT_OPEN_UNTIL, _CIRCUIT_PROBE_IN_FLIGHT
     url, secret = _configuration()
@@ -104,11 +141,16 @@ def _request(method, payload=None):
         request_url += separator + "_la_health_nonce=" + str(time.time_ns())
     data = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8") if payload is not None else None
     request = Request(request_url, data=data, headers=headers, method=method)
-    started = time.monotonic()
+    started = _monotonic()
+    deadline = started + TIMEOUT_SECONDS
     outcome = "error"
     try:
-        with urlopen(request, timeout=TIMEOUT_SECONDS) as response:
-            result = json.loads(response.read(512 * 1024 + 1).decode("utf-8", errors="replace"))
+        remaining = deadline - _monotonic()
+        if remaining <= 0:
+            raise TimeoutError("total HTTP timeout before request")
+        with urlopen(request, timeout=remaining) as response:
+            body = _read_response_body(response, deadline, 512 * 1024)
+            result = json.loads(body.decode("utf-8", errors="replace"))
         if not isinstance(result, dict) or result.get("contract_version") != CONTRACT_VERSION:
             outcome = "invalid_contract"
             return None
@@ -118,7 +160,7 @@ def _request(method, payload=None):
         # Do not log URLs, headers, exception bodies, or credentials.
         return None
     finally:
-        elapsed = time.monotonic() - started
+        elapsed = _monotonic() - started
         with _CIRCUIT_LOCK:
             if recovery_probe:
                 _CIRCUIT_PROBE_IN_FLIGHT = False
