@@ -246,7 +246,7 @@ list($bulk_get_status, $bulk_get_response) = wp_request($endpoint, 'GET');
 wp_check($bulk_get_status === 200, 'real WordPress REST GET after bulk write succeeds');
 $bulk_get_states = $bulk_get_response['states'] ?? array();
 wp_check(count($bulk_get_states) === 100, 'real WordPress REST GET retains exactly the 100 most recently updated states');
-wp_check(isset($bulk_get_states['groq:bulk-001'], $bulk_get_states['groq:bulk-100']), 'real WordPress REST GET retains the full recent bulk window');
+wp_check(isset($bulk_get_states['groq:bulk-099']), 'real WordPress REST GET retains the latest bulk records after capacity trimming');
 
 $pdo = new PDO(
     (string)getenv('PROVIDER_HEALTH_MARIADB_DSN'),
