@@ -521,3 +521,39 @@ def test_remote_health_merge_cannot_overwrite_newer_local_failure(monkeypatch):
     assert local["last_error"] == "newer local failure"
     assert local["last_operation"] == "new_operation"
     assert local["last_failure"] > 10.0
+
+
+def test_concurrent_route_does_not_wait_for_another_health_flush(monkeypatch):
+    _reset_pending_persistence()
+    monkeypatch.setattr(provider_bank, "_STATE", {
+        "models": {"groq:model-a": provider_bank.new_state("groq", "model-a")},
+        "quality": {},
+        "provider_cursor": 0,
+        "model_cursors": {},
+    })
+    started = threading.Event()
+    release = threading.Event()
+    writes = []
+
+    def save(states):
+        writes.append(states)
+        if len(writes) == 1:
+            started.set()
+            assert release.wait(timeout=2)
+        return True
+
+    monkeypatch.setattr(provider_bank, "save_remote_states", save)
+    provider_bank._mark_shared_state_pending()
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        first = pool.submit(provider_bank._flush_pending_shared_state)
+        assert started.wait(timeout=1)
+        # A concurrent route must return immediately and leave pending state intact.
+        assert provider_bank._flush_pending_shared_state() is False
+        provider_bank._mark_shared_state_pending()
+        release.set()
+        assert first.result(timeout=2) is True
+
+    assert provider_bank._PENDING_SHARED_STATE is True
+    assert provider_bank._flush_pending_shared_state() is True
+    assert provider_bank._PENDING_SHARED_STATE is False
+    assert len(writes) == 2
