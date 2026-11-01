@@ -9,6 +9,7 @@ from clss_hybrid_synthesis import (
     CLSSHybridSynthesisError,
     build_minimized_candidate_request,
     resolve_hybrid_candidate,
+    UseProviderCandidateBuilder,
 )
 
 ANSWERS = [
@@ -125,6 +126,52 @@ class CLSSHybridSynthesisTests(unittest.TestCase):
     def test_no_evidence_does_not_manufacture_a_finding(self):
         with self.assertRaises(CLSSHybridSynthesisError):
             resolve_hybrid_candidate([], mode="self", consent=CONSENT, candidate_builder=valid_candidate)
+
+    def test_use_provider_builder_routes_only_through_shared_gateway_after_consent(self):
+        calls = []
+        def gateway_executor(**kwargs):
+            calls.append(kwargs)
+            import json
+            request = json.loads(kwargs["messages"][1]["content"])
+            return {"ok": True, "result": valid_candidate(request)}
+
+        builder = UseProviderCandidateBuilder(use_core=object(), gateway_executor=gateway_executor)
+        result = resolve_hybrid_candidate(
+            ANSWERS, mode="self", consent=CONSENT, candidate_builder=builder
+        )
+        self.assertEqual(result["path"], "llm")
+        self.assertTrue(result["provider_invoked"])
+        self.assertTrue(result["transmission_performed"])
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0]["operation"], "clss_synthesis")
+        self.assertEqual(calls[0]["max_tokens"], 1800)
+        self.assertNotIn("context", calls[0]["messages"][1]["content"])
+
+    def test_use_provider_builder_is_not_invoked_without_consent(self):
+        calls = []
+        builder = UseProviderCandidateBuilder(
+            use_core=object(),
+            gateway_executor=lambda **kwargs: calls.append(kwargs),
+        )
+        result = resolve_hybrid_candidate(
+            ANSWERS, mode="self", consent=None, candidate_builder=builder
+        )
+        self.assertEqual(calls, [])
+        self.assertFalse(result["provider_invoked"])
+        self.assertFalse(result["transmission_performed"])
+
+    def test_provider_failure_uses_deterministic_fallback_and_records_attempt(self):
+        builder = UseProviderCandidateBuilder(
+            use_core=object(),
+            gateway_executor=lambda **kwargs: {"ok": False, "error": "provider_bank_exhausted"},
+        )
+        result = resolve_hybrid_candidate(
+            ANSWERS, mode="self", consent=CONSENT, candidate_builder=builder
+        )
+        self.assertEqual(result["path"], "deterministic_fallback")
+        self.assertTrue(result["provider_invoked"])
+        self.assertTrue(result["transmission_performed"])
+        self.assertFalse(result["human_review_required"])
 
 
 if __name__ == "__main__":
