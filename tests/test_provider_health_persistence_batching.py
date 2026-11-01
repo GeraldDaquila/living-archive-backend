@@ -185,6 +185,27 @@ def test_mismatched_submitted_count_is_rejected(monkeypatch):
     assert health_store.save_remote_states({"groq:model-a": {}, "nvidia:model-b": {}}) is False
 
 
+def test_export_capacity_prefers_recent_states_with_deterministic_ties():
+    states = {
+        f"groq:model-{index:03d}": {
+            "provider": "groq",
+            "model": f"model-{index:03d}",
+            "last_failure": float(index),
+        }
+        for index in range(101)
+    }
+    states["groq:tie-a"] = {"provider": "groq", "model": "tie-a", "last_failure": 200.0}
+    states["groq:tie-b"] = {"provider": "groq", "model": "tie-b", "last_failure": 200.0}
+
+    exported = health_store.export_health_states(states)
+    keys = list(exported)
+
+    assert len(exported) == 100
+    assert keys[:2] == ["groq:tie-a", "groq:tie-b"]
+    assert "groq:model-100" in exported
+    assert "groq:model-000" not in exported
+
+
 def test_behavioral_last_operation_is_exported():
     state = {
         "provider": "groq",
