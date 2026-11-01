@@ -163,6 +163,8 @@ def load_remote_states():
         result = _request("GET")
         if not isinstance(result, dict):
             return None
+        if result.get("contract_version") != CONTRACT_VERSION:
+            return None
         states = result.get("states")
         if not isinstance(states, dict) or len(states) > 100:
             return None
