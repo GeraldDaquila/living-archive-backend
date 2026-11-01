@@ -624,3 +624,35 @@ def test_provider_inventory_discovery_runs_outside_snapshot_state_lock(monkeypat
 
     assert lock_acquired.is_set()
     assert result == {"groq": ["model-a"]}
+
+
+def test_stale_candidate_snapshot_rechecks_quality_cooldown_before_probe_claim(monkeypatch):
+    _reset_pending_persistence()
+    model = provider_bank.new_state("groq", "model-a")
+    model["state"] = "half_open"
+    model["probe_in_flight"] = False
+    quality_key = provider_bank._quality_key("hrn_relational", "groq", "model-a")
+    quality = {
+        "provider": "groq",
+        "model": "model-a",
+        "operation": "hrn_relational",
+        "quality_failures": 1,
+        "last_quality_failure": 10.0,
+        "last_quality_success": 0.0,
+        "quality_cooldown_until": provider_bank.time.time() + 300.0,
+        "quality_error": "prescriptive-language",
+    }
+    monkeypatch.setattr(provider_bank, "_STATE", {
+        "models": {"groq:model-a": model},
+        "quality": {quality_key: quality},
+        "provider_cursor": 0,
+        "model_cursors": {},
+    })
+
+    claimed_state, exclusion = provider_bank._claim_candidate(
+        "groq", "model-a", "hrn_relational"
+    )
+
+    assert claimed_state is model
+    assert exclusion == "quality"
+    assert model["probe_in_flight"] is False
