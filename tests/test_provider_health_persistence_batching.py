@@ -571,3 +571,37 @@ def test_shared_python_php_provider_health_merge_fixtures():
         health_store.merge_health_state(local, case["remote"], now=case["now"])
         for field, expected in case["expected"].items():
             assert local.get(field) == expected, case["name"] + ":" + field
+
+
+def test_provider_inventory_discovery_runs_outside_provider_state_lock(monkeypatch):
+    _reset_pending_persistence()
+    lock_acquired = threading.Event()
+
+    class Core:
+        def get_live_groq_models(self):
+            # _configured invokes this from its discovery worker. It must be
+            # able to acquire the state lock while discovery is in progress.
+            with provider_bank._STATE_LOCK:
+                lock_acquired.set()
+            return ["model-a"]
+
+    monkeypatch.setattr(provider_bank, "PRODUCTION_GROQ_MODELS", ["model-a"])
+    monkeypatch.setattr(provider_bank, "_eligible", lambda *args, **kwargs: (True, []))
+    monkeypatch.setattr(provider_bank, "_blocked_for_operation", lambda *args, **kwargs: False)
+    monkeypatch.setattr(provider_bank, "_state", lambda *args, **kwargs: {
+        "state": "healthy",
+        "failures": 0,
+        "consecutive_failures": 0,
+        "last_success": 1.0,
+    })
+    monkeypatch.setattr(provider_bank, "_quality_state", lambda *args, **kwargs: {
+        "quality_failures": 0,
+        "quality_cooldown_until": 0.0,
+    })
+    monkeypatch.setenv("GROQ_API_KEY", "test-key")
+
+    result = provider_bank.candidates(Core(), operation="generic")
+
+    assert lock_acquired.is_set()
+    assert len(result) == 1
+    assert result[0]["model"] == "model-a"
