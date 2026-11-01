@@ -22,6 +22,14 @@ Candidate request preparation requires all three exact fields: `granted: true`, 
 
 The request includes only evidence IDs, prompt IDs, dimensions, source types, answer text, and minimal provenance. Optional free-text context, affected-party fields, and other optional context fields are excluded. Each answer is capped at 4,000 characters, total answer text at 16,000 characters, and evidence count at eight.
 
+## Provider diagnostics and privacy boundary
+
+A code-level review of the USE Provider Bank found that normal inference timing and attempt logs record provider/model identifiers, operation, outcome, and latency rather than message bodies. Quota admission estimates token usage without retaining prompts. The shared provider-health store persists bounded operational state, including error diagnostics; upstream HTTP errors can contain response-body excerpts.
+
+For `clss_synthesis`, the isolated branch now withholds raw provider error details from persisted health state and diagnostic logs while retaining transient classification inputs in memory. A regression test verifies that a synthetic sensitive answer fragment does not appear in local diagnostics or exported shared-health state. This is a code-level safeguard, not a substitute for checking deployed logs, traces, hosting retention, or provider-side retention.
+
+Provider transmission remains external to the Living Archive once a real provider call is made. Provider-specific data handling, retention, subprocessors, and contractual controls remain unverified and must be reviewed before visitor data is sent.
+
 ## Candidate acceptance
 
 The shared CLSS response validator checks structure, allowed evidence IDs, mode consistency, and prohibited language. It explicitly does **not** establish semantic entailment. Therefore a structurally valid model candidate is labelled `unverified_candidate` and requires human semantic review. Invalid output or builder failure selects the deterministic fallback.
