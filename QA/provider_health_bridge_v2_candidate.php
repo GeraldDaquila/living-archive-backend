@@ -385,6 +385,21 @@ function la_provider_health_v2_write($request) {
     }
 
     $table = la_provider_health_v2_table_name();
+    $written = 0;
+
+    // An empty object is a valid no-op acknowledgement; avoid opening a DB transaction.
+    if (!$batch) {
+        $response = rest_ensure_response(array(
+            'contract_version' => LA_PROVIDER_HEALTH_V2_CONTRACT,
+            'success' => true,
+            'submitted' => 0,
+            'written' => 0,
+        ));
+        $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        $response->header('Pragma', 'no-cache');
+        return $response;
+    }
+
     if ($wpdb->query('START TRANSACTION') === false) {
         return la_provider_health_v2_error(
             'la_provider_health_transaction_start_failed',
@@ -394,29 +409,39 @@ function la_provider_health_v2_write($request) {
     }
 
     try {
-        // Read, merge, and serialize the entire batch before the first write.
+        // One indexed locking read for the complete batch, not one SELECT per state.
+        // The bounded key set is validated before this transaction begins.
+        $keys = array_column($batch, 'key');
+        $key_placeholders = implode(',', array_fill(0, count($keys), '%s'));
+        $select_sql = $wpdb->prepare(
+            "SELECT state_key, payload FROM {$table} WHERE state_key IN ({$key_placeholders}) FOR UPDATE",
+            $keys
+        );
+        if (!is_string($select_sql) || $select_sql === '') {
+            throw new RuntimeException('Provider-health batch read could not be prepared.');
+        }
+        $existing_rows = $wpdb->get_results($select_sql, ARRAY_A);
+        if ($existing_rows === false || !empty($wpdb->last_error)) {
+            throw new RuntimeException('Provider-health batch read failed.');
+        }
+
+        $existing_by_key = array();
+        foreach ((array)$existing_rows as $row) {
+            $key = (string)($row['state_key'] ?? '');
+            $payload = (string)($row['payload'] ?? '');
+            $existing = json_decode($payload, true);
+            if ($key === '' || !is_array($existing)) {
+                throw new RuntimeException('Stored provider-health row is corrupt.');
+            }
+            $existing_by_key[$key] = $existing;
+        }
+
+        // Merge and serialize every record before the single set-based write.
         $prepared = array();
+        $updated_at = current_time('mysql', true);
         foreach ($batch as $entry) {
             $key = $entry['key'];
-            $existing_raw = $wpdb->get_var(
-                $wpdb->prepare(
-                    "SELECT payload FROM {$table} WHERE state_key = %s FOR UPDATE",
-                    $key
-                )
-            );
-            if (!empty($wpdb->last_error)) {
-                throw new RuntimeException('Provider-health row read failed.');
-            }
-
-            if ($existing_raw === null) {
-                $existing = array();
-            } else {
-                $existing = json_decode((string)$existing_raw, true);
-                if (!is_array($existing)) {
-                    throw new RuntimeException('Stored provider-health row is corrupt.');
-                }
-            }
-
+            $existing = $existing_by_key[$key] ?? array();
             $merged = la_provider_health_v2_merge($existing, $entry['record']);
             $encoded = wp_json_encode($merged);
             if (!is_string($encoded) || $encoded === '') {
@@ -425,24 +450,33 @@ function la_provider_health_v2_write($request) {
             $prepared[] = array('key' => $key, 'payload' => $encoded);
         }
 
-        $written = 0;
+        // One multi-row upsert commits the complete prepared batch. VALUES()
+        // remains compatible with the site's MariaDB 11.x and supported MySQL.
+        $value_placeholders = array_fill(0, count($prepared), '(%s, %s, %s)');
+        $write_args = array();
         foreach ($prepared as $entry) {
-            $result = $wpdb->replace(
-                $table,
-                array(
-                    'state_key' => $entry['key'],
-                    'payload' => $entry['payload'],
-                    'updated_at' => current_time('mysql', true),
-                ),
-                array('%s', '%s', '%s')
-            );
-            if ($result === false || !empty($wpdb->last_error)) {
-                throw new RuntimeException('Provider-health row write failed.');
-            }
-            $written++;
+            $write_args[] = $entry['key'];
+            $write_args[] = $entry['payload'];
+            $write_args[] = $updated_at;
+        }
+        $upsert_sql = "INSERT INTO {$table} (state_key, payload, updated_at) VALUES "
+            . implode(',', $value_placeholders)
+            . " ON DUPLICATE KEY UPDATE payload = VALUES(payload), updated_at = VALUES(updated_at)";
+        $prepared_sql = $wpdb->prepare($upsert_sql, $write_args);
+        if (!is_string($prepared_sql) || $prepared_sql === '') {
+            throw new RuntimeException('Provider-health batch write could not be prepared.');
         }
 
-        if ($wpdb->query('COMMIT') === false) {
+        $result = $wpdb->query($prepared_sql);
+        if ($result === false || !empty($wpdb->last_error)) {
+            throw new RuntimeException('Provider-health batch write failed.');
+        }
+        // A successful single SQL statement inside this transaction commits all
+        // submitted keys; affected-row counts are not used because MySQL/MariaDB
+        // report different values for inserts, updates, and unchanged updates.
+        $written = count($prepared);
+
+        if ($wpdb->query('COMMIT') === false || !empty($wpdb->last_error)) {
             throw new RuntimeException('Provider-health transaction commit failed.');
         }
     } catch (Throwable $error) {
