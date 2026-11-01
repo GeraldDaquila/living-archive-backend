@@ -9,6 +9,8 @@ on:
       - "clss_evidence_triage.py"
       - "clss_response_validator.py"
       - "clss_deterministic_response.py"
+      - "scripts/clss_synthetic_provider_eval.py"
+      - ".github/workflows/clss-synthetic-provider-evaluation.yml"
       - "tests/test_clss_hybrid_synthesis.py"
       - "tests/test_clss_hybrid_semantic_gate.py"
       - "tests/fixtures/clss/semantic-response-candidates.json"
@@ -23,6 +25,11 @@ on:
   pull_request:
     paths:
       - "clss_hybrid_synthesis.py"
+      - "clss_evidence_triage.py"
+      - "clss_response_validator.py"
+      - "clss_deterministic_response.py"
+      - "scripts/clss_synthetic_provider_eval.py"
+      - ".github/workflows/clss-synthetic-provider-evaluation.yml"
       - "tests/test_clss_hybrid_synthesis.py"
       - "tests/test_clss_hybrid_semantic_gate.py"
       - "tests/fixtures/clss/semantic-response-candidates.json"
