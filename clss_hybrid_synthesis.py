@@ -14,8 +14,8 @@ from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
 from clss_evidence_normalization import normalize_questionnaire_answers
-from tests.clss_deterministic_response import build_deterministic_response
-from tests.clss_response_validator import validate_or_fallback
+from clss_deterministic_response import build_deterministic_response
+from clss_response_validator import validate_or_fallback
 
 CONSENT_PURPOSE = "clss_synthesis"
 CONSENT_NOTICE_VERSION = "clss-synthesis-notice-v1"
