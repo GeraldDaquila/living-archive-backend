@@ -63,8 +63,6 @@ class CLSSHybridSynthesisTests(unittest.TestCase):
         self.assertEqual(called, [])
         self.assertFalse(result["candidate_builder_invoked"])
         self.assertFalse(result["provider_invoked"])
-        self.assertFalse(result["provider_invoked"])
-        self.assertTrue(result["candidate_builder_invoked"])
         self.assertFalse(result["transmission_performed"])
         self.assertEqual(result["path"], "deterministic_fallback")
 
@@ -102,6 +100,8 @@ class CLSSHybridSynthesisTests(unittest.TestCase):
         self.assertEqual(result["path"], "llm")
         self.assertEqual(result["semantic_status"], "unverified_candidate")
         self.assertTrue(result["human_review_required"])
+        self.assertTrue(result["candidate_builder_invoked"])
+        self.assertFalse(result["provider_invoked"])
         self.assertFalse(result["transmission_performed"])
 
     def test_invalid_reference_uses_deterministic_fallback(self):
