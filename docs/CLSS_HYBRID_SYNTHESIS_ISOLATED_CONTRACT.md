@@ -1,6 +1,6 @@
 # CLSS Hybrid Synthesis — Isolated Integration Contract
 
-**Status:** experimental adapter; not connected to WordPress, USE, Provider Bank, or any production request path.
+**Status:** experimental adapter integrated with the USE Provider Bank capability contract on this isolated branch; not connected to WordPress or any production request path.
 
 ## Purpose
 
@@ -9,9 +9,11 @@ Combine deterministic evidence handling with an optional model-generated candida
 ## Current boundary
 
 - The current CLSS WordPress experience remains session-only and does not submit answers to a server.
-- This adapter performs no HTTP calls, provider routing, logging, persistence, or telemetry.
-- An injected candidate builder is used only for offline/mock tests.
-- No real visitor answers may be passed to a provider through this module.
+- The adapter has no direct provider transport or credentials. Its optional `UseProviderCandidateBuilder` delegates to USE's in-process `provider_gateway_service.execute`, which routes only through Provider Bank.
+- Provider Bank now exposes a dedicated `clss_synthesis` operation with structured reasoning capability requirements and a 1,200-token operation floor.
+- The adapter does not log or persist answer text. It reports provider invocation and transmission separately when the real USE builder is used.
+- Tests use an injected mock gateway executor. No real provider call or real visitor-answer transmission has been performed.
+- The new capability is present only on the isolated Git branch. It is not in the live `main` branch or active Render runtime.
 - Missing answers remain gaps; third-party private intent and suitability remain outside scope.
 
 ## Consent and minimization
@@ -30,8 +32,8 @@ The shared CLSS response validator checks structure, allowed evidence IDs, mode 
 2. Add adversarial tests for fabricated evidence, unsupported causal claims, provenance laundering, overconfident wording, hidden-motive inference, and missing-data penalties.
 3. Independently review provider logging, tracing, retention, subprocessors, and request-body handling before any live transport.
 4. Implement visitor-facing notice and explicit opt-in in a separate reviewed WordPress change. The present production UI must not silently transmit answers.
-5. Only after those gates, propose a separate Provider Bank operation and gateway contract change. Do not alter USE `main.py` or provider pools as part of this isolated adapter.
+5. The dedicated Provider Bank operation and gateway allowlist are now implemented and contract-tested on this isolated branch. Next, audit provider logging/tracing/retention/subprocessors, complete synthetic model evaluation and independent human semantic review, then implement a separately reviewed authenticated CLSS entry route and visitor-facing opt-in. Do not deploy or merge this capability before those gates.
 
 ## Release decision
 
-**NO-GO for production integration.** This branch is a testable seam only. No live route, public privacy claim, or visitor experience is changed.
+**NO-GO for production integration.** The USE gateway capability is integrated in the isolated branch, but no CLSS entry route is wired, no provider has been invoked for CLSS, no visitor answers have been transmitted, and no public privacy claim or visitor experience has changed.
