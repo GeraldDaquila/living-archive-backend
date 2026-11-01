@@ -17,6 +17,7 @@ class WP_Error {
 function is_wp_error($value) { return $value instanceof WP_Error; }
 function sanitize_key($value) { return strtolower(preg_replace('/[^a-z0-9_\-]/', '', (string)$value)); }
 function sanitize_text_field($value) { return trim(strip_tags((string)$value)); }
+if (!function_exists('mb_substr')) { function mb_substr($value, $start, $length = null) { return $length === null ? substr($value, $start) : substr($value, $start, $length); } }
 function wp_json_encode($value) {
     $GLOBALS['encode_calls'] = ($GLOBALS['encode_calls'] ?? 0) + 1;
     if (($GLOBALS['fail_encode_on'] ?? 0) === $GLOBALS['encode_calls']) {
