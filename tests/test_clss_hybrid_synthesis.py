@@ -61,7 +61,11 @@ class CLSSHybridSynthesisTests(unittest.TestCase):
             candidate_builder=lambda request: called.append(request),
         )
         self.assertEqual(called, [])
+        self.assertFalse(result["candidate_builder_invoked"])
         self.assertFalse(result["provider_invoked"])
+        self.assertFalse(result["provider_invoked"])
+        self.assertTrue(result["candidate_builder_invoked"])
+        self.assertFalse(result["transmission_performed"])
         self.assertEqual(result["path"], "deterministic_fallback")
 
     def test_wrong_purpose_or_notice_is_rejected(self):
