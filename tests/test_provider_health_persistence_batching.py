@@ -195,3 +195,14 @@ def test_behavioral_last_operation_is_exported():
     assert exported["last_operation"] == "hrn_relational"
     assert "probe_successes" not in exported
     assert exported["probe_in_flight"] is False
+
+
+def test_shared_health_read_rejects_wrong_contract_version(monkeypatch):
+    monkeypatch.setattr(health_store, "_READ_CACHE", None)
+    monkeypatch.setattr(health_store, "_READ_CACHE_UNTIL", 0.0)
+    monkeypatch.setattr(
+        health_store,
+        "_request",
+        lambda method, payload=None: {"contract_version": "v1", "states": {}},
+    )
+    assert health_store.load_remote_states() is None
