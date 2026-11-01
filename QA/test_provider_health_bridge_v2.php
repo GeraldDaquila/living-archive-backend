@@ -334,9 +334,6 @@ foreach ($fixtures['cases'] as $case) {
     }
 }
 
-echo "PASS: WordPress provider-health v2 contract harness\n";
-
-
 $merged = la_provider_health_v2_merge(
     array(
         'last_failure' => 40.0,
@@ -363,3 +360,5 @@ $merged = la_provider_health_v2_merge(
 check($merged['last_operation'] === 'new_operation', 'stale remote failure cannot overwrite operation context');
 check($merged['last_error'] === 'newer local error', 'stale remote failure cannot overwrite error');
 check($merged['cooldown_until'] === 100.0, 'stale remote failure cannot reduce or replace local cooldown');
+
+echo "PASS: WordPress provider-health v2 contract harness\n";
