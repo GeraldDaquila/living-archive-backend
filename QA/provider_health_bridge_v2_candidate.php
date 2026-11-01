@@ -311,10 +311,11 @@ function la_provider_health_v2_register_routes() {
 function la_provider_health_v2_read() {
     global $wpdb;
     $table = la_provider_health_v2_table_name();
-    // Stable capacity policy: lexicographically first 100 keys, always in the
-    // same order. Capacity is explicit and does not depend on query-plan order.
+    // Stable capacity policy: retain the 100 most recently updated states;
+    // use state_key as a deterministic tie-breaker and response ordering.
+    // This prevents older alphabetically early keys from starving new models.
     $rows = $wpdb->get_results(
-        "SELECT state_key, payload FROM {$table} ORDER BY state_key ASC LIMIT 100",
+        "SELECT state_key, payload FROM {$table} ORDER BY updated_at DESC, state_key ASC LIMIT 100",
         ARRAY_A
     );
     if ($rows === false || !empty($wpdb->last_error)) {
