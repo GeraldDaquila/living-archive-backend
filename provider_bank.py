@@ -2,6 +2,7 @@
 import base64, json, mimetypes, os, re, threading, urllib.error, urllib.parse, urllib.request
 from collections import OrderedDict
 import time
+from functools import wraps
 
 from provider_quota_control import (
     QuotaAdmissionDenied,
@@ -11,7 +12,7 @@ from provider_quota_control import (
 
 from provider_resilience import (
     CONTRACT_VERSION as RESILIENCE_CONTRACT_VERSION,
-    acquire_probe,
+    acquire_probe as _acquire_probe,
     aggregate_provider_health,
     blocked,
     new_state,
@@ -221,10 +222,51 @@ OPERATION_REQUIREMENTS = {
 }
 
 _STATE = {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}}
+_STATE_LOCK = threading.RLock()
 # Shared health writes are synchronous HTTP requests. During one provider-bank
 # route, collect health events locally and persist one coherent snapshot at the
 # route boundary instead of paying a WordPress round trip for every failed model.
 _PERSIST_CONTEXT = threading.local()
+
+
+def _state_locked(function):
+    """Serialize bounded in-memory state access; never use around network I/O."""
+    @wraps(function)
+    def wrapped(*args, **kwargs):
+        with _STATE_LOCK:
+            return function(*args, **kwargs)
+    return wrapped
+
+
+def _state_transition(function):
+    """Lock a state transition, then persist outside the state lock."""
+    @wraps(function)
+    def wrapped(*args, **kwargs):
+        already_deferred = bool(getattr(_PERSIST_CONTEXT, "defer", False))
+        if not already_deferred:
+            _PERSIST_CONTEXT.defer = True
+            _PERSIST_CONTEXT.dirty = False
+        try:
+            with _STATE_LOCK:
+                result = function(*args, **kwargs)
+        finally:
+            if not already_deferred:
+                dirty = bool(getattr(_PERSIST_CONTEXT, "dirty", False))
+                _PERSIST_CONTEXT.defer = False
+                _PERSIST_CONTEXT.dirty = False
+                if dirty:
+                    _mark_shared_state_pending()
+                    _flush_pending_shared_state()
+        return result
+    return wrapped
+
+
+def acquire_probe(state):
+    """Claim a half-open probe atomically across concurrent provider requests."""
+    with _STATE_LOCK:
+        return _acquire_probe(state)
+
+
 # Failed route-boundary writes remain pending and are retried at the next
 # eligible persistence boundary. The version prevents an older successful
 # flush from clearing a newer route's dirty marker.
@@ -253,42 +295,43 @@ def _sync_shared_state():
         _SHARED_STATE_DIAGNOSTICS["last_error"] = "shared health store unavailable or not configured"
         return
     now = time.time()
-    for key, incoming in remote.items():
-        if not isinstance(incoming, dict):
-            continue
-        if key.startswith("quality:"):
-            provider = str(incoming.get("provider") or "")
-            model = str(incoming.get("model") or "")
-            operation = str(incoming.get("operation") or "")
-            quality_states = _STATE.setdefault("quality", {})
-            local = quality_states.get(key)
+    with _STATE_LOCK:
+        for key, incoming in remote.items():
+            if not isinstance(incoming, dict):
+                continue
+            if key.startswith("quality:"):
+                provider = str(incoming.get("provider") or "")
+                model = str(incoming.get("model") or "")
+                operation = str(incoming.get("operation") or "")
+                quality_states = _STATE.setdefault("quality", {})
+                local = quality_states.get(key)
+                if local is None:
+                    local = {
+                        "provider": provider,
+                        "model": model,
+                        "operation": operation,
+                        "quality_failures": 0,
+                        "last_quality_failure": 0.0,
+                        "last_quality_success": 0.0,
+                        "quality_cooldown_until": 0.0,
+                        "quality_error": "",
+                    }
+                    quality_states[key] = local
+                merge_health_state(local, incoming, now=now)
+                continue
+            provider = str(incoming.get("provider") or key.split(":", 1)[0])
+            model = str(incoming.get("model") or key.split(":", 1)[-1])
+            local = _STATE["models"].get(key)
             if local is None:
-                local = {
-                    "provider": provider,
-                    "model": model,
-                    "operation": operation,
-                    "quality_failures": 0,
-                    "last_quality_failure": 0.0,
-                    "last_quality_success": 0.0,
-                    "quality_cooldown_until": 0.0,
-                    "quality_error": "",
-                }
-                quality_states[key] = local
+                local = new_state(provider, model)
+                _STATE["models"][key] = local
             merge_health_state(local, incoming, now=now)
-            continue
-        provider = str(incoming.get("provider") or key.split(":", 1)[0])
-        model = str(incoming.get("model") or key.split(":", 1)[-1])
-        local = _STATE["models"].get(key)
-        if local is None:
-            local = new_state(provider, model)
-            _STATE["models"][key] = local
-        merge_health_state(local, incoming, now=now)
-    _SHARED_STATE_DIAGNOSTICS.update({
-        "mode": "shared_wordpress_database",
-        "available": True,
-        "last_sync": now,
-        "last_error": "",
-    })
+        _SHARED_STATE_DIAGNOSTICS.update({
+            "mode": "shared_wordpress_database",
+            "available": True,
+            "last_sync": now,
+            "last_error": "",
+        })
 
 
 def _mark_shared_state_pending():
@@ -308,9 +351,12 @@ def _flush_pending_shared_state():
             if not _PENDING_SHARED_STATE:
                 return True
             snapshot_version = _PENDING_SHARED_STATE_VERSION
-        combined_state = dict(_STATE["models"])
-        combined_state.update(_STATE.setdefault("quality", {}))
-        ok = save_remote_states(export_health_states(combined_state))
+        with _STATE_LOCK:
+            combined_state = dict(_STATE["models"])
+            combined_state.update(_STATE.setdefault("quality", {}))
+            snapshot = export_health_states(combined_state)
+        # Network I/O is deliberately outside the provider-state lock.
+        ok = save_remote_states(snapshot)
         if ok:
             with _PENDING_SHARED_STATE_LOCK:
                 if _PENDING_SHARED_STATE_VERSION == snapshot_version:
@@ -352,6 +398,7 @@ class ProviderCallError(RuntimeError):
 def _csv(name):
     return [x.strip() for x in os.getenv(name, "").split(",") if x.strip()]
 
+@_state_locked
 def _state(provider, model):
     key = provider + ":" + model
     return _STATE["models"].setdefault(key, new_state(provider, model))
@@ -361,6 +408,7 @@ def _quality_key(operation, provider, model):
     return "quality:" + str(operation) + ":" + provider + ":" + model
 
 
+@_state_locked
 def _quality_state(operation, provider, model, create=False):
     key = _quality_key(operation, provider, model)
     quality_states = _STATE.setdefault("quality", {})
@@ -379,6 +427,7 @@ def _quality_state(operation, provider, model, create=False):
         "quality_error": "",
     })
 
+@_state_locked
 def _blocked(state):
     # Older provider-bank builds escalated repeated short client timeouts to a
     # five-minute open circuit. When the failure is specifically a read/HTTP
@@ -405,6 +454,7 @@ def _blocked(state):
                 pass
     return blocked(state)
 
+@_state_locked
 def _blocked_for_operation(state, operation):
     """Do not let a model timeout in one operation suppress a different operation."""
     category = str(state.get("category") or "")
@@ -417,6 +467,7 @@ def _blocked_for_operation(state, operation):
         return False
     return _blocked(state)
 
+@_state_transition
 def _failure(exc, provider, model, operation=None):
     state = _state(provider, model)
     state["last_operation"] = str(operation or state.get("last_operation") or "")
@@ -558,6 +609,7 @@ def _is_movement_brief_input_failure(operation, reason):
     )
 
 
+@_state_transition
 def _record_quality_rejection(provider, model, operation, reason):
     """Penalize provider output, not malformed upstream grounding input."""
     if _is_movement_brief_input_failure(operation, reason):
@@ -595,6 +647,7 @@ def _record_quality_rejection(provider, model, operation, reason):
     _persist_shared_state()
 
 
+@_state_transition
 def _success(provider, model, operation):
     state = _state(provider, model)
     was_recovery = str(state.get("state") or "") == "half_open"
@@ -1185,6 +1238,7 @@ def _eligible(provider, model, operation, schema=None):
         return False, sorted(missing)
     return True, []
 
+@_state_locked
 def candidates(use_core, operation="generic", schema=None):
     global _LAST_PROVIDER_INVENTORY_DIAGNOSTIC
     out = []
@@ -1286,6 +1340,7 @@ def _hrn_attempt_cap():
     return max(1, min(2, configured))
 
 
+@_state_locked
 def select(use_core, operation="generic", schema=None):
     items = candidates(use_core, operation=operation, schema=schema)
     if not items: return []
@@ -3169,6 +3224,7 @@ def refresh_shared_health_state():
     _sync_shared_state()
 
 
+@_state_locked
 def snapshot(use_core):
     configured = _configured(use_core)
     all_items = [
