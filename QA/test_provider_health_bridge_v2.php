@@ -396,12 +396,13 @@ check(is_wp_error($result), 'input serialization failure rejected');
 check($GLOBALS['wpdb']->writes === $before_writes, 'serialization failure writes nothing');
 $GLOBALS['fail_encode_on'] = 0;
 
-// A merged-record serialization failure also occurs before the first DB write.
+// A merged-record serialization failure rolls back any reserved placeholder row.
+$before_rows = $GLOBALS['wpdb']->rows;
 $GLOBALS['encode_calls'] = 0;
 $GLOBALS['fail_encode_on'] = 2;
 $result = la_provider_health_v2_write(new FakeRequest(valid_body(1)));
 check(is_wp_error($result), 'merged serialization failure rejected');
-check($GLOBALS['wpdb']->writes === $before_writes, 'merged serialization failure writes nothing');
+check($GLOBALS['wpdb']->rows === $before_rows, 'merged serialization failure commits no placeholder or provider state');
 $GLOBALS['fail_encode_on'] = 0;
 
 // A failure on the second write rolls back the first write in the same batch.
@@ -558,7 +559,7 @@ if (getenv('PROVIDER_HEALTH_MARIADB_DSN')) {
     check($response->data['submitted'] === 100 && $response->data['written'] === 100, 'MariaDB acknowledgement counts are exact');
     check($mariadb->batch_read_queries === 1, 'MariaDB uses one locking batch SELECT');
     check($mariadb->batch_write_queries === 1, 'MariaDB uses one multi-row upsert');
-    check($mariadb->statement_count - $before_statements === 4, '100-record MariaDB write uses exactly four statements including transaction boundaries');
+    check($mariadb->statement_count - $before_statements === 5, '100-record MariaDB write uses exactly five statements including key reservation and transaction boundaries');
     $row_count = (int)$pdo->query("SELECT COUNT(*) FROM wp_la_provider_health")->fetchColumn();
     check($row_count === 100, 'MariaDB committed all 100 records');
 
