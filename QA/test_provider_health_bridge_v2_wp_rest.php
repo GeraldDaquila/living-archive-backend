@@ -138,4 +138,40 @@ $bulk_get_states = $bulk_get_response['states'] ?? array();
 wp_check(count($bulk_get_states) === 100, 'real WordPress REST GET retains exactly the 100 most recently updated states');
 wp_check(isset($bulk_get_states['groq:bulk-001'], $bulk_get_states['groq:bulk-100']), 'real WordPress REST GET retains the full recent bulk window');
 
+$pdo = new PDO(
+    (string)getenv('PROVIDER_HEALTH_MARIADB_DSN'),
+    (string)getenv('PROVIDER_HEALTH_MARIADB_USER'),
+    (string)getenv('PROVIDER_HEALTH_MARIADB_PASSWORD'),
+    array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION)
+);
+$trigger = 'provider_health_v2_fail_second';
+$pdo->exec("DROP TRIGGER IF EXISTS {$trigger}");
+$pdo->exec(
+    "CREATE TRIGGER {$trigger}
+     BEFORE INSERT ON wp_la_provider_health
+     FOR EACH ROW
+     BEGIN
+       IF NEW.state_key = 'groq:rollback-probe' THEN
+         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'synthetic provider-health write failure';
+       END IF;
+     END"
+);
+try {
+    $rollback_states = new stdClass();
+    $rollback_states->{'groq:rollback-before'} = $initial_states['groq:wp-model-a'];
+    $rollback_states->{'groq:rollback-probe'} = $initial_states['groq:wp-model-b'];
+    $rollback_body = json_encode(array(
+        'contract_version' => 'v2',
+        'states' => $rollback_states,
+    ));
+    list($rollback_status) = wp_request($endpoint, 'POST', $rollback_body);
+    wp_check($rollback_status === 500, 'real WordPress REST reports a failed multi-row write');
+    $rollback_count = (int)$pdo->query(
+        "SELECT COUNT(*) FROM wp_la_provider_health WHERE state_key IN ('groq:rollback-before', 'groq:rollback-probe')"
+    )->fetchColumn();
+    wp_check($rollback_count === 0, 'real WordPress/MariaDB rolls back the entire multi-row write after a mid-batch trigger failure');
+} finally {
+    $pdo->exec("DROP TRIGGER IF EXISTS {$trigger}");
+}
+
 echo "PASS: WordPress 7.1.4 REST route, auth, schema activation, v2 contract, and 100-record MariaDB batch integration\n";
