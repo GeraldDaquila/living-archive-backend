@@ -41,6 +41,18 @@ class CLSSUseProviderCapabilityTests(unittest.TestCase):
         })
         self.assertEqual(provider_bank.OPERATION_TOKEN_FLOORS["clss_synthesis"], 1200)
 
+    def test_only_models_with_all_required_capabilities_are_eligible(self):
+        eligible, missing = provider_bank._eligible(
+            "groq", "openai/gpt-oss-120b", "clss_synthesis"
+        )
+        self.assertTrue(eligible)
+        self.assertEqual(missing, [])
+        eligible, missing = provider_bank._eligible(
+            "mistral", "mistral-small-latest", "clss_synthesis"
+        )
+        self.assertFalse(eligible)
+        self.assertIn("reasoning", missing)
+
     def test_gateway_routes_clss_through_shared_provider_bank(self):
         parsed = {
             "mode": "self",
