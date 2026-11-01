@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import provider_health_store
 
 
-KEY = "groq:cross-process-provider-health-v2"
+KEY = "groq:000-cross-process-provider-health-v2"
 
 
 def configure_ephemeral_bridge() -> tuple[str, str]:
