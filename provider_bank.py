@@ -3251,9 +3251,14 @@ def refresh_shared_health_state():
     _sync_shared_state()
 
 
-@_state_locked
 def snapshot(use_core):
+    # Provider inventory discovery can perform a bounded remote lookup.
     configured = _configured(use_core)
+    return _snapshot_from_configured(configured)
+
+
+@_state_locked
+def _snapshot_from_configured(configured):
     all_items = [
         {"provider": provider, "model": model}
         for provider, models in configured.items()
