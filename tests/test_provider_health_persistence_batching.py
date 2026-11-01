@@ -93,6 +93,43 @@ def test_failed_route_flush_remains_pending_and_retries_at_next_boundary(monkeyp
     assert provider_bank._PENDING_SHARED_STATE is False
 
 
+def test_health_flush_serializes_an_immutable_record_snapshot(monkeypatch):
+    _reset_pending_persistence()
+    state = provider_bank.new_state("groq", "model-a")
+    state["last_error"] = "captured-before-snapshot"
+    monkeypatch.setattr(provider_bank, "_STATE", {
+        "models": {"groq:model-a": state},
+        "quality": {},
+        "provider_cursor": 0,
+        "model_cursors": {},
+    })
+    entered_export = threading.Event()
+    release_export = threading.Event()
+    writes = []
+    original_export = provider_bank.export_health_states
+
+    def paused_export(records):
+        entered_export.set()
+        assert release_export.wait(timeout=2)
+        return original_export(records)
+
+    monkeypatch.setattr(provider_bank, "export_health_states", paused_export)
+    monkeypatch.setattr(provider_bank, "save_remote_states", lambda snapshot: writes.append(snapshot) or True)
+    provider_bank._mark_shared_state_pending()
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        flush = pool.submit(provider_bank._flush_pending_shared_state)
+        assert entered_export.wait(timeout=1)
+        # A concurrent transition after snapshot capture must not mutate the
+        # record being serialized outside the provider-state lock.
+        with provider_bank._STATE_LOCK:
+            state["last_error"] = "changed-after-snapshot"
+        release_export.set()
+        assert flush.result(timeout=2) is True
+
+    assert writes[0]["groq:model-a"]["last_error"] == "captured-before-snapshot"
+
+
 def test_newer_dirty_version_is_not_cleared_by_older_successful_flush(monkeypatch):
     _reset_pending_persistence()
     monkeypatch.setattr(provider_bank, "_STATE", {
