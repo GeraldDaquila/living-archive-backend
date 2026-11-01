@@ -244,6 +244,20 @@ class ProviderHealthStoreTests(unittest.TestCase):
         self.assertEqual(len(results), 8)
         self.assertTrue(all(result and "groq:model-a" in result for result in results))
 
+    def test_request_serialization_failure_does_not_leak_transport_slot(self):
+        slot = threading.BoundedSemaphore(1)
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \\
+             patch.object(provider_health_store, "_REQUEST_SLOT", slot), \\
+             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \\
+             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False), \\
+             patch.object(provider_health_store, "urlopen") as request:
+            result = provider_health_store._request("POST", {"not_json_safe": object()})
+            self.assertIsNone(result)
+            request.assert_not_called()
+            # Request preparation failed before reserving the only worker slot.
+            self.assertTrue(slot.acquire(blocking=False))
+            slot.release()
+
     def test_total_deadline_bounds_a_stalled_transport_worker(self):
         started = threading.Event()
         release = threading.Event()
