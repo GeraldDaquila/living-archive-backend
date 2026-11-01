@@ -16,6 +16,24 @@ permissions:
 jobs:
   php-contract:
     runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11.8
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_ROOT_HOST: "%"
+          MARIADB_DATABASE: provider_health_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      PROVIDER_HEALTH_MARIADB_DSN: "mysql:host=127.0.0.1;port=3306;dbname=provider_health_test;charset=utf8mb4"
+      PROVIDER_HEALTH_MARIADB_USER: root
+      PROVIDER_HEALTH_MARIADB_PASSWORD: root
     strategy:
       fail-fast: false
       matrix:
@@ -28,9 +46,10 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
+          extensions: pdo_mysql
       - name: PHP syntax checks
         run: |
           php -l QA/provider_health_bridge_v2_candidate.php
           php -l QA/test_provider_health_bridge_v2.php
-      - name: Run WordPress bridge contract harness
+      - name: Run WordPress bridge contract and MariaDB 11.8 integration harness
         run: php QA/test_provider_health_bridge_v2.php
