@@ -48,3 +48,69 @@ def test_multiple_candidate_failures_persist_one_shared_health_snapshot(monkeypa
     assert set(writes[0]) >= {"groq:model-a", "nvidia:model-b"}
     assert provider_bank._PERSIST_CONTEXT.defer is False
     assert provider_bank._PERSIST_CONTEXT.dirty is False
+
+
+def _reset_pending_persistence():
+    with provider_bank._PENDING_SHARED_STATE_LOCK:
+        provider_bank._PENDING_SHARED_STATE = False
+        provider_bank._PENDING_SHARED_STATE_VERSION = 0
+    provider_bank._PERSIST_CONTEXT.defer = False
+    provider_bank._PERSIST_CONTEXT.dirty = False
+
+
+def test_failed_route_flush_remains_pending_and_retries_at_next_boundary(monkeypatch):
+    _reset_pending_persistence()
+    monkeypatch.setattr(provider_bank, "_STATE", {
+        "models": {"groq:model-a": {"provider": "groq", "model": "model-a"}},
+        "quality": {},
+        "provider_cursor": 0,
+        "model_cursors": {},
+    })
+    writes = []
+    outcomes = iter([False, True])
+
+    def save(states):
+        writes.append(states)
+        return next(outcomes)
+
+    monkeypatch.setattr(provider_bank, "save_remote_states", save)
+    provider_bank._PERSIST_CONTEXT.defer = True
+    provider_bank._PERSIST_CONTEXT.dirty = True
+
+    provider_bank._route_result(None)
+    assert len(writes) == 1
+    assert provider_bank._PENDING_SHARED_STATE is True
+
+    # A later route boundary retries even if that route had no new health event.
+    provider_bank._route_result(None)
+    assert len(writes) == 2
+    assert provider_bank._PENDING_SHARED_STATE is False
+
+
+def test_newer_dirty_version_is_not_cleared_by_older_successful_flush(monkeypatch):
+    _reset_pending_persistence()
+    monkeypatch.setattr(provider_bank, "_STATE", {
+        "models": {"groq:model-a": {"provider": "groq", "model": "model-a"}},
+        "quality": {},
+        "provider_cursor": 0,
+        "model_cursors": {},
+    })
+    writes = []
+
+    def save(states):
+        writes.append(states)
+        if len(writes) == 1:
+            # Simulate another route recording a new change while this snapshot
+            # is in flight. Its newer version must survive the older ACK.
+            provider_bank._mark_shared_state_pending()
+        return True
+
+    monkeypatch.setattr(provider_bank, "save_remote_states", save)
+    provider_bank._mark_shared_state_pending()
+    assert provider_bank._flush_pending_shared_state() is True
+    assert len(writes) == 1
+    assert provider_bank._PENDING_SHARED_STATE is True
+
+    assert provider_bank._flush_pending_shared_state() is True
+    assert len(writes) == 2
+    assert provider_bank._PENDING_SHARED_STATE is False
