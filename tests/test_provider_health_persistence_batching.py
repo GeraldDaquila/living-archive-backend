@@ -364,3 +364,98 @@ def test_quality_rejection_and_validated_success_are_atomic(monkeypatch):
     else:
         assert quality["quality_cooldown_until"] > 0.0
         assert quality["quality_error"] == "prescriptive-language"
+
+
+def test_newer_remote_failure_merges_operation_specific_cooldown_context():
+    local = {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "healthy",
+        "last_failure": 10.0,
+        "last_success": 5.0,
+        "last_operation": "general_guide_composition",
+        "failures": 1,
+        "consecutive_failures": 1,
+        "cooldown_until": 20.0,
+    }
+    remote = {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "open",
+        "last_failure": 30.0,
+        "last_success": 5.0,
+        "last_operation": "hrn_relational",
+        "failures": 2,
+        "consecutive_failures": 2,
+        "cooldown_until": 90.0,
+        "category": "provider_failure",
+        "last_error": "read operation timed out",
+    }
+
+    health_store.merge_health_state(local, remote, now=31.0)
+
+    assert local["last_operation"] == "hrn_relational"
+    assert local["state"] == "open"
+
+
+def test_equal_timestamp_failure_merge_uses_higher_consecutive_count_operation():
+    local = {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "open",
+        "last_failure": 30.0,
+        "last_success": 5.0,
+        "last_operation": "general_guide_composition",
+        "failures": 2,
+        "consecutive_failures": 1,
+        "cooldown_until": 90.0,
+    }
+    remote = {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "open",
+        "last_failure": 30.0,
+        "last_success": 5.0,
+        "last_operation": "hrn_relational",
+        "failures": 3,
+        "consecutive_failures": 2,
+        "cooldown_until": 100.0,
+        "category": "provider_failure",
+        "last_error": "request timed out",
+    }
+
+    health_store.merge_health_state(local, remote, now=31.0)
+
+    assert local["failures"] == 3
+    assert local["consecutive_failures"] == 2
+    assert local["last_operation"] == "hrn_relational"
+
+
+def test_expired_remote_failure_cooldown_becomes_half_open():
+    local = {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "open",
+        "last_failure": 20.0,
+        "last_success": 10.0,
+        "failures": 1,
+        "consecutive_failures": 1,
+        "cooldown_until": 25.0,
+        "quarantine_until": 0.0,
+    }
+    remote = {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "open",
+        "last_failure": 20.0,
+        "last_success": 10.0,
+        "failures": 1,
+        "consecutive_failures": 1,
+        "cooldown_until": 25.0,
+        "quarantine_until": 0.0,
+    }
+
+    health_store.merge_health_state(local, remote, now=30.0)
+
+    assert local["state"] == "half_open"
+    assert local["probe_in_flight"] is False
