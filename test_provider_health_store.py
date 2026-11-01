@@ -246,10 +246,10 @@ class ProviderHealthStoreTests(unittest.TestCase):
 
     def test_request_serialization_failure_does_not_leak_transport_slot(self):
         slot = threading.BoundedSemaphore(1)
-        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \\
-             patch.object(provider_health_store, "_REQUEST_SLOT", slot), \\
-             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \\
-             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False), \\
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \
+             patch.object(provider_health_store, "_REQUEST_SLOT", slot), \
+             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False), \
              patch.object(provider_health_store, "urlopen") as request:
             result = provider_health_store._request("POST", {"not_json_safe": object()})
             self.assertIsNone(result)
