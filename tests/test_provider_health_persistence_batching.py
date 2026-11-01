@@ -605,3 +605,22 @@ def test_provider_inventory_discovery_runs_outside_provider_state_lock(monkeypat
     assert lock_acquired.is_set()
     assert len(result) == 1
     assert result[0]["model"] == "model-a"
+
+
+def test_provider_inventory_discovery_runs_outside_snapshot_state_lock(monkeypatch):
+    lock_acquired = threading.Event()
+
+    class Core:
+        def get_live_groq_models(self):
+            with provider_bank._STATE_LOCK:
+                lock_acquired.set()
+            return ["model-a"]
+
+    monkeypatch.setattr(provider_bank, "PRODUCTION_GROQ_MODELS", ["model-a"])
+    monkeypatch.setattr(provider_bank, "_snapshot_from_configured", lambda configured: configured)
+    monkeypatch.setenv("GROQ_API_KEY", "test-key")
+
+    result = provider_bank.snapshot(Core())
+
+    assert lock_acquired.is_set()
+    assert result == {"groq": ["model-a"]}
