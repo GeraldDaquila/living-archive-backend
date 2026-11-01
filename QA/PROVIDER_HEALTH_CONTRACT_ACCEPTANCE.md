@@ -117,6 +117,7 @@ A green CI run alone is not production acceptance.
 - provider_health_store.py speaks contract v2 and rejects wrong-version reads and incomplete writes.
 - provider_bank.py retains failed writes as one versioned pending marker, retries at route boundaries, and avoids waiting behind another in-flight persistence call.
 - Health transitions, candidate selection/cursors, shared-state merge, snapshot creation, and half-open probe ownership use a narrow state lock.
+- Remote provider inventory discovery runs before acquiring that lock; stale candidate snapshots are rechecked for transport and quality cooldowns before a probe or provider call.
 - Snapshot serialization occurs under the state lock; HTTP persistence occurs outside it.
 - A visitor-contract rejection releases a half-open transport probe claim.
 
@@ -131,9 +132,9 @@ A green CI run alone is not production acceptance.
 ### Shared parity and test evidence
 - QA/provider_health_merge_fixtures_v2.json is consumed by both Python and PHP tests.
 - QA/test_provider_health_bridge_v2.php exercises validation, exact acknowledgement, transaction rollback, serialization failures, deterministic GET capacity, and shared merge fixtures.
-- The dedicated PHP workflow passed PHP 8.3 syntax checks and the WordPress bridge contract harness.
+- The dedicated PHP workflow passed PHP 8.3 and 8.4 syntax checks and the WordPress bridge contract harness.
 - The provider-health/pathway Python regression workflow passed (27 tests).
-- The expanded provider-health batching suite passed: 24 passed in 0.09s. The complete v487 ecosystem validation workflow subsequently completed successfully.
+- The expanded provider-health batching suite passed: 27 tests. The complete v487 ecosystem validation workflow subsequently completed successfully.
 
 ### Remaining release gates
 - Complete the full v487 ecosystem regression workflow.
