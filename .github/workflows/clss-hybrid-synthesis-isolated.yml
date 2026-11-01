@@ -6,6 +6,12 @@ on:
       - "clss/hybrid-synthesis-isolated"
     paths:
       - "clss_hybrid_synthesis.py"
+      - "provider_gateway_service.py"
+      - "provider_bank.py"
+      - "tests/test_clss_use_provider_capability.py"
+      - "provider_gateway_service.py"
+      - "provider_bank.py"
+      - "tests/test_clss_use_provider_capability.py"
       - "clss_evidence_triage.py"
       - "clss_response_validator.py"
       - "clss_deterministic_response.py"
@@ -25,6 +31,9 @@ on:
   pull_request:
     paths:
       - "clss_hybrid_synthesis.py"
+      - "provider_gateway_service.py"
+      - "provider_bank.py"
+      - "tests/test_clss_use_provider_capability.py"
       - "clss_evidence_triage.py"
       - "clss_response_validator.py"
       - "clss_deterministic_response.py"
@@ -55,9 +64,9 @@ jobs:
         with:
           python-version: "3.12"
       - name: Compile adapter and tests
-        run: python -m py_compile clss_hybrid_synthesis.py clss_evidence_triage.py clss_response_validator.py clss_deterministic_response.py scripts/clss_synthetic_provider_eval.py tests/test_clss_hybrid_synthesis.py tests/test_clss_hybrid_semantic_gate.py
+        run: python -m py_compile clss_hybrid_synthesis.py clss_evidence_triage.py clss_response_validator.py clss_deterministic_response.py provider_gateway_service.py provider_bank.py scripts/clss_synthetic_provider_eval.py tests/test_clss_hybrid_synthesis.py tests/test_clss_hybrid_semantic_gate.py tests/test_clss_use_provider_capability.py
       - name: Run isolated adapter tests
-        run: python -m unittest -v tests.test_clss_hybrid_synthesis
+        run: python -m unittest -v tests.test_clss_hybrid_synthesis tests.test_clss_use_provider_capability
       - name: Run five-profile semantic and adversarial gate tests
         run: python -m unittest -v tests.test_clss_hybrid_semantic_gate tests.test_clss_semantic_candidate_evaluation
       - name: Run existing CLSS contract regressions
