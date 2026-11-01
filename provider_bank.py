@@ -352,8 +352,11 @@ def _mark_shared_state_pending():
 def _flush_pending_shared_state():
     """Flush the latest bounded snapshot; preserve newer dirtiness during I/O."""
     global _PENDING_SHARED_STATE, _LAST_SHARED_STATE_WARNING
-    # Serialize bridge writes so an older snapshot cannot overtake a newer one.
-    with _PENDING_SHARED_STATE_FLUSH_LOCK:
+    # Never make another visitor request wait behind an in-flight bridge write.
+    # A busy flusher leaves the single pending marker for the next route boundary.
+    if not _PENDING_SHARED_STATE_FLUSH_LOCK.acquire(blocking=False):
+        return False
+    try:
         with _PENDING_SHARED_STATE_LOCK:
             if not _PENDING_SHARED_STATE:
                 return True
@@ -385,6 +388,8 @@ def _flush_pending_shared_state():
             print("USE provider resilience: shared health persistence unavailable; using bounded process-local fallback")
             _LAST_SHARED_STATE_WARNING = now
         return False
+    finally:
+        _PENDING_SHARED_STATE_FLUSH_LOCK.release()
 
 
 def _persist_shared_state():
