@@ -61,10 +61,16 @@ class FakeWpdb {
     public $last_error = '';
     public $rows = array();
     public $writes = 0;
-    public $fail_replace_at = 0;
+    public $batch_read_queries = 0;
+    public $bulk_write_queries = 0;
+    public $get_var_calls = 0;
+    public $replace_calls = 0;
+    public $fail_bulk_write = false;
     public $fail_read = false;
     public $fail_commit = false;
     private $backup = null;
+    private $pending_select_keys = null;
+    private $pending_bulk_values = null;
 
     public function query($sql) {
         $this->last_error = '';
@@ -87,15 +93,54 @@ class FakeWpdb {
             $this->backup = null;
             return 0;
         }
+        if ($sql === 'FAKE_PROVIDER_HEALTH_BULK_UPSERT') {
+            $this->bulk_write_queries++;
+            $values = $this->pending_bulk_values;
+            $this->pending_bulk_values = null;
+            if (!is_array($values) || count($values) % 3 !== 0) {
+                $this->last_error = 'invalid simulated bulk-upsert arguments';
+                return false;
+            }
+            $record_count = (int)(count($values) / 3);
+            $apply_count = $this->fail_bulk_write ? min(1, $record_count) : $record_count;
+            for ($i = 0; $i < $apply_count; $i++) {
+                $offset = $i * 3;
+                $key = (string)$values[$offset];
+                $this->rows[$key] = array(
+                    'state_key' => $key,
+                    'payload' => (string)$values[$offset + 1],
+                    'updated_at' => (string)$values[$offset + 2],
+                );
+                $this->writes++;
+            }
+            if ($this->fail_bulk_write) {
+                $this->last_error = 'simulated bulk-upsert failure after partial row application';
+                return false;
+            }
+            return $record_count;
+        }
         return 0;
     }
 
     public function prepare($query, ...$args) {
-        $value = addslashes((string)($args[0] ?? ''));
-        return str_replace('%s', "'" . $value . "'", $query);
+        $values = count($args) === 1 && is_array($args[0]) ? array_values($args[0]) : $args;
+        if (strpos($query, 'WHERE state_key IN') !== false) {
+            $this->pending_select_keys = $values;
+            return $query;
+        }
+        if (strpos($query, 'INSERT INTO') === 0 && strpos($query, 'ON DUPLICATE KEY UPDATE') !== false) {
+            $this->pending_bulk_values = $values;
+            return 'FAKE_PROVIDER_HEALTH_BULK_UPSERT';
+        }
+        $prepared = $query;
+        foreach ($values as $value) {
+            $prepared = preg_replace('/%s/', "'" . addslashes((string)$value) . "'", $prepared, 1);
+        }
+        return $prepared;
     }
 
     public function get_var($sql) {
+        $this->get_var_calls++;
         $this->last_error = '';
         if ($this->fail_read) {
             $this->last_error = 'simulated read failure';
@@ -110,12 +155,9 @@ class FakeWpdb {
     }
 
     public function replace($table, $data, $format) {
+        $this->replace_calls++;
         $this->last_error = '';
         $this->writes++;
-        if ($this->fail_replace_at > 0 && $this->writes === $this->fail_replace_at) {
-            $this->last_error = 'simulated replace failure';
-            return false;
-        }
         $this->rows[$data['state_key']] = array(
             'state_key' => $data['state_key'],
             'payload' => $data['payload'],
@@ -129,6 +171,18 @@ class FakeWpdb {
         if ($this->fail_read) {
             $this->last_error = 'simulated result failure';
             return false;
+        }
+        if (strpos($sql, 'WHERE state_key IN') !== false) {
+            $this->batch_read_queries++;
+            $keys = is_array($this->pending_select_keys) ? $this->pending_select_keys : array();
+            $this->pending_select_keys = null;
+            $rows = array();
+            foreach ($keys as $key) {
+                if (isset($this->rows[$key])) {
+                    $rows[] = $this->rows[$key];
+                }
+            }
+            return $rows;
         }
         $rows = array_values($this->rows);
         usort($rows, function($a, $b) {
@@ -195,6 +249,20 @@ check($response->data['submitted'] === 2 && $response->data['written'] === 2, 'e
 check(count($GLOBALS['wpdb']->rows) === 2, 'both records committed');
 $stored = json_decode($GLOBALS['wpdb']->rows['groq:model-1']['payload'], true);
 check($stored['probe_in_flight'] === false, 'probe ownership forced false');
+check($GLOBALS['wpdb']->batch_read_queries === 1, 'two-record batch uses one locking SELECT');
+check($GLOBALS['wpdb']->bulk_write_queries === 1, 'two-record batch uses one multi-row upsert');
+check($GLOBALS['wpdb']->get_var_calls === 0 && $GLOBALS['wpdb']->replace_calls === 0, 'batch path avoids per-record database calls');
+
+// A maximum-size batch keeps the same constant SQL round-trip count.
+$before_batch_reads = $GLOBALS['wpdb']->batch_read_queries;
+$before_bulk_writes = $GLOBALS['wpdb']->bulk_write_queries;
+$response = la_provider_health_v2_write(new FakeRequest(valid_body(100)));
+check(!is_wp_error($response), '100-record batch accepted');
+check($response->data['submitted'] === 100 && $response->data['written'] === 100, '100-record batch acknowledgement exact');
+check($GLOBALS['wpdb']->batch_read_queries - $before_batch_reads === 1, '100-record batch still uses one locking SELECT');
+check($GLOBALS['wpdb']->bulk_write_queries - $before_bulk_writes === 1, '100-record batch still uses one multi-row upsert');
+check($GLOBALS['wpdb']->get_var_calls === 0 && $GLOBALS['wpdb']->replace_calls === 0, '100-record batch has no per-record database calls');
+check(count($GLOBALS['wpdb']->rows) === 100, '100-record batch committed all unique states');
 
 // Version mismatch is rejected before transaction or writes.
 $before_writes = $GLOBALS['wpdb']->writes;
@@ -237,10 +305,10 @@ $GLOBALS['fail_encode_on'] = 0;
 
 // A failure on the second write rolls back the first write in the same batch.
 $GLOBALS['wpdb'] = new FakeWpdb();
-$GLOBALS['wpdb']->fail_replace_at = 2;
+$GLOBALS['wpdb']->fail_bulk_write = true;
 $result = la_provider_health_v2_write(new FakeRequest(valid_body(2)));
-check(is_wp_error($result), 'mid-batch write failure rejected');
-check(count($GLOBALS['wpdb']->rows) === 0, 'mid-batch write failure rolls back all rows');
+check(is_wp_error($result), 'bulk write failure rejected');
+check(count($GLOBALS['wpdb']->rows) === 0, 'partial bulk write failure rolls back all rows');
 
 // A database read error also rolls back the transaction.
 $GLOBALS['wpdb'] = new FakeWpdb();
