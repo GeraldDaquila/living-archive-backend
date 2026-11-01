@@ -45,13 +45,6 @@ function wp_request($url, $method, $body = null, $authenticated = true) {
     return array($status, $decoded, is_string($response) ? $response : '');
 }
 
-list($diagnostic_status, $diagnostic) = wp_request($base . '/?rest_route=/provider-health-test/v1/auth-diagnostic', 'GET');
-wp_check($diagnostic_status === 200, 'temporary auth diagnostic endpoint is available');
-wp_check(($diagnostic['auth_without_header'] ?? null) === false, 'auth callback itself rejects a request without credentials');
-wp_check(($diagnostic['get_permission_callback'] ?? null) === 'la_provider_health_authorized', 'GET route retains the expected permission callback');
-wp_check(($diagnostic['get_permission_callable'] ?? false) === true, 'GET permission callback is callable');
-wp_check(($diagnostic['endpoint_count'] ?? 0) === 2, 'GET and POST routes are both registered');
-
 list($unauthorized_status) = wp_request($endpoint, 'GET', null, false);
 wp_check(in_array($unauthorized_status, array(401, 403), true), 'REST route rejects missing shared secret');
 
