@@ -138,8 +138,8 @@ A green CI run alone is not production acceptance.
 ### Shared parity and test evidence
 - QA/provider_health_merge_fixtures_v2.json is consumed by both Python and PHP tests.
 - QA/test_provider_health_bridge_v2.php exercises validation, exact acknowledgement, transaction rollback, serialization failures, deterministic GET capacity, and shared merge fixtures.
-- The dedicated PHP workflow passed PHP 8.3 and 8.4 syntax checks and the WordPress bridge contract harness. The cross-process Python client round-trip passed under both PHP 8.3 and 8.4.
-- A real parallel REST test exposed a first-write gap-lock race. The candidate now sorts keys and reserves them with an in-transaction multi-row `INSERT IGNORE` before `SELECT ... FOR UPDATE`; this change is pending fresh CI verification.
+- The dedicated PHP workflow passed PHP 8.3 and 8.4 syntax checks, the WordPress bridge contract harness, real WordPress 7.1.4 REST integration, 100-record MariaDB batch, transaction rollback, concurrent first-write merge, and the three-process Python client round-trip under both PHP 8.3 and 8.4.
+- A real parallel REST test exposed a first-write gap-lock race. The candidate now sorts keys and reserves them with an in-transaction multi-row `INSERT IGNORE` before `SELECT ... FOR UPDATE`. PHP 8.3 and 8.4 CI both passed two simultaneous first-write requests and verified that the final record retained the newer failure timestamp, operation, and consecutive-failure count.
 - The provider-health/pathway Python regression workflow passed (27 tests).
 - The expanded provider-health batching suite passed: 27 tests. The complete v487 ecosystem validation workflow subsequently completed successfully.
 
