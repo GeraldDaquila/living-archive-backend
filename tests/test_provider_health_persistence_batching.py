@@ -199,10 +199,10 @@ def test_behavioral_last_operation_is_exported():
 
 
 def test_shared_health_read_rejects_wrong_contract_version(monkeypatch):
-    monkeypatch.setattr(health_health_store, "_READ_CACHE", None)
-    monkeypatch.setattr(health_health_store, "_READ_CACHE_UNTIL", 0.0)
+    monkeypatch.setattr(health_store, "_READ_CACHE", None)
+    monkeypatch.setattr(health_store, "_READ_CACHE_UNTIL", 0.0)
     monkeypatch.setattr(
-        health_health_store,
+        health_store,
         "_request",
         lambda method, payload=None: {"contract_version": "v1", "states": {}},
     )
