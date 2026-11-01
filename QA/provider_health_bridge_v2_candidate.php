@@ -409,8 +409,33 @@ function la_provider_health_v2_write($request) {
     }
 
     try {
+        // Materialize missing keys before the locking read. Two transactions
+        // cannot both hold a gap lock for the same absent key and then race to
+        // insert it: INSERT IGNORE serializes the unique-key creation first.
+        // The placeholder rows are inside this transaction and are replaced
+        // with fully merged payloads before commit; rollback removes them.
+        $updated_at = current_time('mysql', true);
+        $seed_values = array_fill(0, count($batch), '(%s, %s, %s)');
+        $seed_args = array();
+        foreach ($batch as $entry) {
+            $seed_args[] = $entry['key'];
+            $seed_args[] = '{}';
+            $seed_args[] = $updated_at;
+        }
+        $seed_sql = "INSERT IGNORE INTO {$table} (state_key, payload, updated_at) VALUES "
+            . implode(',', $seed_values);
+        $prepared_seed_sql = $wpdb->prepare($seed_sql, $seed_args);
+        if (!is_string($prepared_seed_sql) || $prepared_seed_sql === '') {
+            throw new RuntimeException('Provider-health key reservation could not be prepared.');
+        }
+        $seed_result = $wpdb->query($prepared_seed_sql);
+        if ($seed_result === false || !empty($wpdb->last_error)) {
+            throw new RuntimeException('Provider-health keys could not be reserved.');
+        }
+
         // One indexed locking read for the complete batch, not one SELECT per state.
-        // The bounded key set is validated before this transaction begins.
+        // Every requested key now exists, so FOR UPDATE takes row locks rather
+        // than competing gap locks for previously absent keys.
         $keys = array_column($batch, 'key');
         $key_placeholders = implode(',', array_fill(0, count($keys), '%s'));
         $select_sql = $wpdb->prepare(
@@ -438,7 +463,6 @@ function la_provider_health_v2_write($request) {
 
         // Merge and serialize every record before the single set-based write.
         $prepared = array();
-        $updated_at = current_time('mysql', true);
         foreach ($batch as $entry) {
             $key = $entry['key'];
             $existing = $existing_by_key[$key] ?? array();
