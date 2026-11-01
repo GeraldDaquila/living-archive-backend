@@ -6,6 +6,8 @@ on:
     paths:
       - "QA/provider_health_bridge_v2_candidate.php"
       - "QA/test_provider_health_bridge_v2.php"
+      - "QA/provider_health_v2_ephemeral_wp_plugin.php"
+      - "QA/test_provider_health_bridge_v2_wp_rest.php"
       - "QA/provider_health_merge_fixtures_v2.json"
       - ".github/workflows/provider-health-bridge-v2.yml"
   workflow_dispatch:
