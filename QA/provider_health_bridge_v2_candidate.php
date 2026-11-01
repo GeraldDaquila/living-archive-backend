@@ -286,6 +286,25 @@ function la_provider_health_v2_merge($old, $incoming, $now = null) {
     return $merged;
 }
 
+/**
+ * Replace the existing v1 rest_api_init route block with this registration.
+ * Keep the current la_provider_health_authorized permission callback unchanged.
+ */
+function la_provider_health_v2_register_routes() {
+    register_rest_route('living-archive/v1', '/provider-health', array(
+        array(
+            'methods' => WP_REST_Server::READABLE,
+            'permission_callback' => 'la_provider_health_authorized',
+            'callback' => 'la_provider_health_v2_read',
+        ),
+        array(
+            'methods' => WP_REST_Server::CREATABLE,
+            'permission_callback' => 'la_provider_health_authorized',
+            'callback' => 'la_provider_health_v2_write',
+        ),
+    ));
+}
+
 function la_provider_health_v2_read() {
     global $wpdb;
     $table = la_provider_health_v2_table_name();
