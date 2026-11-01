@@ -249,5 +249,78 @@ class ProviderHealthStoreTests(unittest.TestCase):
             self.assertFalse(save_remote_states({}))
 
 
+
+    def test_shared_health_read_enforces_total_wall_clock_deadline_on_trickle_body(self):
+        from types import SimpleNamespace
+
+        clock = SimpleNamespace(value=10.0)
+
+        class FakeSocket:
+            def __init__(self):
+                self.timeouts = []
+
+            def settimeout(self, value):
+                self.timeouts.append(value)
+
+        class TrickleResponse:
+            def __init__(self):
+                self.parts = [b'{"contract_version":', b'"v2",', b'"states":{}}']
+                self.fp = SimpleNamespace(raw=SimpleNamespace(_sock=FakeSocket()))
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read1(self, size):
+                clock.value += 0.10
+                return self.parts.pop(0) if self.parts else b""
+
+        response = TrickleResponse()
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \\
+             patch.object(provider_health_store, "_monotonic", side_effect=lambda: clock.value), \\
+             patch.object(provider_health_store, "urlopen", return_value=response) as request, \\
+             patch.object(provider_health_store.time, "monotonic", return_value=10.0):
+            result = provider_health_store._request("GET")
+
+        self.assertIsNone(result)
+        request.assert_called_once()
+        self.assertTrue(response.fp.raw._sock.timeouts)
+        self.assertTrue(all(value <= provider_health_store.TIMEOUT_SECONDS for value in response.fp.raw._sock.timeouts))
+
+    def test_shared_health_read_accepts_complete_body_within_total_deadline(self):
+        from types import SimpleNamespace
+
+        clock = SimpleNamespace(value=20.0)
+
+        class FakeSocket:
+            def settimeout(self, value):
+                self.timeout = value
+
+        class FastResponse:
+            def __init__(self):
+                self.parts = [b'{"contract_version":"v2",', b'"states":{}}']
+                self.fp = SimpleNamespace(raw=SimpleNamespace(_sock=FakeSocket()))
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read1(self, size):
+                clock.value += 0.04
+                return self.parts.pop(0) if self.parts else b""
+
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \\
+             patch.object(provider_health_store, "_monotonic", side_effect=lambda: clock.value), \\
+             patch.object(provider_health_store, "urlopen", return_value=FastResponse()), \\
+             patch.object(provider_health_store.time, "monotonic", return_value=20.0):
+            result = provider_health_store._request("GET")
+
+        self.assertEqual(result, {"contract_version": "v2", "states": {}})
+
+
 if __name__ == "__main__":
     unittest.main()
