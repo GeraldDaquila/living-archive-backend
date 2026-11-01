@@ -193,6 +193,9 @@ def _request(method, payload=None):
             result_box["outcome"] = f"http_error_{int(error.code)}"
         except (URLError, HTTPException, TimeoutError, OSError, ValueError, json.JSONDecodeError) as error:
             result_box["outcome"] = "transport_error_" + type(error).__name__
+            if isinstance(error, TimeoutError):
+                # These are fixed internal guard messages, not request or provider data.
+                result_box["error_reason"] = str(error)[:100]
         except Exception as error:
             result_box["outcome"] = "unexpected_error_" + type(error).__name__
         finally:
@@ -229,10 +232,12 @@ def _request(method, payload=None):
             _CIRCUIT_OPEN_UNTIL = _monotonic() + CIRCUIT_COOLDOWN_SECONDS
         elif recovery_probe:
             _CIRCUIT_OPEN_UNTIL = 0.0
+    reason = result_box.get("error_reason", "")
     print(
         "USE provider health store timing: "
         f"method={method}, outcome={outcome}, elapsed_seconds={elapsed:.3f}, "
         f"timeout_seconds={TIMEOUT_SECONDS:.2f}"
+        + (f", reason={reason}" if reason else "")
     )
     return result
 
