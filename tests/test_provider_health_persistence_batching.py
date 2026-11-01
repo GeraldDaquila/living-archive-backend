@@ -1,4 +1,7 @@
 """Provider-bank route batches shared health writes into one route-boundary snapshot."""
+import threading
+from concurrent.futures import ThreadPoolExecutor
+
 import provider_bank
 import provider_health_store as health_store
 
@@ -204,3 +207,45 @@ def test_shared_health_read_rejects_wrong_contract_version(monkeypatch):
         lambda method, payload=None: {"contract_version": "v1", "states": {}},
     )
     assert health_store.load_remote_states() is None
+
+
+def test_half_open_probe_claim_has_exactly_one_concurrent_owner():
+    state = {"state": "half_open", "probe_in_flight": False}
+    barrier = threading.Barrier(12)
+
+    def claim():
+        barrier.wait(timeout=2)
+        return provider_bank.acquire_probe(state)
+
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        results = list(pool.map(lambda _: claim(), range(12)))
+
+    assert sum(bool(result) for result in results) == 1
+    assert state["probe_in_flight"] is True
+
+
+def test_provider_state_lock_is_released_before_bridge_network_write(monkeypatch):
+    _reset_pending_persistence()
+    monkeypatch.setattr(provider_bank, "_STATE", {
+        "models": {"groq:model-a": provider_bank.new_state("groq", "model-a")},
+        "quality": {},
+        "provider_cursor": 0,
+        "model_cursors": {},
+    })
+    acquired = threading.Event()
+
+    def save(_states):
+        def acquire_from_another_thread():
+            with provider_bank._STATE_LOCK:
+                acquired.set()
+
+        worker = threading.Thread(target=acquire_from_another_thread)
+        worker.start()
+        worker.join(timeout=1)
+        return acquired.is_set()
+
+    monkeypatch.setattr(provider_bank, "save_remote_states", save)
+    provider_bank._success("groq", "model-a", "generic")
+
+    assert acquired.is_set()
+    assert provider_bank._PENDING_SHARED_STATE is False
