@@ -6,6 +6,9 @@ on:
       - "clss/hybrid-synthesis-isolated"
     paths:
       - "clss_hybrid_synthesis.py"
+      - "clss_evidence_triage.py"
+      - "clss_response_validator.py"
+      - "clss_deterministic_response.py"
       - "tests/test_clss_hybrid_synthesis.py"
       - "tests/test_clss_hybrid_semantic_gate.py"
       - "tests/fixtures/clss/semantic-response-candidates.json"
@@ -45,7 +48,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Compile adapter and tests
-        run: python -m py_compile clss_hybrid_synthesis.py tests/test_clss_hybrid_synthesis.py tests/test_clss_hybrid_semantic_gate.py
+        run: python -m py_compile clss_hybrid_synthesis.py clss_evidence_triage.py clss_response_validator.py clss_deterministic_response.py tests/test_clss_hybrid_synthesis.py tests/test_clss_hybrid_semantic_gate.py
       - name: Run isolated adapter tests
         run: python -m unittest -v tests.test_clss_hybrid_synthesis
       - name: Run five-profile semantic and adversarial gate tests
