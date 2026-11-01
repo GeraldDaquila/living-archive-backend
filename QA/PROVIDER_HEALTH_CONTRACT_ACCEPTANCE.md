@@ -67,6 +67,7 @@ Repair only the shared Provider Bank health-state persistence seam between the U
 - Invalid version, malformed record, invalid key, and >100 entries reject before any write.
 - Serialization failure rejects before any write.
 - Simulated failure on a middle write rolls back all changes.
+- Two simultaneous writes to the same previously absent key both receive complete acknowledgements; the final row retains the newer timestamp and operation context.
 - GET ordering/capacity is deterministic.
 
 ### Python acknowledgement tests
@@ -125,8 +126,10 @@ A green CI run alone is not production acceptance.
 ### WordPress bridge candidate
 - QA/provider_health_bridge_v2_candidate.php is an isolated, non-loaded candidate; it is not installed on the active WordPress site.
 - POST requires v2, validates the entire bounded batch, pre-serializes records, reads/merges/serializes all rows before the first write, then commits the full write set in one InnoDB transaction.
-- The write path is set-based: one indexed `SELECT ... WHERE state_key IN (...) FOR UPDATE` and one multi-row `INSERT ... ON DUPLICATE KEY UPDATE`, regardless of batch size. Including transaction boundaries, the database statement count is constant (START, SELECT, UPSERT, COMMIT), not O(N) per-record reads and writes.
-- The PHP harness asserts the same one-read/one-upsert query count for both 2-record and maximum 100-record batches. This guards query complexity but does not substitute for measured latency on the actual WordPress database.
+- The write path is set-based: one multi-row `INSERT IGNORE` reserves/materializes all bounded keys, one indexed `SELECT ... WHERE state_key IN (...) FOR UPDATE` locks the rows, and one multi-row `INSERT ... ON DUPLICATE KEY UPDATE` commits merged payloads.
+- Key reservation occurs inside the same InnoDB transaction. It serializes concurrent first-time writes to the same previously absent key before the locking read, avoiding competing gap-lock-to-insert races. Placeholder rows are replaced before commit and disappear on rollback.
+- Including transaction boundaries, the database statement count is constant (START, key reservation, SELECT, UPSERT, COMMIT), not O(N) per-record reads and writes.
+- The PHP harness asserts the same one-reservation/one-read/one-upsert query count for both 2-record and maximum 100-record batches. This guards query complexity but does not substitute for measured latency on the actual WordPress database.
 - Any read, serialization, write, or commit failure rolls back and returns no success acknowledgement.
 - GET returns v2, retains the 100 most recently updated records with a deterministic key tie-breaker, and does not create or alter schema.
 - The existing authenticated permission callback is preserved by the route-registration candidate.
@@ -135,7 +138,8 @@ A green CI run alone is not production acceptance.
 ### Shared parity and test evidence
 - QA/provider_health_merge_fixtures_v2.json is consumed by both Python and PHP tests.
 - QA/test_provider_health_bridge_v2.php exercises validation, exact acknowledgement, transaction rollback, serialization failures, deterministic GET capacity, and shared merge fixtures.
-- The dedicated PHP workflow passed PHP 8.3 and 8.4 syntax checks and the WordPress bridge contract harness.
+- The dedicated PHP workflow passed PHP 8.3 and 8.4 syntax checks and the WordPress bridge contract harness. The cross-process Python client round-trip passed under both PHP 8.3 and 8.4.
+- A real parallel REST test exposed a first-write gap-lock race. The candidate now reserves keys with an in-transaction multi-row `INSERT IGNORE` before `SELECT ... FOR UPDATE`; this change is pending fresh CI verification.
 - The provider-health/pathway Python regression workflow passed (27 tests).
 - The expanded provider-health batching suite passed: 27 tests. The complete v487 ecosystem validation workflow subsequently completed successfully.
 
