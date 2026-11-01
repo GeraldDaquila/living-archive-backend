@@ -59,6 +59,7 @@ class UseProviderCandidateBuilder:
 
     provider_invoked = False
     transmission_performed = False
+    transmission_status = "not_attempted"
 
     def __init__(self, use_core: Any, gateway_executor: Callable[..., Mapping[str, Any]] | None = None):
         self.use_core = use_core
@@ -72,7 +73,7 @@ class UseProviderCandidateBuilder:
             from provider_gateway_service import execute as executor
 
         self.provider_invoked = True
-        self.transmission_performed = True
+        self.transmission_status = "unknown"
         result = executor(
             operation="clss_synthesis",
             messages=[
@@ -84,6 +85,8 @@ class UseProviderCandidateBuilder:
         )
         if not isinstance(result, Mapping) or result.get("ok") is not True:
             raise CLSSHybridSynthesisError("USE Provider Bank could not produce a CLSS candidate")
+        self.transmission_performed = bool(result.get("provider") and result.get("model"))
+        self.transmission_status = "confirmed" if self.transmission_performed else "unknown"
         candidate = result.get("result")
         if not isinstance(candidate, Mapping):
             raise CLSSHybridSynthesisError("USE Provider Bank returned no structured CLSS candidate")
@@ -204,6 +207,7 @@ def resolve_hybrid_candidate(
             "candidate_builder_invoked": False,
             "provider_invoked": False,
             "transmission_performed": False,
+            "transmission_status": "not_attempted",
         }
 
     request = build_minimized_candidate_request(normalized, consent=consent)
@@ -226,4 +230,5 @@ def resolve_hybrid_candidate(
         "candidate_builder_invoked": True,
         "provider_invoked": bool(getattr(candidate_builder, "provider_invoked", False)),
         "transmission_performed": bool(getattr(candidate_builder, "transmission_performed", False)),
+        "transmission_status": str(getattr(candidate_builder, "transmission_status", "not_attempted")),
     }
