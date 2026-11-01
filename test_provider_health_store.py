@@ -250,6 +250,41 @@ class ProviderHealthStoreTests(unittest.TestCase):
 
 
 
+    def test_singleflight_waiter_does_not_outwait_shared_health_http_budget(self):
+        entered = threading.Event()
+        release = threading.Event()
+        waiter_done = threading.Event()
+
+        def slow_request(method):
+            entered.set()
+            release.wait(timeout=2.0)
+            return None
+
+        with patch.object(provider_health_store, "_READ_CACHE", None), \
+             patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \
+             patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \
+             patch.object(provider_health_store, "_request", side_effect=slow_request):
+            owner = threading.Thread(target=provider_health_store.load_remote_states)
+            owner.start()
+            self.assertTrue(entered.wait(timeout=1.0))
+
+            def wait_for_owner():
+                provider_health_store.load_remote_states()
+                waiter_done.set()
+
+            waiter = threading.Thread(target=wait_for_owner)
+            waiter.start()
+            completed_within_bound = waiter_done.wait(timeout=provider_health_store.TIMEOUT_SECONDS + 0.08)
+            release.set()
+            waiter.join(timeout=1.0)
+            owner.join(timeout=1.0)
+
+        self.assertTrue(completed_within_bound)
+        self.assertFalse(owner.is_alive())
+        self.assertFalse(waiter.is_alive())
+
+
     def test_shared_health_read_enforces_total_wall_clock_deadline_on_trickle_body(self):
         from types import SimpleNamespace
 
