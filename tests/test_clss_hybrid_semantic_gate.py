@@ -51,6 +51,7 @@ class CLSSHybridSemanticGateTests(unittest.TestCase):
             item["case_id"]: item["response"] for item in candidate_doc["cases"]
         }
         cls.candidate_status = candidate_doc["status"]
+        cls.review_template = json.loads(REVIEW_TEMPLATE_FILE.read_text(encoding="utf-8"))
 
     def test_five_release_profiles_are_covered_exactly(self):
         self.assertEqual(set(RELEASE_MATRIX.values()), {
@@ -104,7 +105,7 @@ class CLSSHybridSemanticGateTests(unittest.TestCase):
     def test_mixed_case_preserves_concern_and_repair(self):
         response = self.candidates["mixed-evidence-with-repair"]
         text = all_response_text(response)
-        for phrase in ("defensive", "acknowledged", "changed the plan", "followed up"):
+        for phrase in ("defensive", "acknowledged", "changed the plan", "follow-through"):
             self.assertIn(phrase, text)
 
     def test_contradictory_case_preserves_both_source_types_as_unresolved(self):
