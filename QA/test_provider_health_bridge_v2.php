@@ -299,6 +299,15 @@ check(count($read_states) === 100, 'GET respects the explicit 100-row capacity')
 check(array_key_first($read_states) === 'key:000', 'GET uses deterministic ascending key order');
 check($read_states['key:000']['probe_in_flight'] === false, 'GET suppresses process-local probe ownership');
 
+$fixtures = json_decode(file_get_contents(__DIR__ . '/provider_health_merge_fixtures_v2.json'), true);
+check(is_array($fixtures) && ($fixtures['contract_version'] ?? '') === 'v2', 'shared Python/PHP merge fixtures load');
+foreach ($fixtures['cases'] as $case) {
+    $merged = la_provider_health_v2_merge($case['local'], $case['remote'], $case['now']);
+    foreach ($case['expected'] as $field => $expected) {
+        check(($merged[$field] ?? null) === $expected, $case['name'] . ':' . $field);
+    }
+}
+
 echo "PASS: WordPress provider-health v2 contract harness\n";
 
 
