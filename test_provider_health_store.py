@@ -215,7 +215,7 @@ class ProviderHealthStoreTests(unittest.TestCase):
              patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \
              patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \
              patch.object(provider_health_store, "_request", return_value={
-                 "contract_version": "v1",
+                 "contract_version": "v2",
                  "states": {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "healthy"}},
              }) as request:
             first = provider_health_store.load_remote_states()
@@ -230,7 +230,7 @@ class ProviderHealthStoreTests(unittest.TestCase):
              patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \
              patch.object(provider_health_store, "_request", side_effect=lambda method: (
                  time.sleep(0.05) or {
-                     "contract_version": "v1",
+                     "contract_version": "v2",
                      "states": {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "healthy"}},
                  }
              )) as request:
