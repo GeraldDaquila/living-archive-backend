@@ -170,6 +170,73 @@
         "quality_cooldown_until": 0,
         "quality_error": ""
       }
+    },
+    {
+      "name": "newer_remote_success_clears_transport_cooldown",
+      "now": 31,
+      "local": {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "open",
+        "last_failure": 20,
+        "last_success": 10,
+        "failures": 2,
+        "consecutive_failures": 2,
+        "cooldown_until": 90,
+        "quarantine_until": 0,
+        "last_error": "timeout",
+        "category": "provider_failure"
+      },
+      "remote": {
+        "provider": "groq",
+        "model": "model-a",
+        "state": "healthy",
+        "last_failure": 20,
+        "last_success": 30,
+        "failures": 0,
+        "consecutive_failures": 0,
+        "cooldown_until": 0,
+        "quarantine_until": 0,
+        "last_error": "",
+        "category": ""
+      },
+      "expected": {
+        "state": "healthy",
+        "consecutive_failures": 0,
+        "cooldown_until": 0,
+        "quarantine_until": 0,
+        "last_error": "",
+        "category": ""
+      }
+    },
+    {
+      "name": "newer_quality_failure_reopens_quality_cooldown",
+      "now": 31,
+      "local": {
+        "provider": "groq",
+        "model": "model-a",
+        "operation": "hrn_relational",
+        "last_quality_failure": 10,
+        "last_quality_success": 5,
+        "quality_failures": 1,
+        "quality_cooldown_until": 20,
+        "quality_error": ""
+      },
+      "remote": {
+        "provider": "groq",
+        "model": "model-a",
+        "operation": "hrn_relational",
+        "last_quality_failure": 30,
+        "last_quality_success": 5,
+        "quality_failures": 2,
+        "quality_cooldown_until": 90,
+        "quality_error": "visitor contract rejection"
+      },
+      "expected": {
+        "quality_failures": 2,
+        "quality_cooldown_until": 90,
+        "quality_error": "visitor contract rejection"
+      }
     }
   ]
 }
