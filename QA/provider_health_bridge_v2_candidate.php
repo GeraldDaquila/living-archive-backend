@@ -193,6 +193,13 @@ function la_provider_health_v2_validate_batch($body) {
         );
     }
 
+    // All transactions reserve and lock overlapping batches in the same
+    // key order, reducing deadlocks when separate services submit different
+    // snapshots that contain intersecting provider/model keys.
+    usort($normalized_batch, function ($left, $right) {
+        return strcmp($left['key'], $right['key']);
+    });
+
     return $normalized_batch;
 }
 
