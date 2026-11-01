@@ -452,6 +452,40 @@ class ProviderHealthStoreTests(unittest.TestCase):
         self.assertEqual(result, {"contract_version": "v2", "states": {}})
 
 
+    def test_shared_health_read_accepts_buffered_body_without_live_socket_reference(self):
+        from types import SimpleNamespace
+
+        clock = SimpleNamespace(value=30.0)
+
+        class BufferedResponse:
+            def __init__(self):
+                self.parts = [b'{"contract_version":"v2",', b'"states":{}}']
+                # urllib can retain readable buffered bytes after detaching
+                # the underlying socket reference.
+                self.fp = SimpleNamespace(raw=SimpleNamespace(_sock=None))
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read1(self, size):
+                clock.value += 0.02
+                return self.parts.pop(0) if self.parts else b""
+
+        response = BufferedResponse()
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")):
+            with patch.object(provider_health_store, "_monotonic", side_effect=lambda: clock.value):
+                with patch.object(provider_health_store, "urlopen", return_value=response):
+                    with patch.object(provider_health_store.time, "monotonic", return_value=30.0):
+                        with patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0):
+                            with patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False):
+                                result = provider_health_store._request("GET")
+
+        self.assertEqual(result, {"contract_version": "v2", "states": {}})
+
+
     def test_incomplete_http_response_fails_closed_without_escaping(self):
         from http.client import IncompleteRead
 
