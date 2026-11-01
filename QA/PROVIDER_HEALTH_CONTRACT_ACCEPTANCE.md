@@ -109,3 +109,35 @@ No merge, deployment, WordPress mutation, credential rotation, or production dat
 6. Latency and inference-budget regressions are ruled out.
 
 A green CI run alone is not production acceptance.
+
+
+## TEST candidate implementation status — 2026-11-01
+
+### Python runtime candidate
+- provider_health_store.py speaks contract v2 and rejects wrong-version reads and incomplete writes.
+- provider_bank.py retains failed writes as one versioned pending marker, retries at route boundaries, and avoids waiting behind another in-flight persistence call.
+- Health transitions, candidate selection/cursors, shared-state merge, snapshot creation, and half-open probe ownership use a narrow state lock.
+- Snapshot serialization occurs under the state lock; HTTP persistence occurs outside it.
+- A visitor-contract rejection releases a half-open transport probe claim.
+
+### WordPress bridge candidate
+- QA/provider_health_bridge_v2_candidate.php is an isolated, non-loaded candidate; it is not installed on the active WordPress site.
+- POST requires v2, validates the entire bounded batch, pre-serializes records, reads/merges/serializes all rows before the first write, then commits the full write set in one InnoDB transaction.
+- Any read, serialization, write, or commit failure rolls back and returns no success acknowledgement.
+- GET returns v2, uses a deterministic key-ordered 100-record capacity policy, and does not create or alter schema.
+- The existing authenticated permission callback is preserved by the route-registration candidate.
+- Schema creation is isolated in an activation-only function; the existing production table is already InnoDB and unchanged.
+
+### Shared parity and test evidence
+- QA/provider_health_merge_fixtures_v2.json is consumed by both Python and PHP tests.
+- QA/test_provider_health_bridge_v2.php exercises validation, exact acknowledgement, transaction rollback, serialization failures, deterministic GET capacity, and shared merge fixtures.
+- The dedicated PHP workflow passed PHP 8.3 syntax checks and the WordPress bridge contract harness.
+- The provider-health/pathway Python regression workflow passed (27 tests).
+- The expanded provider-health batching suite passed in the broader v487 validation run. The full v487 workflow was still running at the latest checkpoint.
+
+### Remaining release gates
+- Complete the full v487 ecosystem regression workflow.
+- Perform the full Python unit suite and complete-unit source audit against the latest PR head.
+- Integrate the candidate into a genuine isolated WordPress TEST environment and validate real wpdb transaction behavior.
+- Verify the same candidate identity on primary and mirror TEST runtimes, then run repeated cross-service read/write/restart and latency tests.
+- Do not merge, deploy, mutate active WordPress, or touch production DB until the TEST environment and all acceptance gates are satisfied.
