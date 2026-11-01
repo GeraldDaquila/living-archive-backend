@@ -1,0 +1,49 @@
+name: CLSS synthetic provider evaluation
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Groq model ID for synthetic-only evaluation"
+        required: true
+        default: "openai/gpt-oss-120b"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: clss-synthetic-provider-evaluation
+  cancel-in-progress: false
+
+jobs:
+  synthetic-evaluation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: clss/hybrid-synthesis-isolated
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate isolated evaluation inputs
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CLSS_EVAL_MODEL: ${{ inputs.model }}
+        run: |
+          test -n "$GROQ_API_KEY" || (echo "GROQ_API_KEY repository secret is not configured" && exit 1)
+          python -m py_compile clss_evidence_triage.py clss_response_validator.py clss_deterministic_response.py scripts/clss_synthetic_provider_eval.py
+      - name: Generate synthetic-only provider candidates
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CLSS_EVAL_MODEL: ${{ inputs.model }}
+        run: python scripts/clss_synthetic_provider_eval.py
+      - name: Upload review artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clss-synthetic-evaluation
+          path: clss-evaluation-output/
+          if-no-files-found: warn
+          retention-days: 14
