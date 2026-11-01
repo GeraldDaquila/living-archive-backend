@@ -617,7 +617,9 @@ def _is_movement_brief_input_failure(operation, reason):
 
 @_state_transition
 def _record_quality_rejection(provider, model, operation, reason):
-    """Penalize provider output, not malformed upstream grounding input."""
+    """Penalize output quality and release any half-open transport probe claim."""
+    transport_state = _state(provider, model)
+    transport_state["probe_in_flight"] = False
     if _is_movement_brief_input_failure(operation, reason):
         print(
             "USE provider quality bypass: "
