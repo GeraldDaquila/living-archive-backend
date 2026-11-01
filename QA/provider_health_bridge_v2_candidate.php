@@ -369,6 +369,15 @@ function la_provider_health_v2_write($request) {
             400
         );
     }
+    foreach ($decoded_shape->states as $record) {
+        if (!($record instanceof stdClass)) {
+            return la_provider_health_v2_error(
+                'la_provider_health_invalid_record_shape',
+                'Every provider-health record must be a JSON object.',
+                400
+            );
+        }
+    }
     $body = json_decode($raw_body, true);
     $batch = la_provider_health_v2_validate_batch($body);
     if (is_wp_error($batch)) {
