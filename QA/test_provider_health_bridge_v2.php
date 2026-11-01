@@ -4,6 +4,12 @@ declare(strict_types=1);
 define('ARRAY_A', 'ARRAY_A');
 define('ABSPATH', '/wordpress/');
 
+class WP_REST_Server { const READABLE = 'GET'; const CREATABLE = 'POST'; }
+$GLOBALS['registered_routes'] = array();
+function register_rest_route($namespace, $route, $args) {
+    $GLOBALS['registered_routes'][] = array($namespace, $route, $args);
+}
+
 class WP_Error {
     public $code;
     public $message;
@@ -130,6 +136,14 @@ function check($condition, $message) {
         throw new RuntimeException('FAIL: ' . $message);
     }
 }
+la_provider_health_v2_register_routes();
+check(count($GLOBALS['registered_routes']) === 1, 'v2 route registration present');
+$route = $GLOBALS['registered_routes'][0];
+check($route[0] === 'living-archive/v1' && $route[1] === '/provider-health', 'v2 route path preserved');
+check($route[2][0]['callback'] === 'la_provider_health_v2_read', 'GET callback wired');
+check($route[2][1]['callback'] === 'la_provider_health_v2_write', 'POST callback wired');
+check($route[2][0]['permission_callback'] === 'la_provider_health_authorized', 'existing auth boundary preserved');
+
 function valid_body($count = 2) {
     $states = array();
     for ($i = 0; $i < $count; $i++) {
