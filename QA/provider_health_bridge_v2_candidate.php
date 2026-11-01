@@ -353,9 +353,23 @@ function la_provider_health_v2_read() {
 
 function la_provider_health_v2_write($request) {
     global $wpdb;
-    $body = is_object($request) && method_exists($request, 'get_json_params')
-        ? $request->get_json_params()
+    // get_json_params() loses the distinction between JSON objects and arrays
+    // when WordPress decodes associatively. Inspect the raw JSON shape first so
+    // an empty/list-shaped states value cannot masquerade as an object.
+    $raw_body = is_object($request) && method_exists($request, 'get_body')
+        ? $request->get_body()
         : null;
+    $decoded_shape = is_string($raw_body) ? json_decode($raw_body) : null;
+    if (!($decoded_shape instanceof stdClass)
+        || !property_exists($decoded_shape, 'states')
+        || !($decoded_shape->states instanceof stdClass)) {
+        return la_provider_health_v2_error(
+            'la_provider_health_invalid_batch_shape',
+            'The request body and states collection must be JSON objects.',
+            400
+        );
+    }
+    $body = json_decode($raw_body, true);
     $batch = la_provider_health_v2_validate_batch($body);
     if (is_wp_error($batch)) {
         return $batch;
