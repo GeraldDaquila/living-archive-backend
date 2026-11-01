@@ -8,9 +8,7 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 import time
-import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -47,13 +45,14 @@ must cite its source ID. Do not invent evidence or claim verification."""
 
 def call_model(case):
     evidence = case.get("evidence", [])
+    # Deliberately blind the model to fixture expectations and reviewer criteria.
+    # Those remain in the offline report for independent comparison.
     payload = {
         "case_id": case["id"],
         "mode": case["mode"],
         "evidence": evidence,
         "missing_dimensions": case.get("missing_dimensions", []),
-        "expected_finding_type": case.get("expected_finding_type"),
-        "instruction": "Generate an independently reasoned candidate; do not copy the expected label without assessing the evidence.",
+        "instruction": "Reason independently from the supplied evidence. Do not assume a tension exists.",
     }
     request_body = {
         "model": MODEL,
@@ -90,6 +89,7 @@ def main():
     OUT.mkdir(exist_ok=True)
     records = []
     for index, case in enumerate(cases, start=1):
+        raw = None
         print(f"[{index}/{len(cases)}] synthetic case: {case['id']}", flush=True)
         record = {
             "case_id": case["id"],
@@ -113,12 +113,11 @@ def main():
             record["structural_validation"] = "passed"
             record["candidate"] = validated
         except Exception as exc:
-            # Preserve the synthetic raw candidate for review, but never treat it
-            # as accepted or displayable. Do not persist provider request headers.
+            # Keep any returned synthetic candidate for review, but never accept
+            # or display it. Do not persist request headers, credentials or bodies.
             record["structural_validation"] = "rejected"
             record["rejection_reason"] = f"{type(exc).__name__}: {str(exc)[:500]}"
-            if "raw" not in locals():
-                record["raw_candidate_json"] = None
+            record["raw_candidate_json"] = raw
         try:
             record["deterministic_baseline"] = build_deterministic_response(
                 case["evidence"],
@@ -137,8 +136,6 @@ def main():
             }, indent=2, ensure_ascii=False),
             encoding="utf-8",
         )
-        # Avoid accidentally reusing the previous case's raw candidate on error.
-        raw = None
 
     summary = {
         "status": "generated_not_human_reviewed",
