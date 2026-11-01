@@ -207,7 +207,7 @@ function la_provider_health_v2_merge($old, $incoming, $now = null) {
     $new_success = (float)($incoming['last_success'] ?? 0);
     $latest_failure = max($old_failure, $new_failure);
     $latest_success = max($old_success, $new_success);
-    $merged = array_merge($old, $incoming);
+    $merged = $old;
 
     if ($new_failure > $old_failure) {
         foreach (array(
