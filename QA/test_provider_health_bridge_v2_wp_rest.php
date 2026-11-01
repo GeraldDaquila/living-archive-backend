@@ -110,6 +110,110 @@ $get_states = $get_response['states'] ?? array();
 wp_check(isset($get_states['groq:wp-model-a'], $get_states['groq:wp-model-b']), 'real WordPress REST GET returns both stored states');
 wp_check(($get_states['groq:wp-model-a']['probe_in_flight'] ?? null) === false, 'real WordPress REST GET suppresses process-local probe ownership');
 
+function wp_concurrent_posts($url, array $bodies) {
+    global $secret;
+    if (!function_exists('curl_multi_init')) {
+        throw new RuntimeException('cURL multi support is required for the concurrent REST acceptance test.');
+    }
+
+    $multi = curl_multi_init();
+    $handles = array();
+    foreach ($bodies as $index => $body) {
+        $handle = curl_init($url);
+        curl_setopt_array($handle, array(
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $body,
+            CURLOPT_HTTPHEADER => array(
+                'Accept: application/json',
+                'Content-Type: application/json',
+                'X-Living-Archive-Provider-Key: ' . $secret,
+            ),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_TIMEOUT => 15,
+        ));
+        curl_multi_add_handle($multi, $handle);
+        $handles[$index] = $handle;
+    }
+
+    do {
+        $multi_status = curl_multi_exec($multi, $running);
+        if ($running && $multi_status === CURLM_OK) {
+            $selected = curl_multi_select($multi, 1.0);
+            if ($selected === -1) {
+                usleep(1000);
+            }
+        }
+    } while ($running && $multi_status === CURLM_OK);
+
+    $results = array();
+    foreach ($handles as $index => $handle) {
+        $raw = curl_multi_getcontent($handle);
+        $results[$index] = array(
+            'status' => (int)curl_getinfo($handle, CURLINFO_HTTP_CODE),
+            'body' => is_string($raw) ? json_decode($raw, true) : null,
+        );
+        curl_multi_remove_handle($multi, $handle);
+        curl_close($handle);
+    }
+    curl_multi_close($multi);
+
+    if ($multi_status !== CURLM_OK) {
+        throw new RuntimeException('Concurrent provider-health HTTP requests did not complete cleanly.');
+    }
+    return $results;
+}
+
+$race_key = 'groq:000-concurrent-new-key';
+$race_body_old = json_encode(array(
+    'contract_version' => 'v2',
+    'states' => (object)array(
+        $race_key => array(
+            'provider' => 'groq',
+            'model' => 'concurrent-new-key',
+            'operation' => 'hrn_relational',
+            'state' => 'open',
+            'failures' => 1,
+            'consecutive_failures' => 1,
+            'last_failure' => 2001,
+            'last_success' => 0,
+            'cooldown_until' => 3000,
+            'last_operation' => 'hrn_relational',
+            'last_error' => 'older concurrent failure',
+        ),
+    ),
+));
+$race_body_new = json_encode(array(
+    'contract_version' => 'v2',
+    'states' => (object)array(
+        $race_key => array(
+            'provider' => 'groq',
+            'model' => 'concurrent-new-key',
+            'operation' => 'general_guide_composition',
+            'state' => 'open',
+            'failures' => 2,
+            'consecutive_failures' => 2,
+            'last_failure' => 2002,
+            'last_success' => 0,
+            'cooldown_until' => 3100,
+            'last_operation' => 'general_guide_composition',
+            'last_error' => 'newer concurrent failure',
+        ),
+    ),
+));
+$race_results = wp_concurrent_posts($endpoint, array($race_body_old, $race_body_new));
+foreach ($race_results as $index => $race_result) {
+    wp_check($race_result['status'] === 200, 'concurrent new-key POST ' . $index . ' succeeds without deadlock or partial failure');
+    wp_check(($race_result['body']['success'] ?? false) === true, 'concurrent new-key POST ' . $index . ' returns success');
+    wp_check(($race_result['body']['submitted'] ?? null) === 1 && ($race_result['body']['written'] ?? null) === 1, 'concurrent new-key POST ' . $index . ' acknowledges exact counts');
+}
+list($race_get_status, $race_get_response) = wp_request($endpoint, 'GET');
+wp_check($race_get_status === 200, 'GET after concurrent new-key writes succeeds');
+$race_state = $race_get_response['states'][$race_key] ?? array();
+wp_check(($race_state['last_failure'] ?? null) === 2002.0, 'concurrent new-key writes retain the newer failure timestamp');
+wp_check(($race_state['last_operation'] ?? null) === 'general_guide_composition', 'concurrent new-key writes retain the newer operation context');
+wp_check(($race_state['consecutive_failures'] ?? null) === 2, 'concurrent new-key writes retain the higher consecutive failure count');
+
 $bulk_states = new stdClass();
 for ($i = 1; $i <= 100; $i++) {
     $model = sprintf('bulk-%03d', $i);
