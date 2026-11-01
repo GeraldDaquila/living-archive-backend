@@ -486,10 +486,18 @@ def _failure(exc, provider, model, operation=None):
     elif "request too large" in low or ("context" in low and "length" in low):
         category = "request_too_large"
 
+    # CLSS evidence text is sensitive. Preserve raw provider diagnostics only
+    # transiently for classification; never persist or print provider error
+    # bodies for this operation because upstream errors may echo request content.
+    diagnostic_text = (
+        "CLSS synthesis provider failure; upstream details withheld"
+        if str(operation or "") == "clss_synthesis"
+        else text
+    )
     delay = record_failure(
         state,
         category,
-        text,
+        diagnostic_text,
         retry_after=retry_after,
     )
 
@@ -505,7 +513,7 @@ def _failure(exc, provider, model, operation=None):
                 continue
             sibling["state"] = "open"
             sibling["category"] = category
-            sibling["last_error"] = text[:500]
+            sibling["last_error"] = diagnostic_text[:500]
             sibling["last_failure"] = time.time()
             sibling["probe_in_flight"] = False
             sibling["cooldown_until"] = 0.0
@@ -3086,7 +3094,10 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         except ValueError as exc:
             # Preserve transport health, but learn from repeated visitor-contract
             # failures so poor outputs lose priority and can be cooled down.
-            last_error = str(exc)
+            last_error = (
+                "CLSS synthesis candidate rejected; details withheld"
+                if operation == "clss_synthesis" else str(exc)
+            )
             _record_quality_rejection(provider, model, operation, last_error)
             # Emit a bounded, stable rejection class as well as the validator
             # reason. This separates parse, surface, grounding, and shape defects
@@ -3120,8 +3131,11 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     break
             continue
         except Exception as exc:
-            last_error = str(exc)
             _failure(exc, provider, model, operation=operation)
+            last_error = (
+                "CLSS synthesis provider failure; details withheld"
+                if operation == "clss_synthesis" else str(exc)
+            )
             print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", error=" + last_error[:300])
             if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
