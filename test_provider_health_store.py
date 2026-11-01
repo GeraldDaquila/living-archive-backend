@@ -296,12 +296,13 @@ class ProviderHealthStoreTests(unittest.TestCase):
             self.assertIsNone(result)
             # Wait for the intentionally late daemon worker to release its slot.
             deadline = time.monotonic() + 0.5
-            while slot.acquire(blocking=False):
-                slot.release()
+            while True:
+                if slot.acquire(blocking=False):
+                    slot.release()
+                    break
                 if time.monotonic() >= deadline:
                     self.fail("transport worker did not release its bounded slot")
                 time.sleep(0.005)
-            self.assertFalse(slot.acquire(blocking=False))
         # The response became available after the caller's absolute deadline;
         # it must not be accepted on a scheduling race.
 
