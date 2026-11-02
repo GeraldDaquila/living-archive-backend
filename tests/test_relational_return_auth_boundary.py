@@ -12,8 +12,10 @@ def test_relational_return_route_authenticates_before_processing():
     route = source.split('@app.post("/api/relational-return")', 1)[1].split(
         "\n\n", 1
     )[0]
-    assert "await request.body()" in route
+    assert "_read_relational_return_body_bounded(" in route
+    assert "_RELATIONAL_RETURN_MAX_BODY_BYTES" in route
     assert "_authorize_relational_return_request(raw_body, request.headers)" in route
+    assert "raw_body=raw_body" in route
     assert "if auth_error is not None:" in route
     assert route.index("if auth_error is not None:") < route.index(
         "return await _v48755_relational_return(request)"
