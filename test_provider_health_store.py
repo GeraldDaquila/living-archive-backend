@@ -251,7 +251,8 @@ class ProviderHealthStoreTests(unittest.TestCase):
 
             second = provider_health_store.load_remote_states()
             self.assertEqual(second, stale)
-            request.assert_called_once_with("GET")
+            request.assert_called_once()
+            self.assertEqual(request.call_args.args[0], "GET")
 
             release.set()
             deadline = time.monotonic() + 1.0
@@ -302,7 +303,8 @@ class ProviderHealthStoreTests(unittest.TestCase):
                 thread.start()
             for thread in threads:
                 thread.join()
-        request.assert_called_once_with("GET")
+        request.assert_called_once()
+        self.assertEqual(request.call_args.args[0], "GET")
         self.assertEqual(len(results), 8)
         self.assertTrue(all(result and "groq:model-a" in result for result in results))
 
