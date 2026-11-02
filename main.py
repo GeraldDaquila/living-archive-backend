@@ -2,6 +2,8 @@
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
+import hmac
+import threading
 from html import unescape
 import ipaddress
 import re
@@ -10137,8 +10139,64 @@ async def _formation_entrance_route(request: Request):
 if not any(getattr(route, "path", "") == "/api/formation-entrance" for route in app.routes):
     raise RuntimeError("USE formation entrance route registration invariant failed")
 
+# Authenticated WordPress-to-USE boundary. The shared secret is configured
+# independently in Render and WordPress wp-config.php; it is never sent to a browser.
+_RELATIONAL_RETURN_AUTH_WINDOW_SECONDS = 300
+_RELATIONAL_RETURN_NONCE_MAX = 4096
+_RELATIONAL_RETURN_NONCES = {}
+_RELATIONAL_RETURN_NONCE_LOCK = threading.Lock()
+
+
+def _relational_return_auth_error(status_code, error_type):
+    return JSONResponse(
+        status_code=status_code,
+        content={"ok": False, "error_type": error_type},
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+def _authorize_relational_return_request(raw_body, headers, now=None):
+    secret = str(os.environ.get("LA_RELATIONAL_RETURN_SHARED_SECRET") or "")
+    if len(secret) < 32:
+        return _relational_return_auth_error(503, "relational_return_auth_not_configured")
+
+    timestamp = str(headers.get("x-la-relational-timestamp") or "").strip()
+    nonce = str(headers.get("x-la-relational-nonce") or "").strip()
+    supplied = str(headers.get("x-la-relational-signature") or "").strip().lower()
+    if not timestamp.isdigit() or not re.fullmatch(r"[A-Za-z0-9_-]{16,128}", nonce):
+        return _relational_return_auth_error(401, "relational_return_unauthorized")
+    current = float(time.time() if now is None else now)
+    if abs(current - int(timestamp)) > _RELATIONAL_RETURN_AUTH_WINDOW_SECONDS:
+        return _relational_return_auth_error(401, "relational_return_signature_expired")
+
+    signed = timestamp.encode("ascii") + b"\\n" + nonce.encode("ascii") + b"\\n" + raw_body
+    expected = hmac.new(secret.encode("utf-8"), signed, hashlib.sha256).hexdigest()
+    if not supplied or not hmac.compare_digest(expected, supplied):
+        return _relational_return_auth_error(401, "relational_return_unauthorized")
+
+    # A short-lived nonce cache blocks replay on each instance. This is defense
+    # in depth; durable cross-instance idempotency remains a separate acceptance gate.
+    with _RELATIONAL_RETURN_NONCE_LOCK:
+        expired = [
+            key for key, issued in _RELATIONAL_RETURN_NONCES.items()
+            if current - issued > _RELATIONAL_RETURN_AUTH_WINDOW_SECONDS
+        ]
+        for key in expired:
+            _RELATIONAL_RETURN_NONCES.pop(key, None)
+        if nonce in _RELATIONAL_RETURN_NONCES:
+            return _relational_return_auth_error(409, "relational_return_replay_rejected")
+        if len(_RELATIONAL_RETURN_NONCES) >= _RELATIONAL_RETURN_NONCE_MAX:
+            return _relational_return_auth_error(503, "relational_return_replay_guard_full")
+        _RELATIONAL_RETURN_NONCES[nonce] = current
+    return None
+
+
 @app.post("/api/relational-return")
 async def _v48755_relational_return_route(request: Request):
+    raw_body = await request.body()
+    auth_error = _authorize_relational_return_request(raw_body, request.headers)
+    if auth_error is not None:
+        return auth_error
     return await _v48755_relational_return(request)
 
 
