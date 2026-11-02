@@ -265,7 +265,7 @@ def test_shared_health_read_rejects_wrong_contract_version(monkeypatch):
     monkeypatch.setattr(
         health_store,
         "_request",
-        lambda method, payload=None: {"contract_version": "v1", "states": {}},
+        lambda method, payload=None, on_late_result=None: {"contract_version": "v1", "states": {}},
     )
     assert health_store.load_remote_states() is None
 
