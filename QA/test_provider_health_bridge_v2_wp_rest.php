@@ -248,6 +248,29 @@ $bulk_get_states = $bulk_get_response['states'] ?? array();
 wp_check(count($bulk_get_states) === 100, 'real WordPress REST GET retains exactly the 100 most recently updated states');
 wp_check(isset($bulk_get_states['groq:bulk-099']), 'real WordPress REST GET retains the latest bulk records after capacity trimming');
 
+// Measure the actual isolated WordPress REST + MariaDB read path after the
+// store is populated to its 100-record capacity. Report p50/p95/max and keep
+// the local service-side portion comfortably inside the 250ms caller budget.
+$read_latencies = array();
+for ($sample = 0; $sample < 30; $sample++) {
+    $sample_started = microtime(true);
+    list($sample_status) = wp_request($endpoint, 'GET');
+    $read_latencies[] = microtime(true) - $sample_started;
+    wp_check($sample_status === 200, 'WordPress REST latency sample ' . $sample . ' succeeds');
+}
+sort($read_latencies, SORT_NUMERIC);
+$p50 = $read_latencies[(int)floor((count($read_latencies) - 1) * 0.50)];
+$p95 = $read_latencies[(int)floor((count($read_latencies) - 1) * 0.95)];
+$max = max($read_latencies);
+echo sprintf(
+    "DIAGNOSTIC WordPress REST GET latency: p50=%.1fms p95=%.1fms max=%.1fms samples=%d\\n",
+    $p50 * 1000,
+    $p95 * 1000,
+    $max * 1000,
+    count($read_latencies)
+);
+wp_check($p95 <= 0.250, 'isolated WordPress REST GET p95 remains within the 250ms shared-health budget');
+
 $pdo = new PDO(
     (string)getenv('PROVIDER_HEALTH_MARIADB_DSN'),
     (string)getenv('PROVIDER_HEALTH_MARIADB_USER'),
