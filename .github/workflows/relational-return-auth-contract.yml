@@ -1,0 +1,32 @@
+name: Relational Return Authentication Contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "main.py"
+      - "integrations/wordpress/hrn-command-boundary-adapter.php"
+      - "tests/test_relational_return_auth_boundary.py"
+      - ".github/workflows/relational-return-auth-contract.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  python-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pytest -q tests/test_relational_return_auth_boundary.py
+
+  php-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+      - run: php -l integrations/wordpress/hrn-command-boundary-adapter.php
