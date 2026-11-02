@@ -155,7 +155,7 @@ A green CI run alone is not production acceptance.
 
 The candidate was rebuilt as a new branch from production commit `b85c0c5981e0b1a5f8fe79c47b97ba9582f4941e` (USE v489.309), rather than rebasing the stale PR branch wholesale.
 
-- All candidate changes are confined to the 16 files changed by the Provider Health v2 work. The branch is 16 commits ahead of v489.309 and zero commits behind; it contains no merge of the old PR's 127-commit history.
+- All candidate changes are confined to the 16 files changed by the Provider Health v2 work. The branch is 19 commits ahead of v489.309 and zero commits behind; it contains no merge of the old PR's 127-commit history.
 - `provider_bank.py` and `test_provider_health_store.py` explicitly preserve `GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 5` and the 18-second arbitration window from v489.309.
 - Current production `main.py`, direct-recovery changes, visitor-boundary work, WordPress handoff adapter hardening, and other post-base production files remain inherited unchanged from v489.309.
 - The v2 PHP bridge remains a QA-only candidate under `QA/`; the active WordPress plugin is not modified.
