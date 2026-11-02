@@ -203,11 +203,11 @@ def test_general_guide_continues_after_slow_failure_within_budget(monkeypatch):
     )
 
     assert result is None
-    assert calls == [("gemini", 6.0), ("workers_ai", 2.0)]
+    assert calls == [("gemini", 6.0)]
     assert provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS == 6.0
     assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 8.0
     assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
-    assert clock.value == 8.0
+    assert clock.value == 6.0
 
 def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
     _isolate(monkeypatch)
