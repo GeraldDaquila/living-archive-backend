@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Living Archive — HRN Command Boundary Adapter
  * Description: Normalizes explicit visitor closure commands and returns completed HRN journeys to USE for a grounded canonical doorway, without modifying the frozen HRN writer.
- * Version: 1.3.0
+ * Version: 1.4.0
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
@@ -336,7 +336,12 @@ add_filter('rest_post_dispatch', function ($response, $server, $request) {
         || $scheme !== 'https'
         || $host !== 'geralddaquila.com'
         || !wp_http_validate_url($url)
-    ) return $response;
+    ) {
+        $data['return_handoff_status'] = 'invalid_canonical_doorway';
+        $data['return_handoff_response'] = 'The Archive doorway could not be verified, so no link was provided.';
+        $response->set_data($data);
+        return $response;
+    }
 
     $data['junction_available'] = true;
     $data['unit_complete'] = true;
