@@ -263,7 +263,7 @@ $p50 = $read_latencies[(int)floor((count($read_latencies) - 1) * 0.50)];
 $p95 = $read_latencies[(int)floor((count($read_latencies) - 1) * 0.95)];
 $max = max($read_latencies);
 echo sprintf(
-    "DIAGNOSTIC WordPress REST GET latency: p50=%.1fms p95=%.1fms max=%.1fms samples=%d\\n",
+    "DIAGNOSTIC WordPress REST GET latency: p50=%.1fms p95=%.1fms max=%.1fms samples=%d\n",
     $p50 * 1000,
     $p95 * 1000,
     $max * 1000,
