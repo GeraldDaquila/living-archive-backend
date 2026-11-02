@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.305 — Foundation recovery on provider exhaustion
+# USE PRODUCTION VERSION: v489.306 — Time-budgeted independent provider fallback
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
