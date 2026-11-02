@@ -81,13 +81,16 @@ def execute(*, operation: str, messages: list[dict[str, str]], max_tokens: int, 
         # model is normalized consistently instead of being treated as provider outage.
         return parse_provider_json_object(str(raw or "").strip())
 
+    # HRN voice repair is a plain-text contract. Do not let the generic
+    # gateway default silently force JSON-object mode for this operation.
+    effective_schema = {"mode": "text"} if operation == "hrn_voice_repair" else schema
     result = provider_bank_route(
         use_core=use_core,
         messages=messages,
         max_tokens=max_tokens,
         parse=parse,
         operation=operation,
-        schema=schema,
+        schema=effective_schema,
     )
     if not result:
         return {
