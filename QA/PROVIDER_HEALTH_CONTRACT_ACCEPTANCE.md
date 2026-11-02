@@ -150,3 +150,19 @@ A green CI run alone is not production acceptance.
 - Integrate the candidate into a genuine isolated WordPress TEST environment and validate real wpdb transaction behavior.
 - Verify the same candidate identity on primary and mirror TEST runtimes, then run repeated cross-service read/write/restart and latency tests.
 - Do not merge, deploy, mutate active WordPress, or touch production DB until the TEST environment and all acceptance gates are satisfied.
+
+## Rebased TEST candidate audit — 2026-11-02
+
+The candidate was rebuilt as a new branch from production commit `b85c0c5981e0b1a5f8fe79c47b97ba9582f4941e` (USE v489.309), rather than rebasing the stale PR branch wholesale.
+
+- All candidate changes are confined to the 16 files changed by the Provider Health v2 work. The branch is 16 commits ahead of v489.309 and zero commits behind; it contains no merge of the old PR's 127-commit history.
+- `provider_bank.py` and `test_provider_health_store.py` explicitly preserve `GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 5` and the 18-second arbitration window from v489.309.
+- Current production `main.py`, direct-recovery changes, visitor-boundary work, WordPress handoff adapter hardening, and other post-base production files remain inherited unchanged from v489.309.
+- The v2 PHP bridge remains a QA-only candidate under `QA/`; the active WordPress plugin is not modified.
+- The new branch does not trigger production Render auto-deploy because it is not `main`. Both live services remain pinned to v489.309.
+
+The historical production measurements in this document are not replaced by CI mock timing. They remain the reason a real WordPress TEST latency acceptance is mandatory: the active v1 endpoint has previously measured 692–807 ms at the WordPress server while the caller's total wait budget is 250 ms. v2 CI demonstrates transaction correctness and bounded caller waiting, not that the actual WordPress endpoint is now below 250 ms.
+
+The old PR's full-suite result remains 951 passed / 59 failed versus 914 passed / the same 59 failed on its historical unmodified baseline. This rebased candidate must be tested again against v489.309. Do not interpret the old baseline parity as current-baseline QA.
+
+**Release gate:** do not merge or deploy until current-branch targeted CI, full-suite comparison against v489.309, source audit, persistent WordPress TEST integration, and measured cross-service acceptance pass. Production credentials, WordPress, Render services, and databases remain unchanged.
