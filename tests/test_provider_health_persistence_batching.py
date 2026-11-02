@@ -32,7 +32,7 @@ def test_multiple_candidate_failures_persist_one_shared_health_snapshot(monkeypa
     })
     monkeypatch.setattr(provider_bank.time, "monotonic", lambda: 0.0)
     writes = []
-    monkeypatch.setattr(provider_bank, "save_remote_states", lambda states: writes.append(states) or True)
+    monkeypatch.setattr(provider_bank, "save_remote_states", lambda states, **kwargs: writes.append(states) or True)
 
     def fail_fast(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
         raise provider_bank.ProviderCallError(
@@ -75,7 +75,7 @@ def test_failed_route_flush_remains_pending_and_retries_at_next_boundary(monkeyp
     writes = []
     outcomes = iter([False, True])
 
-    def save(states):
+    def save(states, on_late_success=None):
         writes.append(states)
         return next(outcomes)
 
@@ -114,7 +114,7 @@ def test_health_flush_serializes_an_immutable_record_snapshot(monkeypatch):
         return original_export(records)
 
     monkeypatch.setattr(provider_bank, "export_health_states", paused_export)
-    monkeypatch.setattr(provider_bank, "save_remote_states", lambda snapshot: writes.append(snapshot) or True)
+    monkeypatch.setattr(provider_bank, "save_remote_states", lambda snapshot, **kwargs: writes.append(snapshot) or True)
     provider_bank._mark_shared_state_pending()
 
     with ThreadPoolExecutor(max_workers=1) as pool:
@@ -140,7 +140,7 @@ def test_newer_dirty_version_is_not_cleared_by_older_successful_flush(monkeypatc
     })
     writes = []
 
-    def save(states):
+    def save(states, on_late_success=None):
         writes.append(states)
         if len(writes) == 1:
             # Simulate another route recording a new change while this snapshot
@@ -294,7 +294,7 @@ def test_provider_state_lock_is_released_before_bridge_network_write(monkeypatch
     })
     acquired = threading.Event()
 
-    def save(_states):
+    def save(_states, on_late_success=None):
         def acquire_from_another_thread():
             with provider_bank._STATE_LOCK:
                 acquired.set()
@@ -595,7 +595,7 @@ def test_concurrent_route_does_not_wait_for_another_health_flush(monkeypatch):
     release = threading.Event()
     writes = []
 
-    def save(states):
+    def save(states, on_late_success=None):
         writes.append(states)
         if len(writes) == 1:
             started.set()
