@@ -95,7 +95,7 @@ def test_relational_return_preserves_explicit_closure_contract(monkeypatch):
         headers={
             "X-Living-Archive-Provider-Key": "test-only",
             "content-type": "application/json",
-            "content-length": "28",
+            "content-length": "29",
         },
     )
 
