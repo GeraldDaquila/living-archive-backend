@@ -10142,6 +10142,7 @@ if not any(getattr(route, "path", "") == "/api/formation-entrance" for route in 
 # Authenticated WordPress-to-USE boundary. The shared secret is configured
 # independently in Render and WordPress wp-config.php; it is never sent to a browser.
 _RELATIONAL_RETURN_AUTH_WINDOW_SECONDS = 300
+_RELATIONAL_RETURN_MAX_BODY_BYTES = 256000
 _RELATIONAL_RETURN_NONCE_MAX = 4096
 _RELATIONAL_RETURN_NONCES = {}
 _RELATIONAL_RETURN_NONCE_LOCK = threading.Lock()
@@ -10194,6 +10195,8 @@ def _authorize_relational_return_request(raw_body, headers, now=None):
 @app.post("/api/relational-return")
 async def _v48755_relational_return_route(request: Request):
     raw_body = await request.body()
+    if len(raw_body) > _RELATIONAL_RETURN_MAX_BODY_BYTES:
+        return _relational_return_auth_error(413, "relational_return_payload_too_large")
     auth_error = _authorize_relational_return_request(raw_body, request.headers)
     if auth_error is not None:
         return auth_error
