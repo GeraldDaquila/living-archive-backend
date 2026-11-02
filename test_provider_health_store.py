@@ -239,7 +239,7 @@ class ProviderHealthStoreTests(unittest.TestCase):
         with patch.object(provider_health_store, "_READ_CACHE", stale.copy()), \
              patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \
              patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \
-             patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \\
+             patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \
              patch.object(provider_health_store, "_request", side_effect=slow_refresh) as request:
             before = time.monotonic()
             first = provider_health_store.load_remote_states()
