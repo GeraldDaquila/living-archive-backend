@@ -4736,6 +4736,7 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
         ))
         _foundation_response = (
             _base._foundation_teacherly_answer(query)
+            + "\\n\\nThe Archive's work is also organized through four complementary movements: Recover, Remember, Apply, and Refine. These connect the recovery of constitutional understanding with institutional memory, practical stewardship, and the continuing refinement of methods."
             if _foundation_query and _base._inquiry_profile(query).get("action") == "foundation"
             else ""
         )
