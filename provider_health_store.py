@@ -52,7 +52,7 @@ _BACKGROUND_WRITE_RETRY_AFTER = 0.0
 _BACKGROUND_WRITE_LAST_OK = None
 _BACKGROUND_WRITE_LAST_AT = 0.0
 STATE_FIELDS = (
-    "provider", "model", "operation", "state", "failures", "consecutive_failures",
+    "provider", "model", "operation", "last_operation", "state", "failures", "consecutive_failures",
     "cooldown_until", "quarantine_until", "last_error", "last_success",
     "last_failure", "category", "quality_failures", "last_quality_failure",
     "last_quality_success", "quality_cooldown_until", "quality_error",
@@ -371,7 +371,7 @@ def merge_health_state(local, remote, now=None):
     latest_success = max(local_success, remote_success)
 
     if remote_failure > local_failure:
-        for field in ("failures", "consecutive_failures", "last_error", "category", "cooldown_until", "quarantine_until"):
+        for field in ("failures", "consecutive_failures", "last_error", "category", "last_operation", "cooldown_until", "quarantine_until"):
             if field in remote:
                 local[field] = remote[field]
     elif remote_failure == local_failure and remote_failure > 0:
@@ -381,6 +381,8 @@ def merge_health_state(local, remote, now=None):
         if remote.get("last_error"):
             local["last_error"] = remote["last_error"]
             local["category"] = remote.get("category", local.get("category", ""))
+        if remote.get("last_operation"):
+            local["last_operation"] = remote["last_operation"]
     if remote_success > local_success:
         local["last_success"] = remote_success
     if remote_failure > local_failure:

@@ -274,6 +274,49 @@ class ProviderHealthStoreTests(unittest.TestCase):
         self.assertEqual(first, second)
         request.assert_called_once_with("GET")
 
+    def test_structured_output_quarantine_is_scoped_to_operation_and_schema_mode(self):
+        state = {
+            "state": "open",
+            "category": "structured_output_contract",
+            "last_error": "json_validate_failed",
+            "last_operation": "hrn_voice_repair",
+            "cooldown_until": 0.0,
+            "quarantine_until": time.time() + 3600,
+        }
+        self.assertFalse(provider_bank._blocked_for_operation(state, "hrn_voice_repair", {"mode": "text"}))
+        self.assertTrue(provider_bank._blocked_for_operation(state, "hrn_voice_repair", None))
+        self.assertFalse(provider_bank._blocked_for_operation(state, "mini_use", None))
+
+    def test_last_operation_survives_shared_health_export_and_merge(self):
+        local = {
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "state": "open",
+            "category": "provider_failure",
+            "last_error": "older timeout",
+            "last_operation": "mini_use",
+            "last_failure": 100.0,
+            "last_success": 50.0,
+            "cooldown_until": 200.0,
+            "quarantine_until": 0.0,
+        }
+        remote = {
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "state": "open",
+            "category": "structured_output_contract",
+            "last_error": "json_validate_failed",
+            "last_operation": "hrn_voice_repair",
+            "last_failure": 200.0,
+            "last_success": 50.0,
+            "cooldown_until": 0.0,
+            "quarantine_until": 500.0,
+        }
+        merge_health_state(local, remote, now=300.0)
+        self.assertEqual(local["last_operation"], "hrn_voice_repair")
+        exported = export_health_states({"groq:openai/gpt-oss-20b": local})
+        self.assertEqual(exported["groq:openai/gpt-oss-20b"]["last_operation"], "hrn_voice_repair")
+
     def test_nonblocking_shared_read_returns_fresh_cache_without_waiting(self):
         cached = {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "healthy"}}
         with patch.object(provider_health_store, "_READ_CACHE", cached), \
