@@ -32,6 +32,8 @@ class FoundationProviderExhaustionRecoveryTests(unittest.TestCase):
         )
         self.assertIn("connected body of essays", result["response"])
         self.assertIn("finding your bearings", result["response"])
+        self.assertIn("Recover, Remember, Apply, and Refine", result["response"])
+        self.assertEqual(len(result["response"].split("\\n\\n")), 3)
         self.assertEqual(result["doorway_title"], "")
         self.assertIsNone(result["recommendation"])
         provider_recovery.assert_not_called()
