@@ -226,7 +226,7 @@ class ProviderHealthStoreTests(unittest.TestCase):
 
     def test_expired_shared_health_cache_returns_stale_while_refresh_runs_once(self):
         stale = {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "healthy"}}
-        fresh = {"nvidia:model-b": {"provider": "nvidia", "model": "model-b", "state": "open"}}
+        fresh = {"nvidia:model-b": {"provider": "nvidia", "model": "model-b", "state": "open", "probe_in_flight": False}}
         started = threading.Event()
         release = threading.Event()
 
