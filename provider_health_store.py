@@ -39,7 +39,7 @@ _READ_IN_FLIGHT_RESULT = None
 # Cross-service synchronization runs off the visitor request path. The 250ms
 # synchronous budget remains the guardrail; background probes may use a longer
 # bounded window because they never hold an inference request open.
-BACKGROUND_TIMEOUT_SECONDS = 0.75
+BACKGROUND_TIMEOUT_SECONDS = 1.5
 _BACKGROUND_READ_LOCK = threading.Lock()
 _BACKGROUND_READ_THREAD = None
 _BACKGROUND_READ_RETRY_AFTER = 0.0
@@ -118,7 +118,7 @@ def _request(method, payload=None, timeout=None):
         request_url += separator + "_la_health_nonce=" + str(time.time_ns())
     data = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8") if payload is not None else None
     request = Request(request_url, data=data, headers=headers, method=method)
-    request_timeout = TIMEOUT_SECONDS if timeout is None else max(0.05, min(1.0, float(timeout)))
+    request_timeout = TIMEOUT_SECONDS if timeout is None else max(0.05, min(2.0, float(timeout)))
     started = time.monotonic()
     outcome = "error"
     try:
@@ -165,7 +165,7 @@ def load_remote_states(timeout=None):
     if not owner:
         # The owner gets the only bridge attempt. Waiters may use its result,
         # but never issue a parallel request just because the bridge is slow.
-        wait_timeout = TIMEOUT_SECONDS if timeout is None else max(0.05, min(1.0, float(timeout)))
+        wait_timeout = TIMEOUT_SECONDS if timeout is None else max(0.05, min(2.0, float(timeout)))
         event.wait(wait_timeout + 0.10)
         with _READ_CACHE_LOCK:
             if _READ_CACHE is not None and _monotonic() < _READ_CACHE_UNTIL:
