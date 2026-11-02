@@ -264,12 +264,32 @@ class ProviderHealthStoreTests(unittest.TestCase):
             self.assertEqual(current, fresh)
             self.assertIsNone(inflight)
 
+    def test_late_cold_shared_health_read_populates_cache_for_next_route(self):
+        fresh = {"nvidia:model-b": {"provider": "nvidia", "model": "model-b", "state": "open", "probe_in_flight": False}}
+
+        def request(method, payload=None, on_late_result=None):
+            self.assertEqual(method, "GET")
+            self.assertTrue(callable(on_late_result))
+            on_late_result({"contract_version": "v2", "states": fresh})
+            return None
+
+        with patch.object(provider_health_store, "_READ_CACHE", None), \\
+             patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \\
+             patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \\
+             patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \\
+             patch.object(provider_health_store, "_request", side_effect=request):
+            first = provider_health_store.load_remote_states()
+            second = provider_health_store.load_remote_states()
+
+        self.assertIsNone(first)
+        self.assertEqual(second, fresh)
+
     def test_concurrent_cold_reads_share_one_bridge_attempt(self):
         with patch.object(provider_health_store, "_READ_CACHE", None), \
              patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \
              patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \
              patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \
-             patch.object(provider_health_store, "_request", side_effect=lambda method: (
+             patch.object(provider_health_store, "_request", side_effect=lambda method, payload=None, on_late_result=None: (
                  time.sleep(0.05) or {
                      "contract_version": "v2",
                      "states": {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "healthy"}},
@@ -441,7 +461,7 @@ class ProviderHealthStoreTests(unittest.TestCase):
         release = threading.Event()
         waiter_done = threading.Event()
 
-        def slow_request(method):
+        def slow_request(method, payload=None, on_late_result=None):
             entered.set()
             release.wait(timeout=2.0)
             return None
