@@ -4460,7 +4460,7 @@ def _basic_inquiry_has_internal_annotation(response):
 def _guide_generic_practical_template_mismatch(query, response_text):
     """Catch the specialist's generic action-planning template when it substitutes for an answer."""
     q = re.sub(r"\s+", " ", _normalize_query(query)).strip().casefold()
-    response = re.sub(r"\\s+", " ", str(response_text or "")).strip().casefold()
+    response = re.sub(r"\s+", " ", str(response_text or "")).strip().casefold()
     generic_template = bool(re.match(
         r"^(?:a practical way to approach|a practical way to think about|to approach this)\\b",
         response,
@@ -4478,8 +4478,8 @@ def _guide_generic_practical_template_mismatch(query, response_text):
 
 def _guide_historical_origin_mismatch(query, response_text):
     """Detect the reproduced historical question receiving generic planning prose."""
-    q = re.sub(r"\\s+", " ", _normalize_query(query)).strip().casefold()
-    response = re.sub(r"\\s+", " ", str(response_text or "")).strip().casefold()
+    q = re.sub(r"\s+", " ", _normalize_query(query)).strip().casefold()
+    response = re.sub(r"\s+", " ", str(response_text or "")).strip().casefold()
     historical_question = bool(
         re.search(r"\\bphilippines\\b", q)
         and re.search(r"\\b(?:matriarch(?:al|y)|patriarch(?:al|y)|gender roles?)\\b", q)
@@ -4731,8 +4731,8 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
         # This is intentionally limited to the exact foundation question; it
         # does not create or authorize a canonical doorway.
         _foundation_query = bool(re.fullmatch(
-            r"(?i)(?:what is|what's|tell me about)\\s+(?:the )?living archive[?.!]*",
-            re.sub(r"\\s+", " ", str(query or "")).strip(),
+            r"(?i)(?:what is|what's|tell me about)\s+(?:the )?living archive[?.!]*",
+            re.sub(r"\s+", " ", str(query or "")).strip(),
         ))
         _foundation_response = (
             _base._foundation_teacherly_answer(query)
