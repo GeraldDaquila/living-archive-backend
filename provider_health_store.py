@@ -298,11 +298,8 @@ def _request(method, payload=None, on_late_result=None):
     return result
 
 
-def _fetch_validated_remote_states():
-    result = _request("GET")
-    if not isinstance(result, dict):
-        return None
-    if result.get("contract_version") != CONTRACT_VERSION:
+def _clean_remote_health_payload(result):
+    if not isinstance(result, dict) or result.get("contract_version") != CONTRACT_VERSION:
         return None
     states = result.get("states")
     if not isinstance(states, dict) or len(states) > 100:
@@ -316,6 +313,24 @@ def _fetch_validated_remote_states():
         cleaned[key] = {field: value[field] for field in STATE_FIELDS if field in value}
         cleaned[key]["probe_in_flight"] = False
     return cleaned
+
+
+def _fetch_validated_remote_states(event=None):
+    def accept_late_result(result):
+        cleaned_late = _clean_remote_health_payload(result)
+        if cleaned_late is None:
+            return
+        # A late GET is useful for the next route, even though it cannot extend
+        # the current visitor's wait. Never let an older read overwrite a newer
+        # refresh that has already taken ownership of the single-flight slot.
+        with _READ_CACHE_LOCK:
+            if _READ_IN_FLIGHT is None or _READ_IN_FLIGHT is event:
+                global _READ_CACHE, _READ_CACHE_UNTIL
+                _READ_CACHE = cleaned_late
+                _READ_CACHE_UNTIL = _monotonic() + _READ_CACHE_TTL_SECONDS
+
+    result = _request("GET", on_late_result=accept_late_result)
+    return _clean_remote_health_payload(result)
 
 
 def _publish_remote_read(event, cleaned):
@@ -337,7 +352,7 @@ def _publish_remote_read(event, cleaned):
 def _refresh_remote_states_background(event):
     cleaned = None
     try:
-        cleaned = _fetch_validated_remote_states()
+        cleaned = _fetch_validated_remote_states(event)
     except Exception as error:
         print(
             "USE provider health store background refresh failed: "
