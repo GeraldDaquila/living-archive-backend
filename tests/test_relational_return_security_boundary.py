@@ -102,3 +102,15 @@ def test_relational_return_preserves_explicit_closure_contract(monkeypatch):
     response = asyncio.run(main._v48755_relational_return(request))
 
     assert response.status_code == 409
+
+def test_relational_return_operational_logs_exclude_visitor_content_and_session_id():
+    source = (
+        __import__("pathlib").Path(__file__).resolve().parents[1] / "main.py"
+    ).read_text(encoding="utf-8")
+    start = source.index("async def _v48755_relational_return(request: Request):")
+    end = source.index("# v487.57 — EARLY GUIDE CAPABILITY ROUTING", start)
+    handler = source[start:end]
+
+    assert "query={_normalize_query(original_question)" not in handler
+    assert "session={session_id or 'none'}" not in handler
+    assert "exception_type={type(exc).__name__}" in handler
