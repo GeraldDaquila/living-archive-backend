@@ -377,7 +377,36 @@ def _flush_pending_shared_state():
             })
         snapshot = export_health_states(combined_state)
         # Network I/O is deliberately outside the provider-state lock.
-        ok = save_remote_states(snapshot)
+        # If WordPress commits after the 250ms caller deadline, consume its
+        # exact acknowledgement in the transport worker. The callback waits
+        # for this bounded flush to record its timeout/fallback result first,
+        # preventing a late success from being overwritten by stale diagnostics.
+        def handle_late_success():
+            with _PENDING_SHARED_STATE_FLUSH_LOCK:
+                with _PENDING_SHARED_STATE_LOCK:
+                    snapshot_still_current = (
+                        _PENDING_SHARED_STATE_VERSION == snapshot_version
+                    )
+                    if snapshot_still_current:
+                        _PENDING_SHARED_STATE = False
+                with _STATE_LOCK:
+                    _SHARED_STATE_DIAGNOSTICS["last_persist"] = time.time()
+                    if snapshot_still_current:
+                        _SHARED_STATE_DIAGNOSTICS.update({
+                            "mode": "shared_wordpress_database",
+                            "available": True,
+                            "last_error": "",
+                        })
+                    else:
+                        # The acknowledged snapshot is durable, but a newer
+                        # local mutation still needs its own route-boundary flush.
+                        _SHARED_STATE_DIAGNOSTICS.update({
+                            "mode": "local_fallback",
+                            "available": False,
+                            "last_error": "late shared health acknowledgement; newer state remains pending",
+                        })
+
+        ok = save_remote_states(snapshot, on_late_success=handle_late_success)
         if ok:
             with _PENDING_SHARED_STATE_LOCK:
                 if _PENDING_SHARED_STATE_VERSION == snapshot_version:
