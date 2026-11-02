@@ -149,7 +149,7 @@ def test_general_guide_interleaves_independent_provider_lanes(monkeypatch):
     assert len(set(providers[:3])) == 3
     assert providers[3] == "workers_ai"
 
-def test_general_guide_does_not_walk_to_fourth_candidate(monkeypatch):
+def test_general_guide_walks_to_fourth_candidate_after_fast_failures(monkeypatch):
     _isolate(monkeypatch)
 
     class Clock:
