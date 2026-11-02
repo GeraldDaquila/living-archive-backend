@@ -806,14 +806,14 @@ if not _relational_boundary_decision(_route_probe_authority_relationship).get("o
 
 
 
-# v489.310 regression guard: lived workplace credit-taking belongs in HRN,
+# Regression guard: lived workplace credit-taking belongs in HRN,
 # while general workplace-credit questions remain in Guide basic inquiry.
 _route_probe_lived_credit = (
     "I feel frustrated because my colleague keeps taking credit for work we did together. "
     "What might I be missing about the relationship?"
 )
 if not _relational_boundary_decision(_route_probe_lived_credit).get("open"):
-    raise RuntimeError("USE v489.310 routing invariant failed: lived workplace credit-taking did not open HRN")
+    raise RuntimeError("USE routing invariant failed: lived workplace credit-taking did not open HRN")
 if _relational_boundary_decision(
     "What are common patterns of taking credit in workplace relationships?"
 ).get("open"):
