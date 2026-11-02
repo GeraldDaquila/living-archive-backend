@@ -38,6 +38,31 @@ def test_shared_definition_recovery_generalizes_across_concepts():
         assert not composition.is_generic_nonanswer(question, answer)
 
 
+def test_why_does_clear_handoff_matter_gets_a_direct_three_paragraph_answer():
+    question = "Why does a clear handoff matter when teams coordinate their work?"
+    answer = compose_recovery(question)
+    paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
+
+    assert len(paragraphs) == 3
+    assert "transfer of responsibility" in answer
+    assert "unresolved issues" in answer
+    assert "reduces gaps, duplicated effort, missed dependencies" in answer
+    assert "immediate event" not in answer
+    assert not composition.is_generic_nonanswer(question, answer)
+    assert not composition.is_meta_answer_failure(answer)
+
+
+def test_unknown_why_does_this_matter_question_keeps_its_concept_and_context():
+    question = "Why does a public record matter when leadership changes?"
+    answer = compose_recovery(question)
+
+    assert "Public record matters in leadership changes" in answer
+    assert "shared understanding" in answer
+    assert "who depends on it" in answer
+    assert "immediate event" not in answer
+    assert not composition.is_generic_nonanswer(question, answer)
+
+
 def test_unknown_definition_is_honest_and_not_circular_meta_commentary():
     question = "What is quantum stewardship, and why does it matter?"
     answer = compose_recovery(question)
