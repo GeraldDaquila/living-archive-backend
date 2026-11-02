@@ -90,3 +90,29 @@ def test_normal_requests_are_not_marked_as_half_open_probes(monkeypatch):
     assert store._request("GET") == {"contract_version": store.CONTRACT_VERSION, "states": {}}
     assert store._CIRCUIT_PROBE_IN_FLIGHT is False
     assert store._CIRCUIT_OPEN_UNTIL == 0.0
+
+
+
+def test_late_v2_transport_result_reaches_background_ack_handler(monkeypatch):
+    import threading
+    import time
+
+    _reset_circuit()
+    monkeypatch.setattr(store, "_configuration", lambda: ("https://health.invalid/state", "test-secret"))
+    monkeypatch.setattr(store, "TIMEOUT_SECONDS", 0.01)
+    monkeypatch.setattr(store, "urlopen", lambda *args, **kwargs: object())
+    body = b'{"contract_version":"v2","success":true,"submitted":1,"written":1}'
+
+    def delayed_body(*args, **kwargs):
+        time.sleep(0.04)
+        return body
+
+    monkeypatch.setattr(store, "_read_response_body", delayed_body)
+    received = threading.Event()
+    result = store._request(
+        "POST",
+        {"contract_version": "v2", "states": {"groq:model-a": {}}},
+        on_late_result=lambda value: received.set() if value.get("written") == 1 else None,
+    )
+    assert result is None
+    assert received.wait(0.5)
