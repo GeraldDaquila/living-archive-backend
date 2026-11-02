@@ -174,9 +174,9 @@ def test_general_guide_walks_to_fourth_candidate_after_fast_failures(monkeypatch
     )
 
     assert result is None
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
     assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
-    assert clock.value == pytest.approx(0.6)
+    assert clock.value == pytest.approx(0.8)
 
 def test_general_guide_continues_after_slow_failure_within_budget(monkeypatch):
     _isolate(monkeypatch)
