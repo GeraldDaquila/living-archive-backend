@@ -259,20 +259,45 @@ add_filter('rest_post_dispatch', function ($response, $server, $request) {
         'round_synthesis_history' => is_array($data['round_synthesis_history'] ?? null) ? $data['round_synthesis_history'] : array(),
     );
 
+    // The provider bridge owns the server-side credential. Never expose it to the browser.
+    $shared_secret = function_exists('la_provider_bank_shared_secret')
+        ? trim((string)la_provider_bank_shared_secret())
+        : '';
+    if ($shared_secret === '') {
+        $data['return_handoff_status'] = 'authorization_unavailable';
+        $data['return_handoff_response'] = 'The Archive doorway could not be prepared right now.';
+        $response->set_data($data);
+        return $response;
+    }
+
+    $encoded_payload = wp_json_encode($payload);
+    if (!is_string($encoded_payload) || strlen($encoded_payload) > 131072) {
+        $data['return_handoff_status'] = 'payload_too_large';
+        $data['return_handoff_response'] = 'The Archive doorway could not be prepared from this unusually large conversation.';
+        $response->set_data($data);
+        return $response;
+    }
+
     $endpoints = array(
         'https://living-archive-backend.onrender.com/api/relational-return',
         'https://living-archive-backend-mirror.onrender.com/api/relational-return',
     );
     $returned = null;
+    $last_status = 0;
     foreach ($endpoints as $endpoint) {
         $remote = wp_remote_post($endpoint, array(
             'timeout' => 15,
             'redirection' => 0,
-            'headers' => array('Content-Type' => 'application/json', 'Accept' => 'application/json'),
-            'body' => wp_json_encode($payload),
+            'headers' => array(
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+                'X-Living-Archive-Provider-Key' => $shared_secret,
+            ),
+            'body' => $encoded_payload,
         ));
         if (is_wp_error($remote)) continue;
         $status = (int)wp_remote_retrieve_response_code($remote);
+        $last_status = $status;
         if ($status < 200 || $status >= 300) continue;
         $decoded = json_decode((string)wp_remote_retrieve_body($remote), true);
         if (!is_array($decoded) || empty($decoded['ok'])) continue;
@@ -280,7 +305,14 @@ add_filter('rest_post_dispatch', function ($response, $server, $request) {
         break;
     }
 
-    if (!is_array($returned)) return $response;
+    if (!is_array($returned)) {
+        $data['return_handoff_status'] = in_array($last_status, array(401, 403), true)
+            ? 'authorization_failed'
+            : 'handoff_unavailable';
+        $data['return_handoff_response'] = 'The conversation can rest here. The Archive doorway is not available right now.';
+        $response->set_data($data);
+        return $response;
+    }
 
     $doorway = $returned['canonical_doorway'] ?? null;
     if (!is_array($doorway) || empty($doorway['title']) || empty($doorway['url'])) {
@@ -288,6 +320,7 @@ add_filter('rest_post_dispatch', function ($response, $server, $request) {
         $data['resources'] = array();
         $data['resource_intro'] = '';
         $data['return_handoff_status'] = 'no_grounded_doorway';
+        $data['return_handoff_response'] = wp_strip_all_tags((string)($returned['response'] ?? 'No canonical doorway was close enough to offer honestly from this conversation.'));
         $response->set_data($data);
         return $response;
     }
