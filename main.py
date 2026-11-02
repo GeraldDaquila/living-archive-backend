@@ -4424,12 +4424,12 @@ def _guide_generic_practical_template_mismatch(query, response_text):
 
 def _guide_historical_origin_mismatch(query, response_text):
     """Detect the reproduced historical question receiving generic planning prose."""
-    q = re.sub(r"\\s+", " ", _normalize_query(query)).strip().casefold()
-    response = re.sub(r"\\s+", " ", str(response_text or "")).strip().casefold()
+    q = re.sub(r"\s+", " ", _normalize_query(query)).strip().casefold()
+    response = re.sub(r"\s+", " ", str(response_text or "")).strip().casefold()
     historical_question = bool(
-        re.search(r"\\bphilippines\\b", q)
-        and re.search(r"\\b(?:matriarch(?:al|y)|patriarch(?:al|y)|gender roles?)\\b", q)
-        and re.search(r"\\b(?:where|how|origin|evolv|histor|come from|develop)\\b", q)
+        re.search(r"\bphilippines\b", q)
+        and re.search(r"\b(?:matriarch(?:al|y)|patriarch(?:al|y)|gender roles?)\b", q)
+        and re.search(r"\b(?:where|how|origin|evolv|histor|come from|develop)\b", q)
     )
     return historical_question and _guide_generic_practical_template_mismatch(query, response_text)
 
