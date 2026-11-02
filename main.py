@@ -8023,7 +8023,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         print(
             "The Guide response integrity boundary: rejected cross-question "
             f"Gold Standard reuse; retrying evidence-grounded composition; "
-            f"incoming_query={_normalize_query(query)[:120]}"
+            f"incoming_query_chars={len(query)}"
         )
         retry_result = None
         if (
@@ -9330,7 +9330,7 @@ async def _use_request_boundary(scope, receive, send):
         request_id = _relational_handoff_session_id(parsed_body)
         print(
             "The Guide immediate HRN handoff: "
-            f"request_id={request_id}, query={_normalize_query(query)[:120]}"
+            f"request_id={request_id}, query_chars={len(query)}"
         )
         return await _use_send_json(send, {
             "ok": True,
@@ -9462,7 +9462,7 @@ async def _use_request_boundary(scope, receive, send):
         print(
             "The Guide systemic Navigator orientation handoff: "
             f"request_id={request_id}, url={navigator_url}, "
-            f"query={_normalize_query(query)[:120]}"
+            f"query_chars={len(query)}"
         )
         return await _use_send_json(send, {
             "ok": True,
@@ -9614,7 +9614,7 @@ async def _use_request_boundary(scope, receive, send):
     if route_id == "glossary" and _is_normative_conflict_explanatory_request(query):
         print(
             "The Guide request boundary: kept normative values-conflict inquiry in Guide composition; "
-            f"query={_normalize_query(query)[:120]}"
+            f"query_chars={len(query)}"
         )
         route_id = "guide"
         mode = "direct"
@@ -9622,7 +9622,7 @@ async def _use_request_boundary(scope, receive, send):
     if route_id == "glossary" and _is_comparative_explanatory_request(query):
         print(
             "The Guide request boundary: kept comparative inquiry in Guide composition; "
-            f"query={_normalize_query(query)[:120]}"
+            f"query_chars={len(query)}"
         )
         route_id = "guide"
         mode = "direct"
@@ -9638,7 +9638,7 @@ async def _use_request_boundary(scope, receive, send):
     ):
         print(
             "The Guide request boundary: suppressed unsupported Guide Node handoff; "
-            f"query={_normalize_query(query)[:120]}"
+            f"query_chars={len(query)}"
         )
         route_id = "guide"
         mode = "direct"
