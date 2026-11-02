@@ -278,9 +278,10 @@ add_filter('rest_post_dispatch', function ($response, $server, $request) {
         return $response;
     }
 
+    // The confirmed primary Render service is the sole authorized destination.
+    // Do not forward visitor conversations to an unverified mirror endpoint.
     $endpoints = array(
         'https://living-archive-backend.onrender.com/api/relational-return',
-        'https://living-archive-backend-mirror.onrender.com/api/relational-return',
     );
     $returned = null;
     $last_status = 0;
