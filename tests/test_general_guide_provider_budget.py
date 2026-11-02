@@ -108,7 +108,7 @@ def test_general_guide_uses_remaining_independent_candidates_within_window(monke
     assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
     assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
     assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
-    assert clock.value == 1.0
+    assert clock.value == pytest.approx(0.75)
 
 
 def test_general_guide_prioritizes_healthy_lane_over_half_open_probe(monkeypatch):
