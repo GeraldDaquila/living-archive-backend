@@ -1,0 +1,21 @@
+name: Guide Regex Boundary Contract
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "main.py"
+      - "tests/test_guide_regex_boundaries.py"
+      - ".github/workflows/guide-regex-boundary-contract.yml"
+permissions:
+  contents: read
+jobs:
+  regex-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install pytest
+      - run: python -m pytest -q tests/test_guide_regex_boundaries.py
+      - run: python -m py_compile main.py
