@@ -382,6 +382,7 @@ def _flush_pending_shared_state():
         # for this bounded flush to record its timeout/fallback result first,
         # preventing a late success from being overwritten by stale diagnostics.
         def handle_late_success():
+            global _PENDING_SHARED_STATE
             with _PENDING_SHARED_STATE_FLUSH_LOCK:
                 with _PENDING_SHARED_STATE_LOCK:
                     snapshot_still_current = (
