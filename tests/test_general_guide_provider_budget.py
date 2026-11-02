@@ -80,7 +80,7 @@ def test_general_guide_uses_bounded_timeout_and_one_independent_fallback(monkeyp
 
 
 
-def test_general_guide_stops_after_two_failed_fallbacks(monkeypatch):
+def test_general_guide_uses_remaining_independent_candidates_within_window(monkeypatch):
     _isolate(monkeypatch)
 
     class Clock:
@@ -105,10 +105,10 @@ def test_general_guide_stops_after_two_failed_fallbacks(monkeypatch):
     )
 
     assert result is None
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
     assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
-    assert clock.value == 0.75
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 5
+    assert clock.value == 1.0
 
 
 def test_general_guide_prioritizes_healthy_lane_over_half_open_probe(monkeypatch):
@@ -149,7 +149,7 @@ def test_general_guide_interleaves_independent_provider_lanes(monkeypatch):
     assert len(set(providers[:3])) == 3
     assert providers[3] == "workers_ai"
 
-def test_general_guide_does_not_walk_to_fourth_candidate(monkeypatch):
+def test_general_guide_walks_to_fourth_candidate_after_fast_failures(monkeypatch):
     _isolate(monkeypatch)
 
     class Clock:
@@ -174,9 +174,9 @@ def test_general_guide_does_not_walk_to_fourth_candidate(monkeypatch):
     )
 
     assert result is None
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
     assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
-    assert clock.value == pytest.approx(0.6)
+    assert clock.value == pytest.approx(0.8)
 
 def test_general_guide_continues_after_slow_failure_within_budget(monkeypatch):
     _isolate(monkeypatch)
@@ -206,7 +206,7 @@ def test_general_guide_continues_after_slow_failure_within_budget(monkeypatch):
     assert calls == [("gemini", 6.0), ("workers_ai", 6.0), ("groq", 6.0)]
     assert provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS == 6.0
     assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 18.0
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 5
     assert clock.value == 18.0
 
 def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
