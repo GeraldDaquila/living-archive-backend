@@ -6645,6 +6645,27 @@ def _established_archive_cosmology_recovery(query):
     }
 
 
+def _basic_inquiry_has_internal_implementation_language(response):
+    """Reject machine-facing phrases without banning ordinary human uses of handoff."""
+    response = str(response or "")
+    if re.search(r"\bUSE\b", response):
+        return True
+    return bool(re.search(
+        r"(?:canonical evidence|supplied evidence|evidence excerpt|"
+        r"evidence excerpt bounded by USE|bounded by USE|"
+        r"bounded by the Guide|internal interpretation|retrieval layer|"
+        r"synthesis layer|processing layer|provider bank|provider selection|"
+        r"model selection|route source|"
+        r"handoff\s+(?:payload|endpoint|request|mode|route|adapter|contract|token|metadata)\b|"
+        r"handoff\s+(?:to|from)\s+(?:the\s+)?(?:provider|model|mirror|backend|endpoint)\b|"
+        r"(?:provider|model|mirror|backend)\s+handoff\b|"
+        r"handoff\s+(?:between|across)\s+(?:services|systems|endpoints|providers)\b|"
+        r"machine-facing|implementation metadata|system instruction|debugging annotation)",
+        response,
+        re.I,
+    )
+
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
@@ -7292,27 +7313,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             response = _sanitize_basic_inquiry_response(
                 _basic_inquiry_source_dump_recovery(query)
             )
-
-def _basic_inquiry_has_internal_implementation_language(response):
-    """Reject machine-facing phrases without banning ordinary human uses of handoff."""
-    response = str(response or "")
-    if re.search(r"\bUSE\b", response):
-        return True
-    return bool(re.search(
-        r"(?:canonical evidence|supplied evidence|evidence excerpt|"
-        r"evidence excerpt bounded by USE|bounded by USE|"
-        r"bounded by the Guide|internal interpretation|retrieval layer|"
-        r"synthesis layer|processing layer|provider bank|provider selection|"
-        r"model selection|route source|"
-        r"handoff\s+(?:payload|endpoint|request|mode|route|adapter|contract|token|metadata)\b|"
-        r"handoff\s+(?:to|from)\s+(?:the\s+)?(?:provider|model|mirror|backend|endpoint)\b|"
-        r"(?:provider|model|mirror|backend)\s+handoff\b|"
-        r"handoff\s+(?:between|across)\s+(?:services|systems|endpoints|providers)\b|"
-        r"machine-facing|implementation metadata|system instruction|debugging annotation)",
-        response,
-        re.I,
-    )
-
 
     if _basic_inquiry_has_internal_implementation_language(response):
         raise RuntimeError(
