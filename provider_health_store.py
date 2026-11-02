@@ -413,7 +413,7 @@ def load_remote_states():
 
     cleaned = None
     try:
-        cleaned = _fetch_validated_remote_states()
+        cleaned = _fetch_validated_remote_states(event)
         return cleaned
     finally:
         _publish_remote_read(event, cleaned)
