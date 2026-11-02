@@ -55,3 +55,14 @@ def test_browser_secret_is_not_part_of_server_side_adapter_contract():
     assert "LA_RELATIONAL_RETURN_SHARED_SECRET" in php
     assert "wp_localize_script" not in php
     assert "wp_add_inline_script" not in php
+
+
+def test_basic_inquiry_diagnostic_logs_metadata_not_visitor_text():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    line = next(
+        line for line in source.splitlines()
+        if 'The Guide Basic Inquiry:' in line and 'request_id=' in line
+    )
+    assert "query_chars={len(query)}" in line
+    assert "_normalize_query(query)" not in line
+    assert "query=" not in line
