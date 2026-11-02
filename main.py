@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.304 — Absolute provider HTTP deadline
+# USE PRODUCTION VERSION: v489.305 — Foundation recovery on provider exhaustion
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
@@ -85,9 +85,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.304"
-DEPLOYMENT_FINGERPRINT = "USE-v489.304-absolute-provider-http-deadline"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.304-absolute-provider-http-deadline"
+APP_VERSION = "v489.305"
+DEPLOYMENT_FINGERPRINT = "USE-v489.305-foundation-recovery-provider-exhaustion"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.305-foundation-recovery-provider-exhaustion"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -4725,11 +4725,38 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
     )
     if isinstance(result, dict) and result.get("provider") == "deterministic_question_preserving_recovery":
         result = dict(result)
-        result["response"] = _compose_provider_exhaustion_recovery(
-            query,
-            underlying_question=str((interpretation or {}).get("underlying_question") or ""),
-            desired_movement=str((interpretation or {}).get("desired_movement") or ""),
+        # The Guide already has a bounded, visitor-facing foundation definition
+        # for the Living Archive. Preserve that answer when composition providers
+        # are exhausted instead of replacing it with the generic non-answer.
+        # This is intentionally limited to the exact foundation question; it
+        # does not create or authorize a canonical doorway.
+        _foundation_query = bool(re.fullmatch(
+            r"(?i)(?:what is|what's|tell me about)\\s+(?:the )?living archive[?.!]*",
+            re.sub(r"\\s+", " ", str(query or "")).strip(),
+        ))
+        _foundation_response = (
+            _base._foundation_teacherly_answer(query)
+            if _foundation_query and _base._inquiry_profile(query).get("action") == "foundation"
+            else ""
         )
+        if (
+            _foundation_response
+            and not _guide_composition.is_generic_nonanswer(query, _foundation_response)
+            and not _guide_composition.is_meta_answer_failure(_foundation_response)
+        ):
+            result.update({
+                "response": _foundation_response,
+                "doorway_title": "",
+                "recommendation": None,
+                "provider": "bounded_foundation_provider_exhaustion_recovery",
+                "model": "",
+            })
+        else:
+            result["response"] = _compose_provider_exhaustion_recovery(
+                query,
+                underlying_question=str((interpretation or {}).get("underlying_question") or ""),
+                desired_movement=str((interpretation or {}).get("desired_movement") or ""),
+            )
         # Shared definition recovery must replace the weak legacy fallback at
         # the provider-exhaustion boundary, and must still pass semantic gates.
         if re.match(
