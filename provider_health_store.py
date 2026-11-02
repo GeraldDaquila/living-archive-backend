@@ -36,6 +36,18 @@ _READ_CACHE = None
 _READ_CACHE_UNTIL = 0.0
 _READ_IN_FLIGHT = None
 _READ_IN_FLIGHT_RESULT = None
+# Cross-service synchronization runs off the visitor request path. The 250ms
+# synchronous budget remains the guardrail; background probes may use a longer
+# bounded window because they never hold an inference request open.
+BACKGROUND_TIMEOUT_SECONDS = 0.75
+_BACKGROUND_READ_LOCK = threading.Lock()
+_BACKGROUND_READ_THREAD = None
+_BACKGROUND_WRITE_LOCK = threading.Lock()
+_BACKGROUND_WRITE_THREAD = None
+_BACKGROUND_WRITE_PENDING = None
+_BACKGROUND_WRITE_RETRY_AFTER = 0.0
+_BACKGROUND_WRITE_LAST_OK = None
+_BACKGROUND_WRITE_LAST_AT = 0.0
 STATE_FIELDS = (
     "provider", "model", "operation", "state", "failures", "consecutive_failures",
     "cooldown_until", "quarantine_until", "last_error", "last_success",
@@ -67,7 +79,7 @@ def configuration_status():
         "shared_secret_configured": secret_configured,
     }
 
-def _request(method, payload=None):
+def _request(method, payload=None, timeout=None):
     global _CIRCUIT_OPEN_UNTIL, _CIRCUIT_PROBE_IN_FLIGHT
     url, secret = _configuration()
     if not url:
@@ -103,10 +115,11 @@ def _request(method, payload=None):
         request_url += separator + "_la_health_nonce=" + str(time.time_ns())
     data = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8") if payload is not None else None
     request = Request(request_url, data=data, headers=headers, method=method)
+    request_timeout = TIMEOUT_SECONDS if timeout is None else max(0.05, min(1.0, float(timeout)))
     started = time.monotonic()
     outcome = "error"
     try:
-        with urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+        with urlopen(request, timeout=request_timeout) as response:
             result = json.loads(response.read(512 * 1024 + 1).decode("utf-8", errors="replace"))
         if not isinstance(result, dict) or result.get("contract_version") != CONTRACT_VERSION:
             outcome = "invalid_contract"
@@ -128,11 +141,11 @@ def _request(method, payload=None):
         print(
             "USE provider health store timing: "
             f"method={method}, outcome={outcome}, elapsed_seconds={elapsed:.3f}, "
-            f"timeout_seconds={TIMEOUT_SECONDS:.2f}"
+            f"timeout_seconds={request_timeout:.2f}"
         )
 
 
-def load_remote_states():
+def load_remote_states(timeout=None):
     """Return a validated shared snapshot, coalescing concurrent cold reads."""
     global _READ_CACHE, _READ_CACHE_UNTIL, _READ_IN_FLIGHT, _READ_IN_FLIGHT_RESULT
     now = _monotonic()
@@ -149,7 +162,8 @@ def load_remote_states():
     if not owner:
         # The owner gets the only bridge attempt. Waiters may use its result,
         # but never issue a parallel request just because the bridge is slow.
-        event.wait(TIMEOUT_SECONDS + 0.10)
+        wait_timeout = TIMEOUT_SECONDS if timeout is None else max(0.05, min(1.0, float(timeout)))
+        event.wait(wait_timeout + 0.10)
         with _READ_CACHE_LOCK:
             if _READ_CACHE is not None and _monotonic() < _READ_CACHE_UNTIL:
                 return {key: dict(value) for key, value in _READ_CACHE.items()}
@@ -160,7 +174,7 @@ def load_remote_states():
 
     cleaned = None
     try:
-        result = _request("GET")
+        result = _request("GET") if timeout is None else _request("GET", timeout=timeout)
         if not isinstance(result, dict):
             return None
         states = result.get("states")
@@ -188,6 +202,125 @@ def load_remote_states():
             event.set()
 
 
+def _background_read_worker():
+    global _BACKGROUND_READ_THREAD
+    try:
+        load_remote_states(timeout=BACKGROUND_TIMEOUT_SECONDS)
+    except Exception:
+        # Shared health is advisory; an unexpected worker failure must not
+        # escape into a visitor request or terminate the application.
+        pass
+    finally:
+        with _BACKGROUND_READ_LOCK:
+            _BACKGROUND_READ_THREAD = None
+
+
+def _start_background_read():
+    global _BACKGROUND_READ_THREAD
+    with _BACKGROUND_READ_LOCK:
+        if _BACKGROUND_READ_THREAD is not None and _BACKGROUND_READ_THREAD.is_alive():
+            return False
+        thread = threading.Thread(
+            target=_background_read_worker,
+            name="use-provider-health-read",
+            daemon=True,
+        )
+        _BACKGROUND_READ_THREAD = thread
+        thread.start()
+        return True
+
+
+def load_remote_states_nonblocking():
+    """Return the latest cached snapshot and schedule refresh without waiting."""
+    now = _monotonic()
+    with _READ_CACHE_LOCK:
+        cached = _READ_CACHE
+        fresh = cached is not None and now < _READ_CACHE_UNTIL
+        result = {key: dict(value) for key, value in cached.items()} if cached is not None else None
+    if not fresh:
+        _start_background_read()
+    return result
+
+
+def _background_write_worker():
+    global _BACKGROUND_WRITE_THREAD, _BACKGROUND_WRITE_PENDING
+    global _BACKGROUND_WRITE_RETRY_AFTER, _BACKGROUND_WRITE_LAST_OK, _BACKGROUND_WRITE_LAST_AT
+    try:
+        while True:
+            with _BACKGROUND_WRITE_LOCK:
+                payload = _BACKGROUND_WRITE_PENDING
+                _BACKGROUND_WRITE_PENDING = None
+            if payload is None:
+                break
+            ok = save_remote_states(payload, timeout=BACKGROUND_TIMEOUT_SECONDS)
+            with _BACKGROUND_WRITE_LOCK:
+                _BACKGROUND_WRITE_LAST_OK = bool(ok)
+                _BACKGROUND_WRITE_LAST_AT = time.time()
+                if not ok:
+                    if _BACKGROUND_WRITE_PENDING is None:
+                        _BACKGROUND_WRITE_PENDING = payload
+                    _BACKGROUND_WRITE_RETRY_AFTER = _monotonic() + CIRCUIT_COOLDOWN_SECONDS
+                    break
+    except Exception:
+        with _BACKGROUND_WRITE_LOCK:
+            _BACKGROUND_WRITE_LAST_OK = False
+            _BACKGROUND_WRITE_LAST_AT = time.time()
+            _BACKGROUND_WRITE_RETRY_AFTER = _monotonic() + CIRCUIT_COOLDOWN_SECONDS
+    finally:
+        with _BACKGROUND_WRITE_LOCK:
+            _BACKGROUND_WRITE_THREAD = None
+
+
+def _start_background_write():
+    global _BACKGROUND_WRITE_THREAD
+    with _BACKGROUND_WRITE_LOCK:
+        if _BACKGROUND_WRITE_THREAD is not None and _BACKGROUND_WRITE_THREAD.is_alive():
+            return False
+        thread = threading.Thread(
+            target=_background_write_worker,
+            name="use-provider-health-write",
+            daemon=True,
+        )
+        _BACKGROUND_WRITE_THREAD = thread
+        thread.start()
+        return True
+
+
+def save_remote_states_async(states):
+    """Coalesce health snapshots and persist them outside visitor inference."""
+    global _BACKGROUND_WRITE_PENDING
+    if not isinstance(states, dict) or len(states) > 100:
+        return False
+    try:
+        snapshot = json.loads(json.dumps(states, separators=(",", ":"), ensure_ascii=False))
+    except (TypeError, ValueError):
+        return False
+    with _BACKGROUND_WRITE_LOCK:
+        _BACKGROUND_WRITE_PENDING = snapshot
+        if _monotonic() < _BACKGROUND_WRITE_RETRY_AFTER:
+            return True
+        thread = _BACKGROUND_WRITE_THREAD
+        if thread is not None and thread.is_alive():
+            return True
+    _start_background_write()
+    return True
+
+
+def background_status():
+    """Expose bounded worker state without leaking data or credentials."""
+    with _BACKGROUND_READ_LOCK:
+        read_in_flight = _BACKGROUND_READ_THREAD is not None and _BACKGROUND_READ_THREAD.is_alive()
+    with _BACKGROUND_WRITE_LOCK:
+        write_thread = _BACKGROUND_WRITE_THREAD
+        return {
+            "read_in_flight": bool(read_in_flight),
+            "write_in_flight": bool(write_thread is not None and write_thread.is_alive()),
+            "write_pending": _BACKGROUND_WRITE_PENDING is not None,
+            "last_write_ok": _BACKGROUND_WRITE_LAST_OK,
+            "last_write_at": _BACKGROUND_WRITE_LAST_AT,
+        }
+
+
 def export_health_states(states):
     exported = {}
     for key, value in list(states.items())[:100]:
@@ -202,10 +335,11 @@ def export_health_states(states):
     return exported
 
 
-def save_remote_states(states):
+def save_remote_states(states, timeout=None):
     if not isinstance(states, dict) or len(states) > 100:
         return False
-    result = _request("POST", {"contract_version": CONTRACT_VERSION, "states": states})
+    payload = {"contract_version": CONTRACT_VERSION, "states": states}
+    result = _request("POST", payload) if timeout is None else _request("POST", payload, timeout=timeout)
     return isinstance(result, dict) and isinstance(result.get("written"), int) and result["written"] >= 0
 
 
