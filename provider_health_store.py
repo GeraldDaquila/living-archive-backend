@@ -42,6 +42,9 @@ _READ_IN_FLIGHT_RESULT = None
 BACKGROUND_TIMEOUT_SECONDS = 0.75
 _BACKGROUND_READ_LOCK = threading.Lock()
 _BACKGROUND_READ_THREAD = None
+_BACKGROUND_READ_RETRY_AFTER = 0.0
+_BACKGROUND_READ_LAST_OK = None
+_BACKGROUND_READ_LAST_AT = 0.0
 _BACKGROUND_WRITE_LOCK = threading.Lock()
 _BACKGROUND_WRITE_THREAD = None
 _BACKGROUND_WRITE_PENDING = None
@@ -203,15 +206,20 @@ def load_remote_states(timeout=None):
 
 
 def _background_read_worker():
-    global _BACKGROUND_READ_THREAD
+    global _BACKGROUND_READ_THREAD, _BACKGROUND_READ_RETRY_AFTER
+    global _BACKGROUND_READ_LAST_OK, _BACKGROUND_READ_LAST_AT
+    ok = False
     try:
-        load_remote_states(timeout=BACKGROUND_TIMEOUT_SECONDS)
+        ok = isinstance(load_remote_states(timeout=BACKGROUND_TIMEOUT_SECONDS), dict)
     except Exception:
         # Shared health is advisory; an unexpected worker failure must not
         # escape into a visitor request or terminate the application.
-        pass
+        ok = False
     finally:
         with _BACKGROUND_READ_LOCK:
+            _BACKGROUND_READ_LAST_OK = ok
+            _BACKGROUND_READ_LAST_AT = time.time()
+            _BACKGROUND_READ_RETRY_AFTER = 0.0 if ok else _monotonic() + CIRCUIT_COOLDOWN_SECONDS
             _BACKGROUND_READ_THREAD = None
 
 
@@ -219,6 +227,8 @@ def _start_background_read():
     global _BACKGROUND_READ_THREAD
     with _BACKGROUND_READ_LOCK:
         if _BACKGROUND_READ_THREAD is not None and _BACKGROUND_READ_THREAD.is_alive():
+            return False
+        if _monotonic() < _BACKGROUND_READ_RETRY_AFTER:
             return False
         thread = threading.Thread(
             target=_background_read_worker,
@@ -314,6 +324,8 @@ def background_status():
         write_thread = _BACKGROUND_WRITE_THREAD
         return {
             "read_in_flight": bool(read_in_flight),
+            "read_last_ok": _BACKGROUND_READ_LAST_OK,
+            "read_last_at": _BACKGROUND_READ_LAST_AT,
             "write_in_flight": bool(write_thread is not None and write_thread.is_alive()),
             "write_pending": _BACKGROUND_WRITE_PENDING is not None,
             "last_write_ok": _BACKGROUND_WRITE_LAST_OK,
