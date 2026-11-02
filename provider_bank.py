@@ -383,7 +383,18 @@ def _flush_pending_shared_state():
         # preventing a late success from being overwritten by stale diagnostics.
         def handle_late_success():
             global _PENDING_SHARED_STATE
-            with _PENDING_SHARED_STATE_FLUSH_LOCK:
+            # Never let a background acknowledgement accumulate blocked worker
+            # threads behind a newer route-boundary flush. If another flush owns
+            # the lock, retain the pending marker and retry on the next boundary.
+            if not _PENDING_SHARED_STATE_FLUSH_LOCK.acquire(blocking=False):
+                with _STATE_LOCK:
+                    _SHARED_STATE_DIAGNOSTICS.update({
+                        "mode": "local_fallback",
+                        "available": False,
+                        "last_error": "late shared health acknowledgement deferred; pending state retained",
+                    })
+                return
+            try:
                 with _PENDING_SHARED_STATE_LOCK:
                     snapshot_still_current = (
                         _PENDING_SHARED_STATE_VERSION == snapshot_version
@@ -406,6 +417,8 @@ def _flush_pending_shared_state():
                             "available": False,
                             "last_error": "late shared health acknowledgement; newer state remains pending",
                         })
+            finally:
+                _PENDING_SHARED_STATE_FLUSH_LOCK.release()
 
         ok = save_remote_states(snapshot, on_late_success=handle_late_success)
         if ok:
