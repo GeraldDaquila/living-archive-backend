@@ -2039,9 +2039,9 @@ def _relational_return_retry_after_broad_candidate(primary, outward, original_qu
     return (candidate, candidates) if direct_title else (None, [])
 
 
-async def _v48755_relational_return(request: Request):
+async def _v48755_relational_return(request: Request, raw_body=None):
     try:
-        body = await request.json()
+        body = json.loads(raw_body.decode("utf-8")) if raw_body is not None else await request.json()
     except Exception:
         body = {}
     if not isinstance(body, dict):
@@ -10192,15 +10192,30 @@ def _authorize_relational_return_request(raw_body, headers, now=None):
     return None
 
 
+async def _read_relational_return_body_bounded(request: Request, max_bytes: int):
+    """Consume ASGI request chunks without buffering beyond the signed-body cap."""
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > max_bytes:
+            return None
+        body.extend(chunk)
+    return bytes(body)
+
+
 @app.post("/api/relational-return")
 async def _v48755_relational_return_route(request: Request):
-    raw_body = await request.body()
-    if len(raw_body) > _RELATIONAL_RETURN_MAX_BODY_BYTES:
+    try:
+        raw_body = await _read_relational_return_body_bounded(
+            request, _RELATIONAL_RETURN_MAX_BODY_BYTES
+        )
+    except Exception:
+        return _relational_return_auth_error(400, "relational_return_body_unreadable")
+    if raw_body is None:
         return _relational_return_auth_error(413, "relational_return_payload_too_large")
     auth_error = _authorize_relational_return_request(raw_body, request.headers)
     if auth_error is not None:
         return auth_error
-    return await _v48755_relational_return(request)
+    return await _v48755_relational_return(request, raw_body=raw_body)
 
 
 # v488.17 Philippine Systems native doorway invariant.
