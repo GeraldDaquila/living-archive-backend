@@ -619,6 +619,87 @@ def test_concurrent_route_does_not_wait_for_another_health_flush(monkeypatch):
     assert len(writes) == 2
 
 
+def test_save_remote_states_accepts_only_exact_late_acknowledgement(monkeypatch):
+    received = []
+    states = {"groq:model-a": {}, "nvidia:model-b": {}}
+
+    def request(method, payload=None, on_late_result=None):
+        assert method == "POST"
+        assert callable(on_late_result)
+        on_late_result(_ack(written=1))
+        on_late_result(_ack())
+        return None
+
+    monkeypatch.setattr(health_store, "_request", request)
+    assert health_store.save_remote_states(states, on_late_success=lambda: received.append("ack")) is False
+    assert received == ["ack"]
+
+
+def test_late_shared_health_ack_clears_same_version_pending_after_flush_returns(monkeypatch):
+    _reset_pending_persistence()
+    monkeypatch.setattr(provider_bank, "_STATE", {
+        "models": {"groq:model-a": {"provider": "groq", "model": "model-a"}},
+        "quality": {},
+        "provider_cursor": 0,
+        "model_cursors": {},
+    })
+    callback_started = threading.Event()
+
+    def save(_states, on_late_success=None):
+        assert callable(on_late_success)
+
+        def deliver_late_ack():
+            on_late_success()
+            callback_started.set()
+
+        threading.Thread(target=deliver_late_ack, daemon=True).start()
+        return False
+
+    monkeypatch.setattr(provider_bank, "save_remote_states", save)
+    with provider_bank._STATE_LOCK:
+        provider_bank._SHARED_STATE_DIAGNOSTICS.update({
+            "mode": "local_fallback", "available": False, "last_error": "shared health write failed"
+        })
+    provider_bank._mark_shared_state_pending()
+    assert provider_bank._flush_pending_shared_state() is False
+    assert callback_started.wait(1.0)
+    assert provider_bank._PENDING_SHARED_STATE is False
+    assert provider_bank._SHARED_STATE_DIAGNOSTICS["available"] is True
+    assert provider_bank._SHARED_STATE_DIAGNOSTICS["mode"] == "shared_wordpress_database"
+    assert provider_bank._SHARED_STATE_DIAGNOSTICS["last_error"] == ""
+
+
+def test_late_ack_does_not_clear_newer_shared_health_dirty_version(monkeypatch):
+    _reset_pending_persistence()
+    monkeypatch.setattr(provider_bank, "_STATE", {
+        "models": {"groq:model-a": {"provider": "groq", "model": "model-a"}},
+        "quality": {},
+        "provider_cursor": 0,
+        "model_cursors": {},
+    })
+    callback_started = threading.Event()
+
+    def save(_states, on_late_success=None):
+        assert callable(on_late_success)
+        provider_bank._mark_shared_state_pending()
+
+        def deliver_late_ack():
+            on_late_success()
+            callback_started.set()
+
+        threading.Thread(target=deliver_late_ack, daemon=True).start()
+        return False
+
+    monkeypatch.setattr(provider_bank, "save_remote_states", save)
+    provider_bank._mark_shared_state_pending()
+    assert provider_bank._flush_pending_shared_state() is False
+    assert callback_started.wait(1.0)
+    assert provider_bank._PENDING_SHARED_STATE is True
+    assert provider_bank._SHARED_STATE_DIAGNOSTICS["available"] is False
+    assert provider_bank._SHARED_STATE_DIAGNOSTICS["mode"] == "local_fallback"
+    assert "newer state remains pending" in provider_bank._SHARED_STATE_DIAGNOSTICS["last_error"]
+
+
 def test_shared_python_php_provider_health_merge_fixtures():
     fixture_path = Path(__file__).resolve().parents[1] / "QA" / "provider_health_merge_fixtures_v2.json"
     fixtures = json.loads(fixture_path.read_text(encoding="utf-8"))
