@@ -10,6 +10,7 @@ class PrimaryTelemetryPrivacyTests(unittest.TestCase):
 
         self.assertNotIn("query={_normalize_query(query_str)[:120]}", source)
         self.assertNotIn("query={_normalize_query(query)[:120]}", source)
+        self.assertNotIn("incoming_query={_normalize_query(query)[:120]}", source)
         self.assertIn("query_chars={len(query_str)}", source)
         self.assertIn("query_chars={len(query)}", source)
 
