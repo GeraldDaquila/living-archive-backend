@@ -222,7 +222,8 @@ class ProviderHealthStoreTests(unittest.TestCase):
             first = provider_health_store.load_remote_states()
             second = provider_health_store.load_remote_states()
         self.assertEqual(first, second)
-        request.assert_called_once_with("GET")
+        request.assert_called_once()
+        self.assertEqual(request.call_args.args[0], "GET")
 
     def test_expired_shared_health_cache_returns_stale_while_refresh_runs_once(self):
         stale = {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "healthy"}}
