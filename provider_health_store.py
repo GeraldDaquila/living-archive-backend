@@ -298,13 +298,67 @@ def _request(method, payload=None, on_late_result=None):
     return result
 
 
-def load_remote_states():
-    """Return a validated shared snapshot, coalescing concurrent cold reads."""
+def _fetch_validated_remote_states():
+    result = _request("GET")
+    if not isinstance(result, dict):
+        return None
+    if result.get("contract_version") != CONTRACT_VERSION:
+        return None
+    states = result.get("states")
+    if not isinstance(states, dict) or len(states) > 100:
+        return None
+    cleaned = {}
+    for key, value in states.items():
+        if not isinstance(key, str) or not isinstance(value, dict):
+            continue
+        if len(key) > 191 or ":" not in key:
+            continue
+        cleaned[key] = {field: value[field] for field in STATE_FIELDS if field in value}
+        cleaned[key]["probe_in_flight"] = False
+    return cleaned
+
+
+def _publish_remote_read(event, cleaned):
     global _READ_CACHE, _READ_CACHE_UNTIL, _READ_IN_FLIGHT, _READ_IN_FLIGHT_RESULT
+    with _READ_CACHE_LOCK:
+        if cleaned is not None:
+            _READ_CACHE = cleaned
+            _READ_CACHE_UNTIL = _monotonic() + _READ_CACHE_TTL_SECONDS
+        elif _READ_CACHE is not None:
+            # Retain the last known-good health snapshot and briefly back off
+            # another refresh attempt instead of stampeding a slow bridge.
+            _READ_CACHE_UNTIL = _monotonic() + 1.0
+        _READ_IN_FLIGHT_RESULT = cleaned
+        if _READ_IN_FLIGHT is event:
+            _READ_IN_FLIGHT = None
+        event.set()
+
+
+def _refresh_remote_states_background(event):
+    cleaned = None
+    try:
+        cleaned = _fetch_validated_remote_states()
+    except Exception as error:
+        print(
+            "USE provider health store background refresh failed: "
+            f"error_type={type(error).__name__}"
+        )
+    finally:
+        _publish_remote_read(event, cleaned)
+
+
+def load_remote_states():
+    """Return cached shared health immediately; refresh expired snapshots off-path."""
+    global _READ_IN_FLIGHT, _READ_IN_FLIGHT_RESULT
     now = _monotonic()
     with _READ_CACHE_LOCK:
-        if _READ_CACHE is not None and now < _READ_CACHE_UNTIL:
-            return {key: dict(value) for key, value in _READ_CACHE.items()}
+        cached = (
+            {key: dict(value) for key, value in _READ_CACHE.items()}
+            if isinstance(_READ_CACHE, dict)
+            else None
+        )
+        if cached is not None and now < _READ_CACHE_UNTIL:
+            return cached
         event = _READ_IN_FLIGHT
         owner = event is None
         if owner:
@@ -312,9 +366,27 @@ def load_remote_states():
             _READ_IN_FLIGHT = event
             _READ_IN_FLIGHT_RESULT = None
 
+    if cached is not None:
+        # Stale-while-revalidate: do not make a visitor wait for an expired
+        # advisory snapshot. A single background owner refreshes the shared
+        # WordPress state; this request continues with its last known-good copy.
+        if owner:
+            worker = threading.Thread(
+                target=_refresh_remote_states_background,
+                args=(event,),
+                name="provider-health-read-refresh",
+                daemon=True,
+            )
+            try:
+                worker.start()
+            except RuntimeError:
+                _publish_remote_read(event, None)
+        return cached
+
     if not owner:
-        # The owner gets the only bridge attempt. Waiters may use its result,
-        # but never issue a parallel request just because the bridge is slow.
+        # On a cold process start there is no stale snapshot to serve. Preserve
+        # the existing bounded single-flight wait so one caller can establish
+        # the first shared baseline while concurrent callers never stampede.
         event.wait(TIMEOUT_SECONDS)
         with _READ_CACHE_LOCK:
             if _READ_CACHE is not None and _monotonic() < _READ_CACHE_UNTIL:
@@ -326,34 +398,10 @@ def load_remote_states():
 
     cleaned = None
     try:
-        result = _request("GET")
-        if not isinstance(result, dict):
-            return None
-        if result.get("contract_version") != CONTRACT_VERSION:
-            return None
-        states = result.get("states")
-        if not isinstance(states, dict) or len(states) > 100:
-            return None
-        cleaned = {}
-        for key, value in states.items():
-            if not isinstance(key, str) or not isinstance(value, dict):
-                continue
-            if len(key) > 191 or ":" not in key:
-                continue
-            cleaned[key] = {field: value[field] for field in STATE_FIELDS if field in value}
-            cleaned[key]["probe_in_flight"] = False
+        cleaned = _fetch_validated_remote_states()
         return cleaned
     finally:
-        with _READ_CACHE_LOCK:
-            if cleaned is not None:
-                _READ_CACHE = cleaned
-                _READ_CACHE_UNTIL = _monotonic() + _READ_CACHE_TTL_SECONDS
-                _READ_IN_FLIGHT_RESULT = cleaned
-            else:
-                _READ_IN_FLIGHT_RESULT = None
-            if _READ_IN_FLIGHT is event:
-                _READ_IN_FLIGHT = None
-            event.set()
+        _publish_remote_read(event, cleaned)
 
 
 def _state_recency(value):
