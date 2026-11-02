@@ -2291,14 +2291,15 @@ async def _v48755_relational_return(request: Request):
                 primary, outward, original_question, direct_topic_query, profile
             )
 
+        # Operational telemetry is deliberately content-free. Do not log the
+        # visitor's question, transcript, or session identifier.
         print(
-            "The Guide v487.66 seamless HRN gift return: "
-            f"session={session_id or 'none'}, "
-            f"selected={primary['title'] if primary else 'none'}, "
+            "The Guide relational return completed: "
+            f"session_present={bool(session_id)}, "
+            f"doorway_selected={bool(primary)}, "
             f"conversation_chars={len(conversation)}, "
             f"ledger_fractals={len(fractal_records)}, "
-            f"round_syntheses={len(round_synthesis_history)}, "
-            f"query={_normalize_query(original_question)[:120]}"
+            f"round_syntheses={len(round_synthesis_history)}"
         )
 
         journey_payload = {
@@ -2346,7 +2347,10 @@ async def _v48755_relational_return(request: Request):
             },
         )
     except Exception as exc:
-        print(f"The Guide v487.63 relational closure failed safely: {exc}")
+        print(
+            "The Guide relational closure failed safely: "
+            f"exception_type={type(exc).__name__}"
+        )
         return JSONResponse(
             status_code=200,
             content={
