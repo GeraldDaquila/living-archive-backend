@@ -178,7 +178,7 @@ def test_general_guide_caps_fallbacks_after_fast_failures(monkeypatch):
     assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
     assert clock.value == pytest.approx(0.6)
 
-def test_general_guide_continues_after_slow_failure_within_budget(monkeypatch):
+def test_general_guide_stops_after_slow_failure_consumes_recovery_margin(monkeypatch):
     _isolate(monkeypatch)
 
     class Clock:
