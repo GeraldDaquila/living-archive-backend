@@ -259,6 +259,37 @@ add_filter('rest_post_dispatch', function ($response, $server, $request) {
         'round_synthesis_history' => is_array($data['round_synthesis_history'] ?? null) ? $data['round_synthesis_history'] : array(),
     );
 
+    // Server-side HMAC authentication. Define LA_RELATIONAL_RETURN_SHARED_SECRET
+    // in wp-config.php and the matching Render environment variable. Never expose it
+    // through frontend configuration or browser JavaScript.
+    if (!defined('LA_RELATIONAL_RETURN_SHARED_SECRET')
+        || !is_string(LA_RELATIONAL_RETURN_SHARED_SECRET)
+        || strlen(LA_RELATIONAL_RETURN_SHARED_SECRET) < 32) {
+        $data['return_handoff_status'] = 'authentication_not_configured';
+        $response->set_data($data);
+        return $response;
+    }
+    $body = wp_json_encode($payload);
+    if (!is_string($body)) {
+        $data['return_handoff_status'] = 'payload_encoding_failed';
+        $response->set_data($data);
+        return $response;
+    }
+    $timestamp = (string) time();
+    $nonce = bin2hex(random_bytes(16));
+    $signature = hash_hmac(
+        'sha256',
+        $timestamp . "\n" . $nonce . "\n" . $body,
+        LA_RELATIONAL_RETURN_SHARED_SECRET
+    );
+    $headers = array(
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json',
+        'X-LA-Relational-Timestamp' => $timestamp,
+        'X-LA-Relational-Nonce' => $nonce,
+        'X-LA-Relational-Signature' => $signature,
+    );
+
     $endpoints = array(
         'https://living-archive-backend.onrender.com/api/relational-return',
         'https://living-archive-backend-mirror.onrender.com/api/relational-return',
@@ -268,8 +299,8 @@ add_filter('rest_post_dispatch', function ($response, $server, $request) {
         $remote = wp_remote_post($endpoint, array(
             'timeout' => 15,
             'redirection' => 0,
-            'headers' => array('Content-Type' => 'application/json', 'Accept' => 'application/json'),
-            'body' => wp_json_encode($payload),
+            'headers' => $headers,
+            'body' => $body,
         ));
         if (is_wp_error($remote)) continue;
         $status = (int)wp_remote_retrieve_response_code($remote);
