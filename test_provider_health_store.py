@@ -224,6 +224,46 @@ class ProviderHealthStoreTests(unittest.TestCase):
         self.assertEqual(first, second)
         request.assert_called_once_with("GET")
 
+    def test_expired_shared_health_cache_returns_stale_while_refresh_runs_once(self):
+        stale = {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "healthy"}}
+        fresh = {"nvidia:model-b": {"provider": "nvidia", "model": "model-b", "state": "open"}}
+        started = threading.Event()
+        release = threading.Event()
+
+        def slow_refresh(method):
+            self.assertEqual(method, "GET")
+            started.set()
+            self.assertTrue(release.wait(1.0))
+            return {"contract_version": "v2", "states": fresh}
+
+        with patch.object(provider_health_store, "_READ_CACHE", stale.copy()), \\
+             patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \\
+             patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \\
+             patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \\
+             patch.object(provider_health_store, "_request", side_effect=slow_refresh) as request:
+            before = time.monotonic()
+            first = provider_health_store.load_remote_states()
+            elapsed = time.monotonic() - before
+            self.assertEqual(first, stale)
+            self.assertLess(elapsed, 0.05)
+            self.assertTrue(started.wait(0.5))
+
+            second = provider_health_store.load_remote_states()
+            self.assertEqual(second, stale)
+            request.assert_called_once_with("GET")
+
+            release.set()
+            deadline = time.monotonic() + 1.0
+            while time.monotonic() < deadline:
+                with provider_health_store._READ_CACHE_LOCK:
+                    current = provider_health_store._READ_CACHE
+                    inflight = provider_health_store._READ_IN_FLIGHT
+                if current == fresh and inflight is None:
+                    break
+                time.sleep(0.005)
+            self.assertEqual(current, fresh)
+            self.assertIsNone(inflight)
+
     def test_concurrent_cold_reads_share_one_bridge_attempt(self):
         with patch.object(provider_health_store, "_READ_CACHE", None), \
              patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \
