@@ -13,6 +13,10 @@ def test_versioned_hrn_wordpress_adapter_preserves_return_handoff_contract():
     assert "rest_request_before_callbacks" in source
     assert "rest_post_dispatch" in source
     assert "/api/relational-return" in source
+    assert "la_provider_bank_shared_secret" in source
+    assert "X-Living-Archive-Provider-Key" in source
+    assert "strlen($encoded_payload) > 131072" in source
+    assert "return_handoff_response" in source
     assert "whole_journey_synthesis" in source
     assert "$data['junction_available'] = true;" in source
     assert "$data['use_resource'] = true;" in source
