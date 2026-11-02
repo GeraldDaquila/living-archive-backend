@@ -45,7 +45,7 @@ def test_python_and_php_hmac_canonicalization_match():
     assert re.fullmatch(r"[0-9a-f]{64}", signature)
     # PHP adapter signs timestamp + LF + nonce + LF + exact JSON body.
     php = (ROOT / "integrations" / "wordpress" / "hrn-command-boundary-adapter.php").read_text(encoding="utf-8")
-    assert "$timestamp . \\"\\n\\" . $nonce . \\"\\n\\" . $body" in php
+    assert '$timestamp . "\\n" . $nonce . "\\n" . $body' in php
     assert "'X-LA-Relational-Signature' => $signature" in php
     assert "LA_RELATIONAL_RETURN_SHARED_SECRET" in php
 
