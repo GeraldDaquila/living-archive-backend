@@ -166,3 +166,32 @@ The historical production measurements in this document are not replaced by CI m
 The old PR's full-suite result remains 951 passed / 59 failed versus 914 passed / the same 59 failed on its historical unmodified baseline. This rebased candidate must be tested again against v489.309. Do not interpret the old baseline parity as current-baseline QA.
 
 **Release gate:** do not merge or deploy until current-branch targeted CI, full-suite comparison against v489.309, source audit, persistent WordPress TEST integration, and measured cross-service acceptance pass. Production credentials, WordPress, Render services, and databases remain unchanged.
+
+## QA run on v489.309-based candidate — 2026-11-02
+
+Draft PR #1011 was tested against the current production baseline. Results:
+
+- **PHP bridge contract:** passed on PHP 8.3 and PHP 8.4, including MariaDB 11.8 transaction tests, isolated WordPress 7.1.4 REST/auth integration, parallel first-write handling, rollback, and three-process persistence round-trip.
+- **Provider Health latency budget:** passed.
+- **General Guide provider-bank regression:** passed with the preserved five-candidate policy and 18-second arbitration window.
+- **Provider diagnostics/pathway attribution:** passed.
+- **Mocked UI continuity:** passed.
+- **Structural validation:** passed.
+- **v487 ecosystem validation:** passed all 47 steps.
+
+### Full-suite comparison against current main
+
+- Candidate: **927 passed, 60 failed**.
+- Current main baseline: **927 passed, 60 failed**.
+- The failing test identifiers are an exact match: 60 candidate failures, 60 baseline failures, no candidate-only failures, and no baseline-only failures.
+
+The 60 failures include known legacy/version-pinned checks and unresolved Guide evidence, composition, and latency expectations. The identical failure set establishes no additional full-suite regression from this candidate; it does **not** make the full suite green or waive the existing defects.
+
+### Remaining hard release blockers
+
+1. No persistent isolated WordPress TEST site is available through the current Cowboy connection. CI's ephemeral WordPress/MariaDB integration is successful but is not a substitute for persistent TEST.
+2. No primary/mirror TEST runtime pair exists for candidate identity parity and repeated cross-service read/write/restart acceptance.
+3. The active production WordPress v1 endpoint has previously measured 692–807 ms server-side against the 250 ms caller budget. CI proves bounded caller wait and v2 transaction correctness, not a sub-250 ms real endpoint.
+4. Credential externalization and coordinated rotation remain separate security work. The candidate preserves the existing authentication callback and does not solve the hardcoded shared-credential issue.
+
+**Decision:** QA regression checks are green relative to the baseline, but integration/performance acceptance is incomplete. PR #1011 remains draft. Do not merge or deploy. Production remains on v489.309, and the active WordPress bridge remains v1.
