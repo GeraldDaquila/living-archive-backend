@@ -68,3 +68,15 @@ def test_basic_inquiry_diagnostic_logs_metadata_not_visitor_text():
     assert "query_chars={len(query)}" in line
     assert "_normalize_query(query)" not in line
     assert "query=" not in line
+
+
+
+def test_relational_return_body_limit_is_applied_during_stream_consumption():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    start = source.index("async def _read_relational_return_body_bounded")
+    end = source.index('@app.post("/api/relational-return")', start)
+    helper = source[start:end]
+    assert "async for chunk in request.stream()" in helper
+    assert "len(body) + len(chunk) > max_bytes" in helper
+    assert "body.extend(chunk)" in helper
+    assert "return None" in helper
