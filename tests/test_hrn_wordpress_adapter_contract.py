@@ -18,6 +18,9 @@ def test_versioned_hrn_wordpress_adapter_preserves_return_handoff_contract():
     assert "X-Living-Archive-Provider-Key" in source
     assert "strlen($encoded_payload) > 131072" in source
     assert "return_handoff_response" in source
+    assert "wp_parse_url($url, PHP_URL_HOST)" in source
+    assert "$scheme !== 'https'" in source
+    assert "$host !== 'geralddaquila.com'" in source
     assert "whole_journey_synthesis" in source
     assert "$data['junction_available'] = true;" in source
     assert "$data['use_resource'] = true;" in source
