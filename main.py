@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.308 — Direct significance recovery on provider exhaustion
+# USE PRODUCTION VERSION: v489.309 — Handoff recovery copy polish
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
@@ -85,9 +85,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.308"
-DEPLOYMENT_FINGERPRINT = "USE-v489.308-direct-significance-recovery"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.308-direct-significance-recovery"
+APP_VERSION = "v489.309"
+DEPLOYMENT_FINGERPRINT = "USE-v489.309-handoff-recovery-copy-polish"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.309-handoff-recovery-copy-polish"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -229,7 +229,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.308":
+if str(APP_VERSION) != "v489.309":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
