@@ -230,7 +230,7 @@ class ProviderHealthStoreTests(unittest.TestCase):
         started = threading.Event()
         release = threading.Event()
 
-        def slow_refresh(method):
+        def slow_refresh(method, payload=None, on_late_result=None):
             self.assertEqual(method, "GET")
             started.set()
             self.assertTrue(release.wait(1.0))
