@@ -236,9 +236,9 @@ class ProviderHealthStoreTests(unittest.TestCase):
             self.assertTrue(release.wait(1.0))
             return {"contract_version": "v2", "states": fresh}
 
-        with patch.object(provider_health_store, "_READ_CACHE", stale.copy()), \\
-             patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \\
-             patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \\
+        with patch.object(provider_health_store, "_READ_CACHE", stale.copy()), \
+             patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \
              patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \\
              patch.object(provider_health_store, "_request", side_effect=slow_refresh) as request:
             before = time.monotonic()
