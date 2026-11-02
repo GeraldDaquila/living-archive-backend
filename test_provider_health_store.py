@@ -286,6 +286,60 @@ class ProviderHealthStoreTests(unittest.TestCase):
             release.set()
             self.assertTrue(finished.wait(0.5))
 
+    def test_pre_deadline_result_is_not_lost_before_completion_event_signal(self):
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        class ReleaseBarrierSlot:
+            def __init__(self):
+                self.inner = threading.BoundedSemaphore(1)
+                self.release_entered = threading.Event()
+                self.allow_release = threading.Event()
+
+            def acquire(self, blocking=False):
+                return self.inner.acquire(blocking=blocking)
+
+            def release(self):
+                self.release_entered.set()
+                if not self.allow_release.wait(1.0):
+                    raise AssertionError("test did not release transport slot")
+                self.inner.release()
+
+        slot = ReleaseBarrierSlot()
+        body = b'{"contract_version":"v2","success":true,"submitted":1,"written":1}'
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \\
+             patch.object(provider_health_store, "_REQUEST_SLOT", slot), \\
+             patch.object(provider_health_store, "TIMEOUT_SECONDS", 0.05), \\
+             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \\
+             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False), \\
+             patch.object(provider_health_store, "urlopen", return_value=FakeResponse()), \\
+             patch.object(provider_health_store, "_read_response_body", return_value=body):
+            result_holder = {}
+
+            def call():
+                result_holder["result"] = provider_health_store._request(
+                    "POST", {"contract_version": "v2", "states": {"groq:model-a": {}}}
+                )
+
+            worker = threading.Thread(target=call)
+            worker.start()
+            self.assertTrue(slot.release_entered.wait(0.5))
+            worker.join(timeout=0.5)
+            try:
+                self.assertFalse(worker.is_alive())
+                self.assertEqual(result_holder.get("result"), {
+                    "contract_version": "v2",
+                    "success": True,
+                    "submitted": 1,
+                    "written": 1,
+                })
+            finally:
+                slot.allow_release.set()
+
     def test_response_completed_after_absolute_deadline_is_discarded(self):
         class FakeResponse:
             def __enter__(self):
