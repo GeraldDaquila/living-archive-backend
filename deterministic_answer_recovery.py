@@ -67,6 +67,11 @@ def compose_definition_significance(subject):
             "example": "Administration may schedule a public meeting, distribute the papers, record attendance, and follow up on assigned tasks after the relevant decision has been made.",
             "significance": "Reliable administration helps plans become action, but efficient execution cannot by itself determine whether a decision's purpose, authority, or consequences are sound."
         },
+        "handoff": {
+            "definition": "the transfer of responsibility, information, and context from one person or team to another so work can continue",
+            "example": "When a project moves from one team to another, a good handoff explains the current status, decisions already made, unresolved issues, deadlines, and who owns the next action; the receiving team confirms it has enough context to continue.",
+            "significance": "A clear handoff reduces gaps, duplicated effort, missed dependencies, and confusion about ownership. It helps teams notice misunderstandings early and correct them before they spread. A handoff is complete not when information is merely sent, but when the receiving person understands what is needed and can take responsibility."
+        },
         "stewardship": {
             "definition": "taking care of something entrusted to you while considering its value to others and the future",
             "example": "A person practicing stewardship of a shared space maintains it, uses resources carefully, and considers how decisions affect the people who rely on it.",
@@ -104,6 +109,30 @@ def compose_definition_significance(subject):
             "That is a limit on this unfamiliar term, not a claim that the question is unanswerable in principle."
         )
     return answer
+
+
+def _significance_recovery(subject, context=""):
+    """Answer a reusable why-does-this-matter question without causal-template drift."""
+    subject = _clean(subject).strip(" ,;:") or "the concept"
+    normalized = re.sub(r"\s+", " ", subject).strip().casefold()
+    if normalized == "handoffs":
+        normalized = "handoff"
+    known = compose_definition_significance(normalized)
+    if not known.startswith("I can't define "):
+        return known
+
+    display_subject = subject[:1].upper() + subject[1:]
+    context = _clean(context).strip(" ,;:")
+    context_phrase = f" in {context}" if context else ""
+    return (
+        f"{display_subject} matters{context_phrase} because it influences whether people can understand what is at stake and coordinate their choices. "
+        "Its importance comes from the difference it makes in what people can see, decide, and do—not from the label itself.\n\n"
+        f"To judge that difference, compare what happens when {subject} is present and reliable with what happens when it is missing or unclear. "
+        "Look for changes in shared understanding, timing, responsibility, and the effects on people who depend on the outcome. "
+        "This helps distinguish a real contribution from an assumed benefit.\n\n"
+        "A useful test is whether the people involved can describe the effect, identify who depends on it, and point to evidence that would show whether it is helping. "
+        "If those effects are uncertain, treat the explanation as a hypothesis to check rather than a settled conclusion."
+    )
 
 
 def _is_hindsight_accountability(question):
@@ -371,6 +400,19 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         # causal explanation template, which previously produced a fluent but
         # non-substantive answer during provider exhaustion.
         answer = compose_definition_significance(subject)
+    elif (significance_question := re.match(
+        r"(?i)^why (?:does|do)\s+(.+?)\s+matter(?:\s+(?:when|where|in|for|to)\s+(.+?))?[?.!]*$",
+        re.sub(r"\s+", " ", q).strip(),
+    )):
+        significance_subject = re.sub(
+            r"^(?:a|an|the)\s+", "", significance_question.group(1), flags=re.I
+        )
+        significance_subject = re.sub(
+            r"^(?:clear|good|effective|reliable|poor|weak|strong|timely)\s+",
+            "", significance_subject, flags=re.I
+        )
+        significance_context = significance_question.group(2) or ""
+        answer = _significance_recovery(significance_subject, significance_context)
     elif re.search(r"\b(?:why|what causes|reason for)\b", lower):
         answer = (
             f"The most useful explanation for why {subject} begins by distinguishing the immediate event from the conditions that made it more likely. "
