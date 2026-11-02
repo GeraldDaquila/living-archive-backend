@@ -379,16 +379,27 @@ def _blocked(state):
                 pass
     return blocked(state)
 
-def _blocked_for_operation(state, operation):
-    """Do not let a model timeout in one operation suppress a different operation."""
+def _blocked_for_operation(state, operation, schema=None):
+    """Keep operation-specific contract failures from poisoning unrelated lanes."""
     category = str(state.get("category") or "")
     error_text = str(state.get("last_error") or "").casefold()
+    last_operation = str(state.get("last_operation") or "")
+    operation = str(operation or "")
+
     timeout_failure = category == "provider_failure" and any(term in error_text for term in (
         "read operation timed out", "request timed out", "timed out", "timeout",
     ))
-    last_operation = str(state.get("last_operation") or "")
-    if timeout_failure and last_operation and last_operation != str(operation or ""):
+    if timeout_failure and last_operation and last_operation != operation:
         return False
+
+    # A structured-output failure is relevant only to structured operations.
+    # Plain-text operations must not inherit a JSON-format quarantine, and a
+    # failure in one operation must not suppress another operation's lane.
+    if category == "structured_output_contract":
+        if last_operation and last_operation != operation:
+            return False
+        if isinstance(schema, dict) and schema.get("mode") == "text":
+            return False
     return _blocked(state)
 
 def _failure(exc, provider, model, operation=None):
@@ -1182,7 +1193,7 @@ def candidates(use_core, operation="generic", schema=None):
     for provider, models in configured_models.items():
         for index, model in enumerate(models):
             health = _state(provider, model)
-            if _blocked_for_operation(health, operation):
+            if _blocked_for_operation(health, operation, schema):
                 blocked_until = max(
                     float(health.get("cooldown_until", 0) or 0),
                     float(health.get("quarantine_until", 0) or 0),
