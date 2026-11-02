@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.306 — Time-budgeted independent provider fallback
+# USE PRODUCTION VERSION: v489.307 — Precise visitor-language boundary
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
@@ -85,9 +85,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.306"
-DEPLOYMENT_FINGERPRINT = "USE-v489.306-time-budgeted-provider-fallback"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.306-time-budgeted-provider-fallback"
+APP_VERSION = "v489.307"
+DEPLOYMENT_FINGERPRINT = "USE-v489.307-precise-visitor-language-boundary"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.307-precise-visitor-language-boundary"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -229,7 +229,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.306":
+if str(APP_VERSION) != "v489.307":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -7293,16 +7293,28 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 _basic_inquiry_source_dump_recovery(query)
             )
 
-    if re.search(r"\bUSE\b", response) or re.search(
+def _basic_inquiry_has_internal_implementation_language(response):
+    """Reject machine-facing phrases without banning ordinary human uses of handoff."""
+    response = str(response or "")
+    if re.search(r"\bUSE\b", response):
+        return True
+    return bool(re.search(
         r"(?:canonical evidence|supplied evidence|evidence excerpt|"
         r"evidence excerpt bounded by USE|bounded by USE|"
         r"bounded by the Guide|internal interpretation|retrieval layer|"
         r"synthesis layer|processing layer|provider bank|provider selection|"
-        r"model selection|route source|handoff|machine-facing|"
-        r"implementation metadata|system instruction|debugging annotation)",
+        r"model selection|route source|"
+        r"handoff\s+(?:payload|endpoint|request|mode|route|adapter|contract|token|metadata)\b|"
+        r"handoff\s+(?:to|from)\s+(?:the\s+)?(?:provider|model|mirror|backend|endpoint)\b|"
+        r"(?:provider|model|mirror|backend)\s+handoff\b|"
+        r"handoff\s+(?:between|across)\s+(?:services|systems|endpoints|providers)\b|"
+        r"machine-facing|implementation metadata|system instruction|debugging annotation)",
         response,
         re.I,
-    ):
+    )
+
+
+    if _basic_inquiry_has_internal_implementation_language(response):
         raise RuntimeError(
             "Basic Inquiry visitor-language boundary rejected internal implementation language."
         )
