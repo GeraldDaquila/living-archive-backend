@@ -25,6 +25,7 @@ def _isolate(monkeypatch, candidates):
     monkeypatch.setattr(provider_bank, "_failure", lambda *args, **kwargs: None)
     monkeypatch.setattr(provider_bank, "_success", lambda *args, **kwargs: None)
     monkeypatch.setattr(provider_bank, "_state", lambda provider, model: provider_bank.new_state(provider, model))
+    monkeypatch.setattr(provider_bank, "_quality_state", lambda *args, **kwargs: {})
 
 
 def test_perception_fast_failures_stop_at_one_bounded_fallback(monkeypatch):
