@@ -78,7 +78,7 @@ def main():
     assert "if operation in hrn_operations:" in provider
     assert "elif bounded_guide_operation:" in provider
     assert "operation_attempt_cap = 1" in provider
-    assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 18.0" in provider
+    assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 8.0" in provider
     assert "GENERAL_GUIDE_SLOW_FAILURE_STOP_SECONDS" not in provider
     assert 'if operation == "hrn_perception":' in provider
     assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 2" in provider
