@@ -297,7 +297,7 @@ add_filter('rest_post_dispatch', function ($response, $server, $request) {
     }
     $signature = hash_hmac(
         'sha256',
-        $timestamp . "\n" . $nonce . "\\n" . $encoded_payload,
+        $timestamp . "\n" . $nonce . "\n" . $encoded_payload,
         LA_RELATIONAL_RETURN_SHARED_SECRET
     );
 
