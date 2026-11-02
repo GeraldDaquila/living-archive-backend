@@ -382,11 +382,11 @@ def save_remote_states(states, on_late_success=None):
         if _is_exact_write_acknowledgement(result, submitted) and callable(on_late_success):
             on_late_success()
 
-    result = _request(
-        "POST",
-        {"contract_version": CONTRACT_VERSION, "states": states},
-        on_late_result=handle_late_result if callable(on_late_success) else None,
-    )
+    payload = {"contract_version": CONTRACT_VERSION, "states": states}
+    if callable(on_late_success):
+        result = _request("POST", payload, on_late_result=handle_late_result)
+    else:
+        result = _request("POST", payload)
     return _is_exact_write_acknowledgement(result, submitted)
 
 
