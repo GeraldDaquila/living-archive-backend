@@ -18,6 +18,48 @@ import provider_gateway_service
 
 
 class ProviderHealthStoreTests(unittest.TestCase):
+    def test_hrn_voice_repair_gateway_explicitly_uses_text_mode(self):
+        response = {
+            "ok": True,
+            "parsed": {"text": "bridge-ok"},
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "preference_order": ["groq:openai/gpt-oss-20b"],
+        }
+        with patch.object(provider_gateway_service, "provider_bank_route", return_value=response) as route:
+            result = provider_gateway_service.execute(
+                operation="hrn_voice_repair",
+                messages=[{"role": "user", "content": "Reply with exactly: bridge-ok"}],
+                max_tokens=128,
+                use_core=object(),
+                schema=None,
+            )
+        self.assertEqual(route.call_args.kwargs["schema"], {"mode": "text"})
+        self.assertEqual(result["result"], {"text": "bridge-ok"})
+
+    def test_json_gateway_operations_keep_their_existing_schema_mode(self):
+        response = {
+            "ok": True,
+            "parsed": {"response": "structured"},
+            "provider": "groq",
+            "model": "openai/gpt-oss-20b",
+            "preference_order": ["groq:openai/gpt-oss-20b"],
+        }
+        with patch.object(provider_gateway_service, "provider_bank_route", return_value=response) as route:
+            provider_gateway_service.execute(
+                operation="mini_use",
+                messages=[{"role": "user", "content": "Return a JSON object."}],
+                max_tokens=128,
+                use_core=object(),
+                schema=None,
+            )
+        self.assertIsNone(route.call_args.kwargs["schema"])
+
+    def test_text_mode_does_not_inject_json_object_instruction(self):
+        messages = [{"role": "user", "content": "Reply with exactly: bridge-ok"}]
+        result = provider_bank._ensure_json_object_instruction(messages, {"mode": "text"})
+        self.assertEqual(result, messages)
+
     def test_shared_health_bridge_timeout_cannot_consume_inference_budget(self):
         self.assertLessEqual(TIMEOUT_SECONDS, 0.3)
 
