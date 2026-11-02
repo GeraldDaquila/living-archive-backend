@@ -311,12 +311,12 @@ class ProviderHealthStoreTests(unittest.TestCase):
 
         slot = ReleaseBarrierSlot()
         body = b'{"contract_version":"v2","success":true,"submitted":1,"written":1}'
-        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \\
-             patch.object(provider_health_store, "_REQUEST_SLOT", slot), \\
-             patch.object(provider_health_store, "TIMEOUT_SECONDS", 0.05), \\
-             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \\
-             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False), \\
-             patch.object(provider_health_store, "urlopen", return_value=FakeResponse()), \\
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \
+             patch.object(provider_health_store, "_REQUEST_SLOT", slot), \
+             patch.object(provider_health_store, "TIMEOUT_SECONDS", 0.05), \
+             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False), \
+             patch.object(provider_health_store, "urlopen", return_value=FakeResponse()), \
              patch.object(provider_health_store, "_read_response_body", return_value=body):
             result_holder = {}
 
