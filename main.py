@@ -2038,12 +2038,62 @@ def _relational_return_retry_after_broad_candidate(primary, outward, original_qu
 
 
 async def _v48755_relational_return(request: Request):
+    # This is a server-to-server handoff from the authenticated WordPress adapter.
+    # Never accept visitor-browser calls or parse an unauthenticated payload.
+    authorize_provider_gateway(
+        request.headers.get("X-Living-Archive-Provider-Key")
+    )
+
+    max_body_bytes = 131072
+    declared_length = request.headers.get("content-length")
+    if declared_length:
+        try:
+            declared_length = int(declared_length)
+        except (TypeError, ValueError):
+            return JSONResponse(
+                status_code=400,
+                content={"ok": False, "error_type": "relational_return_invalid_content_length"},
+            )
+        if declared_length < 0:
+            return JSONResponse(
+                status_code=400,
+                content={"ok": False, "error_type": "relational_return_invalid_content_length"},
+            )
+        if declared_length > max_body_bytes:
+            return JSONResponse(
+                status_code=413,
+                content={"ok": False, "error_type": "relational_return_payload_too_large"},
+            )
+
+    if "application/json" not in str(request.headers.get("content-type") or "").lower():
+        return JSONResponse(
+            status_code=415,
+            content={"ok": False, "error_type": "relational_return_json_required"},
+        )
+
+    body_chunks = []
+    received_bytes = 0
+    async for chunk in request.stream():
+        received_bytes += len(chunk)
+        if received_bytes > max_body_bytes:
+            return JSONResponse(
+                status_code=413,
+                content={"ok": False, "error_type": "relational_return_payload_too_large"},
+            )
+        body_chunks.append(chunk)
+
     try:
-        body = await request.json()
-    except Exception:
-        body = {}
+        body = json.loads(b"".join(body_chunks).decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return JSONResponse(
+            status_code=400,
+            content={"ok": False, "error_type": "relational_return_invalid_json"},
+        )
     if not isinstance(body, dict):
-        body = {}
+        return JSONResponse(
+            status_code=400,
+            content={"ok": False, "error_type": "relational_return_invalid_payload"},
+        )
 
     session_id = str(body.get("session_id") or "").strip()
     journey_contribution = _build_journey_contribution_for_use(body)
@@ -2241,14 +2291,15 @@ async def _v48755_relational_return(request: Request):
                 primary, outward, original_question, direct_topic_query, profile
             )
 
+        # Operational telemetry is deliberately content-free. Do not log the
+        # visitor's question, transcript, or session identifier.
         print(
-            "The Guide v487.66 seamless HRN gift return: "
-            f"session={session_id or 'none'}, "
-            f"selected={primary['title'] if primary else 'none'}, "
+            "The Guide relational return completed: "
+            f"session_present={bool(session_id)}, "
+            f"doorway_selected={bool(primary)}, "
             f"conversation_chars={len(conversation)}, "
             f"ledger_fractals={len(fractal_records)}, "
-            f"round_syntheses={len(round_synthesis_history)}, "
-            f"query={_normalize_query(original_question)[:120]}"
+            f"round_syntheses={len(round_synthesis_history)}"
         )
 
         journey_payload = {
@@ -2296,7 +2347,10 @@ async def _v48755_relational_return(request: Request):
             },
         )
     except Exception as exc:
-        print(f"The Guide v487.63 relational closure failed safely: {exc}")
+        print(
+            "The Guide relational closure failed safely: "
+            f"exception_type={type(exc).__name__}"
+        )
         return JSONResponse(
             status_code=200,
             content={
