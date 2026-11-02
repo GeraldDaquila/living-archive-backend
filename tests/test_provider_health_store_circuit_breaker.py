@@ -100,7 +100,14 @@ def test_late_v2_transport_result_reaches_background_ack_handler(monkeypatch):
     _reset_circuit()
     monkeypatch.setattr(store, "_configuration", lambda: ("https://health.invalid/state", "test-secret"))
     monkeypatch.setattr(store, "TIMEOUT_SECONDS", 0.01)
-    monkeypatch.setattr(store, "urlopen", lambda *args, **kwargs: object())
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    monkeypatch.setattr(store, "urlopen", lambda *args, **kwargs: Response())
     body = b'{"contract_version":"v2","success":true,"submitted":1,"written":1}'
 
     def delayed_body(*args, **kwargs):
