@@ -26,7 +26,7 @@ def test_multiple_candidate_failures_persist_one_shared_health_snapshot(monkeypa
     })
     monkeypatch.setattr(provider_bank.time, "monotonic", lambda: 0.0)
     writes = []
-    monkeypatch.setattr(provider_bank, "save_remote_states", lambda states: writes.append(states) or True)
+    monkeypatch.setattr(provider_bank, "save_remote_states_async", lambda states: writes.append(states) or True)
 
     def fail_fast(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
         raise provider_bank.ProviderCallError(

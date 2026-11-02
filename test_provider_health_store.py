@@ -4,7 +4,15 @@ import time
 from unittest.mock import patch
 
 import provider_health_store
-from provider_health_store import TIMEOUT_SECONDS, export_health_states, merge_health_state, save_remote_states
+from provider_health_store import (
+    TIMEOUT_SECONDS,
+    BACKGROUND_TIMEOUT_SECONDS,
+    export_health_states,
+    load_remote_states_nonblocking,
+    merge_health_state,
+    save_remote_states,
+    save_remote_states_async,
+)
 import provider_bank
 import provider_gateway_service
 
@@ -223,6 +231,55 @@ class ProviderHealthStoreTests(unittest.TestCase):
             second = provider_health_store.load_remote_states()
         self.assertEqual(first, second)
         request.assert_called_once_with("GET")
+
+    def test_nonblocking_shared_read_returns_fresh_cache_without_waiting(self):
+        cached = {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "healthy"}}
+        with patch.object(provider_health_store, "_READ_CACHE", cached), \
+             patch.object(provider_health_store, "_READ_CACHE_UNTIL", time.monotonic() + 10), \
+             patch.object(provider_health_store, "_start_background_read") as schedule:
+            result = load_remote_states_nonblocking()
+        self.assertEqual(result, cached)
+        schedule.assert_not_called()
+
+    def test_nonblocking_shared_read_returns_stale_cache_and_schedules_refresh(self):
+        cached = {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "healthy"}}
+        with patch.object(provider_health_store, "_READ_CACHE", cached), \
+             patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_start_background_read") as schedule:
+            result = load_remote_states_nonblocking()
+        self.assertEqual(result, cached)
+        schedule.assert_called_once_with()
+
+    def test_background_read_uses_longer_timeout_without_changing_visitor_budget(self):
+        with patch.object(provider_health_store, "load_remote_states", return_value={}) as load:
+            provider_health_store._background_read_worker()
+        load.assert_called_once_with(timeout=BACKGROUND_TIMEOUT_SECONDS)
+        self.assertLessEqual(TIMEOUT_SECONDS, 0.3)
+
+    def test_async_shared_write_coalesces_latest_snapshot(self):
+        class RunningThread:
+            def is_alive(self):
+                return True
+
+        first = {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "open"}}
+        latest = {"groq:model-b": {"provider": "groq", "model": "model-b", "state": "healthy"}}
+        with patch.object(provider_health_store, "_BACKGROUND_WRITE_THREAD", RunningThread()), \
+             patch.object(provider_health_store, "_BACKGROUND_WRITE_PENDING", None), \
+             patch.object(provider_health_store, "_BACKGROUND_WRITE_RETRY_AFTER", 0.0):
+            self.assertTrue(save_remote_states_async(first))
+            self.assertTrue(save_remote_states_async(latest))
+            self.assertEqual(provider_health_store._BACKGROUND_WRITE_PENDING, latest)
+
+    def test_background_write_uses_longer_timeout_outside_visitor_request(self):
+        payload = {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "healthy"}}
+        with patch.object(provider_health_store, "_BACKGROUND_WRITE_PENDING", payload), \
+             patch.object(provider_health_store, "_BACKGROUND_WRITE_THREAD", None), \
+             patch.object(provider_health_store, "_BACKGROUND_WRITE_RETRY_AFTER", 0.0), \
+             patch.object(provider_health_store, "_BACKGROUND_WRITE_LAST_OK", None), \
+             patch.object(provider_health_store, "_BACKGROUND_WRITE_LAST_AT", 0.0), \
+             patch.object(provider_health_store, "save_remote_states", return_value=True) as save:
+            provider_health_store._background_write_worker()
+        save.assert_called_once_with(payload, timeout=BACKGROUND_TIMEOUT_SECONDS)
 
     def test_concurrent_cold_reads_share_one_bridge_attempt(self):
         with patch.object(provider_health_store, "_READ_CACHE", None), \

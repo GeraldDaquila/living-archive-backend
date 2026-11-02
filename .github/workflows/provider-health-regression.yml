@@ -1,0 +1,27 @@
+name: Provider health regression
+
+on:
+  push:
+    branches:
+      - main
+      - fix/provider-health-async-sync-20261103
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  provider-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: "pip"
+      - name: Install production dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+      - name: Run provider health and arbitration regressions
+        run: python -m unittest -v test_provider_health_store.py

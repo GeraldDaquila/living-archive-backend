@@ -23,8 +23,11 @@ from guide_request_budget import bounded_provider_timeout as _bounded_request_pr
 from provider_health_store import (
     export_health_states,
     load_remote_states,
+    load_remote_states_nonblocking,
     merge_health_state,
-    save_remote_states,
+    save_remote_states_async,
+    background_status as shared_health_background_status,
+    BACKGROUND_TIMEOUT_SECONDS as SHARED_HEALTH_BACKGROUND_TIMEOUT_SECONDS,
     configuration_status as shared_health_configuration_status,
 )
 
@@ -236,14 +239,19 @@ _SHARED_STATE_DIAGNOSTICS = {
 _LAST_SHARED_STATE_WARNING = 0.0
 
 
-def _sync_shared_state():
-    """Merge durable cross-service health state before choosing provider lanes."""
+def _sync_shared_state(nonblocking=True):
+    """Merge cached shared health; schedule cold refreshes outside visitor latency."""
     global _LAST_SHARED_STATE_WARNING
-    remote = load_remote_states()
+    remote = (
+        load_remote_states_nonblocking()
+        if nonblocking
+        else load_remote_states(timeout=SHARED_HEALTH_BACKGROUND_TIMEOUT_SECONDS)
+    )
     if remote is None:
+        background = shared_health_background_status()
         _SHARED_STATE_DIAGNOSTICS["available"] = False
-        _SHARED_STATE_DIAGNOSTICS["mode"] = "local_fallback"
-        _SHARED_STATE_DIAGNOSTICS["last_error"] = "shared health store unavailable or not configured"
+        _SHARED_STATE_DIAGNOSTICS["mode"] = "shared_refresh_pending" if background.get("read_in_flight") else "local_fallback"
+        _SHARED_STATE_DIAGNOSTICS["last_error"] = "shared health refresh pending or unavailable"
         return
     now = time.time()
     for key, incoming in remote.items():
@@ -292,21 +300,17 @@ def _persist_shared_state():
         return True
     combined_state = dict(_STATE["models"])
     combined_state.update(_STATE.setdefault("quality", {}))
-    ok = save_remote_states(export_health_states(combined_state))
-    if ok:
-        _SHARED_STATE_DIAGNOSTICS.update({
-            "mode": "shared_wordpress_database",
-            "available": True,
-            "last_persist": time.time(),
-            "last_error": "",
-        })
+    queued = save_remote_states_async(export_health_states(combined_state))
+    if queued:
+        _SHARED_STATE_DIAGNOSTICS["mode"] = "shared_write_pending"
+        _SHARED_STATE_DIAGNOSTICS["last_error"] = ""
         return True
     _SHARED_STATE_DIAGNOSTICS["available"] = False
     _SHARED_STATE_DIAGNOSTICS["mode"] = "local_fallback"
-    _SHARED_STATE_DIAGNOSTICS["last_error"] = "shared health write failed"
+    _SHARED_STATE_DIAGNOSTICS["last_error"] = "shared health write could not be queued"
     now = time.time()
     if now - _LAST_SHARED_STATE_WARNING >= 60:
-        print("USE provider resilience: shared health persistence unavailable; using bounded process-local fallback")
+        print("USE provider resilience: shared health write could not be queued; using bounded process-local fallback")
         _LAST_SHARED_STATE_WARNING = now
     return False
 
@@ -3134,11 +3138,21 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     return _route_result(None)
 
 def refresh_shared_health_state():
-    """Refresh shared health once for an explicit operational diagnostic."""
-    _sync_shared_state()
+    """Refresh shared health for an explicit diagnostic outside visitor latency."""
+    _sync_shared_state(nonblocking=False)
 
 
 def snapshot(use_core):
+    background = shared_health_background_status()
+    if background.get("last_write_ok") is True:
+        _SHARED_STATE_DIAGNOSTICS.update({
+            "mode": "shared_wordpress_database",
+            "available": True,
+            "last_persist": float(background.get("last_write_at") or time.time()),
+            "last_error": "",
+        })
+    elif background.get("write_pending") or background.get("write_in_flight"):
+        _SHARED_STATE_DIAGNOSTICS["mode"] = "shared_write_pending"
     configured = _configured(use_core)
     all_items = [
         {"provider": provider, "model": model}
