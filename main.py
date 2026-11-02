@@ -10169,7 +10169,7 @@ def _authorize_relational_return_request(raw_body, headers, now=None):
     if abs(current - int(timestamp)) > _RELATIONAL_RETURN_AUTH_WINDOW_SECONDS:
         return _relational_return_auth_error(401, "relational_return_signature_expired")
 
-    signed = timestamp.encode("ascii") + b"\\n" + nonce.encode("ascii") + b"\\n" + raw_body
+    signed = timestamp.encode("ascii") + b"\n" + nonce.encode("ascii") + b"\n" + raw_body
     expected = hmac.new(secret.encode("utf-8"), signed, hashlib.sha256).hexdigest()
     if not supplied or not hmac.compare_digest(expected, supplied):
         return _relational_return_auth_error(401, "relational_return_unauthorized")
