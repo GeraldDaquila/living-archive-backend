@@ -80,7 +80,7 @@ def test_general_guide_uses_bounded_timeout_and_one_independent_fallback(monkeyp
 
 
 
-def test_general_guide_stops_after_two_failed_fallbacks(monkeypatch):
+def test_general_guide_uses_remaining_independent_candidates_within_window(monkeypatch):
     _isolate(monkeypatch)
 
     class Clock:
