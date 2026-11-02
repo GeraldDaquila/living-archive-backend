@@ -113,7 +113,7 @@ def _read_response_body(response, deadline, max_bytes):
     return bytes(chunks)
 
 
-def _request(method, payload=None):
+def _request(method, payload=None, on_late_result=None):
     """Bound caller wait across DNS, TLS, headers, and response-body transport.
 
     urllib socket timeouts cannot bound every blocking phase. A daemon worker
@@ -203,8 +203,27 @@ def _request(method, payload=None):
         except Exception as error:
             result_box["outcome"] = "unexpected_error_" + type(error).__name__
         finally:
+            # Record transport completion time before waking the caller. This
+            # distinguishes a genuinely late response from a caller thread
+            # that was merely rescheduled after the deadline.
+            result_box["completed_at"] = _monotonic()
             _REQUEST_SLOT.release()
             completed.set()
+            # Late acknowledgements are advisory and must never extend the
+            # visitor wait. The callback runs only after the bounded transport
+            # slot is released and the caller has been signalled.
+            if (
+                result_box.get("completed_at", float("inf")) > deadline
+                and result_box.get("outcome") == "ok"
+                and callable(on_late_result)
+            ):
+                try:
+                    on_late_result(result_box.get("result"))
+                except Exception as callback_error:
+                    print(
+                        "USE provider health store late-ack callback failed: "
+                        f"error_type={type(callback_error).__name__}"
+                    )
 
     worker = threading.Thread(
         target=transport_worker,
@@ -221,7 +240,7 @@ def _request(method, payload=None):
     completed.wait(max(0.0, deadline - _monotonic()))
     # Event scheduling can race the caller's timeout wake-up. A result that
     # becomes visible after the absolute deadline is still late and discarded.
-    if completed.is_set() and _monotonic() <= deadline:
+    if completed.is_set() and result_box.get("completed_at", float("inf")) <= deadline:
         outcome = result_box["outcome"]
         result = result_box["result"]
     else:
@@ -337,12 +356,8 @@ def export_health_states(states):
     return exported
 
 
-def save_remote_states(states):
-    """Accept only an exact all-or-nothing v2 acknowledgement."""
-    if not isinstance(states, dict) or len(states) > 100:
-        return False
-    submitted = len(states)
-    result = _request("POST", {"contract_version": CONTRACT_VERSION, "states": states})
+def _is_exact_write_acknowledgement(result, submitted):
+    """Validate the complete v2 commit acknowledgement without coercion."""
     if not isinstance(result, dict):
         return False
     if result.get("contract_version") != CONTRACT_VERSION or result.get("success") is not True:
@@ -355,6 +370,24 @@ def save_remote_states(states):
     if isinstance(written, bool) or not isinstance(written, int):
         return False
     return acknowledged_submitted == submitted and written == submitted
+
+
+def save_remote_states(states, on_late_success=None):
+    """Accept an exact v2 acknowledgement, including a validated late commit."""
+    if not isinstance(states, dict) or len(states) > 100:
+        return False
+    submitted = len(states)
+
+    def handle_late_result(result):
+        if _is_exact_write_acknowledgement(result, submitted) and callable(on_late_success):
+            on_late_success()
+
+    result = _request(
+        "POST",
+        {"contract_version": CONTRACT_VERSION, "states": states},
+        on_late_result=handle_late_result if callable(on_late_success) else None,
+    )
+    return _is_exact_write_acknowledgement(result, submitted)
 
 
 def merge_health_state(local, remote, now=None):
