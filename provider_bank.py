@@ -73,7 +73,7 @@ HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
 # The 18-second arbitration window and shared request deadline are the stopping
 # controls. Allow the bank to reach other independent providers after fast failures,
 # without serially walking slow candidates or extending the visitor's time budget.
-GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 8.0
+GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 18.0
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 2
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 6.0
 
