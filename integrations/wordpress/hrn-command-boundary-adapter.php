@@ -326,7 +326,7 @@ add_filter('rest_post_dispatch', function ($response, $server, $request) {
         return $response;
     }
 
-    $title = mb_substr(wp_strip_all_tags((string)$doorway['title']), 0, 200);
+    $title = wp_html_excerpt(wp_strip_all_tags((string)$doorway['title']), 200, '');
     $url = esc_url_raw((string)$doorway['url']);
     $host = strtolower((string)wp_parse_url($url, PHP_URL_HOST));
     $scheme = strtolower((string)wp_parse_url($url, PHP_URL_SCHEME));
