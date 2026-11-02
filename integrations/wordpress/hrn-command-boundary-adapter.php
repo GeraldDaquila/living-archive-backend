@@ -278,6 +278,29 @@ add_filter('rest_post_dispatch', function ($response, $server, $request) {
         return $response;
     }
 
+    // Separate HMAC secret: configure the same >=32-character value in
+    // wp-config.php and Render as LA_RELATIONAL_RETURN_SHARED_SECRET.
+    if (!defined('LA_RELATIONAL_RETURN_SHARED_SECRET')
+        || !is_string(LA_RELATIONAL_RETURN_SHARED_SECRET)
+        || strlen(LA_RELATIONAL_RETURN_SHARED_SECRET) < 32) {
+        $data['return_handoff_status'] = 'authentication_not_configured';
+        $response->set_data($data);
+        return $response;
+    }
+    try {
+        $timestamp = (string) time();
+        $nonce = bin2hex(random_bytes(16));
+    } catch (Throwable $error) {
+        $data['return_handoff_status'] = 'authentication_unavailable';
+        $response->set_data($data);
+        return $response;
+    }
+    $signature = hash_hmac(
+        'sha256',
+        $timestamp . "\\n" . $nonce . "\\n" . $encoded_payload,
+        LA_RELATIONAL_RETURN_SHARED_SECRET
+    );
+
     // The primary and USE2-Mirror services are both controlled destinations.
     // Keep failover server-to-server; the browser never receives the provider credential.
     $endpoints = array(
@@ -294,6 +317,9 @@ add_filter('rest_post_dispatch', function ($response, $server, $request) {
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
                 'X-Living-Archive-Provider-Key' => $shared_secret,
+                'X-LA-Relational-Timestamp' => $timestamp,
+                'X-LA-Relational-Nonce' => $nonce,
+                'X-LA-Relational-Signature' => $signature,
             ),
             'body' => $encoded_payload,
         ));
