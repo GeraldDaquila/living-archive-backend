@@ -13,7 +13,7 @@ class ProviderHealthStoreTests(unittest.TestCase):
     def test_shared_health_bridge_timeout_cannot_consume_inference_budget(self):
         self.assertLessEqual(TIMEOUT_SECONDS, 0.3)
 
-    def test_guide_allows_time_budgeted_fallback_candidates(self):
+    def test_guide_preserves_five_time_budgeted_fallback_candidates(self):
         self.assertEqual(provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES, 5)
         self.assertEqual(provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS, 18.0)
 
@@ -216,22 +216,84 @@ class ProviderHealthStoreTests(unittest.TestCase):
              patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \
              patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \
              patch.object(provider_health_store, "_request", return_value={
-                 "contract_version": "v1",
+                 "contract_version": "v2",
                  "states": {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "healthy"}},
              }) as request:
             first = provider_health_store.load_remote_states()
             second = provider_health_store.load_remote_states()
         self.assertEqual(first, second)
-        request.assert_called_once_with("GET")
+        request.assert_called_once()
+        self.assertEqual(request.call_args.args[0], "GET")
+
+    def test_expired_shared_health_cache_returns_stale_while_refresh_runs_once(self):
+        stale = {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "healthy"}}
+        fresh = {"nvidia:model-b": {"provider": "nvidia", "model": "model-b", "state": "open", "probe_in_flight": False}}
+        started = threading.Event()
+        release = threading.Event()
+
+        def slow_refresh(method, payload=None, on_late_result=None):
+            self.assertEqual(method, "GET")
+            started.set()
+            self.assertTrue(release.wait(1.0))
+            return {"contract_version": "v2", "states": fresh}
+
+        with patch.object(provider_health_store, "_READ_CACHE", stale.copy()), \
+             patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \
+             patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \
+             patch.object(provider_health_store, "_request", side_effect=slow_refresh) as request:
+            before = time.monotonic()
+            first = provider_health_store.load_remote_states()
+            elapsed = time.monotonic() - before
+            self.assertEqual(first, stale)
+            self.assertLess(elapsed, 0.05)
+            self.assertTrue(started.wait(0.5))
+
+            second = provider_health_store.load_remote_states()
+            self.assertEqual(second, stale)
+            request.assert_called_once()
+            self.assertEqual(request.call_args.args[0], "GET")
+
+            release.set()
+            deadline = time.monotonic() + 1.0
+            while time.monotonic() < deadline:
+                with provider_health_store._READ_CACHE_LOCK:
+                    current = provider_health_store._READ_CACHE
+                    inflight = provider_health_store._READ_IN_FLIGHT
+                if current == fresh and inflight is None:
+                    break
+                time.sleep(0.005)
+            self.assertEqual(current, fresh)
+            self.assertIsNone(inflight)
+
+    def test_late_cold_shared_health_read_populates_cache_for_next_route(self):
+        fresh = {"nvidia:model-b": {"provider": "nvidia", "model": "model-b", "state": "open", "probe_in_flight": False}}
+
+        def request(method, payload=None, on_late_result=None):
+            self.assertEqual(method, "GET")
+            self.assertTrue(callable(on_late_result))
+            on_late_result({"contract_version": "v2", "states": fresh})
+            return None
+
+        with patch.object(provider_health_store, "_READ_CACHE", None), \
+             patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \
+             patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \
+             patch.object(provider_health_store, "_request", side_effect=request):
+            first = provider_health_store.load_remote_states()
+            second = provider_health_store.load_remote_states()
+
+        self.assertIsNone(first)
+        self.assertEqual(second, fresh)
 
     def test_concurrent_cold_reads_share_one_bridge_attempt(self):
         with patch.object(provider_health_store, "_READ_CACHE", None), \
              patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \
              patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \
              patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \
-             patch.object(provider_health_store, "_request", side_effect=lambda method: (
+             patch.object(provider_health_store, "_request", side_effect=lambda method, payload=None, on_late_result=None: (
                  time.sleep(0.05) or {
-                     "contract_version": "v1",
+                     "contract_version": "v2",
                      "states": {"groq:model-a": {"provider": "groq", "model": "model-a", "state": "healthy"}},
                  }
              )) as request:
@@ -241,13 +303,317 @@ class ProviderHealthStoreTests(unittest.TestCase):
                 thread.start()
             for thread in threads:
                 thread.join()
-        request.assert_called_once_with("GET")
+        request.assert_called_once()
+        self.assertEqual(request.call_args.args[0], "GET")
         self.assertEqual(len(results), 8)
         self.assertTrue(all(result and "groq:model-a" in result for result in results))
+
+    def test_request_serialization_failure_does_not_leak_transport_slot(self):
+        slot = threading.BoundedSemaphore(1)
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \
+             patch.object(provider_health_store, "_REQUEST_SLOT", slot), \
+             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False), \
+             patch.object(provider_health_store, "urlopen") as request:
+            result = provider_health_store._request("POST", {"not_json_safe": object()})
+            self.assertIsNone(result)
+            request.assert_not_called()
+            # Request preparation failed before reserving the only worker slot.
+            self.assertTrue(slot.acquire(blocking=False))
+            slot.release()
+
+    def test_total_deadline_bounds_a_stalled_transport_worker(self):
+        started = threading.Event()
+        release = threading.Event()
+        finished = threading.Event()
+        slot = threading.BoundedSemaphore(1)
+
+        def stalled_transport(*args, **kwargs):
+            started.set()
+            release.wait(1.0)
+            finished.set()
+            raise TimeoutError("simulated stalled transport")
+
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \
+             patch.object(provider_health_store, "_REQUEST_SLOT", slot), \
+             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False), \
+             patch.object(provider_health_store, "urlopen", side_effect=stalled_transport):
+            before = time.monotonic()
+            result = provider_health_store._request("GET")
+            elapsed = time.monotonic() - before
+            self.assertIsNone(result)
+            self.assertTrue(started.is_set())
+            self.assertLess(elapsed, TIMEOUT_SECONDS + 0.15)
+            # The worker is bounded to one outstanding slot and is daemonized.
+            release.set()
+            self.assertTrue(finished.wait(0.5))
+
+    def test_pre_deadline_result_is_not_lost_before_completion_event_signal(self):
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        class ReleaseBarrierSlot:
+            def __init__(self):
+                self.inner = threading.BoundedSemaphore(1)
+                self.release_entered = threading.Event()
+                self.allow_release = threading.Event()
+
+            def acquire(self, blocking=False):
+                return self.inner.acquire(blocking=blocking)
+
+            def release(self):
+                self.release_entered.set()
+                if not self.allow_release.wait(1.0):
+                    raise AssertionError("test did not release transport slot")
+                self.inner.release()
+
+        slot = ReleaseBarrierSlot()
+        body = b'{"contract_version":"v2","success":true,"submitted":1,"written":1}'
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \
+             patch.object(provider_health_store, "_REQUEST_SLOT", slot), \
+             patch.object(provider_health_store, "TIMEOUT_SECONDS", 0.05), \
+             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False), \
+             patch.object(provider_health_store, "urlopen", return_value=FakeResponse()), \
+             patch.object(provider_health_store, "_read_response_body", return_value=body):
+            result_holder = {}
+
+            def call():
+                result_holder["result"] = provider_health_store._request(
+                    "POST", {"contract_version": "v2", "states": {"groq:model-a": {}}}
+                )
+
+            worker = threading.Thread(target=call)
+            worker.start()
+            self.assertTrue(slot.release_entered.wait(0.5))
+            worker.join(timeout=0.5)
+            try:
+                self.assertFalse(worker.is_alive())
+                self.assertEqual(result_holder.get("result"), {
+                    "contract_version": "v2",
+                    "success": True,
+                    "submitted": 1,
+                    "written": 1,
+                })
+            finally:
+                slot.allow_release.set()
+
+    def test_response_completed_after_absolute_deadline_is_discarded(self):
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        slot = threading.BoundedSemaphore(1)
+
+        def late_body(*args, **kwargs):
+            time.sleep(0.04)
+            return b'{"contract_version":"v2","states":{}}'
+
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \
+             patch.object(provider_health_store, "_REQUEST_SLOT", slot), \
+             patch.object(provider_health_store, "TIMEOUT_SECONDS", 0.01), \
+             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False), \
+             patch.object(provider_health_store, "urlopen", return_value=FakeResponse()), \
+             patch.object(provider_health_store, "_read_response_body", side_effect=late_body):
+            result = provider_health_store._request("GET")
+            self.assertIsNone(result)
+            # Wait for the intentionally late daemon worker to release its slot.
+            deadline = time.monotonic() + 0.5
+            while True:
+                if slot.acquire(blocking=False):
+                    slot.release()
+                    break
+                if time.monotonic() >= deadline:
+                    self.fail("transport worker did not release its bounded slot")
+                time.sleep(0.005)
+        # The response became available after the caller's absolute deadline;
+        # it must not be accepted on a scheduling race.
+
+    def test_stalled_transport_slot_prevents_worker_backlog(self):
+        slot = threading.BoundedSemaphore(1)
+        self.assertTrue(slot.acquire(blocking=False))
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \
+             patch.object(provider_health_store, "_REQUEST_SLOT", slot), \
+             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False), \
+             patch.object(provider_health_store, "urlopen") as request:
+            before = time.monotonic()
+            result = provider_health_store._request("GET")
+            self.assertIsNone(result)
+            self.assertLess(time.monotonic() - before, 0.05)
+            request.assert_not_called()
+        slot.release()
 
     def test_missing_credentials_fails_closed_without_network(self):
         with patch("provider_health_store._configuration", return_value=("", "")):
             self.assertFalse(save_remote_states({}))
+
+
+
+    def test_singleflight_waiter_does_not_outwait_shared_health_http_budget(self):
+        entered = threading.Event()
+        release = threading.Event()
+        waiter_done = threading.Event()
+
+        def slow_request(method, payload=None, on_late_result=None):
+            entered.set()
+            release.wait(timeout=2.0)
+            return None
+
+        with patch.object(provider_health_store, "_READ_CACHE", None), \
+             patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \
+             patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \
+             patch.object(provider_health_store, "_request", side_effect=slow_request):
+            owner = threading.Thread(target=provider_health_store.load_remote_states)
+            owner.start()
+            self.assertTrue(entered.wait(timeout=1.0))
+
+            def wait_for_owner():
+                provider_health_store.load_remote_states()
+                waiter_done.set()
+
+            waiter = threading.Thread(target=wait_for_owner)
+            waiter.start()
+            completed_within_bound = waiter_done.wait(timeout=provider_health_store.TIMEOUT_SECONDS + 0.08)
+            release.set()
+            waiter.join(timeout=1.0)
+            owner.join(timeout=1.0)
+
+        self.assertTrue(completed_within_bound)
+        self.assertFalse(owner.is_alive())
+        self.assertFalse(waiter.is_alive())
+
+
+    def test_shared_health_read_enforces_total_wall_clock_deadline_on_trickle_body(self):
+        from types import SimpleNamespace
+
+        clock = SimpleNamespace(value=10.0)
+
+        class FakeSocket:
+            def __init__(self):
+                self.timeouts = []
+
+            def settimeout(self, value):
+                self.timeouts.append(value)
+
+        class TrickleResponse:
+            def __init__(self):
+                self.parts = [b'{"contract_version":', b'"v2",', b'"states":{}}']
+                self.fp = SimpleNamespace(raw=SimpleNamespace(_sock=FakeSocket()))
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read1(self, size):
+                clock.value += 0.10
+                return self.parts.pop(0) if self.parts else b""
+
+        response = TrickleResponse()
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")):
+            with patch.object(provider_health_store, "_monotonic", side_effect=lambda: clock.value):
+                with patch.object(provider_health_store, "urlopen", return_value=response) as request:
+                    with patch.object(provider_health_store.time, "monotonic", return_value=10.0):
+                        with patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0):
+                            with patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False):
+                                result = provider_health_store._request("GET")
+
+        self.assertIsNone(result)
+        request.assert_called_once()
+        self.assertTrue(response.fp.raw._sock.timeouts)
+        self.assertTrue(all(value <= provider_health_store.TIMEOUT_SECONDS for value in response.fp.raw._sock.timeouts))
+
+    def test_shared_health_read_accepts_complete_body_within_total_deadline(self):
+        from types import SimpleNamespace
+
+        clock = SimpleNamespace(value=20.0)
+
+        class FakeSocket:
+            def settimeout(self, value):
+                self.timeout = value
+
+        class FastResponse:
+            def __init__(self):
+                self.parts = [b'{"contract_version":"v2",', b'"states":{}}']
+                self.fp = SimpleNamespace(raw=SimpleNamespace(_sock=FakeSocket()))
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read1(self, size):
+                clock.value += 0.04
+                return self.parts.pop(0) if self.parts else b""
+
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")):
+            with patch.object(provider_health_store, "_monotonic", side_effect=lambda: clock.value):
+                with patch.object(provider_health_store, "urlopen", return_value=FastResponse()):
+                    with patch.object(provider_health_store.time, "monotonic", return_value=20.0):
+                        with patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0):
+                            with patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False):
+                                result = provider_health_store._request("GET")
+
+        self.assertEqual(result, {"contract_version": "v2", "states": {}})
+
+
+    def test_shared_health_read_accepts_buffered_body_without_live_socket_reference(self):
+        from types import SimpleNamespace
+
+        clock = SimpleNamespace(value=30.0)
+
+        class BufferedResponse:
+            def __init__(self):
+                self.parts = [b'{"contract_version":"v2",', b'"states":{}}']
+                # urllib can retain readable buffered bytes after detaching
+                # the underlying socket reference.
+                self.fp = SimpleNamespace(raw=SimpleNamespace(_sock=None))
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read1(self, size):
+                clock.value += 0.02
+                return self.parts.pop(0) if self.parts else b""
+
+        response = BufferedResponse()
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")):
+            with patch.object(provider_health_store, "_monotonic", side_effect=lambda: clock.value):
+                with patch.object(provider_health_store, "urlopen", return_value=response):
+                    with patch.object(provider_health_store.time, "monotonic", return_value=30.0):
+                        with patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0):
+                            with patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False):
+                                result = provider_health_store._request("GET")
+
+        self.assertEqual(result, {"contract_version": "v2", "states": {}})
+
+
+    def test_incomplete_http_response_fails_closed_without_escaping(self):
+        from http.client import IncompleteRead
+
+        with patch.object(provider_health_store, "_configuration", return_value=("https://health.invalid/state", "test-secret")), \
+             patch.object(provider_health_store, "urlopen", side_effect=IncompleteRead(b'{"contract', 20)), \
+             patch.object(provider_health_store, "_CIRCUIT_OPEN_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_CIRCUIT_PROBE_IN_FLIGHT", False):
+            result = provider_health_store._request("GET")
+
+        self.assertIsNone(result)
 
 
 if __name__ == "__main__":
