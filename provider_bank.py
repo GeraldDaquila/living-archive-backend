@@ -398,7 +398,7 @@ def _blocked_for_operation(state, operation, schema=None):
     if category == "structured_output_contract":
         if last_operation and last_operation != operation:
             return False
-        if isinstance(schema, dict) and schema.get("mode") == "text":
+        if operation == "hrn_voice_repair" or (isinstance(schema, dict) and schema.get("mode") == "text"):
             return False
     return _blocked(state)
 
@@ -2789,7 +2789,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         # was built (for example, daily quota exhaustion). Re-check current state
         # immediately before every call so stale sibling candidates are not sent
         # to an account that has just been quarantined.
-        if _blocked_for_operation(state, operation):
+        if _blocked_for_operation(state, operation, effective_schema):
             print(
                 "USE model bank skip newly blocked candidate: "
                 f"provider={provider}, model={model}, "

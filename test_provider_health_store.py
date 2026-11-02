@@ -283,9 +283,14 @@ class ProviderHealthStoreTests(unittest.TestCase):
             "cooldown_until": 0.0,
             "quarantine_until": time.time() + 3600,
         }
+        # Both the candidate filter and the final pre-call recheck must allow
+        # this text-only operation to probe after a JSON-only contract failure.
         self.assertFalse(provider_bank._blocked_for_operation(state, "hrn_voice_repair", {"mode": "text"}))
-        self.assertTrue(provider_bank._blocked_for_operation(state, "hrn_voice_repair", None))
+        self.assertFalse(provider_bank._blocked_for_operation(state, "hrn_voice_repair"))
         self.assertFalse(provider_bank._blocked_for_operation(state, "mini_use", None))
+
+        json_state = dict(state, last_operation="mini_use")
+        self.assertTrue(provider_bank._blocked_for_operation(json_state, "mini_use", None))
 
     def test_last_operation_survives_shared_health_export_and_merge(self):
         local = {
