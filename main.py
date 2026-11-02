@@ -2298,7 +2298,7 @@ async def _v48755_relational_return(request: Request):
             },
         )
     except Exception as exc:
-        print(f"The Guide v487.63 relational closure failed safely: {exc}")
+        print(f"The Guide v487.63 relational closure failed safely: {type(exc).__name__}")
         return JSONResponse(
             status_code=200,
             content={
@@ -8257,7 +8257,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         "route_source": "guide_basic_inquiry",
         "visitor_boundary_version": APP_VERSION,
     }
-    print("The Guide Basic Inquiry: " + f"request_id={request_id}, intent={payload['intent']}, response_chars={len(response)}, elapsed={time.perf_counter() - started:.3f}s, query={_normalize_query(query)[:120]}")
+    print("The Guide Basic Inquiry: " + f"request_id={request_id}, intent={payload['intent']}, response_chars={len(response)}, query_chars={len(query)}, elapsed={time.perf_counter() - started:.3f}s")
     return payload
 
 
@@ -9451,7 +9451,7 @@ async def _use_request_boundary(scope, receive, send):
         except Exception as exc:
             print(
                 "The Guide Basic Inquiry seam failed; "
-                f"ordinary route remains ordinary and will not be reclassified: {exc}"
+                f"ordinary route remains ordinary and will not be reclassified ({type(exc).__name__})."
             )
             # A direct-attribute question must not escape through the legacy
             # deterministic recovery path if its evidence boundary itself fails.
@@ -9534,7 +9534,7 @@ async def _use_request_boundary(scope, receive, send):
             except Exception as recovery_exc:
                 print(
                     "The Guide Basic Inquiry deterministic recovery also failed: "
-                    f"{recovery_exc}"
+                    f"{type(recovery_exc).__name__}"
                 )
             return await _use_send_json(send, {
                 "ok": False,
