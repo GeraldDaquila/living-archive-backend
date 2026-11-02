@@ -326,9 +326,17 @@ add_filter('rest_post_dispatch', function ($response, $server, $request) {
         return $response;
     }
 
-    $title = wp_strip_all_tags((string)$doorway['title']);
+    $title = mb_substr(wp_strip_all_tags((string)$doorway['title']), 0, 200);
     $url = esc_url_raw((string)$doorway['url']);
-    if ($title === '' || $url === '' || !wp_http_validate_url($url)) return $response;
+    $host = strtolower((string)wp_parse_url($url, PHP_URL_HOST));
+    $scheme = strtolower((string)wp_parse_url($url, PHP_URL_SCHEME));
+    if (
+        $title === ''
+        || $url === ''
+        || $scheme !== 'https'
+        || $host !== 'geralddaquila.com'
+        || !wp_http_validate_url($url)
+    ) return $response;
 
     $data['junction_available'] = true;
     $data['unit_complete'] = true;
