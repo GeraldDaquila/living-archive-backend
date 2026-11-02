@@ -176,7 +176,39 @@ def _request(method, payload=None, on_late_result=None):
         return None
 
     completed = threading.Event()
-    result_box = {"outcome": "error", "result": None}
+    completion_lock = threading.Lock()
+    result_box = {
+        "outcome": "error",
+        "result": None,
+        "completed_at": None,
+        "caller_decided": False,
+        "caller_accepted": False,
+        "callback_dispatched": False,
+    }
+
+    def dispatch_late_result_if_needed():
+        # The caller and worker may both observe completion. Claim the callback
+        # under one lock so a late acknowledgement is consumed exactly once.
+        callback_result = None
+        with completion_lock:
+            if (
+                completed.is_set()
+                and result_box["caller_decided"]
+                and not result_box["caller_accepted"]
+                and not result_box["callback_dispatched"]
+                and result_box["outcome"] == "ok"
+                and callable(on_late_result)
+            ):
+                result_box["callback_dispatched"] = True
+                callback_result = result_box["result"]
+        if callback_result is not None:
+            try:
+                on_late_result(callback_result)
+            except Exception as callback_error:
+                print(
+                    "USE provider health store late-ack callback failed: "
+                    f"error_type={type(callback_error).__name__}"
+                )
 
     def transport_worker():
         try:
@@ -186,44 +218,35 @@ def _request(method, payload=None, on_late_result=None):
             with urlopen(request, timeout=remaining) as response:
                 body = _read_response_body(response, deadline, 512 * 1024)
                 result = json.loads(body.decode("utf-8", errors="replace"))
-            if isinstance(result, dict) and result.get("contract_version") == CONTRACT_VERSION:
-                result_box["outcome"] = "ok"
-                result_box["result"] = result
-            else:
-                result_box["outcome"] = "invalid_contract"
+            with completion_lock:
+                if isinstance(result, dict) and result.get("contract_version") == CONTRACT_VERSION:
+                    result_box["outcome"] = "ok"
+                    result_box["result"] = result
+                else:
+                    result_box["outcome"] = "invalid_contract"
         except HTTPError as error:
             # HTTP status is safe operational metadata; never log response bodies,
             # URLs, request headers, or credentials.
-            result_box["outcome"] = f"http_error_{int(error.code)}"
+            with completion_lock:
+                result_box["outcome"] = f"http_error_{int(error.code)}"
         except (URLError, HTTPException, TimeoutError, OSError, ValueError, json.JSONDecodeError) as error:
-            result_box["outcome"] = "transport_error_" + type(error).__name__
-            if isinstance(error, TimeoutError):
-                # These are fixed internal guard messages, not request or provider data.
-                result_box["error_reason"] = str(error)[:100]
+            with completion_lock:
+                result_box["outcome"] = "transport_error_" + type(error).__name__
+                if isinstance(error, TimeoutError):
+                    # These are fixed internal guard messages, not request or provider data.
+                    result_box["error_reason"] = str(error)[:100]
         except Exception as error:
-            result_box["outcome"] = "unexpected_error_" + type(error).__name__
+            with completion_lock:
+                result_box["outcome"] = "unexpected_error_" + type(error).__name__
         finally:
-            # Record transport completion time before waking the caller. This
-            # distinguishes a genuinely late response from a caller thread
-            # that was merely rescheduled after the deadline.
-            result_box["completed_at"] = _monotonic()
+            # Publish the result and completion timestamp atomically. The caller
+            # can accept a pre-deadline result even if it is rescheduled before
+            # Event.set(); this closes the narrow lost-ack race at the deadline.
+            with completion_lock:
+                result_box["completed_at"] = _monotonic()
             _REQUEST_SLOT.release()
             completed.set()
-            # Late acknowledgements are advisory and must never extend the
-            # visitor wait. The callback runs only after the bounded transport
-            # slot is released and the caller has been signalled.
-            if (
-                result_box.get("completed_at", float("inf")) > deadline
-                and result_box.get("outcome") == "ok"
-                and callable(on_late_result)
-            ):
-                try:
-                    on_late_result(result_box.get("result"))
-                except Exception as callback_error:
-                    print(
-                        "USE provider health store late-ack callback failed: "
-                        f"error_type={type(callback_error).__name__}"
-                    )
+            dispatch_late_result_if_needed()
 
     worker = threading.Thread(
         target=transport_worker,
@@ -234,18 +257,28 @@ def _request(method, payload=None, on_late_result=None):
         worker.start()
     except RuntimeError:
         _REQUEST_SLOT.release()
-        result_box["outcome"] = "worker_start_failed"
+        with completion_lock:
+            result_box["outcome"] = "worker_start_failed"
+            result_box["completed_at"] = _monotonic()
+            result_box["caller_decided"] = True
         completed.set()
 
     completed.wait(max(0.0, deadline - _monotonic()))
-    # Event scheduling can race the caller's timeout wake-up. A result that
-    # becomes visible after the absolute deadline is still late and discarded.
-    if completed.is_set() and result_box.get("completed_at", float("inf")) <= deadline:
-        outcome = result_box["outcome"]
-        result = result_box["result"]
-    else:
-        outcome = "total_deadline_exceeded"
-        result = None
+    # Completion time, not Event scheduling, decides whether the response met
+    # the caller deadline. If the caller already timed out, a valid response
+    # is routed through the one-shot late-ack callback after the slot is free.
+    with completion_lock:
+        completed_at = result_box.get("completed_at")
+        if completed_at is not None and completed_at <= deadline:
+            outcome = result_box["outcome"]
+            result = result_box["result"]
+            result_box["caller_accepted"] = outcome == "ok"
+            result_box["caller_decided"] = True
+        else:
+            outcome = "total_deadline_exceeded"
+            result = None
+            result_box["caller_decided"] = True
+    dispatch_late_result_if_needed()
 
     elapsed = _monotonic() - started
     with _CIRCUIT_LOCK:
