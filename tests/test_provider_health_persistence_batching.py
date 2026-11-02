@@ -643,16 +643,11 @@ def test_late_shared_health_ack_clears_same_version_pending_after_flush_returns(
         "provider_cursor": 0,
         "model_cursors": {},
     })
-    callback_started = threading.Event()
+    late_ack = []
 
     def save(_states, on_late_success=None):
         assert callable(on_late_success)
-
-        def deliver_late_ack():
-            on_late_success()
-            callback_started.set()
-
-        threading.Thread(target=deliver_late_ack, daemon=True).start()
+        late_ack.append(on_late_success)
         return False
 
     monkeypatch.setattr(provider_bank, "save_remote_states", save)
@@ -662,7 +657,8 @@ def test_late_shared_health_ack_clears_same_version_pending_after_flush_returns(
         })
     provider_bank._mark_shared_state_pending()
     assert provider_bank._flush_pending_shared_state() is False
-    assert callback_started.wait(1.0)
+    assert provider_bank._PENDING_SHARED_STATE is True
+    late_ack[0]()
     assert provider_bank._PENDING_SHARED_STATE is False
     assert provider_bank._SHARED_STATE_DIAGNOSTICS["available"] is True
     assert provider_bank._SHARED_STATE_DIAGNOSTICS["mode"] == "shared_wordpress_database"
@@ -677,23 +673,18 @@ def test_late_ack_does_not_clear_newer_shared_health_dirty_version(monkeypatch):
         "provider_cursor": 0,
         "model_cursors": {},
     })
-    callback_started = threading.Event()
+    late_ack = []
 
     def save(_states, on_late_success=None):
         assert callable(on_late_success)
         provider_bank._mark_shared_state_pending()
-
-        def deliver_late_ack():
-            on_late_success()
-            callback_started.set()
-
-        threading.Thread(target=deliver_late_ack, daemon=True).start()
+        late_ack.append(on_late_success)
         return False
 
     monkeypatch.setattr(provider_bank, "save_remote_states", save)
     provider_bank._mark_shared_state_pending()
     assert provider_bank._flush_pending_shared_state() is False
-    assert callback_started.wait(1.0)
+    late_ack[0]()
     assert provider_bank._PENDING_SHARED_STATE is True
     assert provider_bank._SHARED_STATE_DIAGNOSTICS["available"] is False
     assert provider_bank._SHARED_STATE_DIAGNOSTICS["mode"] == "local_fallback"
