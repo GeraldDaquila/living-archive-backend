@@ -273,10 +273,10 @@ class ProviderHealthStoreTests(unittest.TestCase):
             on_late_result({"contract_version": "v2", "states": fresh})
             return None
 
-        with patch.object(provider_health_store, "_READ_CACHE", None), \\
-             patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \\
-             patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \\
-             patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \\
+        with patch.object(provider_health_store, "_READ_CACHE", None), \
+             patch.object(provider_health_store, "_READ_CACHE_UNTIL", 0.0), \
+             patch.object(provider_health_store, "_READ_IN_FLIGHT", None), \
+             patch.object(provider_health_store, "_READ_IN_FLIGHT_RESULT", None), \
              patch.object(provider_health_store, "_request", side_effect=request):
             first = provider_health_store.load_remote_states()
             second = provider_health_store.load_remote_states()
