@@ -69,8 +69,8 @@ def compose_definition_significance(subject):
         },
         "handoff": {
             "definition": "the transfer of responsibility, information, and context from one person or team to another so work can continue",
-            "example": "When a project moves from one team to another, a good handoff explains the current status, decisions already made, unresolved issues, deadlines, and who owns the next action; the receiving team confirms it has enough context to continue.",
-            "significance": "A clear handoff reduces gaps, duplicated effort, missed dependencies, and confusion about ownership. It helps teams notice misunderstandings early and correct them before they spread. A handoff is complete not when information is merely sent, but when the receiving person understands what is needed and can take responsibility."
+            "example": "when a project moves from one team to another, a good handoff explains the current status, decisions already made, unresolved issues, deadlines, and who owns the next action; the receiving team confirms it has enough context to continue.",
+            "significance": "a clear handoff reduces gaps, duplicated effort, missed dependencies, and confusion about ownership. It helps teams notice misunderstandings early and correct them before they spread. A handoff is complete not when information is merely sent, but when the receiving person understands what is needed and can take responsibility."
         },
         "stewardship": {
             "definition": "taking care of something entrusted to you while considering its value to others and the future",
