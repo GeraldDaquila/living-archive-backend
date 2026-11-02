@@ -6,6 +6,7 @@ on:
       - "provider_bank.py"
       - "provider_health_store.py"
       - "test_provider_health_store.py"
+      - "tests/test_provider_health_store_circuit_breaker.py"
       - "test_provider_contract_diagnostics_and_pathway_attribution.py"
       - ".github/workflows/guide-provider-health-latency-budget.yml"
   push:
@@ -31,4 +32,4 @@ jobs:
       - name: Compile changed runtime modules
         run: python -m py_compile provider_bank.py provider_health_store.py
       - name: Run provider health and pathway regressions
-        run: pytest -q test_provider_health_store.py test_provider_contract_diagnostics_and_pathway_attribution.py
+        run: pytest -q test_provider_health_store.py tests/test_provider_health_store_circuit_breaker.py test_provider_contract_diagnostics_and_pathway_attribution.py
