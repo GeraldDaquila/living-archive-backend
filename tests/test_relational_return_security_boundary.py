@@ -124,7 +124,7 @@ def _signed_relational_headers(body, secret, timestamp, nonce):
     import hashlib
     import hmac
 
-    signed = timestamp.encode("ascii") + b"\\n" + nonce.encode("ascii") + b"\\n" + body
+    signed = timestamp.encode("ascii") + b"\n" + nonce.encode("ascii") + b"\n" + body
     signature = hmac.new(secret.encode("utf-8"), signed, hashlib.sha256).hexdigest()
     return {
         "x-la-relational-timestamp": timestamp,
