@@ -6663,7 +6663,7 @@ def _basic_inquiry_has_internal_implementation_language(response):
         r"machine-facing|implementation metadata|system instruction|debugging annotation)",
         response,
         re.I,
-    )
+    ))
 
 
 def _basic_inquiry_response(query, history=None, raw_body=None):
