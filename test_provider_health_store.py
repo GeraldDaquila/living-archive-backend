@@ -255,6 +255,7 @@ class ProviderHealthStoreTests(unittest.TestCase):
             provider_health_store._background_read_worker()
         load.assert_called_once_with(timeout=BACKGROUND_TIMEOUT_SECONDS)
         self.assertLessEqual(TIMEOUT_SECONDS, 0.3)
+        self.assertEqual(BACKGROUND_TIMEOUT_SECONDS, 1.5)
 
     def test_async_shared_write_coalesces_latest_snapshot(self):
         class RunningThread:
