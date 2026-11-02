@@ -27,7 +27,8 @@ $run = static function ($message, $completedTurns, $history = '', $overrides = a
         'meta' => array(),
     );
     $response = new WP_REST_Response(array_merge($base, $overrides), $status);
-    $filtered = apply_filters('rest_post_dispatch', $response, null, $request);
+    $server = rest_get_server();
+    $filtered = apply_filters('rest_post_dispatch', $response, $server, $request);
     if (!($filtered instanceof WP_REST_Response)) {
         fwrite(STDERR, "FAIL: guard returned an unexpected response type.\n");
         exit(1);
