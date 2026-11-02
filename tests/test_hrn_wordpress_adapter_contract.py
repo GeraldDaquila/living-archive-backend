@@ -9,7 +9,7 @@ def test_versioned_hrn_wordpress_adapter_preserves_return_handoff_contract():
         / "hrn-command-boundary-adapter.php"
     ).read_text(encoding="utf-8")
 
-    assert "Version: 1.3.0" in source
+    assert "Version: 1.4.0" in source
     assert "rest_request_before_callbacks" in source
     assert "rest_post_dispatch" in source
     assert "/api/relational-return" in source
