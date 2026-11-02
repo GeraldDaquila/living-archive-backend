@@ -691,6 +691,35 @@ def test_late_ack_does_not_clear_newer_shared_health_dirty_version(monkeypatch):
     assert "newer state remains pending" in provider_bank._SHARED_STATE_DIAGNOSTICS["last_error"]
 
 
+def test_late_ack_callback_never_blocks_behind_another_flush(monkeypatch):
+    _reset_pending_persistence()
+    monkeypatch.setattr(provider_bank, "_STATE", {
+        "models": {"groq:model-a": {"provider": "groq", "model": "model-a"}},
+        "quality": {},
+        "provider_cursor": 0,
+        "model_cursors": {},
+    })
+    late_ack = []
+
+    def save(_states, on_late_success=None):
+        late_ack.append(on_late_success)
+        return False
+
+    monkeypatch.setattr(provider_bank, "save_remote_states", save)
+    provider_bank._mark_shared_state_pending()
+    assert provider_bank._flush_pending_shared_state() is False
+    assert len(late_ack) == 1
+
+    with provider_bank._PENDING_SHARED_STATE_FLUSH_LOCK:
+        started = time.monotonic()
+        late_ack[0]()
+        elapsed = time.monotonic() - started
+    assert elapsed < 0.05
+    assert provider_bank._PENDING_SHARED_STATE is True
+    assert provider_bank._SHARED_STATE_DIAGNOSTICS["available"] is False
+    assert "deferred" in provider_bank._SHARED_STATE_DIAGNOSTICS["last_error"]
+
+
 def test_shared_python_php_provider_health_merge_fixtures():
     fixture_path = Path(__file__).resolve().parents[1] / "QA" / "provider_health_merge_fixtures_v2.json"
     fixtures = json.loads(fixture_path.read_text(encoding="utf-8"))
