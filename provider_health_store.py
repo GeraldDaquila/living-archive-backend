@@ -317,6 +317,7 @@ def _clean_remote_health_payload(result):
 
 def _fetch_validated_remote_states(event=None):
     def accept_late_result(result):
+        global _READ_CACHE, _READ_CACHE_UNTIL
         cleaned_late = _clean_remote_health_payload(result)
         if cleaned_late is None:
             return
@@ -325,7 +326,6 @@ def _fetch_validated_remote_states(event=None):
         # refresh that has already taken ownership of the single-flight slot.
         with _READ_CACHE_LOCK:
             if _READ_IN_FLIGHT is None or _READ_IN_FLIGHT is event:
-                global _READ_CACHE, _READ_CACHE_UNTIL
                 _READ_CACHE = cleaned_late
                 _READ_CACHE_UNTIL = _monotonic() + _READ_CACHE_TTL_SECONDS
 
