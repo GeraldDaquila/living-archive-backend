@@ -60,6 +60,7 @@ def test_relational_return_rejects_declared_oversize_before_streaming(monkeypatc
 
 def test_relational_return_enforces_streamed_body_limit_without_content_length(monkeypatch):
     monkeypatch.setattr(main, "authorize_provider_gateway", lambda _token: None)
+    monkeypatch.setattr(main, "_authorize_relational_return_request", lambda _body, _headers: None)
     request = FakeRequest(
         body=b"x" * 131073,
         headers={
@@ -75,6 +76,7 @@ def test_relational_return_enforces_streamed_body_limit_without_content_length(m
 
 def test_relational_return_rejects_non_json_and_malformed_payloads(monkeypatch):
     monkeypatch.setattr(main, "authorize_provider_gateway", lambda _token: None)
+    monkeypatch.setattr(main, "_authorize_relational_return_request", lambda _body, _headers: None)
     non_json = FakeRequest(
         body=b"{}",
         headers={"X-Living-Archive-Provider-Key": "test-only", "content-type": "text/plain"},
@@ -90,6 +92,7 @@ def test_relational_return_rejects_non_json_and_malformed_payloads(monkeypatch):
 
 def test_relational_return_preserves_explicit_closure_contract(monkeypatch):
     monkeypatch.setattr(main, "authorize_provider_gateway", lambda _token: None)
+    monkeypatch.setattr(main, "_authorize_relational_return_request", lambda _body, _headers: None)
     request = FakeRequest(
         body=b'{"journey_action":"continue"}',
         headers={
@@ -114,3 +117,55 @@ def test_relational_return_operational_logs_exclude_visitor_content_and_session_
     assert "query={_normalize_query(original_question)" not in handler
     assert "session={session_id or 'none'}" not in handler
     assert "exception_type={type(exc).__name__}" in handler
+
+
+
+def _signed_relational_headers(body, secret, timestamp, nonce):
+    import hashlib
+    import hmac
+
+    signed = timestamp.encode("ascii") + b"\\n" + nonce.encode("ascii") + b"\\n" + body
+    signature = hmac.new(secret.encode("utf-8"), signed, hashlib.sha256).hexdigest()
+    return {
+        "x-la-relational-timestamp": timestamp,
+        "x-la-relational-nonce": nonce,
+        "x-la-relational-signature": signature,
+    }
+
+
+def test_relational_return_hmac_accepts_exact_bounded_body(monkeypatch):
+    secret = "test-relational-secret-with-at-least-32-characters"
+    body = b'{"journey_action":"end"}'
+    monkeypatch.setenv("LA_RELATIONAL_RETURN_SHARED_SECRET", secret)
+    headers = _signed_relational_headers(body, secret, "1793610000", "nonce-unique-00000001")
+    # Fixed time keeps the test independent of wall-clock drift.
+    result = main._authorize_relational_return_request(body, headers, now=1793610000)
+    assert result is None
+
+
+def test_relational_return_hmac_rejects_body_tampering(monkeypatch):
+    secret = "test-relational-secret-with-at-least-32-characters"
+    body = b'{"journey_action":"end"}'
+    monkeypatch.setenv("LA_RELATIONAL_RETURN_SHARED_SECRET", secret)
+    headers = _signed_relational_headers(body, secret, "1793610000", "nonce-unique-00000002")
+    result = main._authorize_relational_return_request(body + b" ", headers, now=1793610000)
+    assert result.status_code == 401
+
+
+def test_relational_return_hmac_rejects_expired_signature(monkeypatch):
+    secret = "test-relational-secret-with-at-least-32-characters"
+    body = b'{"journey_action":"end"}'
+    monkeypatch.setenv("LA_RELATIONAL_RETURN_SHARED_SECRET", secret)
+    headers = _signed_relational_headers(body, secret, "1793610000", "nonce-unique-00000003")
+    result = main._authorize_relational_return_request(body, headers, now=1793610400)
+    assert result.status_code == 401
+
+
+def test_relational_return_hmac_rejects_replayed_nonce(monkeypatch):
+    secret = "test-relational-secret-with-at-least-32-characters"
+    body = b'{"journey_action":"end"}'
+    monkeypatch.setenv("LA_RELATIONAL_RETURN_SHARED_SECRET", secret)
+    headers = _signed_relational_headers(body, secret, "1793610000", "nonce-unique-00000004")
+    assert main._authorize_relational_return_request(body, headers, now=1793610000) is None
+    replay = main._authorize_relational_return_request(body, headers, now=1793610000)
+    assert replay.status_code == 409
