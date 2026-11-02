@@ -71,17 +71,17 @@ def main():
 
     # HRN stages are bounded separately so they leave room for the WordPress
     # bridge's one mirror replay. General Guide continues after slow provider
-    # failures within its shared request deadline and 18-second arbitration window.
+    # failures within its shared request deadline and 8-second arbitration window.
     assert 'hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}' in provider
     assert "def _hrn_attempt_cap():" in provider
     assert 'os.getenv("USE_HRN_PROVIDER_BANK_MAX_ATTEMPTS", "1")' in provider
     assert "if operation in hrn_operations:" in provider
     assert "elif bounded_guide_operation:" in provider
     assert "operation_attempt_cap = 1" in provider
-    assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 18.0" in provider
+    assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 8.0" in provider
     assert "GENERAL_GUIDE_SLOW_FAILURE_STOP_SECONDS" not in provider
     assert 'if operation == "hrn_perception":' in provider
-    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 5" in provider
+    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 2" in provider
     assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 6.0" in provider
     assert "base_max_attempts = min(len(pool), operation_attempt_cap)" in provider
     assert "HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS = 4.5" in provider

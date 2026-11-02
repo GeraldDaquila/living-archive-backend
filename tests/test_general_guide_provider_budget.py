@@ -105,10 +105,10 @@ def test_general_guide_uses_remaining_independent_candidates_within_window(monke
     )
 
     assert result is None
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
     assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 5
-    assert clock.value == 1.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
+    assert clock.value == pytest.approx(0.75)
 
 
 def test_general_guide_prioritizes_healthy_lane_over_half_open_probe(monkeypatch):
@@ -149,7 +149,7 @@ def test_general_guide_interleaves_independent_provider_lanes(monkeypatch):
     assert len(set(providers[:3])) == 3
     assert providers[3] == "workers_ai"
 
-def test_general_guide_walks_to_fourth_candidate_after_fast_failures(monkeypatch):
+def test_general_guide_caps_fallbacks_after_fast_failures(monkeypatch):
     _isolate(monkeypatch)
 
     class Clock:
@@ -174,11 +174,11 @@ def test_general_guide_walks_to_fourth_candidate_after_fast_failures(monkeypatch
     )
 
     assert result is None
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
     assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
-    assert clock.value == pytest.approx(0.8)
+    assert clock.value == pytest.approx(0.6)
 
-def test_general_guide_continues_after_slow_failure_within_budget(monkeypatch):
+def test_general_guide_stops_after_slow_failure_consumes_recovery_margin(monkeypatch):
     _isolate(monkeypatch)
 
     class Clock:
@@ -190,7 +190,7 @@ def test_general_guide_continues_after_slow_failure_within_budget(monkeypatch):
 
     def slow_failure(use_core, item, messages, max_tokens, schema, timeout_override=None):
         calls.append((item["provider"], timeout_override))
-        clock.value += 6.0
+        clock.value += float(timeout_override)
         raise RuntimeError("simulated slow provider failure")
 
     monkeypatch.setattr(provider_bank, "_call", slow_failure)
@@ -203,11 +203,11 @@ def test_general_guide_continues_after_slow_failure_within_budget(monkeypatch):
     )
 
     assert result is None
-    assert calls == [("gemini", 6.0), ("workers_ai", 6.0), ("groq", 6.0)]
+    assert calls == [("gemini", 6.0)]
     assert provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS == 6.0
-    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 18.0
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 5
-    assert clock.value == 18.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 8.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
+    assert clock.value == 6.0
 
 def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
     _isolate(monkeypatch)
