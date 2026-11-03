@@ -16,8 +16,8 @@ OPTION_MAX = 3
 SCALES = frozenset({
     "self",
     "relationships",
-    "organization",
-    "state",
+    "community",
+    "institution",
     "civilization",
 })
 
