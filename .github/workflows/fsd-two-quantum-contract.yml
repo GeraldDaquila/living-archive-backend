@@ -4,6 +4,8 @@ on:
     paths:
       - "fsd_contract.py"
       - "test_fsd_contract.py"
+      - "fsd_episode_contract.py"
+      - "test_fsd_episode_contract.py"
       - "fsd_question_bank.py"
       - "fsd_runtime.py"
       - "test_fsd_runtime.py"
@@ -22,6 +24,8 @@ on:
     paths:
       - "fsd_contract.py"
       - "test_fsd_contract.py"
+      - "fsd_episode_contract.py"
+      - "test_fsd_episode_contract.py"
       - "fsd_question_bank.py"
       - "fsd_runtime.py"
       - "test_fsd_runtime.py"
@@ -44,7 +48,7 @@ jobs:
           python-version: "3.11"
       - name: Install test runner
         run: python -m pip install pytest fastapi httpx
-      - name: Compile FSD contract
-        run: python -m py_compile fsd_contract.py fsd_question_bank.py fsd_runtime.py fsd_report_contract.py fsd_api.py guide_runtime.py provider_gateway_service.py provider_bank.py
+      - name: Compile FSD candidate contracts
+        run: python -m py_compile fsd_contract.py fsd_episode_contract.py fsd_question_bank.py fsd_runtime.py fsd_report_contract.py fsd_api.py guide_runtime.py provider_gateway_service.py provider_bank.py
       - name: Run FSD contract regressions
-        run: python -m pytest -q test_fsd_contract.py test_fsd_runtime.py test_fsd_provider_operation.py test_fsd_report_contract.py test_fsd_api.py
+        run: python -m pytest -q test_fsd_contract.py test_fsd_episode_contract.py test_fsd_runtime.py test_fsd_provider_operation.py test_fsd_report_contract.py test_fsd_api.py
