@@ -57,6 +57,15 @@ page.on("pageerror", error => pageErrors.push(error.message));
 
 await page.route("**/*", async route => {
   const routeUrl = new URL(route.request().url());
+  if (
+    routeUrl.hostname === "geralddaquila.com" &&
+    routeUrl.pathname.endsWith("/living-archive-guide-v489.246-woody.js")
+  ) {
+    await route.continue({
+      url: "https://geralddaquila.com/wp-content/uploads/2026/11/living-archive-guide-v489.247-active-active-candidate.js"
+    });
+    return;
+  }
   if (!["living-archive-backend.onrender.com", "living-archive-backend-mirror.onrender.com"].includes(routeUrl.hostname) || routeUrl.pathname.replace(/\/$/, "") !== "/api/query") {
     await route.continue();
     return;
@@ -149,7 +158,8 @@ await page.route("**/*", async route => {
 });
 
 try {
-  mark("test_start", { url: GUIDE_URL, mode: "intercepted_mock_api_only" });
+  mark("test_start", { url: GUIDE_URL, mode: "candidate-active-active-asset-with-intercepted-mock-api" });
+  await page.addInitScript(() => { Math.random = () => 0.10; });
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded" });
   const root = page.locator(ROOT);
   await root.waitFor({ state: "attached" });
@@ -159,6 +169,10 @@ try {
   await input.waitFor({ state: "visible" });
   await submit.waitFor({ state: "visible" });
   await page.waitForTimeout(1500);
+  const loadedControllerScripts = await page.locator("script[src*='living-archive-guide']").evaluateAll(nodes => nodes.map(n => n.src));
+  if (!loadedControllerScripts.some(url => url.includes("living-archive-guide-v489.247-active-active-candidate.js"))) {
+    throw new Error("Active-active candidate controller asset was not loaded by the mocked UI test.");
+  }
   mark("controller_ready_diagnostics", {
     rootCount: await root.count(),
     inputCount: await input.count(),
@@ -452,6 +466,9 @@ try {
   });
 
   if (apiRequests.length !== 5) throw new Error("Expected exactly 5 intercepted API requests, got " + apiRequests.length);
+  if (!apiRequests.every(request => request.url.includes("living-archive-backend-mirror.onrender.com"))) {
+    throw new Error("The 20% secondary-first canary path was not selected by the deterministic 0.10 routing sample.");
+  }
   if (!continuityPassed) throw new Error("Ordinary Reply request did not carry the expected prior conversation history.");
   if (pageErrors.length) throw new Error("Browser page errors: " + pageErrors.join(" | "));
   mark("test_passed", { requestCount: apiRequests.length, continuityPassed, consoleErrors, failedRequests });
