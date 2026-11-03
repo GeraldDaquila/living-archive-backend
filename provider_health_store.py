@@ -58,6 +58,37 @@ STATE_FIELDS = (
     "last_quality_success", "quality_cooldown_until", "quality_error",
 )
 
+_SAFE_QUALITY_DIAGNOSTICS = {"", "contract_rejection", "upstream_movement_brief_input_failure"}
+
+
+def _sanitize_health_diagnostics(state):
+    """Strip legacy upstream/visitor text at every shared-state boundary."""
+    if not isinstance(state, dict):
+        return state
+    raw_error = state.get("last_error")
+    if raw_error:
+        value = str(raw_error).strip()
+        safe = (
+            len(value) <= 240
+            and re.fullmatch(
+                r"exception=[A-Za-z_][A-Za-z0-9_]{0,63} category="
+                r"(?:provider_failure|timeout|network_failure|unavailable|invalid_request|"
+                r"unsupported_request|authentication|quota_or_billing|terms_required|"
+                r"free_tier_daily_quota|rate_limited|model_unavailable|"
+                r"structured_output_contract|request_too_large|invalid_provider_response)"
+                r"(?: http_status=[1-5][0-9]{2})?"
+                r"(?: retry_after_seconds=[0-9]+(?:\\.[0-9]+)?)?",
+                value,
+            ) is not None
+        )
+        state["last_error"] = value if safe else "exception=LegacyDiagnostic category=provider_failure"
+    quality_error = state.get("quality_error")
+    if quality_error:
+        value = str(quality_error).strip()
+        state["quality_error"] = value if value in _SAFE_QUALITY_DIAGNOSTICS else "contract_rejection"
+    return state
+
+
 
 def _configuration():
     url = str(os.getenv("USE_PROVIDER_HEALTH_STATE_URL") or DEFAULT_URL).strip()
@@ -189,7 +220,7 @@ def load_remote_states(timeout=None):
                 continue
             if len(key) > 191 or ":" not in key:
                 continue
-            cleaned[key] = {field: value[field] for field in STATE_FIELDS if field in value}
+            cleaned[key] = _sanitize_health_diagnostics({field: value[field] for field in STATE_FIELDS if field in value})
             cleaned[key]["probe_in_flight"] = False
         return cleaned
     finally:
@@ -338,11 +369,11 @@ def export_health_states(states):
     for key, value in list(states.items())[:100]:
         if not isinstance(key, str) or not isinstance(value, dict) or len(key) > 191:
             continue
-        exported[key] = {
+        exported[key] = _sanitize_health_diagnostics({
             field: value.get(field)
             for field in STATE_FIELDS
             if field in value
-        }
+        })
         exported[key]["probe_in_flight"] = False
     return exported
 
@@ -361,6 +392,7 @@ def merge_health_state(local, remote, now=None):
     if not isinstance(local, dict) or not local:
         local.clear()
         local.update(remote)
+        _sanitize_health_diagnostics(local)
         local["probe_in_flight"] = False
         return local
     local_failure = float(local.get("last_failure", 0) or 0)
@@ -427,4 +459,5 @@ def merge_health_state(local, remote, now=None):
             float(local.get("cooldown_until", 0) or 0),
             float(local.get("quarantine_until", 0) or 0),
         ) > now else "half_open"
+    _sanitize_health_diagnostics(local)
     return local
