@@ -109,3 +109,5 @@ def validate_diagnostic_payload(payload: Any) -> dict[str, Any]:
 
 
 from fsd_question_bank import QUESTIONS as QUESTION_BANK
+
+QUESTION_BANK = tuple({"question": question, "options": options} for question, options in QUESTIONS)
