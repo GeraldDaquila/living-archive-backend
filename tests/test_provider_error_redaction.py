@@ -1,5 +1,6 @@
 """Regression tests for provider exception redaction at logs and shared health boundaries."""
 import json
+from pathlib import Path
 
 import provider_bank
 import provider_health_store
@@ -378,3 +379,22 @@ def test_legacy_local_timeout_state_is_migrated_and_redacted_by_blocker(monkeypa
     assert state["last_error"] == "exception=LegacyDiagnostic category=timeout"
     assert state["cooldown_until"] == 1020.0
     assert "sk-live-local-timeout" not in json.dumps(state)
+
+
+def test_main_request_boundary_logs_do_not_interpolate_raw_exception_messages():
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    forbidden = (
+        'The Guide evidence recovery failed safely: {type(exc).__name__}: {exc}',
+        'The Guide IP location fallback unavailable: {exc}',
+        'The Guide protected-core safety recovery was unavailable: {exc}',
+        'The Guide sitewide Safety utility failed closed: {exc}',
+        'USE Formation preparation handoff failed safely: {exc}',
+        'ordinary route remains ordinary and will not be reclassified: {exc}',
+        'USE Formation specialist failed safely: {exc}',
+        'USE Relationship specialist failed safely: {exc}',
+        'USE v487.92 Formation entrance failed safely: {exc}',
+    )
+    for fragment in forbidden:
+        assert fragment not in source
+    assert 'The Guide evidence recovery failed safely: exception={type(exc).__name__}' in source
+    assert 'USE Relationship specialist failed safely: exception={type(exc).__name__}' in source
