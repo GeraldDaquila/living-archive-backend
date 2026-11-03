@@ -201,6 +201,7 @@ OPERATION_TOKEN_FLOORS = {
     "mini_use": 500,
     "stewardship_pathway": 900,
     "general_guide_composition": 900,
+    "fsd_report_composition": 1100,
 }
 
 # Strict JSON schemas are opt-in. HRN composition deliberately uses the
@@ -221,6 +222,9 @@ OPERATION_REQUIREMENTS = {
     # the visitor directly, but does not depend on any provider-specific
     # reasoning feature. Provider selection remains entirely bank-owned.
     "general_guide_composition": frozenset({"json_object", "long_context", "composition"}),
+    # FSD reports synthesize two independently retrieved quantum evidence sets.
+    # Keep this lane distinct from visitor Guide composition and require reasoning.
+    "fsd_report_composition": frozenset({"json_object", "long_context", "composition", "reasoning"}),
 }
 
 _STATE = {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}}
