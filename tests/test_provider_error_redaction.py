@@ -235,3 +235,34 @@ def test_direct_shared_health_write_redacts_legacy_state(monkeypatch):
     assert captured["payload"]["states"]["nvidia:mistral-large"]["last_error"] == (
         "exception=LegacyDiagnostic category=provider_failure"
     )
+
+
+
+def test_remote_shared_health_ingestion_redacts_legacy_state(monkeypatch):
+    monkeypatch.setattr(provider_health_store, "_READ_CACHE", None)
+    monkeypatch.setattr(provider_health_store, "_READ_CACHE_UNTIL", 0.0)
+    monkeypatch.setattr(provider_health_store, "_READ_IN_FLIGHT", None)
+    monkeypatch.setattr(provider_health_store, "_READ_IN_FLIGHT_RESULT", None)
+    monkeypatch.setattr(
+        provider_health_store,
+        "_request",
+        lambda method, payload=None, timeout=None: {
+            "contract_version": provider_health_store.CONTRACT_VERSION,
+            "states": {
+                "gemini:gemini-test": {
+                    "provider": "gemini",
+                    "model": "gemini-test",
+                    "last_error": "historical provider response sk-live-legacy-secret",
+                    "quality_error": "historical visitor text sk-live-legacy-secret",
+                }
+            },
+        },
+    )
+
+    loaded = provider_health_store.load_remote_states()
+
+    assert "sk-live-legacy-secret" not in json.dumps(loaded)
+    assert loaded["gemini:gemini-test"]["last_error"] == (
+        "exception=LegacyDiagnostic category=provider_failure"
+    )
+    assert loaded["gemini:gemini-test"]["quality_error"] == "contract_rejection"
