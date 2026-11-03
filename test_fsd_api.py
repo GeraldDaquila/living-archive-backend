@@ -131,6 +131,7 @@ def test_http_route_enforces_authentication_and_request_size(monkeypatch):
     )
     assert accepted.status_code == 200
     assert accepted.json() == {"ok": True}
+    assert accepted.headers["cache-control"].startswith("no-store")
 
     oversized = client.post(
         "/api/fsd/analyze",
