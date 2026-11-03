@@ -41,9 +41,8 @@ def parse_evidence(context):
 def prepare_fsd_analysis(payload, retrieve):
     """Validate answers and prepare independently retrieved canonical evidence.
 
-    This is deliberately not a diagnostic report generator. Provider composition
-    and visitor-facing report validation belong to a later, separately tested
-    integration boundary.
+    This prepares validated answers and separately retrieved evidence. Provider
+    composition and visitor-facing report validation are owned by fsd_api.py.
     """
     validated = validate_diagnostic_payload(payload)
     evidence, seen = [], set()
