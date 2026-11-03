@@ -56,8 +56,8 @@ The answer options are ordered from stronger functioning (0) to stronger constra
 Support the same diagnostic contract at:
 1. self;
 2. relationships;
-3. organization/institution;
-4. state;
+3. community;
+4. institution;
 5. civilization.
 
 A report may describe manifestations at other scales only when the visitor's answers or independently retrieved corpus evidence support them. Do not infer that a condition exists at every scale.
