@@ -5,6 +5,7 @@ from fsd_contract import (
     FSDContractError,
     QUANTUM_QUESTION_MAP,
     QUESTION_QUANTUM_RATIONALE,
+    QUESTION_BANK,
     validate_diagnostic_payload,
 )
 
@@ -82,3 +83,9 @@ def test_boolean_is_not_accepted_as_an_integer_option():
 def test_rejects_missing_answers_field():
     with pytest.raises(FSDContractError):
         validate_diagnostic_payload({"contract_version": CONTRACT_VERSION})
+
+
+def test_question_bank_matches_the_ten_item_contract():
+    assert len(QUESTION_BANK) == 10
+    assert all(len(item["options"]) == 4 for item in QUESTION_BANK)
+    assert all(item["question"].strip() and all(option.strip() for option in item["options"]) for item in QUESTION_BANK)
