@@ -3157,10 +3157,10 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             # reason. This separates parse, surface, grounding, and shape defects
             # without logging visitor prompts or generated response bodies.
             rejection_class = (
-                "json_or_parse" if re.search(r"invalid JSON|non-object", last_error, re.I)
-                else "visitor_surface" if re.search(r"visitor-surface|prescriptive|action-guidance|internal implementation", last_error, re.I)
-                else "grounding_or_provenance" if re.search(r"ground|doorway|source|evidence|URL", last_error, re.I)
-                else "response_shape" if re.search(r"short|long|paragraph|sentence|question", last_error, re.I)
+                "json_or_parse" if re.search(r"invalid JSON|non-object", contract_reason, re.I)
+                else "visitor_surface" if re.search(r"visitor-surface|prescriptive|action-guidance|internal implementation", contract_reason, re.I)
+                else "grounding_or_provenance" if re.search(r"ground|doorway|source|evidence|URL", contract_reason, re.I)
+                else "response_shape" if re.search(r"short|long|paragraph|sentence|question", contract_reason, re.I)
                 else "other_contract"
             )
             print(
