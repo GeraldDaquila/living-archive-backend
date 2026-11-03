@@ -78,7 +78,7 @@ def _sanitize_health_diagnostics(state):
                 r"free_tier_daily_quota|rate_limited|model_unavailable|"
                 r"structured_output_contract|request_too_large|invalid_provider_response)"
                 r"(?: http_status=[1-5][0-9]{2})?"
-                r"(?: retry_after_seconds=[0-9]+(?:\\.[0-9]+)?)?",
+                r"(?: retry_after_seconds=[0-9]+(?:\.[0-9]+)?)?",
                 value,
             ) is not None
         )
