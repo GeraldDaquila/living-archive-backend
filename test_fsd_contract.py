@@ -61,7 +61,7 @@ def test_rejects_client_supplied_scores_or_provider_controls():
             validate_diagnostic_payload({**payload(), key: "untrusted"})
 
 
-@pytest.mark.parametrize("scale", ["self", "relationships", "organization", "state", "civilization"])
+@pytest.mark.parametrize("scale", ["self", "relationships", "community", "institution", "civilization"])
 def test_accepts_each_supported_scale(scale):
     assert validate_diagnostic_payload(payload(scale=scale))["scale"] == scale
 
