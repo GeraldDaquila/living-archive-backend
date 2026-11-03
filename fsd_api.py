@@ -14,6 +14,7 @@ from fastapi import HTTPException, Request
 from starlette.concurrency import run_in_threadpool
 
 from fsd_contract import CONTRACT_VERSION, FSDContractError, validate_diagnostic_payload
+from fsd_question_bank import QUESTIONS
 from fsd_runtime import prepare_fsd_analysis
 from fsd_report_contract import FSDReportContractError, validate_fsd_report
 from provider_gateway_service import (
@@ -99,7 +100,13 @@ def _compose_report(payload: dict[str, Any], analysis: dict[str, Any], use_core:
         "scale": validated["scale"] or "not selected",
         "quantum_summaries": validated["quantum_summaries"],
         "canonical_evidence": evidence_for_prompt,
-        "answer_selections": payload["answers"],
+        "reported_answers": [
+            {
+                "question": QUESTIONS[index][0],
+                "selected_response": QUESTIONS[index][1][answer],
+            }
+            for index, answer in enumerate(payload["answers"])
+        ],
         "output_rules": {
             "exact_fields": sorted(_REPORT_SCHEMA["schema"]["properties"]),
             "maximum_list_items": 4,
