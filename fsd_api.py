@@ -201,9 +201,14 @@ def register_fsd_routes(app: Any, use_core: Any) -> None:
                     raise HTTPException(status_code=413, detail="FSD request is too large.")
             except ValueError as exc:
                 raise HTTPException(status_code=400, detail="Invalid content length.") from exc
-        raw = await request.body()
-        if len(raw) > MAX_BODY_BYTES:
-            raise HTTPException(status_code=413, detail="FSD request is too large.")
+        chunks = []
+        total_bytes = 0
+        async for chunk in request.stream():
+            total_bytes += len(chunk)
+            if total_bytes > MAX_BODY_BYTES:
+                raise HTTPException(status_code=413, detail="FSD request is too large.")
+            chunks.append(chunk)
+        raw = b"".join(chunks)
         try:
             payload = json.loads(raw.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
