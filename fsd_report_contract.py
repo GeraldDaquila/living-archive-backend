@@ -85,6 +85,14 @@ def validate_fsd_report(
         raise FSDReportContractError("Report references evidence not supplied by the server.")
     if len(set(ids)) != len(ids):
         raise FSDReportContractError("Evidence references must be unique.")
+    referenced_quanta = {evidence_by_id[item].get("quantum_id") for item in ids}
+    if referenced_quanta != {"Q001_CORRESPONDENCE", "Q002_CORRECTABILITY"}:
+        raise FSDReportContractError("Report evidence must represent both quantum retrievals.")
+
+    if selected_scale is None:
+        normalized["reported_signal"] = (
+            "No diagnostic scale was selected; no scale-specific signal is assessed."
+        )
 
     # Do not let a model infer a multi-scale pattern from a single selected scale.
     normalized["scope"] = {
