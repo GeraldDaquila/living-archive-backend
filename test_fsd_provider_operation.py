@@ -7,13 +7,21 @@ import ast
 from pathlib import Path
 
 
+def _literal(node):
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "frozenset":
+        return frozenset(ast.literal_eval(node.args[0]))
+    if isinstance(node, ast.Dict):
+        return {_literal(key): _literal(value) for key, value in zip(node.keys, node.values)}
+    return ast.literal_eval(node)
+
+
 def _assignment(path, name):
     tree = ast.parse(Path(path).read_text(encoding="utf-8"))
     for node in tree.body:
         if isinstance(node, ast.Assign):
             for target in node.targets:
                 if isinstance(target, ast.Name) and target.id == name:
-                    return ast.literal_eval(node.value)
+                    return _literal(node.value)
     raise AssertionError(f"{name} assignment not found in {path}")
 
 
