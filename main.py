@@ -8386,8 +8386,8 @@ _v48894_general_guide_composition_self_audit()
 
 @app.post("/api/formation-entrance")
 async def _formation_entrance_route(request: Request):
-    # Server-to-server Formation handoff. Reject unauthenticated callers before
-    # reading or parsing the request body.
+    # Server-to-server Formation handoff. Enforce the shared-secret boundary
+    # before body consumption, size checks, JSON parsing, or specialist execution.
     authorize_provider_gateway(request.headers.get("X-Living-Archive-Provider-Key"))
 
     max_body_bytes = 8192
