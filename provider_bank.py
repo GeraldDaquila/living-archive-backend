@@ -388,10 +388,26 @@ def _quality_state(operation, provider, model, create=False):
         "quality_error": "",
     })
 
+def _is_timeout_state(state):
+    """Recognize structured timeouts and migrate any legacy prose state in place."""
+    category = str(state.get("category") or "")
+    if category == "timeout":
+        return True
+    if category == "provider_failure":
+        error_text = str(state.get("last_error") or "").casefold()
+        if any(term in error_text for term in (
+            "read operation timed out", "request timed out", "timed out", "timeout",
+        )):
+            state["category"] = "timeout"
+            state["last_error"] = "exception=LegacyDiagnostic category=timeout"
+            return True
+    return False
+
+
 def _blocked(state):
-    # Timeout is a structured failure category. Do not inspect redacted diagnostic
-    # prose to decide cooldown behavior; quota/auth/rate-limit states are untouched.
-    if str(state.get("category") or "") == "timeout":
+    # Timeout is a structured failure category. Legacy prose is migrated in place
+    # before its diagnostic text is discarded; quota/auth/rate-limit states stay intact.
+    if _is_timeout_state(state):
         try:
             last_failure = float(state.get("last_failure", 0) or 0)
             if last_failure > 0:
@@ -406,11 +422,10 @@ def _blocked(state):
 
 def _blocked_for_operation(state, operation, schema=None):
     """Keep operation-specific contract failures from poisoning unrelated lanes."""
+    timeout_failure = _is_timeout_state(state)
     category = str(state.get("category") or "")
     last_operation = str(state.get("last_operation") or "")
     operation = str(operation or "")
-
-    timeout_failure = category == "timeout"
     if timeout_failure and last_operation and last_operation != operation:
         return False
 
