@@ -9,6 +9,7 @@ import threading
 import time
 from collections import defaultdict, deque
 from typing import Any
+from weakref import WeakSet
 
 from fastapi import HTTPException, Request
 from starlette.concurrency import run_in_threadpool
@@ -27,7 +28,7 @@ RATE_WINDOW_SECONDS = 60.0
 RATE_MAX_REQUESTS = 60
 _RATE_LOCK = threading.Lock()
 _RATE_EVENTS: dict[str, deque[float]] = defaultdict(deque)
-_REGISTERED_APPS: set[int] = set()
+_REGISTERED_APPS: WeakSet[Any] = WeakSet()
 
 _REPORT_SCHEMA = {
     "name": "fsd_two_quantum_report",
@@ -180,10 +181,9 @@ def _run_analysis(payload: dict[str, Any], use_core: Any) -> dict[str, Any]:
 
 def register_fsd_routes(app: Any, use_core: Any) -> None:
     """Register once on the existing FastAPI app; callable from guide_runtime."""
-    app_key = id(app)
-    if app_key in _REGISTERED_APPS:
+    if app in _REGISTERED_APPS:
         return
-    _REGISTERED_APPS.add(app_key)
+    _REGISTERED_APPS.add(app)
 
     @app.post("/api/fsd/analyze")
     async def fsd_analyze(request: Request):
