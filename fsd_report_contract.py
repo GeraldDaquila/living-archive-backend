@@ -41,6 +41,10 @@ def validate_fsd_report(
     """Validate exact output shape and bind model references to server evidence."""
     if not isinstance(report, Mapping) or set(report) != REPORT_KEYS:
         raise FSDReportContractError("Report must contain exactly the approved fields.")
+    if selected_scale is not None and selected_scale not in {
+        "self", "relationships", "organization", "state", "civilization"
+    }:
+        raise FSDReportContractError("Selected scale is not supported.")
 
     evidence_by_id = {
         str(item.get("evidence_id")): item
