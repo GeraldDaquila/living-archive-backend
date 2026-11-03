@@ -14,6 +14,9 @@ on:
     paths:
       - "fsd_contract.py"
       - "test_fsd_contract.py"
+      - "fsd_question_bank.py"
+      - "fsd_runtime.py"
+      - "test_fsd_runtime.py"
       - ".github/workflows/fsd-two-quantum-contract.yml"
 jobs:
   contract-regression:
