@@ -3657,7 +3657,7 @@ def _guide_route_models():
     try:
         return provider_bank_snapshot(use_core).get("candidates", [])
     except Exception as exc:
-        print(f"USE provider bank snapshot failed: {exc}")
+        print("USE provider bank snapshot failed: exception=" + type(exc).__name__)
         return []
 
 
