@@ -607,7 +607,11 @@ def _record_quality_rejection(provider, model, operation, reason):
         state["quality_failures"] = 0
     state["quality_failures"] = int(state.get("quality_failures", 0) or 0) + 1
     state["last_quality_failure"] = now
-    state["quality_error"] = str(reason or "contract_rejection")[:300]
+    state["quality_error"] = (
+        "upstream_movement_brief_input_failure"
+        if _is_movement_brief_input_failure(operation, reason)
+        else "contract_rejection"
+    )
     # A visitor-facing contract rejection is already decisive evidence that this
     # operation/model pairing is unsuitable. Cool it down on the first rejection
     # so each new visitor turn does not repeatedly spend its bounded fallback slot
@@ -622,7 +626,7 @@ def _record_quality_rejection(provider, model, operation, reason):
         f"operation={operation}, provider={provider}, model={model}, "
         f"quality_failures={state['quality_failures']}, "
         f"quality_cooldown_seconds={max(0, int(float(state.get('quality_cooldown_until', 0) or 0) - now))}, "
-        "reason=" + str(reason or "contract_rejection")[:180]
+        "reason=" + str(state["quality_error"])
     )
     _persist_shared_state()
 
@@ -1146,7 +1150,10 @@ def _configured(use_core):
             live_groq = result.get("models") or []
             if result.get("error") is not None:
                 exc = result["error"]
-                print("USE provider bank: Groq inventory discovery failed: " + str(exc)[:300])
+                print(
+                    "USE provider bank: Groq inventory discovery failed: "
+                    + "exception=" + type(exc).__name__
+                )
         else:
             print(
                 "USE provider bank: Groq live inventory discovery exceeded "
@@ -1931,9 +1938,8 @@ def _hrn_question_grounding_violation(question, messages):
         print(
             "USE HRN movement brief parse failure: "
             f"error={type(exc).__name__}, "
-            f"reason={getattr(exc, 'msg', str(exc))!r}, "
             f"position={error_position}, "
-            f"preview={preview[:180]!r}"
+            "payload_preview=redacted"
         )
         return "question-grounding contract violation: structured movement brief is malformed"
     if not isinstance(brief, dict):
@@ -2957,8 +2963,9 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 # the offending field. Every corrected object still passes the
                 # full grounding, visitor-surface, and response-shape validators.
                 if hrn_quality_failure and not targeted_field_recovery:
-                    last_error = str(contract_error)
-                    _record_quality_rejection(provider, model, operation, last_error)
+                    contract_reason = str(contract_error)
+                    _record_quality_rejection(provider, model, operation, contract_reason)
+                    last_error = "contract_rejection"
                     print(
                         "USE provider quality fast-fail: "
                         "operation=hrn_relational, provider=" + provider
@@ -3130,21 +3137,22 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             # is unhealthy. Release any half-open probe claim and allow independent
             # candidates to run; otherwise a local cap could strand recovery forever.
             state["probe_in_flight"] = False
-            last_error = str(exc)
+            last_error = "quota_admission_denied"
             print(
                 "USE provider quota admission: "
                 + "operation=" + operation
                 + ", provider=" + provider
                 + ", model=" + model
-                + ", reason=" + str(exc.reason)
+                + ", reason=local_admission_limit"
                 + ", retry_after_seconds=" + str(round(exc.retry_after, 2))
             )
             continue
         except ValueError as exc:
             # Preserve transport health, but learn from repeated visitor-contract
             # failures so poor outputs lose priority and can be cooled down.
-            last_error = str(exc)
-            _record_quality_rejection(provider, model, operation, last_error)
+            contract_reason = str(exc)
+            _record_quality_rejection(provider, model, operation, contract_reason)
+            last_error = "contract_rejection"
             # Emit a bounded, stable rejection class as well as the validator
             # reason. This separates parse, surface, grounding, and shape defects
             # without logging visitor prompts or generated response bodies.
@@ -3161,7 +3169,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 + ", provider=" + provider
                 + ", model=" + model
                 + ", rejection_class=" + rejection_class
-                + ", error=" + re.sub(r"\\s+", " ", last_error)[:220]
+                + ", error=contract_rejection"
             )
             if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
