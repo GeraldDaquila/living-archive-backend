@@ -117,6 +117,10 @@ def interpret_episode(payload: Mapping[str, Any]) -> dict[str, str]:
         correctability_label = "not_assessable_response_unavailable"
     elif linked_response:
         correctability_label = "reported"
+    elif item["non_change_reason"] == "not_warranted":
+        correctability_label = "no_change_warranted"
+    elif item["non_change_reason"] in {"more_evidence_needed", "insufficient_time"}:
+        correctability_label = "deferred_pending_evidence_or_time"
     elif response in {"no_response", "attempted_but_blocked", "paused_pending_evidence"}:
         correctability_label = "constraint_or_delay_reported"
     else:
