@@ -12,7 +12,8 @@ Implement one FSD diagnostic path inside the existing Living Archive backend. Do
 - Added an authenticated `POST /api/fsd/analyze` route to the existing USE FastAPI application. It validates the request, reuses `use_core.fetch_canonical_context` twice, and does not create another service or retriever.
 - Added server-side report validation, exact evidence-ID binding, canonical-domain checks, two-quantum citation coverage, and explicit not-assessed labels for unselected scales.
 - Added request-body limits, authenticated ingress, a conservative global rate gate, no persistence, and bounded failure responses.
-- The WordPress visitor page still has no secure proxy to this endpoint. The endpoint is not visitor-reachable until that server-side bridge is implemented and verified.
+- Added an inactive, feature-flagged WordPress proxy plugin that reuses the existing server-only Provider Bank credential provider. PHP syntax validation passed; the plugin is not activated and the route remains disabled by default.
+- The published visitor page still uses local three-category scoring and static result cards; it has no backend request. It is not compatible with the two-quantum report contract and must be revised before the proxy is enabled.
 - The live USE specialist registry and adapter registry still do not declare FSD; the new endpoint is deliberately a single narrow path rather than a new specialist adapter.
 - USE already owns the Pinecone index, 384-dimensional embedding path, canonical-resource validation, and provider selection. FSD reuses these.
 
