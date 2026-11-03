@@ -52,3 +52,12 @@ def test_capacity_diagnostics_does_not_fabricate_missing_credentials():
     assert result["providers"]["groq"]["credential_fingerprint"] == ""
     assert result["providers"]["openrouter"]["configured"] is False
     assert result["cloudflare_account_fingerprint"] == ""
+
+
+def test_capacity_diagnostics_does_not_treat_nvidia_placeholder_as_configured():
+    with patch.dict("os.environ", {"NVIDIA_API_KEY": "your_nvidia_api_key"}, clear=True), \
+         patch.object(provider_bank, "_configured", return_value={}):
+        result = provider_bank.capacity_diagnostics(None)
+
+    assert result["providers"]["nvidia"]["credential_configured"] is False
+    assert result["providers"]["nvidia"]["credential_fingerprint"] == ""
