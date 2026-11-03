@@ -72,3 +72,17 @@ def test_missing_scale_does_not_claim_a_scale_specific_signal():
         "No diagnostic scale was selected; no scale-specific signal is assessed."
     )
     assert set(result["scope"].values()) == {"not_assessed"}
+
+
+def test_rejects_noncanonical_evidence_even_if_report_references_it():
+    untrusted = [
+        EVIDENCE[0],
+        {
+            "evidence_id": "E02",
+            "quantum_id": "Q002_CORRECTABILITY",
+            "title": "External source",
+            "url": "https://example.org/not-canonical",
+        },
+    ]
+    with pytest.raises(FSDReportContractError):
+        validate_fsd_report(valid_report(), untrusted, "self")
