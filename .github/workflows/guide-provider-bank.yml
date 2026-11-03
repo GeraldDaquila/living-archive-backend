@@ -9,6 +9,7 @@ on:
       - "tests/test_v489_118_hrn_provider_budget_alignment.py"
       - "tests/test_provider_capacity_diagnostics.py"
       - "tests/test_provider_capacity_readiness_endpoint.py"
+      - "tests/test_provider_error_redaction.py"
       - ".github/workflows/guide-provider-bank.yml"
   push:
     branches:
