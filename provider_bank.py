@@ -539,6 +539,8 @@ def _failure(exc, provider, model, operation=None):
     elif "request too large" in low or ("context" in low and "length" in low):
         category = "request_too_large"
 
+    if category not in _SAFE_PROVIDER_ERROR_CATEGORIES:
+        category = "provider_failure"
     safe_error = _safe_provider_error_summary(exc, category=category)
     delay = record_failure(
         state,
