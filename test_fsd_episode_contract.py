@@ -92,7 +92,7 @@ def test_examined_and_retained_can_support_correspondence_without_change():
         non_change_reason="not_warranted",
     ))
     assert result["correspondence"] == "reported"
-    assert result["correctability"] == "not_demonstrated_in_episode"
+    assert result["correctability"] == "no_change_warranted"
 
 
 def test_no_response_when_meaningful_response_unavailable_is_not_capacity_failure():
