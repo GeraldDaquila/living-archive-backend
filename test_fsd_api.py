@@ -169,7 +169,7 @@ def test_end_to_end_analysis_retrieves_both_quanta_and_returns_validated_report(
     payload = {
         "contract_version": "fsd-two-quantum-v1",
         "answers": [0, 1, 2, 3, 0, 1, 2, 3, 0, 1],
-        "scale": "organization",
+        "scale": "institution",
     }
     result = fsd_api._run_analysis(payload, FakeUseCore())
 
@@ -178,7 +178,7 @@ def test_end_to_end_analysis_retrieves_both_quanta_and_returns_validated_report(
     assert "Correctability" in retrieval_queries[1]
     assert result["ok"] is True
     assert "quantum_summaries" not in result
-    assert result["report"]["scope"]["organization"] == "reported_signal"
+    assert result["report"]["scope"]["institution"] == "reported_signal"
     assert [item["url"] for item in result["report"]["evidence"]] == [
         "https://geralddaquila.com/correspondence",
         "https://geralddaquila.com/correctability",
