@@ -63,7 +63,7 @@ def _check_rate_limit(client_key: str) -> None:
         events.append(now)
 
 
-def _compose_report(payload: dict[str, Any], analysis: dict[str, Any]) -> dict[str, Any]:
+def _compose_report(payload: dict[str, Any], analysis: dict[str, Any], use_core: Any) -> dict[str, Any]:
     validated = analysis["validated"]
     evidence = analysis["evidence"]
     quantum_coverage = {item.get("quantum_id") for item in evidence}
@@ -115,7 +115,7 @@ def _compose_report(payload: dict[str, Any], analysis: dict[str, Any]) -> dict[s
             {"role": "user", "content": json.dumps(user, ensure_ascii=False)},
         ],
         max_tokens=1400,
-        use_core=_compose_report.use_core,
+        use_core=use_core,
         schema=_REPORT_SCHEMA,
     )
     if not result.get("ok"):
@@ -157,8 +157,7 @@ def _run_analysis(payload: dict[str, Any], use_core: Any) -> dict[str, Any]:
             status_code=422,
             detail={"code": "insufficient_canonical_evidence"},
         ) from exc
-    _compose_report.use_core = use_core
-    return _compose_report(payload, analysis)
+    return _compose_report(payload, analysis, use_core)
 
 
 def register_fsd_routes(app: Any, use_core: Any) -> None:
