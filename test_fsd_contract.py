@@ -4,15 +4,19 @@ from fsd_contract import (
     CONTRACT_VERSION,
     FSDContractError,
     QUANTUM_QUESTION_MAP,
+    QUESTION_QUANTUM_RATIONALE,
     validate_diagnostic_payload,
 )
 
 
-def payload(answers=None, **extra):
-    value = {
-        "contract_version": CONTRACT_VERSION,
-        "answers": [0] * 10 if answers is None else answers,
-    }
+_DEFAULT = object()
+
+def payload(answers=_DEFAULT, **extra):
+    value = {"contract_version": CONTRACT_VERSION}
+    if answers is _DEFAULT:
+        value["answers"] = [0] * 10
+    elif answers is not None:
+        value["answers"] = answers
     value.update(extra)
     return value
 
@@ -28,6 +32,7 @@ def test_mapping_covers_each_question_once():
     indices = [i for group in QUANTUM_QUESTION_MAP.values() for i in group]
     assert sorted(indices) == list(range(10))
     assert len(indices) == len(set(indices))
+    assert set(QUESTION_QUANTUM_RATIONALE) == set(range(10))
 
 
 @pytest.mark.parametrize("answers", [None, [], [0] * 9, [0] * 11])
