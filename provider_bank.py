@@ -1,5 +1,5 @@
 """Provider-neutral model bank for USE."""
-import base64, json, mimetypes, os, re, threading, urllib.error, urllib.parse, urllib.request
+import base64, hashlib, json, mimetypes, os, re, threading, urllib.error, urllib.parse, urllib.request
 from collections import OrderedDict
 import time
 
@@ -3151,6 +3151,63 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
 def refresh_shared_health_state():
     """Refresh shared health for an explicit diagnostic outside visitor latency."""
     _sync_shared_state(nonblocking=False)
+
+
+
+def capacity_diagnostics(use_core):
+    """Return non-secret per-instance provider capacity identity diagnostics.
+
+    Credential fingerprints allow two instances to compare configured
+    credentials without exposing them. They do NOT prove separate provider
+    accounts or independent upstream quotas.
+    """
+    configured = _configured(use_core)
+    cloudflare_token, cloudflare_account = _cloudflare_credentials()
+    nvidia_credential = str(os.getenv("NVIDIA_API_KEY") or "").strip()
+    if nvidia_credential.casefold().startswith(("replace_with_", "your_", "placeholder")):
+        nvidia_credential = ""
+    credentials = {
+        "groq": str(os.getenv("GROQ_API_KEY") or "").strip(),
+        "openrouter": str(os.getenv("OPENROUTER_API_KEY") or "").strip(),
+        "gemini": str(os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY") or "").strip(),
+        "mistral": str(os.getenv("MISTRAL_API_KEY") or "").strip(),
+        "nvidia": nvidia_credential,
+        "workers_ai": (cloudflare_token + ":" + cloudflare_account) if cloudflare_token and cloudflare_account else "",
+        "cloudflare_gateway": (cloudflare_token + ":" + cloudflare_account) if cloudflare_token and cloudflare_account else "",
+    }
+    providers = {}
+    for provider in sorted(set(configured) | set(credentials)):
+        credential = credentials.get(provider, "")
+        providers[provider] = {
+            "configured": bool(configured.get(provider)),
+            "credential_configured": bool(credential),
+            "credential_fingerprint": (
+                hashlib.sha256(credential.encode("utf-8")).hexdigest()[:20]
+                if credential else ""
+            ),
+            "models": sorted(str(model) for model in configured.get(provider, [])),
+        }
+    cloudflare_account_fingerprint = (
+        hashlib.sha256(cloudflare_account.encode("utf-8")).hexdigest()[:20]
+        if cloudflare_account else ""
+    )
+    return {
+        "contract_version": "v1",
+        "scope": "instance_local_non_secret_capacity_diagnostics",
+        "instance": {
+            "service_id": str(os.getenv("RENDER_SERVICE_ID") or ""),
+            "region": str(os.getenv("RENDER_REGION") or ""),
+            "commit": str(os.getenv("RENDER_GIT_COMMIT") or ""),
+        },
+        "providers": providers,
+        "cloudflare_account_fingerprint": cloudflare_account_fingerprint,
+        "quota_control": quota_control_snapshot(),
+        "interpretation_limits": [
+            "Credential fingerprints identify exact credential equality only; different keys may still share one provider organization or account quota.",
+            "Quota reservations and in-flight counters are process-local and are not globally atomic across instances.",
+            "Upstream provider account limits remain authoritative and may be shared across both instances.",
+        ],
+    }
 
 
 def snapshot(use_core):
