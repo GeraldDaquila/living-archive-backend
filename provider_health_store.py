@@ -334,7 +334,7 @@ def save_remote_states_async(states):
     if not isinstance(states, dict) or len(states) > 100:
         return False
     try:
-        snapshot = json.loads(json.dumps(states, separators=(",", ":"), ensure_ascii=False))
+        snapshot = json.loads(json.dumps(export_health_states(states), separators=(",", ":"), ensure_ascii=False))
     except (TypeError, ValueError):
         return False
     with _BACKGROUND_WRITE_LOCK:
@@ -382,7 +382,7 @@ def export_health_states(states):
 def save_remote_states(states, timeout=None):
     if not isinstance(states, dict) or len(states) > 100:
         return False
-    payload = {"contract_version": CONTRACT_VERSION, "states": states}
+    payload = {"contract_version": CONTRACT_VERSION, "states": export_health_states(states)}
     result = _request("POST", payload) if timeout is None else _request("POST", payload, timeout=timeout)
     return isinstance(result, dict) and isinstance(result.get("written"), int) and result["written"] >= 0
 
