@@ -53,10 +53,22 @@ page.on("requestfailed", request => {
   if (request.url().includes("/api/query")) mark("api_request_failed_event", { method: request.method(), url: request.url(), error: request.failure()?.errorText || "unknown" });
 });
 let mainQueryIndex = 0;
+let candidateControllerServed = false;
 page.on("pageerror", error => pageErrors.push(error.message));
 
 await page.route("**/*", async route => {
   const routeUrl = new URL(route.request().url());
+  if (
+    routeUrl.hostname === "geralddaquila.com" &&
+    routeUrl.pathname.endsWith("/living-archive-guide-v489.246-woody.js")
+  ) {
+    candidateControllerServed = true;
+    mark("candidate_controller_asset_routed", { original: route.request().url() });
+    await route.continue({
+      url: "https://geralddaquila.com/wp-content/uploads/2026/11/living-archive-guide-v489.247-active-active-candidate.js"
+    });
+    return;
+  }
   if (!["living-archive-backend.onrender.com", "living-archive-backend-mirror.onrender.com"].includes(routeUrl.hostname) || routeUrl.pathname.replace(/\/$/, "") !== "/api/query") {
     await route.continue();
     return;
@@ -149,7 +161,8 @@ await page.route("**/*", async route => {
 });
 
 try {
-  mark("test_start", { url: GUIDE_URL, mode: "intercepted_mock_api_only" });
+  mark("test_start", { url: GUIDE_URL, mode: "candidate-active-active-asset-with-intercepted-mock-api" });
+  await page.addInitScript(() => { Math.random = () => 0.10; });
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded" });
   const root = page.locator(ROOT);
   await root.waitFor({ state: "attached" });
@@ -159,6 +172,10 @@ try {
   await input.waitFor({ state: "visible" });
   await submit.waitFor({ state: "visible" });
   await page.waitForTimeout(1500);
+  const loadedControllerScripts = await page.locator("script[src*='living-archive-guide']").evaluateAll(nodes => nodes.map(n => n.src));
+  if (!candidateControllerServed) {
+    throw new Error("Active-active candidate controller asset was not served by the mocked UI test: " + JSON.stringify(loadedControllerScripts));
+  }
   mark("controller_ready_diagnostics", {
     rootCount: await root.count(),
     inputCount: await input.count(),
@@ -227,6 +244,14 @@ try {
       const request = { body, postData: JSON.stringify(body), url };
       window.__guideApiRequests.push(request);
       console.log("[Guide QA API] " + JSON.stringify(request));
+      if (url.includes("living-archive-backend-mirror.onrender.com") && query === qaFollowup) {
+        window.__guideTrace({ event: "mock_secondary_retryable_failure", query, status: 503 });
+        return Promise.resolve({
+          ok: false,
+          status: 503,
+          json: function() { return Promise.resolve({ ok: false, error: "mock_secondary_unavailable" }); }
+        });
+      }
       const payload = answer ? {
         ok: true, version: "qa-ui-contract", fingerprint: "qa-ui-contract-mock-only",
         source_sha256: "qa-only", request_id: "qa-" + window.__guideApiRequests.length,
@@ -413,7 +438,7 @@ try {
   const answerBeforeReply = await answer.innerText();
   await panelInput.fill(FOLLOWUP);
   const replyResponsePromise = page.waitForFunction(
-    () => (window.__guideApiRequests || []).length >= 5,
+    () => (window.__guideApiRequests || []).length >= 6,
     null,
     { timeout: 12_000 }
   );
@@ -451,7 +476,13 @@ try {
     note: "API responses were intercepted and mocked; this verifies the live WordPress controller UI contract only, not backend behavior."
   });
 
-  if (apiRequests.length !== 5) throw new Error("Expected exactly 5 intercepted API requests, got " + apiRequests.length);
+  if (apiRequests.length !== 6) throw new Error("Expected 6 intercepted API attempts including one failover, got " + apiRequests.length);
+  if (!apiRequests.slice(0, 5).every(request => request.url.includes("living-archive-backend-mirror.onrender.com"))) {
+    throw new Error("The 20% secondary-first canary path was not selected by the deterministic 0.10 routing sample.");
+  }
+  if (!apiRequests[5].url.includes("living-archive-backend.onrender.com")) {
+    throw new Error("Retryable mirror failure did not fail over to the primary endpoint.");
+  }
   if (!continuityPassed) throw new Error("Ordinary Reply request did not carry the expected prior conversation history.");
   if (pageErrors.length) throw new Error("Browser page errors: " + pageErrors.join(" | "));
   mark("test_passed", { requestCount: apiRequests.length, continuityPassed, consoleErrors, failedRequests });

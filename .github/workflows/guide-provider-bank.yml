@@ -9,6 +9,8 @@ on:
       - "tests/test_v489_118_hrn_provider_budget_alignment.py"
       - "tests/test_provider_capacity_diagnostics.py"
       - "tests/test_provider_capacity_readiness_endpoint.py"
+      - "QA/guide_active_active_transport.js"
+      - "QA/guide_active_active_transport.test.js"
       - ".github/workflows/guide-provider-bank.yml"
   push:
     branches:
@@ -18,6 +20,8 @@ on:
       - "main.py"
       - "tests/test_general_guide_provider_budget.py"
       - "tests/test_v489_118_hrn_provider_budget_alignment.py"
+      - "QA/guide_active_active_transport.js"
+      - "QA/guide_active_active_transport.test.js"
       - ".github/workflows/guide-provider-bank.yml"
 
 jobs:
@@ -30,6 +34,8 @@ jobs:
           python-version: "3.12"
       - name: Install runtime dependencies
         run: pip install -r requirements.txt pytest
+      - name: Check and test active-active Guide transport
+        run: node --check QA/guide_active_active_transport.js && node QA/guide_active_active_transport.test.js
       - name: Compile runtime and provider bank
         run: python -m py_compile main.py provider_bank.py
       - name: Test bounded Guide provider arbitration
