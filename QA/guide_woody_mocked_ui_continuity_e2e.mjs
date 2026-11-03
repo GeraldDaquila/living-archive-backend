@@ -53,6 +53,7 @@ page.on("requestfailed", request => {
   if (request.url().includes("/api/query")) mark("api_request_failed_event", { method: request.method(), url: request.url(), error: request.failure()?.errorText || "unknown" });
 });
 let mainQueryIndex = 0;
+let candidateControllerServed = false;
 page.on("pageerror", error => pageErrors.push(error.message));
 
 await page.route("**/*", async route => {
@@ -61,6 +62,8 @@ await page.route("**/*", async route => {
     routeUrl.hostname === "geralddaquila.com" &&
     routeUrl.pathname.endsWith("/living-archive-guide-v489.246-woody.js")
   ) {
+    candidateControllerServed = true;
+    mark("candidate_controller_asset_routed", { original: route.request().url() });
     await route.continue({
       url: "https://geralddaquila.com/wp-content/uploads/2026/11/living-archive-guide-v489.247-active-active-candidate.js"
     });
@@ -170,8 +173,8 @@ try {
   await submit.waitFor({ state: "visible" });
   await page.waitForTimeout(1500);
   const loadedControllerScripts = await page.locator("script[src*='living-archive-guide']").evaluateAll(nodes => nodes.map(n => n.src));
-  if (!loadedControllerScripts.some(url => url.includes("living-archive-guide-v489.247-active-active-candidate.js"))) {
-    throw new Error("Active-active candidate controller asset was not loaded by the mocked UI test.");
+  if (!candidateControllerServed) {
+    throw new Error("Active-active candidate controller asset was not served by the mocked UI test: " + JSON.stringify(loadedControllerScripts));
   }
   mark("controller_ready_diagnostics", {
     rootCount: await root.count(),
