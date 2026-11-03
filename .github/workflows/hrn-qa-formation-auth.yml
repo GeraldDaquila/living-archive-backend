@@ -1,0 +1,32 @@
+name: HRN QA Formation entrance security regression
+
+on:
+  pull_request:
+    paths:
+      - "main.py"
+      - "tests/test_qa_formation_entrance_auth_boundary.py"
+      - ".github/workflows/hrn-qa-formation-auth.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  formation-auth-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest httpx
+      - name: Compile QA runtime
+        run: python -m py_compile main.py
+      - name: Test Formation authentication, bounds, and redacted failures
+        env:
+          PYTHONPATH: .
+          USE_PROVIDER_BANK_SHARED_SECRET: qa-formation-secret-test-only
+        run: python -m pytest -q tests/test_qa_formation_entrance_auth_boundary.py
