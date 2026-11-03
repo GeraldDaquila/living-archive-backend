@@ -359,3 +359,22 @@ def test_rate_limit_cooldown_is_not_shortened_by_timeout_guard(monkeypatch):
     assert provider_bank._blocked(state) is True
     assert state["cooldown_until"] == 1300.0
     assert state["quarantine_until"] == 1300.0
+
+
+
+def test_legacy_local_timeout_state_is_migrated_and_redacted_by_blocker(monkeypatch):
+    state = provider_bank.new_state("nvidia", "model")
+    state.update({
+        "category": "provider_failure",
+        "last_error": "provider read operation timed out with body sk-live-local-timeout",
+        "last_failure": 1000.0,
+        "cooldown_until": 1300.0,
+        "quarantine_until": 1300.0,
+    })
+    monkeypatch.setattr(provider_bank, "blocked", lambda target: True)
+
+    assert provider_bank._blocked(state) is True
+    assert state["category"] == "timeout"
+    assert state["last_error"] == "exception=LegacyDiagnostic category=timeout"
+    assert state["cooldown_until"] == 1020.0
+    assert "sk-live-local-timeout" not in json.dumps(state)
