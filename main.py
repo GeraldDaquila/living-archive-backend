@@ -3657,7 +3657,7 @@ def _guide_route_models():
     try:
         return provider_bank_snapshot(use_core).get("candidates", [])
     except Exception as exc:
-        print(f"USE provider bank snapshot failed: {exc}")
+        print("USE provider bank snapshot failed: exception=" + type(exc).__name__)
         return []
 
 
@@ -5848,7 +5848,7 @@ def _general_guide_authoritative_doorway(query, context_data):
     except Exception as exc:
         print(
             "The Guide General Guide doorway selection failed safely: "
-            f"{exc}"
+            "exception=" + type(exc).__name__
         )
         return None
 
@@ -7050,7 +7050,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         f"documents={len(recovered_docs)}."
                     )
         except Exception as exc:
-            print(f"The Guide evidence recovery failed safely: {type(exc).__name__}: {exc}.")
+            print(f"The Guide evidence recovery failed safely: exception={type(exc).__name__}.")
 
     # Recovery may establish a qualifying doorway after the initial selection.
     # Recompute this state from the current authoritative source instead of
@@ -8799,7 +8799,7 @@ def _ip_geolocation(client_ip, timeout=0.65):
             result["location_source"] = "ip_geolocation"
         return result
     except Exception as exc:
-        print(f"The Guide IP location fallback unavailable: {exc}")
+        print(f"The Guide IP location fallback unavailable: exception={type(exc).__name__}")
         return {}
 
 
@@ -8996,7 +8996,7 @@ async def _use_request_boundary(scope, receive, send):
             elif isinstance(risk_profile, dict) and bool(risk_profile.get("risk")):
                 print("The Guide ignored protected-core risk fallback for a hypothetical safety calibration query.")
         except Exception as exc:
-            print(f"The Guide protected-core safety recovery was unavailable: {exc}")
+            print(f"The Guide protected-core safety recovery was unavailable: exception={type(exc).__name__}")
 
     if not safety_state:
         calibration_payload = _hypothetical_safety_calibration_payload(query)
@@ -9115,7 +9115,7 @@ async def _use_request_boundary(scope, receive, send):
                 "visitor_boundary_version": APP_VERSION,
             })
         except Exception as exc:
-            print(f"The Guide sitewide Safety utility failed closed: {exc}")
+            print(f"The Guide sitewide Safety utility failed closed: exception={type(exc).__name__}")
             return await _use_send_json(send, {
                 "ok": True,
                 "version": APP_VERSION,
@@ -9180,7 +9180,7 @@ async def _use_request_boundary(scope, receive, send):
                 "route_source": "deterministic-formation-preparation-entry",
             })
         except Exception as exc:
-            print(f"USE Formation preparation handoff failed safely: {exc}")
+            print(f"USE Formation preparation handoff failed safely: exception={type(exc).__name__}")
             return await _use_send_json(send, {
                 "ok": False,
                 "version": APP_VERSION,
@@ -9545,7 +9545,7 @@ async def _use_request_boundary(scope, receive, send):
         except Exception as exc:
             print(
                 "The Guide Basic Inquiry seam failed; "
-                f"ordinary route remains ordinary and will not be reclassified: {exc}"
+                f"ordinary route remains ordinary and will not be reclassified; exception={type(exc).__name__}"
             )
             # A direct-attribute question must not escape through the legacy
             # deterministic recovery path if its evidence boundary itself fails.
@@ -9929,7 +9929,7 @@ async def _use_request_boundary(scope, receive, send):
                     "visitor_boundary_version": APP_VERSION, "request_id": request_id,
                 })
             except Exception as exc:
-                print(f"USE Formation specialist failed safely: {exc}")
+                print(f"USE Formation specialist failed safely: exception={type(exc).__name__}")
                 return await _use_send_json(send, {
                     "ok": False, "version": APP_VERSION, "query": query,
                     "intent": "FORMATION_HANDOFF",
@@ -9946,7 +9946,7 @@ async def _use_request_boundary(scope, receive, send):
                 "visitor_boundary_version": APP_VERSION, "request_id": request_id,
             })
         except Exception as exc:
-            print(f"USE Relationship specialist failed safely: {exc}")
+            print(f"USE Relationship specialist failed safely: exception={type(exc).__name__}")
             return await _use_send_json(send, {
                 "ok": False, "version": APP_VERSION, "query": query,
                 "intent": "RELATIONAL_HANDOFF",
@@ -10046,7 +10046,7 @@ async def _provider_capability_route(request: Request):
     except HTTPException:
         raise
     except Exception as exc:
-        print(f"USE provider capability gateway failure: {str(exc)[:400]}")
+        print("USE provider capability gateway failure: exception=" + type(exc).__name__)
         return JSONResponse(status_code=503, content={
             "ok": False,
             "contract_version": PROVIDER_GATEWAY_CONTRACT_VERSION,
@@ -10207,7 +10207,7 @@ async def _formation_entrance_route(request: Request):
             safety_state="green",
         )
     except Exception as exc:
-        print(f"USE v487.92 Formation entrance failed safely: {exc}")
+        print(f"USE v487.92 Formation entrance failed safely: exception={type(exc).__name__}")
         return _formation_entrance_error(
             "The Formation pathway could not be opened right now.",
             "formation_entrance_specialist_failure",

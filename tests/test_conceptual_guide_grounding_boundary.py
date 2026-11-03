@@ -127,8 +127,9 @@ def test_conceptual_search_diagnostic_uses_the_selected_query_not_fallback_local
     assert 'search_terms={len(indexed_terms[:2])}' not in searcher
 
 
-def test_conceptual_recovery_diagnostic_records_exception_reason_for_structural_failures():
-    assert 'The Guide evidence recovery failed safely: {type(exc).__name__}: {exc}.' in SOURCE
+def test_conceptual_recovery_diagnostic_records_exception_class_without_raw_message():
+    assert 'The Guide evidence recovery failed safely: exception={type(exc).__name__}.' in SOURCE
+    assert 'The Guide evidence recovery failed safely: {type(exc).__name__}: {exc}.' not in SOURCE
 
 
 def test_conceptual_grounding_selects_doorway_from_vetted_evidence_without_discovery_registry_gate():

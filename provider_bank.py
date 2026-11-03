@@ -323,6 +323,41 @@ class ProviderCallError(RuntimeError):
         self.retry_after = retry_after
         self.category = category
 
+_SAFE_PROVIDER_ERROR_CATEGORIES = {
+    "provider_failure", "timeout", "network_failure", "unavailable",
+    "invalid_request", "unsupported_request", "authentication",
+    "quota_or_billing", "terms_required", "free_tier_daily_quota",
+    "rate_limited", "model_unavailable", "structured_output_contract",
+    "request_too_large", "invalid_provider_response",
+}
+
+
+def _safe_provider_error_summary(exc, category=None):
+    """Return bounded provider diagnostics without retaining upstream response text."""
+    raw_category = category if category is not None else getattr(exc, "category", "provider_failure")
+    category = str(raw_category or "provider_failure")
+    if category not in _SAFE_PROVIDER_ERROR_CATEGORIES:
+        category = "provider_failure"
+    parts = ["exception=" + type(exc).__name__, "category=" + category]
+    status = getattr(exc, "status_code", None)
+    if status is not None:
+        try:
+            status = int(status)
+            if 100 <= status <= 599:
+                parts.append("http_status=" + str(status))
+        except (TypeError, ValueError, OverflowError):
+            pass
+    retry_after = getattr(exc, "retry_after", None)
+    if retry_after is not None:
+        try:
+            retry_after = float(retry_after)
+            if retry_after == retry_after and retry_after not in (float("inf"), float("-inf")):
+                parts.append("retry_after_seconds=" + str(round(max(0.0, retry_after), 2)))
+        except (TypeError, ValueError, OverflowError):
+            pass
+    return " ".join(parts)[:240]
+
+
 def _csv(name):
     return [x.strip() for x in os.getenv(name, "").split(",") if x.strip()]
 
@@ -353,42 +388,44 @@ def _quality_state(operation, provider, model, create=False):
         "quality_error": "",
     })
 
-def _blocked(state):
-    # Older provider-bank builds escalated repeated short client timeouts to a
-    # five-minute open circuit. When the failure is specifically a read/HTTP
-    # timeout (not quota, authentication, or rate limiting), cap that legacy
-    # cooldown at 20 seconds so the lane can recover after its latency budget is
-    # corrected. Explicit provider retry-after and daily-quota cooldowns are untouched.
-    if str(state.get("category") or "") == "provider_failure":
+def _is_timeout_state(state):
+    """Recognize structured timeouts and migrate any legacy prose state in place."""
+    category = str(state.get("category") or "")
+    if category == "timeout":
+        return True
+    if category == "provider_failure":
         error_text = str(state.get("last_error") or "").casefold()
         if any(term in error_text for term in (
-            "read operation timed out",
-            "request timed out",
-            "timed out",
-            "timeout",
+            "read operation timed out", "request timed out", "timed out", "timeout",
         )):
-            try:
-                last_failure = float(state.get("last_failure", 0) or 0)
-                if last_failure > 0:
-                    bounded_until = last_failure + 20.0
-                    current_until = float(state.get("cooldown_until", 0) or 0)
-                    if current_until > bounded_until:
-                        state["cooldown_until"] = bounded_until
-                        state["quarantine_until"] = 0.0
-            except (TypeError, ValueError):
-                pass
+            state["category"] = "timeout"
+            state["last_error"] = "exception=LegacyDiagnostic category=timeout"
+            return True
+    return False
+
+
+def _blocked(state):
+    # Timeout is a structured failure category. Legacy prose is migrated in place
+    # before its diagnostic text is discarded; quota/auth/rate-limit states stay intact.
+    if _is_timeout_state(state):
+        try:
+            last_failure = float(state.get("last_failure", 0) or 0)
+            if last_failure > 0:
+                bounded_until = last_failure + 20.0
+                current_until = float(state.get("cooldown_until", 0) or 0)
+                if current_until > bounded_until:
+                    state["cooldown_until"] = bounded_until
+                    state["quarantine_until"] = 0.0
+        except (TypeError, ValueError):
+            pass
     return blocked(state)
 
 def _blocked_for_operation(state, operation, schema=None):
     """Keep operation-specific contract failures from poisoning unrelated lanes."""
+    timeout_failure = _is_timeout_state(state)
     category = str(state.get("category") or "")
-    error_text = str(state.get("last_error") or "").casefold()
     last_operation = str(state.get("last_operation") or "")
     operation = str(operation or "")
-
-    timeout_failure = category == "provider_failure" and any(term in error_text for term in (
-        "read operation timed out", "request timed out", "timed out", "timeout",
-    ))
     if timeout_failure and last_operation and last_operation != operation:
         return False
 
@@ -495,11 +532,18 @@ def _failure(exc, provider, model, operation=None):
         category = "structured_output_contract"
     elif "request too large" in low or ("context" in low and "length" in low):
         category = "request_too_large"
+    elif category == "provider_failure" and any(term in low for term in (
+        "read operation timed out", "request timed out", "timed out", "timeout",
+    )):
+        category = "timeout"
 
+    if category not in _SAFE_PROVIDER_ERROR_CATEGORIES:
+        category = "provider_failure"
+    safe_error = _safe_provider_error_summary(exc, category=category)
     delay = record_failure(
         state,
         category,
-        text,
+        safe_error,
         retry_after=retry_after,
     )
 
@@ -515,7 +559,7 @@ def _failure(exc, provider, model, operation=None):
                 continue
             sibling["state"] = "open"
             sibling["category"] = category
-            sibling["last_error"] = text[:500]
+            sibling["last_error"] = safe_error
             sibling["last_failure"] = time.time()
             sibling["probe_in_flight"] = False
             sibling["cooldown_until"] = 0.0
@@ -530,6 +574,7 @@ def _failure(exc, provider, model, operation=None):
         f"cooldown_seconds={int(delay)}, provider_wide={str(provider_wide).lower()}"
     )
     _persist_shared_state()
+    return category
 
 def _is_movement_brief_input_failure(operation, reason):
     """Recognize upstream brief failures that must not poison provider quality."""
@@ -560,7 +605,11 @@ def _record_quality_rejection(provider, model, operation, reason):
         state["quality_failures"] = 0
     state["quality_failures"] = int(state.get("quality_failures", 0) or 0) + 1
     state["last_quality_failure"] = now
-    state["quality_error"] = str(reason or "contract_rejection")[:300]
+    state["quality_error"] = (
+        "upstream_movement_brief_input_failure"
+        if _is_movement_brief_input_failure(operation, reason)
+        else "contract_rejection"
+    )
     # A visitor-facing contract rejection is already decisive evidence that this
     # operation/model pairing is unsuitable. Cool it down on the first rejection
     # so each new visitor turn does not repeatedly spend its bounded fallback slot
@@ -575,7 +624,7 @@ def _record_quality_rejection(provider, model, operation, reason):
         f"operation={operation}, provider={provider}, model={model}, "
         f"quality_failures={state['quality_failures']}, "
         f"quality_cooldown_seconds={max(0, int(float(state.get('quality_cooldown_until', 0) or 0) - now))}, "
-        "reason=" + str(reason or "contract_rejection")[:180]
+        "reason=" + str(state["quality_error"])
     )
     _persist_shared_state()
 
@@ -1099,7 +1148,10 @@ def _configured(use_core):
             live_groq = result.get("models") or []
             if result.get("error") is not None:
                 exc = result["error"]
-                print("USE provider bank: Groq inventory discovery failed: " + str(exc)[:300])
+                print(
+                    "USE provider bank: Groq inventory discovery failed: "
+                    + "exception=" + type(exc).__name__
+                )
         else:
             print(
                 "USE provider bank: Groq live inventory discovery exceeded "
@@ -1875,18 +1927,13 @@ def _hrn_question_grounding_violation(question, messages):
             parse_error = exc
     if brief is None:
         exc = parse_error or ValueError("movement brief did not decode to an object")
-        # Keep the visitor payload out of logs. The error position and a short
-        # structural preview are enough to distinguish empty serialization,
-        # invalid JSON, and a marker followed by the wrong object.
+        # Keep the visitor payload out of logs; report only parser class and position.
         error_position = getattr(exc, "pos", -1)
-        preview_start = max(brace_index, error_position - 80) if brace_index >= 0 else 0
-        preview = brief_content[preview_start:preview_start + 180]
         print(
             "USE HRN movement brief parse failure: "
             f"error={type(exc).__name__}, "
-            f"reason={getattr(exc, 'msg', str(exc))!r}, "
             f"position={error_position}, "
-            f"preview={preview[:180]!r}"
+            "payload_preview=redacted"
         )
         return "question-grounding contract violation: structured movement brief is malformed"
     if not isinstance(brief, dict):
@@ -3083,29 +3130,30 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             # is unhealthy. Release any half-open probe claim and allow independent
             # candidates to run; otherwise a local cap could strand recovery forever.
             state["probe_in_flight"] = False
-            last_error = str(exc)
+            last_error = "quota_admission_denied"
             print(
                 "USE provider quota admission: "
                 + "operation=" + operation
                 + ", provider=" + provider
                 + ", model=" + model
-                + ", reason=" + str(exc.reason)
+                + ", reason=local_admission_limit"
                 + ", retry_after_seconds=" + str(round(exc.retry_after, 2))
             )
             continue
         except ValueError as exc:
             # Preserve transport health, but learn from repeated visitor-contract
             # failures so poor outputs lose priority and can be cooled down.
-            last_error = str(exc)
-            _record_quality_rejection(provider, model, operation, last_error)
+            contract_reason = str(exc)
+            _record_quality_rejection(provider, model, operation, contract_reason)
+            last_error = "contract_rejection"
             # Emit a bounded, stable rejection class as well as the validator
             # reason. This separates parse, surface, grounding, and shape defects
             # without logging visitor prompts or generated response bodies.
             rejection_class = (
-                "json_or_parse" if re.search(r"invalid JSON|non-object", last_error, re.I)
-                else "visitor_surface" if re.search(r"visitor-surface|prescriptive|action-guidance|internal implementation", last_error, re.I)
-                else "grounding_or_provenance" if re.search(r"ground|doorway|source|evidence|URL", last_error, re.I)
-                else "response_shape" if re.search(r"short|long|paragraph|sentence|question", last_error, re.I)
+                "json_or_parse" if re.search(r"invalid JSON|non-object", contract_reason, re.I)
+                else "visitor_surface" if re.search(r"visitor-surface|prescriptive|action-guidance|internal implementation", contract_reason, re.I)
+                else "grounding_or_provenance" if re.search(r"ground|doorway|source|evidence|URL", contract_reason, re.I)
+                else "response_shape" if re.search(r"short|long|paragraph|sentence|question", contract_reason, re.I)
                 else "other_contract"
             )
             print(
@@ -3114,7 +3162,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 + ", provider=" + provider
                 + ", model=" + model
                 + ", rejection_class=" + rejection_class
-                + ", error=" + re.sub(r"\\s+", " ", last_error)[:220]
+                + ", error=contract_rejection"
             )
             if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
@@ -3130,9 +3178,9 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     break
             continue
         except Exception as exc:
-            last_error = str(exc)
-            _failure(exc, provider, model, operation=operation)
-            print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", error=" + last_error[:300])
+            failure_category = _failure(exc, provider, model, operation=operation)
+            last_error = _safe_provider_error_summary(exc, category=failure_category)
+            print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", " + last_error)
             if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
                 slow_failure_stop = HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS
@@ -3145,7 +3193,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + ", stop_seconds=" + str(slow_failure_stop)
                     )
                     break
-    print("USE model bank exhausted viable candidates: last_error=" + last_error[:400])
+    print("USE model bank exhausted viable candidates: " + str(last_error)[:240])
     return _route_result(None)
 
 def refresh_shared_health_state():
