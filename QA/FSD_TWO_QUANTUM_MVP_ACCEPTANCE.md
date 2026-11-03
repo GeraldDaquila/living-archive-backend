@@ -1,19 +1,20 @@
 # FSD Two-Quantum MVP — Acceptance Contract
 
-Status: design baseline; not production-enabled.
+Status: candidate implementation in progress; not production-enabled.
 
 ## Scope
 
 Implement one FSD diagnostic path inside the existing Living Archive backend. Do not create another Render service, provider gateway, retrieval engine, or diagnostic application. Keep the existing WordPress FSD page as the visitor interface and the existing USE backend as the sole analysis runtime.
 
-## Current-state blockers
+## Candidate implementation status
 
-- The published FSD page currently performs its questionnaire scoring in browser JavaScript.
-- The page has no analysis API call and no durable session persistence.
-- The live USE specialist registry does not declare an FSD capability, and the adapter registry does not contain an FSD adapter.
-- The provider gateway allowlist and Provider Bank operation policy do not contain an FSD operation.
-- USE already owns the Pinecone index, 384-dimensional embedding path, canonical-resource validation, and provider selection. FSD must reuse these rather than create another retrieval or provider path.
-- Existing general Guide routing to the FSD page is a doorway only; it is not diagnostic analysis.
+- Added a dedicated `fsd_report_composition` operation to the Provider Bank gateway and capability policy, with a bounded 12-second provider call and one independent fallback.
+- Added an authenticated `POST /api/fsd/analyze` route to the existing USE FastAPI application. It validates the request, reuses `use_core.fetch_canonical_context` twice, and does not create another service or retriever.
+- Added server-side report validation, exact evidence-ID binding, canonical-domain checks, two-quantum citation coverage, and explicit not-assessed labels for unselected scales.
+- Added request-body limits, authenticated ingress, a conservative global rate gate, no persistence, and bounded failure responses.
+- The WordPress visitor page still has no secure proxy to this endpoint. The endpoint is not visitor-reachable until that server-side bridge is implemented and verified.
+- The live USE specialist registry and adapter registry still do not declare FSD; the new endpoint is deliberately a single narrow path rather than a new specialist adapter.
+- USE already owns the Pinecone index, 384-dimensional embedding path, canonical-resource validation, and provider selection. FSD reuses these.
 
 ## Contract
 
@@ -74,8 +75,8 @@ Internal reasoning labels, including SEE / MOVE / REPEAT, must never appear in v
 ## Security and resilience gates
 
 - No provider credentials or shared secrets in browser code.
-- Authenticate the WordPress-to-backend call or implement a reviewed public abuse-control boundary; do not rely on CORS as authentication.
-- Apply request-size, answer-count, string-length, per-session and per-origin/IP limits; fail closed when required controls are unavailable.
+- The backend route requires the existing Provider Bank shared secret. The WordPress proxy and server-side credential availability are still unverified; do not expose the secret in browser code.
+- Apply request-size, answer-count, string-length, and visitor/session abuse limits. The current backend global ingress gate is provisional and does not replace visitor-level throttling at the WordPress proxy.
 - Do not persist raw answers by default. If session recovery is introduced, define consent, retention, expiry, deletion, and access boundaries before enabling it.
 - Keep logs free of raw answers, sensitive visitor content, credentials, and generated report bodies.
 - Provider exhaustion or retrieval failure must return a bounded, honest unavailable/insufficient-evidence response—not a fabricated diagnosis.
