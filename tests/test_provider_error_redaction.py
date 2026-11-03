@@ -17,6 +17,8 @@ def test_failure_persists_only_safe_summary(monkeypatch):
 
     def capture_record_failure(target, category, error, retry_after=None):
         recorded.update(category=category, error=error, retry_after=retry_after)
+        target["category"] = category
+        target["last_error"] = error
         return 30.0
 
     monkeypatch.setattr(provider_bank, "record_failure", capture_record_failure)
