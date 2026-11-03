@@ -3,8 +3,8 @@ from fsd_runtime import build_quantum_query, parse_evidence
 
 def test_quantum_queries_use_only_mapped_responses():
     answers = [0,1,2,3,0,1,2,3,0,1]
-    first = build_quantum_query(answers, "organization", "Q001_CORRESPONDENCE")
-    second = build_quantum_query(answers, "organization", "Q002_CORRECTABILITY")
+    first = build_quantum_query(answers, "institution", "Q001_CORRESPONDENCE")
+    second = build_quantum_query(answers, "institution", "Q002_CORRECTABILITY")
     assert "People notice it" in first
     assert "meaningful authority" not in first
     assert "meaningful authority" in second
@@ -46,11 +46,11 @@ def test_prepare_analysis_retrieves_both_quanta_and_labels_evidence():
             "URL: https://geralddaquila.com/correspondence/\n"
             "Content: Canonical evidence about correspondence."
         )}
-    result = prepare_fsd_analysis(_valid_payload("organization"), retrieve)
+    result = prepare_fsd_analysis(_valid_payload("institution"), retrieve)
     assert len(calls) == 2
     assert "Correspondence" in calls[0]
     assert "Correctability" in calls[1]
-    assert result["validated"]["scale"] == "organization"
+    assert result["validated"]["scale"] == "institution"
     assert result["evidence"][0]["evidence_id"] == "E01"
 
 
