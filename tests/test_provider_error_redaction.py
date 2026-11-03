@@ -188,6 +188,8 @@ def test_merge_redacts_legacy_remote_health_over_existing_local_state():
         "quality_error": "local visitor text sk-live-legacy-secret",
         "last_failure": 100.0,
         "last_success": 50.0,
+        "last_quality_failure": 100.0,
+        "last_quality_success": 50.0,
     }
     remote = {
         "provider": "openrouter",
@@ -196,6 +198,8 @@ def test_merge_redacts_legacy_remote_health_over_existing_local_state():
         "quality_error": "remote visitor text sk-live-legacy-secret",
         "last_failure": 200.0,
         "last_success": 150.0,
+        "last_quality_failure": 200.0,
+        "last_quality_success": 100.0,
     }
 
     merged = provider_health_store.merge_health_state(local, remote, now=250.0)
