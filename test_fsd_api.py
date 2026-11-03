@@ -20,7 +20,7 @@ REPORT = {
 def analysis():
     return {
         "validated": {
-            "scale": "organization",
+            "scale": "institution",
             "quantum_summaries": {
                 "Q001_CORRESPONDENCE": {"label": "Correspondence", "mean_constraint_signal": 1.0, "answered_items": 4},
                 "Q002_CORRECTABILITY": {"label": "Correctability", "mean_constraint_signal": 2.0, "answered_items": 6},
@@ -57,7 +57,7 @@ def test_report_composition_uses_dedicated_operation_and_returns_server_sources(
         {"quantum_id": "Q002_CORRECTABILITY", "label": "Correctability"},
     ]
     assert "quantum_summaries" not in result
-    assert result["report"]["scope"]["organization"] == "reported_signal"
+    assert result["report"]["scope"]["institution"] == "reported_signal"
     assert result["report"]["scope"]["civilization"] == "not_assessed"
     assert result["report"]["evidence"] == [
         {"evidence_id": "E01", "title": "Source one", "url": "https://geralddaquila.com/one"},
