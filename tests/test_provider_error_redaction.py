@@ -34,6 +34,9 @@ def test_failure_persists_only_safe_summary(monkeypatch):
     provider_bank._failure(exc, "groq", "openai/gpt-oss-20b", operation="general_guide_composition")
 
     assert recorded["category"] == "authentication"
+    assert "category=authentication" in recorded["error"]
+    assert "category=authentication" in state["last_error"]
+    assert "category=authentication" in sibling["last_error"]
     assert recorded["retry_after"] == 17
     assert "http_status=401" in recorded["error"]
     assert "retry_after_seconds=17" in recorded["error"]
@@ -95,3 +98,20 @@ def test_route_logs_provider_failure_class_not_upstream_body(monkeypatch, capsys
     assert "http_status=429" in output
     assert secret_body not in output
     assert "sk-live-sensitive-value" not in output
+
+
+
+def test_safe_summary_ignores_malformed_metadata():
+    exc = provider_bank.ProviderCallError(
+        "synthetic failure with secret body",
+        "groq",
+        "openai/gpt-oss-20b",
+        status_code=object(),
+        retry_after=float("inf"),
+        category="untrusted_raw_category",
+    )
+
+    summary = provider_bank._safe_provider_error_summary(exc, category="authentication")
+
+    assert summary == "exception=ProviderCallError category=authentication"
+    assert "secret body" not in summary
