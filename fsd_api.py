@@ -12,6 +12,7 @@ from typing import Any
 from weakref import WeakSet
 
 from fastapi import HTTPException, Request
+from fastapi.responses import JSONResponse
 from starlette.concurrency import run_in_threadpool
 
 from fsd_contract import CONTRACT_VERSION, FSDContractError, PUBLIC_QUANTUM_LABELS, validate_diagnostic_payload
@@ -217,4 +218,11 @@ def register_fsd_routes(app: Any, use_core: Any) -> None:
             raise HTTPException(status_code=400, detail="FSD request must be valid JSON.") from exc
         if not isinstance(payload, dict):
             raise HTTPException(status_code=400, detail="FSD request must be an object.")
-        return await run_in_threadpool(_run_analysis, payload, use_core)
+        result = await run_in_threadpool(_run_analysis, payload, use_core)
+        return JSONResponse(
+            content=result,
+            headers={
+                "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+                "Pragma": "no-cache",
+            },
+        )
