@@ -29,6 +29,8 @@ on:
       - "test_fsd_provider_operation.py"
       - "fsd_report_contract.py"
       - "test_fsd_report_contract.py"
+      - "fsd_api.py"
+      - "test_fsd_api.py"
       - ".github/workflows/fsd-two-quantum-contract.yml"
 jobs:
   contract-regression:
