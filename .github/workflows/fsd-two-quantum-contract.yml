@@ -9,7 +9,7 @@ on:
       - "test_fsd_runtime.py"
       - "provider_gateway_service.py"
       - "provider_bank.py"
-      - "test_fsd_provider_operation.py test_fsd_report_contract.py"
+      - "test_fsd_provider_operation.py"
       - "fsd_report_contract.py"
       - "test_fsd_report_contract.py"
       - ".github/workflows/fsd-two-quantum-contract.yml"
@@ -22,6 +22,11 @@ on:
       - "fsd_question_bank.py"
       - "fsd_runtime.py"
       - "test_fsd_runtime.py"
+      - "provider_gateway_service.py"
+      - "provider_bank.py"
+      - "test_fsd_provider_operation.py"
+      - "fsd_report_contract.py"
+      - "test_fsd_report_contract.py"
       - ".github/workflows/fsd-two-quantum-contract.yml"
 jobs:
   contract-regression:
@@ -36,4 +41,4 @@ jobs:
       - name: Compile FSD contract
         run: python -m py_compile fsd_contract.py fsd_question_bank.py fsd_runtime.py fsd_report_contract.py provider_gateway_service.py provider_bank.py
       - name: Run FSD contract regressions
-        run: python -m pytest -q test_fsd_contract.py test_fsd_runtime.py test_fsd_provider_operation.py
+        run: python -m pytest -q test_fsd_contract.py test_fsd_runtime.py test_fsd_provider_operation.py test_fsd_report_contract.py
