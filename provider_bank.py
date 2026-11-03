@@ -79,6 +79,7 @@ HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 8.0
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 2
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 6.0
+FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS = 12.0
 
 # Only production models with the structured-output capability required by the
 # current Provider Bank contract may enter the JSON operation pool. Live model
@@ -1372,7 +1373,7 @@ def select(use_core, operation="generic", schema=None):
                 int(item.get("transport_failures", 0) or 0),
                 -float(item.get("last_success", 0) or 0),
             ))
-        elif operation == "general_guide_composition":
+        elif operation in {"general_guide_composition", "fsd_report_composition"}:
             # The general Guide may only have a five-second generation window.
             # Do not let a half-open probe outrank a healthy model simply because
             # its provider appears earlier in the rotating lane order.
@@ -1472,7 +1473,7 @@ def select(use_core, operation="generic", schema=None):
     # first choice from each eligible provider, then second choices, preserving
     # stable provider priority and existing health/capability/quality filters.
     selected = []
-    if operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair", "general_guide_composition"}:
+    if operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair", "general_guide_composition", "fsd_report_composition"}:
         # The bounded Guide window must reach independent providers before
         # spending fallback slots on sibling models from the same provider.
         # A provider-wide quota or outage can invalidate every sibling at once;
@@ -2550,6 +2551,8 @@ def _provider_call_timeout(operation, item=None):
         return HRN_PROVIDER_CALL_TIMEOUT_SECONDS
     if operation == "general_guide_composition":
         return GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS
+    if operation == "fsd_report_composition":
+        return FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS
     return None
 
 
@@ -2644,9 +2647,10 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # makes the mirror skip a model that just failed on primary.
     hrn_operations = {"hrn_perception", "hrn_relational", "hrn_voice_repair"}
     bounded_guide_operation = operation == "general_guide_composition"
+    bounded_fsd_operation = operation == "fsd_report_composition"
     if operation in hrn_operations:
         operation_attempt_cap = _hrn_attempt_cap()
-    elif bounded_guide_operation:
+    elif bounded_guide_operation or bounded_fsd_operation:
         operation_attempt_cap = 1
     else:
         operation_attempt_cap = configured_attempts
@@ -2658,7 +2662,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # provider inside the same request.
     base_max_attempts = min(len(pool), operation_attempt_cap)
     attempt_pool = list(pool[:base_max_attempts])
-    if operation in {"hrn_perception", "hrn_relational", "general_guide_composition"} and len(pool) > base_max_attempts:
+    if operation in {"hrn_perception", "hrn_relational", "general_guide_composition", "fsd_report_composition"} and len(pool) > base_max_attempts:
         # Specialist and Guide fallbacks are admitted only inside their own bounded
         # fast-failure windows. Never let an exhausted free-tier bank turn one query
         # into a serial walk across every configured model.
@@ -2679,6 +2683,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             if operation == "hrn_perception"
             else HRN_RELATIONAL_FAST_FALLBACK_MAX_CANDIDATES
             if operation == "hrn_relational"
+            else 1
+            if operation == "fsd_report_composition"
             else GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES
         )
         fallback_items = list(pool[base_max_attempts:])
@@ -2796,6 +2802,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 if operation == "hrn_perception"
                 else HRN_RELATIONAL_FAST_FAILURE_WINDOW_SECONDS
                 if operation == "hrn_relational"
+                else 24.0
+                if operation == "fsd_report_composition"
                 else GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
             )
             candidate_timeout = _bounded_request_provider_timeout(
@@ -2849,7 +2857,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             continue
         if not acquire_probe(state):
             continue
-        attempt_started = time.monotonic() if operation in {"hrn_perception", "general_guide_composition"} else None
+        attempt_started = time.monotonic() if operation in {"hrn_perception", "general_guide_composition", "fsd_report_composition"} else None
         try:
             attempt_timeout = _bounded_request_provider_timeout(
                 _provider_call_timeout(operation, item), deadline_monotonic,
