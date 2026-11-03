@@ -11,6 +11,7 @@ Implement one FSD diagnostic path inside the existing Living Archive backend. Do
 - Added a dedicated `fsd_report_composition` operation to the Provider Bank gateway and capability policy, with a bounded 12-second provider call and one independent fallback.
 - Added an authenticated `POST /api/fsd/analyze` route to the existing USE FastAPI application. It validates the request, reuses `use_core.fetch_canonical_context` twice, and does not create another service or retriever.
 - Added server-side report validation, exact evidence-ID binding, canonical-domain checks, two-quantum citation coverage, and explicit not-assessed labels for unselected scales.
+- Provisional numeric quantum signals remain server-internal; the browser receives neither raw quantum scores nor provider/model identity.
 - Added request-body limits, authenticated ingress, a conservative global rate gate, no persistence, and bounded failure responses.
 - Added an inactive, feature-flagged WordPress proxy plugin that reuses the existing server-only Provider Bank credential provider. PHP syntax validation passed; the plugin is not activated and the route remains disabled by default.
 - The published visitor page still uses local three-category scoring and static result cards; it has no backend request. It is not compatible with the two-quantum report contract and must be revised before the proxy is enabled.
