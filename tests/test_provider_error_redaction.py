@@ -203,3 +203,31 @@ def test_merge_redacts_legacy_remote_health_over_existing_local_state():
     assert "sk-live-legacy-secret" not in json.dumps(merged)
     assert merged["last_error"] == "exception=LegacyDiagnostic category=provider_failure"
     assert merged["quality_error"] == "contract_rejection"
+
+
+
+def test_direct_shared_health_write_redacts_legacy_state(monkeypatch):
+    captured = {}
+    monkeypatch.setattr(
+        provider_health_store,
+        "_request",
+        lambda method, payload, timeout=None: (
+            captured.update(method=method, payload=payload) or {"written": 1}
+        ),
+    )
+    legacy = {
+        "provider": "nvidia",
+        "model": "mistral-large",
+        "last_error": "legacy upstream response sk-live-legacy-secret",
+        "quality_error": "visitor detail sk-live-legacy-secret",
+        "last_failure": 10.0,
+    }
+
+    assert provider_health_store.save_remote_states({"nvidia:mistral-large": legacy}) is True
+    serialized = json.dumps(captured["payload"])
+
+    assert captured["method"] == "POST"
+    assert "sk-live-legacy-secret" not in serialized
+    assert captured["payload"]["states"]["nvidia:mistral-large"]["last_error"] == (
+        "exception=LegacyDiagnostic category=provider_failure"
+    )
