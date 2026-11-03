@@ -15,7 +15,7 @@ def payload(answers=_DEFAULT, **extra):
     value = {"contract_version": CONTRACT_VERSION}
     if answers is _DEFAULT:
         value["answers"] = [0] * 10
-    elif answers is not None:
+    else:
         value["answers"] = answers
     value.update(extra)
     return value
@@ -77,3 +77,8 @@ def test_rejects_unsupported_scale():
 def test_boolean_is_not_accepted_as_an_integer_option():
     with pytest.raises(FSDContractError):
         validate_diagnostic_payload(payload([False] + [0] * 9))
+
+
+def test_rejects_missing_answers_field():
+    with pytest.raises(FSDContractError):
+        validate_diagnostic_payload({"contract_version": CONTRACT_VERSION})
