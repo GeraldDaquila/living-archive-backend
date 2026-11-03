@@ -141,3 +141,73 @@ def test_http_route_enforces_authentication_and_request_size(monkeypatch):
         },
     )
     assert oversized.status_code == 413
+
+
+def test_end_to_end_analysis_retrieves_both_quanta_and_returns_validated_report(monkeypatch):
+    retrieval_queries = []
+
+    class FakeUseCore:
+        def fetch_canonical_context(self, query):
+            retrieval_queries.append(query)
+            if "Correspondence" in query:
+                title, url = "Correspondence source", "https://geralddaquila.com/correspondence"
+            else:
+                title, url = "Correctability source", "https://geralddaquila.com/correctability"
+            return {
+                "context_blocks": (
+                    f"Title: {title}\nURL: {url}\n"
+                    "Content: Canonical evidence supporting the examined systemic condition."
+                )
+            }
+
+    monkeypatch.setattr(
+        fsd_api,
+        "execute_provider_gateway",
+        lambda **kwargs: {"ok": True, "result": {**REPORT, "evidence_ids": ["E01", "E02"]}},
+    )
+    payload = {
+        "contract_version": "fsd-two-quantum-v1",
+        "answers": [0, 1, 2, 3, 0, 1, 2, 3, 0, 1],
+        "scale": "organization",
+    }
+    result = fsd_api._run_analysis(payload, FakeUseCore())
+
+    assert len(retrieval_queries) == 2
+    assert "Correspondence" in retrieval_queries[0]
+    assert "Correctability" in retrieval_queries[1]
+    assert result["ok"] is True
+    assert "quantum_summaries" not in result
+    assert result["report"]["scope"]["organization"] == "reported_signal"
+    assert [item["url"] for item in result["report"]["evidence"]] == [
+        "https://geralddaquila.com/correspondence",
+        "https://geralddaquila.com/correctability",
+    ]
+
+
+def test_end_to_end_analysis_fails_closed_when_one_quantum_has_no_evidence(monkeypatch):
+    class IncompleteUseCore:
+        def fetch_canonical_context(self, query):
+            if "Correspondence" in query:
+                return {
+                    "context_blocks": (
+                        "Title: Correspondence source\n"
+                        "URL: https://geralddaquila.com/correspondence\n"
+                        "Content: Canonical correspondence evidence."
+                    )
+                }
+            return {"context_blocks": "", "evidence_sufficiency_unavailable": True}
+
+    monkeypatch.setattr(
+        fsd_api,
+        "execute_provider_gateway",
+        lambda **kwargs: {"ok": True, "result": REPORT},
+    )
+    payload = {
+        "contract_version": "fsd-two-quantum-v1",
+        "answers": [0] * 10,
+        "scale": "self",
+    }
+    with pytest.raises(HTTPException) as error:
+        fsd_api._run_analysis(payload, IncompleteUseCore())
+    assert error.value.status_code == 422
+    assert error.value.detail == {"code": "insufficient_independent_quantum_evidence"}
