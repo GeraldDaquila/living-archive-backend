@@ -31,7 +31,22 @@ The server, not the browser, owns scoring, retrieval, evidence qualification, an
 - Quantum 001 — Correspondence: assess whether the system can perceive and accurately represent relevant conditions and consequences.
 - Quantum 002 — Correctability: assess whether the system can respond to what it perceives, revise decisions and arrangements, and prevent recurring failure. Correctability is broader than feedback integrity.
 
-Map the existing questionnaire items into these two quanta only after each question has an explicit rationale and observable answer-to-quantum mapping. Do not preserve the legacy perception/agency/reproduction dimensions as visitor-facing diagnostic categories.
+The ten existing items are mapped deterministically as follows (zero-based indices in code; numbered here for readers):
+
+| Item | Primary quantum | Rationale |
+|---|---|---|
+| 1. Significant problem recognition | Q001 Correspondence | Tests whether emerging failure becomes visible. |
+| 2. Difficult information | Q001 Correspondence | Tests whether uncomfortable evidence can travel. |
+| 3. Location of meaningful authority | Q002 Correctability | Tests whether responsibility is matched by authority. |
+| 4. Changing an established pattern | Q002 Correctability | Tests whether attempted correction can take hold. |
+| 5. What the system rewards | Q002 Correctability | Tests whether incentives sustain or reproduce the difficulty. |
+| 6. Decision-makers and consequences | Q001 Correspondence | Tests whether decision-makers encounter the effects of decisions. |
+| 7. Learning from experience | Q001 Correspondence | Tests whether experience changes shared understanding and practice. |
+| 8. Response to changing conditions | Q002 Correctability | Tests whether the system can adjust its arrangements. |
+| 9. Return of recurring difficulty | Q002 Correctability | Tests whether correction reaches underlying conditions. |
+| 10. Room for meaningful leverage | Q002 Correctability | Tests whether a point of effective correction can be located. |
+
+The answer options are ordered from stronger functioning (0) to stronger constraint signal (3). The server recomputes quantum summaries from raw option indices; browser-supplied scores are never authoritative. This is a provisional mapping to be reviewed against the locked Two-Quantum definitions before visitor-facing activation. Do not preserve the legacy perception/agency/reproduction dimensions as visitor-facing diagnostic categories.
 
 ## Fractal scale
 
