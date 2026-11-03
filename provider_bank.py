@@ -323,17 +323,43 @@ class ProviderCallError(RuntimeError):
         self.retry_after = retry_after
         self.category = category
 
-def _safe_provider_error_summary(exc):
+_SAFE_PROVIDER_ERROR_CATEGORIES = {
+    "provider_failure",
+    "authentication",
+    "quota_or_billing",
+    "terms_required",
+    "free_tier_daily_quota",
+    "rate_limited",
+    "model_unavailable",
+    "structured_output_contract",
+    "request_too_large",
+    "invalid_provider_response",
+}
+
+
+def _safe_provider_error_summary(exc, category=None):
     """Return bounded provider diagnostics without retaining upstream response text."""
-    status = getattr(exc, "status_code", None)
-    category = str(getattr(exc, "category", "provider_failure") or "provider_failure")
-    retry_after = getattr(exc, "retry_after", None)
+    raw_category = category if category is not None else getattr(exc, "category", "provider_failure")
+    category = str(raw_category or "provider_failure")
+    if category not in _SAFE_PROVIDER_ERROR_CATEGORIES:
+        category = "provider_failure"
     parts = ["exception=" + type(exc).__name__, "category=" + category]
+
+    status = getattr(exc, "status_code", None)
     if status is not None:
-        parts.append("http_status=" + str(int(status)))
+        try:
+            status = int(status)
+            if 100 <= status <= 599:
+                parts.append("http_status=" + str(status))
+        except (TypeError, ValueError, OverflowError):
+            pass
+
+    retry_after = getattr(exc, "retry_after", None)
     if retry_after is not None:
         try:
-            parts.append("retry_after_seconds=" + str(round(max(0.0, float(retry_after)), 2)))
+            retry_after = float(retry_after)
+            if retry_after == retry_after and retry_after not in (float("inf"), float("-inf")):
+                parts.append("retry_after_seconds=" + str(round(max(0.0, retry_after), 2)))
         except (TypeError, ValueError, OverflowError):
             pass
     return " ".join(parts)[:240]
@@ -513,7 +539,7 @@ def _failure(exc, provider, model, operation=None):
     elif "request too large" in low or ("context" in low and "length" in low):
         category = "request_too_large"
 
-    safe_error = _safe_provider_error_summary(exc)
+    safe_error = _safe_provider_error_summary(exc, category=category)
     delay = record_failure(
         state,
         category,
@@ -548,6 +574,7 @@ def _failure(exc, provider, model, operation=None):
         f"cooldown_seconds={int(delay)}, provider_wide={str(provider_wide).lower()}"
     )
     _persist_shared_state()
+    return category
 
 def _is_movement_brief_input_failure(operation, reason):
     """Recognize upstream brief failures that must not poison provider quality."""
@@ -3148,8 +3175,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     break
             continue
         except Exception as exc:
-            _failure(exc, provider, model, operation=operation)
-            last_error = _safe_provider_error_summary(exc)
+            failure_category = _failure(exc, provider, model, operation=operation)
+            last_error = _safe_provider_error_summary(exc, category=failure_category)
             print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", " + last_error)
             if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
