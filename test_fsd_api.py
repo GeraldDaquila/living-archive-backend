@@ -47,6 +47,10 @@ def test_report_composition_uses_dedicated_operation_and_returns_server_sources(
     )
     assert calls["operation"] == "fsd_report_composition"
     assert calls["schema"]["name"] == "fsd_two_quantum_report"
+    prompt_payload = __import__("json").loads(calls["messages"][1]["content"])
+    assert len(prompt_payload["reported_answers"]) == 10
+    assert "selected_response" in prompt_payload["reported_answers"][0]
+    assert "answer_selections" not in prompt_payload
     assert result["report"]["scope"]["organization"] == "reported_signal"
     assert result["report"]["scope"]["civilization"] == "not_assessed"
     assert result["report"]["evidence"] == [
