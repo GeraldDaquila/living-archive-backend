@@ -26,7 +26,7 @@ LIST_LIMITS = {
     "next_steps": 4,
 }
 ITEM_MAX_CHARS = 300
-FORBIDDEN_INTERNAL_TERMS = re.compile(r"\b(?:SEE|MOVE|REPEAT)\b", re.I)
+FORBIDDEN_INTERNAL_TERMS = re.compile(r"\b(?:SEE|MOVE|REPEAT)\b")
 
 
 class FSDReportContractError(ValueError):
