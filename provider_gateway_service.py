@@ -32,12 +32,20 @@ ALLOWED_OPERATIONS = frozenset({
 def _shared_secret() -> str:
     return str(os.getenv("USE_PROVIDER_BANK_SHARED_SECRET") or "").strip()
 
+
+def _previous_shared_secret() -> str:
+    """Optional, short-lived overlap credential for coordinated rotation only."""
+    return str(os.getenv("USE_PROVIDER_BANK_SHARED_SECRET_PREVIOUS") or "").strip()
+
+
 def authorize(token: str | None) -> None:
-    secret = _shared_secret()
-    if not secret:
+    current = _shared_secret()
+    if not current:
         raise HTTPException(status_code=503, detail="Provider Bank gateway is not configured.")
     supplied = str(token or "").strip()
-    if not supplied or not hmac.compare_digest(supplied, secret):
+    previous = _previous_shared_secret()
+    accepted = (current, previous) if previous else (current,)
+    if not supplied or not any(hmac.compare_digest(supplied, candidate) for candidate in accepted):
         raise HTTPException(status_code=401, detail="Provider Bank gateway authorization failed.")
 
 def validate_request(body: Mapping[str, Any]) -> tuple[str, list[dict[str, str]], int]:

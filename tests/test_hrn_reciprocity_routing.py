@@ -1,6 +1,9 @@
 """Regression tests for natural HRN specialist routing."""
 
 import main
+import pytest
+import provider_gateway_service as gateway
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 
@@ -260,3 +263,25 @@ def test_qa_formation_entrance_redacts_specialist_exception_message(monkeypatch,
     assert response.status_code == 503
     assert secret not in captured.out
     assert "exception=RuntimeError" in captured.out
+
+def test_hrn_qa_gateway_accepts_current_and_previous_rotation_values(monkeypatch):
+    monkeypatch.setenv("USE_PROVIDER_BANK_SHARED_SECRET", "rotation-current-placeholder")
+    monkeypatch.setenv("USE_PROVIDER_BANK_SHARED_SECRET_PREVIOUS", "rotation-previous-placeholder")
+    gateway.authorize("rotation-current-placeholder")
+    gateway.authorize("rotation-previous-placeholder")
+
+
+def test_hrn_qa_gateway_rejects_unknown_rotation_value(monkeypatch):
+    monkeypatch.setenv("USE_PROVIDER_BANK_SHARED_SECRET", "rotation-current-placeholder")
+    monkeypatch.setenv("USE_PROVIDER_BANK_SHARED_SECRET_PREVIOUS", "rotation-previous-placeholder")
+    with pytest.raises(HTTPException) as exc:
+        gateway.authorize("unrecognized-placeholder")
+    assert exc.value.status_code == 401
+
+
+def test_hrn_qa_gateway_requires_current_rotation_value(monkeypatch):
+    monkeypatch.delenv("USE_PROVIDER_BANK_SHARED_SECRET", raising=False)
+    monkeypatch.setenv("USE_PROVIDER_BANK_SHARED_SECRET_PREVIOUS", "rotation-previous-placeholder")
+    with pytest.raises(HTTPException) as exc:
+        gateway.authorize("rotation-previous-placeholder")
+    assert exc.value.status_code == 503
