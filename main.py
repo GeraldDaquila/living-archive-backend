@@ -8386,8 +8386,36 @@ _v48894_general_guide_composition_self_audit()
 
 @app.post("/api/formation-entrance")
 async def _formation_entrance_route(request: Request):
+    # Server-to-server Formation handoff. Enforce the shared-secret boundary
+    # before body consumption, size checks, JSON parsing, or specialist execution.
+    authorize_provider_gateway(request.headers.get("X-Living-Archive-Provider-Key"))
+
+    max_body_bytes = 8192
+    declared_length = request.headers.get("content-length")
+    if declared_length:
+        try:
+            if int(declared_length) > max_body_bytes:
+                return _formation_entrance_error(
+                    "The Formation entrance payload is too large.",
+                    "formation_entrance_payload_too_large",
+                    status_code=413,
+                )
+        except (TypeError, ValueError):
+            return _formation_entrance_error(
+                "The Formation entrance content length is invalid.",
+                "formation_entrance_invalid_content_length",
+                status_code=400,
+            )
+
+    raw_body = await request.body()
+    if len(raw_body) > max_body_bytes:
+        return _formation_entrance_error(
+            "The Formation entrance payload is too large.",
+            "formation_entrance_payload_too_large",
+            status_code=413,
+        )
     try:
-        body = await request.json()
+        body = json.loads(raw_body)
     except Exception:
         return _formation_entrance_error(
             "The Formation entrance payload must be valid JSON.",
@@ -8403,6 +8431,21 @@ async def _formation_entrance_route(request: Request):
     choice = str(body.get("choice") or "").strip()
     situation = str(body.get("situation") or "").strip()
     possibility = str(body.get("possibility") or "").strip()
+
+    field_limits = {"choice": 120, "situation": 3000, "possibility": 2000}
+    oversized = [
+        name for name, value in (
+            ("choice", choice),
+            ("situation", situation),
+            ("possibility", possibility),
+        ) if len(value) > field_limits[name]
+    ]
+    if oversized:
+        return _formation_entrance_error(
+            "One or more Formation entrance fields exceed their permitted length.",
+            "formation_entrance_field_too_long",
+            status_code=422,
+        )
 
     missing = [
         name for name, value in (
@@ -8467,7 +8510,7 @@ async def _formation_entrance_route(request: Request):
             safety_state="green",
         )
     except Exception as exc:
-        print(f"USE v487.92 Formation entrance failed safely: {exc}")
+        print(f"USE v487.92 Formation entrance failed safely: exception={type(exc).__name__}")
         return _formation_entrance_error(
             "The Formation pathway could not be opened right now.",
             "formation_entrance_specialist_failure",
