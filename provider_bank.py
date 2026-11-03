@@ -1929,12 +1929,8 @@ def _hrn_question_grounding_violation(question, messages):
             parse_error = exc
     if brief is None:
         exc = parse_error or ValueError("movement brief did not decode to an object")
-        # Keep the visitor payload out of logs. The error position and a short
-        # structural preview are enough to distinguish empty serialization,
-        # invalid JSON, and a marker followed by the wrong object.
+        # Keep the visitor payload out of logs; report only parser class and position.
         error_position = getattr(exc, "pos", -1)
-        preview_start = max(brace_index, error_position - 80) if brace_index >= 0 else 0
-        preview = brief_content[preview_start:preview_start + 180]
         print(
             "USE HRN movement brief parse failure: "
             f"error={type(exc).__name__}, "
