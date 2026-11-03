@@ -325,6 +325,11 @@ class ProviderCallError(RuntimeError):
 
 _SAFE_PROVIDER_ERROR_CATEGORIES = {
     "provider_failure",
+    "timeout",
+    "network_failure",
+    "unavailable",
+    "invalid_request",
+    "unsupported_request",
     "authentication",
     "quota_or_billing",
     "terms_required",
