@@ -43,7 +43,7 @@ def validate_fsd_report(
     if not isinstance(report, Mapping) or set(report) != REPORT_KEYS:
         raise FSDReportContractError("Report must contain exactly the approved fields.")
     if selected_scale is not None and selected_scale not in {
-        "self", "relationships", "organization", "state", "civilization"
+        "self", "relationships", "community", "institution", "civilization"
     }:
         raise FSDReportContractError("Selected scale is not supported.")
 
@@ -110,7 +110,7 @@ def validate_fsd_report(
     # Do not let a model infer a multi-scale pattern from a single selected scale.
     normalized["scope"] = {
         scale: ("reported_signal" if scale == selected_scale else "not_assessed")
-        for scale in ("self", "relationships", "organization", "state", "civilization")
+        for scale in ("self", "relationships", "community", "institution", "civilization")
     }
     normalized["evidence"] = [
         {
