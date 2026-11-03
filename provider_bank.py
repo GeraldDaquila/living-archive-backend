@@ -3163,12 +3163,15 @@ def capacity_diagnostics(use_core):
     """
     configured = _configured(use_core)
     cloudflare_token, cloudflare_account = _cloudflare_credentials()
+    nvidia_credential = str(os.getenv("NVIDIA_API_KEY") or "").strip()
+    if nvidia_credential.casefold().startswith(("replace_with_", "your_", "placeholder")):
+        nvidia_credential = ""
     credentials = {
         "groq": str(os.getenv("GROQ_API_KEY") or "").strip(),
         "openrouter": str(os.getenv("OPENROUTER_API_KEY") or "").strip(),
         "gemini": str(os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY") or "").strip(),
         "mistral": str(os.getenv("MISTRAL_API_KEY") or "").strip(),
-        "nvidia": str(os.getenv("NVIDIA_API_KEY") or "").strip(),
+        "nvidia": nvidia_credential,
         "workers_ai": (cloudflare_token + ":" + cloudflare_account) if cloudflare_token and cloudflare_account else "",
         "cloudflare_gateway": (cloudflare_token + ":" + cloudflare_account) if cloudflare_token and cloudflare_account else "",
     }
