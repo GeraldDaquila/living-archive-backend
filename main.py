@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.310 — Provider capacity diagnostics
+# USE PRODUCTION VERSION: v489.309 — Handoff recovery copy polish
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
@@ -59,7 +59,6 @@ from provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
     route as route_with_model_bank,
     snapshot as provider_bank_snapshot,
-    capacity_diagnostics as provider_bank_capacity_diagnostics,
     refresh_shared_health_state,
 )
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
@@ -86,9 +85,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
-APP_VERSION = "v489.310"
-DEPLOYMENT_FINGERPRINT = "USE-v489.310-provider-capacity-diagnostics"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.310-provider-capacity-diagnostics"
+APP_VERSION = "v489.309"
+DEPLOYMENT_FINGERPRINT = "USE-v489.309-handoff-recovery-copy-polish"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.309-handoff-recovery-copy-polish"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -230,7 +229,7 @@ def _runtime_source_manifest_sha256(root=None):
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
 # Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.310":
+if str(APP_VERSION) != "v489.309":
     raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
 if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
@@ -590,10 +589,16 @@ _RELATIONAL_DYNAMIC_PATTERNS = (
     r"\b(?:one[- ]sided effort|not reciprocated|unequal effort|uneven effort)\b",
     r"\b(?:gets?|becomes?|become)\s+(?:angry|defensive|quiet|distant)\b",
     r"\b(?:feel|feels|felt)\s+(?:distant|disconnected|removed|far|close|closer)\b",
+    # Workplace attribution disputes are lived dynamics when paired with a
+    # first-person counterpart and an inquiry signal.
+    r"\b(?:taking credit|takes credit|took credit|credit for (?:work|what) we did together)\b",
+    r"\b(?:present(?:s|ed|ing)?|mention(?:s|ed|ing)?|acknowledg(?:e|es|ed|ing)|credit(?:s|ed|ing)?|contribut(?:e|es|ed|ing|ion|ions))\b",
     r"\b(?:i|we)\s+(?:keep|keeps|kept)\b",
 )
 
 _RELATIONAL_INQUIRY_PATTERNS = (
+    # Natural questions about what one may be missing should count as inquiry.
+    r"\bwhat\s+(?:might|could|am|are)\s+(?:i|we)\s+(?:be\s+)?(?:missing|not seeing|overlooking)\b",
     r"\b(?:i|we)\s+(?:want|need|wonder|hope|wish)\s+to\s+(?:understand|figure out|make sense|see|know)\b",
     r"\b(?:i|we)\s+(?:don't|do not|can't|cannot|am not|are not)\s+(?:understand|know|tell|see)\b",
     r"\b(?:what(?:'s| is)|why|how)\b.{0,120}\b(?:happening|between us|relating|relationship|treat|respond|react|communicat|understand|make sense)\b",
@@ -799,6 +804,20 @@ if not _lived_relational_structure(_route_probe_authority_relationship)["lived_r
 if not _relational_boundary_decision(_route_probe_authority_relationship).get("open"):
     raise RuntimeError("USE v487.97 invariant failed: authority/workplace inquiry did not open relationship specialist")
 
+
+
+# Regression guard: lived workplace credit-taking belongs in HRN,
+# while general workplace-credit questions remain in Guide basic inquiry.
+_route_probe_lived_credit = (
+    "I feel frustrated because my colleague keeps taking credit for work we did together. "
+    "What might I be missing about the relationship?"
+)
+if not _relational_boundary_decision(_route_probe_lived_credit).get("open"):
+    raise RuntimeError("USE routing invariant failed: lived workplace credit-taking did not open HRN")
+if _relational_boundary_decision(
+    "What are common patterns of taking credit in workplace relationships?"
+).get("open"):
+    raise RuntimeError("USE v489.310 routing invariant failed: generic workplace-credit question was captured by HRN")
 
 
 def _role_evidence(doc):
@@ -10400,33 +10419,6 @@ if "_build_journey_contribution_for_use(body)" not in open(_MAIN_PATH, encoding=
 # This reports the distinction between declared capabilities, runtime adapters,
 # and known direct visitor-facing handoffs. It does not claim that a route has
 # passed a live visitor journey; those require separate E2E checks.
-@_FASTAPI_APP.get("/api/provider-capacity-readiness")
-def provider_capacity_readiness(request: Request):
-    """Authenticated, non-secret comparison data for active-active capacity audits."""
-    try:
-        authorize_provider_gateway(request.headers.get("X-Living-Archive-Provider-Key"))
-        diagnostics = provider_bank_capacity_diagnostics(use_core)
-        return {
-            "ok": True,
-            "contract": "provider-capacity-readiness-v1",
-            "version": APP_VERSION,
-            "fingerprint": DEPLOYMENT_FINGERPRINT,
-            "deployment_commit_sha": os.environ.get("RENDER_GIT_COMMIT", "").strip(),
-            "capacity": diagnostics,
-        }
-    except HTTPException:
-        raise
-    except Exception as exc:
-        print(f"USE provider capacity diagnostics failed: {type(exc).__name__}")
-        return JSONResponse(status_code=503, content={
-            "ok": False,
-            "contract": "provider-capacity-readiness-v1",
-            "version": APP_VERSION,
-            "fingerprint": DEPLOYMENT_FINGERPRINT,
-            "error": "capacity_diagnostics_unavailable",
-        })
-
-
 @_FASTAPI_APP.get("/api/provider-health-readiness")
 def provider_health_readiness():
     """Return bounded, non-secret provider shared-health readiness diagnostics."""
