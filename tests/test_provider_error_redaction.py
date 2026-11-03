@@ -117,3 +117,26 @@ def test_safe_summary_ignores_malformed_metadata():
 
     assert summary == "exception=ProviderCallError category=authentication"
     assert "secret body" not in summary
+
+def test_quality_rejection_does_not_persist_or_log_visitor_text(monkeypatch, capsys):
+    state = {
+        "quality_failures": 0,
+        "last_quality_failure": 0.0,
+        "last_quality_success": 0.0,
+        "quality_cooldown_until": 0.0,
+        "quality_error": "",
+    }
+    monkeypatch.setattr(provider_bank, "_quality_state", lambda *args, **kwargs: state)
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
+    secret_text = "visitor supplied private detail sk-live-sensitive-value"
+
+    provider_bank._record_quality_rejection(
+        "groq", "openai/gpt-oss-20b", "general_guide_composition", secret_text
+    )
+
+    output = capsys.readouterr().out
+    assert state["quality_error"] == "contract_rejection"
+    assert secret_text not in state["quality_error"]
+    assert "sk-live-sensitive-value" not in output
+    assert "contract_rejection" in output
+
