@@ -334,7 +334,10 @@ def save_remote_states_async(states):
     if not isinstance(states, dict) or len(states) > 100:
         return False
     try:
-        snapshot = json.loads(json.dumps(export_health_states(states), separators=(",", ":"), ensure_ascii=False))
+        snapshot = json.loads(json.dumps(states, separators=(",", ":"), ensure_ascii=False))
+        for value in snapshot.values():
+            if isinstance(value, dict):
+                _sanitize_health_diagnostics(value)
     except (TypeError, ValueError):
         return False
     with _BACKGROUND_WRITE_LOCK:
