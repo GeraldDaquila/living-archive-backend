@@ -51,6 +51,14 @@ The ten existing items are mapped deterministically as follows (zero-based indic
 
 The answer options are ordered from stronger functioning (0) to stronger constraint signal (3). The server recomputes quantum summaries from raw option indices; browser-supplied scores are never authoritative. This is a provisional mapping to be reviewed against the locked Two-Quantum definitions before visitor-facing activation. Do not preserve the legacy perception/agency/reproduction dimensions as visitor-facing diagnostic categories.
 
+### Canonical instrument-validity gate
+
+The canonical FSD architecture defines the minimum observed evidence chain as: existing understanding → consequential experience → meaningfully reconsidered understanding → consequential influence on subsequent decision or action. Correspondence concerns the transition from experience to understanding; Correctability concerns the transition from changed understanding to action.
+
+The existing ten-item questionnaire asks about general tendencies across a system. It does not require the respondent to identify one consequential episode, establish the prior understanding, describe the experience that challenged it, show whether understanding was reconsidered, and trace any subsequent response. Several items also blend transitions (for example, learning from experience is worded in terms of changes in practice). Therefore the current question-to-quantum assignment is only a provisional retrieval/query-routing heuristic. It is not a validated measurement model and must not be used to claim that a system has demonstrated or lacks either capacity.
+
+Before visitor activation, either redesign the instrument around one bounded consequential episode and the canonical evidence chain, or explicitly reframe the product as a preliminary self-reported orientation exercise. In either case, reports must distinguish respondent claims from independently supported archive evidence, preserve insufficient-evidence outcomes, and avoid psychometric, causal, or system-capacity claims unsupported by the evidence.
+
 ## Fractal scale
 
 Support the same diagnostic contract at:
