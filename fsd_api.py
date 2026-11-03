@@ -23,7 +23,7 @@ from provider_gateway_service import (
 
 MAX_BODY_BYTES = 16_384
 RATE_WINDOW_SECONDS = 60.0
-RATE_MAX_REQUESTS = 30
+RATE_MAX_REQUESTS = 60
 _RATE_LOCK = threading.Lock()
 _RATE_EVENTS: dict[str, deque[float]] = defaultdict(deque)
 _REGISTERED_APPS: set[int] = set()
@@ -108,16 +108,22 @@ def _compose_report(payload: dict[str, Any], analysis: dict[str, Any], use_core:
             "do_not_infer_other_scales": True,
         },
     }
-    result = execute_provider_gateway(
-        operation="fsd_report_composition",
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user", "content": json.dumps(user, ensure_ascii=False)},
-        ],
-        max_tokens=1400,
-        use_core=use_core,
-        schema=_REPORT_SCHEMA,
-    )
+    try:
+        result = execute_provider_gateway(
+            operation="fsd_report_composition",
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": json.dumps(user, ensure_ascii=False)},
+            ],
+            max_tokens=1400,
+            use_core=use_core,
+            schema=_REPORT_SCHEMA,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "fsd_provider_bank_unavailable"},
+        ) from exc
     if not result.get("ok"):
         raise HTTPException(
             status_code=503,
@@ -157,6 +163,11 @@ def _run_analysis(payload: dict[str, Any], use_core: Any) -> dict[str, Any]:
             status_code=422,
             detail={"code": "insufficient_canonical_evidence"},
         ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "fsd_canonical_retrieval_unavailable"},
+        ) from exc
     return _compose_report(payload, analysis, use_core)
 
 
@@ -172,8 +183,10 @@ def register_fsd_routes(app: Any, use_core: Any) -> None:
         authorize_provider_gateway(
             request.headers.get("X-Living-Archive-Provider-Key")
         )
-        client_key = request.client.host if request.client else "unknown"
-        _check_rate_limit(client_key)
+        # Do not trust forwarded-IP headers at this boundary. Until a reviewed
+        # per-visitor identifier is supplied by the authenticated WordPress proxy,
+        # apply a conservative global gate to the authenticated FSD ingress.
+        _check_rate_limit("authenticated_fsd_ingress")
         content_length = request.headers.get("content-length")
         if content_length:
             try:
