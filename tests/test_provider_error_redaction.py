@@ -2,6 +2,7 @@
 import json
 
 import provider_bank
+import provider_health_store
 
 
 def test_failure_persists_only_safe_summary(monkeypatch):
@@ -140,3 +141,65 @@ def test_quality_rejection_does_not_persist_or_log_visitor_text(monkeypatch, cap
     assert "sk-live-sensitive-value" not in output
     assert "contract_rejection" in output
 
+
+
+
+def test_export_redacts_legacy_shared_health_diagnostics():
+    legacy = {
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "last_error": "HTTP 401 upstream body contains sk-live-legacy-secret",
+        "quality_error": "visitor supplied private detail sk-live-legacy-secret",
+        "last_failure": 100.0,
+    }
+    exported = provider_health_store.export_health_states({"groq:openai/gpt-oss-20b": legacy})
+    serialized = json.dumps(exported)
+
+    assert "sk-live-legacy-secret" not in serialized
+    assert exported["groq:openai/gpt-oss-20b"]["last_error"] == (
+        "exception=LegacyDiagnostic category=provider_failure"
+    )
+    assert exported["groq:openai/gpt-oss-20b"]["quality_error"] == "contract_rejection"
+
+
+def test_merge_redacts_legacy_remote_health_on_empty_local_state():
+    local = {}
+    remote = {
+        "provider": "gemini",
+        "model": "gemini-test",
+        "last_error": "provider response echoed sk-live-legacy-secret",
+        "quality_error": "visitor text sk-live-legacy-secret",
+        "last_failure": 200.0,
+        "last_success": 100.0,
+    }
+
+    merged = provider_health_store.merge_health_state(local, remote, now=250.0)
+
+    assert "sk-live-legacy-secret" not in json.dumps(merged)
+    assert merged["last_error"] == "exception=LegacyDiagnostic category=provider_failure"
+    assert merged["quality_error"] == "contract_rejection"
+
+
+def test_merge_redacts_legacy_remote_health_over_existing_local_state():
+    local = {
+        "provider": "openrouter",
+        "model": "model-a",
+        "last_error": "local legacy error sk-live-legacy-secret",
+        "quality_error": "local visitor text sk-live-legacy-secret",
+        "last_failure": 100.0,
+        "last_success": 50.0,
+    }
+    remote = {
+        "provider": "openrouter",
+        "model": "model-a",
+        "last_error": "remote legacy error sk-live-legacy-secret",
+        "quality_error": "remote visitor text sk-live-legacy-secret",
+        "last_failure": 200.0,
+        "last_success": 150.0,
+    }
+
+    merged = provider_health_store.merge_health_state(local, remote, now=250.0)
+
+    assert "sk-live-legacy-secret" not in json.dumps(merged)
+    assert merged["last_error"] == ""
+    assert merged["quality_error"] == "contract_rejection"
