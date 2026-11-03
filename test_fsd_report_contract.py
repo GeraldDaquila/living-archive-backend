@@ -7,8 +7,8 @@ from fsd_report_contract import (
 
 
 EVIDENCE = [
-    {"evidence_id": "E01", "title": "Canonical source one", "url": "https://geralddaquila.com/source-one"},
-    {"evidence_id": "E02", "title": "Canonical source two", "url": "https://geralddaquila.com/source-two"},
+    {"evidence_id": "E01", "quantum_id": "Q001_CORRESPONDENCE", "title": "Canonical source one", "url": "https://geralddaquila.com/source-one"},
+    {"evidence_id": "E02", "quantum_id": "Q002_CORRECTABILITY", "title": "Canonical source two", "url": "https://geralddaquila.com/source-two"},
 ]
 
 
@@ -64,3 +64,11 @@ def test_rejects_insufficient_independent_evidence():
 def test_rejects_invalid_scale_as_no_cross_scale_authority():
     with pytest.raises(FSDReportContractError):
         validate_fsd_report(valid_report(), EVIDENCE, "everywhere")
+
+
+def test_missing_scale_does_not_claim_a_scale_specific_signal():
+    result = validate_fsd_report(valid_report(), EVIDENCE, None)
+    assert result["reported_signal"] == (
+        "No diagnostic scale was selected; no scale-specific signal is assessed."
+    )
+    assert set(result["scope"].values()) == {"not_assessed"}
