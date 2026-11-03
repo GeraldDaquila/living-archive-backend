@@ -23,19 +23,19 @@ def test_failure_persists_only_safe_summary(monkeypatch):
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
     secret_body = "upstream response contains sk-live-sensitive-value"
     exc = provider_bank.ProviderCallError(
-        "Groq HTTP 429: " + secret_body,
+        "Groq HTTP 401: " + secret_body,
         "groq",
         "openai/gpt-oss-20b",
-        status_code=429,
+        status_code=401,
         retry_after=17,
         category="http_error",
     )
 
     provider_bank._failure(exc, "groq", "openai/gpt-oss-20b", operation="general_guide_composition")
 
-    assert recorded["category"] == "rate_limited"
+    assert recorded["category"] == "authentication"
     assert recorded["retry_after"] == 17
-    assert "http_status=429" in recorded["error"]
+    assert "http_status=401" in recorded["error"]
     assert "retry_after_seconds=17" in recorded["error"]
     assert secret_body not in recorded["error"]
     assert secret_body not in state["last_error"]
