@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import re
 from typing import Any, Mapping
+from urllib.parse import urlsplit
 
 REPORT_KEYS = frozenset({
     "summary",
@@ -46,11 +47,23 @@ def validate_fsd_report(
     }:
         raise FSDReportContractError("Selected scale is not supported.")
 
-    evidence_by_id = {
-        str(item.get("evidence_id")): item
-        for item in evidence
-        if isinstance(item, Mapping) and item.get("evidence_id")
-    }
+    evidence_by_id = {}
+    for item in evidence:
+        if not isinstance(item, Mapping):
+            continue
+        evidence_id = str(item.get("evidence_id") or "")
+        title = str(item.get("title") or "").strip()
+        url = str(item.get("url") or "").strip()
+        quantum_id = item.get("quantum_id")
+        parsed_url = urlsplit(url)
+        if (
+            not evidence_id or not title
+            or parsed_url.scheme.casefold() != "https"
+            or parsed_url.netloc.casefold() != "geralddaquila.com"
+            or quantum_id not in {"Q001_CORRESPONDENCE", "Q002_CORRECTABILITY"}
+        ):
+            continue
+        evidence_by_id[evidence_id] = item
     if len(evidence_by_id) < 2:
         raise FSDReportContractError("Independent canonical evidence is insufficient.")
 
