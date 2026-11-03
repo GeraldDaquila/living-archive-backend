@@ -323,6 +323,23 @@ class ProviderCallError(RuntimeError):
         self.retry_after = retry_after
         self.category = category
 
+def _safe_provider_error_summary(exc):
+    """Return bounded provider diagnostics without retaining upstream response text."""
+    status = getattr(exc, "status_code", None)
+    category = str(getattr(exc, "category", "provider_failure") or "provider_failure")
+    retry_after = getattr(exc, "retry_after", None)
+    parts = ["exception=" + type(exc).__name__, "category=" + category]
+    if status is not None:
+        parts.append("http_status=" + str(int(status)))
+    if retry_after is not None:
+        try:
+            parts.append("retry_after_seconds=" + str(round(max(0.0, float(retry_after)), 2)))
+        except (TypeError, ValueError, OverflowError):
+            pass
+    return " ".join(parts)[:240]
+
+
+
 def _csv(name):
     return [x.strip() for x in os.getenv(name, "").split(",") if x.strip()]
 
@@ -496,10 +513,11 @@ def _failure(exc, provider, model, operation=None):
     elif "request too large" in low or ("context" in low and "length" in low):
         category = "request_too_large"
 
+    safe_error = _safe_provider_error_summary(exc)
     delay = record_failure(
         state,
         category,
-        text,
+        safe_error,
         retry_after=retry_after,
     )
 
@@ -515,7 +533,7 @@ def _failure(exc, provider, model, operation=None):
                 continue
             sibling["state"] = "open"
             sibling["category"] = category
-            sibling["last_error"] = text[:500]
+            sibling["last_error"] = safe_error
             sibling["last_failure"] = time.time()
             sibling["probe_in_flight"] = False
             sibling["cooldown_until"] = 0.0
@@ -3130,9 +3148,9 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     break
             continue
         except Exception as exc:
-            last_error = str(exc)
             _failure(exc, provider, model, operation=operation)
-            print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", error=" + last_error[:300])
+            last_error = _safe_provider_error_summary(exc)
+            print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", " + last_error)
             if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
                 slow_failure_stop = HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS
@@ -3145,7 +3163,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + ", stop_seconds=" + str(slow_failure_stop)
                     )
                     break
-    print("USE model bank exhausted viable candidates: last_error=" + last_error[:400])
+    print("USE model bank exhausted viable candidates: " + str(last_error)[:240])
     return _route_result(None)
 
 def refresh_shared_health_state():
