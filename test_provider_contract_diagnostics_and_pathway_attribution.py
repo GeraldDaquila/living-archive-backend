@@ -8,7 +8,9 @@ def test_provider_contract_rejections_emit_bounded_class_and_reason():
     assert '"visitor_surface"' in source
     assert '"grounding_or_provenance"' in source
     assert '"response_shape"' in source
-    assert 're.sub(r"\\\\s+", " ", last_error)[:220]' in source
+    assert 'contract_reason = str(exc)' in source
+    assert ', error=contract_rejection' in source
+    assert 're.sub(r"\\\\s+", " ", last_error)[:220]' not in source
 
 
 def test_auto_mode_logs_selected_deterministic_path_on_provider_exhaustion():

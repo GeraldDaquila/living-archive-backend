@@ -3657,7 +3657,7 @@ def _guide_route_models():
     try:
         return provider_bank_snapshot(use_core).get("candidates", [])
     except Exception as exc:
-        print(f"USE provider bank snapshot failed: {exc}")
+        print("USE provider bank snapshot failed: exception=" + type(exc).__name__)
         return []
 
 
@@ -10046,7 +10046,7 @@ async def _provider_capability_route(request: Request):
     except HTTPException:
         raise
     except Exception as exc:
-        print(f"USE provider capability gateway failure: {str(exc)[:400]}")
+        print("USE provider capability gateway failure: exception=" + type(exc).__name__)
         return JSONResponse(status_code=503, content={
             "ok": False,
             "contract_version": PROVIDER_GATEWAY_CONTRACT_VERSION,
