@@ -42,8 +42,8 @@ def test_prepare_analysis_retrieves_both_quanta_and_labels_evidence():
     def retrieve(query):
         calls.append(query)
         return {"context_blocks": (
-            "Title: Correspondence Resource\\n"
-            "URL: https://geralddaquila.com/correspondence/\\n"
+            "Title: Correspondence Resource\n"
+            "URL: https://geralddaquila.com/correspondence/\n"
             "Content: Canonical evidence about correspondence."
         )}
     result = prepare_fsd_analysis(_valid_payload("organization"), retrieve)
@@ -56,8 +56,8 @@ def test_prepare_analysis_retrieves_both_quanta_and_labels_evidence():
 
 def test_prepare_analysis_deduplicates_evidence_across_quantum_retrievals():
     block = (
-        "Title: Shared Resource\\n"
-        "URL: https://geralddaquila.com/shared/\\n"
+        "Title: Shared Resource\n"
+        "URL: https://geralddaquila.com/shared/\n"
         "Content: Independent canonical evidence."
     )
     result = prepare_fsd_analysis(_valid_payload(), lambda query: {"context_blocks": block})
@@ -78,8 +78,8 @@ def test_prepare_analysis_does_not_infer_a_scale():
     result = prepare_fsd_analysis(
         _valid_payload(),
         lambda query: {"context_blocks": (
-            "Title: Resource\\n"
-            "URL: https://geralddaquila.com/resource/\\n"
+            "Title: Resource\n"
+            "URL: https://geralddaquila.com/resource/\n"
             "Content: Evidence for this test."
         )},
     )
