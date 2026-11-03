@@ -41,3 +41,8 @@ def test_fsd_report_lane_has_bounded_completion_budget():
     floors = _assignment("provider_bank.py", "OPERATION_TOKEN_FLOORS")
     assert floors["fsd_report_composition"] == 1100
     assert floors["general_guide_composition"] == 900
+
+
+def test_fsd_report_provider_timeout_is_bounded():
+    timeout = _assignment("provider_bank.py", "FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS")
+    assert timeout == 12.0
