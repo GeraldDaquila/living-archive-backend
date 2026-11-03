@@ -201,5 +201,5 @@ def test_merge_redacts_legacy_remote_health_over_existing_local_state():
     merged = provider_health_store.merge_health_state(local, remote, now=250.0)
 
     assert "sk-live-legacy-secret" not in json.dumps(merged)
-    assert merged["last_error"] == ""
+    assert merged["last_error"] == "exception=LegacyDiagnostic category=provider_failure"
     assert merged["quality_error"] == "contract_rejection"
