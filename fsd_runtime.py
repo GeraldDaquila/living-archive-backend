@@ -38,7 +38,13 @@ def parse_evidence(context):
             break
     return found
 
-def analyze_fsd(payload, retrieve, compose):
+def prepare_fsd_analysis(payload, retrieve):
+    """Validate answers and prepare independently retrieved canonical evidence.
+
+    This is deliberately not a diagnostic report generator. Provider composition
+    and visitor-facing report validation belong to a later, separately tested
+    integration boundary.
+    """
     validated = validate_diagnostic_payload(payload)
     evidence, seen = [], set()
     for quantum in ("Q001_CORRESPONDENCE", "Q002_CORRECTABILITY"):
