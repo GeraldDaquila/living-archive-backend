@@ -52,6 +52,11 @@ def test_report_composition_uses_dedicated_operation_and_returns_server_sources(
     assert len(prompt_payload["reported_answers"]) == 10
     assert "selected_response" in prompt_payload["reported_answers"][0]
     assert "answer_selections" not in prompt_payload
+    assert prompt_payload["diagnostic_quanta"] == [
+        {"quantum_id": "Q001_CORRESPONDENCE", "label": "Correspondence"},
+        {"quantum_id": "Q002_CORRECTABILITY", "label": "Correctability"},
+    ]
+    assert "quantum_summaries" not in result
     assert result["report"]["scope"]["organization"] == "reported_signal"
     assert result["report"]["scope"]["civilization"] == "not_assessed"
     assert result["report"]["evidence"] == [
