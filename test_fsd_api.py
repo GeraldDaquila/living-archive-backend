@@ -1,5 +1,5 @@
 import pytest
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException
 
 import fsd_api
 
@@ -88,3 +88,16 @@ def test_rate_limit_is_enforced_per_server_side_client_key():
         fsd_api._check_rate_limit(key)
     assert error.value.status_code == 429
     fsd_api._RATE_EVENTS.pop(key, None)
+
+
+def test_fsd_route_registers_once_on_existing_app():
+    app = FastAPI()
+    use_core = object()
+    before = len(app.routes)
+    fsd_api.register_fsd_routes(app, use_core)
+    first_count = len(app.routes)
+    fsd_api.register_fsd_routes(app, use_core)
+    assert first_count == before + 1
+    assert len(app.routes) == first_count
+    route = next(item for item in app.routes if getattr(item, "path", None) == "/api/fsd/analyze")
+    assert "POST" in route.methods
