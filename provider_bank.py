@@ -3147,7 +3147,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 + ", provider=" + provider
                 + ", model=" + model
                 + ", rejection_class=" + rejection_class
-                + ", error=contract_rejection
+                + ", error=contract_rejection"
             )
             if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
