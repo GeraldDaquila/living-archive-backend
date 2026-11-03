@@ -59,6 +59,7 @@ from provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
     route as route_with_model_bank,
     snapshot as provider_bank_snapshot,
+    capacity_diagnostics as provider_bank_capacity_diagnostics,
     refresh_shared_health_state,
 )
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
@@ -10399,6 +10400,33 @@ if "_build_journey_contribution_for_use(body)" not in open(_MAIN_PATH, encoding=
 # This reports the distinction between declared capabilities, runtime adapters,
 # and known direct visitor-facing handoffs. It does not claim that a route has
 # passed a live visitor journey; those require separate E2E checks.
+@_FASTAPI_APP.get("/api/provider-capacity-readiness")
+def provider_capacity_readiness(request: Request):
+    """Authenticated, non-secret comparison data for active-active capacity audits."""
+    try:
+        authorize_provider_gateway(request.headers.get("X-Living-Archive-Provider-Key"))
+        diagnostics = provider_bank_capacity_diagnostics(use_core)
+        return {
+            "ok": True,
+            "contract": "provider-capacity-readiness-v1",
+            "version": APP_VERSION,
+            "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "deployment_commit_sha": os.environ.get("RENDER_GIT_COMMIT", "").strip(),
+            "capacity": diagnostics,
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        print(f"USE provider capacity diagnostics failed: {type(exc).__name__}")
+        return JSONResponse(status_code=503, content={
+            "ok": False,
+            "contract": "provider-capacity-readiness-v1",
+            "version": APP_VERSION,
+            "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "error": "capacity_diagnostics_unavailable",
+        })
+
+
 @_FASTAPI_APP.get("/api/provider-health-readiness")
 def provider_health_readiness():
     """Return bounded, non-secret provider shared-health readiness diagnostics."""
