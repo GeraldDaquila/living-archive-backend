@@ -27,7 +27,10 @@ def valid_report():
 
 def test_report_binds_exact_server_evidence_and_marks_other_scales_unassessed():
     result = validate_fsd_report(valid_report(), EVIDENCE, "organization")
-    assert result["evidence"] == EVIDENCE
+    assert result["evidence"] == [
+        {"evidence_id": "E01", "title": "Canonical source one", "url": "https://geralddaquila.com/source-one"},
+        {"evidence_id": "E02", "title": "Canonical source two", "url": "https://geralddaquila.com/source-two"},
+    ]
     assert result["scope"]["organization"] == "reported_signal"
     assert result["scope"]["self"] == "not_assessed"
     assert result["scope"]["relationships"] == "not_assessed"
