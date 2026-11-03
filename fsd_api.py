@@ -14,7 +14,7 @@ from weakref import WeakSet
 from fastapi import HTTPException, Request
 from starlette.concurrency import run_in_threadpool
 
-from fsd_contract import CONTRACT_VERSION, FSDContractError, validate_diagnostic_payload
+from fsd_contract import CONTRACT_VERSION, FSDContractError, PUBLIC_QUANTUM_LABELS, validate_diagnostic_payload
 from fsd_question_bank import QUESTIONS
 from fsd_runtime import prepare_fsd_analysis
 from fsd_report_contract import FSDReportContractError, validate_fsd_report
@@ -99,7 +99,10 @@ def _compose_report(payload: dict[str, Any], analysis: dict[str, Any], use_core:
     user = {
         "diagnostic_contract": CONTRACT_VERSION,
         "scale": validated["scale"] or "not selected",
-        "quantum_summaries": validated["quantum_summaries"],
+        "diagnostic_quanta": [
+            {"quantum_id": quantum_id, "label": label}
+            for quantum_id, label in PUBLIC_QUANTUM_LABELS.items()
+        ],
         "canonical_evidence": evidence_for_prompt,
         "reported_answers": [
             {
@@ -152,7 +155,6 @@ def _compose_report(payload: dict[str, Any], analysis: dict[str, Any], use_core:
     return {
         "ok": True,
         "contract_version": CONTRACT_VERSION,
-        "quantum_summaries": validated["quantum_summaries"],
         "report": report,
     }
 
