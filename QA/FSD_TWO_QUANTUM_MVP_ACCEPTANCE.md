@@ -107,3 +107,8 @@ Internal reasoning labels, including SEE / MOVE / REPEAT, must never appear in v
 ## Release boundary
 
 This branch is an isolated candidate. Do not merge to main, change live WordPress content, alter Render environment variables, or deploy until the implementation and all required tests pass review.
+
+
+### Evidence provenance correction — release blocker
+
+The current candidate's retrieval path returns Living Archive canonical sources, and the report contract requires coverage from both quantum retrievals. Those sources can explain the conceptual architecture, but they cannot independently corroborate that a respondent's reported consequential episode occurred or that the selected system changed its understanding or action. The present report contract risks conflating conceptual references with episode evidence. Before visitor activation, separate respondent-reported episode observations from Living Archive conceptual references, remove any implication that archive retrieval validates the respondent's account, and permit an explicit insufficient-evidence result. See `QA/FSD_EPISODE_INSTRUMENT_V1_PROPOSAL.md` for the proposed episode-based instrument and provenance model.
