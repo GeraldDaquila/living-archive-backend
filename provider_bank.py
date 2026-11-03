@@ -2650,7 +2650,9 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     bounded_fsd_operation = operation == "fsd_report_composition"
     if operation in hrn_operations:
         operation_attempt_cap = _hrn_attempt_cap()
-    elif bounded_guide_operation or bounded_fsd_operation:
+    elif bounded_guide_operation:
+        operation_attempt_cap = 1
+    elif bounded_fsd_operation:
         operation_attempt_cap = 1
     else:
         operation_attempt_cap = configured_attempts
