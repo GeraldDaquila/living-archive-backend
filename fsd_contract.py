@@ -22,9 +22,24 @@ SCALES = frozenset({
 })
 
 # Question indices are zero-based and follow the published FSD questionnaire.
-# Correspondence asks whether lived experience and consequences can reach the
-# people/places able to perceive them. Correctability asks whether the system
-# can act on what it perceives and alter recurring conditions.
+# Q001 Correspondence: items 1-2 test whether emerging problems and difficult
+# information can be surfaced; items 6-7 test whether consequences and learning
+# reach the people/places able to perceive the system's actual condition.
+# Q002 Correctability: items 3-5 test authority, capacity to change, and the
+# incentives shaping action; items 8-10 test adaptation, recurrence, and leverage.
+QUESTION_QUANTUM_RATIONALE = {
+    0: "Problem recognition: whether a significant failure becomes visible.",
+    1: "Difficult information: whether uncomfortable evidence can travel.",
+    2: "Authority alignment: whether responsibility is matched by authority.",
+    3: "Change capacity: whether attempts to alter patterns can take hold.",
+    4: "Reinforcement: whether incentives sustain or reproduce the difficulty.",
+    5: "Consequence proximity: whether decision-makers encounter decision effects.",
+    6: "Learning: whether experience changes shared understanding and practice.",
+    7: "Adaptation: whether changing conditions can prompt structural adjustment.",
+    8: "Recurrence: whether responses alter underlying conditions or only symptoms.",
+    9: "Leverage: whether meaningful points of correction can be located.",
+}
+
 QUANTUM_QUESTION_MAP = {
     "Q001_CORRESPONDENCE": (0, 1, 5, 6),
     "Q002_CORRECTABILITY": (2, 3, 4, 7, 8, 9),
