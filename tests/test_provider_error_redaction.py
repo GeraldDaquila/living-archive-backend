@@ -94,7 +94,7 @@ def test_route_logs_provider_failure_class_not_upstream_body(monkeypatch, capsys
 
     assert result is None
     assert "provider=groq" in output
-    assert "category=http_error" in output
+    assert "category=provider_failure" in output
     assert "http_status=429" in output
     assert secret_body not in output
     assert "sk-live-sensitive-value" not in output
