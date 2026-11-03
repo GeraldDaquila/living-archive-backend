@@ -106,3 +106,6 @@ def validate_diagnostic_payload(payload: Any) -> dict[str, Any]:
         "quantum_summaries": quantum_scores,
         "answer_count": QUESTION_COUNT,
     }
+
+
+from fsd_question_bank import QUESTIONS as QUESTION_BANK
