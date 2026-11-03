@@ -244,6 +244,14 @@ try {
       const request = { body, postData: JSON.stringify(body), url };
       window.__guideApiRequests.push(request);
       console.log("[Guide QA API] " + JSON.stringify(request));
+      if (url.includes("living-archive-backend-mirror.onrender.com") && query === qaFollowup) {
+        window.__guideTrace({ event: "mock_secondary_retryable_failure", query, status: 503 });
+        return Promise.resolve({
+          ok: false,
+          status: 503,
+          json: function() { return Promise.resolve({ ok: false, error: "mock_secondary_unavailable" }); }
+        });
+      }
       const payload = answer ? {
         ok: true, version: "qa-ui-contract", fingerprint: "qa-ui-contract-mock-only",
         source_sha256: "qa-only", request_id: "qa-" + window.__guideApiRequests.length,
@@ -430,7 +438,7 @@ try {
   const answerBeforeReply = await answer.innerText();
   await panelInput.fill(FOLLOWUP);
   const replyResponsePromise = page.waitForFunction(
-    () => (window.__guideApiRequests || []).length >= 5,
+    () => (window.__guideApiRequests || []).length >= 6,
     null,
     { timeout: 12_000 }
   );
@@ -468,9 +476,12 @@ try {
     note: "API responses were intercepted and mocked; this verifies the live WordPress controller UI contract only, not backend behavior."
   });
 
-  if (apiRequests.length !== 5) throw new Error("Expected exactly 5 intercepted API requests, got " + apiRequests.length);
-  if (!apiRequests.every(request => request.url.includes("living-archive-backend-mirror.onrender.com"))) {
+  if (apiRequests.length !== 6) throw new Error("Expected 6 intercepted API attempts including one failover, got " + apiRequests.length);
+  if (!apiRequests.slice(0, 5).every(request => request.url.includes("living-archive-backend-mirror.onrender.com"))) {
     throw new Error("The 20% secondary-first canary path was not selected by the deterministic 0.10 routing sample.");
+  }
+  if (!apiRequests[5].url.includes("living-archive-backend.onrender.com")) {
+    throw new Error("Retryable mirror failure did not fail over to the primary endpoint.");
   }
   if (!continuityPassed) throw new Error("Ordinary Reply request did not carry the expected prior conversation history.");
   if (pageErrors.length) throw new Error("Browser page errors: " + pageErrors.join(" | "));
