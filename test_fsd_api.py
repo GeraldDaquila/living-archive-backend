@@ -1,5 +1,6 @@
 import pytest
 from fastapi import FastAPI, HTTPException
+from fastapi.testclient import TestClient
 
 import fsd_api
 
@@ -101,3 +102,37 @@ def test_fsd_route_registers_once_on_existing_app():
     assert len(app.routes) == first_count
     route = next(item for item in app.routes if getattr(item, "path", None) == "/api/fsd/analyze")
     assert "POST" in route.methods
+
+
+def test_http_route_enforces_authentication_and_request_size(monkeypatch):
+    app = FastAPI()
+    fsd_api.register_fsd_routes(app, object())
+    client = TestClient(app)
+
+    def authorize(token):
+        if token != "test-server-key":
+            raise HTTPException(status_code=401, detail="unauthorized")
+
+    monkeypatch.setattr(fsd_api, "authorize_provider_gateway", authorize)
+    monkeypatch.setattr(fsd_api, "_run_analysis", lambda payload, use_core: {"ok": True})
+
+    denied = client.post("/api/fsd/analyze", json={}, headers={"X-Living-Archive-Provider-Key": "wrong"})
+    assert denied.status_code == 401
+
+    accepted = client.post(
+        "/api/fsd/analyze",
+        json={"contract_version": "test"},
+        headers={"X-Living-Archive-Provider-Key": "test-server-key"},
+    )
+    assert accepted.status_code == 200
+    assert accepted.json() == {"ok": True}
+
+    oversized = client.post(
+        "/api/fsd/analyze",
+        content=b'{"payload":"' + (b"x" * fsd_api.MAX_BODY_BYTES) + b'"}',
+        headers={
+            "Content-Type": "application/json",
+            "X-Living-Archive-Provider-Key": "test-server-key",
+        },
+    )
+    assert oversized.status_code == 413
