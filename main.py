@@ -1,4 +1,4 @@
-# USE PRODUCTION CANDIDATE: v489.310 — Provider capacity diagnostics
+# USE PRODUCTION VERSION: v489.310 — Provider capacity diagnostics
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
