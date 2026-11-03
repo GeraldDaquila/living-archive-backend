@@ -53,6 +53,7 @@ def prepare_fsd_analysis(payload, retrieve):
             if item["url"] not in seen and len(evidence) < MAX_EVIDENCE:
                 seen.add(item["url"])
                 item["evidence_id"] = f"E{len(evidence)+1:02d}"
+                item["quantum_id"] = quantum
                 evidence.append(item)
     if not evidence:
         raise RuntimeError("No sufficient canonical evidence was retrieved.")
