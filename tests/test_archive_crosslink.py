@@ -1,5 +1,6 @@
 import pytest
 
+import archive_crosslink
 from archive_crosslink import build_inventory, fetch_crosslink_documents, select_crosslinks
 
 
@@ -254,5 +255,41 @@ def test_inventory_reports_url_aliases_without_treating_them_as_canonical():
     snapshot = build_inventory(FakeIndex(records), FakeCore())
     assert snapshot["metadata_key_counts"]["permalink"] == 1
     assert snapshot["url_field_presence"]["permalink"] == 1
+    assert snapshot["missing_url_asset_count"] == 1
+    assert snapshot["crosslink_ready"] is False
+
+
+
+def test_wp_id_and_exact_title_recover_canonical_url(monkeypatch):
+    title = "Stewardship Governance"
+    canonical_url = "https://geralddaquila.com/stewardship-governance/"
+    monkeypatch.setattr(
+        archive_crosslink,
+        "_load_wp_canonical_map",
+        lambda: {"123": {"url": canonical_url, "title_key": archive_crosslink._canonical_title_key(title)}},
+    )
+    records = [("v1", "", _record(title, "", "Governance and stewardship.", wp_id=123))]
+    snapshot = build_inventory(FakeIndex(records), FakeCore())
+    assert snapshot["complete"] is True
+    assert snapshot["crosslink_ready"] is True
+    assert snapshot["missing_url_asset_count"] == 0
+    assert snapshot["wp_id_url_recovered_vector_count"] == 1
+    assert snapshot["assets"][0]["url"] == canonical_url.rstrip("/").casefold()
+
+
+def test_wp_id_url_recovery_fails_closed_on_title_mismatch(monkeypatch):
+    title = "Stewardship Governance"
+    monkeypatch.setattr(
+        archive_crosslink,
+        "_load_wp_canonical_map",
+        lambda: {"123": {
+            "url": "https://geralddaquila.com/different-resource/",
+            "title_key": archive_crosslink._canonical_title_key("Different Resource"),
+        }},
+    )
+    records = [("v1", "", _record(title, "", "Governance and stewardship.", wp_id=123))]
+    snapshot = build_inventory(FakeIndex(records), FakeCore())
+    assert snapshot["wp_id_url_recovered_vector_count"] == 0
+    assert snapshot["wp_id_title_mismatch_vector_count"] == 1
     assert snapshot["missing_url_asset_count"] == 1
     assert snapshot["crosslink_ready"] is False
