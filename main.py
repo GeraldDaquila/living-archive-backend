@@ -198,7 +198,7 @@ def _guide_node_by_id(node_id):
     return None
 
 
-EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"
+EXPECTED_CORE_BLOB_SHA = "ca210e46d33e85b04b2ab52489566b8f3e1efc3f"
 _MAIN_PATH = Path(__file__).resolve()
 
 
