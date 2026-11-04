@@ -167,3 +167,10 @@ The browser privacy notice now accurately states that optional short description
 Latest FSD workflow at code head 00f244fd8c81479fe35a7a040a5dfe85f28f5d3b: **91 passed, 1 warning**. All nine ecosystem regression workflows passed on the subsequent documentation head 8eaa5a0abb1f94739df4e9265c71f93e2a3ff9a3. The warning is the existing Starlette TestClient/httpx deprecation notice; no test failures were recorded.
 
 WordPress proxy verification after the latest asset update: plugin v0.2.0 remains inactive; PHP source is accepted by Cowboy's PHP syntax gate; browser JS parses successfully; same-origin validation, server-only secret helper, episode endpoint target, accurate privacy notice, and absence of browser storage are confirmed. The published page 76640 is still unchanged and has no episode mount point. No live request or deployment has been performed.
+
+
+### WordPress asset cache-busting and privacy notice — 2026-11-04
+
+The WordPress proxy plugin version was advanced to v0.2.1 after the final browser-asset copy edits. Both enqueued CSS and JS assets now use the v0.2.1 cache key, preventing browsers from reusing the earlier v0.2.0 assets after activation. Cowboy's PHP write-time syntax gate passed; the final JS asset parses successfully. The proxy remains inactive and the published FSD application page remains unchanged.
+
+The UI privacy notice now states the actual data path: selections and optional short descriptions are sent to the USE backend; only structured selections are included in AI report composition; optional descriptions are not passed to the configured AI provider. Provider-side processing/retention terms may apply to the structured selections. No browser storage or analytics was added.
