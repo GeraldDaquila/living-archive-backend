@@ -1,0 +1,23 @@
+name: USE Provider Resilience Regression
+
+on:
+  push:
+    paths:
+      - 'provider_resilience.py'
+      - 'tests/test_provider_resilience.py'
+  pull_request:
+    paths:
+      - 'provider_resilience.py'
+      - 'tests/test_provider_resilience.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  provider-resilience:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run provider resilience regression suite
+        run: python -m unittest tests/test_provider_resilience.py -v
