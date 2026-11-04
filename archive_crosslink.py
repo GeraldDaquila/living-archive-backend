@@ -89,7 +89,7 @@ def _normalize_url(value: Any) -> str:
 
 def _canonical_title_key(value: Any) -> str:
     normalized = html.unescape(_text(value, 300)).casefold()
-    return re.sub(r"\\W+", " ", normalized).strip()
+    return re.sub(r"\W+", " ", normalized).strip()
 
 
 def _load_wp_canonical_map() -> dict[str, dict[str, str]]:
@@ -136,7 +136,7 @@ def _load_wp_canonical_map() -> dict[str, dict[str, str]]:
                     url = _normalize_url(item.get("link"))
                     if not wp_id.isdigit() or not title_key or not url:
                         continue
-                    if not re.match(r"^https://geralddaquila\\.com/\\S+$", url, re.I):
+                    if not re.match(r"^https://geralddaquila\.com/\S+$", url, re.I):
                         continue
                     entry = {"url": url, "title_key": title_key}
                     existing = registry.get(wp_id)
