@@ -272,6 +272,75 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
     ineligible_count = 0
     archived_count = 0
     truncated = False
+    listed_ids_by_namespace: dict[str, set[str]] = {}
+    fetched_ids_by_namespace: dict[str, set[str]] = {}
+
+    def ingest_vector(vector_id: str, vector: Any, namespace: str) -> None:
+        nonlocal missing_metadata, ineligible_count, wp_id_vector_count
+        nonlocal wp_id_url_recovered, wp_id_title_mismatch, wp_id_unmatched
+        root_id = str(getattr(core, "ROOT_NODE_ID", "") or "")
+        if root_id and str(vector_id) == root_id:
+            return
+        metadata = _metadata_for(vector)
+        if not metadata:
+            missing_metadata += 1
+            return
+        for metadata_key in metadata:
+            metadata_key_counts[str(metadata_key)] += 1
+        for candidate_field in url_field_candidates:
+            if _normalize_url(metadata.get(candidate_field)):
+                url_field_presence[candidate_field] += 1
+        if not _eligible(metadata, core):
+            ineligible_count += 1
+            return
+        title = _text(metadata.get("title") or metadata.get("name"), 300)
+        url = _normalize_url(metadata.get("url") or metadata.get("canonical_url"))
+        wp_id = str(metadata.get("wp_id") or "").strip()
+        if wp_id.isdigit():
+            wp_id_vector_count += 1
+            if not url:
+                wp_record = wp_canonical_map.get(wp_id)
+                if wp_record and _canonical_title_key(title) == wp_record["title_key"]:
+                    url = _normalize_url(wp_record["url"])
+                    wp_id_url_recovered += 1
+                elif wp_record:
+                    wp_id_title_mismatch += 1
+                else:
+                    wp_id_unmatched += 1
+        if not title:
+            missing_metadata += 1
+            return
+        key = "url:" + url if url else "title:" + re.sub(r"\\W+", " ", title.casefold()).strip()
+        if not key or key == "title:":
+            key = f"id:{namespace}:{vector_id}"
+        asset = assets.setdefault(key, {
+            "asset_key": key,
+            "title": title,
+            "url": url,
+            "namespace": namespace,
+            "tier": _text(metadata.get("tier") or metadata.get("archive_tier"), 40),
+            "resource_type": _text(metadata.get("resource_type") or metadata.get("type") or metadata.get("category"), 120),
+            "access_class": _text(metadata.get("access_class") or metadata.get("access"), 40),
+            "summary": "",
+            "sample": "",
+            "vector_refs": [],
+            "vector_count": 0,
+        })
+        asset["vector_count"] += 1
+        if len(asset["vector_refs"]) < 4:
+            asset["vector_refs"].append({"id": str(vector_id), "namespace": namespace})
+        summary = " ".join(filter(None, (
+            _text(metadata.get("summary"), 500),
+            _text(metadata.get("description"), 500),
+            _text(metadata.get("excerpt"), 500),
+            _text(metadata.get("keywords"), 300),
+            _text(metadata.get("tags"), 300),
+        )))
+        if summary and len(asset["summary"]) < 1200:
+            asset["summary"] = (asset["summary"] + " " + summary)[:1200]
+        sample = _text(metadata.get("text") or metadata.get("content") or metadata.get("body"), 1000)
+        if sample and len(asset["sample"]) < 2400:
+            asset["sample"] = (asset["sample"] + " " + sample)[:2400]
 
     for namespace, namespace_count in specs:
         token = None
@@ -305,6 +374,9 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
                 truncated = True
             listed_count += len(ids)
             namespace_listed += len(ids)
+            listed_namespace_ids = listed_ids_by_namespace.setdefault(namespace, set())
+            for vector_id in ids:
+                listed_namespace_ids.add(str(vector_id))
 
             _log(
                 "USE archive meta-crosslink inventory: status=running, "
@@ -328,72 +400,14 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
                 vectors = _field(response, "vectors", {}) or {}
                 if not isinstance(vectors, dict):
                     vectors = {}
-                fetched_count += len(vectors)
+                namespace_fetched_ids = fetched_ids_by_namespace.setdefault(namespace, set())
                 for vector_id, vector in vectors.items():
-                    root_id = str(getattr(core, "ROOT_NODE_ID", "") or "")
-                    if root_id and str(vector_id) == root_id:
+                    normalized_vector_id = str(vector_id)
+                    if normalized_vector_id in namespace_fetched_ids:
                         continue
-                    metadata = _metadata_for(vector)
-                    if not metadata:
-                        missing_metadata += 1
-                        continue
-                    for metadata_key in metadata:
-                        metadata_key_counts[str(metadata_key)] += 1
-                    for candidate_field in url_field_candidates:
-                        if _normalize_url(metadata.get(candidate_field)):
-                            url_field_presence[candidate_field] += 1
-                    if not _eligible(metadata, core):
-                        ineligible_count += 1
-                        continue
-
-                    title = _text(metadata.get("title") or metadata.get("name"), 300)
-                    url = _normalize_url(metadata.get("url") or metadata.get("canonical_url"))
-                    wp_id = str(metadata.get("wp_id") or "").strip()
-                    if wp_id.isdigit():
-                        wp_id_vector_count += 1
-                        if not url:
-                            wp_record = wp_canonical_map.get(wp_id)
-                            if wp_record and _canonical_title_key(title) == wp_record["title_key"]:
-                                url = _normalize_url(wp_record["url"])
-                                wp_id_url_recovered += 1
-                            elif wp_record:
-                                wp_id_title_mismatch += 1
-                            else:
-                                wp_id_unmatched += 1
-                    if not title:
-                        missing_metadata += 1
-                        continue
-                    key = "url:" + url if url else "title:" + re.sub(r"\W+", " ", title.casefold()).strip()
-                    if not key or key == "title:":
-                        key = f"id:{namespace}:{vector_id}"
-                    asset = assets.setdefault(key, {
-                        "asset_key": key,
-                        "title": title,
-                        "url": url,
-                        "namespace": namespace,
-                        "tier": _text(metadata.get("tier") or metadata.get("archive_tier"), 40),
-                        "resource_type": _text(metadata.get("resource_type") or metadata.get("type") or metadata.get("category"), 120),
-                        "access_class": _text(metadata.get("access_class") or metadata.get("access"), 40),
-                        "summary": "",
-                        "sample": "",
-                        "vector_refs": [],
-                        "vector_count": 0,
-                    })
-                    asset["vector_count"] += 1
-                    if len(asset["vector_refs"]) < 4:
-                        asset["vector_refs"].append({"id": str(vector_id), "namespace": namespace})
-                    summary = " ".join(filter(None, (
-                        _text(metadata.get("summary"), 500),
-                        _text(metadata.get("description"), 500),
-                        _text(metadata.get("excerpt"), 500),
-                        _text(metadata.get("keywords"), 300),
-                        _text(metadata.get("tags"), 300),
-                    )))
-                    if summary and len(asset["summary"]) < 1200:
-                        asset["summary"] = (asset["summary"] + " " + summary)[:1200]
-                    sample = _text(metadata.get("text") or metadata.get("content") or metadata.get("body"), 1000)
-                    if sample and len(asset["sample"]) < 2400:
-                        asset["sample"] = (asset["sample"] + " " + sample)[:2400]
+                    namespace_fetched_ids.add(normalized_vector_id)
+                    fetched_count += 1
+                    ingest_vector(normalized_vector_id, vector, namespace)
 
             token = _next_token(page)
             if token and token in seen_tokens:
@@ -405,6 +419,44 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
         if namespace_count is not None and namespace_listed != namespace_count:
             # Do not claim complete coverage if Pinecone's count and listing disagree.
             truncated = True
+
+    # Retry IDs that were listed but omitted from a fetch response.
+    for namespace, namespace_ids in listed_ids_by_namespace.items():
+        missing_ids = sorted(namespace_ids - fetched_ids_by_namespace.get(namespace, set()))
+        for attempt in range(1, 3):
+            if not missing_ids:
+                break
+            _log(
+                "USE archive meta-crosslink inventory: status=retrying, "
+                f"namespace={namespace or '__default__'}, missing_fetch_ids={len(missing_ids)}, attempt={attempt}"
+            )
+            for offset in range(0, len(missing_ids), _PAGE_SIZE):
+                if time.monotonic() - started > _INVENTORY_WALL_BUDGET_SECONDS:
+                    raise RuntimeError("inventory wall-clock budget exceeded during missing-vector retry")
+                batch = missing_ids[offset:offset + _PAGE_SIZE]
+                try:
+                    response = _pinecone_call(index.fetch, ids=batch, namespace=namespace)
+                except Exception as exc:
+                    _log(
+                        "USE archive meta-crosslink inventory: status=retry_failed, "
+                        f"namespace={namespace or '__default__'}, attempt={attempt}, error={type(exc).__name__}"
+                    )
+                    continue
+                vectors = _field(response, "vectors", {}) or {}
+                if not isinstance(vectors, dict):
+                    continue
+                namespace_fetched_ids = fetched_ids_by_namespace.setdefault(namespace, set())
+                for vector_id, vector in vectors.items():
+                    normalized_vector_id = str(vector_id)
+                    if normalized_vector_id in namespace_fetched_ids:
+                        continue
+                    namespace_fetched_ids.add(normalized_vector_id)
+                    fetched_count += 1
+                    ingest_vector(normalized_vector_id, vector, namespace)
+            missing_ids = sorted(namespace_ids - fetched_ids_by_namespace.get(namespace, set()))
+
+    unique_listed_count = sum(len(ids) for ids in listed_ids_by_namespace.values())
+    duplicate_listed_count = max(0, listed_count - unique_listed_count)
 
     # Repair chunk-level URL omissions only when an exact title maps to one
     # and only one canonical URL. Ambiguous duplicate titles remain unlinked.
@@ -441,8 +493,8 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
     complete = (
         not truncated
         and expected_total is not None
-        and listed_count == expected_total
-        and fetched_count == listed_count
+        and unique_listed_count == expected_total
+        and fetched_count == unique_listed_count
         and missing_metadata == 0
     )
     missing_url_assets = sum(1 for asset in assets.values() if not asset.get("url"))
@@ -457,6 +509,8 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
         "expected_vector_count": expected_total,
         "dimension": dimension,
         "listed_vector_count": listed_count,
+        "unique_listed_vector_count": unique_listed_count,
+        "duplicate_listed_vector_count": duplicate_listed_count,
         "fetched_vector_count": fetched_count,
         "asset_count": len(assets),
         "missing_metadata_count": missing_metadata,
@@ -467,7 +521,7 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
         "wp_id_url_recovered_vector_count": wp_id_url_recovered,
         "wp_id_title_mismatch_vector_count": wp_id_title_mismatch,
         "wp_id_unmatched_vector_count": wp_id_unmatched,
-        "unfetched_vector_count": max(0, listed_count - fetched_count),
+        "unfetched_vector_count": max(0, unique_listed_count - fetched_count),
         "ineligible_vector_count": ineligible_count,
         "duplicate_title_count": duplicate_titles,
         "namespace_count": len(specs),
@@ -528,6 +582,8 @@ def _refresh_worker(index: Any, core: Any) -> None:
             f"status={snapshot['status']}, namespaces={snapshot['namespace_count']}, "
             f"vectors={snapshot['listed_vector_count']}/{snapshot['expected_vector_count']}, "
             f"fetched_vectors={snapshot['fetched_vector_count']}/{snapshot['listed_vector_count']}, "
+            f"unique_listed_vectors={snapshot['unique_listed_vector_count']}, "
+            f"duplicate_listed_vectors={snapshot['duplicate_listed_vector_count']}, "
             f"unfetched_vectors={snapshot['unfetched_vector_count']}, "
             f"assets={snapshot['asset_count']}, missing_metadata={snapshot['missing_metadata_count']}, "
             f"missing_urls={snapshot['missing_url_asset_count']}, "
