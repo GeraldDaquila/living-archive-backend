@@ -66,9 +66,8 @@ def test_rejects_unknown_or_external_archive_reference():
 def test_rejects_report_claiming_archive_verifies_episode():
     candidate = report()
     candidate["episode_observation"] = "The Archive independently verifies the event."
-    result = validate_episode_report(candidate, episode(), refs())
-    assert result["episode_provenance"]["independently_verified"] is False
-    assert "do not verify" in result["archive_reference_notice"]
+    with pytest.raises(FSDEpisodeReportError):
+        validate_episode_report(candidate, episode(), refs())
 
 
 def test_rejects_internal_reasoning_terms_and_extra_fields():
