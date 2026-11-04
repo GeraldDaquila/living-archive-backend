@@ -147,3 +147,12 @@ def test_non_change_reason_is_required_when_response_absent_and_not_applicable_w
                                           understanding_action_link="no_response_or_unknown"))
     with pytest.raises(FSDEpisodeContractError):
         validate_episode_payload(episode(non_change_reason="not_warranted"))
+
+
+def test_rejects_action_claim_when_no_meaningful_response_was_available():
+    with pytest.raises(FSDEpisodeContractError):
+        validate_episode_payload(episode(
+            subsequent_response="decision_or_action_changed",
+            response_available="no",
+            non_change_reason="not_applicable",
+        ))
