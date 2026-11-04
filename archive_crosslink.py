@@ -354,7 +354,7 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
                         if not url:
                             wp_record = wp_canonical_map.get(wp_id)
                             if wp_record and _canonical_title_key(title) == wp_record["title_key"]:
-                                url = wp_record["url"]
+                                url = _normalize_url(wp_record["url"])
                                 wp_id_url_recovered += 1
                             elif wp_record:
                                 wp_id_title_mismatch += 1
