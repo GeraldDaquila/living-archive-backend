@@ -106,8 +106,6 @@ MODEL_CAPABILITIES = {
     ("openrouter", "google/gemma-4-31b-it:free"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis"}),
     ("gemini", "gemini-3.8-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
     ("mistral", "mistral-small-latest"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "low_latency"}),
-    ("zai", "glm-4.7-flash"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
-    ("zai", "glm-4.5-flash"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
     # NVIDIA-hosted endpoints are admitted only for the three reviewed model IDs.
     # Capability claims are conservative and every result still passes the same
     # provider-neutral JSON and visitor-facing contract validators.
@@ -1192,9 +1190,6 @@ def _configured(use_core):
         out["gemini"] = resolve_model_list("gemini", _csv("USE_GEMINI_MODELS") or ["gemini-3.8-flash"])
     if os.getenv("MISTRAL_API_KEY"):
         out["mistral"] = _csv("USE_MISTRAL_MODELS") or ["mistral-small-latest"]
-    zai_key = str(os.getenv("ZAI_API_KEY") or "").strip()
-    if zai_key and not zai_key.casefold().startswith(("replace_with_", "your_", "placeholder")):
-        out["zai"] = _csv("USE_ZAI_MODELS") or ["glm-4.7-flash", "glm-4.5-flash"]
     nvidia_key = str(os.getenv("NVIDIA_API_KEY") or "").strip()
     # A deployment placeholder is deliberately not treated as a usable secret.
     if nvidia_key and not nvidia_key.casefold().startswith(("replace_with_", "your_", "placeholder")):
@@ -2492,11 +2487,6 @@ def _call(use_core, item, messages, max_tokens, schema=None, timeout_override=No
         key = os.getenv("MISTRAL_API_KEY")
         if not key: raise ProviderCallError("Mistral API key unavailable", provider, model, category="unavailable")
         return _openai_compatible("https://api.mistral.ai/v1", key, provider, model, messages, max_tokens, schema, timeout=timeout_override)
-    if provider == "zai":
-        key = str(os.getenv("ZAI_API_KEY") or "").strip()
-        if not key or key.casefold().startswith(("replace_with_", "your_", "placeholder")):
-            raise ProviderCallError("Z.ai API key unavailable", provider, model, category="unavailable")
-        return _openai_compatible("https://api.z.ai/api/paas/v4", key, provider, model, messages, max_tokens, schema, timeout=timeout_override)
     if provider == "nvidia":
         key = str(os.getenv("NVIDIA_API_KEY") or "").strip()
         if not key or key.casefold().startswith(("replace_with_", "your_", "placeholder")):
@@ -3246,7 +3236,6 @@ def capacity_diagnostics(use_core):
         "openrouter": str(os.getenv("OPENROUTER_API_KEY") or "").strip(),
         "gemini": str(os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY") or "").strip(),
         "mistral": str(os.getenv("MISTRAL_API_KEY") or "").strip(),
-        "zai": str(os.getenv("ZAI_API_KEY") or "").strip(),
         "nvidia": nvidia_credential,
         "workers_ai": (cloudflare_token + ":" + cloudflare_account) if cloudflare_token and cloudflare_account else "",
         "cloudflare_gateway": (cloudflare_token + ":" + cloudflare_account) if cloudflare_token and cloudflare_account else "",
