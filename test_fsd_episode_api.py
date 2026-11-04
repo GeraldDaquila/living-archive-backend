@@ -113,3 +113,78 @@ def test_episode_prompt_prevents_unsupported_strengths_and_enabling_conditions(m
     assert "Do not invent strengths or enabling conditions" in prompt
     assert "otherwise return an empty list" in prompt
     assert "suggestions, not claims about what happened" in prompt
+
+
+
+def _route_client(monkeypatch):
+    app = FastAPI()
+    fsd_episode_api._REGISTERED_APPS.clear()
+    fsd_episode_api.register_fsd_episode_routes(app, object())
+    client = TestClient(app)
+    monkeypatch.setattr(fsd_episode_api, "authorize_provider_gateway", lambda token: None)
+    monkeypatch.setattr(fsd_episode_api, "_run_episode_analysis", lambda payload, use_core: {"ok": True})
+    return client
+
+
+def test_http_route_rejects_malformed_json(monkeypatch):
+    client = _route_client(monkeypatch)
+    response = client.post(
+        "/api/fsd/analyze-episode",
+        content=b"{not-json",
+        headers={"X-Living-Archive-Provider-Key": "synthetic", "Content-Type": "application/json"},
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "FSD request must be valid JSON."
+
+
+def test_http_route_rejects_oversized_content_length_before_reading_body(monkeypatch):
+    client = _route_client(monkeypatch)
+    response = client.post(
+        "/api/fsd/analyze-episode",
+        content=b"{}",
+        headers={
+            "X-Living-Archive-Provider-Key": "synthetic",
+            "Content-Type": "application/json",
+            "Content-Length": str(fsd_episode_api.MAX_BODY_BYTES + 1),
+        },
+    )
+    assert response.status_code == 413
+
+
+def test_http_route_applies_rate_limit_before_body_processing(monkeypatch):
+    client = _route_client(monkeypatch)
+
+    def deny(_bucket):
+        raise HTTPException(status_code=429, detail="rate limited")
+
+    monkeypatch.setattr(fsd_episode_api, "_check_rate_limit", deny)
+    response = client.post(
+        "/api/fsd/analyze-episode",
+        content=b"{not-json",
+        headers={"X-Living-Archive-Provider-Key": "synthetic", "Content-Type": "application/json"},
+    )
+    assert response.status_code == 429
+
+
+def test_provider_failure_returns_bounded_unavailable_response(monkeypatch):
+    monkeypatch.setattr(
+        fsd_episode_api,
+        "execute_provider_gateway",
+        lambda **kwargs: (_ for _ in ()).throw(RuntimeError("synthetic provider failure")),
+    )
+    with pytest.raises(HTTPException) as error:
+        fsd_episode_api._run_episode_analysis(episode(), FakeUseCore())
+    assert error.value.status_code == 503
+    assert error.value.detail == {"code": "fsd_provider_bank_unavailable"}
+
+
+def test_invalid_provider_report_is_rejected_without_leaking_report_content(monkeypatch):
+    monkeypatch.setattr(
+        fsd_episode_api,
+        "execute_provider_gateway",
+        lambda **kwargs: {"ok": True, "result": {"unexpected": "synthetic private payload"}},
+    )
+    with pytest.raises(HTTPException) as error:
+        fsd_episode_api._run_episode_analysis(episode(), FakeUseCore())
+    assert error.value.status_code == 502
+    assert error.value.detail == {"code": "fsd_episode_report_rejected"}
