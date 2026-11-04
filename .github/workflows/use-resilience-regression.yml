@@ -1,0 +1,23 @@
+name: USE Resilience Regression
+
+on:
+  push:
+    paths:
+      - 'boundary_resilience.py'
+      - 'tests/test_boundary_resilience.py'
+  pull_request:
+    paths:
+      - 'boundary_resilience.py'
+      - 'tests/test_boundary_resilience.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  boundary-resilience:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run authority-boundary regression suite
+        run: python -m unittest discover -s tests -p 'test_boundary_resilience.py' -v
