@@ -26,6 +26,16 @@ VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
 
+def _emit_guide_outcome(outcome: str, **fields: Any) -> None:
+    """Emit compact telemetry through stdout and the named logger."""
+    parts = ["guide_outcome", f"outcome={outcome}"]
+    for key, value in fields.items():
+        if value not in (None, ""):
+            parts.append(f"{key}={str(value).replace(' ', '_')}")
+    message = " ".join(parts)
+    print(message, flush=True)
+    _TELEMETRY_LOG.info(message)
+
 # Repeated identical Guide questions must not be re-composed by whichever
 # provider happens to be next in the rotating Provider Bank. Cache only the
 # validated visitor-facing composition, keyed by the exact question, recent
@@ -2238,7 +2248,7 @@ def compose(
             else None
         )
         if relationship_recovery is not None:
-            _TELEMETRY_LOG.info("guide_outcome outcome=provider_exhaustion_fallback recovery=conceptual_relationship")
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="conceptual_relationship")
             return {
                 "response": relationship_recovery,
                 "doorway_title": "",
@@ -2251,14 +2261,14 @@ def compose(
         # the generic Archive-definition fallback to answer the wrong subject.
         constitutional_recovery = _archive_constitutional_recovery(question, documents)
         if constitutional_recovery is not None:
-            _TELEMETRY_LOG.info("guide_outcome outcome=provider_exhaustion_fallback recovery=constitutional")
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="constitutional")
             return constitutional_recovery
         evidence_recovery = _default_gold_standard_evidence_recovery(question, documents)
         if evidence_recovery is not None:
-            _TELEMETRY_LOG.info("guide_outcome outcome=provider_exhaustion_fallback recovery=evidence")
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="evidence")
             return evidence_recovery
         if _requires_recurring_problem_explanation(question):
-            _TELEMETRY_LOG.info("guide_outcome outcome=provider_exhaustion_fallback recovery=recurring_problem")
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="recurring_problem")
             return {
                 "response": _recurring_problem_explanation_recovery(),
                 "doorway_title": "",
@@ -2267,7 +2277,7 @@ def compose(
                 "model": "",
             }
         if _requires_intergenerational_stewardship(question):
-            _TELEMETRY_LOG.info("guide_outcome outcome=provider_exhaustion_fallback recovery=intergenerational_stewardship")
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="intergenerational_stewardship")
             return {
                 "response": _intergenerational_stewardship_recovery(),
                 "doorway_title": "",
@@ -2276,7 +2286,7 @@ def compose(
                 "model": "deterministic-contract-recovery",
             }
         if _requires_outcome_evaluation_guidance(question):
-            _TELEMETRY_LOG.info("guide_outcome outcome=provider_exhaustion_fallback recovery=outcome_evaluation")
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="outcome_evaluation")
             return {
                 "response": _outcome_evaluation_recovery(),
                 "doorway_title": "",
@@ -2297,7 +2307,7 @@ def compose(
     provider_key = candidate["provider"] + ":" + candidate["model"]
     preference_order = result.get("preference_order") or []
     outcome = "llm_failover_success" if preference_order and provider_key != str(preference_order[0]) else "llm_primary_success"
-    _TELEMETRY_LOG.info("guide_outcome outcome=%s provider=%s model=%s", outcome, candidate["provider"], candidate["model"])
+    _emit_guide_outcome(outcome, provider=candidate["provider"], model=candidate["model"])
 
     # Responsibility-boundary validation is intentionally owned by the final
     # runtime response boundary in main.py. Enforcing it here alone is insufficient:
