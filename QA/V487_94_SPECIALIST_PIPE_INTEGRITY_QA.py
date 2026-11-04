@@ -10,6 +10,8 @@ import hashlib
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# systems_ph activation is an explicit registry evolution.
+
 PROTECTED = {
     "use_core.py": "fb3208a8d287f16562ffd640d89f65d5e8d18607",
     "specialist_adapters.py": "ca87205fe9634f8bd22b77c5ceca44b0074fb3fa",
