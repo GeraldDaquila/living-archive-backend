@@ -60,6 +60,60 @@ class ProviderHealthStoreTests(unittest.TestCase):
         result = provider_bank._ensure_json_object_instruction(messages, {"mode": "text"})
         self.assertEqual(result, messages)
 
+    def test_shared_health_identity_is_scoped_to_exact_provider_credential(self):
+        with patch.dict("os.environ", {"GROQ_API_KEY": "primary-secret"}):
+            primary = provider_bank._credential_fingerprint("groq")
+            primary_key = provider_bank._model_state_key("groq", "model-a", primary)
+        with patch.dict("os.environ", {"GROQ_API_KEY": "secondary-secret"}):
+            secondary = provider_bank._credential_fingerprint("groq")
+            secondary_key = provider_bank._model_state_key("groq", "model-a", secondary)
+        with patch.dict("os.environ", {"GROQ_API_KEY": "primary-secret"}):
+            same = provider_bank._credential_fingerprint("groq")
+        self.assertNotEqual(primary, secondary)
+        self.assertEqual(primary, same)
+        self.assertNotEqual(primary_key, secondary_key)
+        self.assertNotIn("primary-secret", primary_key)
+        self.assertEqual(len(primary), 20)
+
+    def test_shared_sync_ignores_legacy_and_other_credential_health(self):
+        provider = "groq"
+        model = "model-isolation-test"
+        with patch.dict("os.environ", {"GROQ_API_KEY": "secondary-secret"}):
+            local_fp = provider_bank._credential_fingerprint(provider)
+            state = {"models": {}, "quality": {}, "provider_cursor": 0, "model_cursors": {}}
+            remote = {
+                "legacy:groq:model-isolation-test": {
+                    "provider": provider, "model": model, "state": "open",
+                    "credential_fingerprint": local_fp, "last_failure": 100,
+                },
+                "v2:other-credential": {
+                    "provider": provider, "model": model, "state": "open",
+                    "credential_fingerprint": "0" * 20, "last_failure": 200,
+                },
+                "v2:matching-credential": {
+                    "provider": provider, "model": model, "state": "open",
+                    "credential_fingerprint": local_fp, "last_failure": 300,
+                    "cooldown_until": 500, "quarantine_until": 0,
+                    "failures": 1, "consecutive_failures": 1, "category": "rate_limited",
+                },
+            }
+            with patch.object(provider_bank, "_STATE", state), \
+                 patch.object(provider_bank, "load_remote_states_nonblocking", return_value=remote):
+                provider_bank._sync_shared_state()
+            self.assertEqual(len(state["models"]), 1)
+            merged = next(iter(state["models"].values()))
+            self.assertEqual(merged["credential_fingerprint"], local_fp)
+            self.assertEqual(merged["last_failure"], 300)
+            self.assertEqual(merged["state"], "open")
+
+    def test_quality_state_key_is_credential_scoped(self):
+        with patch.dict("os.environ", {"GROQ_API_KEY": "primary-secret"}):
+            primary = provider_bank._quality_key("generic", "groq", "model-a")
+        with patch.dict("os.environ", {"GROQ_API_KEY": "secondary-secret"}):
+            secondary = provider_bank._quality_key("generic", "groq", "model-a")
+        self.assertNotEqual(primary, secondary)
+        self.assertTrue(primary.startswith("quality:v2:"))
+
     def test_shared_health_bridge_timeout_cannot_consume_inference_budget(self):
         self.assertLessEqual(TIMEOUT_SECONDS, 0.3)
 
