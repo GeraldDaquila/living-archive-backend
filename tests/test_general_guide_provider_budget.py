@@ -74,8 +74,8 @@ def test_general_guide_uses_bounded_timeout_and_one_independent_fallback(monkeyp
     assert result is not None
     assert result["provider"] == "workers_ai"
     assert calls == [
-        ("gemini", provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS),
-        ("workers_ai", provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS),
+        ("gemini", provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS),
+        ("workers_ai", provider_bank.GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS),
     ]
 
 
@@ -106,7 +106,8 @@ def test_general_guide_uses_remaining_independent_candidates_within_window(monke
 
     assert result is None
     assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
-    assert all(timeout == provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS for _, timeout in calls)
+    assert calls[0][1] == provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
+    assert all(timeout == provider_bank.GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS for _, timeout in calls[1:])
     assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
     assert clock.value == pytest.approx(0.75)
 
