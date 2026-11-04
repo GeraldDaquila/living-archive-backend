@@ -78,7 +78,10 @@ HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
 # without serially walking slow candidates or extending the visitor's time budget.
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 8.0
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 2
-GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 6.0
+# Reserve meaningful time for one independent fallback. A six-second first call
+# inside an eight-second visitor window can otherwise turn a slow timeout into
+# an effective single-shot architecture.
+GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 4.0
 FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS = 12.0
 
 # Only production models with the structured-output capability required by the
