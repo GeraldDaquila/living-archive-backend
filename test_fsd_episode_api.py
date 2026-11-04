@@ -103,3 +103,13 @@ def test_http_route_auth_and_no_store_headers(monkeypatch):
     accepted = client.post("/api/fsd/analyze-episode", json=episode(), headers={"X-Living-Archive-Provider-Key": "secret"})
     assert accepted.status_code == 200
     assert accepted.headers["cache-control"].startswith("no-store")
+
+
+def test_episode_prompt_prevents_unsupported_strengths_and_enabling_conditions(monkeypatch):
+    calls = {}
+    monkeypatch.setattr(fsd_episode_api, "execute_provider_gateway", lambda **kwargs: (calls.update(kwargs) or {"ok": True, "result": {**REPORT, "archive_reference_ids": []}}))
+    fsd_episode_api._run_episode_analysis(episode(), FakeUseCore())
+    prompt = calls["messages"][0]["content"]
+    assert "Do not invent strengths or enabling conditions" in prompt
+    assert "otherwise return an empty list" in prompt
+    assert "suggestions, not claims about what happened" in prompt
