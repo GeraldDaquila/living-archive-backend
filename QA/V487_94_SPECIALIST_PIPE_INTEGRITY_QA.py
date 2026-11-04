@@ -35,7 +35,7 @@ def main():
 
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert "FormationAdapter()" in main_source
-    assert 'route_id in {"relationship", "formation"}' in main_source
+    assert 'route_id in {"relationship", "formation", "systems_ph"}' in main_source
     assert 'route_id == "systems_ph"' in main_source
     assert "PhilippineSystemsAdapter()" in main_source
     assert '"FORMATION_HANDOFF"' in main_source
