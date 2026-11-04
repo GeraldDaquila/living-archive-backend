@@ -802,48 +802,19 @@ def _runtime_log_prefix() -> str:
         f"pid={RUNTIME_PROCESS_ID}"
     )
 
-# Browser access is restricted to explicitly configured Living Archive origins.
-# Server-to-server requests are unaffected by CORS.
-_DEFAULT_CORS_ORIGINS = (
-    "https://geralddaquila.com",
-    "https://www.geralddaquila.com",
-)
-_CONFIGURED_CORS_ORIGINS = tuple(
-    origin.strip().rstrip("/")
-    for origin in os.getenv("USE_CORS_ALLOWED_ORIGINS", "").split(",")
-    if origin.strip()
-)
-CORS_ALLOWED_ORIGINS = frozenset(_CONFIGURED_CORS_ORIGINS or _DEFAULT_CORS_ORIGINS)
-CORS_COMMON_HEADERS = {
+CORS_RESPONSE_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, HEAD, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
     "Access-Control-Max-Age": "600",
 }
-SECURITY_RESPONSE_HEADERS = {
-    "X-Content-Type-Options": "nosniff",
-    "X-Frame-Options": "DENY",
-    "Referrer-Policy": "no-referrer",
-    "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
-}
-
-def _cors_headers_for_request(request: Request):
-    origin = str(request.headers.get("origin") or "").strip().rstrip("/")
-    if origin and origin in CORS_ALLOWED_ORIGINS:
-        return {**CORS_COMMON_HEADERS, "Access-Control-Allow-Origin": origin, "Vary": "Origin"}
-    return dict(CORS_COMMON_HEADERS)
 
 
 @app.middleware("http")
 async def api_boundary(request: Request, call_next):
     """Guarantee a readable browser response at the outer API boundary."""
     if request.method == "OPTIONS":
-        origin = str(request.headers.get("origin") or "").strip().rstrip("/")
-        if origin and origin not in CORS_ALLOWED_ORIGINS:
-            return Response(status_code=403, headers=SECURITY_RESPONSE_HEADERS)
-        return Response(
-            status_code=204,
-            headers={**_cors_headers_for_request(request), **SECURITY_RESPONSE_HEADERS},
-        )
+        return Response(status_code=204, headers=CORS_RESPONSE_HEADERS)
 
     request_id = uuid.uuid4().hex
     request.state.use_request_id = request_id
@@ -862,7 +833,7 @@ async def api_boundary(request: Request, call_next):
             f"request_id={request_id}, {_runtime_log_prefix()}, error={exc}"
         )
         response = JSONResponse(
-            status_code=500,
+            status_code=200,
             content={
                 "ok": False,
                 "version": APP_VERSION,
@@ -871,10 +842,8 @@ async def api_boundary(request: Request, call_next):
             },
         )
 
-    for header, value in _cors_headers_for_request(request).items():
+    for header, value in CORS_RESPONSE_HEADERS.items():
         response.headers[header] = value
-    for header, value in SECURITY_RESPONSE_HEADERS.items():
-        response.headers.setdefault(header, value)
 
     response.headers["X-USE-Build-ID"] = CANONICAL_BUILD_ID
     response.headers["X-USE-Version"] = APP_VERSION
