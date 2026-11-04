@@ -45,6 +45,11 @@ def test_multiple_candidate_failures_persist_one_shared_health_snapshot(monkeypa
 
     assert result is None
     assert len(writes) == 1
-    assert set(writes[0]) >= {"groq:model-a", "nvidia:model-b"}
+    assert len(writes[0]) == 2
+    assert all(key.startswith("v2:") for key in writes[0])
+    assert {(value["provider"], value["model"]) for value in writes[0].values()} == {
+        ("groq", "model-a"), ("nvidia", "model-b")
+    }
+    assert all(value.get("credential_fingerprint") == "" for value in writes[0].values())
     assert provider_bank._PERSIST_CONTEXT.defer is False
     assert provider_bank._PERSIST_CONTEXT.dirty is False

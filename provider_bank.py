@@ -267,10 +267,19 @@ def _sync_shared_state(nonblocking=True):
     for key, incoming in remote.items():
         if not isinstance(incoming, dict):
             continue
-        if key.startswith("quality:"):
-            provider = str(incoming.get("provider") or "")
-            model = str(incoming.get("model") or "")
+        provider = str(incoming.get("provider") or "")
+        model = str(incoming.get("model") or "")
+        incoming_fingerprint = str(incoming.get("credential_fingerprint") or "")
+        # Ignore legacy unscoped records and records belonging to a different
+        # API credential. This makes a rotated key immediately independent too.
+        if not provider or not model or not incoming_fingerprint:
+            continue
+        if incoming_fingerprint != _credential_fingerprint(provider):
+            continue
+        if key.startswith("quality:v2:"):
             operation = str(incoming.get("operation") or "")
+            if not operation:
+                continue
             quality_states = _STATE.setdefault("quality", {})
             local = quality_states.get(key)
             if local is None:
@@ -278,6 +287,7 @@ def _sync_shared_state(nonblocking=True):
                     "provider": provider,
                     "model": model,
                     "operation": operation,
+                    "credential_fingerprint": incoming_fingerprint,
                     "quality_failures": 0,
                     "last_quality_failure": 0.0,
                     "last_quality_success": 0.0,
@@ -287,12 +297,13 @@ def _sync_shared_state(nonblocking=True):
                 quality_states[key] = local
             merge_health_state(local, incoming, now=now)
             continue
-        provider = str(incoming.get("provider") or key.split(":", 1)[0])
-        model = str(incoming.get("model") or key.split(":", 1)[-1])
+        if not key.startswith("v2:"):
+            continue
         local = _STATE["models"].get(key)
         if local is None:
             local = new_state(provider, model)
             _STATE["models"][key] = local
+        local["credential_fingerprint"] = incoming_fingerprint
         merge_health_state(local, incoming, now=now)
     _SHARED_STATE_DIAGNOSTICS.update({
         "mode": "shared_wordpress_database",
@@ -371,13 +382,49 @@ def _safe_provider_error_summary(exc, category=None):
 def _csv(name):
     return [x.strip() for x in os.getenv(name, "").split(",") if x.strip()]
 
+
+def _credential_fingerprint(provider):
+    """Return a one-way identity for the credential actually used by this lane."""
+    provider = str(provider or "").strip().lower()
+    if provider == "groq":
+        credential = str(os.getenv("GROQ_API_KEY") or "").strip()
+    elif provider == "openrouter":
+        credential = str(os.getenv("OPENROUTER_API_KEY") or "").strip()
+    elif provider == "gemini":
+        credential = str(os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY") or "").strip()
+    elif provider == "mistral":
+        credential = str(os.getenv("MISTRAL_API_KEY") or "").strip()
+    elif provider == "nvidia":
+        credential = str(os.getenv("NVIDIA_API_KEY") or "").strip()
+        if credential.casefold().startswith(("replace_with_", "your_", "placeholder")):
+            credential = ""
+    elif provider in {"workers_ai", "cloudflare_gateway"}:
+        token, account = _cloudflare_credentials()
+        credential = token + ":" + account if token and account else ""
+    else:
+        credential = ""
+    if not credential:
+        return ""
+    return hashlib.sha256(credential.encode("utf-8")).hexdigest()[:20]
+
+
+def _model_state_key(provider, model, fingerprint):
+    identity = f"{provider}:{model}:{fingerprint}"
+    return "v2:" + hashlib.sha256(identity.encode("utf-8")).hexdigest()[:32]
+
+
 def _state(provider, model):
-    key = provider + ":" + model
-    return _STATE["models"].setdefault(key, new_state(provider, model))
+    fingerprint = _credential_fingerprint(provider)
+    key = _model_state_key(provider, model, fingerprint or "unconfigured")
+    state = _STATE["models"].setdefault(key, new_state(provider, model))
+    state["credential_fingerprint"] = fingerprint
+    return state
 
 
 def _quality_key(operation, provider, model):
-    return "quality:" + str(operation) + ":" + provider + ":" + model
+    fingerprint = _credential_fingerprint(provider) or "unconfigured"
+    identity = f"{operation}:{provider}:{model}:{fingerprint}"
+    return "quality:v2:" + hashlib.sha256(identity.encode("utf-8")).hexdigest()[:32]
 
 
 def _quality_state(operation, provider, model, create=False):
@@ -391,6 +438,7 @@ def _quality_state(operation, provider, model, create=False):
         "provider": provider,
         "model": model,
         "operation": str(operation),
+        "credential_fingerprint": _credential_fingerprint(provider),
         "quality_failures": 0,
         "last_quality_failure": 0.0,
         "last_quality_success": 0.0,
@@ -564,8 +612,15 @@ def _failure(exc, provider, model, operation=None):
     provider_wide = category in {"authentication", "quota_or_billing", "terms_required", "free_tier_daily_quota"}
     if provider_wide:
         until = time.time() + delay
-        for key, sibling in _STATE["models"].items():
-            if key == provider + ":" + model or not key.startswith(provider + ":"):
+        current_fingerprint = str(state.get("credential_fingerprint") or "")
+        for sibling in _STATE["models"].values():
+            if sibling is state:
+                continue
+            if str(sibling.get("provider") or "") != provider:
+                continue
+            # Provider-wide account failures may quarantine sibling models only
+            # when they use the same credential identity in this process.
+            if str(sibling.get("credential_fingerprint") or "") != current_fingerprint:
                 continue
             sibling["state"] = "open"
             sibling["category"] = category
