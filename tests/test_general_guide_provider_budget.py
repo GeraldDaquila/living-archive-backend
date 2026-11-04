@@ -203,11 +203,12 @@ def test_general_guide_stops_after_slow_failure_consumes_recovery_margin(monkeyp
     )
 
     assert result is None
-    assert calls == [("gemini", 4.0), ("workers_ai", 4.0)]
-    assert provider_bank.GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS == 4.0
+    assert calls == [("gemini", 3.0), ("workers_ai", 4.0)]
+    assert provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS == 3.0
+    assert provider_bank.GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS == 4.0
     assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 8.0
     assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
-    assert clock.value == 8.0
+    assert clock.value == 7.0
 
 def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
     _isolate(monkeypatch)
