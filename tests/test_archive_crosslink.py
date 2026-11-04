@@ -338,3 +338,48 @@ def test_wordpress_registry_loads_published_post_and_page_identity(monkeypatch):
     assert registry["456"]["url"] == "https://geralddaquila.com/the-world-he-carried"
     assert len(calls) == 2
     assert all(timeout == 3.0 for _, timeout in calls)
+
+
+
+def test_inventory_retries_transient_missing_fetch_vectors():
+    class FlakyFetchIndex(FakeIndex):
+        def __init__(self, records):
+            super().__init__(records)
+            self.fetch_attempts = 0
+
+        def fetch(self, *, ids, namespace=""):
+            self.fetch_attempts += 1
+            if self.fetch_attempts == 1:
+                return {"vectors": {}}
+            return super().fetch(ids=ids, namespace=namespace)
+
+    records = [("v1", "", _record(
+        "Stewardship Governance",
+        "https://geralddaquila.com/stewardship-governance/",
+        "Governance and stewardship.",
+    ))]
+    index = FlakyFetchIndex(records)
+    snapshot = build_inventory(index, FakeCore())
+    assert index.fetch_attempts == 2
+    assert snapshot["complete"] is True
+    assert snapshot["fetched_vector_count"] == 1
+    assert snapshot["unfetched_vector_count"] == 0
+
+
+def test_inventory_deduplicates_repeated_ids_across_pages():
+    class DuplicateListIndex(FakeIndex):
+        def list_paginated(self, *, limit, pagination_token=None, namespace=""):
+            if pagination_token is None:
+                return {"vectors": [{"id": "v1"}], "pagination": {"next": "next-page"}}
+            return {"vectors": [{"id": "v1"}], "pagination": None}
+
+    records = [("v1", "", _record(
+        "Stewardship Governance",
+        "https://geralddaquila.com/stewardship-governance/",
+        "Governance and stewardship.",
+    ))]
+    snapshot = build_inventory(DuplicateListIndex(records), FakeCore())
+    assert snapshot["complete"] is True
+    assert snapshot["listed_vector_count"] == 2
+    assert snapshot["unique_listed_vector_count"] == 1
+    assert snapshot["duplicate_listed_vector_count"] == 1
