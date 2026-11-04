@@ -230,10 +230,14 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
         and fetched_count == listed_count
         and missing_metadata == 0
     )
+    missing_url_assets = sum(1 for asset in assets.values() if not asset.get("url"))
+    crosslink_ready = complete and missing_url_assets == 0
     return {
         "contract": "archive-crosslink-inventory-v1",
         "status": "complete" if complete else "incomplete",
         "complete": complete,
+        "crosslink_ready": crosslink_ready,
+        "missing_url_asset_count": missing_url_assets,
         "expected_vector_count": expected_total,
         "listed_vector_count": listed_count,
         "fetched_vector_count": fetched_count,
@@ -280,7 +284,8 @@ def _refresh_worker(index: Any, core: Any) -> None:
             "USE archive meta-crosslink inventory: "
             f"status={snapshot['status']}, namespaces={snapshot['namespace_count']}, "
             f"vectors={snapshot['listed_vector_count']}/{snapshot['expected_vector_count']}, "
-            f"assets={snapshot['asset_count']}, duplicates={snapshot['duplicate_title_count']}"
+            f"assets={snapshot['asset_count']}, missing_urls={snapshot['missing_url_asset_count']}, "
+            f"crosslink_ready={snapshot['crosslink_ready']}, duplicates={snapshot['duplicate_title_count']}"
         )
     except Exception as exc:
         print(f"USE archive meta-crosslink inventory unavailable: {type(exc).__name__}")
@@ -322,7 +327,7 @@ def select_crosslinks(
     limit: int = _MAX_ASSETS_PER_QUERY,
 ) -> list[dict[str, Any]]:
     """Rank public canonical assets across the complete inventory."""
-    if not isinstance(snapshot, dict) or not snapshot.get("complete"):
+    if not isinstance(snapshot, dict) or not snapshot.get("crosslink_ready"):
         return []
     query_tokens = _tokens(query)
     if not query_tokens:
@@ -395,7 +400,7 @@ def expand_context(
     """Return a small, verified evidence expansion; never use partial inventories."""
     with _LOCK:
         snapshot = _SNAPSHOT
-    if snapshot is None or not snapshot.get("complete"):
+    if snapshot is None or not snapshot.get("crosslink_ready"):
         start_refresh(index, core)
         return []
     assets = select_crosslinks(query, seed_documents, snapshot)
