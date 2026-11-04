@@ -172,6 +172,14 @@ def register_fsd_episode_routes(app: Any, use_core: Any) -> None:
         return
     _REGISTERED_APPS.add(app_id)
 
+    @app.middleware("http")
+    async def fsd_episode_no_store_middleware(request: Request, call_next):
+        response = await call_next(request)
+        if request.url.path == "/api/fsd/analyze-episode":
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+        return response
+
     @app.post("/api/fsd/analyze-episode")
     async def fsd_analyze_episode(request: Request):
         authorize_provider_gateway(request.headers.get("X-Living-Archive-Provider-Key"))
