@@ -4203,6 +4203,43 @@ def _relationship_specialist_response(query, history, route, request_id, raw_bod
     }
 
 
+def _philippine_systems_specialist_response(query, history, route, request_id):
+    """Run the Philippine Systems Lens through the common specialist pipe."""
+    interpretation = route.get("round1_interpretation") or {}
+    hub_request = build_hub_request(
+        request_id=request_id,
+        guide_version=APP_VERSION,
+        original_question=query,
+        recognized_territory="Philippine systems",
+        processing_purpose="bounded Philippine systems orientation",
+        guide_context={"conversation": _history_text(history), "route_interpretation": interpretation},
+        safety_state="green",
+    )
+    contribution = route_spoke(
+        request=hub_request,
+        specialist_id="systems_ph",
+        invoke=lambda **kwargs: invoke_specialist(SPECIALIST_ADAPTER_REGISTRY, **kwargs),
+    )
+    payload = dict(contribution.payload or {})
+    candidates = list(contribution.canonical_candidates or [])
+    canonical_url = ""
+    if candidates and isinstance(candidates[0], dict):
+        canonical_url = str(candidates[0].get("url") or "")
+    return {
+        "response": "This question may be clearer when viewed as an interacting Philippine system rather than as a single cause or sector.",
+        "systems_delegation": {
+            "state": "available",
+            "specialist": "Philippine Systems Lens",
+            "specialist_id": "systems_ph",
+            "interpretation": contribution.interpretation,
+            "perspectives": contribution.perspectives or [],
+            "movement": contribution.movement,
+            "canonical_url": canonical_url or payload.get("canonical_lens_url", ""),
+            "contextual_inquiry_available": bool(payload.get("contextual_inquiry_available")),
+        },
+    }
+
+
 def _formation_specialist_response(query, history, route, request_id):
     """Run Formation through the common specialist pipe and integrate it into Guide output."""
     interpretation = route.get("round1_interpretation") or {}
