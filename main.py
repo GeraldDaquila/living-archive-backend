@@ -90,16 +90,23 @@ _original_guide_handle_query = use_core.handle_query
 # Warm the full-corpus inventory asynchronously. The visitor request path never
 # waits for a cold Pinecone enumeration and incomplete inventories are ignored.
 _crosslink_index = getattr(use_core, "index", None)
-if _crosslink_index is not None:
+_crosslink_service_id = os.getenv("RENDER_SERVICE_ID")
+_crosslink_primary_only = archive_crosslink.should_start_refresh(_crosslink_service_id)
+if not _crosslink_primary_only:
+    print(
+        "USE archive meta-crosslink startup: primary_only=True, refresh_started=False",
+        flush=True,
+    )
+elif _crosslink_index is not None:
     _crosslink_started = archive_crosslink.start_refresh(_crosslink_index, use_core)
     print(
         "USE archive meta-crosslink startup: "
-        f"index_available=True, refresh_started={_crosslink_started}",
+        f"index_available=True, refresh_started={_crosslink_started}, primary_only=True",
         flush=True,
     )
 else:
     print(
-        "USE archive meta-crosslink startup: index_available=False, refresh_started=False",
+        "USE archive meta-crosslink startup: index_available=False, refresh_started=False, primary_only=True",
         flush=True,
     )
 APP_VERSION = "v489.310"

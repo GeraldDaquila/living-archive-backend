@@ -36,6 +36,7 @@ _LAST_ATTEMPT = 0.0
 _RETRY_SECONDS = 60
 _PINECONE_REQUEST_TIMEOUT = 15
 _CROSSLINK_FETCH_TIMEOUT = 5
+_PRIMARY_RENDER_SERVICE_ID = "srv-da98sm2jnfac73d2ki5g"
 _INVENTORY_WALL_BUDGET_SECONDS = 600
 _REFRESH_THREAD: threading.Thread | None = None
 
@@ -169,6 +170,12 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
     listed_count = 0
     fetched_count = 0
     missing_metadata = 0
+    metadata_key_counts: Counter[str] = Counter()
+    url_field_presence: Counter[str] = Counter()
+    url_field_candidates = (
+        "url", "canonical_url", "permalink", "source_url", "sourceUrl",
+        "wp_url", "post_url", "origin_url", "href", "link", "guid",
+    )
     ineligible_count = 0
     archived_count = 0
     truncated = False
@@ -237,6 +244,11 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
                     if not metadata:
                         missing_metadata += 1
                         continue
+                    for metadata_key in metadata:
+                        metadata_key_counts[str(metadata_key)] += 1
+                    for candidate_field in url_field_candidates:
+                        if _normalize_url(metadata.get(candidate_field)):
+                            url_field_presence[candidate_field] += 1
                     if not _eligible(metadata, core):
                         ineligible_count += 1
                         continue
@@ -343,6 +355,9 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
         "fetched_vector_count": fetched_count,
         "asset_count": len(assets),
         "missing_metadata_count": missing_metadata,
+        "metadata_key_counts": dict(metadata_key_counts),
+        "url_field_presence": dict(url_field_presence),
+        "unfetched_vector_count": max(0, listed_count - fetched_count),
         "ineligible_vector_count": ineligible_count,
         "duplicate_title_count": duplicate_titles,
         "namespace_count": len(specs),
@@ -350,6 +365,15 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
         "elapsed_seconds": elapsed,
         "refreshed_at": time.time(),
     }
+
+
+def should_start_refresh(service_id: str | None) -> bool:
+    """Only the canonical primary Render service owns the full-corpus snapshot.
+
+    A missing service ID is treated as local development, where refresh remains enabled.
+    """
+    normalized = str(service_id or "").strip()
+    return not normalized or normalized == _PRIMARY_RENDER_SERVICE_ID
 
 
 def start_refresh(index: Any, core: Any, *, force: bool = False) -> bool:
@@ -393,8 +417,11 @@ def _refresh_worker(index: Any, core: Any) -> None:
             "USE archive meta-crosslink inventory: "
             f"status={snapshot['status']}, namespaces={snapshot['namespace_count']}, "
             f"vectors={snapshot['listed_vector_count']}/{snapshot['expected_vector_count']}, "
+            f"fetched_vectors={snapshot['fetched_vector_count']}/{snapshot['listed_vector_count']}, "
+            f"unfetched_vectors={snapshot['unfetched_vector_count']}, "
             f"assets={snapshot['asset_count']}, missing_metadata={snapshot['missing_metadata_count']}, "
             f"missing_urls={snapshot['missing_url_asset_count']}, "
+            f"url_field_presence={snapshot['url_field_presence']}, metadata_keys={sorted(snapshot['metadata_key_counts'])}, "
             f"crosslink_ready={snapshot['crosslink_ready']}, duplicates={snapshot['duplicate_title_count']}, "
             f"elapsed_seconds={snapshot['elapsed_seconds']}"
         )
@@ -526,5 +553,6 @@ __all__ = [
     "fetch_crosslink_documents",
     "inventory_snapshot",
     "select_crosslinks",
+    "should_start_refresh",
     "start_refresh",
 ]
