@@ -166,3 +166,9 @@ def test_ambiguous_or_nonconsequential_experience_produces_insufficient_evidence
     result = interpret_episode(episode(**{field: value}))
     assert result["correspondence"] == "insufficient_evidence"
     assert result["overall"] == "insufficient_evidence"
+
+
+def test_unknown_prior_understanding_prevents_correspondence_claim():
+    result = interpret_episode(episode(prior_understanding="unknown"))
+    assert result["correspondence"] == "insufficient_evidence"
+    assert result["overall"] == "insufficient_evidence"
