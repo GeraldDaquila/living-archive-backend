@@ -373,10 +373,10 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
                 ids = ids[:max(0, max_vectors - listed_count)]
                 truncated = True
             listed_count += len(ids)
-            namespace_listed += len(ids)
             listed_namespace_ids = listed_ids_by_namespace.setdefault(namespace, set())
-            for vector_id in ids:
-                listed_namespace_ids.add(str(vector_id))
+            new_ids = [str(vector_id) for vector_id in ids if str(vector_id) not in listed_namespace_ids]
+            listed_namespace_ids.update(new_ids)
+            namespace_listed += len(new_ids)
 
             _log(
                 "USE archive meta-crosslink inventory: status=running, "
