@@ -258,6 +258,8 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
 
 def start_refresh(index: Any, core: Any, *, force: bool = False) -> bool:
     """Start one bounded background inventory refresh per process."""
+    if index is None:
+        return False
     global _REFRESH_THREAD, _LAST_ATTEMPT
     now = time.monotonic()
     with _LOCK:
@@ -407,6 +409,8 @@ def expand_context(
     core: Any,
 ) -> list[dict[str, str]]:
     """Return a small, verified evidence expansion; never use partial inventories."""
+    if index is None:
+        return []
     with _LOCK:
         snapshot = _SNAPSHOT
     if snapshot is None or not snapshot.get("crosslink_ready"):
