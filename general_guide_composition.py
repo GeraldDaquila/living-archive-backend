@@ -2092,7 +2092,7 @@ def compose(
     # never eligible for deterministic enforcement.
     registered_standard = None if integrity_recovery else _registered_exact_gold_standard(question)
     if registered_standard is not None:
-        _TELEMETRY_LOG.info("guide_outcome outcome=deterministic_boundary source=registered_gold_standard")
+        _emit_guide_outcome("deterministic_boundary", source="registered_gold_standard")
         return {
             "response": registered_standard["expected_response"],
             "doorway_title": registered_standard.get("doorway_title", ""),
