@@ -238,7 +238,7 @@ def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
     )
 
     assert result is None
-    assert calls == [("gemini", 5.0)]
+    assert calls == [("gemini", provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS)]
     assert clock.value == pytest.approx(4.8)
 
 
