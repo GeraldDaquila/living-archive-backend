@@ -240,3 +240,19 @@ def test_full_corpus_refresh_is_primary_only_on_render():
     assert should_start_refresh("srv-db2s2bid0e5s73e7gt9g") is False
     assert should_start_refresh(None) is True
     assert should_start_refresh("") is True
+
+
+
+def test_inventory_reports_url_aliases_without_treating_them_as_canonical():
+    records = [
+        ("v1", "", {
+            "title": "Stewardship Governance",
+            "permalink": "https://geralddaquila.com/stewardship-governance/",
+            "text": "Governance and stewardship.",
+        }),
+    ]
+    snapshot = build_inventory(FakeIndex(records), FakeCore())
+    assert snapshot["metadata_key_counts"]["permalink"] == 1
+    assert snapshot["url_field_presence"]["permalink"] == 1
+    assert snapshot["missing_url_asset_count"] == 1
+    assert snapshot["crosslink_ready"] is False
