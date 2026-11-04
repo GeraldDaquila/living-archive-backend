@@ -230,3 +230,13 @@ def test_visitor_crosslink_fetch_uses_short_timeout():
     docs = fetch_crosslink_documents(index, FakeCore(), selected)
     assert len(docs) == 1
     assert index.fetch_timeouts == [15, 5]
+
+
+
+def test_full_corpus_refresh_is_primary_only_on_render():
+    from archive_crosslink import should_start_refresh
+
+    assert should_start_refresh("srv-da98sm2jnfac73d2ki5g") is True
+    assert should_start_refresh("srv-db2s2bid0e5s73e7gt9g") is False
+    assert should_start_refresh(None) is True
+    assert should_start_refresh("") is True
