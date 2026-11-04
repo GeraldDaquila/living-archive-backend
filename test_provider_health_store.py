@@ -93,7 +93,7 @@ class ProviderHealthStoreTests(unittest.TestCase):
                 "v2:matching-credential": {
                     "provider": provider, "model": model, "state": "open",
                     "credential_fingerprint": local_fp, "last_failure": 300,
-                    "cooldown_until": 500, "quarantine_until": 0,
+                    "cooldown_until": time.time() + 500, "quarantine_until": 0,
                     "failures": 1, "consecutive_failures": 1, "category": "rate_limited",
                 },
             }
@@ -189,8 +189,8 @@ class ProviderHealthStoreTests(unittest.TestCase):
     def test_groq_model_daily_token_limit_uses_provider_retry_window(self):
         state = {
             "models": {
-                provider_bank._model_state_key("groq", "openai/gpt-oss-20b", provider_bank._credential_fingerprint("groq")): dict(provider_bank.new_state("groq", "openai/gpt-oss-20b"), credential_fingerprint=provider_bank._credential_fingerprint("groq")),
-                provider_bank._model_state_key("groq", "openai/gpt-oss-120b", provider_bank._credential_fingerprint("groq")): dict(provider_bank.new_state("groq", "openai/gpt-oss-120b"), credential_fingerprint=provider_bank._credential_fingerprint("groq")),
+                provider_bank._model_state_key("groq", "openai/gpt-oss-20b", provider_bank._credential_fingerprint("groq") or "unconfigured"): dict(provider_bank.new_state("groq", "openai/gpt-oss-20b"), credential_fingerprint=provider_bank._credential_fingerprint("groq")),
+                provider_bank._model_state_key("groq", "openai/gpt-oss-120b", provider_bank._credential_fingerprint("groq") or "unconfigured"): dict(provider_bank.new_state("groq", "openai/gpt-oss-120b"), credential_fingerprint=provider_bank._credential_fingerprint("groq")),
             },
             "quality": {},
             "provider_cursor": 0,
