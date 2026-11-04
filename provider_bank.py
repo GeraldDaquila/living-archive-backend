@@ -612,8 +612,15 @@ def _failure(exc, provider, model, operation=None):
     provider_wide = category in {"authentication", "quota_or_billing", "terms_required", "free_tier_daily_quota"}
     if provider_wide:
         until = time.time() + delay
-        for key, sibling in _STATE["models"].items():
-            if key == provider + ":" + model or not key.startswith(provider + ":"):
+        current_fingerprint = str(state.get("credential_fingerprint") or "")
+        for sibling in _STATE["models"].values():
+            if sibling is state:
+                continue
+            if str(sibling.get("provider") or "") != provider:
+                continue
+            # Provider-wide account failures may quarantine sibling models only
+            # when they use the same credential identity in this process.
+            if str(sibling.get("credential_fingerprint") or "") != current_fingerprint:
                 continue
             sibling["state"] = "open"
             sibling["category"] = category
