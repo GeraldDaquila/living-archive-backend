@@ -10577,3 +10577,49 @@ def ecosystem_integration_audit():
             "It does not assert live provider health or end-to-end visitor journey success.",
         ],
     }
+
+
+# Strict browser-origin boundary layered outside the protected runtime core.
+# It strips permissive legacy CORS headers and permits canonical origins only.
+_ALLOWED_BROWSER_ORIGINS = {"https://geralddaquila.com", "https://www.geralddaquila.com"}
+_ALLOWED_CORS_METHODS = "GET, POST, HEAD, OPTIONS"
+_ALLOWED_CORS_HEADERS = "Content-Type, Authorization, X-Requested-With"
+
+class _StrictCorsBoundary:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+        headers = {k.lower(): v for k, v in scope.get("headers") or []}
+        origin_raw = headers.get(b"origin", b"")
+        origin = origin_raw.decode("latin-1") if origin_raw else ""
+        method = str(scope.get("method") or "").upper()
+        if method == "OPTIONS" and origin and headers.get(b"access-control-request-method"):
+            response_headers = []
+            if origin in _ALLOWED_BROWSER_ORIGINS:
+                response_headers = [
+                    (b"access-control-allow-origin", origin.encode("latin-1")),
+                    (b"vary", b"Origin"),
+                    (b"access-control-allow-methods", _ALLOWED_CORS_METHODS.encode("latin-1")),
+                    (b"access-control-allow-headers", _ALLOWED_CORS_HEADERS.encode("latin-1")),
+                    (b"access-control-max-age", b"600"),
+                ]
+            await send({"type": "http.response.start", "status": 204, "headers": response_headers})
+            await send({"type": "http.response.body", "body": b""})
+            return
+
+        async def strict_send(message):
+            if message.get("type") == "http.response.start":
+                retained = [(key, value) for key, value in (message.get("headers") or []) if not key.lower().startswith(b"access-control-")]
+                if origin in _ALLOWED_BROWSER_ORIGINS:
+                    retained.extend([(b"access-control-allow-origin", origin.encode("latin-1")), (b"vary", b"Origin")])
+                message = dict(message)
+                message["headers"] = retained
+            await send(message)
+
+        await self.app(scope, receive, strict_send)
+
+app = _StrictCorsBoundary(app)
