@@ -55,7 +55,7 @@ _BACKGROUND_WRITE_LAST_AT = 0.0
 STATE_FIELDS = (
     "provider", "model", "operation", "last_operation", "state", "failures", "consecutive_failures",
     "cooldown_until", "quarantine_until", "last_error", "last_success",
-    "last_failure", "category", "quality_failures", "last_quality_failure",
+    "last_failure", "category", "credential_fingerprint", "quality_failures", "last_quality_failure",
     "last_quality_success", "quality_cooldown_until", "quality_error",
 )
 
@@ -102,6 +102,9 @@ def _sanitize_health_diagnostics(state):
             category = "provider_failure"
             state["category"] = category
         state["last_error"] = value if safe else "exception=LegacyDiagnostic category=" + category
+    fingerprint = state.get("credential_fingerprint")
+    if fingerprint is not None and not re.fullmatch(r"[0-9a-f]{20}", str(fingerprint)):
+        state["credential_fingerprint"] = ""
     quality_error = state.get("quality_error")
     if quality_error:
         value = str(quality_error).strip()
