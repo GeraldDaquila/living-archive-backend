@@ -168,6 +168,9 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
                     vectors = {}
                 fetched_count += len(vectors)
                 for vector_id, vector in vectors.items():
+                    root_id = str(getattr(core, "ROOT_NODE_ID", "") or "")
+                    if root_id and str(vector_id) == root_id:
+                        continue
                     metadata = _metadata_for(vector)
                     if not metadata:
                         missing_metadata += 1
@@ -289,7 +292,8 @@ def _refresh_worker(index: Any, core: Any) -> None:
             "USE archive meta-crosslink inventory: "
             f"status={snapshot['status']}, namespaces={snapshot['namespace_count']}, "
             f"vectors={snapshot['listed_vector_count']}/{snapshot['expected_vector_count']}, "
-            f"assets={snapshot['asset_count']}, missing_urls={snapshot['missing_url_asset_count']}, "
+            f"assets={snapshot['asset_count']}, missing_metadata={snapshot['missing_metadata_count']}, "
+            f"missing_urls={snapshot['missing_url_asset_count']}, "
             f"crosslink_ready={snapshot['crosslink_ready']}, duplicates={snapshot['duplicate_title_count']}"
         )
     except Exception as exc:
