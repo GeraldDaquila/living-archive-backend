@@ -2294,7 +2294,9 @@ def compose(
         "provider": str(result.get("provider") or ""),
         "model": str(result.get("model") or ""),
     }
-    outcome = "llm_failover_success" if str(result.get("provider") or "") and result.get("preference_order") and str(result.get("provider")) != str(result.get("preference_order")[0]).split(":", 1)[0] else "llm_primary_success"
+    provider_key = candidate["provider"] + ":" + candidate["model"]
+    preference_order = result.get("preference_order") or []
+    outcome = "llm_failover_success" if preference_order and provider_key != str(preference_order[0]) else "llm_primary_success"
     _TELEMETRY_LOG.info("guide_outcome outcome=%s provider=%s model=%s", outcome, candidate["provider"], candidate["model"])
 
     # Responsibility-boundary validation is intentionally owned by the final
