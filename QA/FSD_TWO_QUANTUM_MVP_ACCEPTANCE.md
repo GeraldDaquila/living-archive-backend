@@ -141,3 +141,8 @@ The FSD workflow now includes the episode request contract, episode report prove
 7. Review and approve before merge or deployment.
 
 The production release boundary remains unchanged: no live WordPress content, proxy activation, feature flag, Render environment variable, or production deployment is authorized by this candidate work.
+
+
+### Current candidate-head verification — 2026-11-04
+
+At candidate head a79a2c5de5b2e2496d58879b00ae8a0b00a03abc, the FSD contract workflow completed successfully with 89 passed and 1 warning. All nine distinct cross-workflow checks completed successfully: FSD Two-Quantum Contract, v487 production validation, Provider health regression, Provider Bank gateway secret rotation regression, Guide Provider Diagnostics and Pathway Attribution, Guide Provider Health Latency Budget, General Guide provider-bank regression, Guide Woody Mocked UI Continuity Contract, and General Guide Composition Validation. These are CI/automated checks only; they do not replace live WordPress proxy → primary → mirror E2E, UI review, privacy disclosure, or release approval.
