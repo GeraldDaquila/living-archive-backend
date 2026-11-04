@@ -39,6 +39,10 @@ _INVENTORY_WALL_BUDGET_SECONDS = 600
 _REFRESH_THREAD: threading.Thread | None = None
 
 
+def _log(message: str) -> None:
+    print(message, flush=True)
+
+
 def _field(value: Any, key: str, default: Any = None) -> Any:
     if isinstance(value, dict):
         return value.get(key, default)
@@ -147,13 +151,13 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
         raise RuntimeError("Canonical Pinecone index is unavailable")
     started = time.monotonic()
     stage = "describe_index_stats"
-    print("USE archive meta-crosslink inventory: status=starting, stage=describe_index_stats")
+    _log("USE archive meta-crosslink inventory: status=starting, stage=describe_index_stats")
     try:
         specs, expected_total, dimension = _namespace_specs(index)
     except Exception as exc:
-        print(f"USE archive meta-crosslink inventory: status=failed, stage={stage}, error={type(exc).__name__}")
+        _log(f"USE archive meta-crosslink inventory: status=failed, stage={stage}, error={type(exc).__name__}")
         raise
-    print(
+    _log(
         "USE archive meta-crosslink inventory: status=running, stage=namespace_plan, "
         f"namespaces={len(specs)}, expected_vectors={expected_total}, dimension={dimension}"
     )
@@ -181,7 +185,7 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
             try:
                 page = _list_page(index, namespace, token)
             except Exception as exc:
-                print(
+                _log(
                     "USE archive meta-crosslink inventory: status=failed, "
                     f"stage={stage}, error={type(exc).__name__}, "
                     f"listed_vectors={listed_count}, fetched_vectors={fetched_count}"
@@ -201,7 +205,7 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
             listed_count += len(ids)
             namespace_listed += len(ids)
 
-            print(
+            _log(
                 "USE archive meta-crosslink inventory: status=running, "
                 f"stage={stage}, namespace={namespace or '__default__'}, "
                 f"page_vectors={len(ids)}, listed_vectors={listed_count}/{expected_total}"
@@ -214,7 +218,7 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
                 try:
                     response = _pinecone_call(index.fetch, ids=batch, namespace=namespace)
                 except Exception as exc:
-                    print(
+                    _log(
                         "USE archive meta-crosslink inventory: status=failed, "
                         f"stage={stage}, error={type(exc).__name__}, "
                         f"listed_vectors={listed_count}, fetched_vectors={fetched_count}"
@@ -371,19 +375,20 @@ def start_refresh(index: Any, core: Any, *, force: bool = False) -> bool:
         _REFRESH_THREAD = thread
         _LAST_ATTEMPT = now
         thread.start()
+        _log("USE archive meta-crosslink inventory: refresh_scheduled=true")
         return True
 
 
 def _refresh_worker(index: Any, core: Any) -> None:
     global _SNAPSHOT, _LAST_REFRESH, _REFRESH_THREAD
     worker_started = time.monotonic()
-    print("USE archive meta-crosslink inventory: worker_started=true")
+    _log("USE archive meta-crosslink inventory: worker_started=true")
     try:
         snapshot = build_inventory(index, core)
         with _LOCK:
             _SNAPSHOT = snapshot
             _LAST_REFRESH = time.monotonic()
-        print(
+        _log(
             "USE archive meta-crosslink inventory: "
             f"status={snapshot['status']}, namespaces={snapshot['namespace_count']}, "
             f"vectors={snapshot['listed_vector_count']}/{snapshot['expected_vector_count']}, "
@@ -393,7 +398,7 @@ def _refresh_worker(index: Any, core: Any) -> None:
             f"elapsed_seconds={snapshot['elapsed_seconds']}"
         )
     except Exception as exc:
-        print(f"USE archive meta-crosslink inventory unavailable: error={type(exc).__name__}, elapsed_seconds={round(time.monotonic() - worker_started, 3)}")
+        _log(f"USE archive meta-crosslink inventory unavailable: error={type(exc).__name__}, elapsed_seconds={round(time.monotonic() - worker_started, 3)}")
     finally:
         with _LOCK:
             _REFRESH_THREAD = None
