@@ -223,6 +223,33 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
             # Do not claim complete coverage if Pinecone's count and listing disagree.
             truncated = True
 
+    # Repair chunk-level URL omissions only when an exact title maps to one
+    # and only one canonical URL. Ambiguous duplicate titles remain unlinked.
+    title_urls: dict[str, set[str]] = {}
+    for asset_key, asset in assets.items():
+        if asset.get("url"):
+            title_key = re.sub(r"\W+", " ", asset["title"].casefold()).strip()
+            title_urls.setdefault(title_key, set()).add(asset_key)
+    for asset_key, asset in list(assets.items()):
+        if asset.get("url"):
+            continue
+        title_key = re.sub(r"\W+", " ", asset["title"].casefold()).strip()
+        matches = title_urls.get(title_key, set())
+        if len(matches) != 1:
+            continue
+        target = assets[next(iter(matches))]
+        target["vector_count"] += asset["vector_count"]
+        for ref in asset["vector_refs"]:
+            if len(target["vector_refs"]) >= 4:
+                break
+            if ref not in target["vector_refs"]:
+                target["vector_refs"].append(ref)
+        if asset.get("summary"):
+            target["summary"] = (target["summary"] + " " + asset["summary"])[:1200]
+        if asset.get("sample"):
+            target["sample"] = (target["sample"] + " " + asset["sample"])[:2400]
+        del assets[asset_key]
+
     titles: dict[str, set[str]] = {}
     for asset in assets.values():
         title_key = re.sub(r"\W+", " ", asset["title"].casefold()).strip()
