@@ -106,9 +106,8 @@ MODEL_CAPABILITIES = {
     ("openrouter", "google/gemma-4-31b-it:free"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis"}),
     ("gemini", "gemini-3.8-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "vision", "low_latency"}),
     ("mistral", "mistral-small-latest"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "low_latency"}),
-    ("cerebras", "zai-glm-4.7"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
-    ("cerebras", "gpt-oss-120b"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
-    ("sambanova", "Meta-Llama-3.3-70B-Instruct"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "long_context", "composition", "relational_analysis", "low_latency"}),
+    ("zai", "glm-4.7-flash"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
+    ("zai", "glm-4.5-flash"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
     # NVIDIA-hosted endpoints are admitted only for the three reviewed model IDs.
     # Capability claims are conservative and every result still passes the same
     # provider-neutral JSON and visitor-facing contract validators.
@@ -1124,6 +1123,9 @@ def _cloudflare_credentials():
     """Read canonical Cloudflare credentials without pasted whitespace."""
     token = str(os.getenv("CLOUDFLARE_API_TOKEN") or "").strip()
     account = str(os.getenv("CLOUDFLARE_ACCOUNT_ID") or "").strip()
+    invalid = ("replace_with_", "your_", "placeholder")
+    if token.casefold().startswith(invalid) or account.casefold().startswith(invalid):
+        return "", ""
     return token, account
 
 
@@ -1190,13 +1192,9 @@ def _configured(use_core):
         out["gemini"] = resolve_model_list("gemini", _csv("USE_GEMINI_MODELS") or ["gemini-3.8-flash"])
     if os.getenv("MISTRAL_API_KEY"):
         out["mistral"] = _csv("USE_MISTRAL_MODELS") or ["mistral-small-latest"]
-    cerebras_key = str(os.getenv("CEREBRAS_API_KEY") or "").strip()
-    if cerebras_key and not cerebras_key.casefold().startswith(("replace_with_", "your_", "placeholder")):
-        out["cerebras"] = _csv("USE_CEREBRAS_MODELS") or ["zai-glm-4.7", "gpt-oss-120b"]
-    sambanova_key = str(os.getenv("SAMBANOVA_API_KEY") or "").strip()
-    sambanova_models = _csv("USE_SAMBANOVA_MODELS")
-    if sambanova_key and sambanova_models and not sambanova_key.casefold().startswith(("replace_with_", "your_", "placeholder")):
-        out["sambanova"] = sambanova_models
+    zai_key = str(os.getenv("ZAI_API_KEY") or "").strip()
+    if zai_key and not zai_key.casefold().startswith(("replace_with_", "your_", "placeholder")):
+        out["zai"] = _csv("USE_ZAI_MODELS") or ["glm-4.7-flash", "glm-4.5-flash"]
     nvidia_key = str(os.getenv("NVIDIA_API_KEY") or "").strip()
     # A deployment placeholder is deliberately not treated as a usable secret.
     if nvidia_key and not nvidia_key.casefold().startswith(("replace_with_", "your_", "placeholder")):
@@ -2494,21 +2492,16 @@ def _call(use_core, item, messages, max_tokens, schema=None, timeout_override=No
         key = os.getenv("MISTRAL_API_KEY")
         if not key: raise ProviderCallError("Mistral API key unavailable", provider, model, category="unavailable")
         return _openai_compatible("https://api.mistral.ai/v1", key, provider, model, messages, max_tokens, schema, timeout=timeout_override)
+    if provider == "zai":
+        key = str(os.getenv("ZAI_API_KEY") or "").strip()
+        if not key or key.casefold().startswith(("replace_with_", "your_", "placeholder")):
+            raise ProviderCallError("Z.ai API key unavailable", provider, model, category="unavailable")
+        return _openai_compatible("https://api.z.ai/api/paas/v4", key, provider, model, messages, max_tokens, schema, timeout=timeout_override)
     if provider == "nvidia":
         key = str(os.getenv("NVIDIA_API_KEY") or "").strip()
         if not key or key.casefold().startswith(("replace_with_", "your_", "placeholder")):
             raise ProviderCallError("NVIDIA API key unavailable", provider, model, category="unavailable")
         return _openai_compatible("https://integrate.api.nvidia.com/v1", key, provider, model, messages, max_tokens, schema, timeout=timeout_override)
-    if provider == "cerebras":
-        key = str(os.getenv("CEREBRAS_API_KEY") or "").strip()
-        if not key or key.casefold().startswith(("replace_with_", "your_", "placeholder")):
-            raise ProviderCallError("Cerebras API key unavailable", provider, model, category="unavailable")
-        return _openai_compatible("https://api.cerebras.ai/v1", key, provider, model, messages, max_tokens, schema, timeout=timeout_override)
-    if provider == "sambanova":
-        key = str(os.getenv("SAMBANOVA_API_KEY") or "").strip()
-        if not key or key.casefold().startswith(("replace_with_", "your_", "placeholder")):
-            raise ProviderCallError("SambaNova API key unavailable", provider, model, category="unavailable")
-        return _openai_compatible("https://api.sambanova.ai/v1", key, provider, model, messages, max_tokens, schema, timeout=timeout_override)
     if provider == "cloudflare_gateway":
         token, account = _cloudflare_credentials()
         if not token or not account: raise ProviderCallError("Cloudflare credentials unavailable", provider, model, category="unavailable")
@@ -3253,8 +3246,7 @@ def capacity_diagnostics(use_core):
         "openrouter": str(os.getenv("OPENROUTER_API_KEY") or "").strip(),
         "gemini": str(os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GEMINI_API_KEY") or "").strip(),
         "mistral": str(os.getenv("MISTRAL_API_KEY") or "").strip(),
-        "cerebras": str(os.getenv("CEREBRAS_API_KEY") or "").strip(),
-        "sambanova": str(os.getenv("SAMBANOVA_API_KEY") or "").strip(),
+        "zai": str(os.getenv("ZAI_API_KEY") or "").strip(),
         "nvidia": nvidia_credential,
         "workers_ai": (cloudflare_token + ":" + cloudflare_account) if cloudflare_token and cloudflare_account else "",
         "cloudflare_gateway": (cloudflare_token + ":" + cloudflare_account) if cloudflare_token and cloudflare_account else "",
