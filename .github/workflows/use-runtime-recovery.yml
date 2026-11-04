@@ -1,0 +1,27 @@
+name: USE Runtime Recovery Invariants
+
+on:
+  push:
+    paths:
+      - 'main.py'
+      - 'use_core.py'
+      - 'boundary_resilience.py'
+      - 'tests/test_runtime_recovery_invariants.py'
+  pull_request:
+    paths:
+      - 'main.py'
+      - 'use_core.py'
+      - 'boundary_resilience.py'
+      - 'tests/test_runtime_recovery_invariants.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-recovery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run runtime identity and recovery invariants
+        run: python -m unittest tests/test_runtime_recovery_invariants.py -v
