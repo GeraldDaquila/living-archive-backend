@@ -20,6 +20,12 @@ if _core_runtime_sha != EXPECTED_CORE_BLOB_SHA:
 use_core = importlib.import_module("use_core")
 app = use_core.app
 
+# Register the authenticated FSD routes on the existing USE application.
+from fsd_api import register_fsd_routes
+from fsd_episode_api import register_fsd_episode_routes
+register_fsd_routes(app, use_core)
+register_fsd_episode_routes(app, use_core)
+
 def _sanitize_visitor_output(text): return re.sub(r"\bUSE\b","The Guide",str(text or "")).replace("..",".")
 def _normalize_title(text): return re.sub(r"^[\U0001F300-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+\s*","",str(text or "").strip()).strip()
 def _valid_doc_url(doc):

@@ -1,0 +1,30 @@
+name: FSD WordPress Integration Simulation
+
+on:
+  pull_request:
+    paths:
+      - "integrations/wordpress/living-archive-fsd-proxy/**"
+      - "test_fsd_wordpress_integration_contract.py"
+      - ".github/workflows/fsd-wordpress-integration-simulation.yml"
+  push:
+    branches:
+      - "feat/fsd-two-quantum-mvp"
+    paths:
+      - "integrations/wordpress/living-archive-fsd-proxy/**"
+      - "test_fsd_wordpress_integration_contract.py"
+      - ".github/workflows/fsd-wordpress-integration-simulation.yml"
+
+jobs:
+  wordpress-integration-simulation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test runner
+        run: python -m pip install pytest
+      - name: Validate browser asset JavaScript syntax
+        run: node --check integrations/wordpress/living-archive-fsd-proxy/assets/fsd-app.js
+      - name: Run cross-runtime integration contract simulation
+        run: python -m pytest -q test_fsd_wordpress_integration_contract.py
