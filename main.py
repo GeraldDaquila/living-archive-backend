@@ -64,6 +64,7 @@ from provider_bank import (
 )
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
+import archive_crosslink
 from guide_request_budget import (
     REQUEST_BUDGET_SECONDS as GUIDE_REQUEST_BUDGET_SECONDS,
     can_attempt_repair as _guide_can_attempt_composition_repair,
@@ -86,6 +87,9 @@ _base = __import__(_BASE_MODULE_NAME)
 use_core = _base.use_core
 app = _base.app
 _original_guide_handle_query = use_core.handle_query
+# Warm the full-corpus inventory asynchronously. The visitor request path never
+# waits for a cold Pinecone enumeration and incomplete inventories are ignored.
+archive_crosslink.start_refresh(getattr(use_core, "index", None), use_core)
 APP_VERSION = "v489.310"
 DEPLOYMENT_FINGERPRINT = "USE-v489.310-provider-capacity-diagnostics"
 CANONICAL_BUILD_ID = "USE-BUILD-v489.310-provider-capacity-diagnostics"
@@ -1223,6 +1227,50 @@ def _recommendation_first_fetch(query_str):
     # Never accept a selected doorway carried in from retrieval/provider content.
     data = dict(data)
     data.pop("recommendation_canonical_primary", None)
+    canonical_context = str(data.get("canonical_link_context") or "")
+    docs = _parse_context_documents(canonical_context) if canonical_context else []
+
+    # The meta-crosslink consults the complete Pinecone inventory only for
+    # navigation/recommendation intent. It adds a small, separately verified
+    # evidence set; it cannot bypass the canonical access or lifecycle gates.
+    if profile.get("action") in {"recommendation", "navigation"}:
+        try:
+            crosslinks = archive_crosslink.expand_context(
+                str(query_str or ""),
+                docs,
+                getattr(use_core, "index", None),
+                use_core,
+            )
+            if crosslinks:
+                existing_urls = {
+                    str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
+                    for item in docs
+                }
+                additions = [
+                    item for item in crosslinks
+                    if str(item.get("url") or "").rstrip("/").casefold() not in existing_urls
+                ]
+                if additions:
+                    docs = docs + additions
+                    canonical_context = _serialize_context_documents(docs)
+                    data["canonical_link_context"] = canonical_context
+                    existing_blocks = _parse_context_documents(str(data.get("context_blocks") or ""))
+                    block_urls = {
+                        str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
+                        for item in existing_blocks
+                    }
+                    merged_blocks = existing_blocks + [
+                        item for item in additions
+                        if str(item.get("url") or "").rstrip("/").casefold() not in block_urls
+                    ]
+                    data["context_blocks"] = _serialize_context_documents(merged_blocks)
+                    print(
+                        "The Guide full-corpus meta-crosslink: "
+                        f"added={len(additions)}, seed={len(existing_urls)}"
+                    )
+        except Exception as exc:
+            print(f"The Guide full-corpus meta-crosslink failed safely: {type(exc).__name__}")
+
     canonical_context = str(data.get("canonical_link_context") or "")
     if not canonical_context:
         return data
