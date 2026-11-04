@@ -40,3 +40,9 @@ def test_general_guide_candidate_timing_is_observable():
     assert 'outcome=failure, category=' in source
     assert 'outcome=contract_rejection' in source
     assert 'elapsed_seconds=' in source
+
+
+def test_general_guide_reserves_budget_for_independent_fallback():
+    source = Path("provider_bank.py").read_text(encoding="utf-8")
+    assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 8.0" in source
+    assert "GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 4.0" in source
