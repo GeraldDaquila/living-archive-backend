@@ -52,7 +52,9 @@ The UI should show conditional follow-ups only where needed. A respondent must b
 
 ### Overall episode result
 
-The report may describe: both transitions reported; Correspondence reported but Correctability not demonstrated; Correctability cannot be assessed because Correspondence was not established; neither transition demonstrated in this episode; or insufficient evidence. "Not demonstrated" must never be rewritten as "incapable".
+The report may describe: both transitions reported; Correspondence reported but Correctability not demonstrated; Correctability cannot be assessed because Correspondence was not established; neither transition demonstrated in this episode; or insufficient evidence. "Not demonstrated" must never be rewritten as "incapable". Prior understanding marked unknown must produce insufficient evidence for Correspondence.
+
+Any generated strengths or enabling conditions must be directly supported by the structured selections. The report must return an empty list when no such condition is evidenced; it must not invent strengths from the mere presence of feedback, documentation, or a subsequent action. Suggested next steps must be clearly framed as suggestions, not as events or outcomes that already occurred.
 
 No numeric capacity score, ranking, pass/fail label, psychometric claim, causal certainty, or stable system diagnosis is permitted.
 
