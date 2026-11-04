@@ -287,6 +287,7 @@ def _sync_shared_state(nonblocking=True):
                     "provider": provider,
                     "model": model,
                     "operation": operation,
+                    "credential_fingerprint": incoming_fingerprint,
                     "quality_failures": 0,
                     "last_quality_failure": 0.0,
                     "last_quality_success": 0.0,
