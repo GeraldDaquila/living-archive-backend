@@ -100,7 +100,8 @@ def interpret_episode(payload: Mapping[str, Any]) -> dict[str, str]:
         and item["reconsideration_basis"] in {"directly_changed_explanation", "prompted_examination", "considered_with_competing_evidence"}
     )
     if (
-        item["experience_type"] == "other_unclear"
+        item["prior_understanding"] == "unknown"
+        or item["experience_type"] == "other_unclear"
         or item["understanding_after"] in {"unknown", "no_opportunity"}
         or item["consequence_significance"] in {"limited_or_ambiguous", "unclear"}
     ):
