@@ -75,6 +75,9 @@ def validate_episode_payload(payload: Any) -> dict[str, Any]:
     if response in {"decision_or_action_changed", "tested_or_piloted", "paused_pending_evidence", "attempted_but_blocked"} and link == "no_response_or_unknown":
         raise FSDEpisodeContractError("Select the reported relationship to the subsequent response.")
 
+    if normalized["response_available"] == "no" and response in {"decision_or_action_changed", "tested_or_piloted"}:
+        raise FSDEpisodeContractError("A consequential response cannot be reported when no meaningful response was available.")
+
     # The non-change reason is applicable only when no response followed or
     # the response was blocked/paused; otherwise require not_applicable.
     non_change_context = response in {"no_response", "attempted_but_blocked", "paused_pending_evidence", "too_early_or_unknown"}
