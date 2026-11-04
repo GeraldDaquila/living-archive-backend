@@ -52,7 +52,7 @@ def _text(value: Any, limit: int = 2400) -> str:
         value = " ".join(str(item) for item in value)
     if not isinstance(value, (str, int, float)):
         return ""
-    return re.sub(r"\\s+", " ", str(value)).strip()[:limit]
+    return re.sub(r"\s+", " ", str(value)).strip()[:limit]
 
 
 def _tokens(value: Any) -> set[str]:
@@ -62,7 +62,7 @@ def _tokens(value: Any) -> set[str]:
 
 def _normalize_url(value: Any) -> str:
     url = _text(value, 1000).strip()
-    if not re.match(r"^https://[^\\s]+$", url, re.I):
+    if not re.match(r"^https://[^\s]+$", url, re.I):
         return ""
     return url.rstrip("/").casefold()
 
@@ -179,7 +179,7 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
                     if not title:
                         missing_metadata += 1
                         continue
-                    key = "url:" + url if url else "title:" + re.sub(r"\\W+", " ", title.casefold()).strip()
+                    key = "url:" + url if url else "title:" + re.sub(r"\W+", " ", title.casefold()).strip()
                     if not key or key == "title:":
                         key = f"id:{namespace}:{vector_id}"
                     asset = assets.setdefault(key, {
@@ -220,7 +220,7 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
 
     titles: dict[str, set[str]] = {}
     for asset in assets.values():
-        title_key = re.sub(r"\\W+", " ", asset["title"].casefold()).strip()
+        title_key = re.sub(r"\W+", " ", asset["title"].casefold()).strip()
         titles.setdefault(title_key, set()).add(asset["url"] or asset["asset_key"])
     duplicate_titles = sum(1 for urls in titles.values() if len(urls) > 1)
     complete = (
