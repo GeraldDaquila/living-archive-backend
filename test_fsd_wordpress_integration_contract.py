@@ -67,3 +67,31 @@ def test_bundle_contains_no_personal_or_provider_secrets():
     forbidden = ("sk-", "AIza", "Bearer ", "password=", "shared_secret =")
     combined = PHP + JS + CSS
     assert all(marker not in combined for marker in forbidden)
+
+
+def test_proxy_enforces_origin_rate_and_request_size_boundaries():
+    assert "hash_equals($expected, $origin)" in PHP
+    assert "la_fsd_proxy_rate_limited()" in PHP
+    assert "$peer['count'] > 8 || $global['count'] > 120" in PHP
+    assert "strlen($raw) > 16384" in PHP
+    assert "array('status' => 413)" in PHP
+
+
+def test_upstream_transport_is_bounded_and_tls_verified():
+    assert "'timeout' => 35" in PHP
+    assert "'redirection' => 0" in PHP
+    assert "'limit_response_size' => 32768" in PHP
+    assert "'sslverify' => true" in PHP
+
+
+def test_primary_mirror_fallback_and_response_contract_are_explicit():
+    assert "living-archive-backend.onrender.com/api/fsd/analyze-episode" in PHP
+    assert "living-archive-backend-mirror.onrender.com/api/fsd/analyze-episode" in PHP
+    assert "foreach ($endpoints as $endpoint)" in PHP
+    assert "($body['contract_version'] ?? '') === 'fsd-episode-v1'" in PHP
+    assert "return new WP_Error('la_fsd_backend_unavailable'" in PHP
+
+
+def test_browser_external_links_use_safe_target_attributes():
+    assert 'a.target="_blank"' in JS
+    assert 'a.rel="noopener noreferrer"' in JS
