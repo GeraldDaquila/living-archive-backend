@@ -10037,26 +10037,27 @@ async def _use_request_boundary(scope, receive, send):
                     "response": "The Formation pathway could not be opened right now.",
                     "error_type": "formation_specialist_failure", "request_id": request_id,
                 }, 503)
-        try:
-            result = _relationship_specialist_response(query, history, route, request_id, parsed_body)
-            return await _use_send_json(send, {
-                "ok": True, "version": APP_VERSION, "query": query,
-                "intent": "RELATIONAL_HANDOFF", "response": result["response"],
-                "handoff": "relationship", "handoff_mode": "specialist",
-                "relational_delegation": result["relational_delegation"],
-                "visitor_boundary_version": APP_VERSION, "request_id": request_id,
-            })
-        except Exception as exc:
-            print(f"USE Relationship specialist failed safely: exception={type(exc).__name__}")
-            return await _use_send_json(send, {
-                "ok": False, "version": APP_VERSION, "query": query,
-                "intent": "RELATIONAL_HANDOFF",
-                "response": "The Seeing the Relationship pathway could not be opened right now.",
-                "error_type": "relationship_specialist_failure",
-                "relational_delegation": {"state": "unavailable", "specialist": "Seeing the Relationship",
-                                          "specialist_id": "relationship", "session_id": request_id},
-                "visitor_boundary_version": APP_VERSION, "request_id": request_id,
-            }, 503)
+        if route_id == "relationship":
+            try:
+                result = _relationship_specialist_response(query, history, route, request_id, parsed_body)
+                return await _use_send_json(send, {
+                    "ok": True, "version": APP_VERSION, "query": query,
+                    "intent": "RELATIONAL_HANDOFF", "response": result["response"],
+                    "handoff": "relationship", "handoff_mode": "specialist",
+                    "relational_delegation": result["relational_delegation"],
+                    "visitor_boundary_version": APP_VERSION, "request_id": request_id,
+                })
+            except Exception as exc:
+                print(f"USE Relationship specialist failed safely: exception={type(exc).__name__}")
+                return await _use_send_json(send, {
+                    "ok": False, "version": APP_VERSION, "query": query,
+                    "intent": "RELATIONAL_HANDOFF",
+                    "response": "The Seeing the Relationship pathway could not be opened right now.",
+                    "error_type": "relationship_specialist_failure",
+                    "relational_delegation": {"state": "unavailable", "specialist": "Seeing the Relationship",
+                                              "specialist_id": "relationship", "session_id": request_id},
+                    "visitor_boundary_version": APP_VERSION, "request_id": request_id,
+                }, 503)
 
     # Exactly one fallback into the original protected application.
     # Intercept its ordinary JSON response at the shared outer boundary. This
