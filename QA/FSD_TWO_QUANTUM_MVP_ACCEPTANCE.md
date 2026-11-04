@@ -112,3 +112,32 @@ This branch is an isolated candidate. Do not merge to main, change live WordPres
 ### Evidence provenance correction — release blocker
 
 The current candidate's retrieval path returns Living Archive canonical sources, and the report contract requires coverage from both quantum retrievals. Those sources can explain the conceptual architecture, but they cannot independently corroborate that a respondent's reported consequential episode occurred or that the selected system changed its understanding or action. The present report contract risks conflating conceptual references with episode evidence. Before visitor activation, separate respondent-reported episode observations from Living Archive conceptual references, remove any implication that archive retrieval validates the respondent's account, and permit an explicit insufficient-evidence result. See `QA/FSD_EPISODE_INSTRUMENT_V1_PROPOSAL.md` for the proposed episode-based instrument and provenance model.
+
+
+## Episode contract v2 candidate — implementation status
+
+A separate, versioned episode path has now been added on the candidate branch. It does not replace or silently reinterpret the legacy ten-item tendency contract.
+
+- fsd_episode_contract.py validates fsd-episode-v1, one canonical system boundary, the structured episode fields, bounded optional descriptions, cross-field consistency, and rejects browser-supplied scores/diagnoses/provider settings/evidence.
+- The deterministic episode interpretation distinguishes reported transitions, insufficient evidence, warranted non-change, evidence/time deferral, unavailable response capacity, and blocked response. It does not produce a numeric capacity score or stable system diagnosis.
+- fsd_episode_report_contract.py binds Living Archive references as conceptual_context_only, fixes the respondent-account provenance as unverified, and imposes a one-episode inference boundary. It rejects explicit language that treats Archive sources as corroboration of the reported episode.
+- fsd_episode_api.py adds a separate authenticated POST /api/fsd/analyze-episode route on the existing USE application. It uses static conceptual retrieval queries, optional Archive context, no additional service/retriever, and the existing Provider Bank operation.
+- The episode API does not send optional free-text descriptions to the provider; only bounded structured selections are included in report composition.
+- The episode route is registered by guide_runtime.py but is not deployed to production. It has not been connected to the WordPress proxy or visitor page.
+- The previous /api/fsd/analyze endpoint remains the legacy candidate contract and must not be exposed as the episode instrument.
+
+### New candidate tests
+
+The FSD workflow now includes the episode request contract, episode report provenance contract, and episode API tests. The first episode-contract run exposed a justified-non-change interpretation error; this was corrected. A later report-provenance test exposed a test assertion mismatch; the assertion was corrected. The latest observed successful run before the newest consistency-guard commits reported 86 passed. New regression runs are required for the current head.
+
+### Remaining release blockers
+
+1. Complete the current-head CI and all cross-workflow regressions.
+2. Review the episode question wording and interpretation matrix against the canonical FSD architecture; the code is a candidate implementation, not a validated instrument.
+3. Confirm the provider processing/retention disclosure before any live submission.
+4. Update the inactive browser asset to the episode schema and add safe, conditional question flow.
+5. Update the proxy to route only the episode contract to /api/fsd/analyze-episode; keep the old page, plugin, and feature flag inactive until the new UI and backend pass.
+6. Add synthetic WordPress proxy → primary → mirror E2E and prove request/response privacy, error handling, retry behavior, and deployment fingerprint.
+7. Review and approve before merge or deployment.
+
+The production release boundary remains unchanged: no live WordPress content, proxy activation, feature flag, Render environment variable, or production deployment is authorized by this candidate work.
