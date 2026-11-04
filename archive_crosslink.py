@@ -35,6 +35,7 @@ _LAST_REFRESH = 0.0
 _LAST_ATTEMPT = 0.0
 _RETRY_SECONDS = 60
 _PINECONE_REQUEST_TIMEOUT = 15
+_CROSSLINK_FETCH_TIMEOUT = 5
 _INVENTORY_WALL_BUDGET_SECONDS = 600
 _REFRESH_THREAD: threading.Thread | None = None
 
@@ -75,10 +76,10 @@ def _normalize_url(value: Any) -> str:
     return url.rstrip("/").casefold()
 
 
-def _pinecone_call(method: Any, **kwargs: Any) -> Any:
+def _pinecone_call(method: Any, *, timeout: float = _PINECONE_REQUEST_TIMEOUT, **kwargs: Any) -> Any:
     """Apply a bounded per-request timeout, retaining compatibility with test doubles/older SDKs."""
     try:
-        return method(timeout=_PINECONE_REQUEST_TIMEOUT, **kwargs)
+        return method(timeout=timeout, **kwargs)
     except TypeError as exc:
         if "timeout" not in str(exc):
             raise
@@ -472,7 +473,7 @@ def fetch_crosslink_documents(index: Any, core: Any, assets: list[dict[str, Any]
             if not isinstance(ref, dict) or not ref.get("id"):
                 continue
             try:
-                response = _pinecone_call(index.fetch, ids=[str(ref["id"])], namespace=str(ref.get("namespace") or ""))
+                response = _pinecone_call(index.fetch, timeout=_CROSSLINK_FETCH_TIMEOUT, ids=[str(ref["id"])], namespace=str(ref.get("namespace") or ""))
                 vectors = _field(response, "vectors", {}) or {}
                 vector = vectors.get(str(ref["id"])) if isinstance(vectors, dict) else None
                 metadata = _metadata_for(vector) if vector is not None else {}
