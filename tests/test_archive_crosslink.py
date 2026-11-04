@@ -1,5 +1,6 @@
 import pytest
 
+import archive_crosslink
 from archive_crosslink import build_inventory, fetch_crosslink_documents, select_crosslinks
 
 
@@ -256,3 +257,131 @@ def test_inventory_reports_url_aliases_without_treating_them_as_canonical():
     assert snapshot["url_field_presence"]["permalink"] == 1
     assert snapshot["missing_url_asset_count"] == 1
     assert snapshot["crosslink_ready"] is False
+
+
+
+def test_wp_id_and_exact_title_recover_canonical_url(monkeypatch):
+    title = "Stewardship Governance"
+    canonical_url = "https://geralddaquila.com/stewardship-governance/"
+    monkeypatch.setattr(
+        archive_crosslink,
+        "_load_wp_canonical_map",
+        lambda: {"123": {"url": canonical_url, "title_key": archive_crosslink._canonical_title_key(title)}},
+    )
+    records = [("v1", "", _record(title, "", "Governance and stewardship.", wp_id=123))]
+    snapshot = build_inventory(FakeIndex(records), FakeCore())
+    assert snapshot["complete"] is True
+    assert snapshot["crosslink_ready"] is True
+    assert snapshot["missing_url_asset_count"] == 0
+    assert snapshot["wp_id_url_recovered_vector_count"] == 1
+    assert snapshot["assets"][0]["url"] == canonical_url.rstrip("/").casefold()
+
+
+def test_wp_id_url_recovery_fails_closed_on_title_mismatch(monkeypatch):
+    title = "Stewardship Governance"
+    monkeypatch.setattr(
+        archive_crosslink,
+        "_load_wp_canonical_map",
+        lambda: {"123": {
+            "url": "https://geralddaquila.com/different-resource/",
+            "title_key": archive_crosslink._canonical_title_key("Different Resource"),
+        }},
+    )
+    records = [("v1", "", _record(title, "", "Governance and stewardship.", wp_id=123))]
+    snapshot = build_inventory(FakeIndex(records), FakeCore())
+    assert snapshot["wp_id_url_recovered_vector_count"] == 0
+    assert snapshot["wp_id_title_mismatch_vector_count"] == 1
+    assert snapshot["missing_url_asset_count"] == 1
+    assert snapshot["crosslink_ready"] is False
+
+
+
+def test_wordpress_registry_loads_published_post_and_page_identity(monkeypatch):
+    class Response:
+        def __init__(self, payload):
+            self.payload = payload
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self):
+            import json
+            return json.dumps(self.payload).encode("utf-8")
+
+    calls = []
+
+    def fake_urlopen(request, timeout):
+        calls.append((request.full_url, timeout))
+        if "/posts?" in request.full_url:
+            return Response([{
+                "id": 123,
+                "link": "https://geralddaquila.com/stewardship-governance/",
+                "title": {"rendered": "Stewardship <em>Governance</em>"},
+            }])
+        return Response([{
+            "id": 456,
+            "link": "https://geralddaquila.com/the-world-he-carried/",
+            "title": {"rendered": "The World He Carried"},
+        }])
+
+    monkeypatch.setenv("RENDER", "true")
+    monkeypatch.setattr(archive_crosslink, "urlopen", fake_urlopen)
+    monkeypatch.setattr(archive_crosslink, "_WP_CANONICAL_CACHE", {})
+    monkeypatch.setattr(archive_crosslink, "_WP_CANONICAL_CACHE_AT", 0.0)
+
+    registry = archive_crosslink._load_wp_canonical_map()
+    assert registry["123"]["url"] == "https://geralddaquila.com/stewardship-governance"
+    assert registry["123"]["title_key"] == "stewardship governance"
+    assert registry["456"]["url"] == "https://geralddaquila.com/the-world-he-carried"
+    assert len(calls) == 2
+    assert all(timeout == 3.0 for _, timeout in calls)
+
+
+
+def test_inventory_retries_transient_missing_fetch_vectors():
+    class FlakyFetchIndex(FakeIndex):
+        def __init__(self, records):
+            super().__init__(records)
+            self.fetch_attempts = 0
+
+        def fetch(self, *, ids, namespace=""):
+            self.fetch_attempts += 1
+            if self.fetch_attempts == 1:
+                return {"vectors": {}}
+            return super().fetch(ids=ids, namespace=namespace)
+
+    records = [("v1", "", _record(
+        "Stewardship Governance",
+        "https://geralddaquila.com/stewardship-governance/",
+        "Governance and stewardship.",
+    ))]
+    index = FlakyFetchIndex(records)
+    snapshot = build_inventory(index, FakeCore())
+    assert index.fetch_attempts == 2
+    assert snapshot["complete"] is True
+    assert snapshot["fetched_vector_count"] == 1
+    assert snapshot["unfetched_vector_count"] == 0
+
+
+def test_inventory_deduplicates_repeated_ids_across_pages():
+    class DuplicateListIndex(FakeIndex):
+        def list_paginated(self, *, limit, pagination_token=None, namespace=""):
+            if namespace != "":
+                return {"vectors": [], "pagination": None}
+            if pagination_token is None:
+                return {"vectors": [{"id": "v1"}], "pagination": {"next": "next-page"}}
+            return {"vectors": [{"id": "v1"}], "pagination": None}
+
+    records = [("v1", "", _record(
+        "Stewardship Governance",
+        "https://geralddaquila.com/stewardship-governance/",
+        "Governance and stewardship.",
+    ))]
+    snapshot = build_inventory(DuplicateListIndex(records), FakeCore())
+    assert snapshot["complete"] is True
+    assert snapshot["listed_vector_count"] == 2
+    assert snapshot["unique_listed_vector_count"] == 1
+    assert snapshot["duplicate_listed_vector_count"] == 1
