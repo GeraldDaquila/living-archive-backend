@@ -156,3 +156,13 @@ def test_rejects_action_claim_when_no_meaningful_response_was_available():
             response_available="no",
             non_change_reason="not_applicable",
         ))
+
+
+@pytest.mark.parametrize("field,value", [
+    ("experience_type", "other_unclear"),
+    ("consequence_significance", "limited_or_ambiguous"),
+])
+def test_ambiguous_or_nonconsequential_experience_produces_insufficient_evidence(field, value):
+    result = interpret_episode(episode(**{field: value}))
+    assert result["correspondence"] == "insufficient_evidence"
+    assert result["overall"] == "insufficient_evidence"
