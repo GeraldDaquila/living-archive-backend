@@ -32,6 +32,8 @@ _LOCK = threading.RLock()
 _REFRESH_LOCK = threading.Lock()
 _SNAPSHOT: dict[str, Any] | None = None
 _LAST_REFRESH = 0.0
+_LAST_ATTEMPT = 0.0
+_RETRY_SECONDS = 60
 _REFRESH_THREAD: threading.Thread | None = None
 
 
@@ -253,10 +255,12 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
 
 def start_refresh(index: Any, core: Any, *, force: bool = False) -> bool:
     """Start one bounded background inventory refresh per process."""
-    global _REFRESH_THREAD
+    global _REFRESH_THREAD, _LAST_ATTEMPT
     now = time.monotonic()
     with _LOCK:
         if not force and _SNAPSHOT is not None and now - _LAST_REFRESH < _REFRESH_SECONDS:
+            return False
+        if not force and _SNAPSHOT is None and now - _LAST_ATTEMPT < _RETRY_SECONDS:
             return False
         if _REFRESH_THREAD is not None and _REFRESH_THREAD.is_alive():
             return False
@@ -269,6 +273,7 @@ def start_refresh(index: Any, core: Any, *, force: bool = False) -> bool:
             daemon=True,
         )
         _REFRESH_THREAD = thread
+        _LAST_ATTEMPT = now
         thread.start()
         return True
 
