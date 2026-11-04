@@ -9,6 +9,7 @@ import hashlib
 import json
 import re
 import threading
+import logging
 import time
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional
@@ -23,6 +24,7 @@ from provider_bank import (
 CONTRACT_VERSION = "v1.29"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
+_TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
 
 # Repeated identical Guide questions must not be re-composed by whichever
 # provider happens to be next in the rotating Provider Bank. Cache only the
@@ -2080,6 +2082,7 @@ def compose(
     # never eligible for deterministic enforcement.
     registered_standard = None if integrity_recovery else _registered_exact_gold_standard(question)
     if registered_standard is not None:
+        _TELEMETRY_LOG.info("guide_outcome outcome=deterministic_boundary source=registered_gold_standard")
         return {
             "response": registered_standard["expected_response"],
             "doorway_title": registered_standard.get("doorway_title", ""),
@@ -2235,6 +2238,7 @@ def compose(
             else None
         )
         if relationship_recovery is not None:
+            _TELEMETRY_LOG.info("guide_outcome outcome=provider_exhaustion_fallback recovery=conceptual_relationship")
             return {
                 "response": relationship_recovery,
                 "doorway_title": "",
@@ -2247,11 +2251,14 @@ def compose(
         # the generic Archive-definition fallback to answer the wrong subject.
         constitutional_recovery = _archive_constitutional_recovery(question, documents)
         if constitutional_recovery is not None:
+            _TELEMETRY_LOG.info("guide_outcome outcome=provider_exhaustion_fallback recovery=constitutional")
             return constitutional_recovery
         evidence_recovery = _default_gold_standard_evidence_recovery(question, documents)
         if evidence_recovery is not None:
+            _TELEMETRY_LOG.info("guide_outcome outcome=provider_exhaustion_fallback recovery=evidence")
             return evidence_recovery
         if _requires_recurring_problem_explanation(question):
+            _TELEMETRY_LOG.info("guide_outcome outcome=provider_exhaustion_fallback recovery=recurring_problem")
             return {
                 "response": _recurring_problem_explanation_recovery(),
                 "doorway_title": "",
@@ -2260,6 +2267,7 @@ def compose(
                 "model": "",
             }
         if _requires_intergenerational_stewardship(question):
+            _TELEMETRY_LOG.info("guide_outcome outcome=provider_exhaustion_fallback recovery=intergenerational_stewardship")
             return {
                 "response": _intergenerational_stewardship_recovery(),
                 "doorway_title": "",
@@ -2268,6 +2276,7 @@ def compose(
                 "model": "deterministic-contract-recovery",
             }
         if _requires_outcome_evaluation_guidance(question):
+            _TELEMETRY_LOG.info("guide_outcome outcome=provider_exhaustion_fallback recovery=outcome_evaluation")
             return {
                 "response": _outcome_evaluation_recovery(),
                 "doorway_title": "",
@@ -2285,6 +2294,10 @@ def compose(
         "provider": str(result.get("provider") or ""),
         "model": str(result.get("model") or ""),
     }
+    provider_key = candidate["provider"] + ":" + candidate["model"]
+    preference_order = result.get("preference_order") or []
+    outcome = "llm_failover_success" if preference_order and provider_key != str(preference_order[0]) else "llm_primary_success"
+    _TELEMETRY_LOG.info("guide_outcome outcome=%s provider=%s model=%s", outcome, candidate["provider"], candidate["model"])
 
     # Responsibility-boundary validation is intentionally owned by the final
     # runtime response boundary in main.py. Enforcing it here alone is insufficient:
