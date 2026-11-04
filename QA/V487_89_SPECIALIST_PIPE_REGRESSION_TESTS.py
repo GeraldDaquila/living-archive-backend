@@ -692,16 +692,23 @@ def test_model_scoped_daily_tpd_does_not_quarantine_provider_siblings():
 def test_account_wide_quota_still_quarantines_provider_siblings():
     model = "openai/gpt-oss-20b"
     sibling = "openai/gpt-oss-120b"
-    states = {
-        "groq:" + model: {"state": "healthy", "category": None, "quarantine_until": 0.0},
-        "groq:" + sibling: {"state": "healthy", "category": None, "quarantine_until": 0.0},
-    }
+    fingerprint = provider_bank._credential_fingerprint("groq")
+    def state_key(selected_model):
+        return provider_bank._model_state_key("groq", selected_model, fingerprint or "unconfigured")
+    def new_fixture(selected_model):
+        return {
+            "provider": "groq", "model": selected_model,
+            "credential_fingerprint": fingerprint,
+            "state": "healthy", "category": None, "quarantine_until": 0.0,
+        }
+    states = {state_key(model): new_fixture(model), state_key(sibling): new_fixture(sibling)}
 
     def get_state(provider, selected_model):
-        return states.setdefault(
-            provider + ":" + selected_model,
-            {"state": "healthy", "category": None, "quarantine_until": 0.0},
+        key = provider_bank._model_state_key(
+            provider, selected_model,
+            provider_bank._credential_fingerprint(provider) or "unconfigured",
         )
+        return states.setdefault(key, new_fixture(selected_model))
 
     def record_failure(state, category, text, retry_after=None):
         state["state"] = "open"
@@ -720,9 +727,9 @@ def test_account_wide_quota_still_quarantines_provider_siblings():
     ):
         provider_bank._failure(error, "groq", model)
 
-    assert states["groq:" + model]["category"] == "quota_or_billing"
-    assert states["groq:" + sibling]["state"] == "open"
-    assert states["groq:" + sibling]["category"] == "quota_or_billing"
+    assert states[state_key(model)]["category"] == "quota_or_billing"
+    assert states[state_key(sibling)]["state"] == "open"
+    assert states[state_key(sibling)]["category"] == "quota_or_billing"
     assert any(
         "category=quota_or_billing" in str(call.args[0]) and "provider_wide=true" in str(call.args[0])
         for call in printed.call_args_list
