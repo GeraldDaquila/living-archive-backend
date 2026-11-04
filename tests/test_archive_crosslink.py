@@ -12,6 +12,7 @@ class FakeIndex:
         other_count = sum(1 for _, ns, _ in self.records if ns == "cases")
         return {
             "total_vector_count": self.stats_count,
+            "dimension": 384,
             "namespaces": {
                 "__default__": {"vector_count": default_count},
                 "cases": {"vector_count": other_count},
