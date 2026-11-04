@@ -1255,16 +1255,22 @@ def _recommendation_first_fetch(query_str):
                     docs = docs + additions
                     canonical_context = _serialize_context_documents(docs)
                     data["canonical_link_context"] = canonical_context
-                    existing_blocks = _parse_context_documents(str(data.get("context_blocks") or ""))
+                    existing_block_text = str(data.get("context_blocks") or "").strip()
+                    existing_blocks = _parse_context_documents(existing_block_text)
                     block_urls = {
                         str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold()
                         for item in existing_blocks
                     }
-                    merged_blocks = existing_blocks + [
+                    block_additions = [
                         item for item in additions
                         if str(item.get("url") or "").rstrip("/").casefold() not in block_urls
                     ]
-                    data["context_blocks"] = _serialize_context_documents(merged_blocks)
+                    extra_block_text = _serialize_context_documents(block_additions)
+                    if extra_block_text:
+                        data["context_blocks"] = (
+                            existing_block_text + "\n\n---\n\n" + extra_block_text
+                            if existing_block_text else extra_block_text
+                        )
                     print(
                         "The Guide full-corpus meta-crosslink: "
                         f"added={len(additions)}, seed={len(existing_urls)}"
