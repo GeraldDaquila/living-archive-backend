@@ -153,3 +153,17 @@ At candidate head a79a2c5de5b2e2496d58879b00ae8a0b00a03abc, the FSD contract wor
 The installed but inactive Living Archive — FSD Proxy plugin was updated in place to version 0.2.0. Its server-side validator now accepts only fsd-episode-v1, the canonical five scales, the structured episode enums, bounded optional descriptions, and the same cross-field consistency rules as the backend. Its upstream targets now call /api/fsd/analyze-episode on the existing primary and mirror services. The proxy validates the response provenance envelope before returning it, preserves same-origin checks, request-size limits, rate limits, TLS verification, no redirects, bounded response size, no-store headers, and the existing server-only Provider Bank secret helper.
 
 The inactive browser asset was replaced with the episode-based questionnaire and report renderer; it uses no browser storage or analytics, avoids contradictory option combinations where possible, labels the respondent account as unverified, and labels Archive links as conceptual references only. A small responsive CSS asset was added. JavaScript syntax validation passed; the PHP write was syntax-checked by Cowboy MCP. Plugin remains inactive, feature flag remains untouched, and published page 76640 remains unchanged; it does not yet contain the required [data-fsd-app="episode"] mount point. Therefore the proxy route is still not registered and the browser asset is not enqueued. No live WordPress → backend request has been made.
+
+
+### Additional interpretation and report-grounding corrections — 2026-11-04
+
+A second audit identified two further safeguards and they are now implemented on the candidate branch:
+
+- If the prior understanding is selected as unknown, Correspondence is classified as insufficient evidence. A consequential experience cannot be evaluated as a relationship to an unidentified prior understanding.
+- Report composition now explicitly forbids inventing strengths or enabling conditions from the mere presence of feedback, documentation, or action. If the structured answers do not directly support a strength or enabling condition, the provider must return an empty list. Suggested next steps must be framed as suggestions, not asserted events or outcomes.
+
+The browser privacy notice now accurately states that optional short descriptions are sent to the USE backend but are not passed into AI report composition; only structured selections are sent to the configured provider. The report headings were also tightened to distinguish explicitly supported strengths from reported enabling conditions.
+
+Latest FSD workflow at code head 00f244fd8c81479fe35a7a040a5dfe85f28f5d3b: **91 passed, 1 warning**. All nine ecosystem regression workflows passed on the subsequent documentation head 8eaa5a0abb1f94739df4e9265c71f93e2a3ff9a3. The warning is the existing Starlette TestClient/httpx deprecation notice; no test failures were recorded.
+
+WordPress proxy verification after the latest asset update: plugin v0.2.0 remains inactive; PHP source is accepted by Cowboy's PHP syntax gate; browser JS parses successfully; same-origin validation, server-only secret helper, episode endpoint target, accurate privacy notice, and absence of browser storage are confirmed. The published page 76640 is still unchanged and has no episode mount point. No live request or deployment has been performed.
