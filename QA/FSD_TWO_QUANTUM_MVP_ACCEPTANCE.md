@@ -174,3 +174,8 @@ WordPress proxy verification after the latest asset update: plugin v0.2.0 remain
 The WordPress proxy plugin version was advanced to v0.2.1 after the final browser-asset copy edits. Both enqueued CSS and JS assets now use the v0.2.1 cache key, preventing browsers from reusing the earlier v0.2.0 assets after activation. Cowboy's PHP write-time syntax gate passed; the final JS asset parses successfully. The proxy remains inactive and the published FSD application page remains unchanged.
 
 The UI privacy notice now states the actual data path: selections and optional short descriptions are sent to the USE backend; only structured selections are included in AI report composition; optional descriptions are not passed to the configured AI provider. Provider-side processing/retention terms may apply to the structured selections. No browser storage or analytics was added.
+
+
+### Render staging inventory — 2026-11-04
+
+Render inventory confirms the production primary and mirror both track main, with preview deployments disabled. Two historical QA services exist in the primary workspace, but both are suspended and attached to stale branches: living-archive-v340-qa tracks v340-surgical-rebuild (last deployment commit 5b3b0713efc774263749506eaa879352040af00b, 2026-09-12), and living-archive-v334-lean-control tracks v334-release-control (last deployment commit cea718358e5fa2719cb9b7fbff8845f3f27e467e, 2026-09-11). Neither is a current-code staging target. No service configuration was changed. These historical QA services should not be resumed or repointed without a separate controlled review of their environment variables, dependencies, runtime branch, and rollback path.
