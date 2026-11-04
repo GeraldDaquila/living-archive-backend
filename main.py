@@ -37,6 +37,7 @@ from relationship_contribution import (
     validate_relationship_contribution,
 )
 from relationship_adapter import RelationshipAdapter
+from philippine_systems_adapter import PhilippineSystemsAdapter
 from formation_adapter import FormationAdapter
 from formation_contribution import (
     FORMATION_CONTRIBUTION_CONTRACT_VERSION,
@@ -284,6 +285,7 @@ validate_registry()
 SPECIALIST_CAPABILITY_REGISTRY = registry_snapshot()
 SPECIALIST_ADAPTER_REGISTRY = SpecialistAdapterRegistry()
 SPECIALIST_ADAPTER_REGISTRY.register(RelationshipAdapter())
+SPECIALIST_ADAPTER_REGISTRY.register(PhilippineSystemsAdapter())
 SPECIALIST_ADAPTER_REGISTRY.register(FormationAdapter())
 SPECIALIST_ADAPTER_REGISTRY.register(SafetyUtilityAdapter())
 SPECIALIST_ADAPTER_DIAGNOSTICS = adapter_contract_snapshot(SPECIALIST_ADAPTER_REGISTRY)
