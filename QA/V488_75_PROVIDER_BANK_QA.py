@@ -295,7 +295,7 @@ def main():
             parse=json.loads,
             operation="hrn_relational",
         )
-        failed_state = provider_bank._STATE["models"]["openrouter:openrouter/free"]
+        failed_state = next(value for value in provider_bank._STATE["models"].values() if value["provider"] == "openrouter" and value["model"] == "openrouter/free")
     assert routed["provider"] == "groq"
     assert failed_state["category"] == "invalid_provider_response"
     assert failed_state["quarantine_until"] == 0.0
@@ -554,8 +554,8 @@ def main():
     # the provider-supplied reset timestamp, rather than retrying siblings.
     reset_ms = int((time.time() + 7200) * 1000)
     with patch.object(provider_bank, "_STATE", {"models": {
-        "openrouter:openrouter/free": provider_bank.new_state("openrouter", "openrouter/free"),
-        "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free": provider_bank.new_state(
+        provider_bank._model_state_key("openrouter", "openrouter/free", provider_bank._credential_fingerprint("openrouter") or "unconfigured"): provider_bank.new_state("openrouter", "openrouter/free"),
+        provider_bank._model_state_key("openrouter", "nvidia/nemotron-3-ultra-550b-a55b:free", provider_bank._credential_fingerprint("openrouter") or "unconfigured"): provider_bank.new_state(
             "openrouter", "nvidia/nemotron-3-ultra-550b-a55b:free"
         ),
     }, "provider_cursor": 0, "model_cursors": {}}):
@@ -565,8 +565,8 @@ def main():
             "openrouter", "openrouter/free", status_code=429,
         )
         provider_bank._failure(daily_quota_error, "openrouter", "openrouter/free")
-        router_state = provider_bank._STATE["models"]["openrouter:openrouter/free"]
-        sibling_state = provider_bank._STATE["models"]["openrouter:nvidia/nemotron-3-ultra-550b-a55b:free"]
+        router_state = next(value for value in provider_bank._STATE["models"].values() if value["model"] == "openrouter/free")
+        sibling_state = next(value for value in provider_bank._STATE["models"].values() if value["model"] == "nvidia/nemotron-3-ultra-550b-a55b:free")
     assert router_state["category"] == "free_tier_daily_quota"
     assert sibling_state["category"] == "free_tier_daily_quota"
     assert router_state["quarantine_until"] > time.time() + 7100
