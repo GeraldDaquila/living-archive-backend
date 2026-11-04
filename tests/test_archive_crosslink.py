@@ -128,3 +128,15 @@ def test_inventory_is_not_marked_complete_when_pinecone_counts_disagree():
     snapshot = build_inventory(FakeIndex(records, stats_count=2), FakeCore())
     assert snapshot["complete"] is False
     assert select_crosslinks("governance", [], snapshot) == []
+
+def test_ambiguous_duplicate_titles_do_not_receive_guessed_urls():
+    records = [
+        ("v1", "", _record("Governance Foundations", "https://geralddaquila.com/governance-a/", "First canonical destination.")),
+        ("v2", "", _record("Governance Foundations", "https://geralddaquila.com/governance-b/", "Second canonical destination.")),
+        ("v3", "", _record("Governance Foundations", "", "Unlinked chunk with ambiguous title.")),
+    ]
+    snapshot = build_inventory(FakeIndex(records), FakeCore())
+    assert snapshot["complete"] is True
+    assert snapshot["missing_url_asset_count"] == 1
+    assert snapshot["crosslink_ready"] is False
+    assert select_crosslinks("governance foundations", [], snapshot) == []
