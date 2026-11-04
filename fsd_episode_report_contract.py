@@ -15,7 +15,11 @@ TEXT_LIMITS = {"summary": 700, "episode_observation": 700}
 LIST_LIMITS = {"strengths": 4, "enabling_conditions": 4, "constraints": 4, "next_steps": 4}
 ITEM_MAX_CHARS = 260
 FORBIDDEN_INTERNAL_TERMS = re.compile(r"\b(?:SEE|MOVE|REPEAT)\b")
-FORBIDDEN_PROVENANCE_CLAIMS = re.compile(r"\b(?:archive|living archive)\b.{0,80}\b(?:verif(?:y|ies|ied)|confirm(?:s|ed)?|corroborat(?:e|es|ed))\b|\b(?:verif(?:y|ies|ied)|confirm(?:s|ed)?|corroborat(?:e|es|ed))\b.{0,80}\b(?:episode|respondent|event)\b", re.I)
+FORBIDDEN_PROVENANCE_CLAIMS = re.compile(
+    r"\b(?:archive|living archive)\b.{0,80}\b(?:verif(?:y|ies|ied)|confirm(?:s|ed)?|corroborat(?:e|es|ed))\b"
+    r"|\b(?:verif(?:y|ies|ied)|confirm(?:s|ed)?|corroborat(?:e|es|ed))\b.{0,80}\b(?:episode|respondent|event)\b",
+    re.I,
+)
 
 
 class FSDEpisodeReportError(ValueError):
@@ -55,8 +59,8 @@ def validate_episode_report(
         value = value.strip()
         if FORBIDDEN_INTERNAL_TERMS.search(value):
             raise FSDEpisodeReportError("Report contains prohibited internal terminology.")
-            if FORBIDDEN_PROVENANCE_CLAIMS.search(value):
-                raise FSDEpisodeReportError("Archive references cannot be represented as episode corroboration.")
+        if FORBIDDEN_PROVENANCE_CLAIMS.search(value):
+            raise FSDEpisodeReportError("Archive references cannot be represented as episode corroboration.")
         normalized[key] = value
 
     for key, maximum in LIST_LIMITS.items():
@@ -70,8 +74,8 @@ def validate_episode_report(
             value = value.strip()
             if FORBIDDEN_INTERNAL_TERMS.search(value):
                 raise FSDEpisodeReportError("Report contains prohibited internal terminology.")
-                if FORBIDDEN_PROVENANCE_CLAIMS.search(value):
-                    raise FSDEpisodeReportError("Archive references cannot be represented as episode corroboration.")
+            if FORBIDDEN_PROVENANCE_CLAIMS.search(value):
+                raise FSDEpisodeReportError("Archive references cannot be represented as episode corroboration.")
             clean.append(value)
         normalized[key] = clean
 
