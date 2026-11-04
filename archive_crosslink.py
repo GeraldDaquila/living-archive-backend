@@ -228,6 +228,7 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
         and expected_total is not None
         and listed_count == expected_total
         and fetched_count == listed_count
+        and missing_metadata == 0
     )
     return {
         "contract": "archive-crosslink-inventory-v1",
