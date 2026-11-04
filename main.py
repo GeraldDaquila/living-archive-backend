@@ -9798,7 +9798,7 @@ async def _use_request_boundary(scope, receive, send):
         mode = "direct"
 
     capability = _registered_available_specialist(route_id)
-    should_delegate = capability is not None and route_id in {"relationship", "formation"}
+    should_delegate = capability is not None and route_id in {"relationship", "formation", "systems_ph"}
 
     print(f"The Guide canonical request boundary: route={route_id}, mode={mode}, confidence={confidence:.3f}, delegate={should_delegate}, query_chars={len(query)}")
 
@@ -9833,30 +9833,7 @@ async def _use_request_boundary(scope, receive, send):
     # Philippine Systems is a visitor-facing native knowledge surface.
     # The LLM has already made the macro routing decision above; hand the
     # visitor directly to its native landing page.
-    if route_id == "systems_ph":
-        philippine_systems_url = _philippine_systems_handoff_url(query)
-        request_id = "systems-ph-" + hashlib.sha1(
-            (query + "|" + _history_text(history)).encode("utf-8")
-        ).hexdigest()[:16]
-        print(
-            "The Guide direct Philippine Systems handoff: "
-            f"request_id={request_id}, url={philippine_systems_url}"
-        )
-        return await _use_send_json(send, {
-            "ok": True,
-            "version": APP_VERSION,
-            "query": query,
-            "intent": "SYSTEMS_PH_HANDOFF",
-            "response": "",
-            "handoff": "systems_ph",
-            "handoff_mode": "direct",
-            "handoff_pending": True,
-            "philippine_systems_url": philippine_systems_url,
-            "return_mode": "native_philippine_systems_landing",
-            "visitor_boundary_version": APP_VERSION,
-            "request_id": request_id,
-        })
-
+    # systems_ph now participates in the shared specialist pipe below. The canonical\n    # landing page remains a specialist-provided doorway rather than an early direct return.\n
     if route_id == "fsd":
         fsd_url = _fsd_handoff_url(query)
         request_id = "fsd-" + hashlib.sha1(
