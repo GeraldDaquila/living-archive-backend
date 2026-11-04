@@ -31,3 +31,19 @@ def test_provider_contract_validation_remains_strict():
     assert 'raise ValueError("general composition exposed internal implementation language")' in source
     assert 'raise ValueError("general composition embedded a navigation URL in visitor prose")' in source
     assert 'if title and title not in titles:' in source
+
+
+def test_general_guide_candidate_timing_is_observable():
+    source = Path("provider_bank.py").read_text(encoding="utf-8")
+    assert 'operation in {"hrn_perception", "general_guide_composition"}' in source
+    assert 'USE provider bank candidate outcome: operation=' in source
+    assert 'outcome=failure, category=' in source
+    assert 'outcome=contract_rejection' in source
+    assert 'elapsed_seconds=' in source
+
+
+def test_general_guide_reserves_budget_for_independent_fallback():
+    source = Path("provider_bank.py").read_text(encoding="utf-8")
+    assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 8.0" in source
+    assert "GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS = 3.0" in source
+    assert "GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS = 4.0" in source
