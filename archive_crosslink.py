@@ -88,7 +88,7 @@ def _normalize_url(value: Any) -> str:
 
 
 def _canonical_title_key(value: Any) -> str:
-    normalized = html.unescape(_text(value, 300)).casefold()
+    normalized = html.unescape(re.sub(r"<[^>]*>", " ", _text(value, 300))).casefold()
     return re.sub(r"\W+", " ", normalized).strip()
 
 
