@@ -36,6 +36,7 @@ _LAST_ATTEMPT = 0.0
 _RETRY_SECONDS = 60
 _PINECONE_REQUEST_TIMEOUT = 15
 _CROSSLINK_FETCH_TIMEOUT = 5
+_PRIMARY_RENDER_SERVICE_ID = "srv-da98sm2jnfac73d2ki5g"
 _INVENTORY_WALL_BUDGET_SECONDS = 600
 _REFRESH_THREAD: threading.Thread | None = None
 
@@ -352,6 +353,15 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
     }
 
 
+def should_start_refresh(service_id: str | None) -> bool:
+    """Only the canonical primary Render service owns the full-corpus snapshot.
+
+    A missing service ID is treated as local development, where refresh remains enabled.
+    """
+    normalized = str(service_id or "").strip()
+    return not normalized or normalized == _PRIMARY_RENDER_SERVICE_ID
+
+
 def start_refresh(index: Any, core: Any, *, force: bool = False) -> bool:
     """Start one bounded background inventory refresh per process."""
     if index is None:
@@ -526,5 +536,6 @@ __all__ = [
     "fetch_crosslink_documents",
     "inventory_snapshot",
     "select_crosslinks",
+    "should_start_refresh",
     "start_refresh",
 ]
