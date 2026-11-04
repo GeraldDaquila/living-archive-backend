@@ -256,6 +256,9 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
         raise RuntimeError(f"Corpus exceeds bounded inventory limit ({expected_total}>{max_vectors})")
 
     assets: dict[str, dict[str, Any]] = {}
+    # Preserve exact WordPress identity separately from title-based grouping.
+    wp_id_urls: dict[str, set[str]] = {}
+    asset_wp_ids: dict[str, set[str]] = {}
     listed_count = 0
     fetched_count = 0
     missing_metadata = 0
@@ -313,6 +316,10 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
         key = "url:" + url if url else "title:" + re.sub(r"\W+", " ", title.casefold()).strip()
         if not key or key == "title:":
             key = f"id:{namespace}:{vector_id}"
+        if wp_id.isdigit() and url:
+            wp_id_urls.setdefault(wp_id, set()).add(url)
+        if wp_id.isdigit():
+            asset_wp_ids.setdefault(key, set()).add(wp_id)
         asset = assets.setdefault(key, {
             "asset_key": key,
             "title": title,
@@ -457,6 +464,41 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
 
     unique_listed_count = sum(len(ids) for ids in listed_ids_by_namespace.values())
     duplicate_listed_count = max(0, listed_count - unique_listed_count)
+
+    # Repair chunk-level URL omissions first through exact WordPress identity.
+    # Historical chunks can lose URL metadata while retaining their shared wp_id.
+    # Only a one-to-one canonical destination is accepted; conflicts fail closed.
+    for asset_key, asset in list(assets.items()):
+        if asset.get("url"):
+            continue
+        wp_ids = asset_wp_ids.get(asset_key, set())
+        if len(wp_ids) != 1:
+            continue
+        urls = wp_id_urls.get(next(iter(wp_ids)), set())
+        if len(urls) != 1:
+            continue
+        recovered_url = next(iter(urls))
+        target_key = "url:" + recovered_url
+        target = assets.get(target_key)
+        if target is None:
+            asset["url"] = recovered_url
+            assets[target_key] = asset
+            del assets[asset_key]
+            asset_wp_ids[target_key] = asset_wp_ids.pop(asset_key, set())
+            continue
+        target["vector_count"] += asset["vector_count"]
+        for ref in asset["vector_refs"]:
+            if len(target["vector_refs"]) >= 4:
+                break
+            if ref not in target["vector_refs"]:
+                target["vector_refs"].append(ref)
+        if asset.get("summary"):
+            target["summary"] = (target["summary"] + " " + asset["summary"])[:1200]
+        if asset.get("sample"):
+            target["sample"] = (target["sample"] + " " + asset["sample"])[:2400]
+        asset_wp_ids.setdefault(target_key, set()).update(wp_ids)
+        del assets[asset_key]
+        asset_wp_ids.pop(asset_key, None)
 
     # Repair chunk-level URL omissions only when an exact title maps to one
     # and only one canonical URL. Ambiguous duplicate titles remain unlinked.
