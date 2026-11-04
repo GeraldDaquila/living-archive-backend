@@ -121,6 +121,10 @@ def interpret_episode(payload: Mapping[str, Any]) -> dict[str, str]:
         correctability_label = "not_assessable_without_correspondence"
     elif response == "too_early_or_unknown" or item["response_available"] == "unknown":
         correctability_label = "insufficient_evidence"
+    elif response == "attempted_but_blocked":
+        # Preserve the reported blocked attempt even when response capacity was
+        # unavailable; do not collapse an observed constraint into no opportunity.
+        correctability_label = "constraint_or_delay_reported"
     elif not meaningful_opportunity:
         correctability_label = "not_assessable_response_unavailable"
     elif linked_response:
