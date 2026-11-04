@@ -1,0 +1,25 @@
+name: USE Retrieval Navigation Integrity
+
+on:
+  push:
+    paths:
+      - 'guide_runtime.py'
+      - 'use_core.py'
+      - 'tests/test_retrieval_navigation_integrity.py'
+  pull_request:
+    paths:
+      - 'guide_runtime.py'
+      - 'use_core.py'
+      - 'tests/test_retrieval_navigation_integrity.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  retrieval-navigation-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run retrieval and navigation integrity regressions
+        run: python -m unittest tests/test_retrieval_navigation_integrity.py -v
