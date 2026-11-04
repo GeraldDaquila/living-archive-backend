@@ -10589,6 +10589,9 @@ class _StrictCorsBoundary:
     def __init__(self, app):
         self.app = app
 
+    def __getattr__(self, name):
+        return getattr(self.app, name)
+
     async def __call__(self, scope, receive, send):
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
