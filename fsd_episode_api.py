@@ -110,10 +110,15 @@ def _compose_episode_report(episode: dict[str, Any], references: list[dict[str, 
         "capacity beyond this episode. A decision not to change may be appropriate when change "
         "is unwarranted; more evidence, time, authority, or resources may be needed. Never call "
         "'not demonstrated' incapable or failed. Separate strengths, enabling conditions, "
-        "constraints, and practical next steps. Living Archive references are conceptual context "
-        "only; they do not verify that the episode occurred and must not be described as evidence "
-        "corroborating the respondent. Use only supplied Archive reference IDs. Return exactly "
-        "the required JSON fields. Do not include internal reasoning labels or provider details."
+        "constraints, and practical next steps. Do not invent strengths or enabling conditions: "
+        "include them only when directly supported by the respondent's structured selections; "
+        "otherwise return an empty list. Do not infer positive outcomes, successful learning, "
+        "or effective governance from the mere presence of feedback, documentation, or an action. "
+        "Next steps must be clearly framed as suggestions, not claims about what happened. "
+        "Living Archive references are conceptual context only; they do not verify that the episode "
+        "occurred and must not be described as evidence corroborating the respondent. Use only "
+        "supplied Archive reference IDs. Return exactly the required JSON fields. Do not include "
+        "internal reasoning labels or provider details."
     )
     user = {
         "contract_version": CONTRACT_VERSION,
