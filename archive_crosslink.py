@@ -310,7 +310,7 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
         if not title:
             missing_metadata += 1
             return
-        key = "url:" + url if url else "title:" + re.sub(r"\\W+", " ", title.casefold()).strip()
+        key = "url:" + url if url else "title:" + re.sub(r"\W+", " ", title.casefold()).strip()
         if not key or key == "title:":
             key = f"id:{namespace}:{vector_id}"
         asset = assets.setdefault(key, {
