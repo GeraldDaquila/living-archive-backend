@@ -99,7 +99,11 @@ def interpret_episode(payload: Mapping[str, Any]) -> dict[str, str]:
         and item["understanding_after"] in {"revised", "qualified", "examined_and_retained"}
         and item["reconsideration_basis"] in {"directly_changed_explanation", "prompted_examination", "considered_with_competing_evidence"}
     )
-    if item["understanding_after"] in {"unknown", "no_opportunity"} or item["consequence_significance"] == "unclear":
+    if (
+        item["experience_type"] == "other_unclear"
+        or item["understanding_after"] in {"unknown", "no_opportunity"}
+        or item["consequence_significance"] in {"limited_or_ambiguous", "unclear"}
+    ):
         correspondence_label = "insufficient_evidence"
     elif correspondence:
         correspondence_label = "reported"
