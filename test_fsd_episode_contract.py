@@ -172,3 +172,14 @@ def test_unknown_prior_understanding_prevents_correspondence_claim():
     result = interpret_episode(episode(prior_understanding="unknown"))
     assert result["correspondence"] == "insufficient_evidence"
     assert result["overall"] == "insufficient_evidence"
+
+
+def test_blocked_attempt_is_preserved_when_response_capacity_is_unavailable():
+    result = interpret_episode(episode(
+        subsequent_response="attempted_but_blocked",
+        understanding_action_link="partly_informed",
+        response_available="no",
+        non_change_reason="authority_or_resources_unavailable",
+    ))
+    assert result["correspondence"] == "reported"
+    assert result["correctability"] == "constraint_or_delay_reported"
