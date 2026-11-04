@@ -166,6 +166,32 @@ def test_http_route_applies_rate_limit_before_body_processing(monkeypatch):
     assert response.status_code == 429
 
 
+def test_http_route_error_responses_also_disable_storage(monkeypatch):
+    client = _route_client(monkeypatch)
+    malformed = client.post(
+        "/api/fsd/analyze-episode",
+        content=b"{not-json",
+        headers={"X-Living-Archive-Provider-Key": "synthetic", "Content-Type": "application/json"},
+    )
+    assert malformed.status_code == 400
+    assert malformed.headers["cache-control"].startswith("no-store")
+    assert malformed.headers["pragma"] == "no-cache"
+
+    monkeypatch.setattr(
+        fsd_episode_api,
+        "_check_rate_limit",
+        lambda _bucket: (_ for _ in ()).throw(HTTPException(status_code=429, detail="rate limited")),
+    )
+    limited = client.post(
+        "/api/fsd/analyze-episode",
+        content=b"{}",
+        headers={"X-Living-Archive-Provider-Key": "synthetic", "Content-Type": "application/json"},
+    )
+    assert limited.status_code == 429
+    assert limited.headers["cache-control"].startswith("no-store")
+    assert limited.headers["pragma"] == "no-cache"
+
+
 def test_provider_failure_returns_bounded_unavailable_response(monkeypatch):
     monkeypatch.setattr(
         fsd_episode_api,
