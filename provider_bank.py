@@ -3181,6 +3181,18 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 + ", rejection_class=" + rejection_class
                 + ", error=contract_rejection"
             )
+            if operation in {"hrn_perception", "general_guide_composition"} and attempt_started is not None:
+                candidate_elapsed = time.monotonic() - attempt_started
+                print(
+                    "USE provider bank candidate outcome: operation="
+                    + operation
+                    + ", provider="
+                    + provider
+                    + ", model="
+                    + model
+                    + ", outcome=contract_rejection, elapsed_seconds="
+                    + str(round(candidate_elapsed, 3))
+                )
             if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
                 slow_failure_stop = HRN_PERCEPTION_SLOW_FAILURE_STOP_SECONDS
