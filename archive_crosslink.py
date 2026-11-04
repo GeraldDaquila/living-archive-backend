@@ -701,7 +701,9 @@ def select_crosslinks(
         if score >= 3.0:
             ranked.append((score, asset))
     ranked.sort(key=lambda item: (-item[0], str(item[1].get("title") or "")))
-    return [asset for _, asset in ranked[:max(0, min(int(limit), 8))]]
+    # Small is beautiful: the crosslink is connective tissue, not a second
+    # retrieval system. Keep the evidence expansion deliberately narrow.
+    return [asset for _, asset in ranked[:max(0, min(int(limit), 3))]]
 
 
 def fetch_crosslink_documents(index: Any, core: Any, assets: list[dict[str, Any]]) -> list[dict[str, str]]:
@@ -767,6 +769,8 @@ def expand_context(
         return []
     start_refresh(index, core)
     assets = select_crosslinks(query, seed_documents, snapshot)
+    if not assets:
+        return []
     return fetch_crosslink_documents(index, core, assets)
 
 
