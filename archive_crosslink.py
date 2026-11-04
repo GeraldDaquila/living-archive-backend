@@ -105,7 +105,8 @@ def _list_page(index: Any, namespace: str, token: str | None):
         return _pinecone_call(method, limit=_PAGE_SIZE, pagination_token=token, namespace=namespace)
     # Compatibility fallback for SDK versions exposing only the paginator.
     if token is None and callable(getattr(index, "list", None)):
-        return next(iter(index.list(limit=_PAGE_SIZE, namespace=namespace)), None)
+        pages = _pinecone_call(index.list, limit=_PAGE_SIZE, namespace=namespace)
+        return next(iter(pages), None)
     raise RuntimeError("Pinecone index does not expose paginated vector listing")
 
 
