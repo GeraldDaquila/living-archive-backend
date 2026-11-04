@@ -204,3 +204,29 @@ def test_inventory_fails_closed_when_pinecone_repeats_a_pagination_token():
     ]
     with pytest.raises(RuntimeError, match="pagination token repeated"):
         build_inventory(RepeatingTokenIndex(records), FakeCore())
+
+
+
+def test_visitor_crosslink_fetch_uses_short_timeout():
+    class TimeoutIndex(FakeIndex):
+        def __init__(self, records):
+            super().__init__(records)
+            self.fetch_timeouts = []
+
+        def fetch(self, *, ids, namespace="", timeout=None):
+            self.fetch_timeouts.append(timeout)
+            return super().fetch(ids=ids, namespace=namespace)
+
+    records = [
+        ("v1", "", _record(
+            "Institutional Correctability",
+            "https://geralddaquila.com/institutional-correctability/",
+            "Correction and accountability mechanisms help institutions learn.",
+        )),
+    ]
+    index = TimeoutIndex(records)
+    snapshot = build_inventory(index, FakeCore())
+    selected = select_crosslinks("institutional correctability", [], snapshot, limit=1)
+    docs = fetch_crosslink_documents(index, FakeCore(), selected)
+    assert len(docs) == 1
+    assert index.fetch_timeouts == [15, 5]
