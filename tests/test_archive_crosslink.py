@@ -74,20 +74,23 @@ def test_inventory_walks_every_namespace_and_collapses_chunks_by_canonical_url()
     records = [
         ("v1", "", _record("Stewardship Governance", "https://geralddaquila.com/stewardship-governance/", "Governance and stewardship are linked.")),
         ("v2", "", _record("Stewardship Governance", "https://geralddaquila.com/stewardship-governance", "A second chunk for the same canonical asset.")),
-        ("v3", "", _record("Institutional Correctability", "https://geralddaquila.com/institutional-correctability/", "Correction, review, and accountability.")),
-        ("v4", "cases", _record("Protected Stewardship Codex", "https://geralddaquila.com/t4-codex/", "Protected content.", tier="T4")),
+        ("v3", "", _record("Stewardship Governance", "", "A chunk without its URL but with a unique canonical title.")),
+        ("v4", "", _record("Institutional Correctability", "https://geralddaquila.com/institutional-correctability/", "Correction, review, and accountability.")),
+        ("v5", "cases", _record("Protected Stewardship Codex", "https://geralddaquila.com/t4-codex/", "Protected content.", tier="T4")),
     ]
     index = FakeIndex(records)
     snapshot = build_inventory(index, FakeCore())
     assert snapshot["complete"] is True
-    assert snapshot["expected_vector_count"] == 4
-    assert snapshot["listed_vector_count"] == 4
-    assert snapshot["fetched_vector_count"] == 4
+    assert snapshot["expected_vector_count"] == 5
+    assert snapshot["listed_vector_count"] == 5
+    assert snapshot["fetched_vector_count"] == 5
     assert snapshot["asset_count"] == 2
     assert snapshot["ineligible_vector_count"] == 1
+    assert snapshot["missing_url_asset_count"] == 0
+    assert snapshot["crosslink_ready"] is True
     governance = next(a for a in snapshot["assets"] if "stewardship-governance" in a["url"])
-    assert governance["vector_count"] == 2
-    assert len(governance["vector_refs"]) == 2
+    assert governance["vector_count"] == 3
+    assert len(governance["vector_refs"]) == 3
 
 
 def test_crosslink_selection_uses_full_inventory_but_excludes_existing_seed_url():
