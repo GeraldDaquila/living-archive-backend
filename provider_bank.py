@@ -303,6 +303,7 @@ def _sync_shared_state(nonblocking=True):
         if local is None:
             local = new_state(provider, model)
             _STATE["models"][key] = local
+        local["credential_fingerprint"] = incoming_fingerprint
         merge_health_state(local, incoming, now=now)
     _SHARED_STATE_DIAGNOSTICS.update({
         "mode": "shared_wordpress_database",
