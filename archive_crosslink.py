@@ -19,7 +19,7 @@ from urllib.request import Request as UrlRequest, urlopen
 
 _PAGE_SIZE = 100
 _MAX_VECTORS = 50000
-_REFRESH_SECONDS = 900
+_REFRESH_SECONDS = 31 * 24 * 60 * 60  # monthly safety interval
 _MAX_ASSETS_PER_QUERY = 4
 _STOPWORDS = {
     "about", "after", "again", "also", "among", "and", "are", "around",
@@ -583,7 +583,11 @@ def should_start_refresh(service_id: str | None) -> bool:
 
 
 def start_refresh(index: Any, core: Any, *, force: bool = False) -> bool:
-    """Start one bounded background inventory refresh per process."""
+    """Start one bounded full-corpus refresh.
+
+    Normal operation uses the validated in-process snapshot. Automatic rebuilds
+    are limited to a monthly safety interval; force=True is for deliberate refresh.
+    """
     if index is None:
         return False
     global _REFRESH_THREAD, _LAST_ATTEMPT
@@ -752,9 +756,16 @@ def expand_context(
         return []
     with _LOCK:
         snapshot = _SNAPSHOT
-    if snapshot is None or not snapshot.get("crosslink_ready"):
+    if snapshot is None:
+        # A process restart may require one bounded rebuild. Once a validated
+        # snapshot exists, normal requests do not trigger repeated corpus scans.
         start_refresh(index, core)
         return []
+    if not snapshot.get("crosslink_ready"):
+        # Preserve fail-closed behavior without repeatedly spending Pinecone
+        # operations on an inventory that has already failed validation.
+        return []
+    start_refresh(index, core)
     assets = select_crosslinks(query, seed_documents, snapshot)
     return fetch_crosslink_documents(index, core, assets)
 
