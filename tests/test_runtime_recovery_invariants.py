@@ -10,7 +10,7 @@ class RuntimeRecoveryTests(unittest.TestCase):
         self.assertEqual(len(main.RUNTIME_SOURCE_SHA256), 64)
 
     def test_protected_core_manifest_matches_loaded_core(self):
-        self.assertEqual(main._core_runtime_sha, main.EXPECTED_CORE_BLOB_SHA)
+        self.assertEqual(getattr(main._base, "_core_runtime_sha", ""), main.EXPECTED_CORE_BLOB_SHA)
 
     def test_registry_state_is_non_secret_and_bounded(self):
         state=main.guide_node_registry_state()
