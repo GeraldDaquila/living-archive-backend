@@ -293,3 +293,48 @@ def test_wp_id_url_recovery_fails_closed_on_title_mismatch(monkeypatch):
     assert snapshot["wp_id_title_mismatch_vector_count"] == 1
     assert snapshot["missing_url_asset_count"] == 1
     assert snapshot["crosslink_ready"] is False
+
+
+
+def test_wordpress_registry_loads_published_post_and_page_identity(monkeypatch):
+    class Response:
+        def __init__(self, payload):
+            self.payload = payload
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self):
+            import json
+            return json.dumps(self.payload).encode("utf-8")
+
+    calls = []
+
+    def fake_urlopen(request, timeout):
+        calls.append((request.full_url, timeout))
+        if "/posts?" in request.full_url:
+            return Response([{
+                "id": 123,
+                "link": "https://geralddaquila.com/stewardship-governance/",
+                "title": {"rendered": "Stewardship <em>Governance</em>"},
+            }])
+        return Response([{
+            "id": 456,
+            "link": "https://geralddaquila.com/the-world-he-carried/",
+            "title": {"rendered": "The World He Carried"},
+        }])
+
+    monkeypatch.setenv("RENDER", "true")
+    monkeypatch.setattr(archive_crosslink, "urlopen", fake_urlopen)
+    monkeypatch.setattr(archive_crosslink, "_WP_CANONICAL_CACHE", {})
+    monkeypatch.setattr(archive_crosslink, "_WP_CANONICAL_CACHE_AT", 0.0)
+
+    registry = archive_crosslink._load_wp_canonical_map()
+    assert registry["123"]["url"] == "https://geralddaquila.com/stewardship-governance"
+    assert registry["123"]["title_key"] == "stewardship governance"
+    assert registry["456"]["url"] == "https://geralddaquila.com/the-world-he-carried"
+    assert len(calls) == 2
+    assert all(timeout == 3.0 for _, timeout in calls)
