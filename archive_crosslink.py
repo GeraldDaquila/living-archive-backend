@@ -1,0 +1,411 @@
+"""Full-corpus metadata crosslink for The Guide.
+
+The inventory is built from the canonical Pinecone index, not mini-USE.
+It is read-only, bounded, access-filtered, and cached per process. An
+incomplete inventory is never represented as exhaustive and is never used
+to expand visitor evidence.
+"""
+from __future__ import annotations
+
+import re
+import threading
+import time
+from collections import Counter
+from typing import Any
+
+_PAGE_SIZE = 100
+_MAX_VECTORS = 50000
+_REFRESH_SECONDS = 900
+_MAX_ASSETS_PER_QUERY = 4
+_STOPWORDS = {
+    "about", "after", "again", "also", "among", "and", "are", "around",
+    "because", "been", "before", "being", "between", "both", "but", "can",
+    "could", "does", "from", "have", "into", "just", "more", "most", "not",
+    "only", "other", "over", "same", "should", "some", "such", "than", "that",
+    "their", "them", "then", "there", "these", "they", "this", "those", "through",
+    "under", "very", "what", "when", "where", "which", "while", "with", "would",
+    "your", "you", "the", "for", "was", "were", "will", "how", "why", "who",
+    "does", "did", "its", "our", "out", "his", "her", "she", "him", "has",
+}
+
+_LOCK = threading.RLock()
+_REFRESH_LOCK = threading.Lock()
+_SNAPSHOT: dict[str, Any] | None = None
+_LAST_REFRESH = 0.0
+_REFRESH_THREAD: threading.Thread | None = None
+
+
+def _field(value: Any, key: str, default: Any = None) -> Any:
+    if isinstance(value, dict):
+        return value.get(key, default)
+    getter = getattr(value, "get", None)
+    if callable(getter):
+        try:
+            return getter(key, default)
+        except Exception:
+            pass
+    return getattr(value, key, default)
+
+
+def _text(value: Any, limit: int = 2400) -> str:
+    if isinstance(value, (list, tuple, set)):
+        value = " ".join(str(item) for item in value)
+    if not isinstance(value, (str, int, float)):
+        return ""
+    return re.sub(r"\\s+", " ", str(value)).strip()[:limit]
+
+
+def _tokens(value: Any) -> set[str]:
+    words = re.findall(r"[a-z0-9][a-z0-9'-]{1,}", _text(value, 8000).casefold())
+    return {word.strip("'-") for word in words if len(word) > 2 and word not in _STOPWORDS}
+
+
+def _normalize_url(value: Any) -> str:
+    url = _text(value, 1000).strip()
+    if not re.match(r"^https://[^\\s]+$", url, re.I):
+        return ""
+    return url.rstrip("/").casefold()
+
+
+def _namespace_specs(index: Any) -> tuple[list[tuple[str, int | None]], int | None]:
+    stats = index.describe_index_stats()
+    namespaces = _field(stats, "namespaces", {}) or {}
+    total = _field(stats, "total_vector_count")
+    specs: list[tuple[str, int | None]] = []
+    if isinstance(namespaces, dict) and namespaces:
+        for name, summary in namespaces.items():
+            namespace = "" if str(name) == "__default__" else str(name)
+            count = _field(summary, "vector_count")
+            specs.append((namespace, int(count) if count is not None else None))
+    else:
+        specs.append(("", int(total) if total is not None else None))
+    return specs, int(total) if total is not None else None
+
+
+def _list_page(index: Any, namespace: str, token: str | None):
+    method = getattr(index, "list_paginated", None)
+    if callable(method):
+        return method(limit=_PAGE_SIZE, pagination_token=token, namespace=namespace)
+    # Compatibility fallback for SDK versions exposing only the paginator.
+    if token is None and callable(getattr(index, "list", None)):
+        return next(iter(index.list(limit=_PAGE_SIZE, namespace=namespace)), None)
+    raise RuntimeError("Pinecone index does not expose paginated vector listing")
+
+
+def _vector_ids(page: Any) -> list[str]:
+    vectors = _field(page, "vectors", []) or []
+    ids = []
+    for item in vectors:
+        value = _field(item, "id")
+        if value:
+            ids.append(str(value))
+    return ids
+
+
+def _next_token(page: Any) -> str | None:
+    pagination = _field(page, "pagination")
+    value = _field(pagination, "next")
+    return str(value) if value else None
+
+
+def _metadata_for(vector: Any) -> dict[str, Any]:
+    metadata = _field(vector, "metadata", {})
+    return dict(metadata) if isinstance(metadata, dict) else {}
+
+
+def _eligible(metadata: dict[str, Any], core: Any) -> bool:
+    access_check = getattr(core, "_use_corpus_access_eligible", None)
+    archived_check = getattr(core, "_is_archived_canonical_resource", None)
+    if callable(access_check) and not access_check(metadata):
+        return False
+    if callable(archived_check) and archived_check(metadata):
+        return False
+    return bool(metadata)
+
+
+def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -> dict[str, Any]:
+    """Exhaustively list and fetch vector metadata across all namespaces."""
+    if index is None:
+        raise RuntimeError("Canonical Pinecone index is unavailable")
+    specs, expected_total = _namespace_specs(index)
+    if expected_total is not None and expected_total > max_vectors:
+        raise RuntimeError(f"Corpus exceeds bounded inventory limit ({expected_total}>{max_vectors})")
+
+    assets: dict[str, dict[str, Any]] = {}
+    listed_count = 0
+    fetched_count = 0
+    missing_metadata = 0
+    ineligible_count = 0
+    archived_count = 0
+    truncated = False
+
+    for namespace, namespace_count in specs:
+        token = None
+        namespace_listed = 0
+        while True:
+            page = _list_page(index, namespace, token)
+            if page is None:
+                break
+            ids = _vector_ids(page)
+            if not ids:
+                token = _next_token(page)
+                if not token:
+                    break
+                continue
+            if listed_count + len(ids) > max_vectors:
+                ids = ids[:max(0, max_vectors - listed_count)]
+                truncated = True
+            listed_count += len(ids)
+            namespace_listed += len(ids)
+
+            for offset in range(0, len(ids), _PAGE_SIZE):
+                batch = ids[offset:offset + _PAGE_SIZE]
+                response = index.fetch(ids=batch, namespace=namespace)
+                vectors = _field(response, "vectors", {}) or {}
+                if not isinstance(vectors, dict):
+                    vectors = {}
+                fetched_count += len(vectors)
+                for vector_id, vector in vectors.items():
+                    metadata = _metadata_for(vector)
+                    if not metadata:
+                        missing_metadata += 1
+                        continue
+                    if not _eligible(metadata, core):
+                        ineligible_count += 1
+                        continue
+
+                    title = _text(metadata.get("title") or metadata.get("name"), 300)
+                    url = _normalize_url(metadata.get("url") or metadata.get("canonical_url"))
+                    if not title:
+                        missing_metadata += 1
+                        continue
+                    key = "url:" + url if url else "title:" + re.sub(r"\\W+", " ", title.casefold()).strip()
+                    if not key or key == "title:":
+                        key = f"id:{namespace}:{vector_id}"
+                    asset = assets.setdefault(key, {
+                        "asset_key": key,
+                        "title": title,
+                        "url": url,
+                        "namespace": namespace,
+                        "tier": _text(metadata.get("tier") or metadata.get("archive_tier"), 40),
+                        "resource_type": _text(metadata.get("resource_type") or metadata.get("type") or metadata.get("category"), 120),
+                        "access_class": _text(metadata.get("access_class") or metadata.get("access"), 40),
+                        "summary": "",
+                        "sample": "",
+                        "vector_refs": [],
+                        "vector_count": 0,
+                    })
+                    asset["vector_count"] += 1
+                    if len(asset["vector_refs"]) < 4:
+                        asset["vector_refs"].append({"id": str(vector_id), "namespace": namespace})
+                    summary = " ".join(filter(None, (
+                        _text(metadata.get("summary"), 500),
+                        _text(metadata.get("description"), 500),
+                        _text(metadata.get("excerpt"), 500),
+                        _text(metadata.get("keywords"), 300),
+                        _text(metadata.get("tags"), 300),
+                    )))
+                    if summary and len(asset["summary"]) < 1200:
+                        asset["summary"] = (asset["summary"] + " " + summary)[:1200]
+                    sample = _text(metadata.get("text") or metadata.get("content") or metadata.get("body"), 1000)
+                    if sample and len(asset["sample"]) < 2400:
+                        asset["sample"] = (asset["sample"] + " " + sample)[:2400]
+
+            token = _next_token(page)
+            if truncated or not token:
+                break
+        if namespace_count is not None and namespace_listed != namespace_count:
+            # Do not claim complete coverage if Pinecone's count and listing disagree.
+            truncated = True
+
+    titles: dict[str, set[str]] = {}
+    for asset in assets.values():
+        title_key = re.sub(r"\\W+", " ", asset["title"].casefold()).strip()
+        titles.setdefault(title_key, set()).add(asset["url"] or asset["asset_key"])
+    duplicate_titles = sum(1 for urls in titles.values() if len(urls) > 1)
+    complete = (
+        not truncated
+        and expected_total is not None
+        and listed_count == expected_total
+        and fetched_count == listed_count
+    )
+    return {
+        "contract": "archive-crosslink-inventory-v1",
+        "status": "complete" if complete else "incomplete",
+        "complete": complete,
+        "expected_vector_count": expected_total,
+        "listed_vector_count": listed_count,
+        "fetched_vector_count": fetched_count,
+        "asset_count": len(assets),
+        "missing_metadata_count": missing_metadata,
+        "ineligible_vector_count": ineligible_count,
+        "duplicate_title_count": duplicate_titles,
+        "namespace_count": len(specs),
+        "assets": list(assets.values()),
+        "refreshed_at": time.time(),
+    }
+
+
+def start_refresh(index: Any, core: Any, *, force: bool = False) -> bool:
+    """Start one bounded background inventory refresh per process."""
+    global _REFRESH_THREAD
+    now = time.monotonic()
+    with _LOCK:
+        if not force and _SNAPSHOT is not None and now - _LAST_REFRESH < _REFRESH_SECONDS:
+            return False
+        if _REFRESH_THREAD is not None and _REFRESH_THREAD.is_alive():
+            return False
+        if not _REFRESH_LOCK.acquire(blocking=False):
+            return False
+        thread = threading.Thread(
+            target=_refresh_worker,
+            args=(index, core),
+            name="guide-archive-crosslink-inventory",
+            daemon=True,
+        )
+        _REFRESH_THREAD = thread
+        thread.start()
+        return True
+
+
+def _refresh_worker(index: Any, core: Any) -> None:
+    global _SNAPSHOT, _LAST_REFRESH, _REFRESH_THREAD
+    try:
+        snapshot = build_inventory(index, core)
+        with _LOCK:
+            _SNAPSHOT = snapshot
+            _LAST_REFRESH = time.monotonic()
+        print(
+            "USE archive meta-crosslink inventory: "
+            f"status={snapshot['status']}, namespaces={snapshot['namespace_count']}, "
+            f"vectors={snapshot['listed_vector_count']}/{snapshot['expected_vector_count']}, "
+            f"assets={snapshot['asset_count']}, duplicates={snapshot['duplicate_title_count']}"
+        )
+    except Exception as exc:
+        print(f"USE archive meta-crosslink inventory unavailable: {type(exc).__name__}")
+    finally:
+        with _LOCK:
+            _REFRESH_THREAD = None
+        _REFRESH_LOCK.release()
+
+
+def inventory_snapshot() -> dict[str, Any] | None:
+    with _LOCK:
+        if _SNAPSHOT is None:
+            return None
+        return {key: value for key, value in _SNAPSHOT.items() if key != "assets"}
+
+
+def _asset_score(query_tokens: set[str], seed_tokens: set[str], asset: dict[str, Any]) -> float:
+    title_tokens = _tokens(asset.get("title"))
+    summary_tokens = _tokens(asset.get("summary"))
+    sample_tokens = _tokens(asset.get("sample"))
+    searchable = summary_tokens | sample_tokens | _tokens(asset.get("resource_type"))
+    score = 0.0
+    score += 4.0 * len(query_tokens & title_tokens)
+    score += 1.7 * len(query_tokens & summary_tokens)
+    score += 0.7 * len(query_tokens & sample_tokens)
+    score += 1.2 * len(query_tokens & _tokens(asset.get("resource_type")))
+    score += 0.65 * len(seed_tokens & title_tokens)
+    score += 0.25 * len(seed_tokens & searchable)
+    if len(query_tokens) >= 2 and query_tokens.issubset(title_tokens | summary_tokens | sample_tokens):
+        score += 2.0
+    return score
+
+
+def select_crosslinks(
+    query: str,
+    seed_documents: list[dict[str, Any]],
+    snapshot: dict[str, Any] | None,
+    *,
+    limit: int = _MAX_ASSETS_PER_QUERY,
+) -> list[dict[str, Any]]:
+    """Rank public canonical assets across the complete inventory."""
+    if not isinstance(snapshot, dict) or not snapshot.get("complete"):
+        return []
+    query_tokens = _tokens(query)
+    if not query_tokens:
+        return []
+    existing_urls = {
+        _normalize_url(doc.get("url") or doc.get("canonical_url"))
+        for doc in seed_documents or []
+    }
+    seed_tokens: set[str] = set()
+    for doc in seed_documents or []:
+        seed_tokens.update(_tokens(doc.get("title")))
+    ranked = []
+    for asset in snapshot.get("assets", []):
+        if not isinstance(asset, dict) or not asset.get("url") or asset["url"] in existing_urls:
+            continue
+        score = _asset_score(query_tokens, seed_tokens, asset)
+        if score >= 3.0:
+            ranked.append((score, asset))
+    ranked.sort(key=lambda item: (-item[0], str(item[1].get("title") or "")))
+    return [asset for _, asset in ranked[:max(0, min(int(limit), 8))]]
+
+
+def fetch_crosslink_documents(index: Any, core: Any, assets: list[dict[str, Any]]) -> list[dict[str, str]]:
+    """Fetch only selected vector records and reapply canonical public gates."""
+    if index is None or not assets:
+        return []
+    documents: list[dict[str, str]] = []
+    seen_urls: set[str] = set()
+    for asset in assets:
+        refs = asset.get("vector_refs") or []
+        for ref in refs:
+            if not isinstance(ref, dict) or not ref.get("id"):
+                continue
+            try:
+                response = index.fetch(ids=[str(ref["id"])], namespace=str(ref.get("namespace") or ""))
+                vectors = _field(response, "vectors", {}) or {}
+                vector = vectors.get(str(ref["id"])) if isinstance(vectors, dict) else None
+                metadata = _metadata_for(vector) if vector is not None else {}
+                if not metadata or not _eligible(metadata, core):
+                    continue
+                title = _text(metadata.get("title") or metadata.get("name"), 300)
+                url = _text(metadata.get("url") or metadata.get("canonical_url"), 1000)
+                normalized_url = _normalize_url(url)
+                content_fn = getattr(core, "_resource_content", None)
+                body = _text(content_fn(metadata) if callable(content_fn) else (
+                    metadata.get("text") or metadata.get("content") or metadata.get("excerpt")
+                ), 5000)
+                if not title or not normalized_url or not body or normalized_url in seen_urls:
+                    continue
+                usable = getattr(core, "_has_usable_destination", None)
+                if callable(usable) and not usable(metadata):
+                    continue
+                navigable = getattr(core, "_is_navigable_canonical_resource", None)
+                if callable(navigable) and not navigable(metadata):
+                    continue
+                documents.append({"title": title, "url": url, "text": body})
+                seen_urls.add(normalized_url)
+                break
+            except Exception:
+                continue
+    return documents
+
+
+def expand_context(
+    query: str,
+    seed_documents: list[dict[str, Any]],
+    index: Any,
+    core: Any,
+) -> list[dict[str, str]]:
+    """Return a small, verified evidence expansion; never use partial inventories."""
+    with _LOCK:
+        snapshot = _SNAPSHOT
+    if snapshot is None or not snapshot.get("complete"):
+        start_refresh(index, core)
+        return []
+    assets = select_crosslinks(query, seed_documents, snapshot)
+    return fetch_crosslink_documents(index, core, assets)
+
+
+__all__ = [
+    "build_inventory",
+    "expand_context",
+    "fetch_crosslink_documents",
+    "inventory_snapshot",
+    "select_crosslinks",
+    "start_refresh",
+]
