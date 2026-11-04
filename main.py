@@ -10031,6 +10031,18 @@ async def _use_request_boundary(scope, receive, send):
 
     if should_delegate:
         request_id = route_id + "-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
+        if route_id == "systems_ph":
+            try:
+                result = _philippine_systems_specialist_response(query, history, route, request_id)
+                return await _use_send_json(send, {
+                    "ok": True, "version": APP_VERSION, "query": query,
+                    "intent": "PHILIPPINE_SYSTEMS_HANDOFF", "response": result["response"],
+                    "handoff": "systems_ph", "handoff_mode": "specialist",
+                    "systems_delegation": result["systems_delegation"],
+                    "visitor_boundary_version": APP_VERSION, "request_id": request_id,
+                })
+            except Exception as exc:
+                print(f"USE Philippine Systems Lens failed safely: exception={type(exc).__name__}")
         if route_id == "formation":
             try:
                 result = _formation_specialist_response(query, history, route, request_id)
