@@ -1,3 +1,5 @@
+import pytest
+
 from archive_crosslink import build_inventory, fetch_crosslink_documents, select_crosslinks
 
 
@@ -141,3 +143,90 @@ def test_ambiguous_duplicate_titles_do_not_receive_guessed_urls():
     assert snapshot["missing_url_asset_count"] == 1
     assert snapshot["crosslink_ready"] is False
     assert select_crosslinks("governance foundations", [], snapshot) == []
+
+
+
+def test_inventory_applies_request_timeouts_to_pinecone_operations():
+    class TimeoutIndex:
+        def __init__(self):
+            self.timeout_calls = []
+
+        def describe_index_stats(self, timeout=None):
+            self.timeout_calls.append(("stats", timeout))
+            return {
+                "total_vector_count": 1,
+                "dimension": 384,
+                "namespaces": {"__default__": {"vector_count": 1}},
+            }
+
+        def list_paginated(self, *, limit, pagination_token=None, namespace="", timeout=None):
+            self.timeout_calls.append(("list", timeout))
+            return {"vectors": [{"id": "v1"}], "pagination": None}
+
+        def fetch(self, *, ids, namespace="", timeout=None):
+            self.timeout_calls.append(("fetch", timeout))
+            return {
+                "vectors": {
+                    "v1": {
+                        "metadata": _record(
+                            "Stewardship Governance",
+                            "https://geralddaquila.com/stewardship-governance/",
+                            "Governance and stewardship.",
+                        )
+                    }
+                }
+            }
+
+    index = TimeoutIndex()
+    snapshot = build_inventory(index, FakeCore())
+    assert snapshot["crosslink_ready"] is True
+    assert index.timeout_calls == [
+        ("stats", 15),
+        ("list", 15),
+        ("fetch", 15),
+    ]
+
+
+def test_inventory_fails_closed_when_pinecone_repeats_a_pagination_token():
+    class RepeatingTokenIndex(FakeIndex):
+        def list_paginated(self, *, limit, pagination_token=None, namespace=""):
+            return {
+                "vectors": [{"id": "v1"}],
+                "pagination": {"next": "repeat-me"},
+            }
+
+    records = [
+        ("v1", "", _record(
+            "Stewardship Governance",
+            "https://geralddaquila.com/stewardship-governance/",
+            "Governance and stewardship.",
+        )),
+    ]
+    with pytest.raises(RuntimeError, match="pagination token repeated"):
+        build_inventory(RepeatingTokenIndex(records), FakeCore())
+
+
+
+def test_visitor_crosslink_fetch_uses_short_timeout():
+    class TimeoutIndex(FakeIndex):
+        def __init__(self, records):
+            super().__init__(records)
+            self.fetch_timeouts = []
+
+        def fetch(self, *, ids, namespace="", timeout=None):
+            self.fetch_timeouts.append(timeout)
+            return super().fetch(ids=ids, namespace=namespace)
+
+    records = [
+        ("v1", "", _record(
+            "Institutional Correctability",
+            "https://geralddaquila.com/institutional-correctability/",
+            "Correction and accountability mechanisms help institutions learn.",
+        )),
+    ]
+    index = TimeoutIndex(records)
+    snapshot = build_inventory(index, FakeCore())
+    selected = select_crosslinks("institutional correctability", [], snapshot, limit=1)
+    docs = fetch_crosslink_documents(index, FakeCore(), selected)
+    assert len(docs) == 1
+    assert index.fetch_timeouts == [15, 5]

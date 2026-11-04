@@ -34,7 +34,14 @@ _SNAPSHOT: dict[str, Any] | None = None
 _LAST_REFRESH = 0.0
 _LAST_ATTEMPT = 0.0
 _RETRY_SECONDS = 60
+_PINECONE_REQUEST_TIMEOUT = 15
+_CROSSLINK_FETCH_TIMEOUT = 5
+_INVENTORY_WALL_BUDGET_SECONDS = 600
 _REFRESH_THREAD: threading.Thread | None = None
+
+
+def _log(message: str) -> None:
+    print(message, flush=True)
 
 
 def _field(value: Any, key: str, default: Any = None) -> Any:
@@ -69,8 +76,18 @@ def _normalize_url(value: Any) -> str:
     return url.rstrip("/").casefold()
 
 
+def _pinecone_call(method: Any, *, timeout: float = _PINECONE_REQUEST_TIMEOUT, **kwargs: Any) -> Any:
+    """Apply a bounded per-request timeout, retaining compatibility with test doubles/older SDKs."""
+    try:
+        return method(timeout=timeout, **kwargs)
+    except TypeError as exc:
+        if "timeout" not in str(exc):
+            raise
+        return method(**kwargs)
+
+
 def _namespace_specs(index: Any) -> tuple[list[tuple[str, int | None]], int | None, int]:
-    stats = index.describe_index_stats()
+    stats = _pinecone_call(index.describe_index_stats)
     dimension = _field(stats, "dimension")
     if dimension is None or int(dimension) != 384:
         raise RuntimeError("Canonical Pinecone index must remain 384-dimensional")
@@ -90,10 +107,11 @@ def _namespace_specs(index: Any) -> tuple[list[tuple[str, int | None]], int | No
 def _list_page(index: Any, namespace: str, token: str | None):
     method = getattr(index, "list_paginated", None)
     if callable(method):
-        return method(limit=_PAGE_SIZE, pagination_token=token, namespace=namespace)
+        return _pinecone_call(method, limit=_PAGE_SIZE, pagination_token=token, namespace=namespace)
     # Compatibility fallback for SDK versions exposing only the paginator.
     if token is None and callable(getattr(index, "list", None)):
-        return next(iter(index.list(limit=_PAGE_SIZE, namespace=namespace)), None)
+        pages = _pinecone_call(index.list, limit=_PAGE_SIZE, namespace=namespace)
+        return next(iter(pages), None)
     raise RuntimeError("Pinecone index does not expose paginated vector listing")
 
 
@@ -132,7 +150,18 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
     """Exhaustively list and fetch vector metadata across all namespaces."""
     if index is None:
         raise RuntimeError("Canonical Pinecone index is unavailable")
-    specs, expected_total, dimension = _namespace_specs(index)
+    started = time.monotonic()
+    stage = "describe_index_stats"
+    _log("USE archive meta-crosslink inventory: status=starting, stage=describe_index_stats")
+    try:
+        specs, expected_total, dimension = _namespace_specs(index)
+    except Exception as exc:
+        _log(f"USE archive meta-crosslink inventory: status=failed, stage={stage}, error={type(exc).__name__}")
+        raise
+    _log(
+        "USE archive meta-crosslink inventory: status=running, stage=namespace_plan, "
+        f"namespaces={len(specs)}, expected_vectors={expected_total}, dimension={dimension}"
+    )
     if expected_total is not None and expected_total > max_vectors:
         raise RuntimeError(f"Corpus exceeds bounded inventory limit ({expected_total}>{max_vectors})")
 
@@ -146,9 +175,23 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
 
     for namespace, namespace_count in specs:
         token = None
+        seen_tokens: set[str] = set()
         namespace_listed = 0
+        page_number = 0
         while True:
-            page = _list_page(index, namespace, token)
+            if time.monotonic() - started > _INVENTORY_WALL_BUDGET_SECONDS:
+                raise RuntimeError("inventory wall-clock budget exceeded")
+            page_number += 1
+            stage = f"list_namespace_page_{page_number}"
+            try:
+                page = _list_page(index, namespace, token)
+            except Exception as exc:
+                _log(
+                    "USE archive meta-crosslink inventory: status=failed, "
+                    f"stage={stage}, error={type(exc).__name__}, "
+                    f"listed_vectors={listed_count}, fetched_vectors={fetched_count}"
+                )
+                raise
             if page is None:
                 break
             ids = _vector_ids(page)
@@ -163,9 +206,25 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
             listed_count += len(ids)
             namespace_listed += len(ids)
 
+            _log(
+                "USE archive meta-crosslink inventory: status=running, "
+                f"stage={stage}, namespace={namespace or '__default__'}, "
+                f"page_vectors={len(ids)}, listed_vectors={listed_count}/{expected_total}"
+            )
             for offset in range(0, len(ids), _PAGE_SIZE):
+                if time.monotonic() - started > _INVENTORY_WALL_BUDGET_SECONDS:
+                    raise RuntimeError("inventory wall-clock budget exceeded")
                 batch = ids[offset:offset + _PAGE_SIZE]
-                response = index.fetch(ids=batch, namespace=namespace)
+                stage = f"fetch_namespace_page_{page_number}_batch_{offset // _PAGE_SIZE + 1}"
+                try:
+                    response = _pinecone_call(index.fetch, ids=batch, namespace=namespace)
+                except Exception as exc:
+                    _log(
+                        "USE archive meta-crosslink inventory: status=failed, "
+                        f"stage={stage}, error={type(exc).__name__}, "
+                        f"listed_vectors={listed_count}, fetched_vectors={fetched_count}"
+                    )
+                    raise
                 vectors = _field(response, "vectors", {}) or {}
                 if not isinstance(vectors, dict):
                     vectors = {}
@@ -220,6 +279,10 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
                         asset["sample"] = (asset["sample"] + " " + sample)[:2400]
 
             token = _next_token(page)
+            if token and token in seen_tokens:
+                raise RuntimeError("Pinecone pagination token repeated")
+            if token:
+                seen_tokens.add(token)
             if truncated or not token:
                 break
         if namespace_count is not None and namespace_listed != namespace_count:
@@ -267,6 +330,7 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
     )
     missing_url_assets = sum(1 for asset in assets.values() if not asset.get("url"))
     crosslink_ready = complete and missing_url_assets == 0
+    elapsed = round(time.monotonic() - started, 3)
     return {
         "contract": "archive-crosslink-inventory-v1",
         "status": "complete" if complete else "incomplete",
@@ -283,6 +347,7 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
         "duplicate_title_count": duplicate_titles,
         "namespace_count": len(specs),
         "assets": list(assets.values()),
+        "elapsed_seconds": elapsed,
         "refreshed_at": time.time(),
     }
 
@@ -311,26 +376,30 @@ def start_refresh(index: Any, core: Any, *, force: bool = False) -> bool:
         _REFRESH_THREAD = thread
         _LAST_ATTEMPT = now
         thread.start()
+        _log("USE archive meta-crosslink inventory: refresh_scheduled=true")
         return True
 
 
 def _refresh_worker(index: Any, core: Any) -> None:
     global _SNAPSHOT, _LAST_REFRESH, _REFRESH_THREAD
+    worker_started = time.monotonic()
+    _log("USE archive meta-crosslink inventory: worker_started=true")
     try:
         snapshot = build_inventory(index, core)
         with _LOCK:
             _SNAPSHOT = snapshot
             _LAST_REFRESH = time.monotonic()
-        print(
+        _log(
             "USE archive meta-crosslink inventory: "
             f"status={snapshot['status']}, namespaces={snapshot['namespace_count']}, "
             f"vectors={snapshot['listed_vector_count']}/{snapshot['expected_vector_count']}, "
             f"assets={snapshot['asset_count']}, missing_metadata={snapshot['missing_metadata_count']}, "
             f"missing_urls={snapshot['missing_url_asset_count']}, "
-            f"crosslink_ready={snapshot['crosslink_ready']}, duplicates={snapshot['duplicate_title_count']}"
+            f"crosslink_ready={snapshot['crosslink_ready']}, duplicates={snapshot['duplicate_title_count']}, "
+            f"elapsed_seconds={snapshot['elapsed_seconds']}"
         )
     except Exception as exc:
-        print(f"USE archive meta-crosslink inventory unavailable: {type(exc).__name__}")
+        _log(f"USE archive meta-crosslink inventory unavailable: error={type(exc).__name__}, elapsed_seconds={round(time.monotonic() - worker_started, 3)}")
     finally:
         with _LOCK:
             _REFRESH_THREAD = None
@@ -404,7 +473,7 @@ def fetch_crosslink_documents(index: Any, core: Any, assets: list[dict[str, Any]
             if not isinstance(ref, dict) or not ref.get("id"):
                 continue
             try:
-                response = index.fetch(ids=[str(ref["id"])], namespace=str(ref.get("namespace") or ""))
+                response = _pinecone_call(index.fetch, timeout=_CROSSLINK_FETCH_TIMEOUT, ids=[str(ref["id"])], namespace=str(ref.get("namespace") or ""))
                 vectors = _field(response, "vectors", {}) or {}
                 vector = vectors.get(str(ref["id"])) if isinstance(vectors, dict) else None
                 metadata = _metadata_for(vector) if vector is not None else {}
