@@ -81,7 +81,9 @@ GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 2
 # Reserve meaningful time for one independent fallback. A six-second first call
 # inside an eight-second visitor window can otherwise turn a slow timeout into
 # an effective single-shot architecture.
-GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 4.0
+GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS = 3.0
+GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS = 4.0
+GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
 FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS = 12.0
 
 # Only production models with the structured-output capability required by the
@@ -2814,8 +2816,15 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 if operation == "fsd_report_composition"
                 else GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
             )
+            configured_timeout = _provider_call_timeout(operation, item)
+            if operation == "general_guide_composition":
+                configured_timeout = (
+                    GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS
+                    if attempt_index > 1
+                    else GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
+                )
             candidate_timeout = _bounded_request_provider_timeout(
-                _provider_call_timeout(operation, item), deadline_monotonic,
+                configured_timeout, deadline_monotonic,
                 now=time.monotonic() if deadline_monotonic is not None else None,
             ) or 0.0
             # Admit a fallback only when its full bounded call can fit inside both
@@ -2867,8 +2876,15 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             continue
         attempt_started = time.monotonic() if operation in {"hrn_perception", "general_guide_composition", "fsd_report_composition"} else None
         try:
+            configured_timeout = _provider_call_timeout(operation, item)
+            if operation == "general_guide_composition":
+                configured_timeout = (
+                    GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS
+                    if attempt_index > 1
+                    else GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
+                )
             attempt_timeout = _bounded_request_provider_timeout(
-                _provider_call_timeout(operation, item), deadline_monotonic,
+                configured_timeout, deadline_monotonic,
                 now=time.monotonic() if deadline_monotonic is not None else None,
             )
             if deadline_monotonic is not None and (
