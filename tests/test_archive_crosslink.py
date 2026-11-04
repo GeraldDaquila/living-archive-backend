@@ -369,6 +369,8 @@ def test_inventory_retries_transient_missing_fetch_vectors():
 def test_inventory_deduplicates_repeated_ids_across_pages():
     class DuplicateListIndex(FakeIndex):
         def list_paginated(self, *, limit, pagination_token=None, namespace=""):
+            if namespace != "":
+                return {"vectors": [], "pagination": None}
             if pagination_token is None:
                 return {"vectors": [{"id": "v1"}], "pagination": {"next": "next-page"}}
             return {"vectors": [{"id": "v1"}], "pagination": None}
