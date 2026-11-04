@@ -69,8 +69,11 @@ def _normalize_url(value: Any) -> str:
     return url.rstrip("/").casefold()
 
 
-def _namespace_specs(index: Any) -> tuple[list[tuple[str, int | None]], int | None]:
+def _namespace_specs(index: Any) -> tuple[list[tuple[str, int | None]], int | None, int]:
     stats = index.describe_index_stats()
+    dimension = _field(stats, "dimension")
+    if dimension is None or int(dimension) != 384:
+        raise RuntimeError("Canonical Pinecone index must remain 384-dimensional")
     namespaces = _field(stats, "namespaces", {}) or {}
     total = _field(stats, "total_vector_count")
     specs: list[tuple[str, int | None]] = []
@@ -81,7 +84,7 @@ def _namespace_specs(index: Any) -> tuple[list[tuple[str, int | None]], int | No
             specs.append((namespace, int(count) if count is not None else None))
     else:
         specs.append(("", int(total) if total is not None else None))
-    return specs, int(total) if total is not None else None
+    return specs, int(total) if total is not None else None, int(dimension)
 
 
 def _list_page(index: Any, namespace: str, token: str | None):
@@ -129,7 +132,7 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
     """Exhaustively list and fetch vector metadata across all namespaces."""
     if index is None:
         raise RuntimeError("Canonical Pinecone index is unavailable")
-    specs, expected_total = _namespace_specs(index)
+    specs, expected_total, dimension = _namespace_specs(index)
     if expected_total is not None and expected_total > max_vectors:
         raise RuntimeError(f"Corpus exceeds bounded inventory limit ({expected_total}>{max_vectors})")
 
@@ -271,6 +274,7 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
         "crosslink_ready": crosslink_ready,
         "missing_url_asset_count": missing_url_assets,
         "expected_vector_count": expected_total,
+        "dimension": dimension,
         "listed_vector_count": listed_count,
         "fetched_vector_count": fetched_count,
         "asset_count": len(assets),
