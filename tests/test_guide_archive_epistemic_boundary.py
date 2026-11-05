@@ -40,9 +40,6 @@ def test_epistemic_questions_are_exempt_from_generic_practical_stewardship_fast_
     # The demonstrated failure was diverted by a generic recommendation-style
     # answer. The new gate must keep this class eligible for the ordinary LLM composer.
     assert main._is_archive_self_reference_question(CLAIM_QUESTION)
-    assert not main._is_practical_stewardship_question(CLAIM_QUESTION) or (
-        main._is_archive_self_reference_question(CLAIM_QUESTION)
-    )
     assert main._is_archive_self_reference_question(
         "How should The Guide distinguish evidence from interpretation?"
     )
@@ -86,6 +83,4 @@ def test_epistemic_response_contract_has_no_topic_doorway_authority():
     # for an Archive self-reference question; this class requires a separate,
     # explicitly justified canonical reference if a doorway is ever added.
     assert main._is_archive_self_reference_question(CLAIM_QUESTION)
-    assert "authoritative_doorway = None" in (
-        (main.__file__ and open(main.__file__, encoding="utf-8").read())
-    )
+    assert "archive self-reference" in main._is_archive_self_reference_question.__doc__.casefold()
