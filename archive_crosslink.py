@@ -592,10 +592,14 @@ def _load_persisted_snapshot() -> bool:
             snapshot = json.load(handle)
         refreshed_at = float(snapshot.get("refreshed_at") or 0)
         age = max(0.0, time.time() - refreshed_at)
-        if not isinstance(snapshot, dict) or not snapshot.get("crosslink_ready") or age >= _REFRESH_SECONDS:
+        if not isinstance(snapshot, dict) or not snapshot.get("crosslink_ready"):
             return False
+        if age >= _REFRESH_SECONDS:
+            # Keep a known-good map available while a monthly refresh is attempted.
+            # Freshness still causes a refresh; it does not erase territorial awareness.
+            _log(f"USE archive meta-crosslink inventory: persisted_snapshot_stale=true, age_seconds={round(age, 1)}")
         _SNAPSHOT = snapshot
-        _LAST_REFRESH = time.monotonic()
+        _LAST_REFRESH = time.monotonic() if age < _REFRESH_SECONDS else 0.0
         _log(f"USE archive meta-crosslink inventory: persisted_snapshot_loaded=true, age_seconds={round(age, 1)}")
         return True
     except Exception:
