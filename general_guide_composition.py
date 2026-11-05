@@ -2160,12 +2160,11 @@ def compose(
             "model": "approved-reference",
         }
 
-    # Explicit Archive/Guide provenance questions need a dedicated response
+    # This classification is observational; the shared response contract is
+    # the enforcement point and does not change provider preference.
     # contract, not loose topical keyword matching. Keep LLM-first behavior;
     # the final shared response contract below repairs provider output when it
     # fails to distinguish direct claims, synthesis, and interpretation.
-    archive_epistemic_provenance = _requires_archive_epistemic_provenance(question)
-
     # A broad existential question is answerable without asking the visitor to
     # disclose personal context. Give a substantive, pluralistic first answer
     # before any follow-up or doorway. Keep Archive-specific questions on the
