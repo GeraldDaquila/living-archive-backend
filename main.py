@@ -2788,6 +2788,9 @@ def _is_archive_self_reference_question(query):
     self_reference_intent = self_reference_intent or (
         bool(re.search(r"\b(?:how should|what standards|what counts as|when should)\b", q))
         and bool(re.search(r"\b(?:archive|guide|corpus)\b", q))
+    ) or (
+        bool(re.search(r"\b(?:how should|what standards|what counts as|when should)\b", q))
+        and bool(re.search(r"\b(?:within|across|through|from)\s+(?:the\s+)?(?:archive|corpus|guide)\b", q))
     )
     return archive_reference and epistemic_subject and self_reference_intent
 
