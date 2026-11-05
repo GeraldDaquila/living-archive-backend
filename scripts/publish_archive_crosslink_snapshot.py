@@ -44,6 +44,18 @@ def main_publish():
         existing=assets.get(key)
         if existing is None or (existing.get("resource_type")=="page" and item.get("resource_type")=="post"):
             assets[key]=item
+    # WordPress can expose duplicate publication records with the same canonical
+    # title. Keep one destination, preferring the cleaner URL without a numeric
+    # duplicate suffix such as "-2".
+    by_title={}
+    for item in assets.values():
+        key=clean(item["title"]).casefold()
+        existing=by_title.get(key)
+        duplicate_suffix=re.search(r"-\d+$",item["url"].rstrip("/"))
+        existing_suffix=re.search(r"-\d+$",existing["url"].rstrip("/")) if existing else None
+        if existing is None or (existing_suffix and not duplicate_suffix):
+            by_title[key]=item
+    assets=by_title
     if not assets: raise RuntimeError("canonical WordPress registry returned no publishable assets")
     snapshot={"contract":"archive-crosslink-inventory-v2","crosslink_ready":True,"complete":True,"source":"wordpress-canonical-registry","asset_count":len(assets),"refreshed_at":time.time(),"assets":sorted(assets.values(),key=lambda x:(x["resource_type"],x["title"].casefold()))}
     raw=json.dumps(snapshot,ensure_ascii=False,sort_keys=True,separators=(",",":"))+"\n"
