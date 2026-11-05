@@ -48,10 +48,10 @@ def test_llm_composition_contract_repairs_neighboring_generic_advice():
     generic = (
         "A practical way to approach this is to clarify the outcome and the responsibilities involved. "
         "Identify what is known, which constraints matter, and who will be affected by the available choices. "
-        "This makes the real decision clearer than jumping immediately to a generic action plan.\\n\\n"
+        "This makes the real decision clearer than jumping immediately to a generic action plan.\n\n"
         "Next, compare a small number of realistic options against the purpose you are trying to serve. "
         "Consider likely benefits, foreseeable harms, who carries the costs, and what evidence would change the choice. "
-        "Where other people are affected, include their knowledge and concerns rather than treating them as an afterthought.\\n\\n"
+        "Where other people are affected, include their knowledge and concerns rather than treating them as an afterthought.\n\n"
         "Finally, act on the best-supported option, explain the reasoning and limits, and review the consequences. "
         "A useful approach should improve understanding and accountability, not promise certainty."
     )
