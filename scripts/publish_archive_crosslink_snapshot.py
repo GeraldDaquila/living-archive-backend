@@ -9,7 +9,9 @@ import main
 OUTPUT = Path(__file__).resolve().parents[1] / "archive_crosslink_snapshot.json"
 
 def main_publish() -> None:
-    index = main._get_pinecone_index()
+    index = getattr(main.use_core, "index", None)
+    if index is None:
+        raise RuntimeError("Canonical Pinecone index is unavailable")
     inventory = archive_crosslink.build_inventory(index, main)
     snapshot = archive_crosslink.export_snapshot(inventory)
     raw = json.dumps(snapshot, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
