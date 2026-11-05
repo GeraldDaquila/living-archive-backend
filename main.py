@@ -2759,10 +2759,7 @@ def _is_archive_self_reference_question(query):
     archive_reference = bool(re.search(
         r"\b(?:the\s+)?(?:living\s+archive|archive|corpus|guide)\b",
         q,
-    )) or bool(re.search(
-        r"\b(?:evidence|interpretation|inference|synthesis|hypothesis|methodology|levels of claim)\b",
-        q,
-    )) and bool(re.search(r"\b(?:the guide|guide|archive|corpus)\b", q))
+    ))
     epistemic_subject = bool(re.search(
         r"\b(?:claim|claims|provenance|source|sources|evidence|"
         r"interpretation|interpretations|inference|inferences|synthesis|"
@@ -2777,7 +2774,10 @@ def _is_archive_self_reference_question(query):
         r"what standards|which standards|what counts as|what makes|"
         r"how do we|how does the|should the|does the|the guide|guide should|guide must)\b",
         q,
-    )) or ("archive" in q and bool(re.search(r"\bwhat is\b", q)) and bool(re.search(r"\b(?:reasoning|framework|method|methodology)\b", q)))
+    )) or (
+        bool(re.search(r"\bwhat is\b", q))
+        and bool(re.search(r"\b(?:constitutional reasoning|constitutional framework|archive method|archive methodology)\b", q))
+    )
     return archive_reference and epistemic_subject and self_reference_intent
 
 
@@ -4995,10 +4995,6 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     question = _normalize_query(query)
     q = re.sub(r"\s+", " ", question).strip().casefold()
 
-    # Archive self-reference questions require a question-preserving epistemic
-    # recovery before generic practical/relationship/topic fallbacks can capture
-    # their vocabulary. Reuse the shared constitutional and inference contracts;
-    # never invent a doorway from a retrieval candidate alone.
     # Keep the answer-first existential contract active when the ordinary
     # provider bank is exhausted or the isolated deterministic path is used.
     # Import locally so isolated recovery harnesses retain the same behavior.
@@ -6872,9 +6868,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "route_source": "guide_explicit_home_navigation",
             "visitor_boundary_version": APP_VERSION,
         }
-    # Archive self-reference / epistemic inquiries are General Guide questions.
-    # They must bypass the generic protected-core action classifier, which can
-    # mistake "truth", "evidence", or "discernment" for an advice-seeking action.
+    # Explicit Archive self-reference / epistemic inquiries are a General Guide
+    # question class. Keep them in answer composition rather than protected-core
+    # recommendation routing; ordinary LLM-first provider preference is preserved.
     archive_epistemic_question = _is_archive_self_reference_question(query)
     if archive_epistemic_question:
         print("The Guide Archive self-reference boundary: retained in General Guide composition.")
@@ -8135,11 +8131,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         composition_context["archive_reference_recovery"] = _cosmology_lived_recovery["recovery_id"]
         print("The Guide conceptual boundary: applied approved Archive-informed cosmology recovery.")
 
-    # Archive self-reference questions are not answered by the ordinary
-    # concept-topic validator. That validator intentionally targets subject
-    # concepts (e.g. "role of trust") and can reject/replace answers that are
-    # actually about the Guide's provenance and claim boundaries. Keep this
-    # class in General Guide and suppress any topic-selected doorway.
     # Expose a small, deterministic provenance contract for the visitor UI.
     # This describes the answer's basis; it does not claim that every sentence
     # is directly quoted from a source. A recommendation is only supplied when
@@ -8147,9 +8138,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Archive self-reference questions are governed by their own provenance
     # answer contract and are not subject to the topical conceptual-source
     # recovery below. Their unrelated topic doorway was already suppressed.
-    if (
-        not archive_epistemic_question
-        and archive_evidence_unavailable
+    if archive_epistemic_question:
+        # This describes the Guide's epistemic method, not a substantive claim
+        # about the Archive. Any Archive-specific assertion still requires
+        # traceable canonical support. No topic-selected doorway is appropriate.
+        authoritative_doorway = None
+        composition_context.pop("authoritative_doorway", None)
+        composition_context.pop("authoritative_doorway_title", None)
+        answer_basis = {
+            "kind": "guide_epistemic_method",
+            "label": "Guide epistemic method",
+            "explanation": "This describes how the Guide distinguishes direct source claims, synthesis, and interpretation.",
+        }
+    elif (
+        archive_evidence_unavailable
         and _is_conceptual_explanatory_request(query)
     ):
         # Conceptual questions must fail closed when no relevant Archive body
