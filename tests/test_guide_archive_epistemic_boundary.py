@@ -79,7 +79,12 @@ def test_cosmology_generalization_contract_remains_reused():
 
 def test_epistemic_response_contract_has_no_topic_doorway_authority():
     assert main._is_archive_self_reference_question(CLAIM_QUESTION)
-    assert "archive self-reference" in main._is_archive_self_reference_question.__doc__.casefold()
+    source = open(main.__file__, encoding="utf-8").read()
+    start = source.index("    if archive_epistemic_question:", source.index("# Expose a small, deterministic provenance contract"))
+    end = source.index("    elif (", start)
+    branch = source[start:end]
+    assert "authoritative_doorway = None" in branch
+    assert '"kind": "guide_epistemic_method"' in branch
 
 
 def test_runtime_final_answer_basis_labels_method_and_suppresses_unrelated_doorway():
