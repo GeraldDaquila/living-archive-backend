@@ -2757,7 +2757,7 @@ def _is_archive_self_reference_question(query):
         return False
 
     archive_reference = bool(re.search(
-        r"\b(?:the\\s+)?(?:living\\s+archive|archive|corpus|guide)\\b",
+        r"\b(?:the\s+)?(?:living\s+archive|archive|corpus|guide)\b",
         q,
     ))
     epistemic_subject = bool(re.search(
@@ -2766,13 +2766,13 @@ def _is_archive_self_reference_question(query):
         r"generaliz(?:e|ation|ing)|extrapolat(?:e|ion|ing)|"
         r"certainty|uncertainty|hypothesis|hypotheses|method|methodology|"
         r"constitutional reasoning|constitutional framework|"
-        r"modes of knowing|levels of claim|what is real)\\b",
+        r"modes of knowing|levels of claim|what is real)\b",
         q,
     ))
     self_reference_intent = bool(re.search(
         r"\b(?:how should|how does|how can|when should|when does|"
         r"what standards|which standards|what counts as|what makes|"
-        r"how do we|how does the|should the|does the|the guide)\\b",
+        r"how do we|how does the|should the|does the|the guide)\b",
         q,
     ))
     return archive_reference and epistemic_subject and self_reference_intent
