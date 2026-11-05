@@ -405,3 +405,14 @@ def test_partial_or_stale_snapshot_is_never_loaded(monkeypatch, tmp_path):
     archive_crosslink._SNAPSHOT = None
     assert archive_crosslink._load_persisted_snapshot() is False
     assert archive_crosslink.inventory_snapshot() is None
+
+
+def test_stale_valid_snapshot_remains_available_and_requests_refresh(monkeypatch, tmp_path):
+    snapshot_path = tmp_path / "crosslink-snapshot.json"
+    monkeypatch.setenv("ARCHIVE_CROSSLINK_SNAPSHOT_PATH", str(snapshot_path))
+    snapshot_path.write_text('{"crosslink_ready":true,"refreshed_at":0,"assets":[]}', encoding="utf-8")
+    archive_crosslink._SNAPSHOT = None
+    archive_crosslink._LAST_REFRESH = 123.0
+    assert archive_crosslink._load_persisted_snapshot() is True
+    assert archive_crosslink.inventory_snapshot()["crosslink_ready"] is True
+    assert archive_crosslink._LAST_REFRESH == 0.0
