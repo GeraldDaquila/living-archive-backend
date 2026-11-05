@@ -277,7 +277,7 @@ def test_wp_id_and_exact_title_recover_canonical_url(monkeypatch):
     assert snapshot["assets"][0]["url"] == canonical_url.rstrip("/").casefold()
 
 
-def test_wp_id_url_recovery_fails_closed_on_title_mismatch(monkeypatch):
+def test_wp_id_url_recovery_uses_canonical_id_despite_title_mismatch(monkeypatch):
     title = "Stewardship Governance"
     monkeypatch.setattr(
         archive_crosslink,
@@ -289,10 +289,10 @@ def test_wp_id_url_recovery_fails_closed_on_title_mismatch(monkeypatch):
     )
     records = [("v1", "", _record(title, "", "Governance and stewardship.", wp_id=123))]
     snapshot = build_inventory(FakeIndex(records), FakeCore())
-    assert snapshot["wp_id_url_recovered_vector_count"] == 0
+    assert snapshot["wp_id_url_recovered_vector_count"] == 1
     assert snapshot["wp_id_title_mismatch_vector_count"] == 1
-    assert snapshot["missing_url_asset_count"] == 1
-    assert snapshot["crosslink_ready"] is False
+    assert snapshot["missing_url_asset_count"] == 0
+    assert snapshot["crosslink_ready"] is True
 
 
 
