@@ -1797,9 +1797,19 @@ def _requires_archive_scoped_stewardship(question: str) -> bool:
     )
 
 
+def _enforce_archive_epistemic_provenance(question: str, candidate: str) -> str:
+    """Repair an Archive provenance answer if it collapses claim levels."""
+    if not _requires_archive_epistemic_provenance(question):
+        return candidate
+    if _has_archive_epistemic_provenance_answer(candidate):
+        return candidate
+    return _archive_epistemic_provenance_recovery()
+
+
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    candidate = _enforce_archive_epistemic_provenance(question, candidate)
     if _requires_fragmented_knowledge_explanation(question) and not _has_fragmented_knowledge_explanation(candidate):
         candidate = _fragmented_knowledge_recovery()
     if _requires_fragmented_knowledge_explanation(question) and not _has_fragmented_knowledge_explanation(candidate):
@@ -1863,6 +1873,7 @@ def enforce_response_contracts(question: str, response: str) -> str:
     if _requires_responsibility_boundary_answer(question) and not _has_responsibility_boundary_explanation(candidate):
         raise RuntimeError("Responsibility-boundary response contract failed after recovery.")
     candidate = _remove_visitor_meta_commentary(candidate)
+    candidate = _enforce_archive_epistemic_provenance(question, candidate)
     return candidate
 
 
