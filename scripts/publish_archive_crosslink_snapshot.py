@@ -6,7 +6,9 @@ from pathlib import Path
 import archive_crosslink
 import main
 
-OUTPUT = Path(__file__).resolve().parents[1] / "archive_crosslink_snapshot.json"
+ROOT = Path(__file__).resolve().parents[1]
+OUTPUT = ROOT / "archive_crosslink_snapshot.json"
+CHECKSUM = ROOT / "archive_crosslink_snapshot.sha256"
 
 def main_publish() -> None:
     index = getattr(main.use_core, "index", None)
@@ -17,6 +19,7 @@ def main_publish() -> None:
     raw = json.dumps(snapshot, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
     OUTPUT.write_text(raw, encoding="utf-8")
     digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    CHECKSUM.write_text(digest + "\\n", encoding="utf-8")
     print(f"validated_snapshot=true assets={snapshot['asset_count']} sha256={digest}")
 
 if __name__ == "__main__":
