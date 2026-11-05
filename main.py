@@ -1303,7 +1303,7 @@ def _recommendation_first_fetch(query_str):
     # replace an already selected direct resource with a broad conceptual decoy.
     authoritative = []
     selected_doorway = None
-    if not profile.get("grief"):
+    if not (profile.get("grief") or profile.get("ai_truth")):
         try:
             selected_doorway = _normalize_authoritative_recommendation(
                 _general_guide_authoritative_doorway(query_str, data)
