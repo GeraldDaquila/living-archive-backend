@@ -953,6 +953,24 @@ def expand_context(
         return []
     start_refresh(index, core)
     assets = select_crosslinks(query, seed_documents, snapshot)
+    # v2 is a territorial navigation map, not a substitute corpus. Its
+    # canonical WordPress records can supply destination links directly without
+    # spending Pinecone operations to reconstruct text evidence.
+    if snapshot.get("contract") == "archive-crosslink-inventory-v2":
+        return [
+            {
+                "title": _text(asset.get("title"), 300),
+                "url": _normalize_url(asset.get("url")),
+                "summary": _text(asset.get("summary"), 600),
+                "content": "",
+                "resource_type": _text(asset.get("resource_type"), 120),
+                "tier": _text(asset.get("tier"), 40),
+                "access_class": _text(asset.get("access_class"), 40),
+                "crosslink_mode": "territorial_navigation",
+            }
+            for asset in assets
+            if _text(asset.get("title"), 300) and _normalize_url(asset.get("url"))
+        ]
     return fetch_crosslink_documents(index, core, assets)
 
 
