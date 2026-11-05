@@ -37,6 +37,7 @@ from relationship_contribution import (
     validate_relationship_contribution,
 )
 from relationship_adapter import RelationshipAdapter
+from philippine_systems_adapter import PhilippineSystemsAdapter
 from formation_adapter import FormationAdapter
 from formation_contribution import (
     FORMATION_CONTRIBUTION_CONTRACT_VERSION,
@@ -284,6 +285,7 @@ validate_registry()
 SPECIALIST_CAPABILITY_REGISTRY = registry_snapshot()
 SPECIALIST_ADAPTER_REGISTRY = SpecialistAdapterRegistry()
 SPECIALIST_ADAPTER_REGISTRY.register(RelationshipAdapter())
+SPECIALIST_ADAPTER_REGISTRY.register(PhilippineSystemsAdapter())
 SPECIALIST_ADAPTER_REGISTRY.register(FormationAdapter())
 SPECIALIST_ADAPTER_REGISTRY.register(SafetyUtilityAdapter())
 SPECIALIST_ADAPTER_DIAGNOSTICS = adapter_contract_snapshot(SPECIALIST_ADAPTER_REGISTRY)
@@ -4197,6 +4199,43 @@ def _relationship_specialist_response(query, history, route, request_id, raw_bod
             "movement": movement,
             "interpretation": interpretation,
             "journey": journey,
+        },
+    }
+
+
+def _philippine_systems_specialist_response(query, history, route, request_id):
+    """Run the Philippine Systems Lens through the common specialist pipe."""
+    interpretation = route.get("round1_interpretation") or {}
+    hub_request = build_hub_request(
+        request_id=request_id,
+        guide_version=APP_VERSION,
+        original_question=query,
+        recognized_territory="Philippine systems",
+        processing_purpose="bounded Philippine systems orientation",
+        guide_context={"conversation": _history_text(history), "route_interpretation": interpretation},
+        safety_state="green",
+    )
+    contribution = route_spoke(
+        request=hub_request,
+        specialist_id="systems_ph",
+        invoke=lambda **kwargs: invoke_specialist(SPECIALIST_ADAPTER_REGISTRY, **kwargs),
+    )
+    payload = dict(contribution.payload or {})
+    candidates = list(contribution.canonical_candidates or [])
+    canonical_url = ""
+    if candidates and isinstance(candidates[0], dict):
+        canonical_url = str(candidates[0].get("url") or "")
+    return {
+        "response": "This question may be clearer when viewed as an interacting Philippine system rather than as a single cause or sector.",
+        "systems_delegation": {
+            "state": "available",
+            "specialist": "Philippine Systems Lens",
+            "specialist_id": "systems_ph",
+            "interpretation": contribution.interpretation,
+            "perspectives": contribution.perspectives or [],
+            "movement": contribution.movement,
+            "canonical_url": canonical_url or payload.get("canonical_lens_url", ""),
+            "contextual_inquiry_available": bool(payload.get("contextual_inquiry_available")),
         },
     }
 
@@ -9759,7 +9798,7 @@ async def _use_request_boundary(scope, receive, send):
         mode = "direct"
 
     capability = _registered_available_specialist(route_id)
-    should_delegate = capability is not None and route_id in {"relationship", "formation"}
+    should_delegate = capability is not None and route_id in {"relationship", "formation", "systems_ph"}
 
     print(f"The Guide canonical request boundary: route={route_id}, mode={mode}, confidence={confidence:.3f}, delegate={should_delegate}, query_chars={len(query)}")
 
@@ -9794,30 +9833,7 @@ async def _use_request_boundary(scope, receive, send):
     # Philippine Systems is a visitor-facing native knowledge surface.
     # The LLM has already made the macro routing decision above; hand the
     # visitor directly to its native landing page.
-    if route_id == "systems_ph":
-        philippine_systems_url = _philippine_systems_handoff_url(query)
-        request_id = "systems-ph-" + hashlib.sha1(
-            (query + "|" + _history_text(history)).encode("utf-8")
-        ).hexdigest()[:16]
-        print(
-            "The Guide direct Philippine Systems handoff: "
-            f"request_id={request_id}, url={philippine_systems_url}"
-        )
-        return await _use_send_json(send, {
-            "ok": True,
-            "version": APP_VERSION,
-            "query": query,
-            "intent": "SYSTEMS_PH_HANDOFF",
-            "response": "",
-            "handoff": "systems_ph",
-            "handoff_mode": "direct",
-            "handoff_pending": True,
-            "philippine_systems_url": philippine_systems_url,
-            "return_mode": "native_philippine_systems_landing",
-            "visitor_boundary_version": APP_VERSION,
-            "request_id": request_id,
-        })
-
+    # systems_ph now participates in the shared specialist pipe below. The canonical\n    # landing page remains a specialist-provided doorway rather than an early direct return.\n
     if route_id == "fsd":
         fsd_url = _fsd_handoff_url(query)
         request_id = "fsd-" + hashlib.sha1(
@@ -9992,6 +10008,18 @@ async def _use_request_boundary(scope, receive, send):
 
     if should_delegate:
         request_id = route_id + "-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
+        if route_id == "systems_ph":
+            try:
+                result = _philippine_systems_specialist_response(query, history, route, request_id)
+                return await _use_send_json(send, {
+                    "ok": True, "version": APP_VERSION, "query": query,
+                    "intent": "PHILIPPINE_SYSTEMS_HANDOFF", "response": result["response"],
+                    "handoff": "systems_ph", "handoff_mode": "specialist",
+                    "systems_delegation": result["systems_delegation"],
+                    "visitor_boundary_version": APP_VERSION, "request_id": request_id,
+                })
+            except Exception as exc:
+                print(f"USE Philippine Systems Lens failed safely: exception={type(exc).__name__}")
         if route_id == "formation":
             try:
                 result = _formation_specialist_response(query, history, route, request_id)
@@ -10009,26 +10037,27 @@ async def _use_request_boundary(scope, receive, send):
                     "response": "The Formation pathway could not be opened right now.",
                     "error_type": "formation_specialist_failure", "request_id": request_id,
                 }, 503)
-        try:
-            result = _relationship_specialist_response(query, history, route, request_id, parsed_body)
-            return await _use_send_json(send, {
-                "ok": True, "version": APP_VERSION, "query": query,
-                "intent": "RELATIONAL_HANDOFF", "response": result["response"],
-                "handoff": "relationship", "handoff_mode": "specialist",
-                "relational_delegation": result["relational_delegation"],
-                "visitor_boundary_version": APP_VERSION, "request_id": request_id,
-            })
-        except Exception as exc:
-            print(f"USE Relationship specialist failed safely: exception={type(exc).__name__}")
-            return await _use_send_json(send, {
-                "ok": False, "version": APP_VERSION, "query": query,
-                "intent": "RELATIONAL_HANDOFF",
-                "response": "The Seeing the Relationship pathway could not be opened right now.",
-                "error_type": "relationship_specialist_failure",
-                "relational_delegation": {"state": "unavailable", "specialist": "Seeing the Relationship",
-                                          "specialist_id": "relationship", "session_id": request_id},
-                "visitor_boundary_version": APP_VERSION, "request_id": request_id,
-            }, 503)
+        if route_id == "relationship":
+            try:
+                result = _relationship_specialist_response(query, history, route, request_id, parsed_body)
+                return await _use_send_json(send, {
+                    "ok": True, "version": APP_VERSION, "query": query,
+                    "intent": "RELATIONAL_HANDOFF", "response": result["response"],
+                    "handoff": "relationship", "handoff_mode": "specialist",
+                    "relational_delegation": result["relational_delegation"],
+                    "visitor_boundary_version": APP_VERSION, "request_id": request_id,
+                })
+            except Exception as exc:
+                print(f"USE Relationship specialist failed safely: exception={type(exc).__name__}")
+                return await _use_send_json(send, {
+                    "ok": False, "version": APP_VERSION, "query": query,
+                    "intent": "RELATIONAL_HANDOFF",
+                    "response": "The Seeing the Relationship pathway could not be opened right now.",
+                    "error_type": "relationship_specialist_failure",
+                    "relational_delegation": {"state": "unavailable", "specialist": "Seeing the Relationship",
+                                              "specialist_id": "relationship", "session_id": request_id},
+                    "visitor_boundary_version": APP_VERSION, "request_id": request_id,
+                }, 503)
 
     # Exactly one fallback into the original protected application.
     # Intercept its ordinary JSON response at the shared outer boundary. This

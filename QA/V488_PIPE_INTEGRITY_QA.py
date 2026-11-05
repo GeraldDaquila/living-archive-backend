@@ -29,12 +29,13 @@ def main():
     assert 'from hub_contracts import (' in main_source
     assert "build_hub_request" in main_source
     assert "route_spoke" in main_source
-    assert main_source.count("route_spoke(") == 2
+    assert main_source.count("route_spoke(") == 3
 
-    # Relationship and Formation must both enter through the common hub pipe.
+    # Relationship, Formation, and Philippine Systems must enter through the common hub pipe.
     for marker in (
         'specialist_id="relationship"',
         'specialist_id="formation"',
+        'specialist_id="systems_ph"',
         "SPECIALIST_ADAPTER_REGISTRY",
         "invoke_specialist",
     ):
@@ -63,6 +64,7 @@ def main():
     for specialist_fn in (
         "_relationship_specialist_response",
         "_formation_specialist_response",
+        "_philippine_systems_specialist_response",
     ):
         tree = ast.parse(main_source)
         fn = next(

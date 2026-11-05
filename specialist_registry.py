@@ -71,7 +71,7 @@ SPECIALIST_REGISTRY: Tuple[SpecialistCapability, ...] = (
         entry_point="systems_ph",
         trigger_territory="questions whose central inquiry concerns interacting Philippine systems and conditions",
         access_class="public",
-        status="planned",
+        status="available",
     ),
     SpecialistCapability(
         specialist_id="safety",
