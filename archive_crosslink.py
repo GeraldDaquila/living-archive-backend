@@ -593,7 +593,9 @@ def _load_persisted_snapshot() -> bool:
     global _SNAPSHOT, _LAST_REFRESH
     path = _snapshot_path()
     try:
-        if path:
+        # A configured path is a test/development mirror only. Free Render has no
+        # durable filesystem, so production falls through to the versioned artifact.
+        if path and os.path.isfile(path):
             with open(path, "r", encoding="utf-8") as handle:
                 raw = handle.read(_SNAPSHOT_MAX_BYTES + 1)
         else:
