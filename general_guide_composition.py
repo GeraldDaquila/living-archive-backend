@@ -2095,7 +2095,7 @@ def _requires_archive_epistemic_provenance(question: str) -> bool:
 def _has_archive_epistemic_provenance_answer(response: str) -> bool:
     """Require explicit separation of source claims, synthesis, and interpretation."""
     text = _normalize_space(response).casefold()
-    paragraphs = [part for part in re.split(r"\n\s*\\n+", str(response or "")) if part.strip()]
+    paragraphs = [part for part in re.split(r"\n\s*\n+", str(response or "")) if part.strip()]
     required = (
         r"\b(?:direct archive claim|source actually states|published source)\b",
         r"\b(?:synthesis|cross[- ]corpus|more than one source)\b",
@@ -2112,12 +2112,12 @@ def _archive_epistemic_provenance_recovery() -> str:
         "published source actually states; the Guide should identify that source and avoid making the claim broader "
         "than the passage supports. A synthesis brings together ideas from more than one source and should be "
         "described as a synthesis, not presented as a quotation or settled constitutional rule. An interpretation "
-        "or hypothesis goes a step beyond what the sources explicitly establish and should be labelled accordingly.\\n\\n"
+        "or hypothesis goes a step beyond what the sources explicitly establish and should be labelled accordingly.\n\n"
         "For example, if one essay describes a relationship between responsibility and governance, that supports "
         "saying that the essay makes that connection. It does not, by itself, establish that the entire Archive "
         "treats the connection as a universal principle. To make a broader statement, the Guide should compare "
         "relevant canonical sources, preserve qualifications or disagreements, and make the evidence trail "
-        "traceable. Semantic similarity or a related destination is not proof that a source supports a claim.\\n\\n"
+        "traceable. Semantic similarity or a related destination is not proof that a source supports a claim.\n\n"
         "When the available material does not address the question directly, the Guide should say so plainly. "
         "It may then offer a clearly labelled, bounded interpretation if that would help, while explaining what "
         "remains unverified. The visitor should be able to tell what the Archive says, what the Guide has inferred, "
