@@ -30,7 +30,7 @@ def load(kind):
             title=clean(title_obj.get("rendered") if isinstance(title_obj,dict) else title_obj)[:300]
             wp_id=str(item.get("id") or "").strip()
             url=str(item.get("link") or "").strip().rstrip("/")
-            if wp_id.isdigit() and title and re.match(r"^https://geralddaquila\.com/\S+$",url,re.I):
+            if wp_id.isdigit() and title and "ARCHIVED" not in title.upper() and re.match(r"^https://geralddaquila\.com/\S+$",url,re.I):
                 assets.append({"title":title,"url":url,"wp_id":wp_id,"resource_type":kind[:-1],"tier":"public","access_class":"public","summary":""})
         if len(payload)<PAGE_SIZE: break
     else: raise RuntimeError(f"WordPress {kind} registry exceeded page limit")
