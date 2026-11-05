@@ -2766,7 +2766,9 @@ def _is_archive_self_reference_question(query):
         r"generaliz(?:e|ation|ing)|extrapolat(?:e|ion|ing)|"
         r"certainty|uncertainty|hypothesis|hypotheses|method|methodology|"
         r"constitutional reasoning|constitutional framework|"
-        r"modes of knowing|levels of claim|what is real)\b",
+        r"modes of knowing|levels of claim|what is real|directly|direct|"
+        r"generalize|whole cosmology|conflicting ideas|handled|"
+        r"address this directly)\b",
         q,
     ))
     self_reference_intent = bool(re.search(
