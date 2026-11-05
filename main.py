@@ -2795,19 +2795,9 @@ def _is_archive_self_reference_question(query):
     return archive_reference and epistemic_subject and self_reference_intent
 
 
-# Structural routing invariant: epistemic questions about the Archive/Guide
-# remain in General Guide composition and must not be interpreted as an ordinary
-# practical task or delegated to a subject specialist.
-for _epistemic_regression in (
-    "How should The Guide separate direct archive claims from its own synthesis?",
-    "When should The Guide say the Archive does not yet address this directly?",
-    "What standards should be met before The Guide generalizes from one archive text to the whole cosmology?",
-    "How should conflicting ideas within the corpus be handled?",
-    "What counts as evidence, interpretation, hypothesis, and normative judgment?",
-):
-    if not _is_archive_self_reference_question(_epistemic_regression):
-        raise RuntimeError("USE Archive self-reference epistemic boundary invariant failed")
-
+# Import-time assertions deliberately stay out of runtime modules.
+# Classifier positive/negative controls are exercised by focused tests so that
+# one intent refinement can never block unrelated runtime imports.
 
 def _is_conceptual_explanatory_request(query):
     """Keep questions about a concept's role or significance in General Guide.
