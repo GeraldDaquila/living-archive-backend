@@ -8141,23 +8141,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # This describes the answer's basis; it does not claim that every sentence
     # is directly quoted from a source. A recommendation is only supplied when
     # the relevance gate found a canonical doorway for this specific question.
-    if archive_evidence_unavailable and _is_conceptual_explanatory_request(query):
+    # Archive self-reference questions are governed by their own provenance
+    # answer contract and are not subject to the topical conceptual-source
+    # recovery below. Their unrelated topic doorway was already suppressed.
+    if (
+        not archive_epistemic_question
+        and archive_evidence_unavailable
+        and _is_conceptual_explanatory_request(query)
+    ):
         # Conceptual questions must fail closed when no relevant Archive body
-        # establishes the ex    if _is_archive_self_reference_question(query):
-        # This is an Archive/Guide self-reference inquiry, not an ordinary
-        # topic concept lookup. Preserve its composer answer and do not let a
-        # topic-only canonical recommendation imply evidentiary support.
-        authoritative_doorway = None
-        archive_evidence_unavailable = False
-        composition_context.pop("authoritative_doorway", None)
-        composition_context.pop("authoritative_doorway_title", None)
-        composition_context["archive_epistemic_provenance"] = True
-        print(
-            "The Guide Archive self-reference boundary: "
-            "epistemic answer preserved; unrelated topic doorway suppressed."
-        )
-
-planation. Keep this provenance rule scoped to the
+        # establishes the explanation. Keep this provenance rule scoped to the
         # conceptual grounding boundary; unrelated practical/topical inquiry
         # contracts retain their established answer-basis semantics.
         answer_basis = {
