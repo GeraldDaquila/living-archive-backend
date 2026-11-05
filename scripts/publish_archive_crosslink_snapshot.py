@@ -38,7 +38,12 @@ def load(kind):
 
 def main_publish():
     records=load("posts")+load("pages")
-    assets={}\n    for item in records:\n        key=item["url"].casefold()\n        existing=assets.get(key)\n        if existing is None or (existing.get("resource_type")=="page" and item.get("resource_type")=="post"):\n            assets[key]=item
+    assets={}
+    for item in records:
+        key=item["url"].casefold()
+        existing=assets.get(key)
+        if existing is None or (existing.get("resource_type")=="page" and item.get("resource_type")=="post"):
+            assets[key]=item
     if not assets: raise RuntimeError("canonical WordPress registry returned no publishable assets")
     snapshot={"contract":"archive-crosslink-inventory-v2","crosslink_ready":True,"complete":True,"source":"wordpress-canonical-registry","asset_count":len(assets),"refreshed_at":time.time(),"assets":sorted(assets.values(),key=lambda x:(x["resource_type"],x["title"].casefold()))}
     raw=json.dumps(snapshot,ensure_ascii=False,sort_keys=True,separators=(",",":"))+"\n"
