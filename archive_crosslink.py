@@ -175,13 +175,24 @@ def _load_wp_canonical_map() -> dict[str, dict[str, str]]:
 
 
 def _pinecone_call(method: Any, *, timeout: float = _PINECONE_REQUEST_TIMEOUT, **kwargs: Any) -> Any:
-    """Apply a bounded per-request timeout, retaining compatibility with test doubles/older SDKs."""
-    try:
-        return method(timeout=timeout, **kwargs)
-    except TypeError as exc:
-        if "timeout" not in str(exc):
-            raise
-        return method(**kwargs)
+    """Apply bounded retries for transient Pinecone throttling."""
+    import time
+    delay = 2.0
+    for attempt in range(6):
+        try:
+            try:
+                return method(timeout=timeout, **kwargs)
+            except TypeError as exc:
+                if "timeout" not in str(exc):
+                    raise
+                return method(**kwargs)
+        except Exception as exc:
+            name = type(exc).__name__
+            if name != "RateLimitError" or attempt == 5:
+                raise
+            _log(f"USE archive meta-crosslink inventory: status=retrying, attempt={attempt + 1}, delay_seconds={delay:g}, error={name}")
+            time.sleep(delay)
+            delay = min(delay * 2, 30.0)
 
 
 def _namespace_specs(index: Any) -> tuple[list[tuple[str, int | None]], int | None, int]:
