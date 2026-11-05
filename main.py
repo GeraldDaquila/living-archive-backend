@@ -7269,6 +7269,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # composition too; the same three-paragraph recovery is the final answer.
     if healthy_community_short_circuit or trust_stewardship_short_circuit:
         reasoning_mode = "deterministic_only"
+    if archive_epistemic_question:
+        reasoning_mode = "auto"
 
     composition_result = None
     # This narrow practical-question class has a bounded, provider-independent
