@@ -2086,7 +2086,10 @@ def _requires_archive_epistemic_provenance(question: str) -> bool:
         and re.search(
             r"\b(?:direct archive claims?|archive claims?|own synthesis|provenance|"
             r"evidence|interpretation|inference|synthesis|source support|"
-            r"address this directly|direct coverage|conflicting ideas)\b",
+            r"address this directly|direct coverage|conflicting ideas|"
+            r"generaliz(?:e|ation|ing)|extrapolat(?:e|ion|ing)|"
+            r"constitutional reasoning|constitutional framework|"
+            r"what standards|methodology|discernment|whole cosmology)\b",
             q,
         )
     )
