@@ -23,7 +23,7 @@ jobs:
         run: |
           git config user.name "Living Archive Snapshot Publisher"
           git config user.email "actions@github.com"
-          git add archive_crosslink_snapshot.json
+          git add archive_crosslink_snapshot.json archive_crosslink_snapshot.sha256
           git diff --cached --quiet && exit 0
           git commit -m "Refresh validated archive crosslink snapshot"
           git push
