@@ -4992,6 +4992,63 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     question = _normalize_query(query)
     q = re.sub(r"\s+", " ", question).strip().casefold()
 
+    # Archive self-reference questions require a question-preserving epistemic
+    # recovery before generic practical/relationship/topic fallbacks can capture
+    # their vocabulary. Reuse the shared constitutional and inference contracts;
+    # never invent a doorway from a retrieval candidate alone.
+    if _is_archive_self_reference_question(query):
+        if _guide_composition._requires_cosmology_generalization_standards(query):
+            response = _guide_composition._cosmology_generalization_standards_recovery()
+            provider = "bounded_archive_epistemic_generalization_recovery"
+        elif _guide_composition._is_archive_constitutional_question(query):
+            recovery = _guide_composition._archive_constitutional_recovery(
+                query, documents
+            )
+            if recovery is None:
+                return {
+                    "response": "",
+                    "doorway_title": "",
+                    "provider": "archive_epistemic_evidence_unavailable",
+                    "model": "",
+                }
+            return recovery
+        else:
+            # No source-specific assertion is made here. The provider-neutral
+            # composer remains the preferred path; this bounded fallback only
+            # states the response discipline the visitor asked about.
+            response = (
+                "The Guide should keep three kinds of statement distinct. A direct Archive claim is something a specific "
+                "published source actually states; the Guide should identify that source and avoid making the claim broader "
+                "than the passage supports. A synthesis brings together ideas from more than one source and should be "
+                "described as a synthesis, not presented as a quotation or settled constitutional rule. An interpretation "
+                "or hypothesis goes a step beyond what the sources explicitly establish and should be labelled accordingly.\n\n"
+                "For example, if one essay describes a relationship between responsibility and governance, that supports "
+                "saying that the essay makes that connection. It does not, by itself, establish that the entire Archive "
+                "treats the connection as a universal principle. To make a broader statement, the Guide should compare "
+                "relevant canonical sources, preserve qualifications or disagreements, and make the evidence trail "
+                "traceable. Semantic similarity or a related destination is not proof that a source supports a claim.\n\n"
+                "When the available material does not address the question directly, the Guide should say so plainly. "
+                "It may then offer a clearly labelled, bounded interpretation if that would help, while explaining what "
+                "remains unverified. The visitor should be able to tell what the Archive says, what the Guide has inferred, "
+                "and what is still an open question."
+            )
+            provider = "bounded_archive_epistemic_provenance_recovery"
+        try:
+            response = _guide_composition.enforce_response_contracts(query, response)
+        except Exception:
+            return {
+                "response": "",
+                "doorway_title": "",
+                "provider": "archive_epistemic_contract_rejected",
+                "model": "",
+            }
+        return {
+            "response": response,
+            "doorway_title": "",
+            "provider": provider,
+            "model": "deterministic-epistemic-boundary",
+        }
+
     # Keep the answer-first existential contract active when the ordinary
     # provider bank is exhausted or the isolated deterministic path is used.
     # Import locally so isolated recovery harnesses retain the same behavior.
