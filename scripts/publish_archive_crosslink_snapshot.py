@@ -22,7 +22,7 @@ def clean(value):
 def load(kind):
     assets=[]
     for page in range(1,MAX_PAGES+1):
-        req=Request(f"{BASE}/{kind}?per_page={PAGE_SIZE}&page={page}&_fields=id,link,title",headers={"Accept":"application/json","User-Agent":"LivingArchiveSnapshot/2.0"})
+        req=Request(f"{BASE}/{kind}?per_page={PAGE_SIZE}&page={page}&status=publish&_fields=id,link,title",headers={"Accept":"application/json","User-Agent":"LivingArchiveSnapshot/2.0"})
         with urlopen(req,timeout=10) as response: payload=json.loads(response.read().decode("utf-8"))
         if not isinstance(payload,list): raise RuntimeError(f"WordPress {kind} registry response was not a list")
         for item in payload:
@@ -38,7 +38,7 @@ def load(kind):
 
 def main_publish():
     records=load("posts")+load("pages")
-    assets={x["url"].casefold():x for x in records}
+    assets={}\n    for item in records:\n        key=item["url"].casefold()\n        existing=assets.get(key)\n        if existing is None or (existing.get("resource_type")=="page" and item.get("resource_type")=="post"):\n            assets[key]=item
     if not assets: raise RuntimeError("canonical WordPress registry returned no publishable assets")
     snapshot={"contract":"archive-crosslink-inventory-v2","crosslink_ready":True,"complete":True,"source":"wordpress-canonical-registry","asset_count":len(assets),"refreshed_at":time.time(),"assets":sorted(assets.values(),key=lambda x:(x["resource_type"],x["title"].casefold()))}
     raw=json.dumps(snapshot,ensure_ascii=False,sort_keys=True,separators=(",",":"))+"\n"
