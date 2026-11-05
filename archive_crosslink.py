@@ -688,7 +688,7 @@ def _load_persisted_snapshot() -> bool:
         snapshot = json.loads(raw)
         if not isinstance(snapshot, dict) or not snapshot.get("crosslink_ready"):
             return False
-        if snapshot.get("contract") != "archive-crosslink-inventory-v1":
+        if snapshot.get("contract") not in ("archive-crosslink-inventory-v1", "archive-crosslink-inventory-v2"):
             return False
         if not local_snapshot:
             checksum_request = UrlRequest(
@@ -701,12 +701,18 @@ def _load_persisted_snapshot() -> bool:
             actual_sha = __import__("hashlib").sha256(raw.encode("utf-8")).hexdigest()
             if len(expected_sha) != 64 or actual_sha != expected_sha:
                 return False
-        required = ("expected_vector_count", "listed_vector_count", "unique_listed_vector_count", "fetched_vector_count", "missing_metadata_count", "missing_url_asset_count", "namespace_count", "assets", "refreshed_at")
-        if any(key not in snapshot for key in required):
+        required = ("assets", "refreshed_at")
+        if any(key not in snapshot for key in required) or not isinstance(snapshot["assets"], list) or not snapshot["assets"]:
             return False
-        if snapshot["expected_vector_count"] != snapshot["listed_vector_count"] or snapshot["unique_listed_vector_count"] != snapshot["expected_vector_count"] or snapshot["fetched_vector_count"] != snapshot["unique_listed_vector_count"]:
-            return False
-        if snapshot["missing_metadata_count"] != 0 or snapshot["missing_url_asset_count"] != 0 or not isinstance(snapshot["assets"], list):
+        if snapshot.get("contract") == "archive-crosslink-inventory-v1":
+            legacy = ("expected_vector_count", "listed_vector_count", "unique_listed_vector_count", "fetched_vector_count", "missing_metadata_count", "missing_url_asset_count", "namespace_count")
+            if any(key not in snapshot for key in legacy):
+                return False
+            if snapshot["expected_vector_count"] != snapshot["listed_vector_count"] or snapshot["unique_listed_vector_count"] != snapshot["expected_vector_count"] or snapshot["fetched_vector_count"] != snapshot["unique_listed_vector_count"]:
+                return False
+            if snapshot["missing_metadata_count"] != 0 or snapshot["missing_url_asset_count"] != 0:
+                return False
+        elif snapshot.get("source") != "wordpress-canonical-registry":
             return False
         refreshed_at = float(snapshot.get("refreshed_at") or 0)
         age = max(0.0, time.time() - refreshed_at)
@@ -756,6 +762,9 @@ def start_refresh(index: Any, core: Any, *, force: bool = False) -> bool:
     if index is None:
         return False
     global _REFRESH_THREAD, _LAST_ATTEMPT
+    with _LOCK:
+        if _SNAPSHOT is not None and _SNAPSHOT.get("contract") == "archive-crosslink-inventory-v2":
+            return False
     now = time.monotonic()
     with _LOCK:
         if not force and _SNAPSHOT is None:
