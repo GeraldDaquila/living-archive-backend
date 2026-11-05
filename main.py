@@ -2778,6 +2778,11 @@ def _is_archive_self_reference_question(query):
         bool(re.search(r"\bwhat is\b", q))
         and bool(re.search(r"\b(?:constitutional reasoning|constitutional framework|archive method|archive methodology)\b", q))
     )
+    # A question that explicitly asks about "the Archive's sense" is a
+    # self-reference request even when it does not use "how should" wording.
+    self_reference_intent = self_reference_intent or bool(re.search(
+        r"\b(?:in|within) the archive(?:'s|’s) sense\b", q
+    ))
     return archive_reference and epistemic_subject and self_reference_intent
 
 
