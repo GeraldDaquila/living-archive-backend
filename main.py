@@ -2745,6 +2745,53 @@ if _is_lived_experience_explanatory_request("What does uncertainty mean?"):
     raise RuntimeError("USE v489.90 glossary distinction invariant failed")
 
 
+def _is_archive_self_reference_question(query):
+    """Keep questions about Archive/Guide epistemic authority in General Guide.
+
+    This is an intent boundary, not a specialist or a topic-keyword shortcut.
+    It requires explicit Archive/Guide self-reference plus a question about
+    claims, provenance, evidence, interpretation, synthesis, or method.
+    """
+    q = re.sub(r"\\s+", " ", str(query or "").strip().casefold())
+    if not q:
+        return False
+
+    archive_reference = bool(re.search(
+        r"\\b(?:the\\s+)?(?:living\\s+archive|archive|corpus|guide)\\b",
+        q,
+    ))
+    epistemic_subject = bool(re.search(
+        r"\\b(?:claim|claims|provenance|source|sources|evidence|"
+        r"interpretation|interpretations|inference|inferences|synthesis|"
+        r"generaliz(?:e|ation|ing)|extrapolat(?:e|ion|ing)|"
+        r"certainty|uncertainty|hypothesis|hypotheses|method|methodology|"
+        r"constitutional reasoning|constitutional framework|"
+        r"modes of knowing|levels of claim|what is real)\\b",
+        q,
+    ))
+    self_reference_intent = bool(re.search(
+        r"\\b(?:how should|how does|how can|when should|when does|"
+        r"what standards|which standards|what counts as|what makes|"
+        r"how do we|how does the|should the|does the|the guide)\\b",
+        q,
+    ))
+    return archive_reference and epistemic_subject and self_reference_intent
+
+
+# Structural routing invariant: epistemic questions about the Archive/Guide
+# remain in General Guide composition and must not be interpreted as an ordinary
+# practical task or delegated to a subject specialist.
+for _epistemic_regression in (
+    "How should The Guide separate direct archive claims from its own synthesis?",
+    "When should The Guide say the Archive does not yet address this directly?",
+    "What standards should be met before The Guide generalizes from one archive text to the whole cosmology?",
+    "How should conflicting ideas within the corpus be handled?",
+    "What counts as evidence, interpretation, hypothesis, and normative judgment?",
+):
+    if not _is_archive_self_reference_question(_epistemic_regression):
+        raise RuntimeError("USE Archive self-reference epistemic boundary invariant failed")
+
+
 def _is_conceptual_explanatory_request(query):
     """Keep questions about a concept's role or significance in General Guide.
 
