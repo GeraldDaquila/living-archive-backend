@@ -8137,7 +8137,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # concepts (e.g. "role of trust") and can reject/replace answers that are
     # actually about the Guide's provenance and claim boundaries. Keep this
     # class in General Guide and suppress any topic-selected doorway.
-    if _is_archive_self_reference_question(query):
+    # Expose a small, deterministic provenance contract for the visitor UI.
+    # This describes the answer's basis; it does not claim that every sentence
+    # is directly quoted from a source. A recommendation is only supplied when
+    # the relevance gate found a canonical doorway for this specific question.
+    if archive_evidence_unavailable and _is_conceptual_explanatory_request(query):
+        # Conceptual questions must fail closed when no relevant Archive body
+        # establishes the ex    if _is_archive_self_reference_question(query):
+        # This is an Archive/Guide self-reference inquiry, not an ordinary
+        # topic concept lookup. Preserve its composer answer and do not let a
+        # topic-only canonical recommendation imply evidentiary support.
         authoritative_doorway = None
         archive_evidence_unavailable = False
         composition_context.pop("authoritative_doorway", None)
@@ -8145,16 +8154,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         composition_context["archive_epistemic_provenance"] = True
         print(
             "The Guide Archive self-reference boundary: "
-            "provenance inquiry retained in General Guide; topic doorway suppressed."
+            "epistemic answer preserved; unrelated topic doorway suppressed."
         )
 
-    # Expose a small, deterministic provenance contract for the visitor UI.
-    # This describes the answer's basis; it does not claim that every sentence
-    # is directly quoted from a source. A recommendation is only supplied when
-    # the relevance gate found a canonical doorway for this specific question.
-    if archive_evidence_unavailable and _is_conceptual_explanatory_request(query):
-        # Conceptual questions must fail closed when no relevant Archive body
-        # establishes the explanation. Keep this provenance rule scoped to the
+planation. Keep this provenance rule scoped to the
         # conceptual grounding boundary; unrelated practical/topical inquiry
         # contracts retain their established answer-basis semantics.
         answer_basis = {
