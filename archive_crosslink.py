@@ -584,6 +584,69 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
     }
 
 
+def export_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
+    """Return the minimal, public-safe territorial map for durable consumption."""
+    if not isinstance(snapshot, dict) or not snapshot.get("crosslink_ready"):
+        raise ValueError("only a validated crosslink-ready inventory may be exported")
+    required = (
+        "expected_vector_count", "listed_vector_count", "unique_listed_vector_count",
+        "fetched_vector_count", "missing_metadata_count", "missing_url_asset_count",
+        "namespace_count", "refreshed_at", "assets",
+    )
+    if any(key not in snapshot for key in required):
+        raise ValueError("inventory contract is incomplete")
+    if (
+        snapshot.get("expected_vector_count") != snapshot.get("listed_vector_count")
+        or snapshot.get("unique_listed_vector_count") != snapshot.get("expected_vector_count")
+        or snapshot.get("fetched_vector_count") != snapshot.get("unique_listed_vector_count")
+        or snapshot.get("missing_metadata_count") != 0
+        or snapshot.get("missing_url_asset_count") != 0
+    ):
+        raise ValueError("inventory completeness gate failed")
+
+    assets: list[dict[str, Any]] = []
+    seen_urls: set[str] = set()
+    for asset in snapshot.get("assets", []):
+        if not isinstance(asset, dict):
+            raise ValueError("invalid asset")
+        url = _normalize_url(asset.get("url"))
+        title = _text(asset.get("title"), 300)
+        refs = asset.get("vector_refs")
+        if not url.startswith("https://geralddaquila.com/") or not title:
+            raise ValueError("asset canonical identity is incomplete")
+        if url in seen_urls:
+            raise ValueError("duplicate canonical destination")
+        if not isinstance(refs, list) or not refs:
+            raise ValueError("asset has no vector provenance")
+        seen_urls.add(url)
+        assets.append({
+            "title": title,
+            "url": url,
+            "tier": _text(asset.get("tier"), 40),
+            "resource_type": _text(asset.get("resource_type"), 120),
+            "access_class": _text(asset.get("access_class"), 40),
+            # Bounded orientation only; never export corpus text samples.
+            "summary": _text(asset.get("summary"), 600),
+            "vector_refs": refs[:4],
+        })
+
+    return {
+        "contract": "archive-crosslink-inventory-v1",
+        "crosslink_ready": True,
+        "complete": True,
+        "expected_vector_count": snapshot["expected_vector_count"],
+        "listed_vector_count": snapshot["listed_vector_count"],
+        "unique_listed_vector_count": snapshot["unique_listed_vector_count"],
+        "fetched_vector_count": snapshot["fetched_vector_count"],
+        "missing_metadata_count": 0,
+        "missing_url_asset_count": 0,
+        "namespace_count": snapshot["namespace_count"],
+        "asset_count": len(assets),
+        "refreshed_at": snapshot["refreshed_at"],
+        "assets": assets,
+    }
+
+
 def _snapshot_path() -> str:
     return str(os.getenv(_SNAPSHOT_FILE_ENV, "")).strip()
 
