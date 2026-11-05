@@ -385,3 +385,23 @@ def test_inventory_deduplicates_repeated_ids_across_pages():
     assert snapshot["listed_vector_count"] == 2
     assert snapshot["unique_listed_vector_count"] == 1
     assert snapshot["duplicate_listed_vector_count"] == 1
+
+
+def test_persisted_snapshot_survives_restart_without_refresh(monkeypatch, tmp_path):
+    snapshot_path = tmp_path / "crosslink-snapshot.json"
+    monkeypatch.setenv("ARCHIVE_CROSSLINK_SNAPSHOT_PATH", str(snapshot_path))
+    snapshot = {"crosslink_ready": True, "refreshed_at": __import__("time").time(), "assets": []}
+    archive_crosslink._persist_snapshot(snapshot)
+    archive_crosslink._SNAPSHOT = None
+    archive_crosslink._LAST_REFRESH = 0.0
+    assert archive_crosslink._load_persisted_snapshot() is True
+    assert archive_crosslink.inventory_snapshot()["crosslink_ready"] is True
+
+
+def test_partial_or_stale_snapshot_is_never_loaded(monkeypatch, tmp_path):
+    snapshot_path = tmp_path / "crosslink-snapshot.json"
+    monkeypatch.setenv("ARCHIVE_CROSSLINK_SNAPSHOT_PATH", str(snapshot_path))
+    snapshot_path.write_text('{"crosslink_ready":false,"refreshed_at":0,"assets":[]}', encoding="utf-8")
+    archive_crosslink._SNAPSHOT = None
+    assert archive_crosslink._load_persisted_snapshot() is False
+    assert archive_crosslink.inventory_snapshot() is None
