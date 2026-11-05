@@ -6869,6 +6869,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "route_source": "guide_explicit_home_navigation",
             "visitor_boundary_version": APP_VERSION,
         }
+    # Archive self-reference / epistemic inquiries are General Guide questions.
+    # They must bypass the generic protected-core action classifier, which can
+    # mistake "truth", "evidence", or "discernment" for an advice-seeking action.
+    archive_epistemic_question = _is_archive_self_reference_question(query)
+    if archive_epistemic_question:
+        print("The Guide Archive self-reference boundary: retained in General Guide composition.")
+
     clarification = general_guide_composition.clarification_response(
         query, _history_text(history)
     )
