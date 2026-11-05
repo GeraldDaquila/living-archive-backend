@@ -47,6 +47,7 @@ _WP_REGISTRY_MAX_PAGES = 50
 _WP_REGISTRY_TIMEOUT_SECONDS = 3.0
 _WP_REGISTRY_CACHE_TTL_SECONDS = 21600
 _REFRESH_THREAD: threading.Thread | None = None
+_SNAPSHOT_FILE_ENV = "ARCHIVE_CROSSLINK_SNAPSHOT_PATH"
 _WP_CANONICAL_CACHE: dict[str, dict[str, str]] = {}
 _WP_CANONICAL_CACHE_AT = 0.0
 
@@ -577,6 +578,47 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
     }
 
 
+def _snapshot_path() -> str:
+    return str(os.getenv(_SNAPSHOT_FILE_ENV, "")).strip()
+
+
+def _load_persisted_snapshot() -> bool:
+    global _SNAPSHOT, _LAST_REFRESH
+    path = _snapshot_path()
+    if not path:
+        return False
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            snapshot = json.load(handle)
+        refreshed_at = float(snapshot.get("refreshed_at") or 0)
+        age = max(0.0, time.time() - refreshed_at)
+        if not isinstance(snapshot, dict) or not snapshot.get("crosslink_ready") or age >= _REFRESH_SECONDS:
+            return False
+        _SNAPSHOT = snapshot
+        _LAST_REFRESH = time.monotonic()
+        _log(f"USE archive meta-crosslink inventory: persisted_snapshot_loaded=true, age_seconds={round(age, 1)}")
+        return True
+    except Exception:
+        return False
+
+
+def _persist_snapshot(snapshot: dict[str, Any]) -> None:
+    path = _snapshot_path()
+    if not path or not snapshot.get("crosslink_ready"):
+        return
+    try:
+        directory = os.path.dirname(path)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        temp = f"{path}.tmp"
+        with open(temp, "w", encoding="utf-8") as handle:
+            json.dump(snapshot, handle, ensure_ascii=False, separators=(",", ":"))
+        os.replace(temp, path)
+        _log("USE archive meta-crosslink inventory: persisted_snapshot_saved=true")
+    except Exception as exc:
+        _log(f"USE archive meta-crosslink inventory: persisted_snapshot_saved=false, error={type(exc).__name__}")
+
+
 def should_start_refresh(service_id: str | None) -> bool:
     """Only the canonical primary Render service owns the full-corpus snapshot.
 
@@ -596,6 +638,9 @@ def start_refresh(index: Any, core: Any, *, force: bool = False) -> bool:
         return False
     global _REFRESH_THREAD, _LAST_ATTEMPT
     now = time.monotonic()
+    with _LOCK:
+        if not force and _SNAPSHOT is None:
+            _load_persisted_snapshot()
     with _LOCK:
         if not force and _SNAPSHOT is not None and now - _LAST_REFRESH < _REFRESH_SECONDS:
             return False
@@ -627,6 +672,7 @@ def _refresh_worker(index: Any, core: Any) -> None:
         with _LOCK:
             _SNAPSHOT = snapshot
             _LAST_REFRESH = time.monotonic()
+            _persist_snapshot(snapshot)
         _log(
             "USE archive meta-crosslink inventory: "
             f"status={snapshot['status']}, namespaces={snapshot['namespace_count']}, "
