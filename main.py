@@ -8176,6 +8176,22 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         composition_context["archive_reference_recovery"] = _cosmology_lived_recovery["recovery_id"]
         print("The Guide conceptual boundary: applied approved Archive-informed cosmology recovery.")
 
+    # Archive self-reference questions are not answered by the ordinary
+    # concept-topic validator. That validator intentionally targets subject
+    # concepts (e.g. "role of trust") and can reject/replace answers that are
+    # actually about the Guide's provenance and claim boundaries. Keep this
+    # class in General Guide and suppress any topic-selected doorway.
+    if _is_archive_self_reference_question(query):
+        authoritative_doorway = None
+        archive_evidence_unavailable = False
+        composition_context.pop("authoritative_doorway", None)
+        composition_context.pop("authoritative_doorway_title", None)
+        composition_context["archive_epistemic_provenance"] = True
+        print(
+            "The Guide Archive self-reference boundary: "
+            "provenance inquiry retained in General Guide; topic doorway suppressed."
+        )
+
     # Expose a small, deterministic provenance contract for the visitor UI.
     # This describes the answer's basis; it does not claim that every sentence
     # is directly quoted from a source. A recommendation is only supplied when
