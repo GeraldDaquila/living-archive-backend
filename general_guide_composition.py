@@ -2082,9 +2082,9 @@ def _requires_archive_epistemic_provenance(question: str) -> bool:
     """Recognize explicit questions about Guide/Archive claim provenance."""
     q = _normalize_space(question).casefold()
     return bool(
-        re.search(r"\\b(?:the\\s+)?(?:living\\s+archive|archive|corpus|guide)\\b", q)
+        re.search(r"\b(?:the\\s+)?(?:living\\s+archive|archive|corpus|guide)\\b", q)
         and re.search(
-            r"\\b(?:direct archive claims?|archive claims?|own synthesis|provenance|"
+            r"\b(?:direct archive claims?|archive claims?|own synthesis|provenance|"
             r"evidence|interpretation|inference|synthesis|source support|"
             r"address this directly|direct coverage|conflicting ideas)\\b",
             q,
@@ -2095,12 +2095,12 @@ def _requires_archive_epistemic_provenance(question: str) -> bool:
 def _has_archive_epistemic_provenance_answer(response: str) -> bool:
     """Require explicit separation of source claims, synthesis, and interpretation."""
     text = _normalize_space(response).casefold()
-    paragraphs = [part for part in re.split(r"\\n\\s*\\n+", str(response or "")) if part.strip()]
+    paragraphs = [part for part in re.split(r"\n\\s*\\n+", str(response or "")) if part.strip()]
     required = (
-        r"\\b(?:direct archive claim|source actually states|published source)\\b",
-        r"\\b(?:synthesis|cross[- ]corpus|more than one source)\\b",
-        r"\\b(?:interpretation|inference|hypothesis)\\b",
-        r"\\b(?:directly|explicitly)\\s+(?:address|state|support|establish)",
+        r"\b(?:direct archive claim|source actually states|published source)\\b",
+        r"\b(?:synthesis|cross[- ]corpus|more than one source)\\b",
+        r"\b(?:interpretation|inference|hypothesis)\\b",
+        r"\b(?:directly|explicitly)\\s+(?:address|state|support|establish)",
     )
     return len(paragraphs) == 3 and all(re.search(pattern, text) for pattern in required)
 
