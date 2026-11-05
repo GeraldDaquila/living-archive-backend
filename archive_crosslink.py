@@ -53,6 +53,7 @@ _SNAPSHOT_GITHUB_RAW_URL = (
     "main/archive_crosslink_snapshot.json"
 )
 _SNAPSHOT_MAX_BYTES = 8 * 1024 * 1024
+_SNAPSHOT_SHA256_URL = "https://raw.githubusercontent.com/GeraldDaquila/living-archive-backend/main/archive_crosslink_snapshot.sha256"
 
 _WP_CANONICAL_CACHE: dict[str, dict[str, str]] = {}
 _WP_CANONICAL_CACHE_AT = 0.0
@@ -676,6 +677,23 @@ def _load_persisted_snapshot() -> bool:
         if not isinstance(snapshot, dict) or not snapshot.get("crosslink_ready"):
             return False
         if snapshot.get("contract") != "archive-crosslink-inventory-v1":
+            return False
+        checksum_request = UrlRequest(
+            _SNAPSHOT_SHA256_URL,
+            headers={"Accept": "text/plain", "User-Agent": "LivingArchiveGuide/1.0"},
+            method="GET",
+        )
+        with urlopen(checksum_request, timeout=3.0) as response:
+            expected_sha = response.read(128).decode("utf-8").strip().lower().split()[0]
+        actual_sha = __import__("hashlib").sha256(raw.encode("utf-8")).hexdigest()
+        if len(expected_sha) != 64 or actual_sha != expected_sha:
+            return False
+        required = ("expected_vector_count", "listed_vector_count", "unique_listed_vector_count", "fetched_vector_count", "missing_metadata_count", "missing_url_asset_count", "namespace_count", "assets", "refreshed_at")
+        if any(key not in snapshot for key in required):
+            return False
+        if snapshot["expected_vector_count"] != snapshot["listed_vector_count"] or snapshot["unique_listed_vector_count"] != snapshot["expected_vector_count"] or snapshot["fetched_vector_count"] != snapshot["unique_listed_vector_count"]:
+            return False
+        if snapshot["missing_metadata_count"] != 0 or snapshot["missing_url_asset_count"] != 0 or not isinstance(snapshot["assets"], list):
             return False
         refreshed_at = float(snapshot.get("refreshed_at") or 0)
         age = max(0.0, time.time() - refreshed_at)
