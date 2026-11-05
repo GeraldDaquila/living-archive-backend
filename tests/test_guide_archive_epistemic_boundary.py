@@ -32,6 +32,7 @@ def test_archive_self_reference_detector_does_not_capture_ordinary_subject_quest
         "How should a team resolve conflicting priorities?",
         "What does governance mean in practice?",
         "Where can I find material about truth and discernment?",
+        "What is the meaning of evidence?",
     ):
         assert not main._is_archive_self_reference_question(query), query
 
