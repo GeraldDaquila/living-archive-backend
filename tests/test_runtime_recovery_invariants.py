@@ -24,5 +24,9 @@ class RuntimeRecoveryTests(unittest.TestCase):
         self.assertIn("https://www.geralddaquila.com", self.source)
         self.assertIn("app = _StrictCorsBoundary(app)", self.source)
 
+    def test_ai_truth_does_not_bypass_authoritative_doorway_arbitration(self):
+        self.assertIn('if not profile.get("grief"):', self.source)
+        self.assertNotIn('if not (profile.get("grief") or profile.get("ai_truth")):', self.source)
+
 if __name__=="__main__":
     unittest.main()
