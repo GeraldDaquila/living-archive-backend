@@ -47,6 +47,14 @@ _WP_REGISTRY_MAX_PAGES = 50
 _WP_REGISTRY_TIMEOUT_SECONDS = 3.0
 _WP_REGISTRY_CACHE_TTL_SECONDS = 21600
 _REFRESH_THREAD: threading.Thread | None = None
+_SNAPSHOT_FILE_ENV = "ARCHIVE_CROSSLINK_SNAPSHOT_PATH"
+_SNAPSHOT_GITHUB_RAW_URL = (
+    "https://raw.githubusercontent.com/GeraldDaquila/living-archive-backend/"
+    "main/archive_crosslink_snapshot.json"
+)
+_SNAPSHOT_MAX_BYTES = 8 * 1024 * 1024
+_SNAPSHOT_SHA256_URL = "https://raw.githubusercontent.com/GeraldDaquila/living-archive-backend/main/archive_crosslink_snapshot.sha256"
+
 _WP_CANONICAL_CACHE: dict[str, dict[str, str]] = {}
 _WP_CANONICAL_CACHE_AT = 0.0
 
@@ -577,6 +585,148 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
     }
 
 
+def export_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
+    """Return the minimal, public-safe territorial map for durable consumption."""
+    if not isinstance(snapshot, dict) or not snapshot.get("crosslink_ready"):
+        raise ValueError("only a validated crosslink-ready inventory may be exported")
+    required = (
+        "expected_vector_count", "listed_vector_count", "unique_listed_vector_count",
+        "fetched_vector_count", "missing_metadata_count", "missing_url_asset_count",
+        "namespace_count", "refreshed_at", "assets",
+    )
+    if any(key not in snapshot for key in required):
+        raise ValueError("inventory contract is incomplete")
+    if (
+        snapshot.get("expected_vector_count") != snapshot.get("listed_vector_count")
+        or snapshot.get("unique_listed_vector_count") != snapshot.get("expected_vector_count")
+        or snapshot.get("fetched_vector_count") != snapshot.get("unique_listed_vector_count")
+        or snapshot.get("missing_metadata_count") != 0
+        or snapshot.get("missing_url_asset_count") != 0
+    ):
+        raise ValueError("inventory completeness gate failed")
+
+    assets: list[dict[str, Any]] = []
+    seen_urls: set[str] = set()
+    for asset in snapshot.get("assets", []):
+        if not isinstance(asset, dict):
+            raise ValueError("invalid asset")
+        url = _normalize_url(asset.get("url"))
+        title = _text(asset.get("title"), 300)
+        refs = asset.get("vector_refs")
+        if not url.startswith("https://geralddaquila.com/") or not title:
+            raise ValueError("asset canonical identity is incomplete")
+        if url in seen_urls:
+            raise ValueError("duplicate canonical destination")
+        if not isinstance(refs, list) or not refs:
+            raise ValueError("asset has no vector provenance")
+        seen_urls.add(url)
+        assets.append({
+            "title": title,
+            "url": url,
+            "tier": _text(asset.get("tier"), 40),
+            "resource_type": _text(asset.get("resource_type"), 120),
+            "access_class": _text(asset.get("access_class"), 40),
+            # Bounded orientation only; never export corpus text samples.
+            "summary": _text(asset.get("summary"), 600),
+            "vector_refs": refs[:4],
+        })
+
+    return {
+        "contract": "archive-crosslink-inventory-v1",
+        "crosslink_ready": True,
+        "complete": True,
+        "expected_vector_count": snapshot["expected_vector_count"],
+        "listed_vector_count": snapshot["listed_vector_count"],
+        "unique_listed_vector_count": snapshot["unique_listed_vector_count"],
+        "fetched_vector_count": snapshot["fetched_vector_count"],
+        "missing_metadata_count": 0,
+        "missing_url_asset_count": 0,
+        "namespace_count": snapshot["namespace_count"],
+        "asset_count": len(assets),
+        "refreshed_at": snapshot["refreshed_at"],
+        "assets": assets,
+    }
+
+
+def _snapshot_path() -> str:
+    return str(os.getenv(_SNAPSHOT_FILE_ENV, "")).strip()
+
+
+def _load_persisted_snapshot() -> bool:
+    """Load a recent, validated snapshot from a configured local mirror or GitHub artifact."""
+    global _SNAPSHOT, _LAST_REFRESH
+    path = _snapshot_path()
+    try:
+        # A configured path is a test/development mirror only. Free Render has no
+        # durable filesystem, so production falls through to the versioned artifact.
+        local_snapshot = bool(path and os.path.isfile(path))
+        if local_snapshot:
+            with open(path, "r", encoding="utf-8") as handle:
+                raw = handle.read(_SNAPSHOT_MAX_BYTES + 1)
+        else:
+            request = UrlRequest(
+                _SNAPSHOT_GITHUB_RAW_URL,
+                headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
+                method="GET",
+            )
+            with urlopen(request, timeout=3.0) as response:
+                raw_bytes = response.read(_SNAPSHOT_MAX_BYTES + 1)
+            raw = raw_bytes.decode("utf-8")
+        if len(raw.encode("utf-8")) > _SNAPSHOT_MAX_BYTES:
+            raise ValueError("snapshot exceeds size bound")
+        snapshot = json.loads(raw)
+        if not isinstance(snapshot, dict) or not snapshot.get("crosslink_ready"):
+            return False
+        if snapshot.get("contract") != "archive-crosslink-inventory-v1":
+            return False
+        if not local_snapshot:
+            checksum_request = UrlRequest(
+                _SNAPSHOT_SHA256_URL,
+                headers={"Accept": "text/plain", "User-Agent": "LivingArchiveGuide/1.0"},
+                method="GET",
+            )
+            with urlopen(checksum_request, timeout=3.0) as response:
+                expected_sha = response.read(128).decode("utf-8").strip().lower().split()[0]
+            actual_sha = __import__("hashlib").sha256(raw.encode("utf-8")).hexdigest()
+            if len(expected_sha) != 64 or actual_sha != expected_sha:
+                return False
+        required = ("expected_vector_count", "listed_vector_count", "unique_listed_vector_count", "fetched_vector_count", "missing_metadata_count", "missing_url_asset_count", "namespace_count", "assets", "refreshed_at")
+        if any(key not in snapshot for key in required):
+            return False
+        if snapshot["expected_vector_count"] != snapshot["listed_vector_count"] or snapshot["unique_listed_vector_count"] != snapshot["expected_vector_count"] or snapshot["fetched_vector_count"] != snapshot["unique_listed_vector_count"]:
+            return False
+        if snapshot["missing_metadata_count"] != 0 or snapshot["missing_url_asset_count"] != 0 or not isinstance(snapshot["assets"], list):
+            return False
+        refreshed_at = float(snapshot.get("refreshed_at") or 0)
+        age = max(0.0, time.time() - refreshed_at)
+        if age >= _REFRESH_SECONDS:
+            _log(f"USE archive meta-crosslink inventory: persisted_snapshot_stale=true, age_seconds={round(age, 1)}")
+        _SNAPSHOT = snapshot
+        _LAST_REFRESH = time.monotonic() if age < _REFRESH_SECONDS else 0.0
+        _log(f"USE archive meta-crosslink inventory: persisted_snapshot_loaded=true, age_seconds={round(age, 1)}")
+        return True
+    except Exception as exc:
+        _log(f"USE archive meta-crosslink inventory: persisted_snapshot_load_failed={type(exc).__name__}")
+        return False
+
+
+def _persist_snapshot(snapshot: dict[str, Any]) -> None:
+    path = _snapshot_path()
+    if not path or not snapshot.get("crosslink_ready"):
+        return
+    try:
+        directory = os.path.dirname(path)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        temp = f"{path}.tmp"
+        with open(temp, "w", encoding="utf-8") as handle:
+            json.dump(snapshot, handle, ensure_ascii=False, separators=(",", ":"))
+        os.replace(temp, path)
+        _log("USE archive meta-crosslink inventory: persisted_snapshot_saved=true")
+    except Exception as exc:
+        _log(f"USE archive meta-crosslink inventory: persisted_snapshot_saved=false, error={type(exc).__name__}")
+
+
 def should_start_refresh(service_id: str | None) -> bool:
     """Only the canonical primary Render service owns the full-corpus snapshot.
 
@@ -596,6 +746,9 @@ def start_refresh(index: Any, core: Any, *, force: bool = False) -> bool:
         return False
     global _REFRESH_THREAD, _LAST_ATTEMPT
     now = time.monotonic()
+    with _LOCK:
+        if not force and _SNAPSHOT is None:
+            _load_persisted_snapshot()
     with _LOCK:
         if not force and _SNAPSHOT is not None and now - _LAST_REFRESH < _REFRESH_SECONDS:
             return False
@@ -625,8 +778,12 @@ def _refresh_worker(index: Any, core: Any) -> None:
     try:
         snapshot = build_inventory(index, core)
         with _LOCK:
-            _SNAPSHOT = snapshot
-            _LAST_REFRESH = time.monotonic()
+            if snapshot.get("crosslink_ready"):
+                _SNAPSHOT = snapshot
+                _LAST_REFRESH = time.monotonic()
+                _persist_snapshot(snapshot)
+            elif _SNAPSHOT is not None and _SNAPSHOT.get("crosslink_ready"):
+                _log("USE archive meta-crosslink inventory: refresh_failed_preserving_last_valid_snapshot=true")
         _log(
             "USE archive meta-crosslink inventory: "
             f"status={snapshot['status']}, namespaces={snapshot['namespace_count']}, "
