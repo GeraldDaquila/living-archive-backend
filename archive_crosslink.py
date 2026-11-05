@@ -659,7 +659,8 @@ def _load_persisted_snapshot() -> bool:
     try:
         # A configured path is a test/development mirror only. Free Render has no
         # durable filesystem, so production falls through to the versioned artifact.
-        if path and os.path.isfile(path):
+        local_snapshot = bool(path and os.path.isfile(path))
+        if local_snapshot:
             with open(path, "r", encoding="utf-8") as handle:
                 raw = handle.read(_SNAPSHOT_MAX_BYTES + 1)
         else:
@@ -678,16 +679,17 @@ def _load_persisted_snapshot() -> bool:
             return False
         if snapshot.get("contract") != "archive-crosslink-inventory-v1":
             return False
-        checksum_request = UrlRequest(
-            _SNAPSHOT_SHA256_URL,
-            headers={"Accept": "text/plain", "User-Agent": "LivingArchiveGuide/1.0"},
-            method="GET",
-        )
-        with urlopen(checksum_request, timeout=3.0) as response:
-            expected_sha = response.read(128).decode("utf-8").strip().lower().split()[0]
-        actual_sha = __import__("hashlib").sha256(raw.encode("utf-8")).hexdigest()
-        if len(expected_sha) != 64 or actual_sha != expected_sha:
-            return False
+        if not local_snapshot:
+            checksum_request = UrlRequest(
+                _SNAPSHOT_SHA256_URL,
+                headers={"Accept": "text/plain", "User-Agent": "LivingArchiveGuide/1.0"},
+                method="GET",
+            )
+            with urlopen(checksum_request, timeout=3.0) as response:
+                expected_sha = response.read(128).decode("utf-8").strip().lower().split()[0]
+            actual_sha = __import__("hashlib").sha256(raw.encode("utf-8")).hexdigest()
+            if len(expected_sha) != 64 or actual_sha != expected_sha:
+                return False
         required = ("expected_vector_count", "listed_vector_count", "unique_listed_vector_count", "fetched_vector_count", "missing_metadata_count", "missing_url_asset_count", "namespace_count", "assets", "refreshed_at")
         if any(key not in snapshot for key in required):
             return False
