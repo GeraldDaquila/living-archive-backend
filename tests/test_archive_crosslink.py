@@ -432,3 +432,34 @@ def test_stale_valid_snapshot_remains_available_and_requests_refresh(monkeypatch
     assert archive_crosslink._load_persisted_snapshot() is True
     assert archive_crosslink.inventory_snapshot()["crosslink_ready"] is True
     assert archive_crosslink._LAST_REFRESH == 0.0
+
+
+def test_export_snapshot_strips_corpus_samples_and_requires_complete_inventory():
+    snapshot = {
+        "contract": "archive-crosslink-inventory-v1",
+        "crosslink_ready": True,
+        "complete": True,
+        "expected_vector_count": 1,
+        "listed_vector_count": 1,
+        "unique_listed_vector_count": 1,
+        "fetched_vector_count": 1,
+        "missing_metadata_count": 0,
+        "missing_url_asset_count": 0,
+        "namespace_count": 1,
+        "refreshed_at": 1.0,
+        "assets": [{
+            "title": "Canonical Asset",
+            "url": "https://geralddaquila.com/canonical-asset/",
+            "tier": "T1",
+            "resource_type": "essay",
+            "access_class": "public",
+            "summary": "Short orientation.",
+            "sample": "Corpus text must never be exported.",
+            "vector_refs": [{"id": "v1", "namespace": ""}],
+        }],
+    }
+    exported = archive_crosslink.export_snapshot(snapshot)
+    asset = exported["assets"][0]
+    assert asset["url"] == "https://geralddaquila.com/canonical-asset"
+    assert "sample" not in asset
+    assert exported["crosslink_ready"] is True
