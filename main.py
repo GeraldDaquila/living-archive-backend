@@ -2752,16 +2752,16 @@ def _is_archive_self_reference_question(query):
     It requires explicit Archive/Guide self-reference plus a question about
     claims, provenance, evidence, interpretation, synthesis, or method.
     """
-    q = re.sub(r"\\s+", " ", str(query or "").strip().casefold())
+    q = re.sub(r"\s+", " ", str(query or "").strip().casefold())
     if not q:
         return False
 
     archive_reference = bool(re.search(
-        r"\\b(?:the\\s+)?(?:living\\s+archive|archive|corpus|guide)\\b",
+        r"\b(?:the\\s+)?(?:living\\s+archive|archive|corpus|guide)\\b",
         q,
     ))
     epistemic_subject = bool(re.search(
-        r"\\b(?:claim|claims|provenance|source|sources|evidence|"
+        r"\b(?:claim|claims|provenance|source|sources|evidence|"
         r"interpretation|interpretations|inference|inferences|synthesis|"
         r"generaliz(?:e|ation|ing)|extrapolat(?:e|ion|ing)|"
         r"certainty|uncertainty|hypothesis|hypotheses|method|methodology|"
@@ -2770,7 +2770,7 @@ def _is_archive_self_reference_question(query):
         q,
     ))
     self_reference_intent = bool(re.search(
-        r"\\b(?:how should|how does|how can|when should|when does|"
+        r"\b(?:how should|how does|how can|when should|when does|"
         r"what standards|which standards|what counts as|what makes|"
         r"how do we|how does the|should the|does the|the guide)\\b",
         q,
