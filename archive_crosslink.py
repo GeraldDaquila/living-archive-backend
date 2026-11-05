@@ -48,6 +48,12 @@ _WP_REGISTRY_TIMEOUT_SECONDS = 3.0
 _WP_REGISTRY_CACHE_TTL_SECONDS = 21600
 _REFRESH_THREAD: threading.Thread | None = None
 _SNAPSHOT_FILE_ENV = "ARCHIVE_CROSSLINK_SNAPSHOT_PATH"
+_SNAPSHOT_GITHUB_RAW_URL = (
+    "https://raw.githubusercontent.com/GeraldDaquila/living-archive-backend/"
+    "main/archive_crosslink_snapshot.json"
+)
+_SNAPSHOT_MAX_BYTES = 8 * 1024 * 1024
+
 _WP_CANONICAL_CACHE: dict[str, dict[str, str]] = {}
 _WP_CANONICAL_CACHE_AT = 0.0
 
@@ -583,26 +589,39 @@ def _snapshot_path() -> str:
 
 
 def _load_persisted_snapshot() -> bool:
+    """Load a recent, validated snapshot from a configured local mirror or GitHub artifact."""
     global _SNAPSHOT, _LAST_REFRESH
     path = _snapshot_path()
-    if not path:
-        return False
     try:
-        with open(path, "r", encoding="utf-8") as handle:
-            snapshot = json.load(handle)
-        refreshed_at = float(snapshot.get("refreshed_at") or 0)
-        age = max(0.0, time.time() - refreshed_at)
+        if path:
+            with open(path, "r", encoding="utf-8") as handle:
+                raw = handle.read(_SNAPSHOT_MAX_BYTES + 1)
+        else:
+            request = UrlRequest(
+                _SNAPSHOT_GITHUB_RAW_URL,
+                headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
+                method="GET",
+            )
+            with urlopen(request, timeout=3.0) as response:
+                raw_bytes = response.read(_SNAPSHOT_MAX_BYTES + 1)
+            raw = raw_bytes.decode("utf-8")
+        if len(raw.encode("utf-8")) > _SNAPSHOT_MAX_BYTES:
+            raise ValueError("snapshot exceeds size bound")
+        snapshot = json.loads(raw)
         if not isinstance(snapshot, dict) or not snapshot.get("crosslink_ready"):
             return False
+        if snapshot.get("contract") != "archive-crosslink-inventory-v1":
+            return False
+        refreshed_at = float(snapshot.get("refreshed_at") or 0)
+        age = max(0.0, time.time() - refreshed_at)
         if age >= _REFRESH_SECONDS:
-            # Keep a known-good map available while a monthly refresh is attempted.
-            # Freshness still causes a refresh; it does not erase territorial awareness.
             _log(f"USE archive meta-crosslink inventory: persisted_snapshot_stale=true, age_seconds={round(age, 1)}")
         _SNAPSHOT = snapshot
         _LAST_REFRESH = time.monotonic() if age < _REFRESH_SECONDS else 0.0
         _log(f"USE archive meta-crosslink inventory: persisted_snapshot_loaded=true, age_seconds={round(age, 1)}")
         return True
-    except Exception:
+    except Exception as exc:
+        _log(f"USE archive meta-crosslink inventory: persisted_snapshot_load_failed={type(exc).__name__}")
         return False
 
 
@@ -674,9 +693,12 @@ def _refresh_worker(index: Any, core: Any) -> None:
     try:
         snapshot = build_inventory(index, core)
         with _LOCK:
-            _SNAPSHOT = snapshot
-            _LAST_REFRESH = time.monotonic()
-            _persist_snapshot(snapshot)
+            if snapshot.get("crosslink_ready"):
+                _SNAPSHOT = snapshot
+                _LAST_REFRESH = time.monotonic()
+                _persist_snapshot(snapshot)
+            elif _SNAPSHOT is not None and _SNAPSHOT.get("crosslink_ready"):
+                _log("USE archive meta-crosslink inventory: refresh_failed_preserving_last_valid_snapshot=true")
         _log(
             "USE archive meta-crosslink inventory: "
             f"status={snapshot['status']}, namespaces={snapshot['namespace_count']}, "
