@@ -1,6 +1,10 @@
 name: Publish Archive Crosslink Snapshot
 on:
   workflow_dispatch:
+  schedule:
+    # Monthly territorial refresh: 00:15 UTC on the first day of each month.
+    # The live Guide never performs this scan on startup or visitor requests.
+    - cron: "15 0 1 * *"
 permissions:
   contents: write
 jobs:
