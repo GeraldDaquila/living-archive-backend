@@ -95,8 +95,9 @@ def _canonical_title_key(value: Any) -> str:
 def _load_wp_canonical_map() -> dict[str, dict[str, str]]:
     """Load a bounded public WordPress ID -> canonical URL/title registry.
 
-    Only published posts and pages are included. A URL is later assigned only
-    when both the WordPress ID and normalized title match the Pinecone record.
+    Only published posts and pages are included. WordPress numeric IDs are the
+    canonical identity: title is retained for diagnostics, but a unique published
+    ID is sufficient to recover its authoritative canonical URL.
     """
     global _WP_CANONICAL_CACHE, _WP_CANONICAL_CACHE_AT
     if str(os.getenv("RENDER", "")).casefold() != "true":
@@ -303,11 +304,14 @@ def build_inventory(index: Any, core: Any, *, max_vectors: int = _MAX_VECTORS) -
             wp_id_vector_count += 1
         if not url and wp_id.isdigit():
             wp_record = wp_canonical_map.get(wp_id)
-            if wp_record and _canonical_title_key(title) == wp_record["title_key"]:
+            if wp_record:
+                # WordPress is the canonical authority for permalink identity.
+                # Historical Pinecone chunk titles can drift, but a unique numeric
+                # wp_id still identifies the published object unambiguously.
+                if _canonical_title_key(title) != wp_record["title_key"]:
+                    wp_id_title_mismatch += 1
                 url = _normalize_url(wp_record["url"])
                 wp_id_url_recovered += 1
-            elif wp_record:
-                wp_id_title_mismatch += 1
             else:
                 wp_id_unmatched += 1
         if not title:
@@ -723,8 +727,13 @@ def fetch_crosslink_documents(index: Any, core: Any, assets: list[dict[str, Any]
                 if not metadata or not _eligible(metadata, core):
                     continue
                 title = _text(metadata.get("title") or metadata.get("name"), 300)
-                url = _text(metadata.get("url") or metadata.get("canonical_url"), 1000)
+                # Inventory reconciliation may have recovered the canonical URL
+                # from WordPress even when this historical vector lacks URL metadata.
+                url = _text(metadata.get("url") or metadata.get("canonical_url") or asset.get("url"), 1000)
                 normalized_url = _normalize_url(url)
+                if normalized_url and not _normalize_url(metadata.get("url") or metadata.get("canonical_url")):
+                    metadata = dict(metadata)
+                    metadata["url"] = url
                 content_fn = getattr(core, "_resource_content", None)
                 body = _text(content_fn(metadata) if callable(content_fn) else (
                     metadata.get("text") or metadata.get("content") or metadata.get("excerpt")
