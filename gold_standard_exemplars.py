@@ -1,4 +1,4 @@
-"""Governed, low-cost structural exemplars for the public General Guide.
+""""Governed, low-cost structural exemplars for the public General Guide.
 
 The version-controlled Gold Standard Registry remains authoritative. Exemplars
 supply response-shape guidance only: they never provide answer text, factual
@@ -50,6 +50,11 @@ _STOP_WORDS = frozenset({
 def _tokens(value: Any) -> set[str]:
     words = re.findall(r"[a-z0-9]+", str(value or "").casefold())
     return {word for word in words if len(word) > 2 and word not in _STOP_WORDS}
+
+
+def _normalized_phrase(value: Any) -> str:
+    """Normalize punctuation and spacing for exact registry-question identity."""
+    return " ".join(re.findall(r"[a-z0-9]+", str(value or "").casefold()))
 
 
 def _response_for_record(record: Dict[str, Any]) -> str:
@@ -116,6 +121,33 @@ _EXEMPLARS = _load_exemplars()
 
 def select_exemplar(query: str) -> Optional[Dict[str, Any]]:
     """Select one high-confidence structural analogue; abstain on weak/ambiguous matches."""
+    normalized_query = _normalized_phrase(query)
+    if not normalized_query:
+        return None
+
+    # Exact registry-question identity is sufficient evidence even when the
+    # question contains only one informative subject term (for example,
+    # "What does accountability really mean?"). This remains structural
+    # guidance only; it never enforces or reconstructs the approved answer.
+    exact_matches = [
+        exemplar for exemplar in _EXEMPLARS
+        if _normalized_phrase(exemplar["query"]) == normalized_query
+    ]
+    if len(exact_matches) == 1:
+        exemplar = exact_matches[0]
+        return {
+            "benchmark_id": exemplar["id"],
+            "status": exemplar["status"],
+            "score": 1.0,
+            "query": exemplar["query"],
+            "known_theme": exemplar["known_theme"],
+            "assertions": exemplar["assertions"],
+        }
+    if len(exact_matches) > 1:
+        # Duplicate exact questions with different registry identities are
+        # ambiguous; never let file order choose the guidance record.
+        return None
+
     query_terms = _tokens(query)
     if len(query_terms) < 2:
         return None
@@ -167,16 +199,16 @@ def build_exemplar_guidance(query: str) -> Tuple[str, str]:
     if not exemplar:
         return "", "none"
     guidance = (
-        "Potentially relevant reviewed General Guide exemplar (structural cue only):\n"
-        f"Exemplar question: {exemplar['query']}\n"
-        + (f"Recorded theme: {exemplar['known_theme']}\n" if exemplar["known_theme"] else "")
-        + ("Relevant quality checks: " + "; ".join(exemplar["assertions"]) + "\n" if exemplar["assertions"] else "")
+        "Potentially relevant reviewed General Guide exemplar (structural cue only):\\n"
+        f"Exemplar question: {exemplar['query']}\\n"
+        + (f"Recorded theme: {exemplar['known_theme']}\\n" if exemplar["known_theme"] else "")
+        + ("Relevant quality checks: " + "; ".join(exemplar["assertions"]) + "\\n" if exemplar["assertions"] else "")
         + "Transfer only the response structure and quality that genuinely fit this "
         "question. Rebuild all substance for the visitor's actual question and the "
         "currently supplied evidence. Do not copy the exemplar's answer, claims, "
         "examples, wording, citations, or destination. Do not force its paragraph "
         "count or response shape when the current question calls for something else. "
         "The visitor's explicit instructions and current evidence take precedence. "
-        "If the analogy is not genuinely relevant, ignore it.\n\n"
+        "If the analogy is not genuinely relevant, ignore it.\\n\\n"
     )
     return guidance, exemplar["benchmark_id"]
