@@ -392,3 +392,23 @@ def test_general_guide_probes_one_openrouter_sibling_before_other_fallback_lanes
     ]
     assert provider_bank._STATE["provider_cursor"] == 2
 
+def test_general_guide_prefers_nvidia_and_workers_before_paid_tier_fallbacks(monkeypatch):
+    candidates = [
+        {**_item("groq", "openai/gpt-oss-120b"), "health_state": "healthy"},
+        {**_item("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"), "health_state": "half_open"},
+        {**_item("mistral", "mistral-small-latest"), "health_state": "half_open"},
+        {**_item("gemini", "gemini-3.8-flash"), "health_state": "half_open"},
+        {**_item("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"), "health_state": "half_open"},
+        {**_item("openrouter", "openrouter/free"), "health_state": "half_open"},
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_csv", lambda _name: ["groq", "workers_ai", "mistral", "gemini", "nvidia", "openrouter"])
+    monkeypatch.setitem(provider_bank._STATE, "provider_cursor", 2)
+    monkeypatch.setitem(provider_bank._STATE, "model_cursors", {})
+
+    selected = provider_bank.select(use_core=None, operation="general_guide_composition")
+    providers = [item["provider"] for item in selected]
+
+    assert providers[:5] == ["groq", "openrouter", "nvidia", "workers_ai", "mistral"]
+    assert provider_bank._STATE["provider_cursor"] == 2
+
