@@ -8,6 +8,7 @@ import random
 import unittest
 
 import main
+import guide_runtime
 from pinecone_retrieval_budget import BoundedPineconeIndex
 from specialist_registry import available_specialists, build_specialist_request
 
@@ -72,8 +73,8 @@ class RandomizedEcosystemResilienceTests(unittest.TestCase):
             expanded.append((label, prefix + query))
         for label, query in expanded:
             with self.subTest(label=label, query=query):
-                first = main._inquiry_profile(query)
-                second = main._inquiry_profile(query)
+                first = guide_runtime._inquiry_profile(query)
+                second = guide_runtime._inquiry_profile(query)
                 self.assertEqual(first, second)
                 self.assertIn(first["action"], {
                     "risk", "recommendation", "navigation", "lived",
