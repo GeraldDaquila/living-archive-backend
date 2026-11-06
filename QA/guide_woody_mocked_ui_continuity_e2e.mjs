@@ -177,6 +177,9 @@ try {
 
   await page.evaluate(() => {
     window.__guideSubmitTrace = [];
+    // The production controller may not expose its optional diagnostic tracer.
+    // QA must never make that optional hook a runtime dependency.
+    if (typeof window.__guideTrace !== "function") window.__guideTrace = function() {};
     // Do not patch browser event primitives in this acceptance test. The Guide's
     // own handler must receive an ordinary user click under production-like DOM
     // semantics; instrumentation belongs outside the interaction path.
