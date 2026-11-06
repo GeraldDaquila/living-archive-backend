@@ -164,5 +164,77 @@
     "manual_full_report_variants": "not authored individually; profile synthesis is assembled from explicit components",
     "dominant_pattern_gap_threshold": 0.8,
     "interpretation_caveat": "A score pattern identifies where inquiry may be useful; it does not establish cause."
+  },
+  "simulation_validation": {
+    "version": "1.0",
+    "band_combinations_tested": 625,
+    "representative_raw_score_cases": [],
+    "routing_precedence": [
+      "dominant relational gap using canonical circuit relationships",
+      "profile shape when no meaningful relational gap qualifies",
+      "strongest available capacity",
+      "lowest available capacity as developmental context",
+      "secondary overall orientation indicator"
+    ],
+    "boundary_cases": [
+      {
+        "gap": 0.79,
+        "expected": "no relational pattern solely on this gap"
+      },
+      {
+        "gap": 0.8,
+        "expected": "qualifies as meaningful relational pattern"
+      },
+      {
+        "gap": 0.81,
+        "expected": "qualifies as meaningful relational pattern"
+      }
+    ],
+    "tie_rule": "When two qualifying relationships have the same gap, use the first relationship in the canonical precedence order rather than choosing arbitrarily.",
+    "coverage": "Every routed pattern must resolve to explicitly authored Individual and Collective text."
+  },
+  "pattern_precedence": [
+    "P_K",
+    "R_P",
+    "C_P",
+    "P_R",
+    "R_C",
+    "K_C"
+  ],
+  "strongest_capacity_meaning": {
+    "Resonance": {
+      "individual": "You already have some capacity for noticing changes, consequences, or experiences that matter. Treat that attention as a resource: the question is how to help what you notice travel further through the rest of the process.",
+      "collective": "The group already has some capacity for bringing relevant signals into view. This is a resource to protect: useful change becomes more possible when what is noticed can travel into shared understanding and decision-making."
+    },
+    "Coherence": {
+      "individual": "You already have some ability to connect priorities and choices. That integrative capacity can help you decide which signals matter and which adjustments belong together.",
+      "collective": "The group already has some capacity for connecting priorities, roles, or decisions. That can provide a platform for bringing difficult signals into a shared direction rather than treating them as isolated issues."
+    },
+    "Correspondence": {
+      "individual": "You already have some capacity for testing assumptions against what happens. That reality-checking can be a resource for the whole process, especially when circumstances challenge an existing view.",
+      "collective": "The group already has some capacity for testing its assumptions against conditions and consequences. This can help protect the shared picture from becoming detached from what is actually happening."
+    },
+    "Correctability": {
+      "individual": "You already have some capacity for changing course when something is not working. That willingness to adjust can become more effective when it is connected to a clear understanding of what the change is meant to address.",
+      "collective": "The group already has some capacity for making adjustments. That capacity can become a powerful learning resource when recognition, shared understanding, and action remain connected."
+    }
+  },
+  "lowest_capacity_context": {
+    "Resonance": {
+      "individual": "The least available part of the current profile concerns what reaches attention. The next inquiry is not whether you should simply pay more attention, but what conditions make important signals easier or harder for you to notice.",
+      "collective": "The least available part of the current profile concerns what reaches the group's shared attention. The useful question is which experiences, consequences, or changes are least likely to enter the room early enough to matter."
+    },
+    "Coherence": {
+      "individual": "The least available part concerns connecting what you notice with what matters and what you do. Look for moments when competing priorities were successfully brought together; those exceptions may reveal a practical way forward.",
+      "collective": "The least available part concerns connecting signals, priorities, and action across the group. Look for places where different functions already coordinate well and ask what conditions make that possible."
+    },
+    "Correspondence": {
+      "individual": "The least available part concerns checking whether your current picture still matches what is happening. A useful starting point is to find a recent time you revised an assumption because experience showed you something different.",
+      "collective": "The least available part concerns testing whether the group's shared picture still matches conditions and consequences. Look for a recent example when contrary evidence genuinely changed a collective view."
+    },
+    "Correctability": {
+      "individual": "The least available part concerns turning recognition into a meaningful adjustment. Look for a real exception—when you did change course—and study what made that movement possible.",
+      "collective": "The least available part concerns turning what the group knows into what the group does. Find an example when recognition led to action and examine the conditions that allowed the change."
+    }
   }
 }
