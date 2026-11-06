@@ -180,7 +180,8 @@
     "band_vector_combinations": 625,
     "manual_full_report_variants": "not authored individually; profile synthesis is assembled from explicit components",
     "dominant_pattern_gap_threshold": 0.8,
-    "interpretation_caveat": "A score pattern identifies where inquiry may be useful; it does not establish cause."
+    "interpretation_caveat": "A score pattern identifies where inquiry may be useful; it does not establish cause.",
+    "comparison_rule": "Compare score gaps using normalized decimal values or an epsilon of 0.000001 so a mathematical gap of 0.80 is never rejected because of floating-point representation."
   },
   "simulation_validation": {
     "version": "1.0",
@@ -196,15 +197,15 @@
     "boundary_cases": [
       {
         "gap": 0.79,
-        "expected": "no relational pattern solely on this gap"
+        "expected": "does not qualify on threshold alone"
       },
       {
         "gap": 0.8,
-        "expected": "qualifies as meaningful relational pattern"
+        "expected": "qualifies; equality is inclusive"
       },
       {
         "gap": 0.81,
-        "expected": "qualifies as meaningful relational pattern"
+        "expected": "qualifies"
       }
     ],
     "tie_rule": "When two qualifying relationships have the same gap, use the first relationship in the canonical precedence order rather than choosing arbitrarily.",
@@ -483,7 +484,8 @@
       "Competing patterns resolve through canonical precedence.",
       "The same overall average does not force the same synthesis when relationships differ.",
       "The selected narrative remains understandable without internal system jargon."
-    ]
+    ],
+    "routing_note": "E-02 and E-08 are inclusive-threshold cases. Production code must normalize decimal comparisons before applying precedence."
   },
   "editorial_quality_gate": {
     "before_live_integration": [
