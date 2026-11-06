@@ -54,16 +54,32 @@
   ],
   "profile_shapes": {
     "HighBalanced": {
-      "summary": "All four capacities are reported as consistently available and relatively even. This does not mean the person or group will remain oriented under every pressure. The useful inquiry is what makes this pattern possible and how those conditions can be sustained when circumstances change."
+      "summary": "All four capacities are reported as consistently available and relatively even. This does not mean the person or group will remain oriented under every pressure. The useful inquiry is what makes this pattern possible and how those conditions can be sustained when circumstances change.",
+      "individual_so_what": "A strong profile is useful only if it remains available when circumstances become difficult. The practical question is what habits, relationships, or conditions help you notice, make sense of, test, and adjust—and which of those you could lose under pressure.",
+      "collective_so_what": "A strong collective profile can be an asset worth understanding rather than a reason to stop looking. The practical question is which routines, relationships, permissions, or ways of working keep the full process connected—and whether they would survive turnover, pressure, or rapid change.",
+      "individual_doorway": "Think of a recent difficult situation in which you stayed connected to what was happening and changed course when needed. What specifically helped the whole sequence hold together?",
+      "collective_doorway": "Choose a demanding situation in which the group stayed open to signals, developed a shared understanding, tested its assumptions, and adjusted. What made that possible, and how could those conditions be protected?"
     },
     "Balanced": {
-      "summary": "The four capacities sit relatively close together. There is no strong evidence that one part alone is interrupting the process. Look at the conditions surrounding the whole pattern, and identify situations where the complete sequence works especially well."
+      "summary": "The four capacities sit relatively close together. There is no strong evidence that one part alone is interrupting the process. Look at the conditions surrounding the whole pattern, and identify situations where the complete sequence works especially well.",
+      "individual_so_what": "A relatively even profile can be easy to overlook because there is no dramatic weak point. Its value is that improvement can come from strengthening the connections between capacities rather than chasing a single score.",
+      "collective_so_what": "A relatively even group profile suggests that no single bottleneck dominates. The useful inquiry is how the whole process works in practice, especially in situations where one part of the sequence could quietly weaken the others.",
+      "individual_doorway": "Choose a recent situation that went well. Trace it backwards: what did you notice, how did you make sense of it, what tested your understanding, and what changed as a result?",
+      "collective_doorway": "Choose one recent decision or change that worked well. Trace how a signal entered the group, became shared understanding, was tested, and eventually changed what the group did."
     },
     "LowBalanced": {
-      "summary": "All four capacities are reported as difficult to access consistently. This is not evidence that the person or group lacks them. Begin with a real exception: a moment when attention, shared understanding, reality-checking, and adjustment worked better. What was different then?"
+      "summary": "All four capacities are reported as difficult to access consistently. This is not evidence that the person or group lacks them. Begin with a real exception: a moment when attention, shared understanding, reality-checking, and adjustment worked better. What was different then?",
+      "individual_so_what": "When several capacities are difficult at once, trying to fix everything can create more pressure than clarity. A real exception is often more useful: it shows that the capacities exist and gives you something concrete to study.",
+      "collective_so_what": "When the difficulty is distributed across the group process, a long list of deficiencies is unlikely to help. A working exception can reveal a practical foothold and prevent the assessment from becoming another diagnosis of what is wrong.",
+      "individual_doorway": "Find one occasion, however small, when you noticed something important, reconsidered your view, and responded differently. What conditions made even that small movement possible?",
+      "collective_doorway": "Find one occasion when the group responded constructively to a difficult signal. Who was involved, what made honest information possible, and what allowed recognition to become action?"
     },
     "Uneven": {
-      "summary": "Some capacities are much more available than others. The strongest capacity is a resource, and the gap is an invitation to understand what happens between the two—not proof that one capacity causes the other to falter."
+      "summary": "Some capacities are much more available than others. The strongest capacity is a resource, and the gap is an invitation to understand what happens between the two—not proof that one capacity causes the other to falter.",
+      "individual_so_what": "An uneven profile does not mean the stronger capacity is compensating successfully for the weaker one. The gap matters because the process can stall at the handoff between them. The useful question is what happens at that handoff.",
+      "collective_so_what": "An uneven collective profile can reveal a handoff problem: the group may do one part of the process well but lose momentum when responsibility or information passes to another part. The gap is a place to investigate the connection, not to blame the weaker capacity.",
+      "individual_doorway": "Start with the capacity that is already strongest. When it works well, what usually happens next? Where does that movement become harder, and what would help the next capacity take over?",
+      "collective_doorway": "Start with the part of the group process that works best. Follow one real issue from there. At what point does information, responsibility, or authority stop moving effectively to the next part of the process?"
     }
   },
   "relational_patterns": {
@@ -155,7 +171,8 @@
     "overall_indicator": "Show the arithmetic average and its public band as a secondary descriptor. Do not use it to override the four-dimensional pattern.",
     "selection": "Use first qualifying relationship in the canonical precedence order; include profile shape as context; use strongest and lowest capacities as supporting evidence.",
     "anti_genericity": "A generated synthesis must name at least two actual dimension scores and explain their relationship. If no relationship threshold qualifies, use the balanced/shape narrative and strongest/lowest capacity context.",
-    "forbidden": "diagnostic labels, rankings, causal claims not supported by responses, generic paragraph repeated regardless of score vector"
+    "forbidden": "diagnostic labels, rankings, causal claims not supported by responses, generic paragraph repeated regardless of score vector",
+    "profile_shape_paragraph_rule": "When a profile shape is dominant, use the perspective-specific so-what and doorway fields for that shape. Do not substitute the generic lowest-capacity paragraph when the profile is balanced or high-balanced."
   },
   "version": "1.1",
   "score_profile_selector": {
