@@ -6688,9 +6688,17 @@ def _established_general_knowledge_recovery(query):
         r"(?:the\s+)?(.+?)(?:\s+mean)?\??$",
         normalized,
     )
+    # Registered concepts must also recognize direct noun phrases such as
+    # “Law of One” without requiring a particular question wrapper.
+    if not named_concept and normalized in public_concepts:
+        named_concept = None
+        candidate = normalized
+    else:
+        candidate = None
     if named_concept:
         candidate = re.sub(r"\s+", " ", named_concept.group(1)).strip(" .?!")
         candidate = re.sub(r"^(?:the\s+)", "", candidate).strip()
+    if candidate:
         record = public_concepts.get(candidate)
         if record:
             return dict(record)
