@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v489.310 — Provider capacity diagnostics
+# USE PRODUCTION VERSION: v489.311 — Bounded Pinecone retrieval budget
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
@@ -66,6 +66,7 @@ from provider_bank import (
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
 import archive_crosslink
+from pinecone_retrieval_budget import install_pinecone_retrieval_budget
 from guide_request_budget import (
     REQUEST_BUDGET_SECONDS as GUIDE_REQUEST_BUDGET_SECONDS,
     can_attempt_repair as _guide_can_attempt_composition_repair,
@@ -91,6 +92,13 @@ _original_guide_handle_query = use_core.handle_query
 # Load the durable territorial map first. Live services are read-only consumers:
 # a Render restart must never trigger a full Pinecone enumeration.
 _crosslink_loaded = archive_crosslink._load_persisted_snapshot()
+# Every request is bounded before any Pinecone semantic query can overfetch.
+use_core.index = install_pinecone_retrieval_budget(
+    app,
+    getattr(use_core, "index", None),
+    per_query_cap=32,
+    request_candidate_budget=64,
+)
 _crosslink_service_id = os.getenv("RENDER_SERVICE_ID")
 if _crosslink_loaded:
     print(
@@ -103,9 +111,9 @@ else:
         "publisher_required=True",
         flush=True,
     )
-APP_VERSION = "v489.310"
-DEPLOYMENT_FINGERPRINT = "USE-v489.310-provider-capacity-diagnostics"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.310-provider-capacity-diagnostics"
+APP_VERSION = "v489.311"
+DEPLOYMENT_FINGERPRINT = "USE-v489.311-bounded-pinecone-retrieval-budget"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.311-bounded-pinecone-retrieval-budget"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
