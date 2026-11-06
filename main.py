@@ -608,10 +608,16 @@ _RELATIONAL_DYNAMIC_PATTERNS = (
     r"\b(?:one[- ]sided effort|not reciprocated|unequal effort|uneven effort)\b",
     r"\b(?:gets?|becomes?|become)\s+(?:angry|defensive|quiet|distant)\b",
     r"\b(?:feel|feels|felt)\s+(?:distant|disconnected|removed|far|close|closer)\b",
+    # Workplace attribution disputes are lived dynamics when paired with a
+    # first-person counterpart and an inquiry signal.
+    r"\b(?:taking credit|takes credit|took credit|credit for (?:work|what) we did together)\b",
+    r"\b(?:present(?:s|ed|ing)?|mention(?:s|ed|ing)?|acknowledg(?:e|es|ed|ing)|credit(?:s|ed|ing)?|contribut(?:e|es|ed|ing|ion|ions))\b",
     r"\b(?:i|we)\s+(?:keep|keeps|kept)\b",
 )
 
 _RELATIONAL_INQUIRY_PATTERNS = (
+    # Natural questions about what one may be missing should count as inquiry.
+    r"\bwhat\s+(?:might|could|am|are)\s+(?:i|we)\s+(?:be\s+)?(?:missing|not seeing|overlooking)\b",
     r"\b(?:i|we)\s+(?:want|need|wonder|hope|wish)\s+to\s+(?:understand|figure out|make sense|see|know)\b",
     r"\b(?:i|we)\s+(?:don't|do not|can't|cannot|am not|are not)\s+(?:understand|know|tell|see)\b",
     r"\b(?:what(?:'s| is)|why|how)\b.{0,120}\b(?:happening|between us|relating|relationship|treat|respond|react|communicat|understand|make sense)\b",
@@ -816,6 +822,21 @@ if not _lived_relational_structure(_route_probe_authority_relationship)["lived_r
     raise RuntimeError("USE v487.97 invariant failed: authority/workplace relational structure not recognized")
 if not _relational_boundary_decision(_route_probe_authority_relationship).get("open"):
     raise RuntimeError("USE v487.97 invariant failed: authority/workplace inquiry did not open relationship specialist")
+
+
+# Regression guard: lived workplace credit-taking belongs in HRN,
+# while general workplace-credit questions remain in Guide basic inquiry.
+_route_probe_lived_credit = (
+    "I feel frustrated because my colleague keeps taking credit for work we did together. "
+    "What might I be missing about the relationship?"
+)
+if not _relational_boundary_decision(_route_probe_lived_credit).get("open"):
+    raise RuntimeError("USE routing invariant failed: lived workplace credit-taking did not open HRN")
+if _relational_boundary_decision(
+    "What are common patterns of taking credit in workplace relationships?"
+).get("open"):
+    raise RuntimeError("USE v489.310 routing invariant failed: generic workplace-credit question was captured by HRN")
+
 
 
 
