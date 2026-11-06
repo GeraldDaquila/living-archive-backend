@@ -213,3 +213,104 @@ def test_gateway_returns_explicit_exhaustion_without_fabricating_success():
         )
     assert result["ok"] is False
     assert result["error"] == "provider_bank_exhausted"
+
+
+# These tests call provider_bank.route itself. Only candidate discovery, transport,
+# quota reservation, and shared persistence are replaced; arbitration, parsing,
+# failure classification, health transitions, and fallback remain real.
+def _offline_bank_patches(bank, candidates, call_side_effect):
+    class Reservation:
+        def settle_output(self, result): pass
+        def release(self): pass
+
+    return (
+        patch.object(bank, "_sync_shared_state"),
+        patch.object(bank, "_persist_shared_state"),
+        patch.object(bank, "select", return_value=candidates),
+        patch.object(bank, "_call", side_effect=call_side_effect),
+        patch.object(bank, "reserve_provider_call", return_value=Reservation()),
+    )
+
+
+def test_provider_bank_real_route_retries_independent_candidate_after_invalid_json():
+    import provider_bank as bank
+
+    candidates = [
+        {"provider": "groq", "model": "synthetic-primary"},
+        {"provider": "mistral", "model": "synthetic-fallback"},
+    ]
+    calls = []
+
+    def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+        calls.append((item["provider"], item["model"], max_tokens, timeout_override))
+        if item["provider"] == "groq":
+            return "not-json"
+        return json.dumps({"answer": "synthetic fallback accepted"})
+
+    patches = _offline_bank_patches(bank, candidates, fake_call)
+    with patches[0], patches[1], patches[2], patches[3], patches[4]:
+        result = bank.route(
+            use_core=object(),
+            messages=[{"role": "user", "content": "Synthetic route test"}],
+            max_tokens=100,
+            parse=json.loads,
+            operation="generic",
+        )
+
+    assert result["provider"] == "mistral"
+    assert result["model"] == "synthetic-fallback"
+    assert result["parsed"] == {"answer": "synthetic fallback accepted"}
+    assert [entry[0] for entry in calls] == ["groq", "mistral"]
+    assert all(entry[2] >= 100 for entry in calls)
+
+
+def test_provider_bank_real_route_skips_candidate_blocked_during_arbitration():
+    import provider_bank as bank
+
+    candidates = [
+        {"provider": "groq", "model": "synthetic-blocked"},
+        {"provider": "mistral", "model": "synthetic-healthy"},
+    ]
+    calls = []
+
+    def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+        calls.append(item["provider"])
+        return json.dumps({"answer": "healthy lane"})
+
+    patches = _offline_bank_patches(bank, candidates, fake_call)
+    with patches[0], patches[1], patches[2], patches[3], patches[4], \\
+         patch.object(bank, "_blocked_for_operation", side_effect=[True, False]):
+        result = bank.route(
+            use_core=object(),
+            messages=[{"role": "user", "content": "Synthetic blocked-candidate test"}],
+            max_tokens=100,
+            parse=json.loads,
+            operation="generic",
+        )
+
+    assert result["provider"] == "mistral"
+    assert calls == ["mistral"]
+
+
+def test_provider_bank_real_route_returns_none_when_all_candidates_fail():
+    import provider_bank as bank
+
+    candidates = [
+        {"provider": "groq", "model": "synthetic-one"},
+        {"provider": "mistral", "model": "synthetic-two"},
+    ]
+
+    def fake_call(use_core, item, messages, max_tokens, schema=None, timeout_override=None):
+        raise RuntimeError("synthetic transport outage")
+
+    patches = _offline_bank_patches(bank, candidates, fake_call)
+    with patches[0], patches[1], patches[2], patches[3], patches[4]:
+        result = bank.route(
+            use_core=object(),
+            messages=[{"role": "user", "content": "Synthetic exhaustion test"}],
+            max_tokens=100,
+            parse=json.loads,
+            operation="generic",
+        )
+
+    assert result is None
