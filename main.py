@@ -8008,7 +8008,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 "title": _human_development_doorway_doc.get("title"),
                 "url": _human_development_doorway_doc.get("url") or _human_development_doorway_doc.get("canonical_url"),
             }) if _human_development_doorway_doc else None
-            if authoritative_doorway:                composition_context["authoritative_doorway"] = authoritative_doorway
+            if authoritative_doorway:
+                composition_context["authoritative_doorway"] = authoritative_doorway
                 composition_context["authoritative_doorway_title"] = authoritative_doorway.get("title") or ""
             else:
                 composition_context.pop("authoritative_doorway", None)
