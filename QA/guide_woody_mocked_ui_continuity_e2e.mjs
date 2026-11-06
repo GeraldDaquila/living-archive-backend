@@ -195,7 +195,6 @@ try {
     const originalFetch = window.fetch.bind(window);
     window.fetch = function(...args) {
       const url = String(args[0]?.url || args[0] || "");
-      window.__guideTrace({ event: "fetch_call_enter", url });
       if (!url.includes("/api/query")) return originalFetch(...args);
       let body = {};
       try { body = JSON.parse(args[1]?.body || "{}"); } catch {}
@@ -224,15 +223,11 @@ try {
         ok: Boolean(answer),
         status: answer ? 200 : 400,
         json: function() {
-          window.__guideTrace({ event: "mock_json_called", query });
-          return Promise.resolve(payload).then(value => {
-            window.__guideTrace({ event: "mock_json_resolved", query });
-            return value;
+              return Promise.resolve(payload).then(value => {
+              return value;
           });
         }
       });
-      window.__guideTrace({ event: "fetch_call_returned", resultType: typeof result });
-      result.then(response => window.__guideTrace({ event: "fetch_promise_resolved", status: response.status, ok: response.ok }));
       return result;
     };
   });
