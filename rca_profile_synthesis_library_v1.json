@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "status": "canonical_draft",
+  "status": "canonical_draft_v1.1",
   "instrument": "Resonance & Coherence Assessment",
   "principles": {
     "deterministic": true,
@@ -54,48 +54,72 @@
   ],
   "profile_shapes": {
     "HighBalanced": {
-      "summary": "All four capacities are currently reported as strong and relatively even. The useful question is not how to improve a score, but what conditions make this way of staying oriented possible—and whether those conditions will remain available under pressure or change."
+      "summary": "All four capacities are reported as consistently available and relatively even. This does not mean the person or group will remain oriented under every pressure. The useful inquiry is what makes this pattern possible and how those conditions can be sustained when circumstances change."
     },
     "Balanced": {
-      "summary": "No single part of the orientation process stands far apart from the others. The profile suggests that the next useful insight may come from looking at the conditions affecting the whole pattern rather than treating one capacity as the isolated problem."
+      "summary": "The four capacities sit relatively close together. There is no strong evidence that one part alone is interrupting the process. Look at the conditions surrounding the whole pattern, and identify situations where the complete sequence works especially well."
     },
     "LowBalanced": {
-      "summary": "The difficulty appears to be spread across the whole orientation process rather than concentrated in one place. Begin by looking for real situations where the process works better; those exceptions may reveal conditions worth understanding before trying to fix any single score."
+      "summary": "All four capacities are reported as difficult to access consistently. This is not evidence that the person or group lacks them. Begin with a real exception: a moment when attention, shared understanding, reality-checking, and adjustment worked better. What was different then?"
     },
     "Uneven": {
-      "summary": "Some parts of the orientation process are much more available than others. The most useful question is how the capacities that are already working might help restore movement where the process currently becomes harder."
+      "summary": "Some capacities are much more available than others. The strongest capacity is a resource, and the gap is an invitation to understand what happens between the two—not proof that one capacity causes the other to falter."
     }
   },
   "relational_patterns": {
     "R_P": {
       "headline": "We may be noticing more than we are making sense of.",
-      "individual": "Important signals may be reaching your attention, but the harder task may be deciding what they mean and testing your first interpretation against reality. More information alone may not create greater clarity; the next step may be to slow down long enough to distinguish signal from assumption.",
-      "collective": "The group may be hearing many signals, perspectives, or concerns, while finding it harder to turn them into a shared and reality-tested understanding. The question is not simply whether more voices should be added, but how what is already being heard becomes meaningful collective sensemaking."
+      "individual": "Important signals may be reaching your attention, but the harder task may be deciding what they mean and checking your first interpretation. More information alone may not create clarity. It may help to slow down, sort what you have noticed, and ask which parts are evidence and which are assumptions.",
+      "collective": "The group may be hearing concerns, perspectives, and changes without turning them into a shared understanding. The issue may not be a lack of voices; it may be what happens after they are heard. How does the group compare perspectives, test its first reading, and decide what deserves attention?",
+      "so_what_individual": "When signals arrive faster than they can be understood, you may react to the loudest or newest thing rather than the most important one. That can make priorities shift repeatedly and leave important consequences unexplored.",
+      "so_what_collective": "When signals enter but are not brought into shared understanding, different people may act on different versions of what is happening. Meetings can produce more information without producing a clearer common picture.",
+      "doorway_individual": "Find a recent moment when you noticed something important and made sense of it well. What helped you separate the signal from your first assumption? What would help you use that approach in a more difficult situation?",
+      "doorway_collective": "Find a recent moment when the group heard a difficult or unexpected signal and reached a useful shared understanding. Who helped make that possible? What process allowed differing perspectives to be heard and tested?"
     },
     "C_P": {
-      "headline": "We may be working together around a picture of reality that needs testing.",
-      "individual": "Your priorities and commitments may feel reasonably integrated, yet the assessment raises a different question: does the picture holding them together still match what is happening? Coherence can feel reassuring, which makes reality-testing especially important when circumstances change.",
-      "collective": "The group may be relatively aligned internally while its shared assumptions deserve closer contact with external conditions. Agreement is valuable, but agreement is not the same as accuracy; the doorway is to ask what the group may be taking for granted together."
+      "headline": "We may be working from a shared picture that needs testing.",
+      "individual": "Your priorities may fit together reasonably well, yet the picture that holds them together may not fully match current conditions. Being consistent can feel reassuring. The important question is whether your assumptions are still accurate as circumstances change.",
+      "collective": "The group may have clear shared priorities and internal agreement while some common assumptions remain insufficiently tested. Agreement helps people coordinate, but agreement alone cannot show whether the shared picture is accurate.",
+      "so_what_individual": "A person can make consistent choices and still move confidently in the wrong direction if the assumptions behind those choices are outdated. The risk is not a lack of commitment; it is commitment built around a picture that has stopped matching reality.",
+      "so_what_collective": "An organization can coordinate efficiently around a mistaken assumption. The more aligned its people become around that assumption, the harder it may be for contrary evidence to change the shared direction.",
+      "doorway_individual": "Choose one important belief guiding your current priorities. What recent experience supports it? What challenges it? What would you expect to see if the belief were no longer accurate?",
+      "doorway_collective": "Identify one assumption that shapes an important group priority. Whose experience could test it? What evidence would cause the group to revise its shared view?"
     },
     "P_K": {
-      "headline": "We may already see the problem more clearly than we are able to change course.",
-      "individual": "The main difficulty may not be recognizing what is happening. You may already be testing assumptions and noticing consequences. The harder question is what happens after something becomes clear: what keeps understanding from becoming a different response? More analysis may not be the next answer.",
-      "collective": "The group may already have ways of recognizing when its assumptions do not match what is happening. The harder transition appears to be collective action: how does something the group knows become something the group actually does? The doorway is to explore authority, incentives, coordination, or other conditions without assuming in advance which one is responsible."
+      "headline": "We may see what is happening but struggle to change what we do.",
+      "individual": "You may be reasonably good at testing assumptions and recognizing when something is not working. The harder part may come afterwards: turning what you see into a different response. More analysis may not be the next step if the problem is already understood.",
+      "collective": "The group may recognize when its assumptions or decisions do not match reality, yet struggle to turn that recognition into action. The missing link may involve decision authority, competing incentives, coordination, trust, resources, or the cost of changing course. The assessment cannot determine which; it identifies where to investigate.",
+      "so_what_individual": "When recognition does not lead to a different response, the same problem can return even though you understand it. This can create frustration and reduce confidence in your own ability to act on what you know.",
+      "so_what_collective": "When a group repeatedly acknowledges a problem without changing practice, people may learn that speaking honestly has little effect. Over time, discussion and action become detached, and the same consequences recur.",
+      "doorway_individual": "Recall a time you changed course after realizing something was not working. What made action possible then—permission, support, a smaller first step, a clear choice, or something else? What of that condition is available now?",
+      "doorway_collective": "Find an example when the group turned an uncomfortable finding into a real change. What enabled that movement—authority, trust, resources, agreement, or timing? Which of those conditions is missing in the current situation?"
     },
     "K_C": {
-      "headline": "We may be able to respond, but not always from a shared centre.",
-      "individual": "You may be capable of making adjustments when something is not working, while the commitments shaping those adjustments are less well integrated. The question is whether changing course is moving you toward what matters—or simply producing another response to the latest problem.",
-      "collective": "The group may be capable of responding and making changes, while important priorities or parts remain poorly connected. The doorway is to ask whether repeated adjustment is compensating for a deeper lack of shared direction."
+      "headline": "We may be able to adjust, but lose sight of what should hold the parts together.",
+      "individual": "You may be able to respond when something goes wrong, while the priorities guiding those responses compete with one another. The question is whether each adjustment moves you toward what matters or simply deals with the latest demand.",
+      "collective": "The group may respond quickly to problems while its priorities or functions remain poorly connected. Repeated adjustments can keep activity moving without resolving the tensions that make the same problems return.",
+      "so_what_individual": "If each response is made separately, you may spend energy correcting one issue only to create strain somewhere else. A clearer sense of what matters most can help you decide which changes belong together.",
+      "so_what_collective": "An organization can become very good at firefighting while remaining unclear about shared direction. One team’s fix may create another team’s problem, and repeated corrections consume attention that could be used to address the underlying tension.",
+      "doorway_individual": "Look at two recent adjustments you made. Did they support the same priority, or pull you in different directions? What principle could help you decide which changes belong together?",
+      "doorway_collective": "Choose a recurring issue that crosses team or functional boundaries. Where does one unit’s correction create a problem for another? What shared outcome could help the parts coordinate their adjustments?"
     },
     "R_C": {
-      "headline": "We may be noticing what is happening, but struggling to connect it with what matters most.",
-      "individual": "Relevant signals may be reaching your attention, yet competing commitments can make their meaning hard to integrate. The next step may not be to notice more, but to ask how what you already notice changes your priorities and choices.",
-      "collective": "The group may be hearing important signals while struggling to connect them across competing priorities, functions, or commitments. The doorway is to examine where meaning gets fragmented after a signal enters the conversation."
+      "headline": "We may notice what is happening but struggle to connect it with what matters.",
+      "individual": "You may be alert to changes and signals, yet competing priorities can make it hard to decide what they mean for your choices. Noticing more is not always the answer; the next step may be connecting what you already see to what matters most.",
+      "collective": "The group may hear important signals, but those signals can remain separated across roles, teams, or priorities. People may each understand part of the situation without being able to bring those parts into a common direction.",
+      "so_what_individual": "Without a way to connect new information to your priorities, attention can become scattered. You may know that many things matter but find it difficult to decide what deserves a response first.",
+      "so_what_collective": "When signals remain inside separate functions, the organization may respond in fragments. Important relationships between issues are missed, and decisions can solve local problems while weakening the whole.",
+      "doorway_individual": "Choose a recent signal that caught your attention. Which of your priorities did it affect? What helped—or prevented—you from deciding what it meant for your next choice?",
+      "doorway_collective": "Take a recent issue that touched more than one part of the group. Where did each part see something different? What conversation would help connect those views to a shared decision?"
     },
     "P_R": {
-      "headline": "We may be reasoning carefully about the information we have—but is the right information entering the picture?",
-      "individual": "You may be good at testing assumptions and checking your conclusions against evidence. The assessment raises an earlier question: are important signals reaching you in the first place? Careful reasoning cannot correct for information that never enters the picture.",
-      "collective": "The group may be careful about testing what it knows while still having a limited field of attention. The doorway is to ask whose experience, which consequences, or what changes are least likely to enter the group’s shared picture."
+      "headline": "We may test our conclusions carefully—but are we noticing the right things?",
+      "individual": "You may be careful about checking assumptions and weighing evidence. Yet careful reasoning can only work with what reaches your attention. Important experiences, changes, or consequences may still be missing from the picture you are testing.",
+      "collective": "The group may examine the information it has with care while hearing from a limited range of people or experiences. A well-run review can still miss what never entered the room or the data being considered.",
+      "so_what_individual": "You can reach a sound conclusion from incomplete information and still misunderstand the situation. Before refining the analysis, it may be worth asking what or whom you have not considered.",
+      "so_what_collective": "The group may make defensible decisions based on an incomplete field of information. People closest to an effect, quieter voices, or early signs of change may be absent from the shared picture.",
+      "doorway_individual": "Think of a decision you felt confident about. Whose perspective or what consequence did you not consider at first? What helped you notice it later?",
+      "doorway_collective": "Identify whose experience is least likely to enter the group's decisions. How could that perspective be heard early enough to change the shared understanding rather than merely validate a decision already made?"
     }
   },
   "capacity_doorways": {
@@ -118,9 +142,27 @@
   },
   "composition_contract": {
     "paragraphs": 3,
-    "paragraph_1": "dominant profile story selected by precedence",
-    "paragraph_2": "why the pattern matters in everyday consequences",
-    "paragraph_3": "appreciative doorway grounded in an actual strength or exception",
-    "forbidden": "diagnostic labels, rankings, causal claims not supported by the responses"
+    "individual_sequence": [
+      "dominant pattern in plain language",
+      "specific everyday consequence and why it matters",
+      "appreciative doorway grounded in the strongest reported capacity or a concrete exception"
+    ],
+    "collective_sequence": [
+      "group-level pattern, not pronoun substitution",
+      "organizational consequences and possible structural conditions without causal assertion",
+      "collective inquiry grounded in a working example or enabling condition"
+    ],
+    "overall_indicator": "Show the arithmetic average and its public band as a secondary descriptor. Do not use it to override the four-dimensional pattern.",
+    "selection": "Use first qualifying relationship in the canonical precedence order; include profile shape as context; use strongest and lowest capacities as supporting evidence.",
+    "anti_genericity": "A generated synthesis must name at least two actual dimension scores and explain their relationship. If no relationship threshold qualifies, use the balanced/shape narrative and strongest/lowest capacity context.",
+    "forbidden": "diagnostic labels, rankings, causal claims not supported by responses, generic paragraph repeated regardless of score vector"
+  },
+  "version": "1.1",
+  "score_profile_selector": {
+    "method": "deterministic_composition_from_band_vector_and_raw_score_gaps",
+    "band_vector_combinations": 625,
+    "manual_full_report_variants": "not authored individually; profile synthesis is assembled from explicit components",
+    "dominant_pattern_gap_threshold": 0.8,
+    "interpretation_caveat": "A score pattern identifies where inquiry may be useful; it does not establish cause."
   }
 }
