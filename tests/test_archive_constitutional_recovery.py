@@ -82,3 +82,65 @@ def test_constitutional_recovery_fails_closed_without_constitutional_register_ev
     )
 
     assert result is None
+
+
+def test_provider_success_cannot_bypass_constitutional_answer_contract(monkeypatch):
+    documents = [
+        {
+            "title": "Living Archive Constitutional Register",
+            "url": "https://geralddaquila.com/constitutional-register/",
+            "content": (
+                "The Constitutional Register records the Archive's constitutional "
+                "architecture and governing relationships. Recovery precedes translation; "
+                "later interpretation must remain distinguishable from established material."
+            ),
+        }
+    ]
+    monkeypatch.setattr(
+        guide, "_documents_from_context", lambda use_core, context_data: documents
+    )
+    monkeypatch.setattr(
+        guide,
+        "route_with_model_bank",
+        lambda **kwargs: {
+            "parsed": {
+                "response": (
+                    "Constitutional reasoning is an important way to understand the Archive. "
+                    "It can help readers think about principles and decisions.\\n\\n"
+                    "The Register is a useful place to begin.\\n\\n"
+                    "Readers should distinguish facts from opinions."
+                ),
+                "doorway_title": "",
+                "response_shape": "explanatory",
+            },
+            "provider": "test-provider",
+            "model": "test-model",
+            "preference_order": ["test-provider:test-model"],
+        },
+    )
+    guide._COMPOSITION_CACHE.clear()
+
+    result = guide.compose(
+        use_core=None,
+        query="What is constitutional reasoning in the Archive's sense?",
+        context_data={},
+    )
+
+    assert result is not None
+    assert result["provider"] == "bounded_archive_constitutional_recovery"
+    assert "governing relationships" in result["response"].casefold()
+    assert "recovery before translation" in result["response"].casefold()
+    assert "recovered constitutional architecture" in result["response"].casefold()
+    assert "later interpretation" in result["response"].casefold()
+    assert result["doorway_title"] == "Living Archive Constitutional Register"
+    assert result["doorway_url"] == "https://geralddaquila.com/constitutional-register/"
+
+
+def test_constitutional_answer_contract_rejects_parseable_but_incomplete_answer():
+    assert not guide._archive_constitutional_response_satisfies_contract(
+        "Constitutional reasoning is important. It helps readers understand the Archive."
+    )
+    assert guide._archive_constitutional_response_satisfies_contract(
+        "Constitutional reasoning recovers governing relationships and constitutional architecture. "
+        "It preserves recovery before translation and distinguishes later interpretation."
+    )

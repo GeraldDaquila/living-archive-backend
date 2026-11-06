@@ -1636,6 +1636,19 @@ def _is_archive_constitutional_question(query: str) -> bool:
     return has_constitutional_subject and has_archive_context
 
 
+def _archive_constitutional_response_satisfies_contract(response: str) -> bool:
+    """Require the defining relationships and sequence in Archive-constitutional answers."""
+    text = _normalize_space(response).casefold()
+    required_patterns = (
+        r"\bconstitutional reasoning\b",
+        r"\b(?:governing relationships|relationships among concepts|relationships between concepts)\b",
+        r"\bconstitutional architecture\b",
+        r"\b(?:later interpretation|subsequent interpretation|interpretive layer)\b",
+        r"\b(?:recovery before translation|recover\w*.{0,40}before.{0,40}translat\w*)\b",
+    )
+    return all(re.search(pattern, text, re.I) for pattern in required_patterns)
+
+
 def _archive_constitutional_recovery(
     question: str,
     documents: List[Dict[str, str]],
@@ -2220,9 +2233,18 @@ def compose(
         if cached_entry is not None:
             cached_at, cached_value = cached_entry
             if now - cached_at < _COMPOSITION_CACHE_TTL_SECONDS:
-                _COMPOSITION_CACHE.move_to_end(cache_key)
-                return dict(cached_value)
-            del _COMPOSITION_CACHE[cache_key]
+                cached_response = str(cached_value.get("response") or "")
+                if (
+                    not _is_archive_constitutional_question(question)
+                    or _archive_constitutional_response_satisfies_contract(cached_response)
+                ):
+                    _COMPOSITION_CACHE.move_to_end(cache_key)
+                    return dict(cached_value)
+                # Do not let a previously cached weak constitutional answer
+                # bypass the current visitor-facing contract.
+                del _COMPOSITION_CACHE[cache_key]
+            else:
+                del _COMPOSITION_CACHE[cache_key]
 
     result = route_with_model_bank(
         use_core=use_core,
@@ -2304,6 +2326,20 @@ def compose(
         "provider": str(result.get("provider") or ""),
         "model": str(result.get("model") or ""),
     }
+
+    # A parseable model response is not sufficient for this Archive-specific
+    # concept: it must preserve the governing relationships and recovery order.
+    # If it does not, use the same evidence-dependent recovery as provider outage.
+    if (
+        _is_archive_constitutional_question(question)
+        and not _archive_constitutional_response_satisfies_contract(candidate["response"])
+    ):
+        constitutional_recovery = _archive_constitutional_recovery(question, documents)
+        if constitutional_recovery is not None:
+            _emit_guide_outcome("quality_recovery", recovery="constitutional")
+            candidate = constitutional_recovery
+        else:
+            return None
     provider_key = candidate["provider"] + ":" + candidate["model"]
     preference_order = result.get("preference_order") or []
     outcome = "llm_failover_success" if preference_order and provider_key != str(preference_order[0]) else "llm_primary_success"
