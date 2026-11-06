@@ -1539,8 +1539,33 @@ def select(use_core, operation="generic", schema=None):
     # first choice from each eligible provider, then second choices, preserving
     # stable provider priority and existing health/capability/quality filters.
     selected = []
-    if operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair", "general_guide_composition", "fsd_report_composition"}:
-        # The bounded Guide window must reach independent providers before
+    if operation == "general_guide_composition":
+        # Keep one healthy primary, then give the preferred free OpenRouter lane
+        # one model-specific sibling probe before moving to other providers. A
+        # model-scoped 429/timeout must not strand the other configured OpenRouter
+        # models behind three unrelated provider lanes; provider-wide circuit
+        # state is rechecked before every attempt and still suppresses all siblings.
+        primary_lane = lanes[0] if lanes else []
+        openrouter_lane = next(
+            (lane for lane in lanes if lane and lane[0].get("provider") == "openrouter"),
+            [],
+        )
+        if primary_lane:
+            selected.append(primary_lane[0])
+        if openrouter_lane:
+            sibling_start = 1 if openrouter_lane is primary_lane else 0
+            selected.extend(openrouter_lane[sibling_start:sibling_start + 2])
+        for lane in lanes:
+            if not lane or lane is primary_lane or lane is openrouter_lane:
+                continue
+            selected.append(lane[0])
+        for lane in lanes:
+            if not lane:
+                continue
+            start = 2 if lane is openrouter_lane else 1
+            selected.extend(lane[start:])
+    elif operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair", "fsd_report_composition"}:
+        # The bounded HRN window must reach independent providers before
         # spending fallback slots on sibling models from the same provider.
         # A provider-wide quota or outage can invalidate every sibling at once;
         # lane interleaving preserves the value of independent failover.
