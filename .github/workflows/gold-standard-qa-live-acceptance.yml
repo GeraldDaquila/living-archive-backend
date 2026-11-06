@@ -1,0 +1,53 @@
+name: Gold Standard QA Live Browser Acceptance
+
+on:
+  push:
+    branches:
+      - qa/gold-standard-live-acceptance-20261106
+    paths:
+      - ".github/workflows/gold-standard-qa-live-acceptance.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gold-standard-qa-live-acceptance
+  cancel-in-progress: false
+
+jobs:
+  live-browser-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      USE_API_ORIGIN: https://gold-standard-exemplars-qa.onrender.com
+      EXPECTED_USE_VERSION: v489.310
+      EXPECTED_USE_COMMIT_SHA: 41d0e6bd87ed70abf08ebe60fb883a6aaa1a6a85
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install chromium
+      - name: Verify exact QA candidate is live
+        timeout-minutes: 5
+        run: |
+          for attempt in $(seq 1 30); do
+            payload="$(curl -fsS --max-time 12 "$USE_API_ORIGIN/api/provider-health-readiness" || true)"
+            actual_version="$(printf '%s' "$payload" | python -c 'import json,sys; print(json.load(sys.stdin).get("version", ""))' 2>/dev/null || true)"
+            actual_sha="$(printf '%s' "$payload" | python -c 'import json,sys; print(json.load(sys.stdin).get("deployment_commit_sha", ""))' 2>/dev/null || true)"
+            if [ "$actual_version" = "$EXPECTED_USE_VERSION" ] && [ "$actual_sha" = "$EXPECTED_USE_COMMIT_SHA" ]; then
+              echo "Exact QA candidate is live: version=$actual_version commit=$actual_sha"
+              exit 0
+            fi
+            echo "Attempt $attempt/30: runtime version='${actual_version:-unavailable}' commit='${actual_sha:-unavailable}'"
+            sleep 10
+          done
+          echo "QA service did not report the expected version and commit."
+          exit 1
+      - name: Verify real WordPress visitor rendering against QA backend
+        timeout-minutes: 3
+        run: timeout --signal=TERM --kill-after=5s 160s node QA/guide_healthy_community_live_e2e.mjs
