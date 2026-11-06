@@ -19,7 +19,11 @@ from provider_resilience import (
     record_success,
     state_summary,
 )
-from guide_request_budget import bounded_provider_timeout as _bounded_request_provider_timeout, remaining_seconds as _request_remaining_seconds
+from guide_request_budget import (
+    bounded_provider_timeout as _bounded_request_provider_timeout,
+    remaining_seconds as _request_remaining_seconds,
+    REPAIR_RESERVE_SECONDS as GUIDE_REPAIR_RESERVE_SECONDS,
+)
 from provider_health_store import (
     export_health_states,
     load_remote_states,
@@ -70,17 +74,14 @@ HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5
 # forced an extra repair call; keep a bounded 700-token envelope aligned with the
 # operation floor while retaining provider-level model ceilings.
 HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
-# General Guide gives each candidate a realistic but bounded inference timeout.
-# Quick failures may admit a bounded fallback; a slow failure stops the serial chain
-# so the WordPress bridge can use its remaining deadline for mirror recovery.
-# The 8-second arbitration window and shared request deadline are the stopping
-# controls. Allow the bank to reach other independent providers after fast failures,
-# without serially walking slow candidates or extending the visitor's time budget.
-GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 8.0
-GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 2
-# Reserve meaningful time for one independent fallback. A six-second first call
-# inside an eight-second visitor window can otherwise turn a slow timeout into
-# an effective single-shot architecture.
+# The ordinary Guide has a 24-second request-wide budget, including retrieval and
+# downstream validation, with six seconds reserved for one integrity repair.
+# Permit three fallback candidates inside a 14-second arbitration window.
+# Every Guide provider call is additionally clamped to the shared request deadline
+# minus the six-second response-integrity repair reserve.
+GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 14.0
+GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 3
+# Keep each candidate bounded by both the operation window and the reserved request deadline.
 GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS = 3.0
 GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS = 4.0
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
@@ -1410,7 +1411,7 @@ def select(use_core, operation="generic", schema=None):
     # Keep the configured provider priority stable for HRN; health/capability
     # filtering still removes unusable candidates, and the normal fallback lane
     # remains available. Other USE operations retain round-robin arbitration.
-    if operation not in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:
+    if operation not in {"hrn_perception", "hrn_relational", "hrn_voice_repair", "general_guide_composition"}:
         providers = _rotate(providers, int(_STATE["provider_cursor"]))
         _STATE["provider_cursor"] += 1
     lanes = []
@@ -1437,11 +1438,18 @@ def select(use_core, operation="generic", schema=None):
                 -float(item.get("last_success", 0) or 0),
             ))
         elif operation in {"general_guide_composition", "fsd_report_composition"}:
-            # The general Guide may only have a five-second generation window.
-            # Do not let a half-open probe outrank a healthy model simply because
-            # its provider appears earlier in the rotating lane order.
+            # Keep current transport health first, then use reviewed low-cost
+            # model preferences within a provider lane. This prevents cursor
+            # rotation or stale quality counters from selecting a known-bad sibling
+            # ahead of the reviewed NVIDIA 3.5 Lightning and Workers GLM Flash models.
+            preferred_models = {
+                "openrouter": {"openrouter/free": 0},
+                "nvidia": {"nvidia/nemotron-3.5-lightning-30b-a3b": 0},
+                "workers_ai": {"@cf/zai-org/glm-4.7-flash": 0},
+            }.get(provider, {})
             models.sort(key=lambda item: (
                 0 if item.get("health_state") == "healthy" else 1,
+                preferred_models.get(str(item.get("model") or ""), 1),
                 int(item.get("quality_failures", 0) or 0),
                 0 if "low_latency" in (item.get("capabilities") or []) else 1,
                 int(item.get("consecutive_failures", 0) or 0),
@@ -1512,19 +1520,35 @@ def select(use_core, operation="generic", schema=None):
         # Within the Guide's fixed five-second composition window, current
         # transport health must outrank rotating provider order. Keep operator
         # order as a tie-breaker between equally healthy lanes.
-        configured_priority = {name: index for index, name in enumerate(providers)}
+        # Keep the configured Groq primary, then prioritize independent free
+        # fallbacks in a stable order: OpenRouter, NVIDIA NIM, and Workers AI.
+        # This prevents healthy-but-unproven paid/free-tier lanes from consuming
+        # the small bounded window ahead of the remaining zero-cost options and preferred free fallbacks.
+        guide_order = [
+            name for name in ("groq", "openrouter", "nvidia", "workers_ai", "cloudflare_gateway")
+            if name in providers
+        ] + [
+            name for name in providers
+            if name not in {"groq", "openrouter", "nvidia", "workers_ai", "cloudflare_gateway"}
+        ]
+        guide_priority = {name: index for index, name in enumerate(guide_order)}
 
         def _guide_lane_priority(lane):
             best = lane[0] if lane else {}
             health_state = str(best.get("health_state") or "unknown")
             health_rank = 0 if health_state == "healthy" else 1
+            # Preserve the configured Guide provider order after healthy lanes.
+            # OpenRouter is deliberately promoted ahead of other equally unhealthy
+            # fallback lanes when its credential and composition capability are
+            # present. Round-robin rotation is disabled for this operation so the
+            # preferred free router cannot be shifted beyond the bounded fallback cap.
             return (
                 health_rank,
+                guide_priority.get(str(best.get("provider") or ""), len(guide_priority)),
                 int(best.get("quality_failures", 0) or 0),
                 0 if "low_latency" in (best.get("capabilities") or []) else 1,
                 int(best.get("consecutive_failures", 0) or 0),
                 int(best.get("transport_failures", 0) or 0),
-                configured_priority.get(str(best.get("provider") or ""), len(configured_priority)),
                 -float(best.get("last_success", 0) or 0),
             )
 
@@ -1536,8 +1560,33 @@ def select(use_core, operation="generic", schema=None):
     # first choice from each eligible provider, then second choices, preserving
     # stable provider priority and existing health/capability/quality filters.
     selected = []
-    if operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair", "general_guide_composition", "fsd_report_composition"}:
-        # The bounded Guide window must reach independent providers before
+    if operation == "general_guide_composition":
+        # Keep one healthy primary, then give the preferred free OpenRouter lane
+        # one model-specific sibling probe before moving to other providers. A
+        # model-scoped 429/timeout must not strand the other configured OpenRouter
+        # models behind three unrelated provider lanes; provider-wide circuit
+        # state is rechecked before every attempt and still suppresses all siblings.
+        primary_lane = lanes[0] if lanes else []
+        openrouter_lane = next(
+            (lane for lane in lanes if lane and lane[0].get("provider") == "openrouter"),
+            [],
+        )
+        if primary_lane:
+            selected.append(primary_lane[0])
+        if openrouter_lane:
+            sibling_start = 1 if openrouter_lane is primary_lane else 0
+            selected.extend(openrouter_lane[sibling_start:sibling_start + 2])
+        for lane in lanes:
+            if not lane or lane is primary_lane or lane is openrouter_lane:
+                continue
+            selected.append(lane[0])
+        for lane in lanes:
+            if not lane:
+                continue
+            start = 2 if lane is openrouter_lane else 1
+            selected.extend(lane[start:])
+    elif operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair", "fsd_report_composition"}:
+        # The bounded HRN window must reach independent providers before
         # spending fallback slots on sibling models from the same provider.
         # A provider-wide quota or outage can invalidate every sibling at once;
         # lane interleaving preserves the value of independent failover.
@@ -2641,6 +2690,11 @@ def _hrn_workers_fast_candidate(pool):
 
 
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None, deadline_monotonic=None):
+    provider_deadline_monotonic = deadline_monotonic
+    if operation == "general_guide_composition" and deadline_monotonic is not None:
+        provider_deadline_monotonic = (
+            float(deadline_monotonic) - GUIDE_REPAIR_RESERVE_SECONDS
+        )
     if deadline_monotonic is not None and _request_remaining_seconds(
         deadline_monotonic, now=time.monotonic()
     ) < 1.0:
@@ -2879,8 +2933,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     else GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
                 )
             candidate_timeout = _bounded_request_provider_timeout(
-                configured_timeout, deadline_monotonic,
-                now=time.monotonic() if deadline_monotonic is not None else None,
+                configured_timeout, provider_deadline_monotonic,
+                now=time.monotonic() if provider_deadline_monotonic is not None else None,
             ) or 0.0
             # Admit a fallback only when its full bounded call can fit inside both
             # the operation window and the shared visitor-request deadline.
@@ -2939,8 +2993,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     else GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
                 )
             attempt_timeout = _bounded_request_provider_timeout(
-                configured_timeout, deadline_monotonic,
-                now=time.monotonic() if deadline_monotonic is not None else None,
+                configured_timeout, provider_deadline_monotonic,
+                now=time.monotonic() if provider_deadline_monotonic is not None else None,
             )
             if deadline_monotonic is not None and (
                 attempt_timeout is None or attempt_timeout <= 0.0
@@ -3168,8 +3222,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     })
                     recovery_messages.append({"role": "user", "content": correction_content})
                 recovery_timeout = _bounded_request_provider_timeout(
-                    _provider_call_timeout(operation, item), deadline_monotonic,
-                    now=time.monotonic() if deadline_monotonic is not None else None,
+                    _provider_call_timeout(operation, item), provider_deadline_monotonic,
+                    now=time.monotonic() if provider_deadline_monotonic is not None else None,
                 )
                 if deadline_monotonic is not None and (
                     recovery_timeout is None or recovery_timeout <= 0.0

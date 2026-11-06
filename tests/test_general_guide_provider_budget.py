@@ -105,11 +105,11 @@ def test_general_guide_uses_remaining_independent_candidates_within_window(monke
     )
 
     assert result is None
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
     assert calls[0][1] == provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
     assert all(timeout == provider_bank.GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS for _, timeout in calls[1:])
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
-    assert clock.value == pytest.approx(0.75)
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 3
+    assert clock.value == pytest.approx(1.0)
 
 
 def test_general_guide_prioritizes_healthy_lane_over_half_open_probe(monkeypatch):
@@ -175,10 +175,10 @@ def test_general_guide_caps_fallbacks_after_fast_failures(monkeypatch):
     )
 
     assert result is None
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
     assert calls[0][1] == provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
     assert all(timeout == provider_bank.GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS for _, timeout in calls[1:])
-    assert clock.value == pytest.approx(0.6)
+    assert clock.value == pytest.approx(0.8)
 
 def test_general_guide_stops_after_slow_failure_consumes_recovery_margin(monkeypatch):
     _isolate(monkeypatch)
@@ -205,14 +205,14 @@ def test_general_guide_stops_after_slow_failure_consumes_recovery_margin(monkeyp
     )
 
     assert result is None
-    assert calls == [("gemini", 3.0), ("workers_ai", 4.0)]
+    assert calls == [("gemini", 3.0), ("workers_ai", 4.0), ("groq", 4.0)]
     assert provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS == 3.0
     assert provider_bank.GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS == 4.0
-    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 8.0
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
-    assert clock.value == 7.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 14.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 3
+    assert clock.value == 11.0
 
-def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
+def test_request_budget_reserves_integrity_repair_time_for_final_composition(monkeypatch):
     _isolate(monkeypatch)
 
     class Clock:
@@ -224,8 +224,8 @@ def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
 
     def consume_remaining_budget(use_core, item, messages, max_tokens, schema, timeout_override=None):
         calls.append((item["provider"], timeout_override))
-        clock.value = 4.8
-        raise RuntimeError("simulated failure near request deadline")
+        clock.value += float(timeout_override)
+        raise RuntimeError("simulated provider failure within reserved request budget")
 
     monkeypatch.setattr(provider_bank, "_call", consume_remaining_budget)
     result = provider_bank.route(
@@ -234,12 +234,13 @@ def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
         max_tokens=1200,
         parse=provider_bank._json_object,
         operation="general_guide_composition",
-        deadline_monotonic=5.0,
+        deadline_monotonic=16.0,
     )
 
     assert result is None
-    assert calls == [("gemini", provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS)]
-    assert clock.value == pytest.approx(4.8)
+    assert calls == [("gemini", 3.0), ("workers_ai", 4.0), ("groq", 3.0)]
+    assert clock.value == pytest.approx(10.0)
+    assert 16.0 - clock.value == provider_bank.GUIDE_REPAIR_RESERVE_SECONDS
 
 
 def test_request_budget_refuses_provider_call_when_less_than_one_second_remains(monkeypatch):
@@ -274,3 +275,164 @@ def test_shared_request_budget_allows_only_one_repair_with_six_seconds_reserved(
     assert can_attempt_repair(24.0, already_attempted=False, now=18.0)
     assert not can_attempt_repair(24.0, already_attempted=True, now=10.0)
     assert not can_attempt_repair(24.0, already_attempted=False, now=18.01)
+
+def test_general_guide_reaches_openrouter_after_local_quota_rate_limit_and_timeout(monkeypatch):
+    candidates = [
+        _item("groq", "openai/gpt-oss-120b"),
+        _item("mistral", "mistral-small-latest"),
+        _item("workers_ai", "@cf/zai-org/glm-4.7-flash"),
+        _item("openrouter", "openrouter/free"),
+        _item("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+    ]
+    monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
+    monkeypatch.setattr(provider_bank, "_blocked", lambda state, operation=None: False)
+    monkeypatch.setattr(provider_bank, "acquire_probe", lambda state: True)
+    monkeypatch.setattr(provider_bank, "_failure", lambda *args, **kwargs: None)
+    monkeypatch.setattr(provider_bank, "_success", lambda *args, **kwargs: None)
+    monkeypatch.setattr(provider_bank, "_record_quality_rejection", lambda *args, **kwargs: None)
+    monkeypatch.setattr(provider_bank, "_normalize_operation_result", lambda operation, parsed, messages=None: parsed)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    states = {}
+
+    def fake_state(provider, model):
+        key = provider + ":" + model
+        if key not in states:
+            states[key] = provider_bank.new_state(provider, model)
+        return states[key]
+
+    class Reservation:
+        def settle_output(self, result):
+            pass
+
+        def release(self):
+            pass
+
+    monkeypatch.setattr(provider_bank, "_state", fake_state)
+    monkeypatch.setattr(provider_bank, "reserve_provider_call", lambda *args, **kwargs: Reservation())
+
+    calls = []
+
+    def fail_until_openrouter(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        provider = item["provider"]
+        calls.append((provider, timeout_override))
+        if provider == "groq":
+            raise provider_bank.QuotaAdmissionDenied(provider, item["model"], "local_admission_limit", 60)
+        if provider == "mistral":
+            clock.value += 0.37
+            raise provider_bank.ProviderCallError("rate limited", provider, item["model"], status_code=429, category="rate_limited")
+        if provider == "workers_ai":
+            clock.value += 4.027
+            raise provider_bank.ProviderCallError("provider timeout", provider, item["model"], category="timeout")
+        if provider == "openrouter":
+            return json.dumps({"response": "A grounded response composed by the independent free router."})
+        raise AssertionError("The route should succeed before reaching NVIDIA.")
+
+    monkeypatch.setattr(provider_bank, "_call", fail_until_openrouter)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "user", "content": "Answer using the supplied Archive evidence."}],
+        max_tokens=900,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+    )
+
+    assert result is not None
+    assert result["provider"] == "openrouter"
+    assert [provider for provider, _ in calls] == ["groq", "mistral", "workers_ai", "openrouter"]
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 14.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 3
+    assert clock.value == pytest.approx(4.397)
+
+def test_general_guide_keeps_healthy_primary_then_prefers_openrouter_fallback(monkeypatch):
+    candidates = [
+        {**_item("groq", "openai/gpt-oss-120b"), "health_state": "healthy"},
+        {**_item("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"), "health_state": "half_open", "capabilities": ["composition", "low_latency"]},
+        {**_item("mistral", "mistral-small-latest"), "health_state": "half_open"},
+        {**_item("gemini", "gemini-3.8-flash"), "health_state": "half_open"},
+        {**_item("openrouter", "openrouter/free"), "health_state": "half_open", "quality_failures": 4},
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_csv", lambda _name: ["groq", "workers_ai", "mistral", "gemini", "openrouter"])
+    monkeypatch.setitem(provider_bank._STATE, "provider_cursor", 3)
+    monkeypatch.setitem(provider_bank._STATE, "model_cursors", {})
+
+    selected = provider_bank.select(use_core=None, operation="general_guide_composition")
+    providers = [item["provider"] for item in selected]
+
+    assert providers[:4] == ["groq", "openrouter", "workers_ai", "mistral"]
+    assert provider_bank._STATE["provider_cursor"] == 3
+
+def test_general_guide_probes_one_openrouter_sibling_before_other_fallback_lanes(monkeypatch):
+    candidates = [
+        {**_item("groq", "openai/gpt-oss-120b"), "health_state": "healthy"},
+        {**_item("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"), "health_state": "half_open", "capabilities": ["composition", "low_latency"]},
+        {**_item("mistral", "mistral-small-latest"), "health_state": "half_open"},
+        {**_item("openrouter", "openrouter/free"), "health_state": "half_open"},
+        {**_item("openrouter", "google/gemma-4-31b-it:free"), "health_state": "half_open"},
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_csv", lambda _name: ["groq", "workers_ai", "mistral", "openrouter"])
+    monkeypatch.setitem(provider_bank._STATE, "provider_cursor", 2)
+    monkeypatch.setitem(provider_bank._STATE, "model_cursors", {})
+
+    selected = provider_bank.select(use_core=None, operation="general_guide_composition")
+    ordered = [(item["provider"], item["model"]) for item in selected]
+
+    assert ordered[:4] == [
+        ("groq", "openai/gpt-oss-120b"),
+        ("openrouter", "openrouter/free"),
+        ("openrouter", "google/gemma-4-31b-it:free"),
+        ("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
+    ]
+    assert provider_bank._STATE["provider_cursor"] == 2
+
+def test_general_guide_prefers_nvidia_and_workers_before_other_fallback_lanes(monkeypatch):
+    candidates = [
+        {**_item("groq", "openai/gpt-oss-120b"), "health_state": "healthy"},
+        {**_item("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"), "health_state": "half_open"},
+        {**_item("mistral", "mistral-small-latest"), "health_state": "half_open"},
+        {**_item("gemini", "gemini-3.8-flash"), "health_state": "half_open"},
+        {**_item("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"), "health_state": "half_open"},
+        {**_item("openrouter", "openrouter/free"), "health_state": "half_open"},
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_csv", lambda _name: ["groq", "workers_ai", "mistral", "gemini", "nvidia", "openrouter"])
+    monkeypatch.setitem(provider_bank._STATE, "provider_cursor", 2)
+    monkeypatch.setitem(provider_bank._STATE, "model_cursors", {})
+
+    selected = provider_bank.select(use_core=None, operation="general_guide_composition")
+    providers = [item["provider"] for item in selected]
+
+    assert providers[:5] == ["groq", "openrouter", "nvidia", "workers_ai", "mistral"]
+    assert provider_bank._STATE["provider_cursor"] == 2
+
+def test_general_guide_prefers_reviewed_fast_models_within_free_provider_lanes(monkeypatch):
+    candidates = [
+        {**_item("nvidia", "google/gemma-4-31b-it"), "health_state": "half_open", "quality_failures": 0},
+        {**_item("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"), "health_state": "half_open", "quality_failures": 3},
+        {**_item("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"), "health_state": "half_open", "quality_failures": 0},
+        {**_item("workers_ai", "@cf/zai-org/glm-4.7-flash"), "health_state": "half_open", "quality_failures": 3, "capabilities": ["composition", "low_latency"]},
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_csv", lambda _name: ["nvidia", "workers_ai"])
+    monkeypatch.setitem(provider_bank._STATE, "provider_cursor", 1)
+    monkeypatch.setitem(provider_bank._STATE, "model_cursors", {"nvidia": 1, "workers_ai": 1})
+
+    selected = provider_bank.select(use_core=None, operation="general_guide_composition")
+    ordered = [(item["provider"], item["model"]) for item in selected]
+
+    assert ordered[:4] == [
+        ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+        ("workers_ai", "@cf/zai-org/glm-4.7-flash"),
+        ("nvidia", "google/gemma-4-31b-it"),
+        ("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
+    ]
+    assert provider_bank._STATE["provider_cursor"] == 1
+
