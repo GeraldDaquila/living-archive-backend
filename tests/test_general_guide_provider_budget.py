@@ -105,11 +105,11 @@ def test_general_guide_uses_remaining_independent_candidates_within_window(monke
     )
 
     assert result is None
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
     assert calls[0][1] == provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
     assert all(timeout == provider_bank.GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS for _, timeout in calls[1:])
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
-    assert clock.value == pytest.approx(0.75)
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 4
+    assert clock.value == pytest.approx(1.0)
 
 
 def test_general_guide_prioritizes_healthy_lane_over_half_open_probe(monkeypatch):
@@ -175,10 +175,10 @@ def test_general_guide_caps_fallbacks_after_fast_failures(monkeypatch):
     )
 
     assert result is None
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
     assert calls[0][1] == provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
     assert all(timeout == provider_bank.GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS for _, timeout in calls[1:])
-    assert clock.value == pytest.approx(0.6)
+    assert clock.value == pytest.approx(0.8)
 
 def test_general_guide_stops_after_slow_failure_consumes_recovery_margin(monkeypatch):
     _isolate(monkeypatch)
@@ -205,12 +205,12 @@ def test_general_guide_stops_after_slow_failure_consumes_recovery_margin(monkeyp
     )
 
     assert result is None
-    assert calls == [("gemini", 3.0), ("workers_ai", 4.0)]
+    assert calls == [("gemini", 3.0), ("workers_ai", 4.0), ("groq", 4.0)]
     assert provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS == 3.0
     assert provider_bank.GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS == 4.0
-    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 8.0
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
-    assert clock.value == 7.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 14.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 4
+    assert clock.value == 11.0
 
 def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
     _isolate(monkeypatch)
@@ -274,3 +274,78 @@ def test_shared_request_budget_allows_only_one_repair_with_six_seconds_reserved(
     assert can_attempt_repair(24.0, already_attempted=False, now=18.0)
     assert not can_attempt_repair(24.0, already_attempted=True, now=10.0)
     assert not can_attempt_repair(24.0, already_attempted=False, now=18.01)
+
+def test_general_guide_reaches_openrouter_after_local_quota_rate_limit_and_timeout(monkeypatch):
+    candidates = [
+        _item("groq", "openai/gpt-oss-120b"),
+        _item("mistral", "mistral-small-latest"),
+        _item("workers_ai", "@cf/zai-org/glm-4.7-flash"),
+        _item("openrouter", "openrouter/free"),
+        _item("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+    ]
+    monkeypatch.setattr(provider_bank, "select", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
+    monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
+    monkeypatch.setattr(provider_bank, "_blocked", lambda state, operation=None: False)
+    monkeypatch.setattr(provider_bank, "acquire_probe", lambda state: True)
+    monkeypatch.setattr(provider_bank, "_failure", lambda *args, **kwargs: None)
+    monkeypatch.setattr(provider_bank, "_success", lambda *args, **kwargs: None)
+    monkeypatch.setattr(provider_bank, "_record_quality_rejection", lambda *args, **kwargs: None)
+    monkeypatch.setattr(provider_bank, "_normalize_operation_result", lambda operation, parsed, messages=None: parsed)
+
+    class Clock:
+        value = 0.0
+
+    clock = Clock()
+    monkeypatch.setattr(provider_bank.time, "monotonic", lambda: clock.value)
+    states = {}
+
+    def fake_state(provider, model):
+        key = provider + ":" + model
+        if key not in states:
+            states[key] = provider_bank.new_state(provider, model)
+        return states[key]
+
+    class Reservation:
+        def settle_output(self, result):
+            pass
+
+        def release(self):
+            pass
+
+    monkeypatch.setattr(provider_bank, "_state", fake_state)
+    monkeypatch.setattr(provider_bank, "reserve_provider_call", lambda *args, **kwargs: Reservation())
+
+    calls = []
+
+    def fail_until_openrouter(use_core, item, messages, max_tokens, schema, timeout_override=None):
+        provider = item["provider"]
+        calls.append((provider, timeout_override))
+        if provider == "groq":
+            raise provider_bank.QuotaAdmissionDenied(provider, item["model"], "local_admission_limit", 60)
+        if provider == "mistral":
+            clock.value += 0.37
+            raise provider_bank.ProviderCallError("rate limited", provider, item["model"], status_code=429, category="rate_limited")
+        if provider == "workers_ai":
+            clock.value += 4.027
+            raise provider_bank.ProviderCallError("provider timeout", provider, item["model"], category="timeout")
+        if provider == "openrouter":
+            return json.dumps({"response": "A grounded response composed by the independent free router."})
+        raise AssertionError("The route should succeed before reaching NVIDIA.")
+
+    monkeypatch.setattr(provider_bank, "_call", fail_until_openrouter)
+    result = provider_bank.route(
+        use_core=None,
+        messages=[{"role": "user", "content": "Answer using the supplied Archive evidence."}],
+        max_tokens=900,
+        parse=provider_bank._json_object,
+        operation="general_guide_composition",
+    )
+
+    assert result is not None
+    assert result["provider"] == "openrouter"
+    assert [provider for provider, _ in calls] == ["groq", "mistral", "workers_ai", "openrouter"]
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 14.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 4
+    assert clock.value == pytest.approx(4.397)
+
