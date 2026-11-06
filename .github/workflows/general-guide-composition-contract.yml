@@ -10,8 +10,6 @@ on:
       - "general_guide_composition.py"
       - "gold_standard_exemplars.py"
       - "tests/test_gold_standard_exemplar_runtime.py"
-      - "gold_standard_exemplars.py"
-      - "tests/test_gold_standard_exemplar_runtime.py"
       - "general_guide_gold_standards.py"
       - "tests/test_general_guide_gold_standard_runtime.py"
       - "tests/test_guide_learning_offline_evaluation.py"
@@ -43,6 +41,8 @@ on:
     paths:
       - "main.py"
       - "general_guide_composition.py"
+      - "gold_standard_exemplars.py"
+      - "tests/test_gold_standard_exemplar_runtime.py"
       - "general_guide_gold_standards.py"
       - "tests/test_general_guide_gold_standard_runtime.py"
       - "tests/test_guide_learning_offline_evaluation.py"
