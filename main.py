@@ -1999,7 +1999,6 @@ def _relational_return_apply_verified_workplace_candidate(original_question, dir
         return verified, [verified]
     return primary, outward
 
-
 def _relational_return_search_recovery(original_question, direct_topic_query, profile):
     """Use bounded WordPress search only when focused vector retrieval found no honest doorway."""
     normalized_original = _normalize_query(original_question)
@@ -3997,8 +3996,7 @@ def _guide_capability_route(query, history=None):
             r"are .* actually|genuinely|really)\b",
             normalized_route_query,
             re.I,
-        )
-        and re.search(
+        )        and re.search(
             r"\b(?:reducing harm|reduce harm|harm reduction|improving outcomes?|"
             r"outcomes?|intervention|revised approach|approach|addressed the problem|"
             r"working|effective|improvement|improved|unintended harm|affected people)\b",
@@ -5997,7 +5995,6 @@ def _apply_registered_gold_standard_doorway(doorway, gold_standard):
         )
         if approved_pair is not None:
             return approved_pair
-
     # Incomplete/unverified Gold Standard metadata has no authority to invent
     # a doorway. Keep only an independently selected, canonical, valid pair.
     return _normalize_authoritative_recommendation(doorway)
@@ -7646,9 +7643,23 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             str(general_knowledge_recovery.get("response") or "")
         )
         archive_evidence_unavailable = False
-        authoritative_doorway = None
-        composition_context.pop("authoritative_doorway", None)
-        composition_context.pop("authoritative_doorway_title", None)
+        # A registered public concept may carry a separately reviewed Archive
+        # doorway. General-knowledge recovery governs the answer text; it must
+        # not erase an independently registered navigation relationship.
+        concept_doorway = _normalize_authoritative_recommendation(
+            general_knowledge_recovery.get("doorway")
+        )
+        if concept_doorway:
+            authoritative_doorway = concept_doorway
+            composition_context["authoritative_doorway"] = concept_doorway
+            print(
+                "The Guide general-knowledge boundary: preserved the registered "
+                "concept doorway alongside the general explanation."
+            )
+        else:
+            authoritative_doorway = None
+            composition_context.pop("authoritative_doorway", None)
+            composition_context.pop("authoritative_doorway_title", None)
         composition_context.pop("evidence_sufficiency_unavailable", None)
         composition_context["general_knowledge_recovery"] = general_knowledge_recovery["fact_id"]
         print(
@@ -7997,8 +8008,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 "title": _human_development_doorway_doc.get("title"),
                 "url": _human_development_doorway_doc.get("url") or _human_development_doorway_doc.get("canonical_url"),
             }) if _human_development_doorway_doc else None
-            if authoritative_doorway:
-                composition_context["authoritative_doorway"] = authoritative_doorway
+            if authoritative_doorway:                composition_context["authoritative_doorway"] = authoritative_doorway
                 composition_context["authoritative_doorway_title"] = authoritative_doorway.get("title") or ""
             else:
                 composition_context.pop("authoritative_doorway", None)
@@ -9997,8 +10007,7 @@ async def _use_request_boundary(scope, receive, send):
         )
         return await _use_send_json(send, {
             "ok": True,
-            "version": APP_VERSION,
-            "query": query,
+            "version": APP_VERSION,            "query": query,
             "intent": "CASE_HANDOFF",
             "response": "",
             "handoff": "case",
