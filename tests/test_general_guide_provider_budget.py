@@ -205,14 +205,14 @@ def test_general_guide_stops_after_slow_failure_consumes_recovery_margin(monkeyp
     )
 
     assert result is None
-    assert calls == [("gemini", 3.0), ("workers_ai", 4.0)]
+    assert calls == [("gemini", 3.0), ("workers_ai", 4.0), ("groq", 4.0)]
     assert provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS == 3.0
     assert provider_bank.GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS == 4.0
-    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 10.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 14.0
     assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 3
-    assert clock.value == 7.0
+    assert clock.value == 11.0
 
-def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
+def test_request_budget_reserves_integrity_repair_time_for_final_composition(monkeypatch):
     _isolate(monkeypatch)
 
     class Clock:
@@ -224,8 +224,8 @@ def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
 
     def consume_remaining_budget(use_core, item, messages, max_tokens, schema, timeout_override=None):
         calls.append((item["provider"], timeout_override))
-        clock.value = 4.8
-        raise RuntimeError("simulated failure near request deadline")
+        clock.value += float(timeout_override)
+        raise RuntimeError("simulated provider failure within reserved request budget")
 
     monkeypatch.setattr(provider_bank, "_call", consume_remaining_budget)
     result = provider_bank.route(
@@ -234,12 +234,13 @@ def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
         max_tokens=1200,
         parse=provider_bank._json_object,
         operation="general_guide_composition",
-        deadline_monotonic=5.0,
+        deadline_monotonic=16.0,
     )
 
     assert result is None
-    assert calls == [("gemini", provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS)]
-    assert clock.value == pytest.approx(4.8)
+    assert calls == [("gemini", 3.0), ("workers_ai", 4.0), ("groq", 3.0)]
+    assert clock.value == pytest.approx(10.0)
+    assert 16.0 - clock.value == provider_bank.GUIDE_REPAIR_RESERVE_SECONDS
 
 
 def test_request_budget_refuses_provider_call_when_less_than_one_second_remains(monkeypatch):
@@ -345,7 +346,7 @@ def test_general_guide_reaches_openrouter_after_local_quota_rate_limit_and_timeo
     assert result is not None
     assert result["provider"] == "openrouter"
     assert [provider for provider, _ in calls] == ["groq", "mistral", "workers_ai", "openrouter"]
-    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 10.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 14.0
     assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 3
     assert clock.value == pytest.approx(4.397)
 
