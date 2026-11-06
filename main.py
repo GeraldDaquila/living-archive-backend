@@ -6666,6 +6666,10 @@ def _established_general_knowledge_recovery(query):
     public_concepts = {
         "law of one": {
             "fact_id": "public_concept_law_of_one",
+            # The public concept answer is not a navigation bypass. This exact
+            # subject is also used for canonical Archive retrieval so a glossary
+            # record or relevant essay can still become a qualified doorway.
+            "subject": "Law of One",
             "response": (
                 "“The Law of One” is a spiritual and philosophical idea centered on the unity of all existence. "
                 "The phrase is especially associated with *The Law of One* (the Ra Material), where reality is described as ultimately one, with apparent differences understood within a larger unity.\n\n"
@@ -6885,7 +6889,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # These are answer-first explanatory intents, not pure subject-finding requests.
     if healthy_community_short_circuit or trust_stewardship_short_circuit:
         discovery_subject = ""
-    resource_query = correction_subject or discovery_subject or (source_trace_claim[-1600:] if source_trace_claim else query)
+    # Resolve bounded public concepts before retrieval, not after it. A stable
+    # orientation answer must never erase the visitor's opportunity to discover
+    # how that same concept appears inside the Living Archive.
+    general_knowledge_recovery = _established_general_knowledge_recovery(query)
+    concept_subject = (
+        str(general_knowledge_recovery.get("subject") or "").strip()
+        if isinstance(general_knowledge_recovery, dict)
+        else ""
+    )
+    if concept_subject and not correction_subject:
+        discovery_subject = concept_subject
+    resource_query = correction_subject or concept_subject or discovery_subject or (source_trace_claim[-1600:] if source_trace_claim else query)
     context_data = use_core.fetch_canonical_context(resource_query)
     if not isinstance(context_data, dict):
         raise RuntimeError("Basic Inquiry retrieval returned an invalid context object.")
@@ -6915,7 +6930,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             resource_query=resource_query,
             normalize=_normalize_authoritative_recommendation,
         )
-    general_knowledge_recovery = _established_general_knowledge_recovery(query)
     _cosmology_lived_recovery = _established_archive_cosmology_recovery(query)
     # Only explicitly matched stable facts may bypass Archive-attribute refusal.
     # All other unsupported attributes keep the established fail-closed boundary.
@@ -7256,10 +7270,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "llm_composer_invoked=false, archive_recommendation=none"
         )
     elif general_knowledge_recovery is not None:
-        # A reviewed public-concept record is already a complete answer with
-        # explicit provenance. It must take precedence over provider composition
-        # and provider-exhaustion fallback; otherwise the registry exists only as
-        # an evidence gate and the visitor can still receive a generic refusal.
+        # A reviewed public-concept record supplies the answer voice, while the
+        # independently resolved canonical doorway remains attached to the
+        # response. Answer recovery and Archive navigation are complementary
+        # responsibilities, never mutually exclusive.
         llm_output = str(general_knowledge_recovery.get("response") or "").strip()
         deterministic_result = {
             "response": llm_output,
