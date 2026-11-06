@@ -1,0 +1,126 @@
+{
+  "schema_version": "1.0",
+  "status": "canonical_draft",
+  "instrument": "Resonance & Coherence Assessment",
+  "principles": {
+    "deterministic": true,
+    "profile_first": true,
+    "overall_indicator_secondary": true,
+    "non_diagnostic": true,
+    "developmental": true,
+    "circuit": [
+      "Resonance",
+      "Coherence",
+      "Correspondence",
+      "Correctability",
+      "renewed Resonance"
+    ]
+  },
+  "dimensions": {
+    "Resonance": {
+      "public_name": "Contact",
+      "plain_question": "What are we noticing?",
+      "role": "Important people, conditions, consequences, and changes have a way of reaching attention."
+    },
+    "Coherence": {
+      "public_name": "Integration",
+      "plain_question": "Are the important parts working together?",
+      "role": "What matters, what is decided, and what is done can reinforce rather than undermine one another."
+    },
+    "Correspondence": {
+      "public_name": "Reality Alignment",
+      "plain_question": "Are we seeing things as they really are?",
+      "role": "Understanding and decisions remain answerable to what conditions and consequences are showing."
+    },
+    "Correctability": {
+      "public_name": "Restoration",
+      "plain_question": "When something is not working, can we actually change course?",
+      "role": "Divergence can lead to meaningful adjustment and renewed contact."
+    }
+  },
+  "bands": [
+    "Established Capacity",
+    "Working Capacity",
+    "Emerging Capacity",
+    "Developing Capacity",
+    "Priority Area"
+  ],
+  "precedence": [
+    "meaningful_relational_pattern",
+    "profile_shape",
+    "strongest_capacity",
+    "developmental_doorway",
+    "overall_indicator"
+  ],
+  "profile_shapes": {
+    "HighBalanced": {
+      "summary": "All four capacities are currently reported as strong and relatively even. The useful question is not how to improve a score, but what conditions make this way of staying oriented possible—and whether those conditions will remain available under pressure or change."
+    },
+    "Balanced": {
+      "summary": "No single part of the orientation process stands far apart from the others. The profile suggests that the next useful insight may come from looking at the conditions affecting the whole pattern rather than treating one capacity as the isolated problem."
+    },
+    "LowBalanced": {
+      "summary": "The difficulty appears to be spread across the whole orientation process rather than concentrated in one place. Begin by looking for real situations where the process works better; those exceptions may reveal conditions worth understanding before trying to fix any single score."
+    },
+    "Uneven": {
+      "summary": "Some parts of the orientation process are much more available than others. The most useful question is how the capacities that are already working might help restore movement where the process currently becomes harder."
+    }
+  },
+  "relational_patterns": {
+    "R_P": {
+      "headline": "We may be noticing more than we are making sense of.",
+      "individual": "Important signals may be reaching your attention, but the harder task may be deciding what they mean and testing your first interpretation against reality. More information alone may not create greater clarity; the next step may be to slow down long enough to distinguish signal from assumption.",
+      "collective": "The group may be hearing many signals, perspectives, or concerns, while finding it harder to turn them into a shared and reality-tested understanding. The question is not simply whether more voices should be added, but how what is already being heard becomes meaningful collective sensemaking."
+    },
+    "C_P": {
+      "headline": "We may be working together around a picture of reality that needs testing.",
+      "individual": "Your priorities and commitments may feel reasonably integrated, yet the assessment raises a different question: does the picture holding them together still match what is happening? Coherence can feel reassuring, which makes reality-testing especially important when circumstances change.",
+      "collective": "The group may be relatively aligned internally while its shared assumptions deserve closer contact with external conditions. Agreement is valuable, but agreement is not the same as accuracy; the doorway is to ask what the group may be taking for granted together."
+    },
+    "P_K": {
+      "headline": "We may already see the problem more clearly than we are able to change course.",
+      "individual": "The main difficulty may not be recognizing what is happening. You may already be testing assumptions and noticing consequences. The harder question is what happens after something becomes clear: what keeps understanding from becoming a different response? More analysis may not be the next answer.",
+      "collective": "The group may already have ways of recognizing when its assumptions do not match what is happening. The harder transition appears to be collective action: how does something the group knows become something the group actually does? The doorway is to explore authority, incentives, coordination, or other conditions without assuming in advance which one is responsible."
+    },
+    "K_C": {
+      "headline": "We may be able to respond, but not always from a shared centre.",
+      "individual": "You may be capable of making adjustments when something is not working, while the commitments shaping those adjustments are less well integrated. The question is whether changing course is moving you toward what matters—or simply producing another response to the latest problem.",
+      "collective": "The group may be capable of responding and making changes, while important priorities or parts remain poorly connected. The doorway is to ask whether repeated adjustment is compensating for a deeper lack of shared direction."
+    },
+    "R_C": {
+      "headline": "We may be noticing what is happening, but struggling to connect it with what matters most.",
+      "individual": "Relevant signals may be reaching your attention, yet competing commitments can make their meaning hard to integrate. The next step may not be to notice more, but to ask how what you already notice changes your priorities and choices.",
+      "collective": "The group may be hearing important signals while struggling to connect them across competing priorities, functions, or commitments. The doorway is to examine where meaning gets fragmented after a signal enters the conversation."
+    },
+    "P_R": {
+      "headline": "We may be reasoning carefully about the information we have—but is the right information entering the picture?",
+      "individual": "You may be good at testing assumptions and checking your conclusions against evidence. The assessment raises an earlier question: are important signals reaching you in the first place? Careful reasoning cannot correct for information that never enters the picture.",
+      "collective": "The group may be careful about testing what it knows while still having a limited field of attention. The doorway is to ask whose experience, which consequences, or what changes are least likely to enter the group’s shared picture."
+    }
+  },
+  "capacity_doorways": {
+    "Resonance": {
+      "individual": "Where are you already noticing something important that you once overlooked, and what made that possible?",
+      "collective": "Where does the group already hear signals it might previously have missed, and what conditions make those signals safe and possible to bring forward?"
+    },
+    "Coherence": {
+      "individual": "Where do your priorities already reinforce one another, and what is different when they begin to compete?",
+      "collective": "Where do different parts of the group already work together well, and what conditions allow that alignment to hold?"
+    },
+    "Correspondence": {
+      "individual": "Where have you recently changed your mind because reality showed you something different, and what made that revision possible?",
+      "collective": "Where has the group recently revised an assumption because conditions or consequences showed something different, and what made that possible?"
+    },
+    "Correctability": {
+      "individual": "Where have you genuinely changed course after recognizing something was not working, and what enabled the change?",
+      "collective": "Where has the group turned recognition into meaningful change, and what authority, trust, or conditions enabled that movement?"
+    }
+  },
+  "composition_contract": {
+    "paragraphs": 3,
+    "paragraph_1": "dominant profile story selected by precedence",
+    "paragraph_2": "why the pattern matters in everyday consequences",
+    "paragraph_3": "appreciative doorway grounded in an actual strength or exception",
+    "forbidden": "diagnostic labels, rankings, causal claims not supported by the responses"
+  }
+}
