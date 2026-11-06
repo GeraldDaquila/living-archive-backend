@@ -118,8 +118,8 @@ class ProviderHealthStoreTests(unittest.TestCase):
         self.assertLessEqual(TIMEOUT_SECONDS, 0.3)
 
     def test_guide_allows_time_budgeted_fallback_candidates(self):
-        self.assertEqual(provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES, 2)
-        self.assertEqual(provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS, 8.0)
+        self.assertEqual(provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES, 4)
+        self.assertEqual(provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS, 14.0)
 
     def test_newer_remote_failure_opens_local_state(self):
         local = {"provider": "groq", "model": "model-a", "state": "healthy", "last_failure": 0, "last_success": 10, "failures": 0, "consecutive_failures": 0, "cooldown_until": 0, "quarantine_until": 0}
