@@ -21,6 +21,8 @@ import contextvars
 import hashlib
 from pathlib import Path
 import gc
+import copy
+from collections import OrderedDict
 
 # ---------------------------------------------------------------------
 # CLEAN RUNTIME BOOT
@@ -930,6 +932,15 @@ except Exception as _embedding_runtime_diag_exc:
 ROOT_NODE_ID = "canonical_root_living_archive"
 
 RETRIEVAL_TOP_K = 12
+
+# Pinecone egress guard: repeated identical questions within one warm process
+# reuse the already-ranked canonical candidates. The cache is deliberately
+# short-lived and bounded; it never persists visitor content outside this process.
+PINECONE_QUERY_CACHE_TTL_SECONDS = 600.0
+PINECONE_QUERY_CACHE_MAX_ENTRIES = 32
+_PINECONE_QUERY_CACHE = OrderedDict()
+_PINECONE_QUERY_CACHE_LOCK = threading.RLock()
+
 MAX_CONTEXT_RESOURCES = 8
 
 # Retrieval may remain broad, but generation receives a bounded evidence
@@ -6844,9 +6855,12 @@ def _function_targeted_candidate_search(question: str) -> List[Dict[str, Any]]:
                 # non-Essay resources before D20 has a chance to recognize the
                 # correct Essay. Widen only explicit type-constrained searches;
                 # ordinary/function-only retrieval keeps its bounded window.
+                # D20 still receives a wider type-constrained window,
+                # but never pulls 48 full metadata records per target. The
+                # short cache absorbs repeated identical visitor/test queries.
                 function_top_k = min(
-                    RETRIEVAL_TOP_K * 4,
-                    48,
+                    RETRIEVAL_TOP_K * 2,
+                    24,
                 ) if required_type else min(8, RETRIEVAL_TOP_K)
                 query_index_started = time.perf_counter()
                 matches = _query_index(vector, function_top_k)
@@ -8160,14 +8174,47 @@ def _append_unique_resource(
     documents.append(metadata)
 
 
+def _pinecone_query_cache_key(
+    query_vector: List[float],
+    top_k: int,
+) -> Optional[Tuple[int, str, int, str]]:
+    """Build a process-local identity for an identical vector query."""
+    try:
+        normalized = [round(float(value), 7) for value in query_vector]
+        vector_digest = hashlib.sha256(
+            json.dumps(normalized, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        return (id(index), str(PINECONE_INDEX_NAME or ""), int(top_k), vector_digest)
+    except Exception:
+        return None
+
+
 def _query_index(
     query_vector: List[float],
     top_k: int,
 ) -> List[Tuple[float, str, Dict[str, Any]]]:
+    cache_key = _pinecone_query_cache_key(query_vector, top_k)
+    now = time.monotonic()
+    if cache_key is not None:
+        with _PINECONE_QUERY_CACHE_LOCK:
+            cached = _PINECONE_QUERY_CACHE.get(cache_key)
+            if cached is not None:
+                cached_at, cached_candidates, estimated_bytes = cached
+                if now - cached_at <= PINECONE_QUERY_CACHE_TTL_SECONDS:
+                    _PINECONE_QUERY_CACHE.move_to_end(cache_key)
+                    print(
+                        "USE Pinecone retrieval egress: cache_hit=true, "
+                        f"top_k={top_k}, candidates={len(cached_candidates)}, "
+                        f"avoided_metadata_bytes_estimate={estimated_bytes}."
+                    )
+                    return copy.deepcopy(cached_candidates)
+                _PINECONE_QUERY_CACHE.pop(cache_key, None)
+
     result = index.query(
         vector=query_vector,
         top_k=top_k,
         include_metadata=True,
+        include_values=False,
     )
 
     matches = (
@@ -8177,10 +8224,15 @@ def _query_index(
     )
 
     candidates: List[Tuple[float, str, Dict[str, Any]]] = []
-
+    response_records = []
     for match in matches:
         match_id = _match_id(match)
         metadata = _match_metadata(match)
+        response_records.append({
+            "id": match_id,
+            "score": _match_score(match),
+            "metadata": metadata if isinstance(metadata, dict) else {},
+        })
 
         if not metadata:
             continue
@@ -8198,6 +8250,53 @@ def _query_index(
                 metadata,
             )
         )
+
+    # The Python SDK currently exposes read_units but not Pinecone's billed
+    # egress_bytes field. This compact JSON estimate measures the returned
+    # match payload, not the exact billed wire size; it makes future live
+    # comparisons possible without logging visitor queries or content.
+    try:
+        estimated_payload_bytes = len(
+            json.dumps(
+                response_records,
+                ensure_ascii=False,
+                separators=(",", ":"),
+                default=str,
+            ).encode("utf-8")
+        )
+    except Exception:
+        estimated_payload_bytes = sum(
+            len(str(item.get("metadata") or "").encode("utf-8"))
+            for item in response_records
+        )
+    usage = (
+        result.get("usage")
+        if hasattr(result, "get")
+        else getattr(result, "usage", None)
+    )
+    read_units = (
+        usage.get("read_units")
+        if hasattr(usage, "get")
+        else getattr(usage, "read_units", None)
+    )
+    print(
+        "USE Pinecone retrieval egress: cache_hit=false, "
+        f"top_k={top_k}, returned_matches={len(matches or [])}, "
+        f"accepted_candidates={len(candidates)}, "
+        f"metadata_payload_bytes_estimate={estimated_payload_bytes}, "
+        f"read_units={read_units if read_units is not None else 'unreported'}."
+    )
+
+    if cache_key is not None:
+        with _PINECONE_QUERY_CACHE_LOCK:
+            _PINECONE_QUERY_CACHE[cache_key] = (
+                now,
+                copy.deepcopy(candidates),
+                estimated_payload_bytes,
+            )
+            _PINECONE_QUERY_CACHE.move_to_end(cache_key)
+            while len(_PINECONE_QUERY_CACHE) > PINECONE_QUERY_CACHE_MAX_ENTRIES:
+                _PINECONE_QUERY_CACHE.popitem(last=False)
 
     return candidates
 
@@ -8389,7 +8488,7 @@ def _v214_relational_axis_texts(question: str) -> List[Tuple[str, str]]:
 
 
 MAX_V208_MULTI_AXIS_RETRIEVAL_AXES = 3
-MAX_V208_MULTI_AXIS_AXIS_TOP_K = 8
+MAX_V208_MULTI_AXIS_AXIS_TOP_K = 6
 MAX_V208_MULTI_AXIS_NEW_CANDIDATES = 8
 
 
@@ -8526,7 +8625,7 @@ def _v208_multi_axis_retrieval_candidates(
     return selected
 
 
-MAX_RETRIEVAL_COVERAGE_RECOVERY_TOP_K = 40
+MAX_RETRIEVAL_COVERAGE_RECOVERY_TOP_K = 20
 
 
 def _retrieval_coverage_recovery_candidates(
@@ -11581,7 +11680,7 @@ def fetch_canonical_context(
                 if bridge_vector:
                     bridge_candidates = _query_index(
                         bridge_vector,
-                        max(RETRIEVAL_TOP_K, 100),
+                        max(RETRIEVAL_TOP_K, 24),
                     )
 
                     adaptive_seen_keys = set()
