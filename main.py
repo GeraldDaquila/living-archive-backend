@@ -66,7 +66,7 @@ from provider_bank import (
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
 import archive_crosslink
-from pinecone_retrieval_budget import install_pinecone_retrieval_budget
+from pinecone_retrieval_budget import install_pinecone_retrieval_budget, PineconeRequestBudgetMiddleware
 from guide_request_budget import (
     REQUEST_BUDGET_SECONDS as GUIDE_REQUEST_BUDGET_SECONDS,
     can_attempt_repair as _guide_can_attempt_composition_repair,
@@ -10859,3 +10859,5 @@ class _StrictCorsBoundary:
         await self.app(scope, receive, strict_send)
 
 app = _StrictCorsBoundary(app)
+# Outermost ASGI boundary covers the custom streaming/request routers as well as FastAPI.
+app = PineconeRequestBudgetMiddleware(app, request_candidate_budget=64)
