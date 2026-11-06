@@ -1,3 +1,5 @@
+import fs from "node:fs/promises";
+import assert from "node:assert/strict";
 import { chromium } from "playwright";
 
 const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_verify=guide-continuity-20261018c";
