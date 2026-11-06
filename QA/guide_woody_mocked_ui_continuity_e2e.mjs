@@ -461,3 +461,10 @@ try {
 } finally {
   await browser.close();
 }
+
+
+const integritySource = await fs.readFile(new URL('../wordpress/living-archive-guide-v489.247-response-integrity.js', import.meta.url), 'utf8');
+assert.match(integritySource, /guideRequestSequence/);
+assert.match(integritySource, /guideActiveRequestToken/);
+assert.match(integritySource, /data\.query/);
+assert.match(integritySource, /dataset\.guideResponseQuery/);
