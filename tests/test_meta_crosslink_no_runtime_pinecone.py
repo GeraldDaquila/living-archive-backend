@@ -49,7 +49,7 @@ def test_v2_meta_crosslinks_are_selected_without_any_pinecone_operation(monkeypa
     result = archive_crosslink.expand_context(
         "stewardship governance",
         [],
-        PineconeMustNotBeCalled(),
+        None,
         object(),
     )
 
@@ -85,3 +85,17 @@ def test_legacy_v1_snapshot_is_not_allowed_to_fetch_pinecone_vectors(monkeypatch
     )
 
     assert result == []
+
+
+
+def test_legacy_refresh_is_disabled_by_default_even_when_forced(monkeypatch):
+    monkeypatch.delenv("ALLOW_LEGACY_PINECONE_CROSSLINK_REFRESH", raising=False)
+    archive_crosslink._SNAPSHOT = None
+
+    result = archive_crosslink.start_refresh(
+        PineconeMustNotBeCalled(),
+        object(),
+        force=True,
+    )
+
+    assert result is False
