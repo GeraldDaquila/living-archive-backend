@@ -1408,7 +1408,7 @@ def select(use_core, operation="generic", schema=None):
     # Keep the configured provider priority stable for HRN; health/capability
     # filtering still removes unusable candidates, and the normal fallback lane
     # remains available. Other USE operations retain round-robin arbitration.
-    if operation not in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:
+    if operation not in {"hrn_perception", "hrn_relational", "hrn_voice_repair", "general_guide_composition"}:
         providers = _rotate(providers, int(_STATE["provider_cursor"]))
         _STATE["provider_cursor"] += 1
     lanes = []
@@ -1516,13 +1516,18 @@ def select(use_core, operation="generic", schema=None):
             best = lane[0] if lane else {}
             health_state = str(best.get("health_state") or "unknown")
             health_rank = 0 if health_state == "healthy" else 1
+            # Preserve the configured Guide provider order after healthy lanes.
+            # OpenRouter is deliberately promoted ahead of other equally unhealthy
+            # fallback lanes when its credential and composition capability are
+            # present. Round-robin rotation is disabled for this operation so the
+            # preferred free router cannot be shifted beyond the bounded fallback cap.
             return (
                 health_rank,
+                configured_priority.get(str(best.get("provider") or ""), len(configured_priority)),
                 int(best.get("quality_failures", 0) or 0),
                 0 if "low_latency" in (best.get("capabilities") or []) else 1,
                 int(best.get("consecutive_failures", 0) or 0),
                 int(best.get("transport_failures", 0) or 0),
-                configured_priority.get(str(best.get("provider") or ""), len(configured_priority)),
                 -float(best.get("last_success", 0) or 0),
             )
 
