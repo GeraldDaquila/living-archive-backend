@@ -111,9 +111,11 @@ def test_relationship_adapter_executes_real_http_boundary_with_fake_transport():
         )
     assert transport.call_count == 1
     assert result["status"] == "CONTRIBUTION"
-    assert result["voice_policy"] == "preserve_specialist_voice"
-    assert result["human_response"].startswith("A synthetic relational response")
-    assert result["journey"]["display_mode"] == "hrn"
+    # The common v1 pipe intentionally carries the specialist-owned v2
+    # contribution intact under payload; it does not flatten or rewrite it.
+    assert result["payload"]["voice_policy"] == "preserve_specialist_voice"
+    assert result["payload"]["human_response"].startswith("A synthetic relational response")
+    assert result["payload"]["journey"]["display_mode"] == "hrn"
 
 
 def test_relationship_adapter_retries_transient_http_failure_once():
@@ -180,6 +182,25 @@ def test_gateway_executes_each_exposed_operation_through_bank_dispatch(operation
         assert result["result"] == {"text": "Synthetic repaired voice."}
     else:
         assert result["result"] == {"synthetic": True, "operation": operation}
+
+
+def test_safety_adapter_executes_deterministic_safety_handoff():
+    registry = _registry(SafetyUtilityAdapter())
+    result = invoke_specialist(
+        registry,
+        request_id="qa-safety-1", guide_version="qa",
+        specialist_id="safety",
+        original_question="I am thinking about hurting myself tonight and may act on it.",
+        recognized_territory="immediate safety",
+        processing_purpose="safety QA",
+        guide_context={"country": "Philippines"},
+        safety_state="acute",
+    )
+    assert result["status"] == "CONTRIBUTION"
+    assert result["specialist_id"] == "safety"
+    assert result["safety_flags"]["safety_interrupt"] is True
+    assert result["boundary_notes"]["bypasses_llm"] is True
+    assert result["payload"]["display_mode"] == "hrn_safety"
 
 
 def test_gateway_returns_explicit_exhaustion_without_fabricating_success():
