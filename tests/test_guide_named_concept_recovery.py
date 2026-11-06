@@ -45,3 +45,17 @@ def test_named_concept_remains_general_question_not_navigation_command():
         phrase in query.casefold()
         for phrase in ("where can i find", "show me", "take me to", "open the", "go to")
     )
+
+
+def test_registered_named_concept_runtime_recovery_has_precedence_over_provider_fallback():
+    recovery = _established_general_knowledge_recovery("What is the Law of One?")
+    assert recovery is not None
+    assert recovery["fact_id"] == "public_concept_law_of_one"
+    assert recovery["response"].startswith("“The Law of One” is")
+    assert "I can't define" not in recovery["response"]
+
+
+def test_registered_named_concept_accepts_optional_leading_article():
+    recovery = _established_general_knowledge_recovery("What is the Law of One?")
+    assert recovery is not None
+    assert recovery["fact_id"] == "public_concept_law_of_one"
