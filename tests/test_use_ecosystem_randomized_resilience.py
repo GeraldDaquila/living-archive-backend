@@ -109,9 +109,11 @@ class RandomizedEcosystemResilienceTests(unittest.TestCase):
 
         fake = ExhaustedIndex()
         proxy = BoundedPineconeIndex(fake, per_query_cap=7)
-        with patch.object(budget, "_EGRESS_BLOCKED_MONTH", None), \\
-             patch.object(budget, "_EGRESS_LOGGED_MONTH", None), \\
-             patch.object(budget, "_utc_month", return_value="2099-01"):
+        with (
+            patch.object(budget, "_EGRESS_BLOCKED_MONTH", None),
+            patch.object(budget, "_EGRESS_LOGGED_MONTH", None),
+            patch.object(budget, "_utc_month", return_value="2099-01"),
+        ):
             first = proxy.query(vector=[0.0] * 384, top_k=5)
             second = proxy.query(vector=[0.0] * 384, top_k=5)
 
@@ -134,9 +136,11 @@ class RandomizedEcosystemResilienceTests(unittest.TestCase):
 
         fake = HealthyIndex()
         proxy = BoundedPineconeIndex(fake, per_query_cap=7)
-        with patch.object(budget, "_EGRESS_BLOCKED_MONTH", "2099-01"), \\
-             patch.object(budget, "_EGRESS_LOGGED_MONTH", "2099-01"), \\
-             patch.object(budget, "_utc_month", return_value="2099-02"):
+        with (
+            patch.object(budget, "_EGRESS_BLOCKED_MONTH", "2099-01"),
+            patch.object(budget, "_EGRESS_LOGGED_MONTH", "2099-01"),
+            patch.object(budget, "_utc_month", return_value="2099-02"),
+        ):
             result = proxy.query(vector=[0.0] * 384, top_k=1)
             self.assertEqual(result["matches"][0]["id"], "recovered")
             self.assertEqual(fake.calls, 1)
