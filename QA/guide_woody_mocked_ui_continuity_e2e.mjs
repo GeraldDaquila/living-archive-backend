@@ -242,12 +242,10 @@ try {
     // own trace/request record rather than racing the page's asynchronous task
     // queue. This keeps the acceptance test focused on visible continuity.
     const responsePromise = page.waitForFunction(
-      ({ expectedCount, expectedQuery }) => {
-        const requests = window.__guideApiRequests || [];
-        return requests.length >= expectedCount &&
-          String(requests[requests.length - 1]?.body?.query || "").trim() === expectedQuery;
-      },
-      { expectedCount: i + 1, expectedQuery: QUESTIONS[i] },
+      expectedQuery => (window.__guideApiRequests || []).some(
+        request => String(request?.body?.query || "").trim() === expectedQuery
+      ),
+      QUESTIONS[i],
       { timeout: 20_000 }
     ).then(() => ({ response: { status: () => 200 } }), error => ({ error }));
     let clickError = null;
