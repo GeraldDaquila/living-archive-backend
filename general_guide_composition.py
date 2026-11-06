@@ -2245,7 +2245,6 @@ def compose(
                 del _COMPOSITION_CACHE[cache_key]
             else:
                 del _COMPOSITION_CACHE[cache_key]
-            del _COMPOSITION_CACHE[cache_key]
 
     result = route_with_model_bank(
         use_core=use_core,
