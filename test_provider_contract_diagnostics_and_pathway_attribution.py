@@ -44,6 +44,6 @@ def test_general_guide_candidate_timing_is_observable():
 
 def test_general_guide_reserves_budget_for_independent_fallback():
     source = Path("provider_bank.py").read_text(encoding="utf-8")
-    assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 14.0" in source
+    assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 10.0" in source
     assert "GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS = 3.0" in source
     assert "GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS = 4.0" in source
