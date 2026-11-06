@@ -38,3 +38,22 @@ def test_structural_collection_discovery_has_a_bounded_query_budget(monkeypatch)
         if collection_name == "pathways":
             assert len(query_calls) == 8
             assert sum(query_calls) == 384
+
+def test_bounded_structural_search_still_returns_a_canonical_collection_destination(monkeypatch):
+    destination = {
+        "title": "Pathways",
+        "url": "https://geralddaquila.com/guided-pathways/",
+        "text": "The Pathways are a collection and gateway. Explore and begin here.",
+    }
+
+    monkeypatch.setattr(use_core, "generate_embedding", lambda query: [0.1, 0.2, 0.3])
+
+    def fake_query_index(vector, top_k):
+        assert top_k == use_core.STRUCTURAL_RETRIEVAL_TOP_K
+        return [(0.91, "pathways-root", destination)]
+
+    monkeypatch.setattr(use_core, "_query_index", fake_query_index)
+    results = use_core._query_structural_index("pathways")
+
+    assert results == [destination]
+
