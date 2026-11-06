@@ -394,15 +394,23 @@ def test_persisted_snapshot_survives_restart_without_refresh(monkeypatch, tmp_pa
         "contract": "archive-crosslink-inventory-v1",
         "crosslink_ready": True,
         "complete": True,
-        "expected_vector_count": 0,
-        "listed_vector_count": 0,
-        "unique_listed_vector_count": 0,
-        "fetched_vector_count": 0,
+        "expected_vector_count": 1,
+        "listed_vector_count": 1,
+        "unique_listed_vector_count": 1,
+        "fetched_vector_count": 1,
         "missing_metadata_count": 0,
         "missing_url_asset_count": 0,
         "namespace_count": 1,
         "refreshed_at": __import__("time").time(),
-        "assets": [],
+        "assets": [{
+            "title": "Canonical Asset",
+            "url": "https://geralddaquila.com/canonical-asset",
+            "tier": "T1",
+            "resource_type": "essay",
+            "access_class": "public",
+            "summary": "A bounded canonical orientation record.",
+            "vector_refs": [{"id": "v1", "namespace": ""}],
+        }],
     }
     archive_crosslink._persist_snapshot(snapshot)
     archive_crosslink._SNAPSHOT = None
@@ -424,7 +432,7 @@ def test_stale_valid_snapshot_remains_available_and_requests_refresh(monkeypatch
     snapshot_path = tmp_path / "crosslink-snapshot.json"
     monkeypatch.setenv("ARCHIVE_CROSSLINK_SNAPSHOT_PATH", str(snapshot_path))
     snapshot_path.write_text(
-        '{"contract":"archive-crosslink-inventory-v1","crosslink_ready":true,"complete":true,"expected_vector_count":0,"listed_vector_count":0,"unique_listed_vector_count":0,"fetched_vector_count":0,"missing_metadata_count":0,"missing_url_asset_count":0,"namespace_count":1,"refreshed_at":0,"assets":[]}',
+        '{"contract":"archive-crosslink-inventory-v1","crosslink_ready":true,"complete":true,"expected_vector_count":0,"listed_vector_count":0,"unique_listed_vector_count":0,"fetched_vector_count":0,"missing_metadata_count":0,"missing_url_asset_count":0,"namespace_count":1,"refreshed_at":0,"assets":[{"title":"Canonical Asset","url":"https://geralddaquila.com/canonical-asset","tier":"T1","resource_type":"essay","access_class":"public","summary":"A bounded canonical orientation record.","vector_refs":[{"id":"v1","namespace":""}]}]}',
         encoding="utf-8",
     )
     archive_crosslink._SNAPSHOT = None
