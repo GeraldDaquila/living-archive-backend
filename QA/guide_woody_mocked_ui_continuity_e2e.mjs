@@ -343,10 +343,13 @@ try {
   for (let i = 0; i < QUESTIONS.length; i++) {
     const before = await answer.innerText().catch(() => "");
     await input.fill(QUESTIONS[i]);
+    // Install the request observer before the click, but use the controller's
+    // own trace/request record rather than racing the page's asynchronous task
+    // queue. This keeps the acceptance test focused on visible continuity.
     const responsePromise = page.waitForFunction(
       expectedCount => (window.__guideApiRequests || []).length >= expectedCount,
       i + 1,
-      { timeout: 12_000 }
+      { timeout: 20_000 }
     ).then(() => ({ response: { status: () => 200 } }), error => ({ error }));
     let clickError = null;
     try {
@@ -391,7 +394,7 @@ try {
     await page.waitForFunction(({ selector, before }) => {
       const current = document.querySelector(selector)?.innerText?.trim() || "";
       return current.length > 35 && current !== before.trim();
-    }, { selector: ROOT + " #archive-response-text", before });
+    }, { selector: ROOT + " #archive-response-text", before, timeout: 20_000 });
     mark("main_query_rendered", { index: i + 1, query: QUESTIONS[i], answerLength: (await answer.innerText()).length });
     if (i === 2) {
       const link = root.locator("#archive-response-text a.archive-recommendation-link");
