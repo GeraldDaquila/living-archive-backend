@@ -471,3 +471,19 @@ def test_export_snapshot_strips_corpus_samples_and_requires_complete_inventory()
     assert asset["url"] == "https://geralddaquila.com/canonical-asset"
     assert "sample" not in asset
     assert exported["crosslink_ready"] is True
+
+
+def test_multiword_named_concept_does_not_drift_to_single_shared_word():
+    import archive_crosslink
+
+    snapshot = {
+        "crosslink_ready": True,
+        "assets": [
+            {"title": "Law", "url": "https://geralddaquila.com/law"},
+            {"title": "Law of Resonance", "url": "https://geralddaquila.com/law-of-resonance"},
+        ],
+    }
+    selected = archive_crosslink.select_crosslinks(
+        "What is the Law of One?", [], snapshot, limit=3
+    )
+    assert selected == []

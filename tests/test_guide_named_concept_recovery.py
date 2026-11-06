@@ -6,16 +6,17 @@ evidence for an attributed definition.
 """
 import general_guide_composition as composition
 from deterministic_answer_recovery import compose_definition_significance
+from main import _established_general_knowledge_recovery
 
 
-def test_unknown_named_concept_does_not_emit_circular_generic_refusal():
-    answer = compose_definition_significance("The Law of One")
-    assert "I can't define" in answer
-    assert "The Law of One" in answer
-    assert "reliable dictionary or subject reference" in answer
-    assert "unanswerable in principle" in answer
+def test_registered_named_concept_has_bounded_general_knowledge_orientation():
+    recovery = _established_general_knowledge_recovery("What is the Law of One?")
+    assert recovery is not None
+    assert recovery["fact_id"] == "public_concept_law_of_one"
+    assert "unity of all existence" in recovery["response"]
+    assert "not a claim about how the Living Archive uses it" in recovery["response"]
     assert not composition.is_generic_nonanswer(
-        "What is the Law of One?", answer
+        "What is the Law of One?", recovery["response"]
     )
 
 
