@@ -122,7 +122,7 @@ def test_client_disconnect_during_keepalive_cancels_target_task():
 
     async def immediate_timeout(awaitable, timeout):
         # Model the keep-alive interval expiring without waiting eight seconds.
-        awaitable.close()
+        # Leave the shielded target task running, as a real timeout would.
         raise asyncio.TimeoutError()
 
     async def run():
