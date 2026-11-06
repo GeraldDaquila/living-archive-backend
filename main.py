@@ -2745,6 +2745,60 @@ if _is_lived_experience_explanatory_request("What does uncertainty mean?"):
     raise RuntimeError("USE v489.90 glossary distinction invariant failed")
 
 
+def _is_archive_self_reference_question(query):
+    """Keep questions about Archive/Guide epistemic authority in General Guide.
+
+    This is an intent boundary, not a specialist or a topic-keyword shortcut.
+    It requires explicit Archive/Guide self-reference plus a question about
+    claims, provenance, evidence, interpretation, synthesis, or method.
+    """
+    q = re.sub(r"\s+", " ", str(query or "").strip().casefold())
+    if not q:
+        return False
+
+    archive_reference = bool(re.search(
+        r"\b(?:the\s+)?(?:living\s+archive|archive|corpus|guide)\b",
+        q,
+    ))
+    epistemic_subject = bool(re.search(
+        r"\b(?:claim|claims|provenance|source|sources|evidence|"
+        r"interpretation|interpretations|inference|inferences|synthesis|"
+        r"generaliz(?:e|ation|ing)|extrapolat(?:e|ion|ing)|"
+        r"certainty|uncertainty|hypothesis|hypotheses|method|methodology|"
+        r"constitutional reasoning|constitutional framework|"
+        r"modes of knowing|levels of claim|what is real|directly|direct|"
+        r"generalize|whole cosmology|conflicting ideas|handled|"
+        r"address this directly)\b",
+        q,
+    ))
+    self_reference_intent = bool(re.search(
+        r"\b(?:how should|how does|how can|when should|when does|"
+        r"what standards|which standards|what counts as|what makes|"
+        r"how do we|how does the|should the|does the|the guide|guide should|guide must)\b",
+        q,
+    )) or (
+        bool(re.search(r"\bwhat is\b", q))
+        and bool(re.search(r"\b(?:constitutional reasoning|constitutional framework|archive method|archive methodology)\b", q))
+    )
+    # A question that explicitly asks about "the Archive's sense" is a
+    # self-reference request even when it does not use "how should" wording.
+    self_reference_intent = self_reference_intent or bool(re.search(
+        r"\b(?:in|within) the archive(?:'s|’s) sense\b", q
+    ))
+    self_reference_intent = self_reference_intent or (
+        bool(re.search(r"\b(?:how should|what standards|what counts as|when should)\b", q))
+        and bool(re.search(r"\b(?:archive|guide|corpus)\b", q))
+    ) or (
+        bool(re.search(r"\b(?:how should|what standards|what counts as|when should)\b", q))
+        and bool(re.search(r"\b(?:within|across|through|from)\s+(?:the\s+)?(?:archive|corpus|guide)\b", q))
+    )
+    return archive_reference and epistemic_subject and self_reference_intent
+
+
+# Import-time assertions deliberately stay out of runtime modules.
+# Classifier positive/negative controls are exercised by focused tests so that
+# one intent refinement can never block unrelated runtime imports.
+
 def _is_conceptual_explanatory_request(query):
     """Keep questions about a concept's role or significance in General Guide.
 
@@ -6818,6 +6872,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "route_source": "guide_explicit_home_navigation",
             "visitor_boundary_version": APP_VERSION,
         }
+    # Explicit Archive self-reference / epistemic inquiries are a General Guide
+    # question class. Keep them in answer composition rather than protected-core
+    # recommendation routing; ordinary LLM-first provider preference is preserved.
+    archive_epistemic_question = _is_archive_self_reference_question(query)
+    if archive_epistemic_question:
+        print("The Guide Archive self-reference boundary: retained in General Guide composition.")
+
     clarification = general_guide_composition.clarification_response(
         query, _history_text(history)
     )
@@ -7211,6 +7272,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # composition too; the same three-paragraph recovery is the final answer.
     if healthy_community_short_circuit or trust_stewardship_short_circuit:
         reasoning_mode = "deterministic_only"
+    if archive_epistemic_question:
+        reasoning_mode = "auto"
 
     composition_result = None
     # This narrow practical-question class has a bounded, provider-independent
@@ -7220,6 +7283,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         _is_practical_stewardship_question(query)
         and not _is_conceptual_explanatory_request(query)
         and not general_guide_composition.is_conceptual_relationship_question(query)
+        and not _is_archive_self_reference_question(query)
     ):
         deterministic_result = _basic_inquiry_round1_deterministic_response(
             query, {}, composition_context, recommendation_available=False
@@ -8075,7 +8139,25 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # This describes the answer's basis; it does not claim that every sentence
     # is directly quoted from a source. A recommendation is only supplied when
     # the relevance gate found a canonical doorway for this specific question.
-    if archive_evidence_unavailable and _is_conceptual_explanatory_request(query):
+    # Archive self-reference questions are governed by their own provenance
+    # answer contract and are not subject to the topical conceptual-source
+    # recovery below. Their unrelated topic doorway was already suppressed.
+    if archive_epistemic_question:
+        # This describes the Guide's epistemic method, not a substantive claim
+        # about the Archive. Any Archive-specific assertion still requires
+        # traceable canonical support. No topic-selected doorway is appropriate.
+        authoritative_doorway = None
+        composition_context.pop("authoritative_doorway", None)
+        composition_context.pop("authoritative_doorway_title", None)
+        answer_basis = {
+            "kind": "guide_epistemic_method",
+            "label": "Guide epistemic method",
+            "explanation": "This describes how the Guide distinguishes direct source claims, synthesis, and interpretation.",
+        }
+    elif (
+        archive_evidence_unavailable
+        and _is_conceptual_explanatory_request(query)
+    ):
         # Conceptual questions must fail closed when no relevant Archive body
         # establishes the explanation. Keep this provenance rule scoped to the
         # conceptual grounding boundary; unrelated practical/topical inquiry
