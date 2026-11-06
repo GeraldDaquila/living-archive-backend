@@ -272,61 +272,8 @@ try {
     } else {
       window.__guideTrace({ event: "marked_parse_unavailable", markedType: typeof window.marked });
     }
-    const innerHtmlDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML");
-    if (innerHtmlDescriptor && innerHtmlDescriptor.get && innerHtmlDescriptor.set) {
-      Object.defineProperty(Element.prototype, "innerHTML", {
-        configurable: innerHtmlDescriptor.configurable,
-        enumerable: innerHtmlDescriptor.enumerable,
-        get: innerHtmlDescriptor.get,
-        set: function(value) {
-          const isGuideAnswer = this.id === "archive-response-text";
-          if (isGuideAnswer) window.__guideTrace({ event: "answer_innerHTML_set_enter", length: String(value || "").length });
-          const result = innerHtmlDescriptor.set.call(this, value);
-          if (isGuideAnswer) window.__guideTrace({ event: "answer_innerHTML_set_returned" });
-          return result;
-        }
-      });
-    }
-    const originalResponseJson = Response.prototype.json;
-    window.__guideTrace({
-      event: "response_json_method_snapshot",
-      name: originalResponseJson?.name || null,
-      source: String(originalResponseJson).slice(0, 180)
-    });
-    Response.prototype.json = function(...args) {
-      window.__guideTrace({
-        event: "response_json_called",
-        bodyUsedBefore: this.bodyUsed,
-        bodyType: this.body?.constructor?.name || null
-      });
-      let promise;
-      try {
-        promise = originalResponseJson.apply(this, args);
-        window.__guideTrace({
-          event: "response_json_native_returned",
-          promiseType: promise?.constructor?.name || typeof promise,
-          bodyUsedAfter: this.bodyUsed
-        });
-      } catch (error) {
-        window.__guideTrace({ event: "response_json_native_threw", error: String(error) });
-        throw error;
-      }
-      promise.then(
-        value => window.__guideTrace({ event: "response_json_resolved", keys: Object.keys(value || {}) }),
-        error => window.__guideTrace({ event: "response_json_rejected", error: String(error) })
-      );
-      return promise;
-    };
-    const originalResponseText = Response.prototype.text;
-    Response.prototype.text = function(...args) {
-      window.__guideTrace({ event: "response_text_called" });
-      const promise = originalResponseText.apply(this, args);
-      promise.then(
-        value => window.__guideTrace({ event: "response_text_resolved", length: value.length }),
-        error => window.__guideTrace({ event: "response_text_rejected", error: String(error) })
-      );
-      return promise;
-    };
+    // Keep QA instrumentation observational. Replacing DOM prototype setters can
+    // alter the controller under test and create a test-induced deadlock.
     let heartbeatCount = 0;
     window.__guideHeartbeat = setInterval(() => {
       heartbeatCount += 1;
