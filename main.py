@@ -6677,6 +6677,7 @@ def _established_general_knowledge_recovery(query):
     named_concept = re.match(r"^(?:what\s+is|what\s+does)\s+(?:the\s+)?(.+?)(?:\s+mean)?\??$", normalized)
     if named_concept:
         candidate = re.sub(r"\s+", " ", named_concept.group(1)).strip(" .?!")
+        candidate = re.sub(r"^(?:the\s+)", "", candidate).strip()
         record = public_concepts.get(candidate)
         if record:
             return dict(record)
@@ -7253,6 +7254,22 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "The Guide General Composition: "
             "mode=bounded_practical_stewardship_recovery, "
             "llm_composer_invoked=false, archive_recommendation=none"
+        )
+    elif general_knowledge_recovery is not None:
+        # A reviewed public-concept record is already a complete answer with
+        # explicit provenance. It must take precedence over provider composition
+        # and provider-exhaustion fallback; otherwise the registry exists only as
+        # an evidence gate and the visitor can still receive a generic refusal.
+        llm_output = str(general_knowledge_recovery.get("response") or "").strip()
+        deterministic_result = {
+            "response": llm_output,
+            "provider": "bounded_public_concept_recovery",
+            "model": "deterministic-contract-recovery",
+        }
+        print(
+            "The Guide General Composition: "
+            f"mode=bounded_public_concept_recovery, fact_id={general_knowledge_recovery.get('fact_id') or 'unknown'}, "
+            "llm_composer_invoked=false"
         )
     elif reasoning_mode == "deterministic_only":
         if healthy_community_short_circuit:
