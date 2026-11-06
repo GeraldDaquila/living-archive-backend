@@ -6939,7 +6939,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     )
     # Subject discovery is constrained to the active WordPress Guide Node registry.
     # A public URL returned by search is not, by itself, an approved Guide doorway.
-    if discovery_subject and authoritative_doorway:
+    # The Guide-node registry governs *discovery routing*, not canonical
+    # concept crosslinks. A recognized concept may legitimately resolve to a
+    # Glossary record or other canonical Archive resource that is outside the
+    # narrower active Guide-node subset. Keep those two authorities separate.
+    if discovery_subject and not concept_subject and authoritative_doorway:
         registered_urls = {
             str(node.get("canonical_url") or "").rstrip("/").casefold()
             for node in _guide_node_registry_snapshot()
