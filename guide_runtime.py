@@ -7,7 +7,7 @@ import importlib
 import re
 from pathlib import Path
 
-EXPECTED_CORE_BLOB_SHA = "a2651da0aaf7d95c93f7457d4c5f697f99cd8e6b"
+EXPECTED_CORE_BLOB_SHA = "c56508a89103a13a02a5a3d8c0a384855d59682c"
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
 if not _CORE_PATH.exists():
