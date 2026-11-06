@@ -24,6 +24,6 @@ jobs:
       - name: Install test runner
         run: python -m pip install --upgrade pytest
       - name: Compile crosslink and Guide entrypoint
-        run: python -m py_compile archive_crosslink.py main.py tests/test_archive_crosslink.py
+        run: python -m py_compile archive_crosslink.py main.py tests/test_archive_crosslink.py tests/test_meta_crosslink_no_runtime_pinecone.py
       - name: Run full-corpus crosslink tests
         run: PYTHONPATH=. python -m pytest -q tests/test_archive_crosslink.py tests/test_meta_crosslink_no_runtime_pinecone.py
