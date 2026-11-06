@@ -1,4 +1,4 @@
-# USE PRODUCTION VERSION: v333 — Visitor-Centered Sensemaking Construction + The Guide
+# USE PRODUCTION VERSION: v334 — Visitor-Centered Sensemaking Construction + The Guide
 # Sole one-environment production unit: main.py is used for both testing and LIVE.
 # D28 establishes evidence-grounded resource sequencing; D29 applies a hard
 # canonical movement state propagation; D30 audits the relevance-vs-movement boundary.
@@ -652,7 +652,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v333"
+APP_VERSION = "v334"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -668,11 +668,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v333-visitor-centered-sensemaking-construction"
+DEPLOYMENT_FINGERPRINT = "USE-v334-structural-retrieval-budget"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v333-visitor-centered-sensemaking-construction"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "c80675c5bc420bddb5ff4e9d6884c678265f12e753fb892e2086804354f96a6d"
+CANONICAL_BUILD_ID = "USE-BUILD-v334-structural-retrieval-budget"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "ec357108a8d3adef8e79ec155c53fa5dd04ac0832a5830fe95f3efa94a40c182"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
