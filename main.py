@@ -6670,6 +6670,13 @@ def _established_general_knowledge_recovery(query):
             # subject is also used for canonical Archive retrieval so a glossary
             # record or relevant essay can still become a qualified doorway.
             "subject": "Law of One",
+            # A reviewed canonical doorway belongs to the concept record itself.
+            # This keeps recognized concepts navigable even when vector retrieval
+            # is temporarily unavailable (for example, an index quota outage).
+            "doorway": {
+                "title": "Law of One — Living Glossary",
+                "url": "https://geralddaquila.com/glossary/",
+            },
             "response": (
                 "“The Law of One” is a spiritual and philosophical idea centered on the unity of all existence. "
                 "The phrase is especially associated with *The Law of One* (the Ra Material), where reality is described as ultimately one, with apparent differences understood within a larger unity.\n\n"
@@ -6930,6 +6937,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             resource_query=resource_query,
             normalize=_normalize_authoritative_recommendation,
         )
+    # Recognized public concepts carry their own reviewed canonical doorway.
+    # Retrieval may enrich discovery, but an index outage must not erase a
+    # concept-to-Archive crosslink that has already been explicitly registered.
+    if concept_subject and isinstance(general_knowledge_recovery, dict):
+        concept_doorway = _normalize_authoritative_recommendation(
+            general_knowledge_recovery.get("doorway")
+        )
+        if concept_doorway:
+            authoritative_doorway = concept_doorway
+            print("The Guide concept registry: applied reviewed canonical doorway independent of retrieval availability.")
     _cosmology_lived_recovery = _established_archive_cosmology_recovery(query)
     # Only explicitly matched stable facts may bypass Archive-attribute refusal.
     # All other unsupported attributes keep the established fail-closed boundary.
