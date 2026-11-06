@@ -76,9 +76,9 @@ HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
 # the absolute request deadline still clamps every call and preserves the repair reserve.
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 14.0
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 4
-# Reserve meaningful time for one independent fallback. A six-second first call
-# inside an eight-second visitor window can otherwise turn a slow timeout into
-# an effective single-shot architecture.
+# Keep each candidate bounded; the 14-second arbitration window is still
+# constrained by the absolute 24-second request deadline and its six-second
+# response-integrity repair reserve.
 GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS = 3.0
 GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS = 4.0
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
