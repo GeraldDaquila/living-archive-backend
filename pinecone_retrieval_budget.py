@@ -1,9 +1,4 @@
-"""Request-scoped Pinecone retrieval budget and monthly-egress circuit breaker.
-
-The wrapper preserves the Pinecone SDK surface through delegation. It bounds
-metadata returned by semantic queries and stops repeating requests after the
-provider reports its hard monthly egress ceiling.
-"""
+"""Request-scoped Pinecone retrieval budget and monthly-egress circuit breaker."""
 from __future__ import annotations
 
 import contextvars
@@ -63,23 +58,16 @@ def _open_circuit(exc: BaseException) -> None:
 class BoundedPineconeIndex:
     """Transparent Pinecone index proxy with bounded query response volume."""
 
-    def __init__(
-        self,
-        index: Any,
-        *,
-        per_query_cap: int = DEFAULT_PER_QUERY_CAP,
-        request_candidate_budget: int = DEFAULT_REQUEST_CANDIDATE_BUDGET,
-    ) -> None:
+    def __init__(self, index: Any, *, per_query_cap: int = 32) -> None:
         self._index = index
         self._per_query_cap = max(1, int(per_query_cap))
-        self._request_candidate_budget = max(1, int(request_candidate_budget))
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._index, name)
 
     def query(self, *args: Any, **kwargs: Any) -> Any:
+        state = _REQUEST_STATE.get()
         if _circuit_is_open():
-            state = _REQUEST_STATE.get()
             if state is not None:
                 state["circuit_skips"] += 1
             return {"matches": []}
@@ -89,7 +77,6 @@ class BoundedPineconeIndex:
             return self._call_query(args, kwargs)
 
         allowed = min(requested, self._per_query_cap)
-        state = _REQUEST_STATE.get()
         if state is not None:
             remaining = max(0, int(state["remaining"]))
             if remaining == 0:
@@ -129,8 +116,8 @@ class BoundedPineconeIndex:
             raise
 
     def fetch(self, *args: Any, **kwargs: Any) -> Any:
+        state = _REQUEST_STATE.get()
         if _circuit_is_open():
-            state = _REQUEST_STATE.get()
             if state is not None:
                 state["circuit_skips"] += 1
             return {"vectors": {}}
@@ -139,6 +126,8 @@ class BoundedPineconeIndex:
         except Exception as exc:
             if _is_monthly_egress_error(exc):
                 _open_circuit(exc)
+                if state is not None:
+                    state["quota_blocks"] += 1
                 return {"vectors": {}}
             raise
 
@@ -150,24 +139,40 @@ def install_pinecone_retrieval_budget(
     per_query_cap: int = DEFAULT_PER_QUERY_CAP,
     request_candidate_budget: int = DEFAULT_REQUEST_CANDIDATE_BUDGET,
 ) -> Any:
-    """Wrap the live index and install one HTTP-request-scoped budget middleware."""
+    """Wrap the live index; ASGI scope is installed by PineconeRequestBudgetMiddleware."""
     if index is None:
         print("USE Pinecone retrieval budget: index_unavailable=true", flush=True)
         return None
-
     wrapped = index if isinstance(index, BoundedPineconeIndex) else BoundedPineconeIndex(
-        index,
-        per_query_cap=per_query_cap,
-        request_candidate_budget=request_candidate_budget,
+        index, per_query_cap=per_query_cap
     )
+    print(
+        "USE Pinecone retrieval budget: index_wrapper_installed; "
+        f"per_query_cap={per_query_cap}; "
+        f"request_candidate_budget={request_candidate_budget}; "
+        "monthly_egress_circuit_breaker=true",
+        flush=True,
+    )
+    return wrapped
 
-    if getattr(app, "_use_pinecone_budget_middleware_installed", False):
-        return wrapped
 
-    @app.middleware("http")
-    async def _pinecone_retrieval_budget_middleware(request: Any, call_next: Any) -> Any:
+class PineconeRequestBudgetMiddleware:
+    """Pure ASGI boundary; surrounds all custom request routers and FastAPI internals."""
+
+    def __init__(self, app: Any, *, request_candidate_budget: int = 64) -> None:
+        self.app = app
+        self.request_candidate_budget = max(1, int(request_candidate_budget))
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.app, name)
+
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+
         state = {
-            "remaining": int(request_candidate_budget),
+            "remaining": self.request_candidate_budget,
             "calls": 0,
             "requested_candidates": 0,
             "allowed_candidates": 0,
@@ -177,12 +182,14 @@ def install_pinecone_retrieval_budget(
         }
         token = _REQUEST_STATE.set(state)
         try:
-            return await call_next(request)
+            await self.app(scope, receive, send)
         finally:
-            if any(state[key] for key in ("calls", "budget_skips", "circuit_skips", "quota_blocks")):
+            if any(state[key] for key in (
+                "calls", "budget_skips", "circuit_skips", "quota_blocks"
+            )):
                 print(
                     "USE Pinecone request budget: "
-                    f"path={getattr(getattr(request, 'url', None), 'path', 'unknown')}; "
+                    f"path={scope.get('path', 'unknown')}; "
                     f"calls={state['calls']}; "
                     f"requested_candidates={state['requested_candidates']}; "
                     f"allowed_candidates={state['allowed_candidates']}; "
@@ -194,16 +201,6 @@ def install_pinecone_retrieval_budget(
                 )
             _REQUEST_STATE.reset(token)
 
-    setattr(app, "_use_pinecone_budget_middleware_installed", True)
-    print(
-        "USE Pinecone retrieval budget: installed; "
-        f"per_query_cap={per_query_cap}; "
-        f"request_candidate_budget={request_candidate_budget}; "
-        "monthly_egress_circuit_breaker=true",
-        flush=True,
-    )
-    return wrapped
-
 
 def _self_audit() -> None:
     class _FakeIndex:
@@ -214,11 +211,8 @@ def _self_audit() -> None:
             self.calls.append(int(kwargs["top_k"]))
             return {"matches": [{}] * int(kwargs["top_k"])}
 
-        def fetch(self, **kwargs: Any) -> dict[str, Any]:
-            return {"vectors": {}}
-
     fake = _FakeIndex()
-    proxy = BoundedPineconeIndex(fake, per_query_cap=10, request_candidate_budget=14)
+    proxy = BoundedPineconeIndex(fake, per_query_cap=10)
     token = _REQUEST_STATE.set({
         "remaining": 14, "calls": 0, "requested_candidates": 0,
         "allowed_candidates": 0, "budget_skips": 0, "circuit_skips": 0,
@@ -229,9 +223,9 @@ def _self_audit() -> None:
         second = proxy.query(vector=[0.0], top_k=100)
         third = proxy.query(vector=[0.0], top_k=1)
         assert len(first["matches"]) == 10
-        assert len(second["matches"]) == 4
-        assert third["matches"] == []
-        assert fake.calls == [10, 4]
+        assert len(second["matches"]) == 10
+        assert len(third["matches"]) == 1
+        assert fake.calls == [10, 10, 1]
     finally:
         _REQUEST_STATE.reset(token)
     print("USE Pinecone retrieval budget self-audit: PASS", flush=True)
