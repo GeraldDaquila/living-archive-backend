@@ -60,3 +60,14 @@ def test_capacity_context_is_available_for_all_dimensions():
         assert LIB["strongest_capacity_meaning"][dimension]["collective"]
         assert LIB["lowest_capacity_context"][dimension]["individual"]
         assert LIB["lowest_capacity_context"][dimension]["collective"]
+
+
+def test_simulation_matrix_has_contrasting_profiles():
+    cases = LIB["simulation_matrix"]["cases"]
+    assert len(cases) >= 10
+    ids = {case["id"] for case in cases}
+    assert {"I-02","C-01","I-03","C-02"} <= ids
+    for case in cases:
+        assert set(case["scores"]) == set(DIMS)
+        assert case["expected_pattern"]
+        assert case["editorial_question"]
