@@ -34,7 +34,7 @@ def test_all_dimensions_have_plain_language_and_both_doorways():
 def test_synthesis_contract_forbids_generic_fixed_output():
     contract=LIB["composition_contract"]
     assert contract["paragraphs"] == 3
-    assert "generic paragraph repeated regardless of score vector" in contract["forbidden"]
+    assert "generic paragraph repeated regardless of score vector" in contract["anti_genericity"]
 
 def test_perspective_narratives_name_distinct_exploration_domains():
     assert "authority" in LIB["relational_patterns"]["P_K"]["collective"]
