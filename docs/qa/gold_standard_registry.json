@@ -628,6 +628,12 @@
       "rating_out_of_10": 9,
       "approval_state": "answer and recommendation accepted; rating 9/10; exact response not recovered",
       "known_theme": "Observable signs that helping is becoming taking over; self-check: “Am I solving this for them, or am I helping them solve it?”",
+      "related_question_variants": [
+        "Why do I always end up doing everything for other people?",
+        "How do I support someone without making them dependent on me?",
+        "How can I help without taking away their independence?",
+        "How do I know when helping someone has become doing things for them?"
+      ],
       "reconstruction_candidate_response": "Helping may be turning into taking over when you begin making decisions the other person could make, doing work they have not agreed to hand over, or feeling that you must keep the situation on track for them. Another sign is that your help leaves them with less room to act, while you become increasingly responsible for the outcome.\n\nA useful self-check is: “Am I solving this for them, or helping them solve it?” Ask what kind of support they actually want, agree on the boundary of your role, and leave room for them to choose—even if they choose differently than you would. There are times when urgent risk or a clear duty calls for more direct action, but outside those situations, support should strengthen the other person’s agency rather than quietly replace it.",
       "reconstruction_candidate_provenance": {
         "source_type": "new ChatGPT-generated reconstruction candidate",
