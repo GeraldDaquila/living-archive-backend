@@ -102,3 +102,46 @@ def test_exemplar_identity_changes_the_composition_cache_key():
         "same question", "", "explanatory|gold_standard_exemplar:exemplar-b", []
     )
     assert first != second
+
+
+def test_exact_low_token_question_uses_its_structural_exemplar():
+    query = "What does accountability really mean?"
+    selected = exemplars.select_exemplar(query)
+    assert selected is not None
+    assert selected["benchmark_id"] == "general-guide-original-gold-standard-05-2026-10-21"
+    assert selected["status"] == "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT"
+
+    guidance, token = exemplars.build_exemplar_guidance(query)
+    assert token == selected["benchmark_id"]
+    assert "structural cue only" in guidance
+    assert "Accountability means being answerable for what you did" not in guidance
+
+
+def test_every_reviewed_registry_record_is_loaded_and_unreviewed_records_are_excluded():
+    import json
+
+    payload = json.loads(exemplars._REGISTRY_PATH.read_text(encoding="utf-8"))
+    allowed = exemplars._ALLOWED_STATUSES
+    reviewed = {
+        record["benchmark_id"]
+        for record in payload["records"]
+        if record.get("subsystem") == "general-purpose-guide"
+        and record.get("status") in allowed
+        and record.get("query")
+        and exemplars._response_for_record(record)
+    }
+    approved = {
+        record["benchmark_id"]
+        for record in payload["records"]
+        if record.get("subsystem") == "general-purpose-guide"
+        and record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        and record.get("query")
+        and exemplars._response_for_record(record)
+    }
+    loaded = {record["id"] for record in exemplars._EXEMPLARS}
+
+    assert reviewed == loaded
+    assert approved
+    assert approved <= loaded
+    assert all(record["status"] in allowed for record in exemplars._EXEMPLARS)
+
