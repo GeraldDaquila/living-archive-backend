@@ -1513,7 +1513,7 @@ def select(use_core, operation="generic", schema=None):
         # Keep the configured Groq primary, then prioritize independent free
         # fallbacks in a stable order: OpenRouter, NVIDIA NIM, and Workers AI.
         # This prevents healthy-but-unproven paid/free-tier lanes from consuming
-        # the small bounded window ahead of the remaining zero-cost options.
+        # the small bounded window ahead of the remaining zero-cost options and preferred free fallbacks.
         guide_order = [
             name for name in ("groq", "openrouter", "nvidia", "workers_ai", "cloudflare_gateway")
             if name in providers
