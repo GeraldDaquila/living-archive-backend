@@ -108,7 +108,7 @@ def test_general_guide_uses_remaining_independent_candidates_within_window(monke
     assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
     assert calls[0][1] == provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
     assert all(timeout == provider_bank.GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS for _, timeout in calls[1:])
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 4
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 3
     assert clock.value == pytest.approx(1.0)
 
 
@@ -205,12 +205,12 @@ def test_general_guide_stops_after_slow_failure_consumes_recovery_margin(monkeyp
     )
 
     assert result is None
-    assert calls == [("gemini", 3.0), ("workers_ai", 4.0), ("groq", 4.0)]
+    assert calls == [("gemini", 3.0), ("workers_ai", 4.0)]
     assert provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS == 3.0
     assert provider_bank.GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS == 4.0
-    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 14.0
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 4
-    assert clock.value == 11.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 10.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 3
+    assert clock.value == 7.0
 
 def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
     _isolate(monkeypatch)
@@ -345,7 +345,7 @@ def test_general_guide_reaches_openrouter_after_local_quota_rate_limit_and_timeo
     assert result is not None
     assert result["provider"] == "openrouter"
     assert [provider for provider, _ in calls] == ["groq", "mistral", "workers_ai", "openrouter"]
-    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 14.0
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 4
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 10.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 3
     assert clock.value == pytest.approx(4.397)
 
