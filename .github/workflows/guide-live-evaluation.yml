@@ -1,6 +1,9 @@
 name: Guide Live Evaluation
 
 on:
+  # Bounded synthetic replay twice daily; this is not visitor-conversation surveillance.
+  schedule:
+    - cron: '17 */12 * * *'
   workflow_dispatch:
     inputs:
       target_service:
@@ -16,7 +19,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: guide-live-evaluation-${{ github.event.inputs.target_service }}
+  group: guide-live-evaluation-${{ github.event.inputs.target_service || 'primary' }}
   cancel-in-progress: false
 
 jobs:
@@ -47,7 +50,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: guide-live-evaluation-${{ inputs.target_service }}-${{ github.run_id }}
+          name: guide-live-evaluation-${{ inputs.target_service || 'primary' }}-${{ github.run_id }}
           path: artifacts/guide-live-evaluation-report.json
           if-no-files-found: error
           retention-days: 90
