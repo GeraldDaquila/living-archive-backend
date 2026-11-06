@@ -314,3 +314,76 @@ def test_provider_bank_real_route_returns_none_when_all_candidates_fail():
         )
 
     assert result is None
+
+
+def test_guide_relationship_specialist_integration_preserves_adapter_contribution():
+    import main as guide
+
+    class FakeResponse:
+        status = 200
+        def __enter__(self): return self
+        def __exit__(self, *args): return False
+        def read(self):
+            return json.dumps({
+                "ok": True,
+                "response": "The exchange keeps returning to the same unresolved point, even when the words change.",
+                "clarity": "clear",
+                "resources": [],
+                "movement_state": "orientation",
+                "question": "Which part of the exchange keeps returning?",
+            }).encode()
+
+    with patch("relationship_adapter.urllib.request.urlopen", return_value=FakeResponse()) as transport:
+        result = guide._relationship_specialist_response(
+            "We keep misunderstanding one another.",
+            [],
+            {"round1_interpretation": {"presenting_situation": "repeated misunderstanding"}},
+            "qa-guide-relationship-001",
+            {},
+        )
+
+    assert transport.call_count == 1
+    assert "same unresolved point" in result["response"]
+    delegation = result["relational_delegation"]
+    assert delegation["state"] == "open"
+    assert delegation["specialist_id"] == "relationship"
+    assert delegation["return_mode"] == "guide_integrated"
+    assert delegation["journey"]["display_mode"] == "hrn"
+
+
+def test_guide_formation_specialist_integration_preserves_domain_payload():
+    import main as guide
+
+    result = guide._formation_specialist_response(
+        "I want to carry greater responsibility in stewardship.",
+        [],
+        {"round1_interpretation": {
+            "presenting_situation": "learning to carry responsibility",
+            "desired_movement": "greater stewardship capacity",
+        }},
+        "qa-guide-formation-001",
+    )
+
+    delegation = result["formation_delegation"]
+    assert delegation["state"] == "open"
+    assert delegation["specialist_id"] == "formation"
+    assert delegation["return_mode"] == "guide_integrated"
+    assert isinstance(delegation["interpretation"], dict)
+    assert isinstance(delegation["movement"], dict)
+    assert len(delegation["doors"]) <= 3
+
+
+def test_guide_philippine_systems_specialist_integration_returns_canonical_doorway():
+    import main as guide
+
+    result = guide._philippine_systems_specialist_response(
+        "How do Philippine institutions and governance interact?",
+        [],
+        {"round1_interpretation": {"presenting_situation": "institutional interaction"}},
+        "qa-guide-systems-001",
+    )
+
+    delegation = result["systems_delegation"]
+    assert delegation["state"] == "available"
+    assert delegation["specialist_id"] == "systems_ph"
+    assert delegation["canonical_url"].startswith("https://")
