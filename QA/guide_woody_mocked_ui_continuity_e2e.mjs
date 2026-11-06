@@ -177,32 +177,9 @@ try {
 
   await page.evaluate(() => {
     window.__guideSubmitTrace = [];
-    window.__guideTrace = function(entry) {
-      window.__guideSubmitTrace.push(entry);
-      console.log("[Guide QA] " + JSON.stringify(entry));
-    };
-    const originalRAF = window.requestAnimationFrame.bind(window);
-    window.requestAnimationFrame = function(callback) {
-      window.__guideTrace({ event: "requestAnimationFrame_called" });
-      return originalRAF(function(timestamp) {
-        window.__guideTrace({ event: "requestAnimationFrame_callback" });
-        callback(timestamp);
-      });
-    };
-    document.addEventListener("click", event => {
-      if (event.target?.closest?.("#archive-submit-btn")) {
-        window.__guideTrace({ event: "submit_button_click_capture", defaultPrevented: event.defaultPrevented });
-      }
-    }, true);
-    document.addEventListener("submit", event => {
-      if (event.target?.querySelector?.("#archive-submit-btn")) {
-        window.__guideTrace({ event: "form_submit_capture", defaultPrevented: event.defaultPrevented, action: event.target.action, method: event.target.method });
-        // Prevent only native document navigation so the test can observe whether
-        // the live controller's submit handler issues the API request. Do not stop
-        // propagation: the controller's normal handler must still run.
-        event.preventDefault();
-      }
-    }, true);
+    // Do not patch browser event primitives in this acceptance test. The Guide's
+    // own handler must receive an ordinary user click under production-like DOM
+    // semantics; instrumentation belongs outside the interaction path.
     // Stub only the controller's API fetch in-page. The previous Playwright
     // network-route mock reached route.fulfill(), but Chromium never surfaced a
     // response to the page. This direct Promise-based mock isolates the live
@@ -255,35 +232,6 @@ try {
       result.then(response => window.__guideTrace({ event: "fetch_promise_resolved", status: response.status, ok: response.ok }));
       return result;
     };
-    // Trace the first response-body read and prove whether the renderer's
-    // event loop continues after fetch settles. These observers do not alter
-    // the returned body or controller logic.
-    // Trace synchronous post-response work without changing the live controller.
-    // If the page stops progressing after mock_json_resolved, these markers identify
-    // whether Markdown parsing or the response container's HTML setter is the blocker.
-    if (window.marked && typeof window.marked.parse === "function") {
-      const originalMarkedParse = window.marked.parse.bind(window.marked);
-      window.marked.parse = function(...args) {
-        window.__guideTrace({ event: "marked_parse_enter", inputLength: String(args[0] || "").length });
-        const parsed = originalMarkedParse(...args);
-        window.__guideTrace({ event: "marked_parse_returned", outputLength: String(parsed || "").length });
-        return parsed;
-      };
-    } else {
-      window.__guideTrace({ event: "marked_parse_unavailable", markedType: typeof window.marked });
-    }
-    // Keep QA instrumentation observational. Replacing DOM prototype setters can
-    // alter the controller under test and create a test-induced deadlock.
-    let heartbeatCount = 0;
-    window.__guideHeartbeat = setInterval(() => {
-      heartbeatCount += 1;
-      if (heartbeatCount <= 5) window.__guideTrace({ event: "event_loop_heartbeat", count: heartbeatCount });
-    }, 500);
-    const originalOpen = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-      window.__guideTrace({ event: "xhr_open", method, url: String(url) });
-      return originalOpen.call(this, method, url, ...rest);
-    };
   });
   mark("submit_trace_installed", { note: "Capture click, form-submit, fetch and XHR before first interaction." });
 
@@ -300,13 +248,7 @@ try {
     ).then(() => ({ response: { status: () => 200 } }), error => ({ error }));
     let clickError = null;
     try {
-      // Dispatch the real DOM click without Playwright waiting on a possible native
-      // form navigation; the capture-phase submit guard above keeps the document
-      // available while the controller handler and API request are observed.
-      // Schedule the DOM click and return from Playwright's evaluation first.
-      // If the live click handler blocks the renderer after fetch(), this keeps
-      // the harness alive long enough to collect route/response diagnostics.
-      await submit.evaluate(element => setTimeout(() => element.click(), 0));
+      await submit.click({ noWaitAfter: true });
     } catch (error) {
       clickError = error.message;
     }
