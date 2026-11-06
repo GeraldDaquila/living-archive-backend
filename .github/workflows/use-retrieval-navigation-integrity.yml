@@ -6,6 +6,7 @@ on:
       - 'guide_runtime.py'
       - 'use_core.py'
       - 'tests/test_retrieval_navigation_integrity.py'
+      - 'tests/test_structural_retrieval_budget.py'
   pull_request:
     paths:
       - 'guide_runtime.py'
@@ -21,5 +22,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime and test dependencies
+        run: python -m pip install -r requirements.txt pytest
       - name: Run retrieval and navigation integrity regressions
         run: python -m unittest tests/test_retrieval_navigation_integrity.py -v
+      - name: Run bounded structural retrieval egress regression
+        run: python -m pytest -q tests/test_structural_retrieval_budget.py
