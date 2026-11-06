@@ -349,3 +349,22 @@ def test_general_guide_reaches_openrouter_after_local_quota_rate_limit_and_timeo
     assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 3
     assert clock.value == pytest.approx(4.397)
 
+def test_general_guide_keeps_healthy_primary_then_prefers_openrouter_fallback(monkeypatch):
+    candidates = [
+        {**_item("groq", "openai/gpt-oss-120b"), "health_state": "healthy"},
+        {**_item("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"), "health_state": "half_open", "capabilities": ["composition", "low_latency"]},
+        {**_item("mistral", "mistral-small-latest"), "health_state": "half_open"},
+        {**_item("gemini", "gemini-3.8-flash"), "health_state": "half_open"},
+        {**_item("openrouter", "openrouter/free"), "health_state": "half_open", "quality_failures": 4},
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_csv", lambda _name: ["groq", "workers_ai", "mistral", "gemini", "openrouter"])
+    monkeypatch.setitem(provider_bank._STATE, "provider_cursor", 3)
+    monkeypatch.setitem(provider_bank._STATE, "model_cursors", {})
+
+    selected = provider_bank.select(use_core=None, operation="general_guide_composition")
+    providers = [item["provider"] for item in selected]
+
+    assert providers[:4] == ["groq", "openrouter", "workers_ai", "mistral"]
+    assert provider_bank._STATE["provider_cursor"] == 3
+
