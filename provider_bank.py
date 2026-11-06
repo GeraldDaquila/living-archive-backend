@@ -70,14 +70,12 @@ HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5
 # forced an extra repair call; keep a bounded 700-token envelope aligned with the
 # operation floor while retaining provider-level model ceilings.
 HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
-# General Guide gives each candidate a realistic but bounded inference timeout.
-# Quick failures may admit a bounded fallback; a slow failure stops the serial chain
-# so the WordPress bridge can use its remaining deadline for mirror recovery.
-# The 8-second arbitration window and shared request deadline are the stopping
-# controls. Allow the bank to reach other independent providers after fast failures,
-# without serially walking slow candidates or extending the visitor's time budget.
-GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 8.0
-GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 2
+# The ordinary Guide has a 24-second request-wide budget, including retrieval and
+# downstream validation, with six seconds reserved for one integrity repair.
+# Permit up to four independent fallbacks inside a 14-second provider window;
+# the absolute request deadline still clamps every call and preserves the repair reserve.
+GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 14.0
+GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 4
 # Reserve meaningful time for one independent fallback. A six-second first call
 # inside an eight-second visitor window can otherwise turn a slow timeout into
 # an effective single-shot architecture.
@@ -1437,9 +1435,9 @@ def select(use_core, operation="generic", schema=None):
                 -float(item.get("last_success", 0) or 0),
             ))
         elif operation in {"general_guide_composition", "fsd_report_composition"}:
-            # The general Guide may only have a five-second generation window.
-            # Do not let a half-open probe outrank a healthy model simply because
-            # its provider appears earlier in the rotating lane order.
+            # Keep current transport health ahead of rotating provider order, while the
+            # larger request-wide budget below allows more independent candidates
+            # to be reached after fast quota and transport failures.
             models.sort(key=lambda item: (
                 0 if item.get("health_state") == "healthy" else 1,
                 int(item.get("quality_failures", 0) or 0),
