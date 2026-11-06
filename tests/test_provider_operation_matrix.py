@@ -21,8 +21,16 @@ def test_every_gateway_operation_has_provider_bank_contract_and_validates():
         assert messages == [{"role": "user", "content": "Synthetic contract probe"}]
         assert max_tokens == 128
         assert operation in provider_bank.OPERATION_REQUIREMENTS
-        assert operation in provider_bank.OPERATION_TOKEN_FLOORS
-        assert provider_bank.OPERATION_TOKEN_FLOORS[operation] >= 128
+        # Text-only operations intentionally do not participate in the JSON
+        # completion-token floor map. Their output contract is validated by
+        # the operation-specific text route instead.
+        if operation in provider_bank.OPERATION_TOKEN_FLOORS:
+            assert provider_bank.OPERATION_TOKEN_FLOORS[operation] >= 128
+        else:
+            assert operation == "hrn_voice_repair"
+            assert provider_bank.OPERATION_REQUIREMENTS[operation] == frozenset(
+                {"text_generation", "relational_analysis"}
+            )
 
 
 def test_internal_guide_composition_lane_is_banked_but_not_gateway_exposed():
