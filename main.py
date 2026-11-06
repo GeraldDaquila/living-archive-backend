@@ -6682,7 +6682,7 @@ def _established_general_knowledge_recovery(query):
             ),
         },
     }
-    named_concept = re.match(r"^(?:what\s+is|what\s+does)\s+(?:the\s+)?(.+?)(?:\s+mean)?\??$", normalized)
+    named_concept = re.match(\n        r"^(?:(?:can|could)\s+you\s+|please\s+)?"\n        r"(?:what\s+is|what\s+does|define|explain|meaning\s+of)\s+"\n        r"(?:the\s+)?(.+?)(?:\s+mean)?\??$",\n        normalized,\n    )
     if named_concept:
         candidate = re.sub(r"\s+", " ", named_concept.group(1)).strip(" .?!")
         candidate = re.sub(r"^(?:the\s+)", "", candidate).strip()
