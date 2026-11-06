@@ -12,6 +12,7 @@ on:
       - 'guide_runtime.py'
       - 'use_core.py'
       - 'tests/test_retrieval_navigation_integrity.py'
+      - 'tests/test_structural_retrieval_budget.py'
   workflow_dispatch:
 
 permissions:
