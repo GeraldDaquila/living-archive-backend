@@ -40,3 +40,23 @@ def test_perspective_narratives_name_distinct_exploration_domains():
     assert "authority" in LIB["relational_patterns"]["P_K"]["collective"]
     assert "first interpretation" in LIB["relational_patterns"]["R_P"]["individual"]
     assert "whose experience" in LIB["relational_patterns"]["P_R"]["collective"]
+
+
+def test_boundary_and_tie_contract_is_explicit():
+    validation = LIB["simulation_validation"]
+    gaps = {item["gap"]: item["expected"] for item in validation["boundary_cases"]}
+    assert "no relational pattern" in gaps[0.79]
+    assert "qualifies" in gaps[0.80]
+    assert LIB["pattern_precedence"][0] == "P_K"
+
+def test_all_625_band_vectors_have_deterministic_output():
+    for vector in itertools.product(BANDS, repeat=4):
+        selected = select(vector)
+        assert selected in set(LIB["profile_shapes"]) | set(LIB["relational_patterns"])
+
+def test_capacity_context_is_available_for_all_dimensions():
+    for dimension in DIMS:
+        assert LIB["strongest_capacity_meaning"][dimension]["individual"]
+        assert LIB["strongest_capacity_meaning"][dimension]["collective"]
+        assert LIB["lowest_capacity_context"][dimension]["individual"]
+        assert LIB["lowest_capacity_context"][dimension]["collective"]
