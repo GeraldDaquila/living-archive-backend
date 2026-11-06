@@ -952,9 +952,7 @@ def expand_context(
     index: Any,
     core: Any,
 ) -> list[dict[str, str]]:
-    """Return a small, verified evidence expansion; never use partial inventories."""
-    if index is None:
-        return []
+    """Return canonical territorial links from the published snapshot only."""
     with _LOCK:
         snapshot = _SNAPSHOT
     if snapshot is None:
