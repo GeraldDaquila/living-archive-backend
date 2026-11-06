@@ -19,6 +19,7 @@ on:
       - "safety_intelligence.py"
       - "tests/test_use_ecosystem_randomized_resilience.py"
       - "tests/test_use_query_asgi_acceptance.py"
+      - "tests/test_provider_operation_matrix.py"
       - ".github/workflows/use-ecosystem-randomized-resilience.yml"
   workflow_dispatch:
 
@@ -44,6 +45,7 @@ jobs:
             tests/test_provider_quota_admission.py -v
           python -m pytest -q \
             tests/test_use_query_asgi_acceptance.py \
+            tests/test_provider_operation_matrix.py \
             tests/test_meta_crosslink_no_runtime_pinecone.py \
             tests/test_safety_first_turn_resource_handoff.py \
             tests/test_streaming_transport_contract.py \
