@@ -392,7 +392,7 @@ def test_general_guide_probes_one_openrouter_sibling_before_other_fallback_lanes
     ]
     assert provider_bank._STATE["provider_cursor"] == 2
 
-def test_general_guide_prefers_nvidia_and_workers_before_paid_tier_fallbacks(monkeypatch):
+def test_general_guide_prefers_nvidia_and_workers_before_other_fallback_lanes(monkeypatch):
     candidates = [
         {**_item("groq", "openai/gpt-oss-120b"), "health_state": "healthy"},
         {**_item("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"), "health_state": "half_open"},
