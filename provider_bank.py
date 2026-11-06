@@ -72,11 +72,11 @@ HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5
 HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
 # The ordinary Guide has a 24-second request-wide budget, including retrieval and
 # downstream validation, with six seconds reserved for one integrity repair.
-# Permit up to four independent fallbacks inside a 14-second provider window;
+# Permit up to three fallback candidates inside a 10-second provider window;
 # the absolute request deadline still clamps every call and preserves the repair reserve.
-GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 14.0
-GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 4
-# Keep each candidate bounded; the 14-second arbitration window is still
+GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 10.0
+GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 3
+# Keep each candidate bounded; the 10-second arbitration window is still
 # constrained by the absolute 24-second request deadline and its six-second
 # response-integrity repair reserve.
 GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS = 3.0
@@ -1436,7 +1436,7 @@ def select(use_core, operation="generic", schema=None):
             ))
         elif operation in {"general_guide_composition", "fsd_report_composition"}:
             # Keep current transport health ahead of rotating provider order, while the
-            # larger request-wide budget below allows more independent candidates
+            # request-wide budget below preserves time for response-integrity repair
             # to be reached after fast quota and transport failures.
             models.sort(key=lambda item: (
                 0 if item.get("health_state") == "healthy" else 1,
