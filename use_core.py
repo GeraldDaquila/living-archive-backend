@@ -2014,6 +2014,9 @@ def _structural_relationship(
     return "NONE", 0
 
 
+STRUCTURAL_RETRIEVAL_TOP_K = 48
+
+
 def _query_structural_index(
     collection_name: str,
 ) -> List[Dict[str, Any]]:
@@ -2033,14 +2036,15 @@ def _query_structural_index(
         alias.strip() for alias in aliases if alias.strip()
     ))
 
+    # The former four variants per alias produced up to 16 Pinecone
+    # queries at top_k=250 for Pathways alone (4,000 metadata-bearing matches
+    # requested for one visitor question). The three functional variants were
+    # highly overlapping. Retain one exact alias probe and one combined
+    # destination-intent probe, with a bounded candidate window.
     query_variants = tuple(dict.fromkeys(
         [
             *(f'"{alias}"' for alias in alias_variants),
-            *(f"Living Archive {alias} collection index landing page gateway"
-              for alias in alias_variants),
-            *(f"Living Archive {alias} where to find explore browse access"
-              for alias in alias_variants),
-            *(f"Living Archive {alias} continue exploring choose begin"
+            *(f"Living Archive {alias} collection landing page gateway where to find explore browse access"
               for alias in alias_variants),
         ]
     ))
@@ -2055,7 +2059,7 @@ def _query_structural_index(
         # Structural discovery is a recall problem before it is a ranking
         # problem. Search a materially wider candidate set than ordinary
         # topical retrieval, then apply relationship qualification locally.
-        candidates = _query_index(vector, max(RETRIEVAL_TOP_K, 250))
+        candidates = _query_index(vector, STRUCTURAL_RETRIEVAL_TOP_K)
 
         for semantic_score, _match_id_value, metadata in candidates:
             relationship, structural_score = _structural_relationship(
