@@ -8162,9 +8162,28 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             str(_cosmology_lived_recovery["response"])
         )
         archive_evidence_unavailable = False
-        authoritative_doorway = None
-        composition_context.pop("authoritative_doorway", None)
-        composition_context.pop("authoritative_doorway_title", None)
+        # This later recovery may replace the answer text, but it must not
+        # erase a separately registered concept doorway already proven for
+        # the same request.
+        preserved_concept_doorway = _normalize_authoritative_recommendation(
+            (general_knowledge_recovery or {}).get("doorway")
+            if isinstance(general_knowledge_recovery, dict)
+            else None
+        )
+        if preserved_concept_doorway:
+            authoritative_doorway = preserved_concept_doorway
+            composition_context["authoritative_doorway"] = preserved_concept_doorway
+            composition_context["authoritative_doorway_title"] = (
+                preserved_concept_doorway.get("title") or ""
+            )
+            print(
+                "The Guide cosmology recovery: preserved registered concept "
+                "doorway through the final answer override."
+            )
+        else:
+            authoritative_doorway = None
+            composition_context.pop("authoritative_doorway", None)
+            composition_context.pop("authoritative_doorway_title", None)
         composition_context.pop("evidence_sufficiency_unavailable", None)
         composition_context["archive_reference_recovery"] = _cosmology_lived_recovery["recovery_id"]
         print("The Guide conceptual boundary: applied approved Archive-informed cosmology recovery.")
