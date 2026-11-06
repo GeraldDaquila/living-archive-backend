@@ -842,6 +842,14 @@ def _asset_score(query_tokens: set[str], seed_tokens: set[str], asset: dict[str,
     summary_tokens = _tokens(asset.get("summary"))
     sample_tokens = _tokens(asset.get("sample"))
     searchable = summary_tokens | sample_tokens | _tokens(asset.get("resource_type"))
+    # A multi-word named concept must have more than one meaningful point of
+    # overlap before the territorial map can surface a destination. Otherwise
+    # a phrase such as "Law of One" degenerates into a generic "Law" link.
+    searchable_tokens = title_tokens | summary_tokens | sample_tokens
+    query_overlap = query_tokens & searchable_tokens
+    if len(query_tokens) >= 2 and len(query_overlap) < 2:
+        return 0.0
+
     score = 0.0
     score += 4.0 * len(query_tokens & title_tokens)
     score += 1.7 * len(query_tokens & summary_tokens)
