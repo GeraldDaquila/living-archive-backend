@@ -278,8 +278,8 @@ def test_provider_bank_real_route_skips_candidate_blocked_during_arbitration():
         return json.dumps({"answer": "healthy lane"})
 
     patches = _offline_bank_patches(bank, candidates, fake_call)
-    with patches[0], patches[1], patches[2], patches[3], patches[4], \\
-         patch.object(bank, "_blocked_for_operation", side_effect=[True, False]):
+    with (patches[0], patches[1], patches[2], patches[3], patches[4],
+          patch.object(bank, "_blocked_for_operation", side_effect=[True, False])):
         result = bank.route(
             use_core=object(),
             messages=[{"role": "user", "content": "Synthetic blocked-candidate test"}],
