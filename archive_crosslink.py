@@ -979,9 +979,9 @@ def expand_context(
     assets = select_crosslinks(query, seed_documents, snapshot)
     # v2 is a territorial navigation map, not a substitute corpus. Its
     # canonical WordPress records supply destination links without Pinecone.
-        return [
-            {
-                "title": _text(asset.get("title"), 300),
+    return [
+        {
+            "title": _text(asset.get("title"), 300),
                 "url": _normalize_url(asset.get("url")),
                 "summary": _text(asset.get("summary"), 600),
                 "content": "",
