@@ -223,9 +223,9 @@ def _self_audit() -> None:
         second = proxy.query(vector=[0.0], top_k=100)
         third = proxy.query(vector=[0.0], top_k=1)
         assert len(first["matches"]) == 10
-        assert len(second["matches"]) == 10
-        assert len(third["matches"]) == 1
-        assert fake.calls == [10, 10, 1]
+        assert len(second["matches"]) == 4
+        assert third["matches"] == []
+        assert fake.calls == [10, 4]
     finally:
         _REQUEST_STATE.reset(token)
     print("USE Pinecone retrieval budget self-audit: PASS", flush=True)
