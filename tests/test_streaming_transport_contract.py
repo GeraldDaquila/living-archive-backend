@@ -133,7 +133,7 @@ def test_client_disconnect_during_keepalive_cancels_target_task():
             )
 
     with pytest.raises(OSError, match="synthetic client disconnect"):
-        await run()
+        asyncio.run(run())
 
     assert cancelled.is_set(), "target task must not continue after client disconnect"
 
