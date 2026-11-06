@@ -95,6 +95,53 @@ class RandomizedEcosystemResilienceTests(unittest.TestCase):
         with self.assertRaises(TimeoutError):
             failing.query(vector=[0.0] * 384, top_k=3)
 
+    def test_monthly_egress_exhaustion_opens_circuit_and_skips_future_queries(self):
+        from unittest.mock import patch
+        import pinecone_retrieval_budget as budget
+
+        class ExhaustedIndex:
+            def __init__(self):
+                self.calls = 0
+
+            def query(self, **kwargs):
+                self.calls += 1
+                raise RuntimeError("429 monthly egress limit exceeded")
+
+        fake = ExhaustedIndex()
+        proxy = BoundedPineconeIndex(fake, per_query_cap=7)
+        with patch.object(budget, "_EGRESS_BLOCKED_MONTH", None), \\
+             patch.object(budget, "_EGRESS_LOGGED_MONTH", None), \\
+             patch.object(budget, "_utc_month", return_value="2099-01"):
+            first = proxy.query(vector=[0.0] * 384, top_k=5)
+            second = proxy.query(vector=[0.0] * 384, top_k=5)
+
+            self.assertEqual(first, {"matches": []})
+            self.assertEqual(second, {"matches": []})
+            self.assertEqual(fake.calls, 1)
+            self.assertTrue(budget._circuit_is_open())
+
+    def test_monthly_egress_circuit_resets_on_new_utc_month(self):
+        from unittest.mock import patch
+        import pinecone_retrieval_budget as budget
+
+        class HealthyIndex:
+            def __init__(self):
+                self.calls = 0
+
+            def query(self, **kwargs):
+                self.calls += 1
+                return {"matches": [{"id": "recovered"}]}
+
+        fake = HealthyIndex()
+        proxy = BoundedPineconeIndex(fake, per_query_cap=7)
+        with patch.object(budget, "_EGRESS_BLOCKED_MONTH", "2099-01"), \\
+             patch.object(budget, "_EGRESS_LOGGED_MONTH", "2099-01"), \\
+             patch.object(budget, "_utc_month", return_value="2099-02"):
+            result = proxy.query(vector=[0.0] * 384, top_k=1)
+            self.assertEqual(result["matches"][0]["id"], "recovered")
+            self.assertEqual(fake.calls, 1)
+            self.assertFalse(budget._circuit_is_open())
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
