@@ -1435,11 +1435,18 @@ def select(use_core, operation="generic", schema=None):
                 -float(item.get("last_success", 0) or 0),
             ))
         elif operation in {"general_guide_composition", "fsd_report_composition"}:
-            # Keep current transport health ahead of rotating provider order, while the
-            # request-wide budget below preserves time for response-integrity repair
-            # to be reached after fast quota and transport failures.
+            # Keep current transport health first, then use reviewed low-cost
+            # model preferences within a provider lane. This prevents cursor
+            # rotation or stale quality counters from selecting a known-bad sibling
+            # ahead of the reviewed NVIDIA 3.5 Lightning and Workers GLM Flash models.
+            preferred_models = {
+                "openrouter": {"openrouter/free": 0},
+                "nvidia": {"nvidia/nemotron-3.5-lightning-30b-a3b": 0},
+                "workers_ai": {"@cf/zai-org/glm-4.7-flash": 0},
+            }.get(provider, {})
             models.sort(key=lambda item: (
                 0 if item.get("health_state") == "healthy" else 1,
+                preferred_models.get(str(item.get("model") or ""), 1),
                 int(item.get("quality_failures", 0) or 0),
                 0 if "low_latency" in (item.get("capabilities") or []) else 1,
                 int(item.get("consecutive_failures", 0) or 0),
