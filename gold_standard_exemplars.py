@@ -1,4 +1,4 @@
-""""Governed, low-cost structural exemplars for the public General Guide.
+"""Governed, low-cost structural exemplars for the public General Guide.
 
 The version-controlled Gold Standard Registry remains authoritative. Exemplars
 supply response-shape guidance only: they never provide answer text, factual
