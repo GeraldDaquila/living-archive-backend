@@ -57,7 +57,7 @@ def test_guidance_contains_structure_but_never_answer_or_doorway():
 
 def test_unrelated_question_falls_back_without_exemplar():
     guidance, token = exemplars.build_exemplar_guidance(
-        "What is the boiling point of water at sea level?"
+        "What is the speed of light in a vacuum?"
     )
     assert guidance == ""
     assert token == "none"
