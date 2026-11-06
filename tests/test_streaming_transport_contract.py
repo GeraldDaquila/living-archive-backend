@@ -116,7 +116,7 @@ def test_client_disconnect_during_keepalive_cancels_target_task():
     messages = []
 
     async def send(message):
-        if message.get("body") == b": keep-alive\\n\\n":
+        if message.get("body") == b": keep-alive\n\n":
             raise OSError("synthetic client disconnect")
         messages.append(message)
 
