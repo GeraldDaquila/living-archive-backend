@@ -120,10 +120,12 @@ def test_client_disconnect_during_keepalive_cancels_target_task():
             raise OSError("synthetic client disconnect")
         messages.append(message)
 
+    real_wait_for = asyncio.wait_for
+
     async def immediate_timeout(awaitable, timeout):
-        # Model the keep-alive interval expiring without waiting eight seconds.
-        # Leave the shielded target task running, as a real timeout would.
-        raise asyncio.TimeoutError()
+        # Use the real timeout implementation with a short interval. The
+        # shield keeps the target task alive until the disconnect cancels it.
+        return await real_wait_for(awaitable, timeout=0.001)
 
     async def run():
         with patch("streaming_transport.asyncio.wait_for", side_effect=immediate_timeout):
