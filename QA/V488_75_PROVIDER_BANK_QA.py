@@ -78,10 +78,10 @@ def main():
     assert "if operation in hrn_operations:" in provider
     assert "elif bounded_guide_operation:" in provider
     assert "operation_attempt_cap = 1" in provider
-    assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 8.0" in provider
+    assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 14.0" in provider
     assert "GENERAL_GUIDE_SLOW_FAILURE_STOP_SECONDS" not in provider
     assert 'if operation == "hrn_perception":' in provider
-    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 2" in provider
+    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 3" in provider
     assert "GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS = 3.0" in provider
     assert "GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS = 4.0" in provider
     assert "base_max_attempts = min(len(pool), operation_attempt_cap)" in provider
@@ -92,7 +92,7 @@ def main():
     assert '0 if "low_latency" in (item.get("capabilities") or []) else 1' in provider
     # HRN stages share one visitor turn: provider priority must not rotate between
     # perception and composition, or the bounded window can skip a healthy primary.
-    assert 'if operation not in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:' in provider
+    assert 'if operation not in {"hrn_perception", "hrn_relational", "hrn_voice_repair", "general_guide_composition"}:' in provider
     assert 'providers = _rotate(providers, int(_STATE["provider_cursor"]))' in provider
     # Bound latency-heavy visitor-facing prose stages without truncating the
     # richer perception/Observer schema needed to form the relational fractal.
