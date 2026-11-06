@@ -412,3 +412,26 @@ def test_general_guide_prefers_nvidia_and_workers_before_other_fallback_lanes(mo
     assert providers[:5] == ["groq", "openrouter", "nvidia", "workers_ai", "mistral"]
     assert provider_bank._STATE["provider_cursor"] == 2
 
+def test_general_guide_prefers_reviewed_fast_models_within_free_provider_lanes(monkeypatch):
+    candidates = [
+        {**_item("nvidia", "google/gemma-4-31b-it"), "health_state": "half_open", "quality_failures": 0},
+        {**_item("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"), "health_state": "half_open", "quality_failures": 3},
+        {**_item("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"), "health_state": "half_open", "quality_failures": 0},
+        {**_item("workers_ai", "@cf/zai-org/glm-4.7-flash"), "health_state": "half_open", "quality_failures": 3, "capabilities": ["composition", "low_latency"]},
+    ]
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: candidates)
+    monkeypatch.setattr(provider_bank, "_csv", lambda _name: ["nvidia", "workers_ai"])
+    monkeypatch.setitem(provider_bank._STATE, "provider_cursor", 1)
+    monkeypatch.setitem(provider_bank._STATE, "model_cursors", {"nvidia": 1, "workers_ai": 1})
+
+    selected = provider_bank.select(use_core=None, operation="general_guide_composition")
+    ordered = [(item["provider"], item["model"]) for item in selected]
+
+    assert ordered[:4] == [
+        ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"),
+        ("workers_ai", "@cf/zai-org/glm-4.7-flash"),
+        ("nvidia", "google/gemma-4-31b-it"),
+        ("workers_ai", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
+    ]
+    assert provider_bank._STATE["provider_cursor"] == 1
+
