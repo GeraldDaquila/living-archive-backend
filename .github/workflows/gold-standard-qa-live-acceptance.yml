@@ -51,3 +51,28 @@ jobs:
       - name: Verify real WordPress visitor rendering against QA backend
         timeout-minutes: 3
         run: timeout --signal=TERM --kill-after=5s 160s node QA/guide_healthy_community_live_e2e.mjs
+      - name: Verify exact Gold Standard exemplar query on QA backend
+        timeout-minutes: 1
+        run: |
+          payload="$(curl -fsS --max-time 40 \
+            -H 'Content-Type: application/json' \
+            -H 'Accept: application/json' \
+            -d '{"query":"Why does human development matter?"}' \
+            "$USE_API_ORIGIN/api/query")"
+          printf '%s' "$payload" | python -c '
+          import json,sys
+          body=json.load(sys.stdin)
+          answer=str(body.get("response") or "")
+          basis=(body.get("answer_basis") or {}).get("kind")
+          recommendation=body.get("recommendation") or {}
+          assert body.get("version") == "v489.310", body.get("version")
+          assert len(answer.strip()) >= 120, answer
+          assert basis == "archive_supported", body.get("answer_basis")
+          assert str(recommendation.get("url") or "").startswith("https://geralddaquila.com/"), recommendation
+          print(json.dumps({
+              "version": body.get("version"),
+              "answer_basis": basis,
+              "recommendation": recommendation,
+              "response": answer
+          }, ensure_ascii=False))
+          '
