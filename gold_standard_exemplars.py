@@ -199,16 +199,16 @@ def build_exemplar_guidance(query: str) -> Tuple[str, str]:
     if not exemplar:
         return "", "none"
     guidance = (
-        "Potentially relevant reviewed General Guide exemplar (structural cue only):\\n"
-        f"Exemplar question: {exemplar['query']}\\n"
-        + (f"Recorded theme: {exemplar['known_theme']}\\n" if exemplar["known_theme"] else "")
-        + ("Relevant quality checks: " + "; ".join(exemplar["assertions"]) + "\\n" if exemplar["assertions"] else "")
+        "Potentially relevant reviewed General Guide exemplar (structural cue only):\n"
+        f"Exemplar question: {exemplar['query']}\n"
+        + (f"Recorded theme: {exemplar['known_theme']}\n" if exemplar["known_theme"] else "")
+        + ("Relevant quality checks: " + "; ".join(exemplar["assertions"]) + "\n" if exemplar["assertions"] else "")
         + "Transfer only the response structure and quality that genuinely fit this "
         "question. Rebuild all substance for the visitor's actual question and the "
         "currently supplied evidence. Do not copy the exemplar's answer, claims, "
         "examples, wording, citations, or destination. Do not force its paragraph "
         "count or response shape when the current question calls for something else. "
         "The visitor's explicit instructions and current evidence take precedence. "
-        "If the analogy is not genuinely relevant, ignore it.\\n\\n"
+        "If the analogy is not genuinely relevant, ignore it.\n\n"
     )
     return guidance, exemplar["benchmark_id"]
