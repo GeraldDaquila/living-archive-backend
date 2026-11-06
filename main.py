@@ -6659,6 +6659,28 @@ def _established_general_knowledge_recovery(query):
     if not normalized:
         return None
 
+    # Public concept registry: these are bounded, stable orientation records.
+    # They are explicitly general knowledge, never Archive attribution. New
+    # concepts must be registered with a precise phrase and reviewed response;
+    # fuzzy title matches are not permitted to manufacture definitions.
+    public_concepts = {
+        "law of one": {
+            "fact_id": "public_concept_law_of_one",
+            "response": (
+                "“The Law of One” is a spiritual and philosophical idea centered on the unity of all existence. "
+                "The phrase is especially associated with *The Law of One* (the Ra Material), where reality is described as ultimately one, with apparent differences understood within a larger unity.\n\n"
+                "That is a general orientation to the term, not a claim about how the Living Archive uses it. "
+                "Different traditions may give the idea different meanings, so the specific source or tradition matters when a more precise interpretation is needed."
+            ),
+        },
+    }
+    named_concept = re.match(r"^(?:what\s+is|what\s+does)\s+(?:the\s+)?(.+?)(?:\s+mean)?\??$", normalized)
+    if named_concept:
+        candidate = re.sub(r"\s+", " ", named_concept.group(1)).strip(" .?!")
+        record = public_concepts.get(candidate)
+        if record:
+            return dict(record)
+
     water_boiling_question = bool(
         re.search(r"\bwater\b", normalized)
         and re.search(r"\bboil(?:s|ing)?\b", normalized)
