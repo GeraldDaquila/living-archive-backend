@@ -6703,6 +6703,20 @@ def _established_general_knowledge_recovery(query):
         if record:
             return dict(record)
 
+    # Registered concepts remain exact phrase matches, but definition requests
+    # may contain additional natural-language wording around the concept.
+    asks_for_definition = bool(re.search(
+        r"\b(?:what\s+is|what\s+does|define|definition|explain|meaning|mean)\b",
+        normalized,
+    ))
+    if asks_for_definition:
+        for concept_phrase, record in public_concepts.items():
+            if re.search(
+                rf"(?<![a-z0-9]){re.escape(concept_phrase)}(?![a-z0-9])",
+                normalized,
+            ):
+                return dict(record)
+
     water_boiling_question = bool(
         re.search(r"\bwater\b", normalized)
         and re.search(r"\bboil(?:s|ing)?\b", normalized)
