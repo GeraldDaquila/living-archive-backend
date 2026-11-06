@@ -754,11 +754,18 @@ def should_start_refresh(service_id: str | None) -> bool:
 
 
 def start_refresh(index: Any, core: Any, *, force: bool = False) -> bool:
-    """Start one bounded full-corpus refresh.
+    """Legacy Pinecone inventory rebuild, disabled unless explicitly opted in.
 
-    Normal operation uses the validated in-process snapshot. Automatic rebuilds
-    are limited to a monthly safety interval; force=True is for deliberate refresh.
+    Production crosslinks are published from the canonical WordPress registry.
+    A visitor request or Render restart must never enumerate/fetch the corpus.
+    The opt-in exists only for isolated, deliberate migration testing.
     """
+    if os.getenv("ALLOW_LEGACY_PINECONE_CROSSLINK_REFRESH", "").strip().lower() != "true":
+        _log(
+            "USE archive meta-crosslink inventory: legacy_pinecone_refresh_disabled=true; "
+            "source=wordpress_snapshot_publisher"
+        )
+        return False
     if index is None:
         return False
     global _REFRESH_THREAD, _LAST_ATTEMPT
@@ -951,20 +958,27 @@ def expand_context(
     with _LOCK:
         snapshot = _SNAPSHOT
     if snapshot is None:
-        # A process restart may require one bounded rebuild. Once a validated
-        # snapshot exists, normal requests do not trigger repeated corpus scans.
-        start_refresh(index, core)
+        # Missing/unavailable snapshots are a publishing problem, never a reason
+        # to reconstruct the corpus through visitor-time Pinecone enumeration.
+        _log(
+            "USE archive meta-crosslink: snapshot_unavailable=true; "
+            "pinecone_fallback=disabled; publisher_required=true"
+        )
         return []
     if not snapshot.get("crosslink_ready"):
-        # Preserve fail-closed behavior without repeatedly spending Pinecone
-        # operations on an inventory that has already failed validation.
         return []
-    start_refresh(index, core)
+    # Only the WordPress-published v2 territorial map is valid at runtime.
+    # Legacy v1 inventories contain Pinecone vector references and must not
+    # trigger per-visitor vector fetches.
+    if snapshot.get("contract") != "archive-crosslink-inventory-v2":
+        _log(
+            "USE archive meta-crosslink: legacy_snapshot_rejected=true; "
+            "pinecone_fallback=disabled; publisher_required=true"
+        )
+        return []
     assets = select_crosslinks(query, seed_documents, snapshot)
     # v2 is a territorial navigation map, not a substitute corpus. Its
-    # canonical WordPress records can supply destination links directly without
-    # spending Pinecone operations to reconstruct text evidence.
-    if snapshot.get("contract") == "archive-crosslink-inventory-v2":
+    # canonical WordPress records supply destination links without Pinecone.
         return [
             {
                 "title": _text(asset.get("title"), 300),
