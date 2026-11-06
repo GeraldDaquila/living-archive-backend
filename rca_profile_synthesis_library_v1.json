@@ -385,5 +385,114 @@
       "Every doorway must begin from an existing capacity, exception, or working condition.",
       "The report must not claim to know a cause that the questionnaire did not measure."
     ]
+  },
+  "edge_case_simulation_matrix": {
+    "purpose": "Validate threshold stability, competing relationships, asymmetric profiles, and equal-average profiles before implementation.",
+    "cases": [
+      {
+        "id": "E-01",
+        "perspective": "individual",
+        "scores": {
+          "Resonance": 3.79,
+          "Coherence": 3.4,
+          "Correspondence": 3,
+          "Correctability": 3
+        },
+        "focus": "A 0.79 gap does not independently select a relational pattern"
+      },
+      {
+        "id": "E-02",
+        "perspective": "individual",
+        "scores": {
+          "Resonance": 3.8,
+          "Coherence": 3.4,
+          "Correspondence": 3,
+          "Correctability": 3
+        },
+        "focus": "A 0.80 gap selects the qualifying relationship"
+      },
+      {
+        "id": "E-03",
+        "perspective": "collective",
+        "scores": {
+          "Resonance": 4.6,
+          "Coherence": 3,
+          "Correspondence": 2,
+          "Correctability": 3
+        },
+        "focus": "Competing gaps follow canonical precedence"
+      },
+      {
+        "id": "E-04",
+        "perspective": "individual",
+        "scores": {
+          "Resonance": 4.8,
+          "Coherence": 4.7,
+          "Correspondence": 4.6,
+          "Correctability": 3.6
+        },
+        "focus": "A strong profile with one gap preserves both resource and inquiry"
+      },
+      {
+        "id": "E-05",
+        "perspective": "collective",
+        "scores": {
+          "Resonance": 1.8,
+          "Coherence": 1.7,
+          "Correspondence": 1.6,
+          "Correctability": 2.8
+        },
+        "focus": "A constrained profile with one resource begins from the available strength"
+      },
+      {
+        "id": "E-06",
+        "perspective": "individual",
+        "scores": {
+          "Resonance": 4.6,
+          "Coherence": 2.6,
+          "Correspondence": 3,
+          "Correctability": 2.6
+        },
+        "focus": "Equal-average contrast with strong attention"
+      },
+      {
+        "id": "E-07",
+        "perspective": "individual",
+        "scores": {
+          "Resonance": 2.6,
+          "Coherence": 3,
+          "Correspondence": 4.6,
+          "Correctability": 2.6
+        },
+        "focus": "Equal-average contrast with strong reality checking"
+      },
+      {
+        "id": "E-08",
+        "perspective": "collective",
+        "scores": {
+          "Resonance": 4,
+          "Coherence": 3.2,
+          "Correspondence": 4,
+          "Correctability": 3.2
+        },
+        "focus": "Exact tie has explicit deterministic precedence"
+      }
+    ],
+    "acceptance_criteria": [
+      "A threshold change of 0.01 has a documented deterministic routing consequence.",
+      "Competing patterns resolve through canonical precedence.",
+      "The same overall average does not force the same synthesis when relationships differ.",
+      "The selected narrative remains understandable without internal system jargon."
+    ]
+  },
+  "editorial_quality_gate": {
+    "before_live_integration": [
+      "Every simulated report states what the pattern means in everyday language.",
+      "Every simulated report explains why the pattern matters.",
+      "Every simulated report provides a concrete appreciative doorway.",
+      "No narrative makes a causal or diagnostic claim from questionnaire scores alone.",
+      "Individual and Collective versions of the same vector remain materially different."
+    ],
+    "decision": "Complete routing and editorial review before wiring the library into Woody."
   }
 }
