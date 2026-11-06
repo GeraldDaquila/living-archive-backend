@@ -236,5 +236,137 @@
       "individual": "The least available part concerns turning recognition into a meaningful adjustment. Look for a real exception—when you did change course—and study what made that movement possible.",
       "collective": "The least available part concerns turning what the group knows into what the group does. Find an example when recognition led to action and examine the conditions that allowed the change."
     }
+  },
+  "simulation_matrix": {
+    "purpose": "Editorial validation of whether deterministic score patterns produce materially different, useful orientation.",
+    "cases": [
+      {
+        "id": "I-01",
+        "perspective": "individual",
+        "scores": {
+          "Resonance": 3.4,
+          "Coherence": 3.5,
+          "Correspondence": 3.3,
+          "Correctability": 3.4
+        },
+        "expected_pattern": "Balanced",
+        "editorial_question": "Does a balanced profile avoid inventing a problem while still opening useful inquiry?"
+      },
+      {
+        "id": "I-02",
+        "perspective": "individual",
+        "scores": {
+          "Resonance": 3,
+          "Coherence": 3.8,
+          "Correspondence": 4.4,
+          "Correctability": 2.3
+        },
+        "expected_pattern": "P_K",
+        "editorial_question": "Does the synthesis distinguish seeing a problem from being able to change course?"
+      },
+      {
+        "id": "I-03",
+        "perspective": "individual",
+        "scores": {
+          "Resonance": 2.2,
+          "Coherence": 3,
+          "Correspondence": 4.4,
+          "Correctability": 3.7
+        },
+        "expected_pattern": "P_R",
+        "editorial_question": "Does careful reasoning lead naturally to inquiry about what is missing from attention?"
+      },
+      {
+        "id": "I-04",
+        "perspective": "individual",
+        "scores": {
+          "Resonance": 4.5,
+          "Coherence": 2.5,
+          "Correspondence": 3.4,
+          "Correctability": 3.2
+        },
+        "expected_pattern": "R_C",
+        "editorial_question": "Does noticing more than can be integrated produce a concrete, non-jargon explanation?"
+      },
+      {
+        "id": "I-05",
+        "perspective": "individual",
+        "scores": {
+          "Resonance": 4.6,
+          "Coherence": 4.5,
+          "Correspondence": 4.4,
+          "Correctability": 4.6
+        },
+        "expected_pattern": "HighBalanced",
+        "editorial_question": "Does a strong profile lead to stewardship of enabling conditions rather than congratulation?"
+      },
+      {
+        "id": "C-01",
+        "perspective": "collective",
+        "scores": {
+          "Resonance": 3,
+          "Coherence": 3.8,
+          "Correspondence": 4.4,
+          "Correctability": 2.3
+        },
+        "expected_pattern": "P_K",
+        "editorial_question": "Does the group version investigate structural conditions without claiming a cause?"
+      },
+      {
+        "id": "C-02",
+        "perspective": "collective",
+        "scores": {
+          "Resonance": 2.2,
+          "Coherence": 3,
+          "Correspondence": 4.4,
+          "Correctability": 3.7
+        },
+        "expected_pattern": "P_R",
+        "editorial_question": "Does the collective version ask whose experience is missing rather than merely pluralizing the individual text?"
+      },
+      {
+        "id": "C-03",
+        "perspective": "collective",
+        "scores": {
+          "Resonance": 4.5,
+          "Coherence": 2.5,
+          "Correspondence": 3.4,
+          "Correctability": 3.2
+        },
+        "expected_pattern": "R_C",
+        "editorial_question": "Does fragmentation across functions become understandable in ordinary organizational language?"
+      },
+      {
+        "id": "C-04",
+        "perspective": "collective",
+        "scores": {
+          "Resonance": 1.8,
+          "Coherence": 2,
+          "Correspondence": 1.9,
+          "Correctability": 1.7
+        },
+        "expected_pattern": "LowBalanced",
+        "editorial_question": "Does a constrained profile remain developmental and begin with exceptions rather than deficiency?"
+      },
+      {
+        "id": "C-05",
+        "perspective": "collective",
+        "scores": {
+          "Resonance": 3.9,
+          "Coherence": 3.8,
+          "Correspondence": 3.9,
+          "Correctability": 3.8
+        },
+        "expected_pattern": "Balanced",
+        "editorial_question": "Does a working balanced profile produce a useful next question rather than a generic reassurance?"
+      }
+    ],
+    "acceptance_criteria": [
+      "Two profiles with similar averages but different capacity relationships must produce materially different narratives.",
+      "Individual and Collective versions of the same score vector must identify different domains of inquiry.",
+      "Every narrative must explain why the pattern matters before offering a doorway.",
+      "Every doorway must begin from an existing capacity, exception, or working condition.",
+      "The report must not claim to know a cause that the questionnaire did not measure."
+    ]
   }
 }
