@@ -134,9 +134,11 @@ def test_client_disconnect_during_keepalive_cancels_target_task():
                 _request(), send, target,
             )
 
-    with pytest.raises(OSError, match="synthetic client disconnect"):
-        asyncio.run(run())
+    asyncio.run(run())
 
-    assert cancelled.is_set(), "target task must not continue after client disconnect"
+    assert cancelled.is_set(), "target task must be cancelled after client disconnect"
+    assert "stream_failed" not in _event_names(messages), (
+        "a disconnected client must not receive a fabricated target-failure event"
+    )
 
 
