@@ -19,7 +19,11 @@ from provider_resilience import (
     record_success,
     state_summary,
 )
-from guide_request_budget import bounded_provider_timeout as _bounded_request_provider_timeout, remaining_seconds as _request_remaining_seconds
+from guide_request_budget import (
+    bounded_provider_timeout as _bounded_request_provider_timeout,
+    remaining_seconds as _request_remaining_seconds,
+    REPAIR_RESERVE_SECONDS as GUIDE_REPAIR_RESERVE_SECONDS,
+)
 from provider_health_store import (
     export_health_states,
     load_remote_states,
@@ -72,13 +76,12 @@ HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS = 2.5
 HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
 # The ordinary Guide has a 24-second request-wide budget, including retrieval and
 # downstream validation, with six seconds reserved for one integrity repair.
-# Permit up to three fallback candidates inside a 10-second provider window;
-# the absolute request deadline still clamps every call and preserves the repair reserve.
-GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 10.0
+# Permit three fallback candidates inside a 14-second arbitration window.
+# Every Guide provider call is additionally clamped to the shared request deadline
+# minus the six-second response-integrity repair reserve.
+GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 14.0
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 3
-# Keep each candidate bounded; the 10-second arbitration window is still
-# constrained by the absolute 24-second request deadline and its six-second
-# response-integrity repair reserve.
+# Keep each candidate bounded by both the operation window and the reserved request deadline.
 GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS = 3.0
 GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS = 4.0
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
@@ -2687,6 +2690,11 @@ def _hrn_workers_fast_candidate(pool):
 
 
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None, deadline_monotonic=None):
+    provider_deadline_monotonic = deadline_monotonic
+    if operation == "general_guide_composition" and deadline_monotonic is not None:
+        provider_deadline_monotonic = (
+            float(deadline_monotonic) - GUIDE_REPAIR_RESERVE_SECONDS
+        )
     if deadline_monotonic is not None and _request_remaining_seconds(
         deadline_monotonic, now=time.monotonic()
     ) < 1.0:
@@ -2925,8 +2933,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     else GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
                 )
             candidate_timeout = _bounded_request_provider_timeout(
-                configured_timeout, deadline_monotonic,
-                now=time.monotonic() if deadline_monotonic is not None else None,
+                configured_timeout, provider_deadline_monotonic,
+                now=time.monotonic() if provider_deadline_monotonic is not None else None,
             ) or 0.0
             # Admit a fallback only when its full bounded call can fit inside both
             # the operation window and the shared visitor-request deadline.
@@ -2985,8 +2993,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     else GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
                 )
             attempt_timeout = _bounded_request_provider_timeout(
-                configured_timeout, deadline_monotonic,
-                now=time.monotonic() if deadline_monotonic is not None else None,
+                configured_timeout, provider_deadline_monotonic,
+                now=time.monotonic() if provider_deadline_monotonic is not None else None,
             )
             if deadline_monotonic is not None and (
                 attempt_timeout is None or attempt_timeout <= 0.0
@@ -3214,8 +3222,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     })
                     recovery_messages.append({"role": "user", "content": correction_content})
                 recovery_timeout = _bounded_request_provider_timeout(
-                    _provider_call_timeout(operation, item), deadline_monotonic,
-                    now=time.monotonic() if deadline_monotonic is not None else None,
+                    _provider_call_timeout(operation, item), provider_deadline_monotonic,
+                    now=time.monotonic() if provider_deadline_monotonic is not None else None,
                 )
                 if deadline_monotonic is not None and (
                     recovery_timeout is None or recovery_timeout <= 0.0
