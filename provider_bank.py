@@ -1510,7 +1510,18 @@ def select(use_core, operation="generic", schema=None):
         # Within the Guide's fixed five-second composition window, current
         # transport health must outrank rotating provider order. Keep operator
         # order as a tie-breaker between equally healthy lanes.
-        configured_priority = {name: index for index, name in enumerate(providers)}
+        # Keep the configured Groq primary, then prioritize independent free
+        # fallbacks in a stable order: OpenRouter, NVIDIA NIM, and Workers AI.
+        # This prevents healthy-but-unproven paid/free-tier lanes from consuming
+        # the small bounded window ahead of the remaining zero-cost options.
+        guide_order = [
+            name for name in ("groq", "openrouter", "nvidia", "workers_ai", "cloudflare_gateway")
+            if name in providers
+        ] + [
+            name for name in providers
+            if name not in {"groq", "openrouter", "nvidia", "workers_ai", "cloudflare_gateway"}
+        ]
+        guide_priority = {name: index for index, name in enumerate(guide_order)}
 
         def _guide_lane_priority(lane):
             best = lane[0] if lane else {}
@@ -1523,7 +1534,7 @@ def select(use_core, operation="generic", schema=None):
             # preferred free router cannot be shifted beyond the bounded fallback cap.
             return (
                 health_rank,
-                configured_priority.get(str(best.get("provider") or ""), len(configured_priority)),
+                guide_priority.get(str(best.get("provider") or ""), len(guide_priority)),
                 int(best.get("quality_failures", 0) or 0),
                 0 if "low_latency" in (best.get("capabilities") or []) else 1,
                 int(best.get("consecutive_failures", 0) or 0),
