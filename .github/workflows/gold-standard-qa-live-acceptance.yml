@@ -22,7 +22,7 @@ jobs:
     env:
       USE_API_ORIGIN: https://gold-standard-exemplars-qa.onrender.com
       EXPECTED_USE_VERSION: v489.310
-      EXPECTED_USE_COMMIT_SHA: 9d9556530f7df920125d5a99791b31d6ca02f5f7
+      EXPECTED_USE_COMMIT_SHA: 40ce4f77ad1fd8c2f87c2134ff7ca11d9652bda7
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
