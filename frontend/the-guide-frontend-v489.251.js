@@ -377,9 +377,9 @@ function assertVisitorLanguageBoundary(data) {
 
 /* ================================================================
    USE TRANSPORT / FAILOVER
-   Primary remains authoritative. Secondary is used only when the
-   primary transport is unavailable or returns a server-side failure.
-   Valid client/application responses are never silently retried.
+   Primary remains first. Secondary is tried after transport/server
+   failures or explicit retryable application failures. Valid answers,
+   safety responses, and specialist handoffs are never silently retried.
    ================================================================ */
 
 function useTransportRetryableStatus(status) {
