@@ -506,9 +506,9 @@ def sanitize_server_capacity(state, now=None):
         return {"server_id":server_id,"role":role,"updated_at":updated,"inflight":max(0,min(100,int(state.get("inflight",0) or 0))),"viable_provider_score":max(0.0,min(1.0,float(state.get("viable_provider_score",0) or 0))),"recent_llm_success_rate":max(0.0,min(1.0,float(state.get("recent_llm_success_rate",0) or 0))),"recent_exhaustion_rate":max(0.0,min(1.0,float(state.get("recent_exhaustion_rate",0) or 0)))}
     except (TypeError, ValueError): return None
 
-def server_capacity_score(state):
+def server_capacity_score(state, now=None):
     """Comparable bounded score; lower load and exhaustion improve viability."""
-    clean = sanitize_server_capacity(state)
+    clean = sanitize_server_capacity(state, now=now)
     if not clean: return None
     return round(0.45*clean["viable_provider_score"] + 0.35*clean["recent_llm_success_rate"] + 0.15*(1-clean["recent_exhaustion_rate"]) + 0.05*(1-min(1,clean["inflight"]/20)), 4)
 
@@ -518,8 +518,8 @@ SERVER_DELEGATION_MIN_ADVANTAGE = 0.15
 
 def choose_server_route(assigned, counterpart, now=None):
     """Return a deterministic advisory route; never delegates on missing or stale state."""
-    local_score = server_capacity_score(assigned)
-    remote_score = server_capacity_score(counterpart)
+    local_score = server_capacity_score(assigned, now=now)
+    remote_score = server_capacity_score(counterpart, now=now)
     if local_score is None:
         return {"route":"assigned","reason":"assigned_state_unknown","assigned_score":None,"counterpart_score":remote_score}
     if remote_score is None:
