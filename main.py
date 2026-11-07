@@ -8597,6 +8597,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         composition_context.pop("authoritative_doorway", None)
         composition_context.pop("authoritative_doorway_title", None)
 
+    # Make the canonical source visible in the answer itself, not only in hidden metadata.
+    response, _glossary_answer_basis = general_guide_composition.apply_glossary_source_attribution(
+        response, context_data
+    )
+    if _glossary_answer_basis:
+        answer_basis = _glossary_answer_basis
+
     payload = {
         "ok": True,
         "version": APP_VERSION,
