@@ -56,7 +56,7 @@ def test_definition_recovery_prefers_live_glossary_over_competing_local_definiti
     }
     monkeypatch.setattr(glossary, "get_glossary_entry", lambda subject: entry)
     answer = recovery.compose_definition_significance("Law of One")
-    assert len(answer.split("\\n\\n")) == 3
+    assert len(answer.split("\n\n")) == 3
     assert "inherent interconnectedness" in answer
     assert "not sameness" in answer
     assert "Ra Material" not in answer
