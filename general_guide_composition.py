@@ -437,10 +437,12 @@ def _definition_subject_for_glossary(query: str) -> str:
     """Recognize explicit definition intent and extract its bounded subject."""
     value = _normalize_space(query).strip().rstrip("?.!;:")
     patterns = (
-        r"^(?:what is|what are|define|explain|describe)\s+(?:(?:the|a|an|term)\s+)?(.+)$",
-        r"^(?:can you|could you|please)\s+(?:define|explain|describe)\s+(?:(?:the|a|an|term)\s+)?(.+)$",
-        r"^what does\s+(.+?)\s+mean(?:\s+in the living archive)?$",
         r"^what is meant by\s+(.+)$",
+        r"^what's\s+(.+)$",
+        r"^what is the meaning of\s+(.+)$",
+        r"^what does\s+(.+?)\s+mean(?:\s+in the living archive)?$",
+        r"^(?:can you|could you|please)\s+(?:define|explain|describe)\s+(?:(?:the|a|an|term)\s+)?(.+)$",
+        r"^(?:what is|what are|define|explain|describe)\s+(?:(?:the|a|an|term)\s+)?(.+)$",
         r"^meaning of\s+(.+)$",
         r"^definition of\s+(.+)$",
         r"^(.+?)\s+(?:definition|meaning)$",
@@ -451,7 +453,8 @@ def _definition_subject_for_glossary(query: str) -> str:
         if match:
             subject = match.group(1).strip()
             subject = re.sub(r",?\s+and why does it matter$", "", subject, flags=re.I).strip()
-            subject = re.sub(r"^(?:the|a|an|term)\s+", "", subject, flags=re.I).strip()
+            subject = re.sub(r"^(?:(?:the|a|an)\s+)?term\s+", "", subject, flags=re.I).strip()
+            subject = re.sub(r"^(?:the|a|an)\s+", "", subject, flags=re.I).strip()
             if 1 <= len(subject.split()) <= 12 and len(subject) <= 120:
                 return subject
     return ""
