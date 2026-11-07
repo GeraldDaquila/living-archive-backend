@@ -311,3 +311,55 @@ def test_generic_composition_gate_accepts_actual_definition_and_applied_distinct
         "What is governance, beyond administration?", substantive_response
     )
 
+
+
+def test_published_glossary_exact_heading_extraction_and_category():
+    import archive_glossary_authority as glossary
+
+    markup = """
+    <h3><strong>Law of One</strong></h3>
+    <h2>Principle / Ethical Orientation</h2>
+    <p>A unifying principle expressing interconnectedness.</p>
+    <p>Unity is relational coherence, not sameness.</p>
+    <h3>Lemuria</h3>
+    <p>A separate entry.</p>
+    """
+    entry = glossary.extract_glossary_entry(markup, "Law of One")
+    assert entry["category"] == "Principle / Ethical Orientation"
+    assert entry["paragraphs"] == [
+        "A unifying principle expressing interconnectedness.",
+        "Unity is relational coherence, not sameness.",
+    ]
+    assert glossary.extract_glossary_entry(markup, "One Law") is None
+
+
+def test_provider_exhaustion_definition_uses_published_glossary_authority(monkeypatch):
+    import archive_glossary_authority as glossary
+    import deterministic_answer_recovery as recovery
+
+    entry = {
+        "term": "Law of One",
+        "category": "Principle / Ethical Orientation",
+        "paragraphs": [
+            "A unifying principle expressing the inherent interconnectedness of all existence. "
+            "It is an ethical and perceptual orientation, not a doctrine or external authority.",
+            "Unity is understood as relational coherence, not sameness, fusion, or loss of agency.",
+        ],
+    }
+    monkeypatch.setattr(glossary, "get_glossary_entry", lambda subject: entry)
+    answer = recovery.compose_definition_significance("Law of One")
+    paragraphs = answer.split("\\n\\n")
+    assert len(paragraphs) == 3
+    assert "inherent interconnectedness" in answer
+    assert "not sameness" in answer
+    assert "Ra Material" not in answer
+    assert "knowledge, responsibilities, or ways of working" not in answer
+
+
+def test_general_definition_fallback_has_no_subject_independent_operational_boilerplate():
+    import deterministic_answer_recovery as recovery
+
+    answer = recovery.compose_definition_significance("institutional memory")
+    assert "knowledge, responsibilities, or ways of working" not in answer
+    assert "For example, When" not in answer
+    assert len(answer.split("\\n\\n")) == 3
