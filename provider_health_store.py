@@ -511,3 +511,21 @@ def server_capacity_score(state):
     clean = sanitize_server_capacity(state)
     if not clean: return None
     return round(0.45*clean["viable_provider_score"] + 0.35*clean["recent_llm_success_rate"] + 0.15*(1-clean["recent_exhaustion_rate"]) + 0.05*(1-min(1,clean["inflight"]/20)), 4)
+
+
+SERVER_DELEGATION_MIN_LOCAL_SCORE = 0.55
+SERVER_DELEGATION_MIN_ADVANTAGE = 0.15
+
+def choose_server_route(assigned, counterpart, now=None):
+    """Return a deterministic advisory route; never delegates on missing or stale state."""
+    local_score = server_capacity_score(assigned)
+    remote_score = server_capacity_score(counterpart)
+    if local_score is None:
+        return {"route":"assigned","reason":"assigned_state_unknown","assigned_score":None,"counterpart_score":remote_score}
+    if remote_score is None:
+        return {"route":"assigned","reason":"counterpart_state_unknown","assigned_score":local_score,"counterpart_score":None}
+    if local_score >= SERVER_DELEGATION_MIN_LOCAL_SCORE:
+        return {"route":"assigned","reason":"assigned_viable","assigned_score":local_score,"counterpart_score":remote_score}
+    if remote_score >= local_score + SERVER_DELEGATION_MIN_ADVANTAGE:
+        return {"route":"counterpart","reason":"material_quality_advantage","assigned_score":local_score,"counterpart_score":remote_score}
+    return {"route":"assigned","reason":"no_material_advantage","assigned_score":local_score,"counterpart_score":remote_score}
