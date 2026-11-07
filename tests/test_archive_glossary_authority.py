@@ -40,3 +40,24 @@ def test_composes_three_purposeful_paragraphs_without_generic_operational_inject
     assert "knowledge, responsibilities, or ways of working" not in answer
     assert "not a universal dictionary definition" in paragraphs[-1]
     assert "not sameness" in paragraphs[1]
+
+
+def test_definition_recovery_prefers_live_glossary_over_competing_local_definition(monkeypatch):
+    import deterministic_answer_recovery as recovery
+
+    entry = {
+        "term": "Law of One",
+        "category": "Principle / Ethical Orientation",
+        "paragraphs": [
+            "A unifying principle expressing the inherent interconnectedness of all existence. "
+            "It is an ethical and perceptual orientation, not a doctrine or external authority.",
+            "Unity is understood as relational coherence, not sameness, fusion, or loss of agency.",
+        ],
+    }
+    monkeypatch.setattr(glossary, "get_glossary_entry", lambda subject: entry)
+    answer = recovery.compose_definition_significance("Law of One")
+    assert len(answer.split("\\n\\n")) == 3
+    assert "inherent interconnectedness" in answer
+    assert "not sameness" in answer
+    assert "Ra Material" not in answer
+    assert "knowledge, responsibilities, or ways of working" not in answer
