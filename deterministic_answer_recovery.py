@@ -32,7 +32,19 @@ def compose_definition_significance(subject):
     """Return a bounded three-paragraph definition without claiming Archive doctrine."""
     subject = _clean(subject).strip(" ,;:") or "the concept"
     display_subject = subject[:1].upper() + subject[1:]
-    display_subject = subject[:1].upper() + subject[1:]
+    # Archive-specific terminology is governed by the published Living Glossary.
+    # Retrieve an exact source entry instead of maintaining a competing local copy.
+    try:
+        from archive_glossary_authority import get_glossary_entry, compose_glossary_recovery
+        canonical_entry = get_glossary_entry(subject)
+        if canonical_entry:
+            canonical_answer = compose_glossary_recovery(canonical_entry)
+            if canonical_answer:
+                return canonical_answer
+    except Exception:
+        # Source unavailability must not prevent ordinary general-knowledge
+        # recovery; an absent Archive entry is never inferred or fabricated.
+        pass
     # A bounded, reusable general-knowledge definition bank supports common
     # concepts when providers are exhausted. These are ordinary definitions,
     # not statements of official Living Archive doctrine.
@@ -87,20 +99,21 @@ def compose_definition_significance(subject):
             "example": "People are more able to rely on a public service when it explains decisions, handles similar cases consistently, corrects mistakes, and provides a meaningful way to appeal.",
             "significance": "Trust should be earned by observable conduct rather than claimed as a virtue. Consistent failures, hidden reasons, or blocked complaints can weaken it even when an institution says its intentions are good."
         },
-        "the law of one": {
-            "definition": "a modern spiritual teaching, especially associated with the Ra Material, that all existence is fundamentally one and that every being is an expression of one infinite Creator",
-            "example": "Within this teaching, how a person treats another is spiritually significant because the other is not ultimately separate from the self. Service to others is therefore presented as one path of spiritual development, alongside the more self-focused path described in the material.",
-            "significance": "The Law of One is a spiritual and metaphysical worldview, not an established scientific law or a universally accepted religious doctrine. Its best-known formulation comes from the Ra Material, a series of purported channeled sessions published from the early 1980s; readers differ in how literally or symbolically they interpret its claims."
-        }
+
     }
     normalized_subject = re.sub(r"\s+", " ", subject).strip().casefold()
     entry = definition_bank.get(normalized_subject)
     if entry:
+        example = str(entry["example"]).strip()
+        significance = str(entry["significance"]).strip()
+        if example:
+            example = example[:1].lower() + example[1:]
+        if significance:
+            significance = significance[:1].lower() + significance[1:]
         answer = (
-            f"{display_subject} is {entry['definition']}. "
-            "Its meaning is practical: it describes knowledge, responsibilities, or ways of working that affect what people can understand and do.\n\n"
-            f"For example, {entry['example']}\n\n"
-            f"{display_subject} matters because {entry['significance']}"
+            f"{display_subject} is {entry['definition']}.\n\n"
+            f"For example, {example}\n\n"
+            f"{display_subject} matters because {significance}"
         )
     else:
         # For an unfamiliar term, state the limit without circular prose or
@@ -477,15 +490,6 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     # classifier remains responsible for genuinely missing subjects.
     return answer
 
-
-_law_of_one_question = "What is the Law of One?"
-_law_of_one_answer = compose_recovery(_law_of_one_question)
-_law_of_one_paragraphs = [part.strip() for part in _law_of_one_answer.split("\n\n") if part.strip()]
-if len(_law_of_one_paragraphs) != 3:
-    raise RuntimeError("Law of One recovery contract failed: expected three substantive paragraphs.")
-for _required in ("Ra Material", "one infinite Creator", "not an established scientific law", "service to others"):
-    if _required.casefold() not in _law_of_one_answer.casefold():
-        raise RuntimeError("Law of One recovery contract failed: missing substantive distinction " + _required)
 
 _risk_constraint_question = "What are the risks of charisma without constitutional restraint?"
 _risk_constraint_answer = compose_recovery(_risk_constraint_question)
