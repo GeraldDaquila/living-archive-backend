@@ -597,3 +597,41 @@ def test_main_resolves_glossary_before_canonical_archive_fetch():
     archive_fetch = source.index("use_core.fetch_canonical_context(resource_query)")
     assert glossary_lookup < archive_fetch
     assert '_canonical_glossary_checked"] = True' in source
+
+
+def test_glossary_source_attribution_is_visible_and_direct():
+    import general_guide_composition as composition
+
+    context = {
+        "_canonical_glossary_documents": [{
+            "title": "The Living Glossary — Law of One",
+            "url": "https://geralddaquila.com/glossary/#law-of-one",
+        }]
+    }
+    response, basis = composition.apply_glossary_source_attribution(
+        "Canonical definition in three paragraphs.", context
+    )
+    assert response.endswith(
+        "Source: [The Living Glossary — Law of One](https://geralddaquila.com/glossary/#law-of-one)"
+    )
+    assert basis["kind"] == "archive_reference"
+    assert basis["source_url"] == "https://geralddaquila.com/glossary/#law-of-one"
+
+
+def test_glossary_source_attribution_does_not_inject_a_source_when_no_exact_entry():
+    import general_guide_composition as composition
+
+    response, basis = composition.apply_glossary_source_attribution(
+        "A general answer.", {"_canonical_glossary_documents": []}
+    )
+    assert response == "A general answer."
+    assert basis is None
+
+
+def test_final_visitor_payload_applies_visible_glossary_attribution():
+    from pathlib import Path
+
+    source = Path("main.py").read_text(encoding="utf-8")
+    attribution = source.index("general_guide_composition.apply_glossary_source_attribution(")
+    payload = source.index('    payload = {\n        "ok": True,', attribution)
+    assert attribution < payload
