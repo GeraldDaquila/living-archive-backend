@@ -3,6 +3,8 @@ import base64, hashlib, json, mimetypes, os, re, threading, urllib.error, urllib
 from collections import OrderedDict
 import time
 
+from provider_contract_diagnostics import contract_reason_code
+
 from provider_quota_control import (
     QuotaAdmissionDenied,
     reserve as reserve_provider_call,
@@ -3293,12 +3295,14 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 else "response_shape" if re.search(r"short|long|paragraph|sentence|question", contract_reason, re.I)
                 else "other_contract"
             )
+            reason_code = contract_reason_code(contract_reason)
             print(
                 "USE provider composition contract rejection: "
                 + "operation=" + operation
                 + ", provider=" + provider
                 + ", model=" + model
                 + ", rejection_class=" + rejection_class
+                + ", contract_reason_code=" + reason_code
                 + ", error=contract_rejection"
             )
             if operation in {"hrn_perception", "general_guide_composition"} and attempt_started is not None:
