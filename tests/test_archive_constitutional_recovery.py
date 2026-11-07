@@ -85,7 +85,7 @@ def test_constitutional_recovery_fails_closed_without_constitutional_register_ev
 
 
 
-def test_final_response_contract_recovers_missing_constitutional_governing_relationships():
+def test_final_response_contract_fails_closed_without_canonical_evidence():
     question = "What is constitutional reasoning in the Archive's sense?"
     weak_candidate = (
         "Constitutional reasoning is a way of thinking about rules and principles. "
@@ -93,12 +93,10 @@ def test_final_response_contract_recovers_missing_constitutional_governing_relat
         "For example, a group can discuss its values before making a decision.\n\n"
         "This can help guide later choices and interpretations."
     )
-    response = guide.enforce_response_contracts(question, weak_candidate)
-    assert guide._has_archive_constitutional_reasoning(response)
-    assert "governing relationships" in response.casefold()
-    assert "recovered constitutional architecture" in response.casefold()
-    assert "later interpretation" in response.casefold()
-    assert "recovery before translation" in response.casefold()
+    import pytest
+
+    with pytest.raises(RuntimeError, match="evidence-grounded recovery was not supplied"):
+        guide.enforce_response_contracts(question, weak_candidate)
 
 
 def test_final_response_contract_preserves_a_valid_constitutional_explanation():
