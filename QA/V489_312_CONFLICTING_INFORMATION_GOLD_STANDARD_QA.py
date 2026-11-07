@@ -84,6 +84,33 @@ def main():
         "What are the main differences between two competing theories?"
     )
 
+
+    # Provider-health isolation: an editorial rejection increments only the
+    # operation/model quality state and does not mark transport health failed.
+    import copy
+    import provider_bank
+    original_state = copy.deepcopy(provider_bank._STATE)
+    original_persist = provider_bank._persist_shared_state
+    try:
+        provider_bank._persist_shared_state = lambda: None
+        provider_bank._STATE = {"models": {}, "quality": {}}
+        provider_bank._record_quality_rejection(
+            "qa_provider", "qa_model", "general_guide_composition",
+            "conflicting-information answer must recognize the trust problem first",
+        )
+        quality = provider_bank._quality_state(
+            "general_guide_composition", "qa_provider", "qa_model"
+        )
+        health = provider_bank._state("qa_provider", "qa_model")
+        assert quality["quality_failures"] == 1
+        assert quality["quality_error"] == "contract_rejection"
+        assert quality["quality_cooldown_until"] > 0
+        assert health.get("state") == "healthy"
+        assert int(health.get("failures", 0) or 0) == 0
+    finally:
+        provider_bank._STATE = original_state
+        provider_bank._persist_shared_state = original_persist
+
     print("CONFLICTING INFORMATION GOLD STANDARD CALIBRATION: PASS")
 
 if __name__ == "__main__":
