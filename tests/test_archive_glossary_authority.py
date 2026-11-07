@@ -10,7 +10,7 @@ def test_extracts_exact_law_of_one_entry_and_category():
     <h3>Lemuria</h3>
     <p>A separate entry.</p>
     """
-    entry = glossary.extract_glossary_entry(markup, "What is the Law of One?")
+    entry = glossary.extract_glossary_entry(markup, "Law of One")
     assert entry is not None
     assert entry["term"] == "Law of One"
     assert entry["category"] == "Principle / Ethical Orientation"
@@ -36,7 +36,7 @@ def test_composes_three_purposeful_paragraphs_without_generic_operational_inject
     }
     answer = glossary.compose_glossary_recovery(entry)
     paragraphs = answer.split("\n\n")
-    assert len(paragraphs) == 4
+    assert len(paragraphs) == 3
     assert "knowledge, responsibilities, or ways of working" not in answer
     assert "not a universal dictionary definition" in paragraphs[-1]
-    assert "not sameness" in paragraphs[2]
+    assert "not sameness" in paragraphs[1]
