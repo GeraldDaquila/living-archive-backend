@@ -437,7 +437,7 @@ def _definition_subject_for_glossary(query: str) -> str:
     """Extract a bounded term from a definition-style visitor question."""
     value = _normalize_space(query).strip().rstrip("?.!;:")
     patterns = (
-        r"^(?:what is|what are|define|explain|describe)\s+(?:the|a|an)\s+(.+)$",
+        r"^(?:what is|what are|define|explain|describe)\s+(?:(?:the|a|an)\s+)?(.+)$",
         r"^what does\s+(.+?)\s+mean(?:\s+in the living archive)?$",
         r"^meaning of\s+(.+)$",
     )
