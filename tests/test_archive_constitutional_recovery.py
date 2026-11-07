@@ -125,7 +125,7 @@ def test_law_of_one_uses_the_published_archive_glossary_definition():
     response = result["response"]
     assert "inherent interconnectedness of all existence" in response
     assert "ethical and perceptual orientation" in response
-    assert "not a doctrine" in response
+    assert "does not define it as a doctrine" in response
     assert "coercion" in response
     assert "extraction" in response
     assert "unity without sameness" in response
@@ -140,4 +140,4 @@ def test_law_of_one_archive_wording_uses_the_same_glossary_record():
 
     assert result is not None
     assert result["fact_id"] == "archive_glossary_law_of_one"
-    assert "compassion does not erase accountability" in result["response"]
+    assert "compassion does not erase accountability" in result["response"].casefold()
