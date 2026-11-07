@@ -21,7 +21,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.29"
+CONTRACT_VERSION = "v1.30"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
@@ -2392,6 +2392,23 @@ def compose(
         "provider": str(result.get("provider") or ""),
         "model": str(result.get("model") or ""),
     }
+
+    # Final composer-side enforcement: a specialist/provider path or future
+    # parser refactor must never allow a fluent but epistemically off-task
+    # answer to escape this seam. The visitor's trust problem takes precedence
+    # over governance, stakeholder, or generic decision-planning language.
+    if _requires_conflicting_information_discernment(question) and not _has_conflicting_information_discernment(candidate["response"]):
+        _emit_guide_outcome(
+            "candidate_replaced",
+            reason="conflicting_information_epistemic_orientation",
+            provider=candidate["provider"],
+            model=candidate["model"],
+        )
+        candidate["response"] = _conflicting_information_discernment_recovery()
+        candidate["doorway_title"] = ""
+        candidate["response_shape"] = "explanatory"
+        candidate["provider"] = "bounded_conflicting_information_recovery"
+        candidate["model"] = "deterministic-contract-recovery"
     provider_key = candidate["provider"] + ":" + candidate["model"]
     preference_order = result.get("preference_order") or []
     outcome = "llm_failover_success" if preference_order and provider_key != str(preference_order[0]) else "llm_primary_success"
