@@ -3266,6 +3266,10 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 + ", model=" + model
                 + ", reason=" + str(exc.reason)
                 + ", admission_scope=process_local"
+                + ", budget_kind=" + str(exc.budget_kind or "none")
+                + ", budget_limit=" + (str(exc.budget_limit) if exc.budget_limit is not None else "none")
+                + ", request_token_estimate=" + (str(round(exc.request_cost, 2)) if exc.request_cost is not None else "none")
+                + ", budget_period_seconds=" + (str(round(exc.budget_period_seconds, 2)) if exc.budget_period_seconds is not None else "none")
                 + ", retry_after_seconds=" + str(round(exc.retry_after, 2))
             )
             continue
