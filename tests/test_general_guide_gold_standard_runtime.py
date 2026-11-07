@@ -415,3 +415,28 @@ def test_glossary_subject_extraction_handles_definition_questions_with_or_withou
 
     assert composition._definition_subject_for_glossary("What is the Law of One?") == "Law of One"
     assert composition._definition_subject_for_glossary("What is governance?") == "governance"
+
+
+def test_single_paragraph_living_glossary_entry_is_split_by_its_conceptual_movements():
+    import archive_glossary_authority as glossary
+
+    entry = {
+        "term": "Law of One",
+        "category": "Principle / Ethical Orientation",
+        "paragraphs": [
+            "A unifying principle expressing the inherent interconnectedness of all existence. "
+            "In this framework, the Law of One is not a doctrine, channeling source, or external authority, "
+            "but an ethical and perceptual orientation: recognition that harm, coercion, and extraction "
+            "anywhere diminish coherence everywhere. Practiced maturely, it emphasizes unity without "
+            "erasing individuality, sovereignty without isolation, and compassion without loss of responsibility. "
+            "Unity is understood here as relational coherence, not sameness, fusion, or loss of agency."
+        ],
+    }
+    answer = glossary.compose_glossary_recovery(entry)
+    paragraphs = answer.split("\n\n")
+    assert len(paragraphs) == 3
+    assert paragraphs[0].startswith("In the Living Archive Glossary")
+    assert "not a doctrine, channeling source, or external authority" in paragraphs[1]
+    assert "unity without erasing individuality" in paragraphs[2]
+    assert "not sameness, fusion, or loss of agency" in paragraphs[2]
+    assert "knowledge, responsibilities, or ways of working" not in answer
