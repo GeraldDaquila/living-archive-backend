@@ -46,6 +46,44 @@ def main():
     assert composition._has_conflicting_information_discernment(recovery)
     assert "what deserves trust" in recovery
     assert "independently verified" in recovery
+
+    # Positive control: equivalent language, not just the exact recovery wording.
+    equivalent_good_answer = (
+        "When accounts contradict one another, the hard part is deciding which account is dependable; "
+        "the answer is not simply to gather more information. Begin by asking what is actually established "
+        "and why any source merits confidence.\n\n"
+        "Separate observations and independently confirmed facts from interpretations, predictions, and "
+        "assumptions that have not been tested. Compare the original evidence, check whether genuinely "
+        "independent sources corroborate it, and identify what finding would cause you to revise your view.\n\n"
+        "Set the threshold by the consequences of the decision. For a low-stakes choice that can be reversed, "
+        "the strongest available evidence may be enough to act cautiously; where the consequences are serious "
+        "or difficult to undo, require stronger support and make the remaining uncertainty explicit."
+    )
+    assert composition._has_conflicting_information_discernment(equivalent_good_answer)
+
+    # Negative controls: keywords elsewhere cannot compensate for a failure
+    # to recognize the visitor's trust problem in the opening paragraph.
+    late_recognition = (
+        "Start with the outcome, stakeholders, and an action plan. Decide who is responsible "
+        "and compare the available options.\n\n"
+        "Later, distinguish what is known from assumptions, review sources and evidence, "
+        "and ask what would change your mind.\n\n"
+        "Set an action threshold proportionate to the stakes and prefer reversible decisions. "
+        "Conflicting claims can make trust difficult; the issue is not simply more information."
+    )
+    assert not composition._has_conflicting_information_discernment(late_recognition)
+
+    # Query classification controls: catch a close paraphrase and avoid
+    # triggering on a generic question about conflicting information alone.
+    paraphrased_query = (
+        "I am lost among competing claims and sources. How do I know which ones "
+        "are trustworthy and what I can safely rely on?"
+    )
+    assert composition._requires_conflicting_information_discernment(paraphrased_query)
+    assert not composition._requires_conflicting_information_discernment(
+        "What are the main differences between two competing theories?"
+    )
+
     print("CONFLICTING INFORMATION GOLD STANDARD CALIBRATION: PASS")
 
 if __name__ == "__main__":
