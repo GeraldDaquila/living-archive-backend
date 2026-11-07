@@ -6675,23 +6675,25 @@ def _established_general_knowledge_recovery(query):
     # fuzzy title matches are not permitted to manufacture definitions.
     public_concepts = {
         "law of one": {
-            "fact_id": "public_concept_law_of_one",
-            # The public concept answer is not a navigation bypass. This exact
-            # subject is also used for canonical Archive retrieval so a glossary
-            # record or relevant essay can still become a qualified doorway.
+            "fact_id": "archive_glossary_law_of_one",
+            # This is an Archive-specific question in the Guide: the published
+            # Glossary entry is the authority, not an adjacent external tradition.
+            # Keep the doorway aligned to the exact source of the definition.
             "subject": "Law of One",
-            # A reviewed canonical doorway belongs to the concept record itself.
-            # This keeps recognized concepts navigable even when vector retrieval
-            # is temporarily unavailable (for example, an index quota outage).
             "doorway": {
                 "title": "Law of One — Living Glossary",
                 "url": "https://geralddaquila.com/glossary/",
             },
             "response": (
-                "“The Law of One” is a spiritual and philosophical idea centered on the unity of all existence. "
-                "The phrase is especially associated with *The Law of One* (the Ra Material), where reality is described as ultimately one, with apparent differences understood within a larger unity.\n\n"
-                "That is a general orientation to the term, not a claim about how the Living Archive uses it. "
-                "Different traditions may give the idea different meanings, so the specific source or tradition matters when a more precise interpretation is needed."
+                "In the Living Archive, the Law of One is a unifying principle expressing the inherent interconnectedness of all existence. "
+                "It is an ethical and perceptual orientation: what happens to one part of a shared whole can affect the coherence of the whole. "
+                "The Archive does not define it as a doctrine, a channeling source, or an external authority.\n\n"
+                "This has a practical ethical meaning. When a person or institution uses coercion or extracts value while shifting the harm onto others, "
+                "the damage is not confined to the immediate transaction; it weakens the relationships and trust on which the wider community depends. "
+                "That example illustrates the principle rather than claiming that every consequence is identical or immediate.\n\n"
+                "The Archive's definition is unity without sameness: people remain distinct, with their own agency and sovereignty, while recognizing their responsibilities within relationship. "
+                "Compassion does not erase accountability, and interconnectedness does not require surrendering individuality. "
+                "The full Archive-specific definition is in the Living Glossary."
             ),
         },
     }
