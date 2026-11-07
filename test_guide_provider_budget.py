@@ -19,6 +19,7 @@ def test_guide_request_budget_retains_one_absolute_deadline():
 
 
 def test_general_guide_success_outcome_includes_fresh_shadow_metrics():
+    # Acceptance gate: success telemetry must reflect the post-call shadow state.
     source = Path("provider_bank.py").read_text(encoding="utf-8")
     assert 'outcome=success, elapsed_seconds=' in source
     assert '_predictive_shadow_metrics(state, _provider_call_timeout(operation, item))' in source
