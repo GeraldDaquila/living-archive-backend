@@ -105,12 +105,15 @@ def compose_definition_significance(subject):
     entry = definition_bank.get(normalized_subject)
     if entry:
         example = str(entry["example"]).strip()
+        significance = str(entry["significance"]).strip()
         if example:
-            example = example[:1].upper() + example[1:]
+            example = example[:1].lower() + example[1:]
+        if significance:
+            significance = significance[:1].lower() + significance[1:]
         answer = (
             f"{display_subject} is {entry['definition']}.\n\n"
-            f"{example}\n\n"
-            f"{display_subject} matters because {entry['significance']}"
+            f"For example, {example}\n\n"
+            f"{display_subject} matters because {significance}"
         )
     else:
         # For an unfamiliar term, state the limit without circular prose or
