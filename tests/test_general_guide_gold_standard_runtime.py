@@ -440,3 +440,160 @@ def test_single_paragraph_living_glossary_entry_is_split_by_its_conceptual_movem
     assert "unity without erasing individuality" in paragraphs[2]
     assert "not sameness, fusion, or loss of agency" in paragraphs[2]
     assert "knowledge, responsibilities, or ways of working" not in answer
+
+
+def test_definition_intent_recognizer_covers_common_phrasings():
+    import general_guide_composition as composition
+
+    cases = {
+        "What is the Law of One?": "Law of One",
+        "Define the Law of One": "Law of One",
+        "Can you explain the Law of One?": "Law of One",
+        "What does the Law of One mean?": "Law of One",
+        "What is meant by the Law of One?": "Law of One",
+        "Meaning of the Law of One": "Law of One",
+        "Definition of the Law of One": "Law of One",
+        "Law of One definition": "Law of One",
+        "Tell me what the Law of One is": "Law of One",
+    }
+    for question, expected in cases.items():
+        assert composition._definition_subject_for_glossary(question) == expected
+
+
+def test_glossary_lookup_precedes_general_archive_retrieval(monkeypatch):
+    import general_guide_composition as composition
+
+    calls = []
+    glossary_doc = {
+        "title": "The Living Glossary — Law of One",
+        "url": "https://geralddaquila.com/glossary/",
+        "content": "Canonical definition.",
+    }
+    archive_doc = {
+        "title": "Related Archive essay",
+        "url": "https://geralddaquila.com/related-essay/",
+        "content": "Additional context.",
+    }
+
+    def glossary_first(query, documents):
+        calls.append("glossary")
+        assert query == "What is the Law of One?"
+        assert documents == []
+        return [glossary_doc], "canonical authority instruction"
+
+    def archive_second(use_core, context_data):
+        calls.append("archive")
+        return [archive_doc]
+
+    monkeypatch.setattr(composition, "_apply_archive_glossary_authority", glossary_first)
+    monkeypatch.setattr(composition, "_documents_from_context", archive_second)
+
+    documents, instruction = composition._retrieve_authoritative_context(
+        "What is the Law of One?", object(), {}
+    )
+    assert calls == ["glossary", "archive"]
+    assert documents == [glossary_doc, archive_doc]
+    assert instruction == "canonical authority instruction"
+
+
+def test_glossary_first_contract_does_not_change_non_definition_retrieval(monkeypatch):
+    import general_guide_composition as composition
+
+    calls = []
+    archive_doc = {"title": "Existing source", "url": "https://example.invalid/", "content": "Context."}
+
+    def no_glossary(query, documents):
+        calls.append("glossary")
+        return documents, ""
+
+    def archive_retrieval(use_core, context_data):
+        calls.append("archive")
+        return [archive_doc]
+
+    monkeypatch.setattr(composition, "_apply_archive_glossary_authority", no_glossary)
+    monkeypatch.setattr(composition, "_documents_from_context", archive_retrieval)
+
+    documents, instruction = composition._retrieve_authoritative_context(
+        "How should a team repair trust after a missed commitment?", object(), {}
+    )
+    assert calls == ["glossary", "archive"]
+    assert documents == [archive_doc]
+    assert instruction == ""
+
+
+def test_definition_intent_recognizer_handles_term_and_contraction_variants():
+    import general_guide_composition as composition
+
+    assert composition._definition_subject_for_glossary("What does the term Law of One mean?") == "Law of One"
+    assert composition._definition_subject_for_glossary("What is the meaning of the Law of One?") == "Law of One"
+    assert composition._definition_subject_for_glossary("What's the Law of One?") == "Law of One"
+
+
+def test_glossary_source_revision_invalidates_composition_cache_key():
+    import general_guide_composition as composition
+
+    old_source = [{
+        "title": "The Living Glossary — Law of One",
+        "url": "https://geralddaquila.com/glossary/",
+        "source_modified": "2026-11-01T10:00:00",
+    }]
+    revised_source = [{
+        "title": "The Living Glossary — Law of One",
+        "url": "https://geralddaquila.com/glossary/",
+        "source_modified": "2026-11-08T10:00:00",
+    }]
+    old_key = composition._composition_cache_key("What is the Law of One?", "", "definition", old_source)
+    revised_key = composition._composition_cache_key("What is the Law of One?", "", "definition", revised_source)
+    assert old_key != revised_key
+
+
+def test_definition_intent_recognizer_excludes_procedural_causal_and_comparison_questions():
+    import general_guide_composition as composition
+
+    non_definitions = [
+        "What is the best way to repair trust?",
+        "What is the difference between authority and power?",
+        "Explain how to rebuild trust after a missed commitment.",
+        "Why does governance fail?",
+        "What is happening with the provider bank?",
+    ]
+    for question in non_definitions:
+        assert composition._definition_subject_for_glossary(question) == ""
+
+
+def test_prechecked_glossary_snapshot_is_reused_without_second_network_lookup(monkeypatch):
+    import general_guide_composition as composition
+
+    glossary_doc = {
+        "title": "The Living Glossary — Law of One",
+        "url": "https://geralddaquila.com/glossary/",
+        "content": "Canonical definition.",
+        "source_modified": "2026-11-08T10:00:00",
+    }
+    archive_doc = {"title": "Related essay", "url": "https://geralddaquila.com/essay/", "content": "Context."}
+
+    def unexpected_lookup(query, documents):
+        raise AssertionError("Prechecked Glossary must not be fetched twice")
+
+    monkeypatch.setattr(composition, "_apply_archive_glossary_authority", unexpected_lookup)
+    monkeypatch.setattr(composition, "_documents_from_context", lambda use_core, context: [archive_doc])
+    context = {
+        "_canonical_glossary_checked": True,
+        "_canonical_glossary_documents": [glossary_doc],
+        "_canonical_glossary_instruction": "canonical authority",
+    }
+    documents, instruction = composition._retrieve_authoritative_context(
+        "What is the Law of One?", object(), context
+    )
+    assert documents == [glossary_doc, archive_doc]
+    assert instruction == "canonical authority"
+
+
+def test_main_resolves_glossary_before_canonical_archive_fetch():
+    from pathlib import Path
+
+    source = Path("main.py").read_text(encoding="utf-8")
+    glossary_lookup = source.index("general_guide_composition.resolve_glossary_context(query)")
+    archive_fetch = source.index("use_core.fetch_canonical_context(resource_query)")
+    assert glossary_lookup < archive_fetch
+    assert '_canonical_glossary_checked"] = True' in source

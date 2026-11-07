@@ -275,7 +275,7 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.30":
+if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.31":
     raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
@@ -6945,9 +6945,15 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if concept_subject and not correction_subject:
         discovery_subject = concept_subject
     resource_query = correction_subject or concept_subject or discovery_subject or (source_trace_claim[-1600:] if source_trace_claim else query)
+    # Check the published Glossary before vector/canonical Archive retrieval.
+    # Carry the exact source snapshot into composition to avoid a second fetch.
+    glossary_documents, glossary_instruction = general_guide_composition.resolve_glossary_context(query)
     context_data = use_core.fetch_canonical_context(resource_query)
     if not isinstance(context_data, dict):
         raise RuntimeError("Basic Inquiry retrieval returned an invalid context object.")
+    context_data["_canonical_glossary_checked"] = True
+    context_data["_canonical_glossary_documents"] = glossary_documents
+    context_data["_canonical_glossary_instruction"] = glossary_instruction
 
     # Navigation authority is resolved once, before composition, and carried
     # through every ordinary-answer path. It must never depend on which
@@ -8617,7 +8623,7 @@ def _v48894_general_guide_composition_self_audit():
     if not callable(getattr(general_guide_composition, "compose", None)):
         raise RuntimeError("General Guide composition boundary is missing.")
     snapshot = general_guide_composition.contract_snapshot()
-    if snapshot.get("contract_version") != "v1.30":
+    if snapshot.get("contract_version") != "v1.31":
         raise RuntimeError("General Guide composition contract version drift.")
     if snapshot.get("provider_neutral") is not True:
         raise RuntimeError("General Guide composition lost provider neutrality.")

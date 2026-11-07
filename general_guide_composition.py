@@ -21,7 +21,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.30"
+CONTRACT_VERSION = "v1.31"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
@@ -62,6 +62,7 @@ def _composition_cache_key(
         (
             _normalize_space(item.get("title")),
             _normalize_space(item.get("url") or item.get("canonical_url")),
+            _normalize_space(item.get("source_modified") or item.get("modified") or item.get("version")),
         )
         for item in documents
         if isinstance(item, dict)
@@ -434,25 +435,36 @@ def _documents_from_context(use_core: Any, context_data: Dict[str, Any]) -> List
 
 
 def _definition_subject_for_glossary(query: str) -> str:
-    """Extract a bounded term from a definition-style visitor question."""
+    """Recognize explicit definition intent and extract its bounded subject."""
     value = _normalize_space(query).strip().rstrip("?.!;:")
     patterns = (
-        r"^(?:what is|what are|define|explain|describe)\s+(?:(?:the|a|an)\s+)?(.+)$",
+        r"^what is meant by\s+(.+)$",
+        r"^what's\s+(.+)$",
+        r"^what is the meaning of\s+(.+)$",
         r"^what does\s+(.+?)\s+mean(?:\s+in the living archive)?$",
+        r"^(?:can you|could you|please)\s+(?:define|explain|describe)\s+(?:(?:the|a|an|term)\s+)?(.+)$",
+        r"^(?:what is|what are|define|explain|describe)\s+(?:(?:the|a|an|term)\s+)?(.+)$",
         r"^meaning of\s+(.+)$",
+        r"^definition of\s+(.+)$",
+        r"^(.+?)\s+(?:definition|meaning)$",
+        r"^tell me what\s+(.+?)\s+is$",
     )
     for pattern in patterns:
         match = re.match(pattern, value, re.I)
         if match:
-            subject = re.sub(r",?\s+and why does it matter$", "", match.group(1), flags=re.I).strip()
+            subject = match.group(1).strip()
+            subject = re.sub(r",?\s+and why does it matter$", "", subject, flags=re.I).strip()
+            subject = re.sub(r"^(?:(?:the|a|an)\s+)?term\s+", "", subject, flags=re.I).strip()
             subject = re.sub(r"^(?:the|a|an)\s+", "", subject, flags=re.I).strip()
+            if re.match(r"^(?:how|why|when|where|whether|if|happening|going on|best way|good way|difference|relationship|process|cause|impact|effect)\b", subject, re.I):
+                return ""
             if 1 <= len(subject.split()) <= 12 and len(subject) <= 120:
                 return subject
     return ""
 
 
 def _apply_archive_glossary_authority(query: str, documents: List[Dict[str, str]]):
-    """Add the exact published Glossary entry as canonical context for definition questions."""
+    """Resolve an exact canonical Glossary entry and place it before other evidence."""
     subject = _definition_subject_for_glossary(query)
     if not subject:
         return documents, ""
@@ -470,15 +482,14 @@ def _apply_archive_glossary_authority(query: str, documents: List[Dict[str, str]
     content = "\n\n".join(paragraphs)
     if category:
         content = f"Canonical Archive classification: {category}.\n\n" + content
+    glossary_url = str(entry.get("source_url") or "https://geralddaquila.com/glossary/")
     glossary_document = {
         "title": f"The Living Glossary — {entry.get('term') or subject}",
-        "url": str(entry.get("source_url") or "https://geralddaquila.com/glossary/"),
+        "url": glossary_url,
         "content": content[:1500],
+        "source_modified": str(entry.get("source_modified") or ""),
     }
-    remaining = [
-        item for item in documents
-        if str(item.get("url") or "") != glossary_document["url"]
-    ]
+    remaining = [item for item in documents if str(item.get("url") or "") != glossary_url]
     return [glossary_document] + remaining[:3], (
         "CANONICAL GLOSSARY AUTHORITY: The supplied Living Glossary entry defines the term's meaning within the Living Archive. "
         "Use that entry as the primary authority for Archive-specific usage and preserve its category and boundaries. "
@@ -486,6 +497,27 @@ def _apply_archive_glossary_authority(query: str, documents: List[Dict[str, str]
         "identify it separately as an external interpretation, not as the Archive's definition. The Glossary is Archive-specific, "
         "not a universal dictionary.\n\n"
     )
+
+def resolve_glossary_context(query: str):
+    """Resolve the canonical Glossary entry before any general retrieval begins."""
+    return _apply_archive_glossary_authority(query, [])
+
+def _retrieve_authoritative_context(query: str, use_core: Any, context_data: Dict[str, Any]):
+    """Check canonical Glossary authority first, then enrich with Archive retrieval."""
+    if context_data.get("_canonical_glossary_checked") is True:
+        glossary_documents = context_data.get("_canonical_glossary_documents") or []
+        glossary_instruction = str(context_data.get("_canonical_glossary_instruction") or "")
+    else:
+        glossary_documents, glossary_instruction = resolve_glossary_context(query)
+    retrieved_documents = _documents_from_context(use_core, context_data)
+    if not glossary_documents:
+        return retrieved_documents, glossary_instruction
+    glossary_url = str(glossary_documents[0].get("url") or "")
+    remaining = [
+        item for item in retrieved_documents
+        if str(item.get("url") or "") != glossary_url
+    ]
+    return glossary_documents + remaining[:3], glossary_instruction
 
 def is_exact_source_request(query: str) -> bool:
     """Recognize requests to trace a claim to its source."""
@@ -2340,8 +2372,10 @@ def compose(
             "model": "",
         }
 
-    documents = _documents_from_context(use_core, context_data)
-    documents, glossary_authority_instruction = _apply_archive_glossary_authority(question, documents)
+    # Canonical Glossary lookup is the first stop; Archive retrieval enriches it afterward.
+    documents, glossary_authority_instruction = _retrieve_authoritative_context(
+        question, use_core, context_data
+    )
     corrected_subject = correction_subject(question)
     effective_question = corrected_subject or question
     shape = _question_shape(effective_question)
