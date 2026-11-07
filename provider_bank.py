@@ -951,9 +951,9 @@ def _gemini(key, model, messages, max_tokens, schema=None, timeout=None):
 def _openai_compatible(base_url, key, provider, model, messages, max_tokens, schema=None, timeout=None):
     payload = {"model": model, "messages": messages, "temperature": 0.0,
                "max_tokens": max_tokens}
-    # NVIDIA Nemotron 3-series models can emit reasoning separately from the
+    # NVIDIA Nemotron models can emit reasoning separately from the
     # visitor-facing content field. Disable thinking for the reviewed 3.5
-    # Lightning and 3 Super models so the bounded contract receives actual text.
+    # Lightning and 3.5 Super VL models so the bounded contract receives text.
     # The normal schema and visitor-surface validators remain authoritative.
     if provider == "nvidia" and model in {
         "nvidia/nemotron-3.5-lightning-30b-a3b",
