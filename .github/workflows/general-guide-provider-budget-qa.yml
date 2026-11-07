@@ -1,0 +1,30 @@
+name: General Guide Provider Budget QA
+
+on:
+  push:
+    branches:
+      - fix/general-guide-provider-fallback-budget
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "provider_bank.py"
+      - "guide_request_budget.py"
+      - "tests/test_general_guide_provider_budget.py"
+      - ".github/workflows/general-guide-provider-budget-qa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  guide-provider-budget:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test dependency
+        run: python -m pip install pytest
+      - name: Test bounded provider budget
+        run: pytest -q tests/test_general_guide_provider_budget.py

@@ -106,11 +106,11 @@ def test_general_guide_uses_remaining_independent_candidates_within_window(monke
     )
 
     assert result is None
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
     assert calls[0][1] == provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
     assert all(timeout == provider_bank.GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS for _, timeout in calls[1:])
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
-    assert clock.value == pytest.approx(0.75)
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 3
+    assert clock.value == pytest.approx(1.0)
 
 
 def test_general_guide_prioritizes_healthy_lane_over_half_open_probe(monkeypatch):
@@ -176,10 +176,10 @@ def test_general_guide_caps_fallbacks_after_fast_failures(monkeypatch):
     )
 
     assert result is None
-    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq"]
+    assert [provider for provider, _ in calls] == ["gemini", "workers_ai", "groq", "mistral"]
     assert calls[0][1] == provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
     assert all(timeout == provider_bank.GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS for _, timeout in calls[1:])
-    assert clock.value == pytest.approx(0.6)
+    assert clock.value == pytest.approx(0.8)
 
 def test_general_guide_stops_after_slow_failure_consumes_recovery_margin(monkeypatch):
     _isolate(monkeypatch)
@@ -206,12 +206,12 @@ def test_general_guide_stops_after_slow_failure_consumes_recovery_margin(monkeyp
     )
 
     assert result is None
-    assert calls == [("gemini", 3.0), ("workers_ai", 4.0)]
+    assert calls == [("gemini", 3.0), ("workers_ai", 4.0), ("groq", 4.0), ("mistral", 4.0)]
     assert provider_bank.GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS == 3.0
     assert provider_bank.GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS == 4.0
-    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 8.0
-    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 2
-    assert clock.value == 7.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 15.0
+    assert provider_bank.GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES == 3
+    assert clock.value == 15.0
 
 def test_request_budget_clamps_provider_timeout_and_stops_fallback(monkeypatch):
     _isolate(monkeypatch)
@@ -308,3 +308,12 @@ def test_general_guide_success_outcome_includes_fresh_shadow_metrics():
     source = Path("provider_bank.py").read_text(encoding="utf-8")
     assert "outcome=success, elapsed_seconds=" in source
     assert "_predictive_shadow_metrics(state, _provider_call_timeout(operation, item))" in source
+
+def test_general_guide_extended_provider_window_preserves_one_integrity_repair():
+    from guide_request_budget import REQUEST_BUDGET_SECONDS, REPAIR_RESERVE_SECONDS
+
+    assert provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS == 15.0
+    assert (
+        REQUEST_BUDGET_SECONDS - provider_bank.GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
+        >= REPAIR_RESERVE_SECONDS
+    )
