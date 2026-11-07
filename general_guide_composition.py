@@ -555,6 +555,39 @@ def _conflicting_information_discernment_recovery() -> str:
     )
 
 
+
+def enforce_conflicting_information_boundary(query: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Enforce epistemic orientation at the final visitor-response boundary.
+
+    This is deliberately reusable by the outer ASGI boundary so specialist,
+    handoff, deterministic, and provider-exhaustion routes cannot bypass the
+    same question-specific acceptance contract used by the composer.
+    """
+    if not isinstance(payload, dict) or not _requires_conflicting_information_discernment(query):
+        return payload
+    response = str(payload.get("response") or "")
+    if _has_conflicting_information_discernment(response):
+        return payload
+    recovered = dict(payload)
+    recovered["response"] = _conflicting_information_discernment_recovery()
+    recovered["response_shape"] = "explanatory"
+    recovered["processing"] = "final_visitor_boundary_conflicting_information_recovery"
+    recovered["route_source"] = "guide_final_visitor_boundary"
+    recovered["answer_basis"] = {
+        "kind": "general_knowledge",
+        "label": "General knowledge",
+        "explanation": "The answer was recovered to establish a reliable way to assess conflicting claims and act proportionately to the evidence.",
+    }
+    recovered["recommendation"] = None
+    recovered["doorway_title"] = ""
+    recovered["doorway_url"] = ""
+    _emit_guide_outcome(
+        "conflicting_information_final_boundary_recovery",
+        reason="missing_epistemic_orientation",
+    )
+    return recovered
+
+
 def _requires_three_paragraph_default(query: str) -> bool:
     """Apply the Gold Standard as the default for ordinary visitor questions.
 
