@@ -1946,9 +1946,14 @@ def enforce_response_contracts(question: str, response: str) -> str:
     # ordinary paragraph/definition checks cannot establish. Enforce it after
     # provider composition and every deterministic rewrite, including recovery.
     if _is_archive_constitutional_question(question) and not _has_archive_constitutional_reasoning(candidate):
-        candidate = _archive_constitutional_reasoning_recovery()
-    if _is_archive_constitutional_question(question) and not _has_archive_constitutional_reasoning(candidate):
-        raise RuntimeError("Archive constitutional-reasoning contract failed after recovery.")
+        # The final boundary has no canonical-source payload, so it must never
+        # manufacture a constitutional explanation. Evidence-gated recovery
+        # belongs in compose(), where the retrieved Constitutional Register
+        # and its verified doorway are available together.
+        raise RuntimeError(
+            "Archive constitutional-reasoning contract failed at final visitor boundary; "
+            "evidence-grounded recovery was not supplied."
+        )
     if _requires_fragmented_knowledge_explanation(question) and not _has_fragmented_knowledge_explanation(candidate):
         candidate = _fragmented_knowledge_recovery()
     if _requires_fragmented_knowledge_explanation(question) and not _has_fragmented_knowledge_explanation(candidate):
