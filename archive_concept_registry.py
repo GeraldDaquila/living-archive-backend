@@ -9,6 +9,10 @@ LAW_OF_ONE_CONCEPT_RECORD = {
     "fact_id": "archive_glossary_law_of_one",
     "subject": "Law of One",
     "classification": "Principle / Ethical Orientation",
+    "doorway": {
+        "title": "Law of One — Living Glossary",
+        "url": "https://geralddaquila.com/glossary/",
+    },
     "source": {
         "title": "The Living Glossary",
         "post_id": 5578,
