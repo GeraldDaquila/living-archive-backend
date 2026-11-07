@@ -70,6 +70,28 @@ def test_registry_has_unique_ids_and_provenance_for_every_record():
             assert record["expected_response"].strip()
 
 
+
+def test_user_approved_conflicting_information_gold_star_is_registered_exactly():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-conflicting-information-discernment-gold-star-2026-11-07"
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == (
+        "I feel overwhelmed by conflicting information and opinions. "
+        "How can I regain my bearings and know what is real enough to act on?"
+    )
+    assert record["rating_out_of_10"] == 8.8
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
+    assert "independently verified" in record["expected_response"]
+    assert "independent sources" in record["expected_response"]
+    assert "serious or irreversible consequences" in record["expected_response"]
+    assert record["expected_doorway"]["title"] == "When You Don’t Know What to Believe Anymore"
+    assert record["expected_doorway"]["url"] is None
+    assert "Explicit user instruction" in record["provenance"]["approval_record"]
+
+
 def test_frozen_stewardship_record_matches_authoritative_fixture_exactly():
     registry = _registry()
     record = next(
