@@ -641,6 +641,45 @@ def _has_direct_definition_for_subject(query: str, response: str) -> bool:
     return subject_present and definition_cue and definition_content
 
 
+def _requires_orientation_anchor(query: str) -> bool:
+    q = _normalize_space(query).casefold()
+    return bool(
+        re.search(
+            r"\b(?:overwhelmed by conflicting|regain my bearings|lost my bearings|"
+            r"know what is real enough|don't know what to believe|cannot tell what to trust|"
+            r"too much information|conflicting information)\b",
+            q,
+        )
+    )
+
+
+def _orientation_anchor_violation(query: str, response: str) -> bool:
+    if not _requires_orientation_anchor(query):
+        return False
+    text = _normalize_space(response).casefold()
+    orientation_markers = (
+        "bearings", "orientation", "context", "what is known", "uncertain",
+        "trust", "judge information", "more information", "certainty",
+    )
+    generic_openers = (
+        "clarify the outcome", "compare realistic options",
+        "benefits and harms", "best-supported option",
+    )
+    return (not any(marker in text for marker in orientation_markers)
+            or any(opener in text for opener in generic_openers))
+
+
+def _orientation_anchor_recovery() -> str:
+    return (
+        "When conflicting information leaves you overwhelmed, the first problem may not be a lack of facts. "
+        "It may be a loss of the bearings that help you judge which facts deserve your attention and trust.\n\n"
+        "A useful distinction is between finding more information and recovering enough context to weigh information. "
+        "Start by separating what you can verify from what remains uncertain, then notice which assumptions or sources are carrying the most weight in your judgment.\n\n"
+        "You do not need perfect certainty before acting. You need a clear enough sense of what is known, what could change your view, and how much responsibility the next step actually carries. "
+        "That gives you a place to stand while the larger picture remains incomplete."
+    )
+
+
 def is_generic_nonanswer(query: str, response: str) -> bool:
     """Reject generic composition filler and off-task openings even when formatted well."""
     text = _normalize_space(response).casefold()
@@ -2314,6 +2353,15 @@ def compose(
     preference_order = result.get("preference_order") or []
     outcome = "llm_failover_success" if preference_order and provider_key != str(preference_order[0]) else "llm_primary_success"
     _emit_guide_outcome(outcome, provider=candidate["provider"], model=candidate["model"])
+
+    # Orientation-sensitive questions have a distinct quality boundary: a fluent
+    # decision framework is not an acceptable substitute for helping the visitor
+    # regain bearings. Keep this deterministic recovery narrow and let verified
+    # doorway selection remain authoritative.
+    if _orientation_anchor_violation(question, candidate["response"]):
+        candidate["response"] = _orientation_anchor_recovery()
+        candidate["response_shape"] = "explanatory"
+        _emit_guide_outcome("composition_quality_recovery", recovery="orientation_anchor")
 
     # Responsibility-boundary validation is intentionally owned by the final
     # runtime response boundary in main.py. Enforcing it here alone is insufficient:
