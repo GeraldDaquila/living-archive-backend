@@ -16,3 +16,9 @@ def test_guide_request_budget_retains_one_absolute_deadline():
     assert "REQUEST_BUDGET_SECONDS = 24.0" in source
     assert "def remaining_seconds(" in source
     assert "def bounded_provider_timeout(" in source
+
+
+def test_general_guide_success_outcome_includes_fresh_shadow_metrics():
+    source = Path("provider_bank.py").read_text(encoding="utf-8")
+    assert 'outcome=success, elapsed_seconds=' in source
+    assert '_predictive_shadow_metrics(state, _provider_call_timeout(operation, item))' in source
