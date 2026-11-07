@@ -502,6 +502,98 @@ def _is_response_preference_without_subject(query: str, history_text: str = "") 
     )
     return not named_subject
 
+def _requires_conflicting_information_discernment(query: str) -> bool:
+    """Identify questions where the visitor needs epistemic bearings before advice."""
+    q = _normalize_space(query).casefold()
+    return bool(
+        re.search(r"\b(?:overwhelmed|confused|lost|unsure|cannot tell|can't tell)\b", q)
+        and re.search(r"\b(?:conflicting|contradictory|competing|different)\b", q)
+        and re.search(r"\b(?:information|opinions?|claims?|advice|sources?)\b", q)
+        and re.search(r"\b(?:real|trust|believe|rely on|act on|bearings?)\b", q)
+    )
+
+
+def _has_conflicting_information_discernment(response: str) -> bool:
+    """Require epistemic recognition first, then a usable test for action."""
+    paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", str(response or "")) if part.strip()]
+    if len(paragraphs) < 3:
+        return False
+    opening = paragraphs[0].casefold()
+    whole = " ".join(paragraphs).casefold()
+    recognizes_problem = bool(
+        re.search(r"\b(?:conflicting|contradictory|competing)\b|\b\w+\s+contradict\s+one\s+another\b", opening)
+        and re.search(r"\b(?:trust|credible|reliable|dependable|confidence|established)\b", opening)
+        and re.search(
+            r"\b(?:not|isn't|is not)\b.{0,120}\b(?:lack|shortage|more information|gather more information|collect more information)\b"
+            r"|\btoo much information\b",
+            opening,
+        )
+    )
+    separates_knowledge = bool(
+        re.search(r"\b(?:known|established|verified|observed)\b", whole)
+        and re.search(r"\b(?:inferred|inference|interpretations?|assumptions?|unproven)\b", whole)
+    )
+    tests_evidence = bool(
+        re.search(r"\b(?:evidence|source|support|corroborat)\w*\b", whole)
+        and re.search(r"\b(?:what would|what evidence|change your mind|revise the conclusion|revise your view|remain uncertain)\b", whole)
+    )
+    action_threshold = bool(re.search(
+        r"\b(?:enough to act|sufficient to act|decision at hand|stakes|reversible|low.consequence|high.consequence|proportionate action)\b",
+        whole,
+    ))
+    return recognizes_problem and separates_knowledge and tests_evidence and action_threshold
+
+
+def _conflicting_information_discernment_recovery() -> str:
+    return (
+        "When you face conflicting information and opinions, the problem is not simply a lack of information or a need for more information. "
+        "It is that you need a reliable way to judge what deserves trust and what is established well enough to act on. "
+        "Regaining your bearings starts by separating the strength of a claim from the confidence or volume with which someone presents it.\n\n"
+        "Make three distinctions: what is directly known or independently verified; what is an interpretation or inference drawn from those facts; "
+        "and what remains an assumption or an unresolved claim. Look at where each claim comes from, whether independent sources support it, "
+        "and whether the evidence actually supports the conclusion being drawn. Ask what new evidence would change your view rather than collecting "
+        "more opinions that repeat the same assertion.\n\n"
+        "You do not need absolute certainty before every action. The evidence threshold should fit the stakes: a small, reversible decision can "
+        "sometimes proceed on the best-supported account available, while a decision with serious or irreversible consequences calls for stronger "
+        "independent support and more care. State what you know, what remains uncertain, and what would make you pause or revise course; then act "
+        "only as far as that evidence reasonably allows."
+    )
+
+
+
+def enforce_conflicting_information_boundary(query: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Enforce epistemic orientation at the final visitor-response boundary.
+
+    This is deliberately reusable by the outer ASGI boundary so specialist,
+    handoff, deterministic, and provider-exhaustion routes cannot bypass the
+    same question-specific acceptance contract used by the composer.
+    """
+    if not isinstance(payload, dict) or not _requires_conflicting_information_discernment(query):
+        return payload
+    response = str(payload.get("response") or "")
+    if _has_conflicting_information_discernment(response):
+        return payload
+    recovered = dict(payload)
+    recovered["response"] = _conflicting_information_discernment_recovery()
+    recovered["response_shape"] = "explanatory"
+    recovered["processing"] = "final_visitor_boundary_conflicting_information_recovery"
+    recovered["route_source"] = "guide_final_visitor_boundary"
+    recovered["answer_basis"] = {
+        "kind": "general_knowledge",
+        "label": "General knowledge",
+        "explanation": "The answer was recovered to establish a reliable way to assess conflicting claims and act proportionately to the evidence.",
+    }
+    recovered["recommendation"] = None
+    recovered["doorway_title"] = ""
+    recovered["doorway_url"] = ""
+    _emit_guide_outcome(
+        "conflicting_information_final_boundary_recovery",
+        reason="missing_epistemic_orientation",
+    )
+    return recovered
+
+
+
 def _requires_three_paragraph_default(query: str) -> bool:
     """Apply the Gold Standard as the default for ordinary visitor questions.
 
@@ -1430,6 +1522,11 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
         # prose and require an answer about consequences across generations. The final
         # deterministic recovery below handles provider exhaustion; this validation
         # prevents a plausible but off-topic candidate from passing as complete.
+        if _requires_conflicting_information_discernment(query) and not _has_conflicting_information_discernment(response):
+            raise ValueError(
+                "conflicting-information answer must recognize the trust problem first, separate known from inferred, test evidence, and set a stakes-proportionate action threshold"
+            )
+
         if _requires_intergenerational_stewardship(query) and not _has_intergenerational_stewardship_explanation(response):
             raise ValueError(
                 "intergenerational stewardship answer must explain cross-generational responsibility in three purposeful paragraphs"
@@ -2284,6 +2381,15 @@ def compose(
         deadline_monotonic=deadline_monotonic,
     )
     if not result:
+        if _requires_conflicting_information_discernment(question):
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="conflicting_information_discernment")
+            return {
+                "response": _conflicting_information_discernment_recovery(),
+                "doorway_title": "",
+                "response_shape": "explanatory",
+                "provider": "bounded_conflicting_information_recovery",
+                "model": "deterministic-contract-recovery",
+            }
         # Preserve the shared explanatory contract when providers are exhausted.
         # This bounded general-knowledge recovery is allowed only for a familiar
         # concept pair and never claims to state Archive doctrine.
