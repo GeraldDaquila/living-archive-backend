@@ -3264,7 +3264,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 + "operation=" + operation
                 + ", provider=" + provider
                 + ", model=" + model
-                + ", reason=local_admission_limit"
+                + ", reason=" + str(exc.reason)
+                + ", admission_scope=process_local"
                 + ", retry_after_seconds=" + str(round(exc.retry_after, 2))
             )
             continue
