@@ -14,11 +14,13 @@ QUERY = (
 def main():
     prompt = composition._GENERAL_GUIDE_SYSTEM
     required = (
-        "the difficulty may not be a lack of information",
-        "what deserves trust",
-        "solid enough to act on",
-        "separate what is known, what is inferred",
-        "Do not use a generic empathy preamble",
+        "treat the task first as epistemic orientation",
+        "competing claims make it hard to judge what deserves trust",
+        "directly known or independently verified",
+        "interpretation/inference",
+        "independent corroboration",
+        "action threshold proportionate to the stakes",
+        "must be rejected",
     )
     for phrase in required:
         assert phrase in prompt, f"Missing recognition calibration: {phrase}"
