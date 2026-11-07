@@ -66,6 +66,7 @@ from provider_bank import (
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
 import archive_crosslink
+from archive_concept_registry import LAW_OF_ONE_CONCEPT_RECORD
 from pinecone_retrieval_budget import install_pinecone_retrieval_budget, PineconeRequestBudgetMiddleware
 from guide_request_budget import (
     REQUEST_BUDGET_SECONDS as GUIDE_REQUEST_BUDGET_SECONDS,
@@ -6672,30 +6673,7 @@ def _established_general_knowledge_recovery(query):
     # Concept registry: bounded, reviewed records may represent general
     # knowledge or an Archive-specific canonical definition. Each record owns
     # its attribution and doorway; do not infer either from a fuzzy title match.
-    public_concepts = {
-        "law of one": {
-            "fact_id": "archive_glossary_law_of_one",
-            # This is an Archive-specific question in the Guide: the published
-            # Glossary entry is the authority, not an adjacent external tradition.
-            # Keep the doorway aligned to the exact source of the definition.
-            "subject": "Law of One",
-            "doorway": {
-                "title": "Law of One — Living Glossary",
-                "url": "https://geralddaquila.com/glossary/",
-            },
-            "response": (
-                "In the Living Archive, the Law of One is a unifying principle expressing the inherent interconnectedness of all existence. "
-                "It is an ethical and perceptual orientation: what happens to one part of a shared whole can affect the coherence of the whole. "
-                "The Archive does not define it as a doctrine, a channeling source, or an external authority.\n\n"
-                "This has a practical ethical meaning. When a person or institution uses coercion or extracts value while shifting the harm onto others, "
-                "the damage is not confined to the immediate transaction; it weakens the relationships and trust on which the wider community depends. "
-                "That example illustrates the principle rather than claiming that every consequence is identical or immediate.\n\n"
-                "The Archive's definition is unity without sameness: people remain distinct, with their own agency and sovereignty, while recognizing their responsibilities within relationship. "
-                "Compassion does not erase accountability, and interconnectedness does not require surrendering individuality. "
-                "The full Archive-specific definition is in the Living Glossary."
-            ),
-        },
-    }
+    public_concepts = {"law of one": LAW_OF_ONE_CONCEPT_RECORD}
     named_concept = re.match(
         r"^(?:(?:can|could)\s+you\s+|please\s+)?"
         r"(?:what\s+is|what\s+does|define|explain|meaning\s+of)\s+"
