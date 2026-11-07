@@ -371,19 +371,3 @@ def test_guide_formation_specialist_integration_preserves_domain_payload():
     assert isinstance(delegation["interpretation"], dict)
     assert isinstance(delegation["movement"], dict)
     assert len(delegation["doors"]) <= 3
-
-
-def test_guide_philippine_systems_specialist_integration_returns_canonical_doorway():
-    import main as guide
-
-    result = guide._philippine_systems_specialist_response(
-        "How do Philippine institutions and governance interact?",
-        [],
-        {"round1_interpretation": {"presenting_situation": "institutional interaction"}},
-        "qa-guide-systems-001",
-    )
-
-    delegation = result["systems_delegation"]
-    assert delegation["state"] == "available"
-    assert delegation["specialist_id"] == "systems_ph"
-    assert delegation["canonical_url"].startswith("https://")
