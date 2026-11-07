@@ -27,13 +27,13 @@ _cache = {"entries": {}, "modified": "", "fetched_at": 0.0}
 def _plain_text(markup: str) -> str:
     value = re.sub(r"<[^>]+>", " ", str(markup or ""))
     value = html.unescape(value)
-    return re.sub(r"\\s+", " ", value).strip()
+    return re.sub(r"\s+", " ", value).strip()
 
 
 def _normalize(value: str) -> str:
     value = _plain_text(value).casefold()
-    value = re.sub(r"[^\\w\\s-]", "", value)
-    value = re.sub(r"\\s+", " ", value).strip()
+    value = re.sub(r"[^\w\s-]", "", value)
+    value = re.sub(r"\s+", " ", value).strip()
     return value.removeprefix("the ").strip()
 
 
@@ -60,7 +60,7 @@ class _EntryParser(HTMLParser):
     def handle_endtag(self, tag):
         if tag != self._tag:
             return
-        text = re.sub(r"\\s+", " ", " ".join(self._parts)).strip()
+        text = re.sub(r"\s+", " ", " ".join(self._parts)).strip()
         if text:
             if tag.startswith("h"):
                 self.headings.append((tag, text))
@@ -80,7 +80,7 @@ def extract_glossary_entry(markup: str, term: str, *, modified: str = ""):
 
     # Parse the page into heading-delimited sections. Classification headings
     # immediately following the term heading are metadata, not new entries.
-    heading_pattern = re.compile(r"<h([2-6])\\b[^>]*>(.*?)</h\\1>", re.I | re.S)
+    heading_pattern = re.compile(r"<h([2-6])\b[^>]*>(.*?)</h\1>", re.I | re.S)
     headings = list(heading_pattern.finditer(str(markup or "")))
     for index, match in enumerate(headings):
         heading_text = _plain_text(match.group(2))
@@ -89,7 +89,7 @@ def extract_glossary_entry(markup: str, term: str, *, modified: str = ""):
         end = headings[index + 1].start() if index + 1 < len(headings) else len(markup)
         section = str(markup)[match.end():end]
         category = ""
-        category_match = re.search(r"<h[2-6]\\b[^>]*>(.*?)</h[2-6]>", section, re.I | re.S)
+        category_match = re.search(r"<h[2-6]\b[^>]*>(.*?)</h[2-6]>", section, re.I | re.S)
         if category_match:
             candidate = _plain_text(category_match.group(1))
             if len(candidate) <= 90 and not candidate.casefold().startswith("see also"):
@@ -97,14 +97,14 @@ def extract_glossary_entry(markup: str, term: str, *, modified: str = ""):
                 section = section[category_match.end():]
         paragraphs = [
             _plain_text(item)
-            for item in re.findall(r"<p\\b[^>]*>(.*?)</p>", section, re.I | re.S)
+            for item in re.findall(r"<p\b[^>]*>(.*?)</p>", section, re.I | re.S)
         ]
         paragraphs = [item for item in paragraphs if item]
         if not paragraphs:
             # Some legacy entries are written as plain block text/list items.
             paragraphs = [
                 _plain_text(item)
-                for item in re.findall(r"<li\\b[^>]*>(.*?)</li>", section, re.I | re.S)
+                for item in re.findall(r"<li\b[^>]*>(.*?)</li>", section, re.I | re.S)
             ]
             paragraphs = [item for item in paragraphs if item]
         if not paragraphs:
@@ -200,4 +200,4 @@ def compose_glossary_recovery(entry):
             "This is the Archive's own usage of the term, not a universal dictionary definition. "
             "Its application should remain bounded by the context and distinctions stated in the entry."
         )
-    return "\\n\\n".join([intro, *body, closing])
+    return "\n\n".join([intro, *body, closing])
