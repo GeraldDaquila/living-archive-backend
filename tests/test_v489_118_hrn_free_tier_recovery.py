@@ -288,8 +288,9 @@ def test_hrn_prescriptive_question_gets_one_targeted_recovery(monkeypatch):
     assert result["parsed"]["response"] == response, "Question repair must preserve the original response."
     assert result["parsed"]["question"] == "What happened in the conversation when the agreed date was raised alongside the added work?"
     assert recovery_schemas, "Targeted question recovery did not use the dedicated schema."
-    assert recovery_schemas[0]["schema"]["required"] == ["question"]
-    assert set(recovery_schemas[0]["schema"]["properties"]) == {"question"}
+    assert isinstance(recovery_schemas[0], dict), "Targeted recovery must pass a JSON schema object."
+    assert recovery_schemas[0]["required"] == ["question"]
+    assert set(recovery_schemas[0]["properties"]) == {"question"}
     assert attempts == ["nvidia", "nvidia"]
 
 
