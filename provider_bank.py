@@ -2914,6 +2914,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             fallback_count += 1
             if fallback_count >= fallback_limit:
                 break
+    _capacity_begin_request()
     route_started = time.monotonic()
     requested_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))
     # HRN relational prose needs a complete answer and a distinct question, not a
@@ -3286,6 +3287,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 shadow = _predictive_shadow_metrics(state, _provider_call_timeout(operation, item))
                 print("USE provider bank candidate outcome: operation=" + operation + ", provider=" + provider + ", model=" + model + ", outcome=success, elapsed_seconds=" + str(round(candidate_elapsed, 3)) + ", ewma_latency_seconds=" + str(shadow["ewma_latency_seconds"]) + ", timeout_risk=" + str(shadow["timeout_risk"]) + ", deadline_fit=" + str(shadow["deadline_fit"]))
             _success(provider, model, operation)
+            _capacity_end_request(success=True)
             return _route_result({"parsed": parsed, "provider": provider, "model": model, "preference_order": order})
         except QuotaAdmissionDenied as exc:
             # Local admission pressure is not evidence that the upstream provider
@@ -3389,6 +3391,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     )
                     break
     print("USE model bank exhausted viable candidates: " + str(last_error)[:240])
+    _capacity_end_request(exhausted=True)
     return _route_result(None)
 
 def refresh_shared_health_state():
