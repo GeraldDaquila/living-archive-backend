@@ -526,7 +526,7 @@ def _has_conflicting_information_discernment(response: str) -> bool:
     )
     separates_knowledge = bool(
         re.search(r"\b(?:known|established|verified|observed)\b", whole)
-        and re.search(r"\b(?:inferred|interpretation|assumption|unproven)\b", whole)
+        and re.search(r"\b(?:inferred|inference|interpretations?|assumptions?|unproven)\b", whole)
     )
     tests_evidence = bool(
         re.search(r"\b(?:evidence|source|support|corroborat)\w*\b", whole)
