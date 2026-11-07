@@ -56,7 +56,7 @@ def extract_glossary_entry(markup: str, term: str, *, modified: str = ""):
         section_start = match.end()
         next_index = index + 1
         if next_index < len(headings):
-            candidate = _plain_text(headings[next_index].group(2))
+            candidate = _plain_text(headings[next_index].group(3))
             is_category = (
                 len(candidate) <= 90
                 and not candidate.casefold().startswith("see also")
