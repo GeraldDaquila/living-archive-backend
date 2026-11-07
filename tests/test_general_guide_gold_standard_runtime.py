@@ -433,7 +433,7 @@ def test_single_paragraph_living_glossary_entry_is_split_by_its_conceptual_movem
         ],
     }
     answer = glossary.compose_glossary_recovery(entry)
-    paragraphs = answer.split("\\n\\n")
+    paragraphs = answer.split("\n\n")
     assert len(paragraphs) == 3
     assert paragraphs[0].startswith("In the Living Archive Glossary")
     assert "not a doctrine, channeling source, or external authority" in paragraphs[1]
