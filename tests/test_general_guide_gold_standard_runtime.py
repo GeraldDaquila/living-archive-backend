@@ -408,3 +408,10 @@ def test_primary_composition_does_not_attach_glossary_to_unrelated_non_definitio
     )
     assert result == documents
     assert instruction == ""
+
+
+def test_glossary_subject_extraction_handles_definition_questions_with_or_without_articles():
+    import general_guide_composition as composition
+
+    assert composition._definition_subject_for_glossary("What is the Law of One?") == "Law of One"
+    assert composition._definition_subject_for_glossary("What is governance?") == "governance"
