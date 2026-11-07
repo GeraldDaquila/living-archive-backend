@@ -162,7 +162,7 @@ Choose the response shape that fits the question:
 - When a visitor asks about a constitutional concept, constitutional reasoning, or the Living Archive’s constitutional framework, ground the explanation in the supplied canonical material. Where supported, explain the concept’s role across the source corpus, its governing relationships to other concepts, the responsibilities or principles that remain stable, and the difference between recovered constitutional architecture and later interpretation. Preserve the Archive’s stated order of work: recovery before translation, and clarity before application. Do not reduce constitutional reasoning to generic “systems thinking,” list generic questions instead of explaining the concept, or claim that a landing page establishes details it does not contain. Use a concrete example only when it clarifies the distinction, and label inference as inference.
 - For questions about taking responsibility for change without becoming responsible for an entire broken system, Separate the visitor’s sphere of influence from what requires shared ownership, wider authority, or other people’s participation. explicitly distinguish responsibility for one's own contribution from accountability for the whole system. acknowledge legitimate limits. First name the specific burden or dilemma contained in the question: seeing a problem can create pressure to carry more than one's fair share. Then explain that personal agency covers choices, actions, and commitments within one's influence; system-level responsibility also belongs to the people, leaders, and institutions with authority, resources, and shared obligations. Do not imply that good intentions, competence, or noticing a gap makes one person responsible for compensating for everyone else's inaction. Give one practical boundary-setting example, such as offering a defined contribution while naming what needs a decision, resource, or commitment from others. Avoid generic task checklists, slogans, and merely rephrasing the question. If a follow-up would help, ask one specific, natural question that helps distinguish the part the visitor can influence from the part that requires shared ownership. Do not assume this is a formal diagnostic request solely because the question mentions a broken system.
 - For a lived or reflective question, be humane and perceptive without diagnosing, therapizing, or pretending to know the visitor's inner history.
-- For questions about being overwhelmed by conflicting information, opinions, or claims, recognize the specific problem before offering a decision framework: the difficulty may not be a lack of information, but uncertainty about what deserves trust and what is solid enough to act on. Make that distinction in ordinary language, then help the visitor separate what is known, what is inferred, and what evidence or consequence would materially change the decision. Do not use a generic empathy preamble, and do not turn this recognition step into therapy or a formulaic reflection.
+- For questions where the visitor is overwhelmed or unsure because information, opinions, or claims conflict, treat the task first as epistemic orientation—not generic decision coaching. REQUIRED ORDER: (1) In the opening paragraph, name the actual difficulty: competing claims make it hard to judge what deserves trust; the problem may be too much conflicting information rather than too little information. Do not open with outcomes, responsibilities, stakeholder mapping, option comparison, or an action plan. (2) Establish a way to assess claims: distinguish what is directly known or independently verified from interpretation/inference and from assumption or unresolved assertion; examine source quality, independent corroboration, and whether evidence supports the conclusion. (3) Explain an action threshold proportionate to the stakes: what is sufficiently supported for a reversible, low-consequence step versus a serious or irreversible decision; name what evidence would change the conclusion. Only after these epistemic bearings are established may you discuss consequences, affected people, or responsibilities if relevant. The opening paragraph MUST recognize the trust-and-discernment problem in ordinary language. A polished three-paragraph answer about governance, options, or responsibility that skips this recognition is off-task and must be rejected. Do not use a generic empathy preamble or turn this into therapy.
 - When a visitor discloses grief or significant distress, do not rush them toward a task, a lesson, or a solution. Begin by reflecting the difficulty they actually named in specific, plain language; avoid formulaic openers such as “I’m sorry you’re feeling this way,” claims about what the loss means, and assumptions about their inner history. If their immediate need is unclear, offer one gentle, open, manageable question that gives them room to say what is hardest without requiring a list or explanation. Keep the response unhurried: recognition first, then one question, and no advice checklist. Grief or impaired functioning alone is not proof of suicidality and must not trigger emergency language by itself. If the visitor signals immediate danger or inability to stay safe, follow the established safety boundary.
 - For a question that explicitly asks where to look, make the navigation useful without replacing the requested answer with a list.
 - For a resource-discovery question (for example, “Where can I find material about X?”), treat finding material as the visitor’s primary task. Give a concise, direct answer naming the strongest source-supported destination, and explain its specific contribution to the subject in ordinary language. Do not merely quote a generic page description, repeat the query in different words, or claim a page covers the exact subject unless the supplied source content supports that claim. Distinguish a broad entry point from a resource that directly addresses the subject. If only a broad entry point is verified, say plainly that it is a starting point and why it is relevant; do not imply that a more direct resource was found. Never pad this explanation with speculative phrases such as “the page may also lead to related material.” Keep the canonical link separate from the answer.
@@ -496,6 +496,60 @@ def _is_response_preference_without_subject(query: str, history_text: str = "") 
         or re.search(r"\b(?:institutional responsibility|stewardship|governance|grief|loneliness|meaning|coercion)\b", q)
     )
     return not named_subject
+
+def _requires_conflicting_information_discernment(query: str) -> bool:
+    """Identify questions where the visitor needs epistemic bearings before advice."""
+    q = _normalize_space(query).casefold()
+    return bool(
+        re.search(r"\b(?:overwhelmed|confused|lost|unsure|cannot tell|can't tell)\b", q)
+        and re.search(r"\b(?:conflicting|contradictory|competing|different)\b", q)
+        and re.search(r"\b(?:information|opinions?|claims?|advice|sources?)\b", q)
+        and re.search(r"\b(?:real|trust|believe|rely on|act on|bearings?)\b", q)
+    )
+
+
+def _has_conflicting_information_discernment(response: str) -> bool:
+    """Require epistemic recognition first, then a usable test for action."""
+    paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", str(response or "")) if part.strip()]
+    if len(paragraphs) < 3:
+        return False
+    opening = paragraphs[0].casefold()
+    whole = " ".join(paragraphs).casefold()
+    recognizes_problem = bool(
+        re.search(r"\b(?:conflicting|contradictory|competing)\b", opening)
+        and re.search(r"\b(?:trust|credible|reliable|confidence|established)\b", opening)
+        and re.search(r"\b(?:not|isn't|is not)\b.{0,100}\b(?:lack|shortage|more information)\b|\btoo much information\b", opening)
+    )
+    separates_knowledge = bool(
+        re.search(r"\b(?:known|established|verified|observed)\b", whole)
+        and re.search(r"\b(?:inferred|interpretation|assumption|unproven)\b", whole)
+    )
+    tests_evidence = bool(
+        re.search(r"\b(?:evidence|source|support|corroborat)\w*\b", whole)
+        and re.search(r"\b(?:what would|what evidence|change your mind|revise the conclusion|remain uncertain)\b", whole)
+    )
+    action_threshold = bool(re.search(
+        r"\b(?:enough to act|sufficient to act|decision at hand|stakes|reversible|low.consequence|high.consequence|proportionate action)\b",
+        whole,
+    ))
+    return recognizes_problem and separates_knowledge and tests_evidence and action_threshold
+
+
+def _conflicting_information_discernment_recovery() -> str:
+    return (
+        "When information and opinions conflict, the difficulty is often not that you need to find still more information. "
+        "It is that you need a reliable way to judge what deserves trust and what is established well enough to act on. "
+        "Regaining your bearings starts by separating the strength of a claim from the confidence or volume with which someone presents it.\n\n"
+        "Make three distinctions: what is directly known or independently verified; what is an interpretation or inference drawn from those facts; "
+        "and what remains an assumption or an unresolved claim. Look at where each claim comes from, whether independent sources support it, "
+        "and whether the evidence actually supports the conclusion being drawn. Ask what new evidence would change your view rather than collecting "
+        "more opinions that repeat the same assertion.\n\n"
+        "You do not need absolute certainty before every action. The evidence threshold should fit the stakes: a small, reversible decision can "
+        "sometimes proceed on the best-supported account available, while a decision with serious or irreversible consequences calls for stronger "
+        "independent support and more care. State what you know, what remains uncertain, and what would make you pause or revise course; then act "
+        "only as far as that evidence reasonably allows."
+    )
+
 
 def _requires_three_paragraph_default(query: str) -> bool:
     """Apply the Gold Standard as the default for ordinary visitor questions.
@@ -1386,6 +1440,11 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
         # prose and require an answer about consequences across generations. The final
         # deterministic recovery below handles provider exhaustion; this validation
         # prevents a plausible but off-topic candidate from passing as complete.
+        if _requires_conflicting_information_discernment(query) and not _has_conflicting_information_discernment(response):
+            raise ValueError(
+                "conflicting-information answer must recognize the trust problem first, separate known from inferred, test evidence, and set a stakes-proportionate action threshold"
+            )
+
         if _requires_intergenerational_stewardship(query) and not _has_intergenerational_stewardship_explanation(response):
             raise ValueError(
                 "intergenerational stewardship answer must explain cross-generational responsibility in three purposeful paragraphs"
@@ -2240,6 +2299,15 @@ def compose(
         deadline_monotonic=deadline_monotonic,
     )
     if not result:
+        if _requires_conflicting_information_discernment(question):
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="conflicting_information_discernment")
+            return {
+                "response": _conflicting_information_discernment_recovery(),
+                "doorway_title": "",
+                "response_shape": "explanatory",
+                "provider": "bounded_conflicting_information_recovery",
+                "model": "deterministic-contract-recovery",
+            }
         # Preserve the shared explanatory contract when providers are exhausted.
         # This bounded general-knowledge recovery is allowed only for a familiar
         # concept pair and never claims to state Archive doctrine.
