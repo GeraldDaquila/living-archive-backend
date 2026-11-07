@@ -498,9 +498,17 @@ def _apply_archive_glossary_authority(query: str, documents: List[Dict[str, str]
         "not a universal dictionary.\n\n"
     )
 
+def resolve_glossary_context(query: str):
+    """Resolve the canonical Glossary entry before any general retrieval begins."""
+    return _apply_archive_glossary_authority(query, [])
+
 def _retrieve_authoritative_context(query: str, use_core: Any, context_data: Dict[str, Any]):
     """Check canonical Glossary authority first, then enrich with Archive retrieval."""
-    glossary_documents, glossary_instruction = _apply_archive_glossary_authority(query, [])
+    if context_data.get("_canonical_glossary_checked") is True:
+        glossary_documents = context_data.get("_canonical_glossary_documents") or []
+        glossary_instruction = str(context_data.get("_canonical_glossary_instruction") or "")
+    else:
+        glossary_documents, glossary_instruction = resolve_glossary_context(query)
     retrieved_documents = _documents_from_context(use_core, context_data)
     if not glossary_documents:
         return retrieved_documents, glossary_instruction
