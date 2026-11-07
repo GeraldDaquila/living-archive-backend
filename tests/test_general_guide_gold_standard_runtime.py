@@ -559,3 +559,41 @@ def test_definition_intent_recognizer_excludes_procedural_causal_and_comparison_
     ]
     for question in non_definitions:
         assert composition._definition_subject_for_glossary(question) == ""
+
+
+def test_prechecked_glossary_snapshot_is_reused_without_second_network_lookup(monkeypatch):
+    import general_guide_composition as composition
+
+    glossary_doc = {
+        "title": "The Living Glossary — Law of One",
+        "url": "https://geralddaquila.com/glossary/",
+        "content": "Canonical definition.",
+        "source_modified": "2026-11-08T10:00:00",
+    }
+    archive_doc = {"title": "Related essay", "url": "https://geralddaquila.com/essay/", "content": "Context."}
+
+    def unexpected_lookup(query, documents):
+        raise AssertionError("Prechecked Glossary must not be fetched twice")
+
+    monkeypatch.setattr(composition, "_apply_archive_glossary_authority", unexpected_lookup)
+    monkeypatch.setattr(composition, "_documents_from_context", lambda use_core, context: [archive_doc])
+    context = {
+        "_canonical_glossary_checked": True,
+        "_canonical_glossary_documents": [glossary_doc],
+        "_canonical_glossary_instruction": "canonical authority",
+    }
+    documents, instruction = composition._retrieve_authoritative_context(
+        "What is the Law of One?", object(), context
+    )
+    assert documents == [glossary_doc, archive_doc]
+    assert instruction == "canonical authority"
+
+
+def test_main_resolves_glossary_before_canonical_archive_fetch():
+    from pathlib import Path
+
+    source = Path("main.py").read_text(encoding="utf-8")
+    glossary_lookup = source.index("general_guide_composition.resolve_glossary_context(query)")
+    archive_fetch = source.index("use_core.fetch_canonical_context(resource_query)")
+    assert glossary_lookup < archive_fetch
+    assert '_canonical_glossary_checked"] = True' in source
