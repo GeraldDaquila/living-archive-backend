@@ -18,7 +18,7 @@ def test_orientation_contract_rejects_generic_decision_first_pattern_for_bearing
         "Next, compare the benefits and harms of each option and consider who is affected.\n\n"
         "Finally, act on the best-supported option and review the consequences."
     )
-    assert guide.is_generic_nonanswer(question, generic)
+    assert guide._orientation_anchor_violation(question, generic)
 
 
 def test_orientation_contract_accepts_response_that_names_the_actual_condition():
@@ -33,4 +33,4 @@ def test_orientation_contract_accepts_response_that_names_the_actual_condition()
         "Before acting, identify what you can verify, what remains uncertain, and which assumptions are carrying the most weight.\n\n"
         "You do not need perfect certainty before every action. You need a clear enough picture of what is known, what could change your judgment, and what responsibility the next step actually carries."
     )
-    assert not guide.is_generic_nonanswer(question, oriented)
+    assert not guide._orientation_anchor_violation(question, oriented)
