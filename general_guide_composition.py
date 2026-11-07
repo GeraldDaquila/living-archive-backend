@@ -537,7 +537,7 @@ def _has_conflicting_information_discernment(response: str) -> bool:
 
 def _conflicting_information_discernment_recovery() -> str:
     return (
-        "When information and opinions conflict, the difficulty is often not that you need to find still more information. "
+        "When information and opinions conflict, the problem is not simply a lack of information or a need for more information. "
         "It is that you need a reliable way to judge what deserves trust and what is established well enough to act on. "
         "Regaining your bearings starts by separating the strength of a claim from the confidence or volume with which someone presents it.\n\n"
         "Make three distinctions: what is directly known or independently verified; what is an interpretation or inference drawn from those facts; "
