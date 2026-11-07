@@ -1452,6 +1452,18 @@ def select(use_core, operation="generic", schema=None):
             # healthy model merely because it has fewer recorded visitor-contract
             # rejections. Half-open candidates are probes, not proven fallbacks.
             # Within the same health tier, preserve quality history and recent success.
+            models.sort(key=lambda item: (
+                0 if item.get("health_state") == "healthy" else 1,
+                int(item.get("quality_failures", 0) or 0),
+                0 if "low_latency" in (item.get("capabilities") or []) else 1,
+                int(item.get("consecutive_failures", 0) or 0),
+                int(item.get("transport_failures", 0) or 0),
+                -float(item.get("last_success", 0) or 0),
+            ))
+        elif operation in {"general_guide_composition", "fsd_report_composition"}:
+            # The general Guide may only have a five-second generation window.
+            # Do not let a half-open probe outrank a healthy model simply because
+            # its provider appears earlier in the rotating lane order.
             budget_seconds = _provider_call_timeout(operation, models[0]) if models else 4.0
             def _predictive_rank(item):
                 shadow = _predictive_shadow_metrics(item, budget_seconds)
@@ -1468,18 +1480,6 @@ def select(use_core, operation="generic", schema=None):
                     -float(item.get("last_success", 0) or 0),
                 )
             models.sort(key=_predictive_rank)
-        elif operation in {"general_guide_composition", "fsd_report_composition"}:
-            # The general Guide may only have a five-second generation window.
-            # Do not let a half-open probe outrank a healthy model simply because
-            # its provider appears earlier in the rotating lane order.
-            models.sort(key=lambda item: (
-                0 if item.get("health_state") == "healthy" else 1,
-                int(item.get("quality_failures", 0) or 0),
-                0 if "low_latency" in (item.get("capabilities") or []) else 1,
-                int(item.get("consecutive_failures", 0) or 0),
-                int(item.get("transport_failures", 0) or 0),
-                -float(item.get("last_success", 0) or 0),
-            ))
         else:
             models.sort(key=lambda item: int(item.get("quality_failures", 0) or 0))
         _STATE["model_cursors"][provider] = cursor + 1
