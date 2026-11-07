@@ -1,6 +1,7 @@
 """Regression tests for evidence-gated Archive constitutional recovery."""
 
 import general_guide_composition as guide
+import main
 from deterministic_answer_recovery import compose_recovery
 
 
@@ -108,3 +109,35 @@ def test_final_response_contract_preserves_a_valid_constitutional_explanation():
         "Recovered constitutional architecture remains distinct from later interpretation."
     )
     assert guide.enforce_response_contracts(question, strong_candidate) == strong_candidate
+
+
+
+def test_law_of_one_uses_the_published_archive_glossary_definition():
+    result = main._established_general_knowledge_recovery("What is the Law of One?")
+
+    assert result is not None
+    assert result["fact_id"] == "archive_glossary_law_of_one"
+    assert result["subject"] == "Law of One"
+    assert result["doorway"] == {
+        "title": "Law of One — Living Glossary",
+        "url": "https://geralddaquila.com/glossary/",
+    }
+    response = result["response"]
+    assert "inherent interconnectedness of all existence" in response
+    assert "ethical and perceptual orientation" in response
+    assert "not a doctrine" in response
+    assert "coercion" in response
+    assert "extraction" in response
+    assert "unity without sameness" in response
+    assert "sovereignty" in response
+    assert "Ra Material" not in response
+
+
+def test_law_of_one_archive_wording_uses_the_same_glossary_record():
+    result = main._established_general_knowledge_recovery(
+        "Explain the Law of One in the Living Archive."
+    )
+
+    assert result is not None
+    assert result["fact_id"] == "archive_glossary_law_of_one"
+    assert "compassion does not erase accountability" in result["response"]
