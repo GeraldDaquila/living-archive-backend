@@ -32,7 +32,6 @@ async function submitAndCapture(page, url, question) {
   });
 
   await page.goto(url, { waitUntil: 'domcontentloaded' });
-  lifecycle.selectedBackend = await page.evaluate(() => window.__LIVING_ARCHIVE_GUIDE_BACKEND || null);
 
   const box = page.locator('textarea').first();
   await expect(box).toBeVisible();
@@ -40,6 +39,7 @@ async function submitAndCapture(page, url, question) {
   await page.getByRole('button', { name: /search/i }).first().click();
 
   await page.waitForTimeout(5000);
+  lifecycle.selectedBackend = await page.evaluate(() => window.__LIVING_ARCHIVE_GUIDE_BACKEND || null);
   return lifecycle;
 }
 
