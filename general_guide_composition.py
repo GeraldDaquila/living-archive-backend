@@ -433,6 +433,60 @@ def _documents_from_context(use_core: Any, context_data: Dict[str, Any]) -> List
     return output
 
 
+def _definition_subject_for_glossary(query: str) -> str:
+    """Extract a bounded term from a definition-style visitor question."""
+    value = _normalize_space(query).strip().rstrip("?.!;:")
+    patterns = (
+        r"^(?:what is|what are|define|explain|describe)\s+(?:(?:the|a|an)\s+)?(.+)$",
+        r"^what does\s+(.+?)\s+mean(?:\s+in the living archive)?$",
+        r"^meaning of\s+(.+)$",
+    )
+    for pattern in patterns:
+        match = re.match(pattern, value, re.I)
+        if match:
+            subject = re.sub(r",?\s+and why does it matter$", "", match.group(1), flags=re.I).strip()
+            subject = re.sub(r"^(?:the|a|an)\s+", "", subject, flags=re.I).strip()
+            if 1 <= len(subject.split()) <= 12 and len(subject) <= 120:
+                return subject
+    return ""
+
+
+def _apply_archive_glossary_authority(query: str, documents: List[Dict[str, str]]):
+    """Add the exact published Glossary entry as canonical context for definition questions."""
+    subject = _definition_subject_for_glossary(query)
+    if not subject:
+        return documents, ""
+    try:
+        from archive_glossary_authority import get_glossary_entry
+        entry = get_glossary_entry(subject)
+    except Exception:
+        entry = None
+    if not entry:
+        return documents, ""
+    paragraphs = [str(item).strip() for item in entry.get("paragraphs", []) if str(item).strip()]
+    if not paragraphs:
+        return documents, ""
+    category = str(entry.get("category") or "").strip()
+    content = "\n\n".join(paragraphs)
+    if category:
+        content = f"Canonical Archive classification: {category}.\n\n" + content
+    glossary_document = {
+        "title": f"The Living Glossary — {entry.get('term') or subject}",
+        "url": str(entry.get("source_url") or "https://geralddaquila.com/glossary/"),
+        "content": content[:1500],
+    }
+    remaining = [
+        item for item in documents
+        if str(item.get("url") or "") != glossary_document["url"]
+    ]
+    return [glossary_document] + remaining[:3], (
+        "CANONICAL GLOSSARY AUTHORITY: The supplied Living Glossary entry defines the term's meaning within the Living Archive. "
+        "Use that entry as the primary authority for Archive-specific usage and preserve its category and boundaries. "
+        "Do not replace it with an external doctrine or blend distinct interpretations. If an external tradition is relevant, "
+        "identify it separately as an external interpretation, not as the Archive's definition. The Glossary is Archive-specific, "
+        "not a universal dictionary.\n\n"
+    )
+
 def is_exact_source_request(query: str) -> bool:
     """Recognize requests to trace a claim to its source."""
     q = _normalize_space(query).casefold()
@@ -2287,6 +2341,7 @@ def compose(
         }
 
     documents = _documents_from_context(use_core, context_data)
+    documents, glossary_authority_instruction = _apply_archive_glossary_authority(question, documents)
     corrected_subject = correction_subject(question)
     effective_question = corrected_subject or question
     shape = _question_shape(effective_question)
@@ -2347,6 +2402,7 @@ def compose(
             if _requires_distress_sensitive_pacing(question)
             else ""
         )
+        + glossary_authority_instruction
         + f"Archive material available to ground the answer:\n{_evidence_payload(documents) if documents else 'No relevant Archive material was retrieved for this question. Use reliable general knowledge where appropriate; do not invent Archive-specific claims or sources.'}"
     )
 

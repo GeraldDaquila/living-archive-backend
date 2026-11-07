@@ -365,3 +365,53 @@ def test_general_definition_fallback_has_no_subject_independent_operational_boil
     assert "knowledge, responsibilities, or ways of working" not in answer
     assert "For example, When" not in answer
     assert len(answer.split("\n\n")) == 3
+
+
+def test_primary_composition_receives_canonical_glossary_context_for_archive_terms(monkeypatch):
+    import archive_glossary_authority as glossary
+    import general_guide_composition as composition
+
+    entry = {
+        "term": "Law of One",
+        "category": "Principle / Ethical Orientation",
+        "paragraphs": [
+            "A unifying principle expressing the inherent interconnectedness of all existence. "
+            "It is an ethical and perceptual orientation, not a doctrine, channeling source, or external authority.",
+            "Unity is relational coherence, not sameness, fusion, or loss of agency.",
+        ],
+        "source_url": "https://geralddaquila.com/glossary/",
+    }
+    monkeypatch.setattr(glossary, "get_glossary_entry", lambda subject: entry)
+    original_documents = [{"title": "Unrelated page", "url": "https://example.invalid/", "content": "Unrelated context."}]
+    documents, instruction = composition._apply_archive_glossary_authority(
+        "What is the Law of One?", original_documents
+    )
+
+    assert documents[0]["title"] == "The Living Glossary — Law of One"
+    assert "inherent interconnectedness" in documents[0]["content"]
+    assert "not sameness" in documents[0]["content"]
+    assert "primary authority for Archive-specific usage" in instruction
+    assert documents[1:] == original_documents
+
+
+def test_primary_composition_does_not_attach_glossary_to_unrelated_non_definition_queries(monkeypatch):
+    import archive_glossary_authority as glossary
+    import general_guide_composition as composition
+
+    def unexpected_lookup(subject):
+        raise AssertionError("Glossary lookup should not run for a non-definition query")
+
+    monkeypatch.setattr(glossary, "get_glossary_entry", unexpected_lookup)
+    documents = [{"title": "Existing source", "url": "https://example.invalid/", "content": "Context."}]
+    result, instruction = composition._apply_archive_glossary_authority(
+        "How should a team repair trust after a missed commitment?", documents
+    )
+    assert result == documents
+    assert instruction == ""
+
+
+def test_glossary_subject_extraction_handles_definition_questions_with_or_without_articles():
+    import general_guide_composition as composition
+
+    assert composition._definition_subject_for_glossary("What is the Law of One?") == "Law of One"
+    assert composition._definition_subject_for_glossary("What is governance?") == "governance"
