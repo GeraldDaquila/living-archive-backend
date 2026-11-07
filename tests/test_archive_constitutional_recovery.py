@@ -2,6 +2,7 @@
 
 import general_guide_composition as guide
 import main
+from archive_concept_registry import LAW_OF_ONE_CONCEPT_RECORD
 from deterministic_answer_recovery import compose_recovery
 
 
@@ -123,14 +124,19 @@ def test_law_of_one_uses_the_published_archive_glossary_definition():
         "url": "https://geralddaquila.com/glossary/",
     }
     response = result["response"]
-    assert "inherent interconnectedness of all existence" in response
-    assert "ethical and perceptual orientation" in response
-    assert "does not define it as a doctrine" in response
-    assert "coercion" in response
-    assert "extraction" in response
-    assert "unity without sameness" in response
-    assert "sovereignty" in response
-    assert "Ra Material" not in response
+    assert result["classification"] == "Principle / Ethical Orientation"
+    assert result["source"]["post_id"] == 5578
+    assert result["source"]["authority"] == "published_wordpress_glossary"
+    assert response == LAW_OF_ONE_CONCEPT_RECORD["response"]
+    assert response == (
+        "A unifying principle expressing the inherent interconnectedness of all existence. "
+        "In this framework, the Law of One is not a doctrine, channeling source, or external authority, "
+        "but an ethical and perceptual orientation: recognition that harm, coercion, and extraction "
+        "anywhere diminish coherence everywhere. Practiced maturely, it emphasizes unity without "
+        "erasing individuality, sovereignty without isolation, and compassion without loss of "
+        "responsibility. Unity is understood here as relational coherence, not sameness, fusion, "
+        "or loss of agency."
+    )
 
 
 def test_law_of_one_archive_wording_uses_the_same_glossary_record():
@@ -140,4 +146,5 @@ def test_law_of_one_archive_wording_uses_the_same_glossary_record():
 
     assert result is not None
     assert result["fact_id"] == "archive_glossary_law_of_one"
-    assert "compassion does not erase accountability" in result["response"].casefold()
+    assert result["response"] == LAW_OF_ONE_CONCEPT_RECORD["response"]
+    assert result["doorway"] == LAW_OF_ONE_CONCEPT_RECORD["doorway"]
