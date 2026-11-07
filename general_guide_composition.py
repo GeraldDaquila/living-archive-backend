@@ -2341,6 +2341,7 @@ def compose(
         }
 
     documents = _documents_from_context(use_core, context_data)
+    documents, glossary_authority_instruction = _apply_archive_glossary_authority(question, documents)
     corrected_subject = correction_subject(question)
     effective_question = corrected_subject or question
     shape = _question_shape(effective_question)
@@ -2401,6 +2402,7 @@ def compose(
             if _requires_distress_sensitive_pacing(question)
             else ""
         )
+        + glossary_authority_instruction
         + f"Archive material available to ground the answer:\n{_evidence_payload(documents) if documents else 'No relevant Archive material was retrieved for this question. Use reliable general knowledge where appropriate; do not invent Archive-specific claims or sources.'}"
     )
 
