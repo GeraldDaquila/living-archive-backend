@@ -1,0 +1,27 @@
+name: Guide Application-Level Failover QA
+
+on:
+  push:
+    branches:
+      - fix/guide-application-level-failover
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "frontend/the-guide-frontend-v489.251.js"
+      - "tests/guide-application-level-failover.test.js"
+      - ".github/workflows/guide-application-level-failover-qa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  transport-failover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test application-level failover contract
+        run: node --test tests/guide-application-level-failover.test.js
