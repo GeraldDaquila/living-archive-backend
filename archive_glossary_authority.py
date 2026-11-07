@@ -7,7 +7,6 @@ entries briefly. Network failure returns no authority; callers must not invent o
 from __future__ import annotations
 
 import html
-from html.parser import HTMLParser
 import json
 import re
 import threading
@@ -21,7 +20,7 @@ STALE_TTL_SECONDS = 3600.0
 FETCH_TIMEOUT_SECONDS = 2.0
 
 _lock = threading.Lock()
-_cache = {"entries": {}, "modified": "", "fetched_at": 0.0}
+_cache = {"modified": "", "fetched_at": 0.0}
 
 
 def _plain_text(markup: str) -> str:
@@ -35,39 +34,6 @@ def _normalize(value: str) -> str:
     value = re.sub(r"[^\w\s-]", "", value)
     value = re.sub(r"\s+", " ", value).strip()
     return value.removeprefix("the ").strip()
-
-
-class _EntryParser(HTMLParser):
-    """Extract exact glossary heading sections without interpreting page navigation."""
-
-    def __init__(self):
-        super().__init__(convert_charrefs=True)
-        self.headings = []
-        self.paragraphs = []
-        self._tag = None
-        self._parts = []
-        self._current = None
-
-    def handle_starttag(self, tag, attrs):
-        if tag in {"h2", "h3", "h4", "h5", "h6", "p"}:
-            self._tag = tag
-            self._parts = []
-
-    def handle_data(self, data):
-        if self._tag:
-            self._parts.append(data)
-
-    def handle_endtag(self, tag):
-        if tag != self._tag:
-            return
-        text = re.sub(r"\s+", " ", " ".join(self._parts)).strip()
-        if text:
-            if tag.startswith("h"):
-                self.headings.append((tag, text))
-            elif tag == "p":
-                self.paragraphs.append(text)
-        self._tag = None
-        self._parts = []
 
 
 def extract_glossary_entry(markup: str, term: str, *, modified: str = ""):
