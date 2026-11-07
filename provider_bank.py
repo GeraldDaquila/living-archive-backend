@@ -1381,7 +1381,7 @@ def candidates(use_core, operation="generic", schema=None):
 
 
 def _predictive_shadow_metrics(item, budget_seconds=4.0):
-    """Read-only deadline evidence for Predictive Assignment shadow mode."""
+    """Deadline evidence used by bounded Predictive Assignment."""
     latency = float(item.get("ewma_latency_seconds", 0.0) or 0.0)
     attempts = int(item.get("latency_attempts", 0) or 0)
     timeouts = int(item.get("recent_timeouts", 0) or 0)
@@ -1485,6 +1485,24 @@ def select(use_core, operation="generic", schema=None):
                     -float(item.get("last_success", 0) or 0),
                 )
             models.sort(key=_predictive_rank)
+            # Emit compact, decision-level evidence for controlled comparison.
+            # This is intentionally one record per lane, not per provider call.
+            predictive_snapshot = []
+            for item in models:
+                evidence = _predictive_shadow_metrics(item, budget_seconds)
+                predictive_snapshot.append({
+                    "provider": item.get("provider"),
+                    "model": item.get("model"),
+                    "attempts": int(item.get("latency_attempts", 0) or 0),
+                    "timeout_risk": evidence["timeout_risk"],
+                    "deadline_fit": evidence["deadline_fit"],
+                    "health": item.get("health_state"),
+                })
+            print("USE predictive assignment v1: " + json.dumps({
+                "operation": operation,
+                "budget_seconds": round(float(budget_seconds), 3),
+                "ranking": predictive_snapshot,
+            }, separators=(",", ":")))
         else:
             models.sort(key=lambda item: int(item.get("quality_failures", 0) or 0))
         _STATE["model_cursors"][provider] = cursor + 1
