@@ -35,12 +35,27 @@ _COUNTERS = {
 class QuotaAdmissionDenied(RuntimeError):
     """A local admission limit rejected work before it reached the provider."""
 
-    def __init__(self, provider: str, model: str, reason: str, retry_after: float = 1.0):
+    def __init__(
+        self,
+        provider: str,
+        model: str,
+        reason: str,
+        retry_after: float = 1.0,
+        *,
+        budget_kind: str | None = None,
+        budget_limit: int | None = None,
+        request_cost: float | None = None,
+        budget_period_seconds: float | None = None,
+    ):
         super().__init__(f"provider admission denied: {reason}")
         self.provider = provider
         self.model = model
         self.reason = reason
         self.retry_after = max(0.1, float(retry_after))
+        self.budget_kind = budget_kind
+        self.budget_limit = budget_limit
+        self.request_cost = request_cost
+        self.budget_period_seconds = budget_period_seconds
 
 
 def _int_env(name: str, default: int, minimum: int = 1, maximum: int = 1_000_000) -> int:
@@ -210,7 +225,16 @@ def reserve(provider: str, model: str, messages: Any, max_tokens: int) -> Reserv
             if not ok:
                 counter = "rejected_" + kind
                 _COUNTERS[counter] += 1
-                raise QuotaAdmissionDenied(provider, model, kind + "_budget_exhausted", retry_after)
+                raise QuotaAdmissionDenied(
+                    provider,
+                    model,
+                    kind + "_budget_exhausted",
+                    retry_after,
+                    budget_kind=kind,
+                    budget_limit=limit,
+                    request_cost=cost,
+                    budget_period_seconds=period,
+                )
             planned_buckets.append((bucket_key, cost, kind, limit, period))
 
         model_tpm_name = f"USE_QUOTA_{provider_slug}_{model_slug}_TPM"
@@ -225,7 +249,16 @@ def reserve(provider: str, model: str, messages: Any, max_tokens: int) -> Reserv
                 ok, retry_after = _bucket_check(model_bucket_key, model_tpm, float(estimate), 60.0, now)
                 if not ok:
                     _COUNTERS["rejected_tpm"] += 1
-                    raise QuotaAdmissionDenied(provider, model, "model_tpm_budget_exhausted", retry_after)
+                    raise QuotaAdmissionDenied(
+                        provider,
+                        model,
+                        "model_tpm_budget_exhausted",
+                        retry_after,
+                        budget_kind="model_tpm",
+                        budget_limit=model_tpm,
+                        request_cost=float(estimate),
+                        budget_period_seconds=60.0,
+                    )
                 planned_buckets.append((model_bucket_key, float(estimate), "model_tpm", model_tpm, 60.0))
 
         # Commit all token-bucket deductions only after every budget check passes.
