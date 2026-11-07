@@ -1,0 +1,26 @@
+name: Production-baseline conflicting-information acceptance
+on:
+  push:
+    branches:
+      - fix/production-conflicting-information-boundary
+    paths:
+      - "general_guide_composition.py"
+      - "main.py"
+      - "QA/production_conflicting_information_boundary.py"
+      - ".github/workflows/production-conflicting-information-boundary.yml"
+  pull_request:
+    paths:
+      - "general_guide_composition.py"
+      - "main.py"
+      - "QA/production_conflicting_information_boundary.py"
+      - ".github/workflows/production-conflicting-information-boundary.yml"
+jobs:
+  production-baseline-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run production-baseline discernment regression
+        run: python QA/production_conflicting_information_boundary.py
