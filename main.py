@@ -6669,10 +6669,9 @@ def _established_general_knowledge_recovery(query):
     if not normalized:
         return None
 
-    # Public concept registry: these are bounded, stable orientation records.
-    # They are explicitly general knowledge, never Archive attribution. New
-    # concepts must be registered with a precise phrase and reviewed response;
-    # fuzzy title matches are not permitted to manufacture definitions.
+    # Concept registry: bounded, reviewed records may represent general
+    # knowledge or an Archive-specific canonical definition. Each record owns
+    # its attribution and doorway; do not infer either from a fuzzy title match.
     public_concepts = {
         "law of one": {
             "fact_id": "archive_glossary_law_of_one",
