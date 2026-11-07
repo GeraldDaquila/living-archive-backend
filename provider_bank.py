@@ -1372,6 +1372,9 @@ def candidates(use_core, operation="generic", schema=None):
                 # visitor turn, so a model that just succeeded in perception
                 # should outrank a sibling model with stale quota health.
                 "last_success": float(health.get("last_success", 0) or 0),
+                "ewma_latency_seconds": float(health.get("ewma_latency_seconds", 0) or 0),
+                "latency_attempts": int(health.get("latency_attempts", 0) or 0),
+                "recent_timeouts": int(health.get("recent_timeouts", 0) or 0),
                 "capabilities": sorted(_capabilities(provider, model)),
             })
     return out
@@ -1449,14 +1452,22 @@ def select(use_core, operation="generic", schema=None):
             # healthy model merely because it has fewer recorded visitor-contract
             # rejections. Half-open candidates are probes, not proven fallbacks.
             # Within the same health tier, preserve quality history and recent success.
-            models.sort(key=lambda item: (
-                0 if item.get("health_state") == "healthy" else 1,
-                int(item.get("quality_failures", 0) or 0),
-                0 if "low_latency" in (item.get("capabilities") or []) else 1,
-                int(item.get("consecutive_failures", 0) or 0),
-                int(item.get("transport_failures", 0) or 0),
-                -float(item.get("last_success", 0) or 0),
-            ))
+            budget_seconds = _provider_call_timeout(operation, models[0]) if models else 4.0
+            def _predictive_rank(item):
+                shadow = _predictive_shadow_metrics(item, budget_seconds)
+                attempts = int(item.get("latency_attempts", 0) or 0)
+                telemetry_ready = attempts >= 3
+                prediction_penalty = ((shadow["timeout_risk"] * 4.0) + (shadow["deadline_fit"] * 1.5)) if telemetry_ready else 0.0
+                return (
+                    0 if item.get("health_state") == "healthy" else 1,
+                    int(item.get("quality_failures", 0) or 0),
+                    prediction_penalty,
+                    0 if "low_latency" in (item.get("capabilities") or []) else 1,
+                    int(item.get("consecutive_failures", 0) or 0),
+                    int(item.get("transport_failures", 0) or 0),
+                    -float(item.get("last_success", 0) or 0),
+                )
+            models.sort(key=_predictive_rank)
         elif operation in {"general_guide_composition", "fsd_report_composition"}:
             # The general Guide may only have a five-second generation window.
             # Do not let a half-open probe outrank a healthy model simply because
