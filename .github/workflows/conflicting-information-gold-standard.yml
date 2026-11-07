@@ -1,0 +1,31 @@
+name: Conflicting Information Gold Standard QA
+
+on:
+  push:
+    branches:
+      - test/predictive-provider-assignment-v1
+    paths:
+      - "general_guide_composition.py"
+      - "general_guide_gold_standards.py"
+      - "provider_bank.py"
+      - "provider_quota_control.py"
+      - "provider_resilience.py"
+      - "guide_request_budget.py"
+      - "provider_health_store.py"
+      - "QA/V489_312_CONFLICTING_INFORMATION_GOLD_STANDARD_QA.py"
+      - ".github/workflows/conflicting-information-gold-standard.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  composition-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run conflicting-information composition regression
+        run: python QA/V489_312_CONFLICTING_INFORMATION_GOLD_STANDARD_QA.py
