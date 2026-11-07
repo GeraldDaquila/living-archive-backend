@@ -177,7 +177,7 @@ def compose_glossary_recovery(entry):
         # conceptual movements. Split at sentence boundaries rather than adding filler.
         sentences = [
             part.strip()
-            for part in re.split(r"(?<=[.!?])\\s+(?=[A-Z])", paragraphs[0])
+            for part in re.split(r"(?<=[.!?])\s+(?=[A-Z])", paragraphs[0])
             if part.strip()
         ]
         if len(sentences) < 3:
@@ -185,7 +185,7 @@ def compose_glossary_recovery(entry):
         first_paragraph = f"{intro} {sentences[0]}"
         second_paragraph = sentences[1]
         third_paragraph = " ".join(sentences[2:])
-        return "\\n\\n".join([first_paragraph, second_paragraph, third_paragraph])
+        return "\n\n".join([first_paragraph, second_paragraph, third_paragraph])
     first_paragraph = f"{intro} {paragraphs[0]}"
     second_paragraph = paragraphs[1]
     closing = (
@@ -193,4 +193,4 @@ def compose_glossary_recovery(entry):
         "Other traditions or disciplines may use the same words differently, so those meanings "
         "should be identified separately rather than blended into this one."
     )
-    return "\\n\\n".join([first_paragraph, second_paragraph, closing])
+    return "\n\n".join([first_paragraph, second_paragraph, closing])
