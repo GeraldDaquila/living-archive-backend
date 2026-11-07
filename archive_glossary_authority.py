@@ -18,9 +18,10 @@ GLOSSARY_URL = "https://geralddaquila.com/wp-json/wp/v2/pages/5578?_fields=id,mo
 FRESH_TTL_SECONDS = 300.0
 STALE_TTL_SECONDS = 3600.0
 FETCH_TIMEOUT_SECONDS = 2.0
+FAILURE_RETRY_SECONDS = 30.0
 
 _lock = threading.Lock()
-_cache = {"modified": "", "fetched_at": 0.0}
+_cache = {"modified": "", "fetched_at": 0.0, "last_attempt": 0.0}
 
 
 def _plain_text(markup: str) -> str:
@@ -121,10 +122,19 @@ def _refresh_cache():
     now = time.monotonic()
     if now - float(_cache["fetched_at"]) < FRESH_TTL_SECONDS:
         return True
+    if now - float(_cache["last_attempt"]) < FAILURE_RETRY_SECONDS:
+        return bool(_cache.get("markup")) and (
+            now - float(_cache["fetched_at"]) < STALE_TTL_SECONDS
+        )
     with _lock:
         now = time.monotonic()
         if now - float(_cache["fetched_at"]) < FRESH_TTL_SECONDS:
             return True
+        if now - float(_cache["last_attempt"]) < FAILURE_RETRY_SECONDS:
+            return bool(_cache.get("markup")) and (
+                now - float(_cache["fetched_at"]) < STALE_TTL_SECONDS
+            )
+        _cache["last_attempt"] = now
         try:
             markup, modified = _fetch_page()
             # Cache page markup only; entries are extracted on demand so the
