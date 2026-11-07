@@ -38,8 +38,6 @@ def _normalize(value: str) -> str:
 
 def extract_glossary_entry(markup: str, term: str, *, modified: str = ""):
     """Return an exact term entry, or None when the Glossary has no exact heading."""
-    parser = _EntryParser()
-    parser.feed(str(markup or ""))
     target = _normalize(term)
     if not target:
         return None
