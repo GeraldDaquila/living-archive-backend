@@ -125,11 +125,18 @@ async def validated_query_stream(
             try:
                 await asyncio.wait_for(asyncio.shield(target_task), timeout=8.0)
             except asyncio.TimeoutError:
-                await send({
-                    "type": "http.response.body",
-                    "body": b": keep-alive\n\n",
-                    "more_body": True,
-                })
+                try:
+                    await send({
+                        "type": "http.response.body",
+                        "body": b": keep-alive\n\n",
+                        "more_body": True,
+                    })
+                except OSError:
+                    # A disconnected client cannot receive a terminal SSE
+                    # event. Stop the authoritative query task and exit.
+                    target_task.cancel()
+                    await asyncio.gather(target_task, return_exceptions=True)
+                    return
         await target_task
     except Exception as exc:
         await _send_event(
