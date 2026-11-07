@@ -42,6 +42,36 @@ def main():
     )
     assert not composition._has_conflicting_information_discernment(observed)
 
+    # Final-boundary regression: the actual malformed visitor output began
+    # by splicing the visitor's question into a generic planning sentence.
+    malformed_query_echo = (
+        "A practical way to approach I feel overwhelmed by conflicting information and opinions. "
+        "How can I regain my bearings and know what is real enough to act on is to begin by clarifying "
+        "the outcome and the responsibilities involved.\n\n"
+        "Next, compare a small number of realistic options against the purpose you are trying to serve. "
+        "Consider likely benefits, foreseeable harms, and who carries the costs.\n\n"
+        "Finally, act on the best-supported option and review the consequences."
+    )
+    boundary_payload = {
+        "ok": True,
+        "response": malformed_query_echo,
+        "recommendation": {"title": "irrelevant doorway"},
+        "doorway_title": "Irrelevant doorway",
+        "doorway_url": "https://example.invalid/",
+    }
+    enforced = composition.enforce_conflicting_information_boundary(QUERY, boundary_payload)
+    assert enforced is not boundary_payload
+    assert composition._has_conflicting_information_discernment(enforced["response"])
+    assert enforced["processing"] == "final_visitor_boundary_conflicting_information_recovery"
+    assert enforced["recommendation"] is None
+    assert enforced["doorway_title"] == ""
+    assert enforced["doorway_url"] == ""
+
+    # The final boundary must be idempotent for a response already meeting
+    # the discernment contract; do not overwrite good provider output.
+    valid_payload = {"response": equivalent_good_answer}
+    assert composition.enforce_conflicting_information_boundary(QUERY, valid_payload) is valid_payload
+
     recovery = composition._conflicting_information_discernment_recovery()
     assert composition._has_conflicting_information_discernment(recovery)
     assert "what deserves trust" in recovery
