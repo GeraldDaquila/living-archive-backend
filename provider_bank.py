@@ -1372,6 +1372,9 @@ def candidates(use_core, operation="generic", schema=None):
                 # visitor turn, so a model that just succeeded in perception
                 # should outrank a sibling model with stale quota health.
                 "last_success": float(health.get("last_success", 0) or 0),
+                "ewma_latency_seconds": float(health.get("ewma_latency_seconds", 0) or 0),
+                "latency_attempts": int(health.get("latency_attempts", 0) or 0),
+                "recent_timeouts": int(health.get("recent_timeouts", 0) or 0),
                 "capabilities": sorted(_capabilities(provider, model)),
             })
     return out
@@ -1461,14 +1464,22 @@ def select(use_core, operation="generic", schema=None):
             # The general Guide may only have a five-second generation window.
             # Do not let a half-open probe outrank a healthy model simply because
             # its provider appears earlier in the rotating lane order.
-            models.sort(key=lambda item: (
-                0 if item.get("health_state") == "healthy" else 1,
-                int(item.get("quality_failures", 0) or 0),
-                0 if "low_latency" in (item.get("capabilities") or []) else 1,
-                int(item.get("consecutive_failures", 0) or 0),
-                int(item.get("transport_failures", 0) or 0),
-                -float(item.get("last_success", 0) or 0),
-            ))
+            budget_seconds = _provider_call_timeout(operation, models[0]) if models else 4.0
+            def _predictive_rank(item):
+                shadow = _predictive_shadow_metrics(item, budget_seconds)
+                attempts = int(item.get("latency_attempts", 0) or 0)
+                telemetry_ready = attempts >= 3
+                prediction_penalty = ((shadow["timeout_risk"] * 4.0) + (shadow["deadline_fit"] * 1.5)) if telemetry_ready else 0.0
+                return (
+                    0 if item.get("health_state") == "healthy" else 1,
+                    int(item.get("quality_failures", 0) or 0),
+                    prediction_penalty,
+                    0 if "low_latency" in (item.get("capabilities") or []) else 1,
+                    int(item.get("consecutive_failures", 0) or 0),
+                    int(item.get("transport_failures", 0) or 0),
+                    -float(item.get("last_success", 0) or 0),
+                )
+            models.sort(key=_predictive_rank)
         else:
             models.sort(key=lambda item: int(item.get("quality_failures", 0) or 0))
         _STATE["model_cursors"][provider] = cursor + 1
@@ -3236,9 +3247,10 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 f"types={{" + ",".join(f"{k}:{type(v).__name__}" for k, v in parsed.items()) + "}}"
             )
             if attempt_started is not None:
-                _record_predictive_shadow(state, time.monotonic() - attempt_started, timed_out=False)
-            shadow = _predictive_shadow_metrics(item, _provider_call_timeout(operation, item))
-            print("USE predictive shadow: operation=" + str(operation) + ", provider=" + str(provider) + ", model=" + str(model) + ", ewma_latency_seconds=" + str(shadow["ewma_latency_seconds"]) + ", timeout_risk=" + str(shadow["timeout_risk"]) + ", deadline_fit=" + str(shadow["deadline_fit"]))
+                candidate_elapsed = time.monotonic() - attempt_started
+                _record_predictive_shadow(state, candidate_elapsed, timed_out=False)
+                shadow = _predictive_shadow_metrics(state, _provider_call_timeout(operation, item))
+                print("USE provider bank candidate outcome: operation=" + operation + ", provider=" + provider + ", model=" + model + ", outcome=success, elapsed_seconds=" + str(round(candidate_elapsed, 3)) + ", ewma_latency_seconds=" + str(shadow["ewma_latency_seconds"]) + ", timeout_risk=" + str(shadow["timeout_risk"]) + ", deadline_fit=" + str(shadow["deadline_fit"]))
             _success(provider, model, operation)
             return _route_result({"parsed": parsed, "provider": provider, "model": model, "preference_order": order})
         except QuotaAdmissionDenied as exc:

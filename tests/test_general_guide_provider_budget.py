@@ -1,3 +1,4 @@
+from pathlib import Path
 """Regression tests for bounded General Guide provider arbitration."""
 import pytest
 import json
@@ -274,3 +275,36 @@ def test_shared_request_budget_allows_only_one_repair_with_six_seconds_reserved(
     assert can_attempt_repair(24.0, already_attempted=False, now=18.0)
     assert not can_attempt_repair(24.0, already_attempted=True, now=10.0)
     assert not can_attempt_repair(24.0, already_attempted=False, now=18.01)
+
+
+def _predictive_candidate(provider, model, **telemetry):
+    item = _item(provider, model)
+    item.update(telemetry)
+    return item
+
+def _select_predictive_lane(monkeypatch, items):
+    monkeypatch.setattr(provider_bank, "candidates", lambda *args, **kwargs: items)
+    monkeypatch.setattr(provider_bank, "_csv", lambda _name: [items[0]["provider"]])
+    monkeypatch.setitem(provider_bank._STATE, "provider_cursor", 0)
+    monkeypatch.setitem(provider_bank._STATE, "model_cursors", {})
+    return provider_bank.select(use_core=None, operation="general_guide_composition")
+
+def test_predictive_assignment_prefers_observed_deadline_fit_when_telemetry_is_ready(monkeypatch):
+    slow = _predictive_candidate("gemini", "slow", latency_attempts=5, recent_timeouts=0, ewma_latency_seconds=3.5, capabilities=["composition"])
+    fast = _predictive_candidate("gemini", "fast", latency_attempts=5, recent_timeouts=0, ewma_latency_seconds=0.5, capabilities=["composition"])
+    assert [item["model"] for item in _select_predictive_lane(monkeypatch, [slow, fast])[:2]] == ["fast", "slow"]
+
+def test_predictive_assignment_preserves_baseline_order_with_thin_telemetry(monkeypatch):
+    first = _predictive_candidate("gemini", "first", latency_attempts=2, recent_timeouts=2, ewma_latency_seconds=9.0, capabilities=["composition"])
+    second = _predictive_candidate("gemini", "second", latency_attempts=2, recent_timeouts=0, ewma_latency_seconds=0.1, capabilities=["composition"])
+    assert [item["model"] for item in _select_predictive_lane(monkeypatch, [first, second])[:2]] == ["first", "second"]
+
+def test_predictive_assignment_never_promotes_unhealthy_model_over_healthy_model(monkeypatch):
+    unhealthy = _predictive_candidate("gemini", "unhealthy", health_state="half_open", latency_attempts=8, ewma_latency_seconds=0.1, capabilities=["composition"])
+    healthy = _predictive_candidate("gemini", "healthy", health_state="healthy", latency_attempts=8, ewma_latency_seconds=3.5, capabilities=["composition"])
+    assert _select_predictive_lane(monkeypatch, [unhealthy, healthy])[0]["model"] == "healthy"
+
+def test_general_guide_success_outcome_includes_fresh_shadow_metrics():
+    source = Path("provider_bank.py").read_text(encoding="utf-8")
+    assert "outcome=success, elapsed_seconds=" in source
+    assert "_predictive_shadow_metrics(state, _provider_call_timeout(operation, item))" in source
