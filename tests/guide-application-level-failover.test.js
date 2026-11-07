@@ -4,7 +4,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 const test = require("node:test");
 
-const sourcePath = path.join(__dirname, "..", "frontend", "the-guide-frontend-v489.251.js");
+const sourcePath = path.join(__dirname, "..", "frontend", "the-guide-frontend-v489.252-application-failover.js");
 const source = fs.readFileSync(sourcePath, "utf8");
 const start = source.indexOf("async function useGuideApplicationFailureReason(response)");
 const end = source.indexOf("/* ================================================================\n   SAFETY BOUNDARY", start);
