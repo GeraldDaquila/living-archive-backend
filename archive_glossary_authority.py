@@ -45,10 +45,11 @@ def extract_glossary_entry(markup: str, term: str, *, modified: str = ""):
 
     # Parse the page into heading-delimited sections. Classification headings
     # immediately following the term heading are metadata, not new entries.
-    heading_pattern = re.compile(r"<h([2-6])\b[^>]*>(.*?)</h\1>", re.I | re.S)
+    heading_pattern = re.compile(r"<h([2-6])\b([^>]*)>(.*?)</h\1>", re.I | re.S)
     headings = list(heading_pattern.finditer(str(markup or "")))
     for index, match in enumerate(headings):
-        heading_text = _plain_text(match.group(2))
+        heading_attributes = match.group(2) or ""
+        heading_text = _plain_text(match.group(3))
         if _normalize(heading_text) != target:
             continue
         category = ""
@@ -87,11 +88,17 @@ def extract_glossary_entry(markup: str, term: str, *, modified: str = ""):
             paragraphs = [item for item in paragraphs if item]
         if not paragraphs:
             return None
+        anchor_match = re.search(r"""\bid=["']([^"']+)["']""", heading_attributes, re.I)
+        source_anchor = anchor_match.group(1) if anchor_match else ""
+        source_url = "https://geralddaquila.com/glossary/"
+        if source_anchor and re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,79}", source_anchor):
+            source_url += "#" + source_anchor
         return {
             "term": heading_text,
             "category": category,
             "paragraphs": paragraphs,
-            "source_url": "https://geralddaquila.com/glossary/",
+            "source_url": source_url,
+            "source_anchor": source_anchor,
             "source_page_id": GLOSSARY_PAGE_ID,
             "source_modified": modified,
         }
