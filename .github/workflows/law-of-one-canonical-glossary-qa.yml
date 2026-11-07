@@ -1,0 +1,30 @@
+name: Law of One Canonical Glossary QA
+
+on:
+  push:
+    branches:
+      - fix/glossary-law-of-one-source-of-truth
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  targeted-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+      - name: Run canonical Glossary and constitutional recovery tests
+        run: |
+          pytest -q tests/test_archive_constitutional_recovery.py
