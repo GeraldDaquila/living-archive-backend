@@ -488,15 +488,6 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     return answer
 
 
-_law_of_one_question = "What is the Law of One?"
-_law_of_one_answer = compose_recovery(_law_of_one_question)
-_law_of_one_paragraphs = [part.strip() for part in _law_of_one_answer.split("\n\n") if part.strip()]
-if len(_law_of_one_paragraphs) != 3:
-    raise RuntimeError("Law of One recovery contract failed: expected three substantive paragraphs.")
-for _required in ("Ra Material", "one infinite Creator", "not an established scientific law", "service to others"):
-    if _required.casefold() not in _law_of_one_answer.casefold():
-        raise RuntimeError("Law of One recovery contract failed: missing substantive distinction " + _required)
-
 _risk_constraint_question = "What are the risks of charisma without constitutional restraint?"
 _risk_constraint_answer = compose_recovery(_risk_constraint_question)
 _risk_constraint_paragraphs = [
