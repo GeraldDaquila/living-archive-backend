@@ -4621,6 +4621,12 @@ def _guide_finalize_visitor_payload(payload, query):
     if not isinstance(payload, dict):
         return payload
     response_text = str(payload.get("response") or "")
+    # The shared outer boundary owns the final semantic acceptance check.
+    # This catches off-task answers from specialist, handoff, deterministic,
+    # and provider-exhaustion routes—not only the ordinary composer.
+    if general_guide_composition._requires_conflicting_information_discernment(query):
+        payload = general_guide_composition.enforce_conflicting_information_boundary(query, payload)
+        response_text = str(payload.get("response") or "")
     # The Gold Standard is the floor across all specialist routes. A generic
     # practical-planning template is not a valid substitute for an explanatory
     # answer; the known historical-origin case has a grounded bounded recovery.
