@@ -3,8 +3,8 @@ from pathlib import Path
 
 def test_general_guide_provider_arbitration_preserves_recovery_budget():
     source = Path("provider_bank.py").read_text(encoding="utf-8")
-    assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 8.0" in source
-    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 2" in source
+    assert "GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 15.0" in source
+    assert "GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 3" in source
     assert (
         "if candidate_timeout <= 0.0 or elapsed + candidate_timeout > fast_failure_window:"
         in source
