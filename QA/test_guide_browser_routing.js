@@ -58,7 +58,7 @@ test('predictive-shadow opt-in reaches the shadow service and never silently fal
   const url = GUIDE_URL + separator + 'guide_backend=predictive-shadow';
   const result = await submitAndCapture(page, url, 'What does stewardship mean here?');
 
-  expect(result.selectedBackend, lifecycleMessage(result)).toBe('predictive-shadow');
+  expect(result.console.some(entry => entry.text.includes('[The Guide] backend mode: predictive-shadow')), lifecycleMessage(result)).toBeTruthy();
   expect(result.requests, lifecycleMessage(result)).not.toHaveLength(0);
   expect(result.requests.some(request => new URL(request.url).host === SHADOW_HOST), lifecycleMessage(result)).toBeTruthy();
   expect(result.requests.some(request => new URL(request.url).host === PROD_HOST), lifecycleMessage(result)).toBeFalsy();
