@@ -86,6 +86,11 @@ def compose_definition_significance(subject):
             "definition": "the confidence that an institution will act competently, fairly, and consistently enough for people to rely on it",
             "example": "People are more able to rely on a public service when it explains decisions, handles similar cases consistently, corrects mistakes, and provides a meaningful way to appeal.",
             "significance": "Trust should be earned by observable conduct rather than claimed as a virtue. Consistent failures, hidden reasons, or blocked complaints can weaken it even when an institution says its intentions are good."
+        },
+        "the law of one": {
+            "definition": "a modern spiritual teaching, especially associated with the Ra Material, that all existence is fundamentally one and that every being is an expression of one infinite Creator",
+            "example": "Within this teaching, how a person treats another is spiritually significant because the other is not ultimately separate from the self. Service to others is therefore presented as one path of spiritual development, alongside the more self-focused path described in the material.",
+            "significance": "The Law of One is a spiritual and metaphysical worldview, not an established scientific law or a universally accepted religious doctrine. Its best-known formulation comes from the Ra Material, a series of purported channeled sessions published from the early 1980s; readers differ in how literally or symbolically they interpret its claims."
         }
     }
     normalized_subject = re.sub(r"\s+", " ", subject).strip().casefold()
@@ -472,6 +477,15 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     # classifier remains responsible for genuinely missing subjects.
     return answer
 
+
+_law_of_one_question = "What is the Law of One?"
+_law_of_one_answer = compose_recovery(_law_of_one_question)
+_law_of_one_paragraphs = [part.strip() for part in _law_of_one_answer.split("\\n\\n") if part.strip()]
+if len(_law_of_one_paragraphs) != 3:
+    raise RuntimeError("Law of One recovery contract failed: expected three substantive paragraphs.")
+for _required in ("Ra Material", "one infinite Creator", "not an established scientific law", "service to others"):
+    if _required.casefold() not in _law_of_one_answer.casefold():
+        raise RuntimeError("Law of One recovery contract failed: missing substantive distinction " + _required)
 
 _risk_constraint_question = "What are the risks of charisma without constitutional restraint?"
 _risk_constraint_answer = compose_recovery(_risk_constraint_question)
