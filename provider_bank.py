@@ -2707,6 +2707,7 @@ def _hrn_workers_fast_candidate(pool):
 
 
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None, deadline_monotonic=None):
+    capacity_started = False
     if deadline_monotonic is not None and _request_remaining_seconds(
         deadline_monotonic, now=time.monotonic()
     ) < 1.0:
@@ -2727,7 +2728,9 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         print("USE provider bank request budget: operation=" + str(operation) + ", action=skip_after_state_sync")
         return None
     pool = select(use_core, operation=operation, schema=effective_schema)
-    if not pool: return None
+    if not pool:
+        _capacity_end_request()
+        return None
     if operation in {"hrn_perception", "hrn_relational"} and len(pool) > 1:
         # Live E2E showed that exhausted Groq quotas and slow 70B/large NVIDIA
         # candidates can consume the shared HRN turn budget before a recently
@@ -2915,6 +2918,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             if fallback_count >= fallback_limit:
                 break
     _capacity_begin_request()
+    capacity_started = True
     route_started = time.monotonic()
     requested_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))
     # HRN relational prose needs a complete answer and a distinct question, not a
