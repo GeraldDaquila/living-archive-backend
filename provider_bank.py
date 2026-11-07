@@ -86,6 +86,36 @@ GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS = 4.0
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
 FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS = 12.0
 
+
+# Lightweight, process-local operational aggregates for the shared capacity layer.
+_CAPACITY_METRICS_LOCK = threading.Lock()
+_CAPACITY_METRICS = {"attempts": 0, "llm_successes": 0, "exhaustions": 0, "inflight": 0}
+
+def _capacity_begin_request():
+    with _CAPACITY_METRICS_LOCK:
+        _CAPACITY_METRICS["attempts"] += 1
+        _CAPACITY_METRICS["inflight"] += 1
+
+def _capacity_end_request(success=False, exhausted=False):
+    with _CAPACITY_METRICS_LOCK:
+        _CAPACITY_METRICS["inflight"] = max(0, _CAPACITY_METRICS["inflight"] - 1)
+        if success: _CAPACITY_METRICS["llm_successes"] += 1
+        if exhausted: _CAPACITY_METRICS["exhaustions"] += 1
+
+def capacity_metrics_snapshot(use_core=True, operation="generic", schema=None):
+    """Operational aggregates derived from the real candidate pool; no visitor data."""
+    with _CAPACITY_METRICS_LOCK:
+        attempts=max(1, _CAPACITY_METRICS["attempts"])
+        successes=_CAPACITY_METRICS["llm_successes"]
+        exhaustions=_CAPACITY_METRICS["exhaustions"]
+        inflight=_CAPACITY_METRICS["inflight"]
+    eligible_count=len(candidates(use_core, operation=operation, schema=schema))
+    configured_count=sum(len(models) for models in _configured(use_core).values())
+    return {"inflight": inflight,
+            "viable_provider_score": (eligible_count / configured_count) if configured_count else 0.0,
+            "recent_llm_success_rate": successes / attempts,
+            "recent_exhaustion_rate": exhaustions / attempts}
+
 # Only production models with the structured-output capability required by the
 # current Provider Bank contract may enter the JSON operation pool. Live model
 # discovery remains diagnostic; it never grants runtime eligibility by itself.
