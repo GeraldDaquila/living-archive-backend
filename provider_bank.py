@@ -1372,9 +1372,34 @@ def candidates(use_core, operation="generic", schema=None):
                 # visitor turn, so a model that just succeeded in perception
                 # should outrank a sibling model with stale quota health.
                 "last_success": float(health.get("last_success", 0) or 0),
+                "ewma_latency_seconds": float(health.get("ewma_latency_seconds", 0) or 0),
+                "latency_attempts": int(health.get("latency_attempts", 0) or 0),
+                "recent_timeouts": int(health.get("recent_timeouts", 0) or 0),
                 "capabilities": sorted(_capabilities(provider, model)),
             })
     return out
+
+
+def _predictive_shadow_metrics(item, budget_seconds=4.0):
+    """Deadline evidence used by bounded Predictive Assignment."""
+    latency = float(item.get("ewma_latency_seconds", 0.0) or 0.0)
+    attempts = int(item.get("latency_attempts", 0) or 0)
+    timeouts = int(item.get("recent_timeouts", 0) or 0)
+    timeout_risk = (timeouts / attempts) if attempts else 0.0
+    deadline_fit = (latency / max(float(budget_seconds or 4.0), 0.1)) if latency else 0.5
+    return {"ewma_latency_seconds": round(latency, 3), "timeout_risk": round(timeout_risk, 3), "deadline_fit": round(min(2.0, deadline_fit), 3)}
+
+
+def _record_predictive_shadow(state, elapsed_seconds, timed_out=False):
+    """Maintain short-memory latency evidence without altering routing."""
+    elapsed = max(0.0, float(elapsed_seconds or 0.0))
+    previous = float(state.get("ewma_latency_seconds", 0.0) or 0.0)
+    alpha = 0.35
+    state["ewma_latency_seconds"] = elapsed if previous <= 0 else ((alpha * elapsed) + ((1.0 - alpha) * previous))
+    state["latency_attempts"] = min(20, int(state.get("latency_attempts", 0) or 0) + 1)
+    recent = int(state.get("recent_timeouts", 0) or 0)
+    state["recent_timeouts"] = min(20, recent + 1) if timed_out else max(0, recent - 1)
+
 
 def _rotate(values, cursor):
     if not values: return []
@@ -1437,17 +1462,47 @@ def select(use_core, operation="generic", schema=None):
                 -float(item.get("last_success", 0) or 0),
             ))
         elif operation in {"general_guide_composition", "fsd_report_composition"}:
-            # The general Guide may only have a five-second generation window.
-            # Do not let a half-open probe outrank a healthy model simply because
-            # its provider appears earlier in the rotating lane order.
-            models.sort(key=lambda item: (
-                0 if item.get("health_state") == "healthy" else 1,
-                int(item.get("quality_failures", 0) or 0),
-                0 if "low_latency" in (item.get("capabilities") or []) else 1,
-                int(item.get("consecutive_failures", 0) or 0),
-                int(item.get("transport_failures", 0) or 0),
-                -float(item.get("last_success", 0) or 0),
-            ))
+            # Predictive Assignment v1: retain all hard health/capability gates,
+            # then use observed short-memory latency and timeout evidence as a
+            # bounded tie-breaker. Thin telemetry falls back toward the existing
+            # adaptive ordering rather than pretending historical certainty.
+            budget_seconds = _provider_call_timeout(operation, models[0]) if models else 4.0
+            def _predictive_rank(item):
+                shadow = _predictive_shadow_metrics(item, budget_seconds)
+                attempts = int(item.get("latency_attempts", 0) or 0)
+                telemetry_ready = attempts >= 3
+                prediction_penalty = (
+                    (shadow["timeout_risk"] * 4.0) +
+                    (shadow["deadline_fit"] * 1.5)
+                ) if telemetry_ready else 0.0
+                return (
+                    0 if item.get("health_state") == "healthy" else 1,
+                    int(item.get("quality_failures", 0) or 0),
+                    prediction_penalty,
+                    0 if "low_latency" in (item.get("capabilities") or []) else 1,
+                    int(item.get("consecutive_failures", 0) or 0),
+                    int(item.get("transport_failures", 0) or 0),
+                    -float(item.get("last_success", 0) or 0),
+                )
+            models.sort(key=_predictive_rank)
+            # Emit compact, decision-level evidence for controlled comparison.
+            # This is intentionally one record per lane, not per provider call.
+            predictive_snapshot = []
+            for item in models:
+                evidence = _predictive_shadow_metrics(item, budget_seconds)
+                predictive_snapshot.append({
+                    "provider": item.get("provider"),
+                    "model": item.get("model"),
+                    "attempts": int(item.get("latency_attempts", 0) or 0),
+                    "timeout_risk": evidence["timeout_risk"],
+                    "deadline_fit": evidence["deadline_fit"],
+                    "health": item.get("health_state"),
+                })
+            print("USE predictive assignment v1: " + json.dumps({
+                "operation": operation,
+                "budget_seconds": round(float(budget_seconds), 3),
+                "ranking": predictive_snapshot,
+            }, separators=(",", ":")))
         else:
             models.sort(key=lambda item: int(item.get("quality_failures", 0) or 0))
         _STATE["model_cursors"][provider] = cursor + 1
@@ -2930,6 +2985,14 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         if not acquire_probe(state):
             continue
         attempt_started = time.monotonic() if operation in {"hrn_perception", "general_guide_composition", "fsd_report_composition"} else None
+        if attempt_started is not None:
+            shadow = _predictive_shadow_metrics(item, _provider_call_timeout(operation, item))
+            print(
+                "USE predictive shadow: "
+                f"operation={operation}, provider={provider}, model={model}, "
+                f"ewma_latency_seconds={shadow['ewma_latency_seconds']}, "
+                f"timeout_risk={shadow['timeout_risk']}, deadline_fit={shadow['deadline_fit']}"
+            )
         try:
             configured_timeout = _provider_call_timeout(operation, item)
             if operation == "general_guide_composition":
@@ -3214,6 +3277,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 f"keys={sorted(str(k) for k in parsed.keys())}, "
                 f"types={{" + ",".join(f"{k}:{type(v).__name__}" for k, v in parsed.items()) + "}}"
             )
+            if attempt_started is not None:
+                _record_predictive_shadow(state, time.monotonic() - attempt_started, timed_out=False)
             _success(provider, model, operation)
             return _route_result({"parsed": parsed, "provider": provider, "model": model, "preference_order": order})
         except QuotaAdmissionDenied as exc:
@@ -3286,6 +3351,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", " + last_error)
             if operation in {"hrn_perception", "general_guide_composition"} and attempt_started is not None:
                 candidate_elapsed = time.monotonic() - attempt_started
+                is_timeout = str(failure_category).lower() == "timeout"
+                _record_predictive_shadow(state, candidate_elapsed, timed_out=is_timeout)
                 print(
                     "USE provider bank candidate outcome: operation="
                     + operation
@@ -3297,6 +3364,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     + str(failure_category)
                     + ", elapsed_seconds="
                     + str(round(candidate_elapsed, 3))
+                    + ", predictive_timeout_recorded="
+                    + str(is_timeout).lower()
                 )
             if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
