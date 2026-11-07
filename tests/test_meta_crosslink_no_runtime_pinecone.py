@@ -99,3 +99,39 @@ def test_legacy_refresh_is_disabled_by_default_even_when_forced(monkeypatch):
     )
 
     assert result is False
+
+
+
+def test_v2_crosslink_selection_emits_privacy_safe_runtime_evidence_without_pinecone(monkeypatch, capsys):
+    archive_crosslink._SNAPSHOT = {
+        "contract": "archive-crosslink-inventory-v2",
+        "crosslink_ready": True,
+        "source": "wordpress-canonical-registry",
+        "assets": [
+            {
+                "title": "Stewardship Governance Architecture",
+                "url": "https://geralddaquila.com/stewardship-governance-architecture",
+                "resource_type": "page",
+                "tier": "public",
+                "access_class": "public",
+                "summary": "",
+            }
+        ],
+    }
+
+    def forbidden_refresh(*args, **kwargs):
+        raise AssertionError("v2 runtime navigation must not start Pinecone refresh")
+
+    monkeypatch.setattr(archive_crosslink, "start_refresh", forbidden_refresh)
+    result = archive_crosslink.expand_context(
+        "stewardship governance",
+        [],
+        PineconeMustNotBeCalled(),
+        object(),
+    )
+    output = capsys.readouterr().out
+    assert len(result) == 1
+    assert "USE archive meta-crosslink selection:" in output
+    assert "selected=1" in output
+    assert "query_token_count=2" in output
+    assert "stewardship governance" not in output
