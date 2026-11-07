@@ -3263,6 +3263,15 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     # control flag instead of asking the model to rewrite them.
                     recovered = dict(parsed)
                     recovered["question"] = recovered_question.strip()
+                elif targeted_response_shape_recovery or targeted_response_voice_recovery:
+                    recovered_response = recovered.get("response")
+                    if not isinstance(recovered_response, str) or not recovered_response.strip():
+                        raise ValueError("provider response recovery returned an empty response")
+                    # A response repair is field-scoped. Keep the first-pass
+                    # question and all valid flags: successful generation is a
+                    # scarce bank asset and must not be superseded unnecessarily.
+                    recovered = dict(parsed)
+                    recovered["response"] = recovered_response.strip()
                 if (
                     targeted_question_recovery
                     and _hrn_surface_language_violation(recovered.get("question", ""))
