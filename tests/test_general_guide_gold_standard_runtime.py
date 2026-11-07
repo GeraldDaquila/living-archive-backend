@@ -356,9 +356,11 @@ def test_provider_exhaustion_definition_uses_published_glossary_authority(monkey
     assert "knowledge, responsibilities, or ways of working" not in answer
 
 
-def test_general_definition_fallback_has_no_subject_independent_operational_boilerplate():
+def test_general_definition_fallback_has_no_subject_independent_operational_boilerplate(monkeypatch):
+    import archive_glossary_authority as glossary
     import deterministic_answer_recovery as recovery
 
+    monkeypatch.setattr(glossary, "get_glossary_entry", lambda subject: None)
     answer = recovery.compose_definition_significance("institutional memory")
     assert "knowledge, responsibilities, or ways of working" not in answer
     assert "For example, When" not in answer
