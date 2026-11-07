@@ -29,3 +29,8 @@ def test_reason_code_output_never_contains_raw_message():
     code = contract_reason_code(raw)
     assert code == "three_paragraph_minimum"
     assert raw not in code
+
+
+def test_method_comparison_paragraph_failure_is_not_collapsed_to_generic_shape():
+    reason = "method-comparison answer requires the three-paragraph Guide Gold Standard"
+    assert contract_reason_code(reason) == "method_comparison_paragraphs"
