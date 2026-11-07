@@ -3278,7 +3278,25 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 f"types={{" + ",".join(f"{k}:{type(v).__name__}" for k, v in parsed.items()) + "}}"
             )
             if attempt_started is not None:
-                _record_predictive_shadow(state, time.monotonic() - attempt_started, timed_out=False)
+                candidate_elapsed = time.monotonic() - attempt_started
+                _record_predictive_shadow(state, candidate_elapsed, timed_out=False)
+                shadow = _predictive_shadow_metrics(state, _provider_call_timeout(operation, item))
+                print(
+                    "USE provider bank candidate outcome: operation="
+                    + operation
+                    + ", provider="
+                    + provider
+                    + ", model="
+                    + model
+                    + ", outcome=success, elapsed_seconds="
+                    + str(round(candidate_elapsed, 3))
+                    + ", ewma_latency_seconds="
+                    + str(shadow["ewma_latency_seconds"])
+                    + ", timeout_risk="
+                    + str(shadow["timeout_risk"])
+                    + ", deadline_fit="
+                    + str(shadow["deadline_fit"])
+                )
             _success(provider, model, operation)
             return _route_result({"parsed": parsed, "provider": provider, "model": model, "preference_order": order})
         except QuotaAdmissionDenied as exc:
