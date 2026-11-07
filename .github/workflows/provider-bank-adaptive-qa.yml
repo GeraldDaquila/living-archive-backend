@@ -1,6 +1,7 @@
 name: Provider Bank Adaptive Architecture QA
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - provider-bank-test-calibration-20261108
