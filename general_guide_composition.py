@@ -519,6 +519,31 @@ def _retrieve_authoritative_context(query: str, use_core: Any, context_data: Dic
     ]
     return glossary_documents + remaining[:3], glossary_instruction
 
+def apply_glossary_source_attribution(response: str, context_data: Dict[str, Any]):
+    """Append a visible, direct source link when an exact canonical Glossary entry was used."""
+    if not isinstance(context_data, dict):
+        return str(response or ""), None
+    documents = context_data.get("_canonical_glossary_documents")
+    if not isinstance(documents, list) or not documents:
+        return str(response or ""), None
+    source = documents[0] if isinstance(documents[0], dict) else {}
+    url = str(source.get("url") or "").strip()
+    title = str(source.get("title") or "The Living Glossary").strip()
+    if not re.fullmatch(r"https://geralddaquila\.com/glossary/(?:#[a-z0-9_-]+)?", url, re.I):
+        return str(response or ""), None
+    attribution = f"Source: [{title}]({url})"
+    answer = str(response or "").rstrip()
+    if attribution not in answer:
+        answer = answer + ("\n\n" if answer else "") + attribution
+    return answer, {
+        "kind": "archive_reference",
+        "label": "Living Glossary reference",
+        "explanation": "This answer uses the exact published Living Glossary entry as its authority for the Archive-specific meaning.",
+        "source_url": url,
+        "source_title": title,
+    }
+
+
 def is_exact_source_request(query: str) -> bool:
     """Recognize requests to trace a claim to its source."""
     q = _normalize_space(query).casefold()
