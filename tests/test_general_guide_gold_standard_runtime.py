@@ -545,3 +545,17 @@ def test_glossary_source_revision_invalidates_composition_cache_key():
     old_key = composition._composition_cache_key("What is the Law of One?", "", "definition", old_source)
     revised_key = composition._composition_cache_key("What is the Law of One?", "", "definition", revised_source)
     assert old_key != revised_key
+
+
+def test_definition_intent_recognizer_excludes_procedural_causal_and_comparison_questions():
+    import general_guide_composition as composition
+
+    non_definitions = [
+        "What is the best way to repair trust?",
+        "What is the difference between authority and power?",
+        "Explain how to rebuild trust after a missed commitment.",
+        "Why does governance fail?",
+        "What is happening with the provider bank?",
+    ]
+    for question in non_definitions:
+        assert composition._definition_subject_for_glossary(question) == ""
