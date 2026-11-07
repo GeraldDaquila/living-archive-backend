@@ -15,3 +15,11 @@ def test_preservation_contract_requires_explicit_field_replacement():
     replacement={"question":"A corrected grounded question."}
     merged=dict(first); merged.update(replacement)
     assert merged["response"] == first["response"]
+
+def test_response_recovery_replaces_only_defective_response_field():
+    first={"response":"Original generated response.","question":"Original grounded question?","grounded":True,"safe":True}
+    recovered={"response":"Corrected generated response.","question":"Do not supersede this","grounded":False,"safe":False}
+    merged=dict(first); merged["response"]=recovered["response"].strip()
+    assert merged["response"]=="Corrected generated response."
+    assert merged["question"]==first["question"]
+    assert merged["grounded"] is True and merged["safe"] is True
