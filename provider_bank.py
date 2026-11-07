@@ -1376,6 +1376,27 @@ def candidates(use_core, operation="generic", schema=None):
             })
     return out
 
+def _predictive_shadow_metrics(item, budget_seconds=4.0):
+    """Deadline evidence used by bounded Predictive Assignment."""
+    latency = float(item.get("ewma_latency_seconds", 0.0) or 0.0)
+    attempts = int(item.get("latency_attempts", 0) or 0)
+    timeouts = int(item.get("recent_timeouts", 0) or 0)
+    timeout_risk = (timeouts / attempts) if attempts else 0.0
+    deadline_fit = (latency / max(float(budget_seconds or 4.0), 0.1)) if latency else 0.5
+    return {"ewma_latency_seconds": round(latency, 3), "timeout_risk": round(timeout_risk, 3), "deadline_fit": round(min(2.0, deadline_fit), 3)}
+
+
+def _record_predictive_shadow(state, elapsed_seconds, timed_out=False):
+    """Maintain short-memory latency evidence without altering routing."""
+    elapsed = max(0.0, float(elapsed_seconds or 0.0))
+    previous = float(state.get("ewma_latency_seconds", 0.0) or 0.0)
+    alpha = 0.35
+    state["ewma_latency_seconds"] = elapsed if previous <= 0 else ((alpha * elapsed) + ((1.0 - alpha) * previous))
+    state["latency_attempts"] = min(20, int(state.get("latency_attempts", 0) or 0) + 1)
+    recent = int(state.get("recent_timeouts", 0) or 0)
+    state["recent_timeouts"] = min(20, recent + 1) if timed_out else max(0, recent - 1)
+
+
 def _rotate(values, cursor):
     if not values: return []
     n = cursor % len(values)
@@ -3214,6 +3235,10 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 f"keys={sorted(str(k) for k in parsed.keys())}, "
                 f"types={{" + ",".join(f"{k}:{type(v).__name__}" for k, v in parsed.items()) + "}}"
             )
+            if attempt_started is not None:
+                _record_predictive_shadow(state, time.monotonic() - attempt_started, timed_out=False)
+            shadow = _predictive_shadow_metrics(item, _provider_call_timeout(operation, item))
+            print("USE predictive shadow: operation=" + str(operation) + ", provider=" + str(provider) + ", model=" + str(model) + ", ewma_latency_seconds=" + str(shadow["ewma_latency_seconds"]) + ", timeout_risk=" + str(shadow["timeout_risk"]) + ", deadline_fit=" + str(shadow["deadline_fit"]))
             _success(provider, model, operation)
             return _route_result({"parsed": parsed, "provider": provider, "model": model, "preference_order": order})
         except QuotaAdmissionDenied as exc:
@@ -3283,6 +3308,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         except Exception as exc:
             failure_category = _failure(exc, provider, model, operation=operation)
             last_error = _safe_provider_error_summary(exc, category=failure_category)
+            if attempt_started is not None:
+                _record_predictive_shadow(state, time.monotonic() - attempt_started, timed_out=(str(failure_category).lower() == "timeout"))
             print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", " + last_error)
             if operation in {"hrn_perception", "general_guide_composition"} and attempt_started is not None:
                 candidate_elapsed = time.monotonic() - attempt_started
