@@ -61,3 +61,23 @@ def test_definition_recovery_prefers_live_glossary_over_competing_local_definiti
     assert "not sameness" in answer
     assert "Ra Material" not in answer
     assert "knowledge, responsibilities, or ways of working" not in answer
+
+
+def test_extracts_direct_permalink_anchor_for_exact_glossary_heading():
+    markup = """
+    <h3 id="law-of-one"><strong>Law of One</strong></h3>
+    <h2>Principle / Ethical Orientation</h2>
+    <p>A unifying principle.</p>
+    """
+    entry = glossary.extract_glossary_entry(markup, "Law of One")
+    assert entry["source_url"] == "https://geralddaquila.com/glossary/#law-of-one"
+    assert entry["source_anchor"] == "law-of-one"
+
+
+def test_glossary_entry_without_anchor_uses_valid_glossary_page_url():
+    entry = glossary.extract_glossary_entry(
+        "<h3><strong>Stewardship</strong></h3><p>Care with responsibility.</p>",
+        "Stewardship",
+    )
+    assert entry["source_url"] == "https://geralddaquila.com/glossary/"
+    assert entry["source_anchor"] == ""
