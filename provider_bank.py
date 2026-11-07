@@ -3321,6 +3321,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             print("USE model bank candidate failed: provider=" + provider + ", model=" + model + ", " + last_error)
             if operation in {"hrn_perception", "general_guide_composition"} and attempt_started is not None:
                 candidate_elapsed = time.monotonic() - attempt_started
+                is_timeout = str(failure_category).lower() == "timeout"
+                _record_predictive_shadow(state, candidate_elapsed, timed_out=is_timeout)
                 print(
                     "USE provider bank candidate outcome: operation="
                     + operation
@@ -3332,6 +3334,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     + str(failure_category)
                     + ", elapsed_seconds="
                     + str(round(candidate_elapsed, 3))
+                    + ", predictive_timeout_recorded="
+                    + str(is_timeout).lower()
                 )
             if operation == "hrn_perception":
                 candidate_elapsed = time.monotonic() - attempt_started
