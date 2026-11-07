@@ -3027,6 +3027,28 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     provider + "/" + model + " returned invalid JSON",
                     provider, model, category="invalid_provider_response"
                 ) from exc
+            except ValueError as exc:
+                # This narrowly identified Guide semantic rejection means the
+                # provider responded, but its composition missed the visitor
+                # contract. Penalize only this operation/model quality pairing;
+                # do not mark provider transport health as failed.
+                if (
+                    operation == "general_guide_composition"
+                    and "conflicting-information answer must recognize the trust problem first"
+                    in str(exc)
+                ):
+                    _record_quality_rejection(
+                        provider, model, operation, str(exc)
+                    )
+                    print(
+                        "USE provider quality fast-fail: "
+                        "operation=general_guide_composition, provider=" + provider
+                        + ", model=" + model
+                        + ", action=skip_same_model_recovery, "
+                        "reason=conflicting_information_discernment"
+                    )
+                    continue
+                raise
             if not isinstance(parsed, dict):
                 raise ProviderCallError(
                     provider + "/" + model + " returned a non-object response",
