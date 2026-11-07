@@ -519,3 +519,11 @@ def test_glossary_first_contract_does_not_change_non_definition_retrieval(monkey
     assert calls == ["glossary", "archive"]
     assert documents == [archive_doc]
     assert instruction == ""
+
+
+def test_definition_intent_recognizer_handles_term_and_contraction_variants():
+    import general_guide_composition as composition
+
+    assert composition._definition_subject_for_glossary("What does the term Law of One mean?") == "Law of One"
+    assert composition._definition_subject_for_glossary("What is the meaning of the Law of One?") == "Law of One"
+    assert composition._definition_subject_for_glossary("What's the Law of One?") == "Law of One"
