@@ -2296,6 +2296,21 @@ def compose(
             }
         return None
 
+    # Generic comparison questions are not conceptual-relationship questions.
+    # They ask for the distinction between two named subjects and must retain
+    # those subjects through the final relevance boundary.
+    if re.search(r"\b(?:difference|distinguish|distinction)\b", _normalize_space(question), re.I):
+        subject_terms = [
+            token.casefold()
+            for token in re.findall(r"[A-Za-z][A-Za-z'-]*", _normalize_space(question))
+            if token.casefold() not in {"how", "can", "i", "tell", "the", "difference", "between", "and", "what", "is", "a", "an"}
+        ]
+        response_text = _normalize_space(str(result.get("parsed", {}).get("response") or "")).casefold()
+        required = [term for term in subject_terms if len(term) > 3][:6]
+        if required and not all(term in response_text for term in required):
+            _emit_guide_outcome("candidate_rejected", reason="comparison_subject_missing")
+            return None
+
     parsed = result["parsed"]
     candidate = {
         "response": parsed["response"],
