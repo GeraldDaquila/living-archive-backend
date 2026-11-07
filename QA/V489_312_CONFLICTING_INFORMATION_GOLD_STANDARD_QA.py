@@ -67,10 +67,6 @@ def main():
     assert enforced["doorway_title"] == ""
     assert enforced["doorway_url"] == ""
 
-    # The final boundary must be idempotent for a response already meeting
-    # the discernment contract; do not overwrite good provider output.
-    valid_payload = {"response": equivalent_good_answer}
-    assert composition.enforce_conflicting_information_boundary(QUERY, valid_payload) is valid_payload
 
     recovery = composition._conflicting_information_discernment_recovery()
     assert composition._has_conflicting_information_discernment(recovery)
@@ -90,6 +86,11 @@ def main():
         "or difficult to undo, require stronger support and make the remaining uncertainty explicit."
     )
     assert composition._has_conflicting_information_discernment(equivalent_good_answer)
+
+    # The final boundary must be idempotent for a response already meeting
+    # the discernment contract; do not overwrite good provider output.
+    valid_payload = {"response": equivalent_good_answer}
+    assert composition.enforce_conflicting_information_boundary(QUERY, valid_payload) is valid_payload
 
     # Negative controls: keywords elsewhere cannot compensate for a failure
     # to recognize the visitor's trust problem in the opening paragraph.
