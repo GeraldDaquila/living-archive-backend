@@ -62,6 +62,7 @@ def _composition_cache_key(
         (
             _normalize_space(item.get("title")),
             _normalize_space(item.get("url") or item.get("canonical_url")),
+            _normalize_space(item.get("source_modified") or item.get("modified") or item.get("version")),
         )
         for item in documents
         if isinstance(item, dict)
@@ -484,6 +485,7 @@ def _apply_archive_glossary_authority(query: str, documents: List[Dict[str, str]
         "title": f"The Living Glossary — {entry.get('term') or subject}",
         "url": glossary_url,
         "content": content[:1500],
+        "source_modified": str(entry.get("source_modified") or ""),
     }
     remaining = [item for item in documents if str(item.get("url") or "") != glossary_url]
     return [glossary_document] + remaining[:3], (
