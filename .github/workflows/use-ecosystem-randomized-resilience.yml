@@ -1,0 +1,73 @@
+name: USE Randomized Ecosystem Resilience Simulation
+
+on:
+  pull_request:
+    paths:
+      - "main.py"
+      - "guide_runtime.py"
+      - "specialist_registry.py"
+      - "specialist_adapters.py"
+      - "relationship_adapter.py"
+      - "relationship_contribution.py"
+      - "philippine_systems_adapter.py"
+      - "formation_adapter.py"
+      - "formation_contribution.py"
+      - "provider_bank.py"
+      - "provider_resilience.py"
+      - "provider_quota_control.py"
+      - "provider_gateway_service.py"
+      - "pinecone_retrieval_budget.py"
+      - "archive_crosslink.py"
+      - "streaming_transport.py"
+      - "safety_utility.py"
+      - "safety_adapter.py"
+      - "safety_intelligence.py"
+      - "tests/test_use_ecosystem_randomized_resilience.py"
+      - "tests/test_use_query_asgi_acceptance.py"
+      - "tests/test_provider_operation_matrix.py"
+      - "tests/test_ecosystem_integration_audit.py"
+      - "tests/test_provider_resilience.py"
+      - "tests/test_provider_quota_admission.py"
+      - "tests/test_meta_crosslink_no_runtime_pinecone.py"
+      - "tests/test_safety_first_turn_resource_handoff.py"
+      - "tests/test_streaming_transport_contract.py"
+      - "tests/test_provider_gateway_secret_rotation.py"
+      - "tests/test_general_guide_provider_budget.py"
+      - "tests/test_archive_crosslink.py"
+      - "tests/test_guide_node_registry_content.py"
+      - "tests/test_use_execution_boundary_acceptance.py"
+      - "requirements.txt"
+      - ".github/workflows/use-ecosystem-randomized-resilience.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-ecosystem-simulation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install runtime and test dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+      - name: Run seeded ecosystem simulation and core contract suites
+        run: |
+          python -m unittest \
+            tests/test_use_ecosystem_randomized_resilience.py \
+            tests/test_ecosystem_integration_audit.py \
+            tests/test_provider_resilience.py \
+            tests/test_provider_quota_admission.py -v
+          python -m pytest -q \
+            tests/test_use_query_asgi_acceptance.py \
+            tests/test_provider_operation_matrix.py \
+            tests/test_use_execution_boundary_acceptance.py \
+            tests/test_meta_crosslink_no_runtime_pinecone.py \
+            tests/test_safety_first_turn_resource_handoff.py \
+            tests/test_streaming_transport_contract.py \
+            tests/test_provider_gateway_secret_rotation.py \
+            tests/test_general_guide_provider_budget.py \
+            tests/test_archive_crosslink.py \
+            tests/test_guide_node_registry_content.py
