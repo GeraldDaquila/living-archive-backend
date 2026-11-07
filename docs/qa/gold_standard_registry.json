@@ -2034,6 +2034,38 @@
         "evidence_boundary": "User explicitly requested addition to the gold-standard registry after reviewing the live visitor-facing screenshot. Screenshot verifies rendered answer and doorway visually, but does not independently establish backend commit or end-to-end transport behavior."
       },
       "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change."
+    },
+    {
+      "benchmark_id": "general-guide-conflicting-information-discernment-gold-star-2026-11-07",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "I feel overwhelmed by conflicting information and opinions. How can I regain my bearings and know what is real enough to act on?",
+      "expected_response": "When you face conflicting information and opinions, the problem is not simply a lack of information or a need for more information. It is that you need a reliable way to judge what deserves trust and what is established well enough to act on. Regaining your bearings starts by separating the strength of a claim from the confidence or volume with which someone presents it.\n\nMake three distinctions: what is directly known or independently verified; what is an interpretation or inference drawn from those facts; and what remains an assumption or an unresolved claim. Look at where each claim comes from, whether independent sources support it, and whether the evidence actually supports the conclusion being drawn. Ask what new evidence would change your view rather than collecting more opinions that repeat the same assertion.\n\nYou do not need absolute certainty before every action. The evidence threshold should fit the stakes: a small, reversible decision can sometimes proceed on the best-supported account available, while a decision with serious or irreversible consequences calls for stronger independent support and more care. State what you know, what remains uncertain, and what would make you pause or revise course; then act only as far as that evidence reasonably allows.",
+      "expected_doorway": {
+        "title": "When You Don’t Know What to Believe Anymore",
+        "url": null
+      },
+      "rating_out_of_10": 8.8,
+      "assertions": [
+        "User explicitly approved elevation to Gold Star on 2026-11-07 after reviewing the actual production visitor response.",
+        "The answer begins by recognizing the visitor's trust and discernment problem, not by reframing it as generic action planning.",
+        "Distinguishes verified or directly known information from inference, interpretation, assumption, and unresolved claims.",
+        "Evaluates source independence and whether evidence supports the conclusion drawn.",
+        "Sets an action threshold proportionate to stakes and reversibility, while preserving uncertainty and correctability.",
+        "Exactly three substantive paragraphs; answer is complete before the optional continuation doorway.",
+        "Preserve the approved response wording as the exact-query benchmark. Paraphrases are evaluated against behavioral criteria rather than forced exact-match output."
+      ],
+      "provenance": {
+        "source_path": "general_guide_composition.py",
+        "source_ref": "c20a3225e4d666e0f94232d4798b3c11bc9351f9",
+        "source_location": "_conflicting_information_discernment_recovery and enforce_conflicting_information_boundary",
+        "production_deployment": "dep-dbnfijfb9u1s73ckeck0",
+        "approval_record": "Explicit user instruction: 'elevate to gold star' following review of the production visitor screenshot on 2026-11-07.",
+        "production_evidence": "User-provided screenshot of the actual production Guide response after deployment of commit c20a3225.",
+        "rating_out_of_10": 8.8,
+        "evidence_boundary": "The screenshot establishes the visitor-facing response shown and the user's approval of this exemplar. The continuation doorway title is visible, but its destination URL has not been independently verified; therefore the registry records no URL."
+      },
+      "freeze_policy": "Approved Gold Star exemplar. Do not silently rewrite the expected response or alter its approval status. Any wording change requires a separately versioned benchmark and explicit user approval. Evaluate close paraphrases behaviorally; exact runtime replay is reserved for this exact normalized query."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control. New approved record added on October 26, 2026: the screenshot-approved governance-beyond-administration response is registered as USER_APPROVED_GOLD_STANDARD with exact three-paragraph wording and a separately verified live doorway URL.",
