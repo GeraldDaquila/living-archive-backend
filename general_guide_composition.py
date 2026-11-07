@@ -516,9 +516,13 @@ def _has_conflicting_information_discernment(response: str) -> bool:
     opening = paragraphs[0].casefold()
     whole = " ".join(paragraphs).casefold()
     recognizes_problem = bool(
-        re.search(r"\b(?:conflicting|contradictory|competing)\b", opening)
-        and re.search(r"\b(?:trust|credible|reliable|confidence|established)\b", opening)
-        and re.search(r"\b(?:not|isn't|is not)\b.{0,100}\b(?:lack|shortage|more information)\b|\btoo much information\b", opening)
+        re.search(r"\b(?:conflicting|contradictory|competing)\b|\b\w+\s+contradict\s+one\s+another\b", opening)
+        and re.search(r"\b(?:trust|credible|reliable|dependable|confidence|established)\b", opening)
+        and re.search(
+            r"\b(?:not|isn't|is not)\b.{0,120}\b(?:lack|shortage|more information|gather more information|collect more information)\b"
+            r"|\btoo much information\b",
+            opening,
+        )
     )
     separates_knowledge = bool(
         re.search(r"\b(?:known|established|verified|observed)\b", whole)
