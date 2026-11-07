@@ -9,7 +9,7 @@ def _state(**overrides):
 def test_capacity_accepts_bounded_operational_record():
     clean=sanitize_server_capacity(_state(),now=1010.0)
     assert clean["role"]=="primary" and clean["inflight"]==2
-    assert server_capacity_score(clean)>0.8
+    assert server_capacity_score(clean,now=1010.0)>0.8
 
 def test_capacity_rejects_stale_and_invalid_role():
     assert sanitize_server_capacity(_state(updated_at=900.0),now=1000.0) is None
@@ -25,4 +25,4 @@ def test_capacity_clamps_untrusted_metrics():
 def test_healthier_server_scores_materially_higher():
     healthy=_state(server_id="secondary-b",role="secondary",viable_provider_score=.95,recent_llm_success_rate=.95,recent_exhaustion_rate=.02,inflight=1)
     degraded=_state(server_id="primary-a",viable_provider_score=.2,recent_llm_success_rate=.25,recent_exhaustion_rate=.8,inflight=20)
-    assert server_capacity_score(healthy)>server_capacity_score(degraded)+0.4
+    assert server_capacity_score(healthy,now=1010.0)>server_capacity_score(degraded,now=1010.0)+0.4
