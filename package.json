@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "name": "living-archive-browser-qa",
+  "version": "1.0.0",
+  "scripts": {
+    "test:guide-e2e": "playwright test -c QA/playwright.config.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0"
+  }
+}
