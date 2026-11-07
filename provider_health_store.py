@@ -17,6 +17,8 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 CONTRACT_VERSION = "v1"
+SERVER_CAPACITY_CONTRACT_VERSION = "server-capacity-v1"
+DEFAULT_CAPACITY_URL = "https://geralddaquila.com/wp-json/living-archive/v1/server-capacity"
 DEFAULT_URL = "https://geralddaquila.com/wp-json/living-archive/v1/provider-health"
 # Shared WordPress health state is advisory. Keep network stalls from consuming an inference attempt.
 # Local circuit state remains authoritative when the shared bridge is slow or unavailable.
@@ -135,9 +137,11 @@ def configuration_status():
         "shared_secret_configured": secret_configured,
     }
 
-def _request(method, payload=None, timeout=None):
+def _request(method, payload=None, timeout=None, endpoint_url=None):
     global _CIRCUIT_OPEN_UNTIL, _CIRCUIT_PROBE_IN_FLIGHT
     url, secret = _configuration()
+    if endpoint_url:
+        url = str(endpoint_url).strip()
     if not url:
         return None
 
@@ -493,6 +497,50 @@ def merge_health_state(local, remote, now=None):
 SERVER_CAPACITY_CONTRACT_VERSION = "v1"
 SERVER_CAPACITY_TTL_SECONDS = 45.0
 SERVER_CAPACITY_FIELDS = ("server_id", "role", "updated_at", "inflight", "viable_provider_score", "recent_llm_success_rate", "recent_exhaustion_rate")
+
+
+
+def _capacity_configuration():
+    url = str(os.getenv("USE_SERVER_CAPACITY_STATE_URL") or DEFAULT_CAPACITY_URL).strip()
+    secret = str(os.getenv("USE_PROVIDER_BANK_SHARED_SECRET") or "").strip()
+    if not url.startswith("https://") or not secret:
+        return "", ""
+    return url, secret
+
+
+def build_server_capacity_snapshot(metrics, role=None, server_id=None, now=None):
+    role = str(role or os.getenv("USE_SERVER_ROLE") or "").strip().lower()
+    server_id = str(server_id or os.getenv("USE_SERVER_ID") or "").strip()
+    now = time.time() if now is None else float(now)
+    state = dict(metrics or {})
+    state.update({"role": role, "server_id": server_id, "updated_at": now})
+    clean = sanitize_server_capacity(state, now=now)
+    if not clean:
+        return None
+    return {"contract_version": SERVER_CAPACITY_CONTRACT_VERSION, "state": clean}
+
+
+def save_server_capacity(snapshot, timeout=None):
+    url, secret = _capacity_configuration()
+    if not url or not secret or not isinstance(snapshot, dict): return False
+    state = snapshot.get("state")
+    if snapshot.get("contract_version") != SERVER_CAPACITY_CONTRACT_VERSION or not sanitize_server_capacity(state): return False
+    result = _request("POST", snapshot, timeout=timeout, endpoint_url=url)
+    return isinstance(result, dict) and bool(result.get("written"))
+
+
+def load_server_capacities(timeout=None):
+    url, secret = _capacity_configuration()
+    if not url or not secret: return None
+    result = _request("GET", timeout=timeout, endpoint_url=url)
+    states = result.get("states") if isinstance(result, dict) else None
+    if not isinstance(states, dict) or len(states) > 4: return None
+    clean = {}
+    for key, value in states.items():
+        if isinstance(key, str):
+            record = sanitize_server_capacity(value)
+            if record: clean[key] = record
+    return clean
 
 def sanitize_server_capacity(state, now=None):
     """Return a bounded, privacy-safe server-capacity record or None."""
