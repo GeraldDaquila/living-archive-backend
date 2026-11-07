@@ -530,7 +530,7 @@ def _has_conflicting_information_discernment(response: str) -> bool:
     )
     tests_evidence = bool(
         re.search(r"\b(?:evidence|source|support|corroborat)\w*\b", whole)
-        and re.search(r"\b(?:what would|what evidence|change your mind|revise the conclusion|remain uncertain)\b", whole)
+        and re.search(r"\b(?:what would|what evidence|change your mind|revise the conclusion|revise your view|remain uncertain)\b", whole)
     )
     action_threshold = bool(re.search(
         r"\b(?:enough to act|sufficient to act|decision at hand|stakes|reversible|low.consequence|high.consequence|proportionate action)\b",
