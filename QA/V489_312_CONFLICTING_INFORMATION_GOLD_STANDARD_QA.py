@@ -111,6 +111,89 @@ def main():
         provider_bank._STATE = original_state
         provider_bank._persist_shared_state = original_persist
 
+
+    # Exercise the real Provider Bank route loop without network calls. The
+    # first candidate is rejected by the Guide contract; the next candidate
+    # must be attempted. A second run rejects all three bounded candidates.
+    original_bank_state = copy.deepcopy(provider_bank._STATE)
+    patched = {}
+    def patch(name, value):
+        patched[name] = getattr(provider_bank, name)
+        setattr(provider_bank, name, value)
+    try:
+        provider_bank._STATE = {"models": {}, "quality": {}}
+        patch("_persist_shared_state", lambda: None)
+        patch("_sync_shared_state", lambda *args, **kwargs: None)
+        patch("select", lambda *args, **kwargs: [
+            {"provider": "qa_a", "model": "m1", "health_state": "healthy"},
+            {"provider": "qa_b", "model": "m2", "health_state": "healthy"},
+            {"provider": "qa_c", "model": "m3", "health_state": "healthy"},
+        ])
+        patch("_blocked_for_operation", lambda *args, **kwargs: False)
+        patch("_provider_call_timeout", lambda *args, **kwargs: 3.0)
+        patch("_predictive_shadow_metrics", lambda *args, **kwargs: {
+            "ewma_latency_seconds": 0.1, "timeout_risk": 0.0, "deadline_fit": True
+        })
+        patch("_record_predictive_shadow", lambda *args, **kwargs: None)
+        patch("_quota_guarded_call", lambda use_core, item, *args, **kwargs: item["model"])
+        patch("_success", lambda *args, **kwargs: None)
+
+        attempted = []
+        def reject_then_accept(raw):
+            attempted.append(raw)
+            if raw == "m1":
+                raise ValueError(
+                    "conflicting-information answer must recognize the trust problem first"
+                )
+            return {"response": "accepted"}
+
+        routed = provider_bank.route(
+            use_core={}, messages=[{"role": "user", "content": QUERY}],
+            max_tokens=300, parse=reject_then_accept,
+            operation="general_guide_composition",
+        )
+        assert len(attempted) == 2, f"Expected primary rejection then fallback success, got {attempted}"
+        assert routed is not None, "Fallback candidate did not return a result"
+        rejected_quality = provider_bank._quality_state(
+            "general_guide_composition", "qa_a", "m1"
+        )
+        rejected_health = provider_bank._state("qa_a", "m1")
+        assert rejected_quality.get("quality_error") == "contract_rejection"
+        assert rejected_quality.get("quality_failures") == 1
+        assert rejected_health.get("state") == "healthy"
+        assert int(rejected_health.get("failures", 0) or 0) == 0
+
+        provider_bank._STATE = {"models": {}, "quality": {}}
+        exhausted_attempts = []
+        def reject_every_candidate(raw):
+            exhausted_attempts.append(raw)
+            raise ValueError(
+                "conflicting-information answer must recognize the trust problem first"
+            )
+
+        exhausted = provider_bank.route(
+            use_core={}, messages=[{"role": "user", "content": QUERY}],
+            max_tokens=300, parse=reject_every_candidate,
+            operation="general_guide_composition",
+        )
+        assert exhausted is None, "Exhausted quality-rejected candidates should return no route result"
+        assert len(exhausted_attempts) == 3, (
+            "Expected one primary plus two bounded fallback attempts; "
+            f"got {exhausted_attempts}"
+        )
+        for provider, model in (("qa_a", "m1"), ("qa_b", "m2"), ("qa_c", "m3")):
+            health = provider_bank._state(provider, model)
+            quality = provider_bank._quality_state(
+                "general_guide_composition", provider, model
+            )
+            assert health.get("state") == "healthy"
+            assert int(health.get("failures", 0) or 0) == 0
+            assert quality.get("quality_error") == "contract_rejection"
+    finally:
+        provider_bank._STATE = original_bank_state
+        for name, value in patched.items():
+            setattr(provider_bank, name, value)
+
     print("CONFLICTING INFORMATION GOLD STANDARD CALIBRATION: PASS")
 
 if __name__ == "__main__":
