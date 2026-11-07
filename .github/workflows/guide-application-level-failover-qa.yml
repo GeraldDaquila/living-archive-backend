@@ -8,7 +8,7 @@ on:
     branches:
       - main
     paths:
-      - "frontend/the-guide-frontend-v489.251.js"
+      - "frontend/the-guide-frontend-v489.252-application-failover.js"
       - "tests/guide-application-level-failover.test.js"
       - ".github/workflows/guide-application-level-failover-qa.yml"
 
