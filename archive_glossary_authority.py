@@ -161,7 +161,7 @@ def get_glossary_entry(term: str):
 
 
 def compose_glossary_recovery(entry):
-    """Compose a source-led, Archive-specific explanation without importing outside doctrine."""
+    """Compose a source-led explanation by preserving the Glossary's own conceptual movements."""
     if not isinstance(entry, dict):
         return ""
     paragraphs = [str(item).strip() for item in entry.get("paragraphs", []) if str(item).strip()]
@@ -172,17 +172,25 @@ def compose_glossary_recovery(entry):
     intro = f"In the Living Archive Glossary, {term} is classified as {category}." if category else (
         f"In the Living Archive Glossary, {term} has a defined, context-specific meaning."
     )
+    if len(paragraphs) == 1:
+        # Some Glossary entries are one rich paragraph containing several distinct
+        # conceptual movements. Split at sentence boundaries rather than adding filler.
+        sentences = [
+            part.strip()
+            for part in re.split(r"(?<=[.!?])\\s+(?=[A-Z])", paragraphs[0])
+            if part.strip()
+        ]
+        if len(sentences) < 3:
+            return ""
+        first_paragraph = f"{intro} {sentences[0]}"
+        second_paragraph = sentences[1]
+        third_paragraph = " ".join(sentences[2:])
+        return "\\n\\n".join([first_paragraph, second_paragraph, third_paragraph])
     first_paragraph = f"{intro} {paragraphs[0]}"
-    if len(paragraphs) >= 2:
-        second_paragraph = paragraphs[1]
-    else:
-        second_paragraph = (
-            f"The entry's wording should be read in its stated context. "
-            f"It does not establish meanings or implications beyond the definition given for {term}."
-        )
+    second_paragraph = paragraphs[1]
     closing = (
         "This is the Archive's own usage of the term, not a universal dictionary definition. "
         "Other traditions or disciplines may use the same words differently, so those meanings "
         "should be identified separately rather than blended into this one."
     )
-    return "\n\n".join([first_paragraph, second_paragraph, closing])
+    return "\\n\\n".join([first_paragraph, second_paragraph, closing])
