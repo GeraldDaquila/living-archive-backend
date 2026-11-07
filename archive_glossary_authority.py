@@ -86,15 +86,28 @@ def extract_glossary_entry(markup: str, term: str, *, modified: str = ""):
         heading_text = _plain_text(match.group(2))
         if _normalize(heading_text) != target:
             continue
-        end = headings[index + 1].start() if index + 1 < len(headings) else len(markup)
-        section = str(markup)[match.end():end]
         category = ""
-        category_match = re.search(r"<h[2-6]\b[^>]*>(.*?)</h[2-6]>", section, re.I | re.S)
-        if category_match:
-            candidate = _plain_text(category_match.group(1))
-            if len(candidate) <= 90 and not candidate.casefold().startswith("see also"):
+        section_start = match.end()
+        next_index = index + 1
+        if next_index < len(headings):
+            candidate = _plain_text(headings[next_index].group(2))
+            is_category = (
+                len(candidate) <= 90
+                and not candidate.casefold().startswith("see also")
+                and (
+                    "/" in candidate
+                    or candidate.casefold() in {
+                        "descriptive", "conceptual", "symbolic", "functional",
+                        "ethical", "systems", "integrative", "archetypal",
+                    }
+                )
+            )
+            if is_category:
                 category = candidate
-                section = section[category_match.end():]
+                section_start = headings[next_index].end()
+                next_index += 1
+        end = headings[next_index].start() if next_index < len(headings) else len(markup)
+        section = str(markup)[section_start:end]
         paragraphs = [
             _plain_text(item)
             for item in re.findall(r"<p\b[^>]*>(.*?)</p>", section, re.I | re.S)
@@ -185,19 +198,17 @@ def compose_glossary_recovery(entry):
     intro = f"In the Living Archive Glossary, {term} is classified as {category}." if category else (
         f"In the Living Archive Glossary, {term} has a defined, context-specific meaning."
     )
+    first_paragraph = f"{intro} {paragraphs[0]}"
     if len(paragraphs) >= 2:
-        body = paragraphs[:2]
+        second_paragraph = paragraphs[1]
     else:
-        body = [paragraphs[0]]
-    if len(body) == 2:
-        closing = (
-            "This is the Archive's own usage of the term, not a universal dictionary definition. "
-            "Other traditions or disciplines may use the same words differently, so those meanings "
-            "should be identified separately rather than blended into this one."
+        second_paragraph = (
+            f"The entry's wording should be read in its stated context. "
+            f"It does not establish meanings or implications beyond the definition given for {term}."
         )
-    else:
-        closing = (
-            "This is the Archive's own usage of the term, not a universal dictionary definition. "
-            "Its application should remain bounded by the context and distinctions stated in the entry."
-        )
-    return "\n\n".join([intro, *body, closing])
+    closing = (
+        "This is the Archive's own usage of the term, not a universal dictionary definition. "
+        "Other traditions or disciplines may use the same words differently, so those meanings "
+        "should be identified separately rather than blended into this one."
+    )
+    return "\n\n".join([first_paragraph, second_paragraph, closing])
