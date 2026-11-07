@@ -18,7 +18,7 @@ def _item(provider, model, *, health="healthy", quality=0, transport=0, consecut
 
 def test_hrn_relational_selection_prefers_quality_success_when_health_is_equal(monkeypatch):
     candidates = [
-        _item("nvidia", "nvidia/nemotron-3-super-120b-a12b", quality=3, consecutive=0, last_success=999),
+        _item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b", quality=3, consecutive=0, last_success=999),
         _item("groq", "openai/gpt-oss-120b", quality=0, consecutive=0, last_success=100),
         _item("openrouter", "openrouter/free", quality=0, consecutive=1, last_success=500),
     ]
@@ -36,7 +36,7 @@ def test_hrn_relational_selection_prefers_quality_success_when_health_is_equal(m
 
 def test_hrn_relational_uses_quality_history_when_transport_health_is_equal(monkeypatch):
     candidates = [
-        _item("nvidia", "nvidia/nemotron-3-super-120b-a12b", quality=3, consecutive=0, transport=0, last_success=999),
+        _item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b", quality=3, consecutive=0, transport=0, last_success=999),
         _item("groq", "openai/gpt-oss-120b", quality=0, consecutive=0, transport=0, last_success=100),
     ]
     monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: candidates)
@@ -55,7 +55,7 @@ def test_hrn_relational_rechecks_blocked_state_before_provider_call(monkeypatch)
     # A candidate can enter cooldown after candidates() snapshots its state.
     monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [
         _item("groq", "openai/gpt-oss-120b"),
-        _item("nvidia", "nvidia/nemotron-3-super-120b-a12b"),
+        _item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b"),
     ])
     original_state_fn = provider_bank._state
     original_models = provider_bank._STATE["models"]
@@ -95,7 +95,7 @@ def test_hrn_relational_rechecks_blocked_state_before_provider_call(monkeypatch)
 def test_hrn_relational_contract_rejection_is_quality_failure_not_provider_failure(monkeypatch):
     # A semantic action-solution rejection must advance directly to an independent provider.
     monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [
-        _item("nvidia", "nvidia/nemotron-3-super-120b-a12b"),
+        _item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b"),
         _item("groq", "openai/gpt-oss-120b"),
     ])
     attempts = []
@@ -221,7 +221,7 @@ def test_hrn_call_timeout_constant_is_inside_fast_failure_budget():
 
 
 def test_hrn_prescriptive_question_gets_one_targeted_recovery(monkeypatch):
-    candidate = _item("nvidia", "nvidia/nemotron-3-super-120b-a12b", capabilities=["json_object", "json_schema_best_effort", "long_context", "composition", "relational_analysis"])
+    candidate = _item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b", capabilities=["json_object", "json_schema_best_effort", "long_context", "composition", "relational_analysis"])
     monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
@@ -300,7 +300,7 @@ def test_hrn_missing_question_gets_grounded_local_completion(monkeypatch):
 
     candidate = _item(
         "nvidia",
-        "nvidia/nemotron-3-super-120b-a12b",
+        "nvidia/nemotron-3.5-super-vl-120b-a12b",
         capabilities=["json_object", "json_schema_best_effort", "long_context", "composition", "relational_analysis"],
     )
     monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
@@ -363,7 +363,7 @@ def test_hrn_missing_question_gets_grounded_local_completion(monkeypatch):
 
 
 def test_hrn_targeted_question_recovery_still_fails_closed(monkeypatch):
-    candidate = _item("nvidia", "nvidia/nemotron-3-super-120b-a12b")
+    candidate = _item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b")
     monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
@@ -424,7 +424,7 @@ def test_hrn_targeted_question_recovery_still_fails_closed(monkeypatch):
 
 def test_hrn_short_response_gets_one_targeted_response_recovery(monkeypatch):
     import json
-    candidate = _item("nvidia", "nvidia/nemotron-3-super-120b-a12b")
+    candidate = _item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b")
     monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
@@ -493,7 +493,7 @@ def test_hrn_short_response_gets_one_targeted_response_recovery(monkeypatch):
 
 def test_hrn_short_response_recovery_still_fails_closed(monkeypatch):
     import json
-    candidate = _item("nvidia", "nvidia/nemotron-3-super-120b-a12b")
+    candidate = _item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b")
     monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)
@@ -551,7 +551,7 @@ def test_hrn_short_response_recovery_still_fails_closed(monkeypatch):
 
 def test_hrn_repeated_prescriptive_question_uses_grounded_lexical_fallback(monkeypatch):
     import json
-    candidate = _item("nvidia", "nvidia/nemotron-3-super-120b-a12b")
+    candidate = _item("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b")
     monkeypatch.setattr(provider_bank, "candidates", lambda use_core, operation="generic", schema=None: [candidate])
     monkeypatch.setattr(provider_bank, "_sync_shared_state", lambda: None)
     monkeypatch.setattr(provider_bank, "_persist_shared_state", lambda: True)

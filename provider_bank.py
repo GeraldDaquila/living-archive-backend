@@ -115,7 +115,7 @@ MODEL_CAPABILITIES = {
     # Capability claims are conservative and every result still passes the same
     # provider-neutral JSON and visitor-facing contract validators.
     ("nvidia", "nvidia/nemotron-3.5-lightning-30b-a3b"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
-    ("nvidia", "nvidia/nemotron-3-super-120b-a12b"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis"}),
+    ("nvidia", "nvidia/nemotron-3.5-super-vl-120b-a12b"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis"}),
     ("nvidia", "google/gemma-4-31b-it"): frozenset({"json_object", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis"}),
     ("workers_ai", "@cf/google/gemma-4-26b-a4b-it"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis"}),
     ("workers_ai", "@cf/zai-org/glm-4.7-flash"): frozenset({"json_object", "json_schema_strict", "json_schema_best_effort", "text_generation", "reasoning", "long_context", "composition", "relational_analysis", "low_latency"}),
@@ -165,8 +165,11 @@ def resolve_model_list(provider, models):
 NVIDIA_MODEL_ALIASES = {
     "nemotron 3.5 lightning 30b a3b": "nvidia/nemotron-3.5-lightning-30b-a3b",
     "nvidia/nemotron-3.5-lightning-30b-a3b": "nvidia/nemotron-3.5-lightning-30b-a3b",
-    "nemotron 3 super 120b a12b": "nvidia/nemotron-3-super-120b-a12b",
-    "nvidia/nemotron-3-super-120b-a12b": "nvidia/nemotron-3-super-120b-a12b",
+    # NVIDIA retired the hosted Nemotron 3 Super endpoint; redirect legacy config to its documented 3.5 Super VL successor.
+    "nemotron 3 super 120b a12b": "nvidia/nemotron-3.5-super-vl-120b-a12b",
+    "nvidia/nemotron-3-super-120b-a12b": "nvidia/nemotron-3.5-super-vl-120b-a12b",
+    "nemotron 3.5 super vl 120b a12b": "nvidia/nemotron-3.5-super-vl-120b-a12b",
+    "nvidia/nemotron-3.5-super-vl-120b-a12b": "nvidia/nemotron-3.5-super-vl-120b-a12b",
     "gemma 4 31b it": "google/gemma-4-31b-it",
     "google/gemma-4-31b-it": "google/gemma-4-31b-it",
 }
@@ -948,13 +951,14 @@ def _gemini(key, model, messages, max_tokens, schema=None, timeout=None):
 def _openai_compatible(base_url, key, provider, model, messages, max_tokens, schema=None, timeout=None):
     payload = {"model": model, "messages": messages, "temperature": 0.0,
                "max_tokens": max_tokens}
-    # NVIDIA Nemotron 3-series models can emit reasoning separately from the
+    # NVIDIA Nemotron models can emit reasoning separately from the
     # visitor-facing content field. Disable thinking for the reviewed 3.5
-    # Lightning and 3 Super models so the bounded contract receives actual text.
+    # Lightning and 3.5 Super VL models so the bounded contract receives text.
     # The normal schema and visitor-surface validators remain authoritative.
     if provider == "nvidia" and model in {
         "nvidia/nemotron-3.5-lightning-30b-a3b",
         "nvidia/nemotron-3-super-120b-a12b",
+        "nvidia/nemotron-3.5-super-vl-120b-a12b",
     }:
         payload["chat_template_kwargs"] = {"enable_thinking": False}
     json_mode = not _text_mode(schema)
