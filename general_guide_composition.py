@@ -456,6 +456,8 @@ def _definition_subject_for_glossary(query: str) -> str:
             subject = re.sub(r",?\s+and why does it matter$", "", subject, flags=re.I).strip()
             subject = re.sub(r"^(?:(?:the|a|an)\s+)?term\s+", "", subject, flags=re.I).strip()
             subject = re.sub(r"^(?:the|a|an)\s+", "", subject, flags=re.I).strip()
+            if re.match(r"^(?:how|why|when|where|whether|if|happening|going on|the best way|a good way|the difference|the relationship|the process|the cause|the impact|the effect)\b", subject, re.I):
+                return ""
             if 1 <= len(subject.split()) <= 12 and len(subject) <= 120:
                 return subject
     return ""
