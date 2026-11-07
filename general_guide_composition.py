@@ -491,6 +491,19 @@ def _apply_archive_glossary_authority(query: str, documents: List[Dict[str, str]
         "not a universal dictionary.\n\n"
     )
 
+def _retrieve_authoritative_context(query: str, use_core: Any, context_data: Dict[str, Any]):
+    """Check canonical Glossary authority first, then enrich with Archive retrieval."""
+    glossary_documents, glossary_instruction = _apply_archive_glossary_authority(query, [])
+    retrieved_documents = _documents_from_context(use_core, context_data)
+    if not glossary_documents:
+        return retrieved_documents, glossary_instruction
+    glossary_url = str(glossary_documents[0].get("url") or "")
+    remaining = [
+        item for item in retrieved_documents
+        if str(item.get("url") or "") != glossary_url
+    ]
+    return glossary_documents + remaining[:3], glossary_instruction
+
 def is_exact_source_request(query: str) -> bool:
     """Recognize requests to trace a claim to its source."""
     q = _normalize_space(query).casefold()
@@ -2344,13 +2357,10 @@ def compose(
             "model": "",
         }
 
-    # Canonical definition authority is checked before any general Archive retrieval.
-    glossary_documents, glossary_authority_instruction = _apply_archive_glossary_authority(question, [])
-    retrieved_documents = _documents_from_context(use_core, context_data)
-    documents = glossary_documents + [
-        item for item in retrieved_documents
-        if not glossary_documents or str(item.get("url") or "") != str(glossary_documents[0].get("url") or "")
-    ][:3]
+    # Canonical Glossary lookup is the first stop; Archive retrieval enriches it afterward.
+    documents, glossary_authority_instruction = _retrieve_authoritative_context(
+        question, use_core, context_data
+    )
     corrected_subject = correction_subject(question)
     effective_question = corrected_subject or question
     shape = _question_shape(effective_question)
