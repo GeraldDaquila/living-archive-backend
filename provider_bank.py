@@ -73,14 +73,14 @@ HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
 # General Guide gives each candidate a realistic but bounded inference timeout.
 # Quick failures may admit a bounded fallback; a slow failure stops the serial chain
 # so the WordPress bridge can use its remaining deadline for mirror recovery.
-# The 8-second arbitration window and shared request deadline are the stopping
-# controls. Allow the bank to reach other independent providers after fast failures,
-# without serially walking slow candidates or extending the visitor's time budget.
-GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 8.0
-GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 2
-# Reserve meaningful time for one independent fallback. A six-second first call
-# inside an eight-second visitor window can otherwise turn a slow timeout into
-# an effective single-shot architecture.
+# The Guide request has a 24-second absolute deadline and reserves six seconds
+# for one integrity repair. A 15-second provider arbitration window allows one
+# primary plus three bounded fallback candidates while preserving that repair
+# reserve and avoiding an unbounded serial walk across the whole model catalogue.
+GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 15.0
+GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 3
+# Keep the primary and fallback transport ceilings distinct: a quick primary
+# timeout can still admit three more candidates within the 15-second window.
 GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS = 3.0
 GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS = 4.0
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
