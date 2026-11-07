@@ -527,3 +527,21 @@ def test_definition_intent_recognizer_handles_term_and_contraction_variants():
     assert composition._definition_subject_for_glossary("What does the term Law of One mean?") == "Law of One"
     assert composition._definition_subject_for_glossary("What is the meaning of the Law of One?") == "Law of One"
     assert composition._definition_subject_for_glossary("What's the Law of One?") == "Law of One"
+
+
+def test_glossary_source_revision_invalidates_composition_cache_key():
+    import general_guide_composition as composition
+
+    old_source = [{
+        "title": "The Living Glossary — Law of One",
+        "url": "https://geralddaquila.com/glossary/",
+        "source_modified": "2026-11-01T10:00:00",
+    }]
+    revised_source = [{
+        "title": "The Living Glossary — Law of One",
+        "url": "https://geralddaquila.com/glossary/",
+        "source_modified": "2026-11-08T10:00:00",
+    }]
+    old_key = composition._composition_cache_key("What is the Law of One?", "", "definition", old_source)
+    revised_key = composition._composition_cache_key("What is the Law of One?", "", "definition", revised_source)
+    assert old_key != revised_key
