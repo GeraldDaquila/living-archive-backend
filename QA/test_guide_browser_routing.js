@@ -53,13 +53,22 @@ test('production Guide query stays on the production service', async ({ page }) 
   expect(result.requests.some(request => new URL(request.url).host === PROD_HOST), lifecycleMessage(result)).toBeTruthy();
 });
 
-test('predictive-shadow opt-in reaches the shadow service and never silently falls back', async ({ page }) => {
+test('predictive-shadow controlled query set reaches shadow without production fallback', async ({ page }) => {
   const separator = GUIDE_URL.includes('?') ? '&' : '?';
   const url = GUIDE_URL + separator + 'guide_backend=predictive-shadow';
-  const result = await submitAndCapture(page, url, 'What does stewardship mean here?');
+  const questions = [
+    'What does stewardship mean here?',
+    'How can I tell whether a system is healthy?',
+    'Why does governance become detached from reality?',
+    'Where should I begin when I feel disoriented?',
+    'How do feedback and correctability relate?'
+  ];
 
-  expect(result.console.some(entry => entry.text.includes('[The Guide] backend mode: predictive-shadow')), lifecycleMessage(result)).toBeTruthy();
-  expect(result.requests, lifecycleMessage(result)).not.toHaveLength(0);
-  expect(result.requests.some(request => new URL(request.url).host === SHADOW_HOST), lifecycleMessage(result)).toBeTruthy();
-  expect(result.requests.some(request => new URL(request.url).host === PROD_HOST), lifecycleMessage(result)).toBeFalsy();
+  for (const question of questions) {
+    const result = await submitAndCapture(page, url, question);
+    expect(result.console.some(entry => entry.text.includes('[The Guide] backend mode: predictive-shadow')), lifecycleMessage(result)).toBeTruthy();
+    expect(result.requests, lifecycleMessage(result)).not.toHaveLength(0);
+    expect(result.requests.some(request => new URL(request.url).host === SHADOW_HOST), lifecycleMessage(result)).toBeTruthy();
+    expect(result.requests.some(request => new URL(request.url).host === PROD_HOST), lifecycleMessage(result)).toBeFalsy();
+  }
 });
