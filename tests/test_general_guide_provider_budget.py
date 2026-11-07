@@ -350,3 +350,9 @@ def test_predictive_assignment_never_promotes_unhealthy_model_over_healthy_model
     selected = _select_predictive_lane(monkeypatch, [unhealthy_fast, healthy_slow])
 
     assert selected[0]["model"] == "healthy-slow"
+
+
+def test_general_guide_success_outcome_includes_fresh_shadow_metrics():
+    source = Path("provider_bank.py").read_text(encoding="utf-8")
+    assert "outcome=success, elapsed_seconds=" in source
+    assert "_predictive_shadow_metrics(state, _provider_call_timeout(operation, item))" in source
