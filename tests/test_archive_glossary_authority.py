@@ -35,7 +35,7 @@ def test_composes_three_purposeful_paragraphs_without_generic_operational_inject
         ],
     }
     answer = glossary.compose_glossary_recovery(entry)
-    paragraphs = answer.split("\\n\\n")
+    paragraphs = answer.split("\n\n")
     assert len(paragraphs) == 4
     assert "knowledge, responsibilities, or ways of working" not in answer
     assert "not a universal dictionary definition" in paragraphs[-1]
