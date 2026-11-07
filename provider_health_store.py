@@ -486,3 +486,28 @@ def merge_health_state(local, remote, now=None):
         ) > now else "half_open"
     _sanitize_health_diagnostics(local)
     return local
+
+
+# Server capacity records are deliberately separate from provider health records.
+# They contain operational aggregates only—never visitor prompts or responses.
+SERVER_CAPACITY_CONTRACT_VERSION = "v1"
+SERVER_CAPACITY_TTL_SECONDS = 45.0
+SERVER_CAPACITY_FIELDS = ("server_id", "role", "updated_at", "inflight", "viable_provider_score", "recent_llm_success_rate", "recent_exhaustion_rate")
+
+def sanitize_server_capacity(state, now=None):
+    """Return a bounded, privacy-safe server-capacity record or None."""
+    if not isinstance(state, dict): return None
+    now = time.time() if now is None else float(now)
+    try:
+        updated = float(state.get("updated_at", 0) or 0)
+        if updated <= 0 or now - updated > SERVER_CAPACITY_TTL_SECONDS: return None
+        role = str(state.get("role") or "").strip().lower(); server_id = str(state.get("server_id") or "").strip()
+        if role not in ("primary", "secondary") or not server_id or len(server_id) > 64: return None
+        return {"server_id":server_id,"role":role,"updated_at":updated,"inflight":max(0,min(100,int(state.get("inflight",0) or 0))),"viable_provider_score":max(0.0,min(1.0,float(state.get("viable_provider_score",0) or 0))),"recent_llm_success_rate":max(0.0,min(1.0,float(state.get("recent_llm_success_rate",0) or 0))),"recent_exhaustion_rate":max(0.0,min(1.0,float(state.get("recent_exhaustion_rate",0) or 0)))}
+    except (TypeError, ValueError): return None
+
+def server_capacity_score(state):
+    """Comparable bounded score; lower load and exhaustion improve viability."""
+    clean = sanitize_server_capacity(state)
+    if not clean: return None
+    return round(0.45*clean["viable_provider_score"] + 0.35*clean["recent_llm_success_rate"] + 0.15*(1-clean["recent_exhaustion_rate"]) + 0.05*(1-min(1,clean["inflight"]/20)), 4)
