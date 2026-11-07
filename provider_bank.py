@@ -1462,17 +1462,29 @@ def select(use_core, operation="generic", schema=None):
                 -float(item.get("last_success", 0) or 0),
             ))
         elif operation in {"general_guide_composition", "fsd_report_composition"}:
-            # The general Guide may only have a five-second generation window.
-            # Do not let a half-open probe outrank a healthy model simply because
-            # its provider appears earlier in the rotating lane order.
-            models.sort(key=lambda item: (
-                0 if item.get("health_state") == "healthy" else 1,
-                int(item.get("quality_failures", 0) or 0),
-                0 if "low_latency" in (item.get("capabilities") or []) else 1,
-                int(item.get("consecutive_failures", 0) or 0),
-                int(item.get("transport_failures", 0) or 0),
-                -float(item.get("last_success", 0) or 0),
-            ))
+            # Predictive Assignment v1: retain all hard health/capability gates,
+            # then use observed short-memory latency and timeout evidence as a
+            # bounded tie-breaker. Thin telemetry falls back toward the existing
+            # adaptive ordering rather than pretending historical certainty.
+            budget_seconds = _provider_call_timeout(operation, models[0]) if models else 4.0
+            def _predictive_rank(item):
+                shadow = _predictive_shadow_metrics(item, budget_seconds)
+                attempts = int(item.get("latency_attempts", 0) or 0)
+                telemetry_ready = attempts >= 3
+                prediction_penalty = (
+                    (shadow["timeout_risk"] * 4.0) +
+                    (shadow["deadline_fit"] * 1.5)
+                ) if telemetry_ready else 0.0
+                return (
+                    0 if item.get("health_state") == "healthy" else 1,
+                    int(item.get("quality_failures", 0) or 0),
+                    prediction_penalty,
+                    0 if "low_latency" in (item.get("capabilities") or []) else 1,
+                    int(item.get("consecutive_failures", 0) or 0),
+                    int(item.get("transport_failures", 0) or 0),
+                    -float(item.get("last_success", 0) or 0),
+                )
+            models.sort(key=_predictive_rank)
         else:
             models.sort(key=lambda item: int(item.get("quality_failures", 0) or 0))
         _STATE["model_cursors"][provider] = cursor + 1
