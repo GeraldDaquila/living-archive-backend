@@ -393,22 +393,36 @@ def publish_server_capacity_async(metrics, role=None, server_id=None):
     return True
 
 
-def counterpart_server_capacity(role=None, server_id=None, timeout=None):
-    """Return the freshest valid counterpart record, or None."""
+def peer_server_capacities(role=None, server_id=None, timeout=None):
+    """Return fresh capacity records for all peers; peer awareness is advisory."""
     role = str(role or os.getenv("USE_SERVER_ROLE") or "").strip().lower()
     server_id = str(server_id or os.getenv("USE_SERVER_ID") or "").strip()
     states = load_server_capacities(timeout=timeout)
     if not isinstance(states, dict):
-        return None
+        return []
     now = time.time()
-    candidates = []
+    peers = []
+    seen = set()
     for v in states.values():
-        if v.get("server_id") == server_id or v.get("role") not in ("primary", "secondary") or v.get("role") == role:
+        if not isinstance(v, dict):
             continue
+        peer_id = str(v.get("server_id") or "").strip()
+        peer_role = str(v.get("role") or "").strip().lower()
+        if not peer_id or peer_id == server_id or peer_id in seen:
+            continue
+        # A role is descriptive, not an eligibility gate: specialist and future
+        # nodes participate without requiring topology-specific code changes.
         clean = sanitize_server_capacity(v, now=now)
         if clean:
-            candidates.append(clean)
-    return max(candidates, key=lambda v: float(v.get("updated_at", 0)), default=None)
+            peers.append(clean)
+            seen.add(peer_id)
+    return sorted(peers, key=lambda v: float(v.get("updated_at", 0)), reverse=True)
+
+
+def counterpart_server_capacity(role=None, server_id=None, timeout=None):
+    """Compatibility helper returning the freshest peer, if any."""
+    peers = peer_server_capacities(role=role, server_id=server_id, timeout=timeout)
+    return peers[0] if peers else None
 
 
 def background_status():
