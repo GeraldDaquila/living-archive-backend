@@ -376,6 +376,34 @@ def save_remote_states_async(states):
     return True
 
 
+def _background_capacity_worker(snapshot):
+    try:
+        save_server_capacity(snapshot, timeout=BACKGROUND_TIMEOUT_SECONDS)
+    except Exception:
+        pass
+
+
+def publish_server_capacity_async(metrics, role=None, server_id=None):
+    """Best-effort publication. Never blocks or retries visitor inference."""
+    snapshot = build_server_capacity_snapshot(metrics, role=role, server_id=server_id)
+    if not snapshot:
+        return False
+    thread = threading.Thread(target=_background_capacity_worker, args=(snapshot,), daemon=True, name="server-capacity-publish")
+    thread.start()
+    return True
+
+
+def counterpart_server_capacity(role=None, server_id=None, timeout=None):
+    """Return the freshest valid counterpart record, or None."""
+    role = str(role or os.getenv("USE_SERVER_ROLE") or "").strip().lower()
+    server_id = str(server_id or os.getenv("USE_SERVER_ID") or "").strip()
+    states = load_server_capacities(timeout=timeout)
+    if not isinstance(states, dict):
+        return None
+    candidates = [v for v in states.values() if v.get("server_id") != server_id and v.get("role") in ("primary","secondary") and v.get("role") != role]
+    return max(candidates, key=lambda v: float(v.get("updated_at", 0)), default=None)
+
+
 def background_status():
     """Expose bounded worker state without leaking data or credentials."""
     with _BACKGROUND_READ_LOCK:
