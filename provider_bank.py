@@ -29,6 +29,20 @@ from provider_health_store import (
 
 CONTRACT_VERSION = "v2"
 
+# Common-bank recovery contract: preserve a validated first-pass field when
+# repairing an independently recoverable HRN field. Hard safety/grounding
+# failures remain non-recoverable.
+OPERATION_RECOVERY_CONTRACTS = {
+    "hrn_relational": {
+        "preserve_on_question_recovery": ("response", "grounded", "safe"),
+        "preserve_on_response_recovery": ("question", "grounded", "safe"),
+        "hard_failure_fields": ("grounding", "safety"),
+    },
+}
+
+def recovery_contract(operation):
+    return dict(OPERATION_RECOVERY_CONTRACTS.get(operation, {}))
+
 
 class ProviderOutput(str):
     """String-compatible provider text with optional exact completion usage."""
