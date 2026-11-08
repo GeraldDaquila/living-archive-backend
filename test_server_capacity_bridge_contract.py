@@ -11,3 +11,12 @@ def test_capacity_snapshot_is_bounded_and_private():
 def test_capacity_snapshot_requires_known_role_and_identity():
     assert store.build_server_capacity_snapshot({},role="unknown",server_id="x",now=1000) is None
     assert store.build_server_capacity_snapshot({},role="primary",server_id="",now=1000) is None
+
+
+def test_counterpart_capacity_ignores_local_and_stale(monkeypatch):
+    now=1000.0
+    fresh={"server_id":"secondary-test","role":"secondary","updated_at":now,"inflight":1,"viable_provider_score":1,"recent_llm_success_rate":1,"recent_exhaustion_rate":0}
+    stale=dict(fresh,server_id="stale",updated_at=now-100)
+    monkeypatch.setattr(store,"load_server_capacities",lambda timeout=None: {"primary-test":{"server_id":"primary-test","role":"primary","updated_at":now,"inflight":0,"viable_provider_score":1,"recent_llm_success_rate":1,"recent_exhaustion_rate":0},"secondary-test":fresh,"stale":stale})
+    monkeypatch.setattr(store.time,"time",lambda:now)
+    assert store.counterpart_server_capacity(role="primary",server_id="primary-test")["server_id"]=="secondary-test"
