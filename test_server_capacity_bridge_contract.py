@@ -20,3 +20,16 @@ def test_counterpart_capacity_ignores_local_and_stale(monkeypatch):
     monkeypatch.setattr(store,"load_server_capacities",lambda timeout=None: {"primary-test":{"server_id":"primary-test","role":"primary","updated_at":now,"inflight":0,"viable_provider_score":1,"recent_llm_success_rate":1,"recent_exhaustion_rate":0},"secondary-test":fresh,"stale":stale})
     monkeypatch.setattr(store.time,"time",lambda:now)
     assert store.counterpart_server_capacity(role="primary",server_id="primary-test")["server_id"]=="secondary-test"
+
+
+def test_stale_counterpart_is_not_selected(monkeypatch):
+    now=1000.0
+    stale={"server_id":"secondary-test","role":"secondary","updated_at":now-301,"inflight":1,"viable_provider_score":1,"recent_llm_success_rate":1,"recent_exhaustion_rate":0}
+    monkeypatch.setattr(store,"load_server_capacities",lambda timeout=None: {"secondary-test":stale})
+    monkeypatch.setattr(store.time,"time",lambda:now)
+    assert store.counterpart_server_capacity(role="primary",server_id="primary-test") is None
+
+def test_capacity_publish_failure_is_best_effort(monkeypatch):
+    monkeypatch.setattr(store,"save_server_capacity",lambda *args,**kwargs: (_ for _ in ()).throw(RuntimeError("bridge down")))
+    snapshot={"contract_version":"server-capacity-v1","state":{"server_id":"primary-test","role":"primary","updated_at":1000,"inflight":0,"viable_provider_score":1,"recent_llm_success_rate":1,"recent_exhaustion_rate":0}}
+    store._background_capacity_worker(snapshot)
