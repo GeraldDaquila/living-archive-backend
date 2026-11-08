@@ -3426,12 +3426,29 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     capacity_finished = True
     return _route_result(None)
 
+_capacity_publish_lock = threading.Lock()
+_capacity_last_published = 0.0
+_CAPACITY_PUBLISH_INTERVAL_SECONDS = 5.0
+
 def refresh_server_capacity_state():
-    """Publish local capacity asynchronously; failures never affect query routing."""
+    """Publish bounded capacity at a low rate; never block visitor routing."""
+    global _capacity_last_published
+    now = time.time()
+    if now - _capacity_last_published < _CAPACITY_PUBLISH_INTERVAL_SECONDS:
+        return False
+    if not _capacity_publish_lock.acquire(blocking=False):
+        return False
     try:
-        return publish_server_capacity_async(capacity_metrics_snapshot())
+        if now - _capacity_last_published < _CAPACITY_PUBLISH_INTERVAL_SECONDS:
+            return False
+        published = publish_server_capacity_async(capacity_metrics_snapshot())
+        if published:
+            _capacity_last_published = now
+        return published
     except Exception:
         return False
+    finally:
+        _capacity_publish_lock.release()
 
 
 def refresh_shared_health_state():
