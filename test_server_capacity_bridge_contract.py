@@ -52,3 +52,10 @@ def test_server_route_fails_closed_on_missing_or_stale_state():
     stale=dict(healthy,server_id="secondary",role="secondary",updated_at=699)
     assert store.choose_server_route(healthy,None,now=1000)["route"]=="assigned"
     assert store.choose_server_route(healthy,stale,now=1000)["route"]=="assigned"
+
+
+def test_capacity_advisory_never_changes_assignment_without_valid_counterpart(monkeypatch):
+    monkeypatch.setattr(store,"counterpart_server_capacity",lambda **kwargs: None)
+    result=store.server_capacity_advisory({"inflight":0,"viable_provider_score":1,"recent_llm_success_rate":1,"recent_exhaustion_rate":0},role="primary",server_id="primary-test")
+    assert result["route"]=="assigned"
+    assert result["reason"]=="counterpart_state_unknown"
