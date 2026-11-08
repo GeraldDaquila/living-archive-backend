@@ -6,6 +6,7 @@ Provider Bank so no individual LLM is an architectural dependency.
 """
 
 import hashlib
+import os
 import json
 import re
 import threading
