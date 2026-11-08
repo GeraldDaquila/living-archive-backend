@@ -400,7 +400,14 @@ def counterpart_server_capacity(role=None, server_id=None, timeout=None):
     states = load_server_capacities(timeout=timeout)
     if not isinstance(states, dict):
         return None
-    candidates = [v for v in states.values() if v.get("server_id") != server_id and v.get("role") in ("primary","secondary") and v.get("role") != role]
+    now = time.time()
+    candidates = []
+    for v in states.values():
+        if v.get("server_id") == server_id or v.get("role") not in ("primary", "secondary") or v.get("role") == role:
+            continue
+        clean = sanitize_server_capacity(v, now=now)
+        if clean:
+            candidates.append(clean)
     return max(candidates, key=lambda v: float(v.get("updated_at", 0)), default=None)
 
 
