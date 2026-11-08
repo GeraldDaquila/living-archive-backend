@@ -71,6 +71,8 @@ def _load_exemplars() -> List[Dict[str, Any]]:
             "known_theme": str(record.get("known_theme") or "").strip(),
             "assertions": assertions,
             "terms": terms,
+            "runtime_transfer": bool(record.get("runtime_transfer", False)),
+            "related_question_variants": [str(v).strip() for v in variants if isinstance(v, str) and str(v).strip()],
         })
         seen_ids.add(benchmark_id)
     return result
@@ -78,12 +80,21 @@ def _load_exemplars() -> List[Dict[str, Any]]:
 _EXEMPLARS = _load_exemplars()
 
 def select_exemplar(query: str) -> Optional[Dict[str, Any]]:
-    """Select one high-confidence structural analogue, otherwise abstain."""
+    """Select an explicitly transferable Gold Star, otherwise abstain.
+
+    Historical Gold Stars remain evaluation benchmarks. They cannot influence
+    new answers unless explicitly marked runtime_transfer. This prevents a
+    growing registry from turning generic word overlap into answer templates.
+    """
     normalized_query = _normalized_phrase(query)
     if not normalized_query:
         return None
 
-    exact = [x for x in _EXEMPLARS if _normalized_phrase(x["query"]) == normalized_query]
+    candidates = [x for x in _EXEMPLARS if x.get("runtime_transfer")]
+    if not candidates:
+        return None
+
+    exact = [x for x in candidates if _normalized_phrase(x["query"]) == normalized_query]
     if len(exact) == 1:
         x = exact[0]
         return {"benchmark_id": x["id"], "score": 1.0, "query": x["query"],
@@ -94,22 +105,28 @@ def select_exemplar(query: str) -> Optional[Dict[str, Any]]:
         return None
 
     ranked = []
-    for x in _EXEMPLARS:
-        overlap = query_terms & x["terms"]
-        if len(overlap) < 2:
+    for x in candidates:
+        # Runtime transfer is deliberately conservative: a new question must
+        # overlap the approved exemplar and one of its explicit paraphrase
+        # variants. Generic words such as responsibility or choice are not
+        # sufficient to activate a lesson.
+        variant_terms = set()
+        for variant in x.get("related_question_variants", []):
+            variant_terms |= _tokens(variant)
+        exemplar_terms = _tokens(x["query"])
+        shared_exemplar = query_terms & exemplar_terms
+        shared_variant = query_terms & variant_terms
+        if len(shared_exemplar) < 1 or len(shared_variant) < 2:
             continue
-        score = (2.0 * len(overlap)) / (len(query_terms) + len(x["terms"]))
-        coverage = len(overlap) / len(query_terms)
-        if score >= 0.22 and coverage >= 0.34:
-            ranked.append((score, coverage, len(overlap), x["id"], x))
+        coverage = len(shared_variant) / max(1, len(query_terms))
+        if coverage < 0.34:
+            continue
+        score = min(0.99, 0.45 + 0.1 * len(shared_exemplar) + 0.08 * len(shared_variant))
+        ranked.append((score, len(shared_variant), x["id"], x))
     if not ranked:
         return None
-    ranked.sort(key=lambda item: (-item[0], -item[1], -item[2], item[3]))
-    score, coverage, overlap_count, _, x = ranked[0]
-    if len(ranked) > 1:
-        runner = ranked[1]
-        if score-runner[0] < 0.035 and overlap_count == runner[2] and abs(coverage-runner[1]) < 0.08:
-            return None
+    ranked.sort(key=lambda item: (-item[0], -item[1], item[2]))
+    score, _, _, x = ranked[0]
     return {"benchmark_id": x["id"], "score": round(score, 3), "query": x["query"],
             "known_theme": x["known_theme"], "assertions": x["assertions"]}
 
