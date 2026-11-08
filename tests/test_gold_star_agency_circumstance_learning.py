@@ -18,8 +18,14 @@ def test_agency_circumstance_exact_and_related_questions_select_the_approved_les
     assert related and related["benchmark_id"] == AGENCY_ID
 
 
-def test_agency_lesson_abstains_for_unrelated_question():
+def test_agency_lesson_abstains_for_unrelated_questions_and_generic_overlap():
     assert lessons.select_exemplar("How do I calculate the area of a triangle?") is None
+    assert lessons.select_exemplar(
+        "What responsibilities should a manager weigh when choosing between competing options?"
+    ) is None
+    assert lessons.select_exemplar(
+        "How should I make a responsible decision under uncertainty?"
+    ) is None
 
 
 def test_guidance_is_structural_and_never_contains_the_exemplar_answer():
