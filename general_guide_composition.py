@@ -2338,6 +2338,23 @@ def compose(
     if not question:
         return None
 
+    # Gold Star learning begins in shadow mode. Selection is observable for
+    # calibration, but no exemplar guidance is supplied to the provider and no
+    # visitor-facing behavior is changed.
+    try:
+        from gold_star_shadow import evaluate_gold_star_shadow
+        shadow = evaluate_gold_star_shadow(question)
+        _emit_guide_outcome(
+            "gold_star_shadow",
+            selected=shadow.get("selected"),
+            benchmark_id=shadow.get("benchmark_id"),
+            score=shadow.get("score"),
+            reason=shadow.get("reason"),
+        )
+    except Exception as exc:
+        # Observability must never become a dependency of answer composition.
+        _emit_guide_outcome("gold_star_shadow_unavailable", error=type(exc).__name__)
+
     # Exact approved/frozen benchmark questions use their registered reference
     # response. This is deliberately exact-match only: it protects approved
     # standards without turning the Guide into a canned-answer service for
