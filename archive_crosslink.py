@@ -1,9 +1,10 @@
-"""Full-corpus metadata crosslink for The Guide.
+"""Archive crosslink support for The Guide.
 
-The inventory is built from the canonical Pinecone index, not mini-USE.
-It is read-only, bounded, access-filtered, and cached per process. An
-incomplete inventory is never represented as exhaustive and is never used
-to expand visitor evidence.
+Production consumes the version-controlled canonical snapshot. Pinecone is a
+shared retrieval service, not a synchronization mechanism: visitor requests,
+Render restarts, and scheduled runtime work must never enumerate or mirror the
+full index. Full-corpus inventory remains offline tooling only for a deliberate,
+approved corpus migration or targeted maintenance operation.
 """
 from __future__ import annotations
 
@@ -754,49 +755,19 @@ def should_start_refresh(service_id: str | None) -> bool:
 
 
 def start_refresh(index: Any, core: Any, *, force: bool = False) -> bool:
-    """Legacy Pinecone inventory rebuild, disabled unless explicitly opted in.
+    """Hard boundary: runtime crosslink refresh never enumerates Pinecone.
 
-    Production crosslinks are published from the canonical WordPress registry.
-    A visitor request or Render restart must never enumerate/fetch the corpus.
-    The opt-in exists only for isolated, deliberate migration testing.
+    Primary and mirror servers share the canonical index and therefore have no
+    monthly synchronization duty. The durable crosslink snapshot is consumed
+    read-only. Deliberate corpus maintenance must use an offline, explicitly
+    reviewed ingestion/inventory workflow; this runtime entry point cannot
+    override the boundary, including when force is requested.
     """
-    if os.getenv("ALLOW_LEGACY_PINECONE_CROSSLINK_REFRESH", "").strip().lower() != "true":
-        _log(
-            "USE archive meta-crosslink inventory: legacy_pinecone_refresh_disabled=true; "
-            "source=wordpress_snapshot_publisher"
-        )
-        return False
-    if index is None:
-        return False
-    global _REFRESH_THREAD, _LAST_ATTEMPT
-    with _LOCK:
-        if _SNAPSHOT is not None and _SNAPSHOT.get("contract") == "archive-crosslink-inventory-v2":
-            return False
-    now = time.monotonic()
-    with _LOCK:
-        if not force and _SNAPSHOT is None:
-            _load_persisted_snapshot()
-    with _LOCK:
-        if not force and _SNAPSHOT is not None and now - _LAST_REFRESH < _REFRESH_SECONDS:
-            return False
-        if not force and _SNAPSHOT is None and now - _LAST_ATTEMPT < _RETRY_SECONDS:
-            return False
-        if _REFRESH_THREAD is not None and _REFRESH_THREAD.is_alive():
-            return False
-        if not _REFRESH_LOCK.acquire(blocking=False):
-            return False
-        thread = threading.Thread(
-            target=_refresh_worker,
-            args=(index, core),
-            name="guide-archive-crosslink-inventory",
-            daemon=True,
-        )
-        _REFRESH_THREAD = thread
-        _LAST_ATTEMPT = now
-        thread.start()
-        _log("USE archive meta-crosslink inventory: refresh_scheduled=true")
-        return True
-
+    _log(
+        "USE archive meta-crosslink inventory: runtime_pinecone_sync_disabled=true; "
+        "policy=canonical_shared_index_no_monthly_sync"
+    )
+    return False
 
 def _refresh_worker(index: Any, core: Any) -> None:
     global _SNAPSHOT, _LAST_REFRESH, _REFRESH_THREAD
