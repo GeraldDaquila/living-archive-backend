@@ -1,0 +1,51 @@
+name: Gold Star QA Gate
+
+on:
+  push:
+    branches: [feat/gold-star-lessons-production]
+    paths:
+      - "main.py"
+      - "general_guide_composition.py"
+      - "general_guide_gold_standards.py"
+      - "gold_star_lessons.py"
+      - "gold_star_shadow.py"
+      - "deterministic_answer_recovery.py"
+      - "docs/qa/gold_standard_registry.json"
+      - "tests/test_gold_star_lessons.py"
+      - "tests/test_gold_star_shadow.py"
+      - "tests/test_gold_star_shadow_composition.py"
+      - "tests/test_gold_star_agency_circumstance_learning.py"
+      - "test_deterministic_answer_recovery.py"
+      - "tests/test_general_guide_gold_standard_runtime.py"
+      - ".github/workflows/gold-star-qa-gate.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  gold-star-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install runtime dependencies and test runner
+        run: python -m pip install -r requirements.txt pytest
+      - name: Compile affected runtime modules
+        run: python -m compileall -q main.py general_guide_composition.py general_guide_gold_standards.py gold_star_lessons.py gold_star_shadow.py deterministic_answer_recovery.py
+      - name: Run Gold Star learning and composition regressions
+        run: |
+          python -m pytest -q \
+            tests/test_gold_star_lessons.py \
+            tests/test_gold_star_shadow.py \
+            tests/test_gold_star_shadow_composition.py \
+            tests/test_gold_star_agency_circumstance_learning.py \
+            tests/test_general_guide_gold_standard_runtime.py \
+            test_deterministic_answer_recovery.py
+      - name: Validate Gold Standard registry
+        run: |
+          python -m json.tool docs/qa/gold_standard_registry.json > /dev/null
+          python -m pytest -q tests/test_gold_standard_registry.py
