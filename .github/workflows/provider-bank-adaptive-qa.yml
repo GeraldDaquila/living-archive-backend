@@ -16,6 +16,7 @@ on:
       - "test_provider_recovery_contract.py"
       - "test_provider_response_preservation.py"
       - "test_server_capacity_contract.py"
+      - "test_server_capacity_bridge_contract.py"
       - "test_server_delegation_policy.py"
       - "test_server_delegation_resilience.py"
       - ".github/workflows/provider-bank-adaptive-qa.yml"
