@@ -29,6 +29,20 @@ from provider_health_store import (
 
 CONTRACT_VERSION = "v2"
 
+# Common-bank recovery contract: preserve a validated first-pass field when
+# repairing an independently recoverable HRN field. Hard safety/grounding
+# failures remain non-recoverable.
+OPERATION_RECOVERY_CONTRACTS = {
+    "hrn_relational": {
+        "preserve_on_question_recovery": ("response", "grounded", "safe"),
+        "preserve_on_response_recovery": ("question", "grounded", "safe"),
+        "hard_failure_fields": ("grounding", "safety"),
+    },
+}
+
+def recovery_contract(operation):
+    return dict(OPERATION_RECOVERY_CONTRACTS.get(operation, {}))
+
 
 class ProviderOutput(str):
     """String-compatible provider text with optional exact completion usage."""
@@ -69,6 +83,28 @@ HRN_RELATIONAL_MAX_COMPLETION_TOKENS = 700
 GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 2.8
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 1
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = 1.25
+
+# Lightweight, process-local operational aggregates. No visitor content is retained.
+_CAPACITY_METRICS_LOCK = threading.Lock()
+_CAPACITY_METRICS = {"attempts": 0, "llm_successes": 0, "exhaustions": 0, "inflight": 0}
+
+def _capacity_begin_request():
+    with _CAPACITY_METRICS_LOCK:
+        _CAPACITY_METRICS["attempts"] += 1; _CAPACITY_METRICS["inflight"] += 1
+
+def _capacity_end_request(success=False, exhausted=False):
+    with _CAPACITY_METRICS_LOCK:
+        _CAPACITY_METRICS["inflight"] = max(0, _CAPACITY_METRICS["inflight"] - 1)
+        if success: _CAPACITY_METRICS["llm_successes"] += 1
+        if exhausted: _CAPACITY_METRICS["exhaustions"] += 1
+
+def capacity_metrics_snapshot(use_core=True, operation="generic", schema=None):
+    with _CAPACITY_METRICS_LOCK:
+        attempts=_CAPACITY_METRICS["attempts"]; successes=_CAPACITY_METRICS["llm_successes"]; exhaustions=_CAPACITY_METRICS["exhaustions"]; inflight=_CAPACITY_METRICS["inflight"]
+    eligible_count=len(candidates(use_core, operation=operation, schema=schema))
+    configured_count=sum(len(models) for models in _configured(use_core).values())
+    return {"attempts":attempts,"llm_successes":successes,"exhaustions":exhaustions,"inflight":inflight,"viable_provider_score":(eligible_count/configured_count) if configured_count else 0.0,"recent_llm_success_rate":(successes/attempts) if attempts else 0.0,"recent_exhaustion_rate":(exhaustions/attempts) if attempts else 0.0}
+
 
 # Only production models with the structured-output capability required by the
 # current Provider Bank contract may enter the JSON operation pool. Live model
@@ -2440,6 +2476,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         effective_messages = _apply_hrn_voice_repair_contract(effective_messages)
     pool = select(use_core, operation=operation, schema=effective_schema)
     if not pool: return None
+    _capacity_begin_request()
     if operation in {"hrn_perception", "hrn_relational"} and len(pool) > 1:
         # Live E2E showed that exhausted Groq quotas and slow 70B/large NVIDIA
         # candidates can consume the shared HRN turn budget before a recently
@@ -2950,6 +2987,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 f"types={{" + ",".join(f"{k}:{type(v).__name__}" for k, v in parsed.items()) + "}}"
             )
             _success(provider, model, operation)
+            _capacity_end_request(success=True)
             return _route_result({"parsed": parsed, "provider": provider, "model": model, "preference_order": order})
         except QuotaAdmissionDenied as exc:
             # Local admission pressure is not evidence that the upstream provider
@@ -3004,6 +3042,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     )
                     break
     print("USE model bank exhausted viable candidates: last_error=" + last_error[:400])
+    _capacity_end_request(exhausted=True)
     return _route_result(None)
 
 def refresh_shared_health_state():
