@@ -69,3 +69,15 @@ def test_capacity_advisory_requires_material_advantage_under_load(monkeypatch):
     monkeypatch.setattr(store,"counterpart_server_capacity",lambda **kwargs: remote)
     result=store.server_capacity_advisory(local,role="primary",server_id="primary")
     assert result["route"]=="counterpart"
+
+
+def test_four_condition_capacity_simulation(monkeypatch):
+    now=1000.0
+    base={"server_id":"primary","role":"primary","updated_at":now,"inflight":1,"viable_provider_score":.9,"recent_llm_success_rate":.95,"recent_exhaustion_rate":.02}
+    healthy_remote={"server_id":"secondary","role":"secondary","updated_at":now,"inflight":1,"viable_provider_score":.95,"recent_llm_success_rate":.96,"recent_exhaustion_rate":.01}
+    degraded_remote={"server_id":"secondary","role":"secondary","updated_at":now,"inflight":30,"viable_provider_score":.1,"recent_llm_success_rate":.2,"recent_exhaustion_rate":.8}
+    stale_remote=dict(healthy_remote,updated_at=now-301)
+    assert store.choose_server_route(base,healthy_remote,now=now)["route"]=="assigned"
+    assert store.choose_server_route(base,degraded_remote,now=now)["route"]=="assigned"
+    assert store.choose_server_route(base,stale_remote,now=now)["route"]=="assigned"
+    assert store.choose_server_route(base,None,now=now)["route"]=="assigned"
