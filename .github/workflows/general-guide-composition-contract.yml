@@ -2,7 +2,7 @@ name: General Guide Composition Contract
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, feat/gold-star-lessons-production]
     paths:
       - "main.py"
       - "guide_direct_attribute_evidence.py"
@@ -15,6 +15,7 @@ on:
       - "tests/test_gold_star_lessons.py"
       - "tests/test_gold_star_shadow.py"
       - "tests/test_gold_star_shadow_composition.py"
+      - "tests/test_gold_star_agency_circumstance_learning.py"
       - "tests/test_guide_learning_offline_evaluation.py"
       - "scripts/guide_live_evaluation.py"
       - "tests/test_guide_live_evaluation_runner.py"
@@ -40,7 +41,7 @@ on:
       - "tests/test_shared_definition_exhaustion_recovery.py"
       - "tests/test_provider_exhaustion_regex_contract.py"
   push:
-    branches: [main]
+    branches: [main, feat/gold-star-lessons-production]
     paths:
       - "main.py"
       - "general_guide_composition.py"
