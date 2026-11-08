@@ -63,7 +63,9 @@ def test_capacity_advisory_never_changes_assignment_without_valid_counterpart(mo
 
 def test_capacity_advisory_requires_material_advantage_under_load(monkeypatch):
     local={"inflight":5,"viable_provider_score":.25,"recent_llm_success_rate":.35,"recent_exhaustion_rate":.6}
-    remote={"server_id":"secondary","role":"secondary","updated_at":1000,"inflight":1,"viable_provider_score":.95,"recent_llm_success_rate":.95,"recent_exhaustion_rate":.02}
+    now=1000.0
+    remote={"server_id":"secondary","role":"secondary","updated_at":now,"inflight":1,"viable_provider_score":.95,"recent_llm_success_rate":.95,"recent_exhaustion_rate":.02}
+    monkeypatch.setattr(store.time,"time",lambda: now)
     monkeypatch.setattr(store,"counterpart_server_capacity",lambda **kwargs: remote)
     result=store.server_capacity_advisory(local,role="primary",server_id="primary")
     assert result["route"]=="counterpart"
