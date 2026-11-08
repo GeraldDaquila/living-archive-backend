@@ -81,3 +81,12 @@ def test_four_condition_capacity_simulation(monkeypatch):
     assert store.choose_server_route(base,degraded_remote,now=now)["route"]=="assigned"
     assert store.choose_server_route(base,stale_remote,now=now)["route"]=="assigned"
     assert store.choose_server_route(base,None,now=now)["route"]=="assigned"
+
+
+def test_capacity_publication_rate_limit(monkeypatch):
+    import provider_bank as bank
+    monkeypatch.setattr(bank.time,"time",lambda:1000.0)
+    monkeypatch.setattr(bank,"publish_server_capacity_async",lambda metrics: True)
+    bank._capacity_last_published=0.0
+    assert bank.refresh_server_capacity_state() is True
+    assert bank.refresh_server_capacity_state() is False
