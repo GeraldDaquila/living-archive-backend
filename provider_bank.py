@@ -2462,6 +2462,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         effective_messages = _apply_hrn_voice_repair_contract(effective_messages)
     pool = select(use_core, operation=operation, schema=effective_schema)
     if not pool: return None
+    _capacity_begin_request()
     if operation in {"hrn_perception", "hrn_relational"} and len(pool) > 1:
         # Live E2E showed that exhausted Groq quotas and slow 70B/large NVIDIA
         # candidates can consume the shared HRN turn budget before a recently
@@ -2972,6 +2973,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 f"types={{" + ",".join(f"{k}:{type(v).__name__}" for k, v in parsed.items()) + "}}"
             )
             _success(provider, model, operation)
+            _capacity_end_request(success=True)
             return _route_result({"parsed": parsed, "provider": provider, "model": model, "preference_order": order})
         except QuotaAdmissionDenied as exc:
             # Local admission pressure is not evidence that the upstream provider
@@ -3026,6 +3028,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     )
                     break
     print("USE model bank exhausted viable candidates: last_error=" + last_error[:400])
+    _capacity_end_request(exhausted=True)
     return _route_result(None)
 
 def refresh_shared_health_state():
