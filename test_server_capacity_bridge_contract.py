@@ -33,3 +33,22 @@ def test_capacity_publish_failure_is_best_effort(monkeypatch):
     monkeypatch.setattr(store,"save_server_capacity",lambda *args,**kwargs: (_ for _ in ()).throw(RuntimeError("bridge down")))
     snapshot={"contract_version":"server-capacity-v1","state":{"server_id":"primary-test","role":"primary","updated_at":1000,"inflight":0,"viable_provider_score":1,"recent_llm_success_rate":1,"recent_exhaustion_rate":0}}
     store._background_capacity_worker(snapshot)
+
+
+def test_server_route_preserves_assigned_when_viable():
+    healthy={"server_id":"primary","role":"primary","updated_at":1000,"inflight":1,"viable_provider_score":.8,"recent_llm_success_rate":.9,"recent_exhaustion_rate":.05}
+    remote=dict(healthy,server_id="secondary",role="secondary",viable_provider_score=1,recent_llm_success_rate=1)
+    assert store.choose_server_route(healthy,remote,now=1000)["route"]=="assigned"
+
+def test_server_route_requires_material_advantage():
+    weak={"server_id":"primary","role":"primary","updated_at":1000,"inflight":20,"viable_provider_score":.2,"recent_llm_success_rate":.3,"recent_exhaustion_rate":.7}
+    slight={"server_id":"secondary","role":"secondary","updated_at":1000,"inflight":18,"viable_provider_score":.35,"recent_llm_success_rate":.4,"recent_exhaustion_rate":.65}
+    strong=dict(slight,viable_provider_score=.9,recent_llm_success_rate=.95,recent_exhaustion_rate=.02,inflight=1)
+    assert store.choose_server_route(weak,slight,now=1000)["route"]=="assigned"
+    assert store.choose_server_route(weak,strong,now=1000)["route"]=="counterpart"
+
+def test_server_route_fails_closed_on_missing_or_stale_state():
+    healthy={"server_id":"primary","role":"primary","updated_at":1000,"inflight":0,"viable_provider_score":1,"recent_llm_success_rate":1,"recent_exhaustion_rate":0}
+    stale=dict(healthy,server_id="secondary",role="secondary",updated_at=699)
+    assert store.choose_server_route(healthy,None,now=1000)["route"]=="assigned"
+    assert store.choose_server_route(healthy,stale,now=1000)["route"]=="assigned"
