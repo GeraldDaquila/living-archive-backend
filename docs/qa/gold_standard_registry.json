@@ -2066,6 +2066,36 @@
         "evidence_boundary": "The screenshot establishes the visitor-facing response shown and the user's approval of this exemplar. The continuation doorway title is visible, but its destination URL has not been independently verified; therefore the registry records no URL."
       },
       "freeze_policy": "Approved Gold Star exemplar. Do not silently rewrite the expected response or alter its approval status. Any wording change requires a separately versioned benchmark and explicit user approval. Evaluate close paraphrases behaviorally; exact runtime replay is reserved for this exact normalized query."
+    },
+    {
+      "benchmark_id": "general-guide-agency-circumstance-gold-star-2026-11-09",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the relationship between agency and circumstance?",
+      "related_question_variants": [
+        "How do personal choice and life circumstances affect one another?",
+        "How should we think about responsibility when people face very different constraints?",
+        "Can agency matter when circumstances severely limit a person's options?"
+      ],
+      "known_theme": "Hold human agency and structural circumstance together without collapsing into blame or fatalism.",
+      "expected_response": "Agency and circumstance are not opposites. They describe two parts of the same human reality.\n\nCircumstance shapes the conditions in which we live: the opportunities available to us, the constraints we face, and the consequences that may follow from our choices. Agency is our capacity to respond within those conditions—to choose, act, adapt, and sometimes help change the circumstances themselves.\n\nThe relationship matters because either side can be misunderstood. If we focus only on agency, we may blame people for limitations they did not create. If we focus only on circumstance, we may overlook the human capacity to respond, however imperfectly, to what has been given.\n\nA person facing financial pressure, for example, may have fewer realistic options than someone with greater resources. Their circumstances are real and should not be ignored. Yet within those circumstances, they may still make meaningful choices about seeking help, protecting a relationship, honoring a commitment, or deciding what matters most.\n\nSo the relationship is reciprocal, but not symmetrical: circumstance shapes the field of possibility; agency shapes how we move within it. And sometimes, through individual or collective action, agency can gradually reshape the circumstances that once seemed fixed.\n\nWe are not always responsible for the circumstances we inherit, but we remain participants in how we respond to them. Recognizing circumstance without erasing agency—and affirming agency without denying circumstance—allows us to see human life with greater accuracy, compassion, and responsibility.",
+      "rating_out_of_10": 9.3,
+      "approval_state": "User explicitly authorized elevation to Gold Star and requested the structural lesson be operationalized, tested, deployed, and demonstrated.",
+      "assertions": [
+        "Answer the relationship directly before elaborating.",
+        "Hold agency and circumstance together without individual blame or deterministic fatalism.",
+        "Use lived reality to make the conceptual distinction concrete.",
+        "Transfer the structural orientation, not the exemplar wording, facts, examples, or answer.",
+        "End by holding compassion and responsibility together.",
+        "Abstain when the question is not structurally related."
+      ],
+      "provenance": {
+        "source_date": "2026-11-09",
+        "source": "User-provided live Guide response reviewed in calibration, then structurally elevated and explicitly approved for Gold Star learning.",
+        "source_path": "docs/qa/gold_standard_registry.json",
+        "evidence_boundary": "The approved exemplar is a governed quality reference. Runtime learning may transfer only structural guidance and must rebuild substance for the actual visitor question."
+      },
+      "freeze_policy": "Preserve approved expected_response. Runtime learning uses only the bounded structural assertions and theme; changes require explicit user-authorized versioning."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control. New approved record added on October 26, 2026: the screenshot-approved governance-beyond-administration response is registered as USER_APPROVED_GOLD_STANDARD with exact three-paragraph wording and a separately verified live doorway URL.",
