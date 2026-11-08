@@ -2722,6 +2722,8 @@ def _hrn_workers_fast_candidate(pool):
 
 
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None, deadline_monotonic=None):
+    # Capacity publication is advisory telemetry only and runs off the visitor path.
+    refresh_server_capacity_state()
     capacity_started = False
     if deadline_monotonic is not None and _request_remaining_seconds(
         deadline_monotonic, now=time.monotonic()
