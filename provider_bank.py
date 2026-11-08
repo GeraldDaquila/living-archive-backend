@@ -23,6 +23,7 @@ from guide_request_budget import bounded_provider_timeout as _bounded_request_pr
 from provider_health_store import (
     export_health_states,
     load_remote_states,
+    publish_server_capacity_async,
     load_remote_states_nonblocking,
     merge_health_state,
     save_remote_states_async,
@@ -3422,6 +3423,14 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     _capacity_end_request(exhausted=True)
     capacity_finished = True
     return _route_result(None)
+
+def refresh_server_capacity_state():
+    """Publish local capacity asynchronously; failures never affect query routing."""
+    try:
+        return publish_server_capacity_async(capacity_metrics_snapshot())
+    except Exception:
+        return False
+
 
 def refresh_shared_health_state():
     """Refresh shared health for an explicit diagnostic outside visitor latency."""
