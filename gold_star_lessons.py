@@ -63,7 +63,7 @@ def _load_exemplars() -> List[Dict[str, Any]]:
         if not terms:
             continue
         assertions = [str(x).strip() for x in (record.get("assertions") or [])
-                      if isinstance(x, str) and str(x).strip()][:3]
+                      if isinstance(x, str) and str(x).strip()][:5]
         result.append({
             "id": benchmark_id,
             "status": str(record.get("status")),
