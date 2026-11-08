@@ -494,7 +494,7 @@ def merge_health_state(local, remote, now=None):
 
 # Server capacity records are deliberately separate from provider health records.
 # They contain operational aggregates only—never visitor prompts or responses.
-SERVER_CAPACITY_CONTRACT_VERSION = "v1"
+SERVER_CAPACITY_CONTRACT_VERSION = "server-capacity-v1"
 SERVER_CAPACITY_TTL_SECONDS = 45.0
 SERVER_CAPACITY_FIELDS = ("server_id", "role", "updated_at", "inflight", "viable_provider_score", "recent_llm_success_rate", "recent_exhaustion_rate")
 
