@@ -90,15 +90,19 @@ def select_exemplar(query: str) -> Optional[Dict[str, Any]]:
     if not normalized_query:
         return None
 
-    candidates = [x for x in _EXEMPLARS if x.get("runtime_transfer")]
-    if not candidates:
-        return None
-
-    exact = [x for x in candidates if _normalized_phrase(x["query"]) == normalized_query]
+    # Exact matches remain observable evaluation selections for every approved
+    # benchmark. Only explicitly transferable lessons may influence a *new*
+    # question at runtime.
+    exact = [x for x in _EXEMPLARS if _normalized_phrase(x["query"]) == normalized_query]
     if len(exact) == 1:
         x = exact[0]
         return {"benchmark_id": x["id"], "score": 1.0, "query": x["query"],
-                "known_theme": x["known_theme"], "assertions": x["assertions"]}
+                "known_theme": x["known_theme"], "assertions": x["assertions"],
+                "runtime_transfer": bool(x.get("runtime_transfer"))}
+
+    candidates = [x for x in _EXEMPLARS if x.get("runtime_transfer")]
+    if not candidates:
+        return None
 
     query_terms = _tokens(query)
     if len(query_terms) < 2:
