@@ -45,4 +45,5 @@ jobs:
             test_provider_bank_capacity_metrics.py \
             test_provider_bank_capacity_lifecycle.py \
             test_provider_response_preservation.py \
-            test_provider_recovery_contract.py
+            test_provider_recovery_contract.py \
+            test_server_capacity_bridge_contract.py
