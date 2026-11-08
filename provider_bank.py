@@ -23,6 +23,7 @@ from guide_request_budget import bounded_provider_timeout as _bounded_request_pr
 from provider_health_store import (
     export_health_states,
     load_remote_states,
+    publish_server_capacity_async,
     load_remote_states_nonblocking,
     merge_health_state,
     save_remote_states_async,
@@ -32,6 +33,20 @@ from provider_health_store import (
 )
 
 CONTRACT_VERSION = "v2"
+
+# Recovery contracts make response preservation explicit at the common-bank
+# boundary. Operations declare which fields are independently repairable; the
+# bank must never replace unrelated validated first-pass fields.
+OPERATION_RECOVERY_CONTRACTS = {
+    "hrn_relational": {
+        "preserve_on_question_recovery": ("response", "grounded", "safe"),
+        "preserve_on_response_recovery": ("question", "grounded", "safe"),
+        "hard_failure_fields": ("grounding", "safety"),
+    },
+}
+
+def recovery_contract(operation):
+    return dict(OPERATION_RECOVERY_CONTRACTS.get(operation, {}))
 
 
 class ProviderOutput(str):
@@ -85,6 +100,36 @@ GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS = 3.0
 GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS = 4.0
 GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
 FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS = 12.0
+
+
+# Lightweight, process-local operational aggregates for the shared capacity layer.
+_CAPACITY_METRICS_LOCK = threading.Lock()
+_CAPACITY_METRICS = {"attempts": 0, "llm_successes": 0, "exhaustions": 0, "inflight": 0}
+
+def _capacity_begin_request():
+    with _CAPACITY_METRICS_LOCK:
+        _CAPACITY_METRICS["attempts"] += 1
+        _CAPACITY_METRICS["inflight"] += 1
+
+def _capacity_end_request(success=False, exhausted=False):
+    with _CAPACITY_METRICS_LOCK:
+        _CAPACITY_METRICS["inflight"] = max(0, _CAPACITY_METRICS["inflight"] - 1)
+        if success: _CAPACITY_METRICS["llm_successes"] += 1
+        if exhausted: _CAPACITY_METRICS["exhaustions"] += 1
+
+def capacity_metrics_snapshot(use_core=True, operation="generic", schema=None):
+    """Operational aggregates derived from the real candidate pool; no visitor data."""
+    with _CAPACITY_METRICS_LOCK:
+        attempts=max(1, _CAPACITY_METRICS["attempts"])
+        successes=_CAPACITY_METRICS["llm_successes"]
+        exhaustions=_CAPACITY_METRICS["exhaustions"]
+        inflight=_CAPACITY_METRICS["inflight"]
+    eligible_count=len(candidates(use_core, operation=operation, schema=schema))
+    configured_count=sum(len(models) for models in _configured(use_core).values())
+    return {"inflight": inflight,
+            "viable_provider_score": (eligible_count / configured_count) if configured_count else 0.0,
+            "recent_llm_success_rate": successes / attempts,
+            "recent_exhaustion_rate": exhaustions / attempts}
 
 # Only production models with the structured-output capability required by the
 # current Provider Bank contract may enter the JSON operation pool. Live model
@@ -2677,6 +2722,9 @@ def _hrn_workers_fast_candidate(pool):
 
 
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None, deadline_monotonic=None):
+    # Capacity publication is advisory telemetry only and runs off the visitor path.
+    refresh_server_capacity_state()
+    capacity_started = False
     if deadline_monotonic is not None and _request_remaining_seconds(
         deadline_monotonic, now=time.monotonic()
     ) < 1.0:
@@ -2697,7 +2745,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         print("USE provider bank request budget: operation=" + str(operation) + ", action=skip_after_state_sync")
         return None
     pool = select(use_core, operation=operation, schema=effective_schema)
-    if not pool: return None
+    if not pool:
+        return None
     if operation in {"hrn_perception", "hrn_relational"} and len(pool) > 1:
         # Live E2E showed that exhausted Groq quotas and slow 70B/large NVIDIA
         # candidates can consume the shared HRN turn budget before a recently
@@ -2884,6 +2933,9 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             fallback_count += 1
             if fallback_count >= fallback_limit:
                 break
+    _capacity_begin_request()
+    capacity_started = True
+    capacity_finished = False
     route_started = time.monotonic()
     requested_max_tokens = max(int(max_tokens), int(OPERATION_TOKEN_FLOORS.get(operation, 0)))
     # HRN relational prose needs a complete answer and a distinct question, not a
@@ -3228,6 +3280,15 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     # control flag instead of asking the model to rewrite them.
                     recovered = dict(parsed)
                     recovered["question"] = recovered_question.strip()
+                elif targeted_response_shape_recovery or targeted_response_voice_recovery:
+                    recovered_response = recovered.get("response")
+                    if not isinstance(recovered_response, str) or not recovered_response.strip():
+                        raise ValueError("provider response recovery returned an empty response")
+                    # A response repair is field-scoped. Keep the first-pass
+                    # question and all valid flags: successful generation is a
+                    # scarce bank asset and must not be superseded unnecessarily.
+                    recovered = dict(parsed)
+                    recovered["response"] = recovered_response.strip()
                 if (
                     targeted_question_recovery
                     and _hrn_surface_language_violation(recovered.get("question", ""))
@@ -3256,6 +3317,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 shadow = _predictive_shadow_metrics(state, _provider_call_timeout(operation, item))
                 print("USE provider bank candidate outcome: operation=" + operation + ", provider=" + provider + ", model=" + model + ", outcome=success, elapsed_seconds=" + str(round(candidate_elapsed, 3)) + ", ewma_latency_seconds=" + str(shadow["ewma_latency_seconds"]) + ", timeout_risk=" + str(shadow["timeout_risk"]) + ", deadline_fit=" + str(shadow["deadline_fit"]))
             _success(provider, model, operation)
+            _capacity_end_request(success=True)
+            capacity_finished = True
             return _route_result({"parsed": parsed, "provider": provider, "model": model, "preference_order": order})
         except QuotaAdmissionDenied as exc:
             # Local admission pressure is not evidence that the upstream provider
@@ -3359,7 +3422,34 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                     )
                     break
     print("USE model bank exhausted viable candidates: " + str(last_error)[:240])
+    _capacity_end_request(exhausted=True)
+    capacity_finished = True
     return _route_result(None)
+
+_capacity_publish_lock = threading.Lock()
+_capacity_last_published = 0.0
+_CAPACITY_PUBLISH_INTERVAL_SECONDS = 5.0
+
+def refresh_server_capacity_state():
+    """Publish bounded capacity at a low rate; never block visitor routing."""
+    global _capacity_last_published
+    now = time.time()
+    if now - _capacity_last_published < _CAPACITY_PUBLISH_INTERVAL_SECONDS:
+        return False
+    if not _capacity_publish_lock.acquire(blocking=False):
+        return False
+    try:
+        if now - _capacity_last_published < _CAPACITY_PUBLISH_INTERVAL_SECONDS:
+            return False
+        published = publish_server_capacity_async(capacity_metrics_snapshot())
+        if published:
+            _capacity_last_published = now
+        return published
+    except Exception:
+        return False
+    finally:
+        _capacity_publish_lock.release()
+
 
 def refresh_shared_health_state():
     """Refresh shared health for an explicit diagnostic outside visitor latency."""

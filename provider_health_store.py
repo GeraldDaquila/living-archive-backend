@@ -17,6 +17,8 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 CONTRACT_VERSION = "v1"
+SERVER_CAPACITY_CONTRACT_VERSION = "server-capacity-v1"
+DEFAULT_CAPACITY_URL = "https://geralddaquila.com/wp-json/living-archive/v1/server-capacity"
 DEFAULT_URL = "https://geralddaquila.com/wp-json/living-archive/v1/provider-health"
 # Shared WordPress health state is advisory. Keep network stalls from consuming an inference attempt.
 # Local circuit state remains authoritative when the shared bridge is slow or unavailable.
@@ -135,9 +137,11 @@ def configuration_status():
         "shared_secret_configured": secret_configured,
     }
 
-def _request(method, payload=None, timeout=None):
+def _request(method, payload=None, timeout=None, endpoint_url=None):
     global _CIRCUIT_OPEN_UNTIL, _CIRCUIT_PROBE_IN_FLIGHT
     url, secret = _configuration()
+    if endpoint_url:
+        url = str(endpoint_url).strip()
     if not url:
         return None
 
@@ -372,6 +376,41 @@ def save_remote_states_async(states):
     return True
 
 
+def _background_capacity_worker(snapshot):
+    try:
+        save_server_capacity(snapshot, timeout=BACKGROUND_TIMEOUT_SECONDS)
+    except Exception:
+        pass
+
+
+def publish_server_capacity_async(metrics, role=None, server_id=None):
+    """Best-effort publication. Never blocks or retries visitor inference."""
+    snapshot = build_server_capacity_snapshot(metrics, role=role, server_id=server_id)
+    if not snapshot:
+        return False
+    thread = threading.Thread(target=_background_capacity_worker, args=(snapshot,), daemon=True, name="server-capacity-publish")
+    thread.start()
+    return True
+
+
+def counterpart_server_capacity(role=None, server_id=None, timeout=None):
+    """Return the freshest valid counterpart record, or None."""
+    role = str(role or os.getenv("USE_SERVER_ROLE") or "").strip().lower()
+    server_id = str(server_id or os.getenv("USE_SERVER_ID") or "").strip()
+    states = load_server_capacities(timeout=timeout)
+    if not isinstance(states, dict):
+        return None
+    now = time.time()
+    candidates = []
+    for v in states.values():
+        if v.get("server_id") == server_id or v.get("role") not in ("primary", "secondary") or v.get("role") == role:
+            continue
+        clean = sanitize_server_capacity(v, now=now)
+        if clean:
+            candidates.append(clean)
+    return max(candidates, key=lambda v: float(v.get("updated_at", 0)), default=None)
+
+
 def background_status():
     """Expose bounded worker state without leaking data or credentials."""
     with _BACKGROUND_READ_LOCK:
@@ -486,3 +525,97 @@ def merge_health_state(local, remote, now=None):
         ) > now else "half_open"
     _sanitize_health_diagnostics(local)
     return local
+
+
+# Server capacity records are deliberately separate from provider health records.
+# They contain operational aggregates only—never visitor prompts or responses.
+SERVER_CAPACITY_CONTRACT_VERSION = "server-capacity-v1"
+SERVER_CAPACITY_TTL_SECONDS = 45.0
+SERVER_CAPACITY_FIELDS = ("server_id", "role", "updated_at", "inflight", "viable_provider_score", "recent_llm_success_rate", "recent_exhaustion_rate")
+
+
+
+def _capacity_configuration():
+    url = str(os.getenv("USE_SERVER_CAPACITY_STATE_URL") or DEFAULT_CAPACITY_URL).strip()
+    secret = str(os.getenv("USE_PROVIDER_BANK_SHARED_SECRET") or "").strip()
+    if not url.startswith("https://") or not secret:
+        return "", ""
+    return url, secret
+
+
+def build_server_capacity_snapshot(metrics, role=None, server_id=None, now=None):
+    role = str(role or os.getenv("USE_SERVER_ROLE") or "").strip().lower()
+    server_id = str(server_id or os.getenv("USE_SERVER_ID") or "").strip()
+    now = time.time() if now is None else float(now)
+    state = dict(metrics or {})
+    state.update({"role": role, "server_id": server_id, "updated_at": now})
+    clean = sanitize_server_capacity(state, now=now)
+    if not clean:
+        return None
+    return {"contract_version": SERVER_CAPACITY_CONTRACT_VERSION, "state": clean}
+
+
+def save_server_capacity(snapshot, timeout=None):
+    url, secret = _capacity_configuration()
+    if not url or not secret or not isinstance(snapshot, dict): return False
+    state = snapshot.get("state")
+    if snapshot.get("contract_version") != SERVER_CAPACITY_CONTRACT_VERSION or not sanitize_server_capacity(state): return False
+    result = _request("POST", snapshot, timeout=timeout, endpoint_url=url)
+    return isinstance(result, dict) and bool(result.get("written"))
+
+
+def load_server_capacities(timeout=None):
+    url, secret = _capacity_configuration()
+    if not url or not secret: return None
+    result = _request("GET", timeout=timeout, endpoint_url=url)
+    states = result.get("states") if isinstance(result, dict) else None
+    if not isinstance(states, dict) or len(states) > 4: return None
+    clean = {}
+    for key, value in states.items():
+        if isinstance(key, str):
+            record = sanitize_server_capacity(value)
+            if record: clean[key] = record
+    return clean
+
+def sanitize_server_capacity(state, now=None):
+    """Return a bounded, privacy-safe server-capacity record or None."""
+    if not isinstance(state, dict): return None
+    now = time.time() if now is None else float(now)
+    try:
+        updated = float(state.get("updated_at", 0) or 0)
+        if updated <= 0 or now - updated > SERVER_CAPACITY_TTL_SECONDS: return None
+        role = str(state.get("role") or "").strip().lower(); server_id = str(state.get("server_id") or "").strip()
+        if role not in ("primary", "secondary") or not server_id or len(server_id) > 64: return None
+        return {"server_id":server_id,"role":role,"updated_at":updated,"inflight":max(0,min(100,int(state.get("inflight",0) or 0))),"viable_provider_score":max(0.0,min(1.0,float(state.get("viable_provider_score",0) or 0))),"recent_llm_success_rate":max(0.0,min(1.0,float(state.get("recent_llm_success_rate",0) or 0))),"recent_exhaustion_rate":max(0.0,min(1.0,float(state.get("recent_exhaustion_rate",0) or 0)))}
+    except (TypeError, ValueError): return None
+
+def server_capacity_score(state, now=None):
+    """Comparable bounded score; lower load and exhaustion improve viability."""
+    clean = sanitize_server_capacity(state, now=now)
+    if not clean: return None
+    return round(0.45*clean["viable_provider_score"] + 0.35*clean["recent_llm_success_rate"] + 0.15*(1-clean["recent_exhaustion_rate"]) + 0.05*(1-min(1,clean["inflight"]/20)), 4)
+
+
+SERVER_DELEGATION_MIN_LOCAL_SCORE = 0.55
+SERVER_DELEGATION_MIN_ADVANTAGE = 0.15
+
+def server_capacity_advisory(metrics, role=None, server_id=None, timeout=None):
+    """Compare local and counterpart capacity without changing traffic assignment."""
+    local = sanitize_server_capacity(dict(metrics or {}, role=role or os.getenv("USE_SERVER_ROLE"), server_id=server_id or os.getenv("USE_SERVER_ID"), updated_at=time.time()))
+    remote = counterpart_server_capacity(role=role, server_id=server_id, timeout=timeout)
+    return choose_server_route(local, remote)
+
+
+def choose_server_route(assigned, counterpart, now=None):
+    """Return a deterministic advisory route; never delegates on missing or stale state."""
+    local_score = server_capacity_score(assigned, now=now)
+    remote_score = server_capacity_score(counterpart, now=now)
+    if local_score is None:
+        return {"route":"assigned","reason":"assigned_state_unknown","assigned_score":None,"counterpart_score":remote_score}
+    if remote_score is None:
+        return {"route":"assigned","reason":"counterpart_state_unknown","assigned_score":local_score,"counterpart_score":None}
+    if local_score >= SERVER_DELEGATION_MIN_LOCAL_SCORE:
+        return {"route":"assigned","reason":"assigned_viable","assigned_score":local_score,"counterpart_score":remote_score}
+    if remote_score >= local_score + SERVER_DELEGATION_MIN_ADVANTAGE:
+        return {"route":"counterpart","reason":"material_quality_advantage","assigned_score":local_score,"counterpart_score":remote_score}
+    return {"route":"assigned","reason":"no_material_advantage","assigned_score":local_score,"counterpart_score":remote_score}
