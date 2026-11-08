@@ -583,7 +583,7 @@ def load_server_capacities(timeout=None):
     if not url or not secret: return None
     result = _request("GET", timeout=timeout, endpoint_url=url)
     states = result.get("states") if isinstance(result, dict) else None
-    if not isinstance(states, dict) or len(states) > 4: return None
+    if not isinstance(states, dict) or len(states) > 8: return None
     clean = {}
     for key, value in states.items():
         if isinstance(key, str):
@@ -599,7 +599,7 @@ def sanitize_server_capacity(state, now=None):
         updated = float(state.get("updated_at", 0) or 0)
         if updated <= 0 or now - updated > SERVER_CAPACITY_TTL_SECONDS: return None
         role = str(state.get("role") or "").strip().lower(); server_id = str(state.get("server_id") or "").strip()
-        if role not in ("primary", "secondary") or not server_id or len(server_id) > 64: return None
+        if not role or len(role) > 64 or not server_id or len(server_id) > 64: return None
         return {"server_id":server_id,"role":role,"updated_at":updated,"inflight":max(0,min(100,int(state.get("inflight",0) or 0))),"viable_provider_score":max(0.0,min(1.0,float(state.get("viable_provider_score",0) or 0))),"recent_llm_success_rate":max(0.0,min(1.0,float(state.get("recent_llm_success_rate",0) or 0))),"recent_exhaustion_rate":max(0.0,min(1.0,float(state.get("recent_exhaustion_rate",0) or 0)))}
     except (TypeError, ValueError): return None
 
