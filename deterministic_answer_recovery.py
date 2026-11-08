@@ -440,6 +440,16 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "These are possibilities to test, not conclusions about a specific case. The strongest explanation accounts for the available facts, "
             "acknowledges what remains uncertain, and identifies what new information could confirm or change the interpretation."
         )
+    elif re.search(r"\b(?:area)\s+of\s+(?:a|an|the)?\s*triangle\b", lower) or re.search(r"\btriangle\b.*\barea\b", lower):
+        answer = (
+            "The area of a triangle is calculated with the formula: area = ½ × base × height. "
+            "The height is the perpendicular distance from the base to the opposite vertex.\n\n"
+            "For example, if the base is 10 units and the height is 6 units, the area is "
+            "½ × 10 × 6 = 30 square units. The base and its corresponding perpendicular height "
+            "must be measured in the same unit.\n\n"
+            "If you know the lengths of all three sides but not the height, a different formula, "
+            "such as Heron's formula, can be used."
+        )
     elif re.search(r"\b(?:should i|should we|is it worth|whether to|decision|decide)\b", lower):
         answer = (
             f"The decision about {subject} depends on the responsibilities involved, the consequences of each option, and who will carry the costs. "
@@ -501,6 +511,13 @@ if len(_risk_constraint_paragraphs) != 3:
 for _required in ("charisma", "constitutional restraint", "dissent", "accountable"):
     if not re.search(r"\b" + re.escape(_required) + r"\b", _risk_constraint_answer, re.I):
         raise RuntimeError("Risk/constraint recovery contract failed: missing substantive mechanism or safeguard.")
+
+_bounded_math_question = "How do I calculate the area of a triangle?"
+_bounded_math_answer = compose_recovery(_bounded_math_question)
+if "½ × base × height" not in _bounded_math_answer:
+    raise RuntimeError("Bounded factual recovery contract failed: triangle formula missing.")
+if re.search(r"\b(?:responsibilities involved|foreseeable harms|who carries the costs|best-supported option)\b", _bounded_math_answer, re.I):
+    raise RuntimeError("Bounded factual recovery contract failed: generic decision template contaminated mathematics.")
 
 def contract_snapshot():
     return {
