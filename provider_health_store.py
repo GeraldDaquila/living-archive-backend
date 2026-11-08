@@ -599,6 +599,13 @@ def server_capacity_score(state, now=None):
 SERVER_DELEGATION_MIN_LOCAL_SCORE = 0.55
 SERVER_DELEGATION_MIN_ADVANTAGE = 0.15
 
+def server_capacity_advisory(metrics, role=None, server_id=None, timeout=None):
+    """Compare local and counterpart capacity without changing traffic assignment."""
+    local = sanitize_server_capacity(dict(metrics or {}, role=role or os.getenv("USE_SERVER_ROLE"), server_id=server_id or os.getenv("USE_SERVER_ID"), updated_at=time.time()))
+    remote = counterpart_server_capacity(role=role, server_id=server_id, timeout=timeout)
+    return choose_server_route(local, remote)
+
+
 def choose_server_route(assigned, counterpart, now=None):
     """Return a deterministic advisory route; never delegates on missing or stale state."""
     local_score = server_capacity_score(assigned, now=now)
