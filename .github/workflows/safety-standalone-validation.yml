@@ -10,6 +10,7 @@ on:
       - 'safety_adapter.py'
       - 'safety_session.py'
       - 'main.py'
+      - 'use_core.py'
       - 'tests/test_safety_first_turn_resource_handoff.py'
       - 'QA/V488_SAFETY_BOUNDARY_QA.py'
       - '.github/workflows/safety-standalone-validation.yml'
@@ -44,7 +45,7 @@ jobs:
           python -m pip install -r requirements.txt pytest
 
       - name: Compile safety and Guide modules
-        run: python -m compileall -q safety_intelligence.py safety_utility.py safety_adapter.py safety_session.py main.py
+        run: python -m compileall -q safety_intelligence.py safety_utility.py safety_adapter.py safety_session.py use_core.py main.py
 
       - name: Deterministic safety boundary QA
         run: python QA/V488_SAFETY_BOUNDARY_QA.py
