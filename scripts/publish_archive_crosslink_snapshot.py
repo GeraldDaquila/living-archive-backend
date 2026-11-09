@@ -21,6 +21,8 @@ MAX_PAGES=50
 def clean(value):
     return re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]*>"," ",str(value or "")))).strip()
 
+INCLUDE_IDS=set()
+
 def load(kind):
     assets=[]
     for page in range(1,MAX_PAGES+1):
@@ -32,8 +34,10 @@ def load(kind):
             title=clean(title_obj.get("rendered") if isinstance(title_obj,dict) else title_obj)[:300]
             wp_id=str(item.get("id") or "").strip()
             url=str(item.get("link") or "").strip().rstrip("/")
-            if wp_id.isdigit() and title and "ARCHIVED" not in title.upper() and re.match(r"^https://geralddaquila\.com/\S+$",url,re.I):
-                assets.append({"title":title,"url":url,"wp_id":wp_id,"resource_type":kind[:-1],"tier":"public","access_class":"public","summary":""})
+            valid_public_url=re.match(r"^https://geralddaquila\.com/\S+$",url,re.I)
+            explicitly_included=wp_id in INCLUDE_IDS
+            if wp_id.isdigit() and title and "ARCHIVED" not in title.upper() and (valid_public_url or explicitly_included):
+                assets.append({"title":title,"url":url or SITE_ROOT,"wp_id":wp_id,"resource_type":kind[:-1],"tier":"public","access_class":"public","summary":""})
         if len(payload)<PAGE_SIZE: break
     else: raise RuntimeError(f"WordPress {kind} registry exceeded page limit")
     return assets
@@ -46,6 +50,8 @@ def load_manifest():
 
 def main_publish():
     include_ids, exclude_ids=load_manifest()
+    global INCLUDE_IDS
+    INCLUDE_IDS=include_ids
     records=load("posts")+load("pages")
     assets={}
     for item in records:
@@ -60,12 +66,7 @@ def main_publish():
     # classification task, not something the publisher may infer silently.
     assets=[item for item in assets.values() if item["wp_id"] not in exclude_ids]
     present_ids={item["wp_id"] for item in assets}
-    # An explicitly included root-level identity may be represented by the site
-    # root URL rather than a normal per-record canonical URL. Keep that record
-    # addressable under its WordPress identity and do not treat the URL shape as
-    # grounds for territorial exclusion.
-    root_includes={str(r.get("id")) for r in records if str(r.get("id")) in include_ids and str(r.get("link","")).rstrip("/") == SITE_ROOT.rstrip("/")}
-    missing_includes=include_ids-present_ids-root_includes
+    missing_includes=include_ids-present_ids
     if missing_includes:
         raise RuntimeError(f"editorially included assets missing from registry: {sorted(missing_includes)}")
     if not assets: raise RuntimeError("canonical WordPress registry returned no publishable assets")
