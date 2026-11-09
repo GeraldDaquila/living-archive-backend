@@ -1148,6 +1148,7 @@ Visitor response: " . $message;
         wp_enqueue_script('lah-rn', plugins_url('assets/relational-navigator.js', __FILE__), array(), self::VERSION, true);
         wp_localize_script('lah-rn', 'LAHRN', array(
             'endpoint' => esc_url_raw(rest_url(self::REST_NS . self::REST_ROUTE)),
+            'emergency_endpoint' => esc_url_raw(rest_url(self::REST_NS . '/emergency-resources')),
             'nonce' => wp_create_nonce('wp_rest'),
             'guide_return_endpoint' => 'https://living-archive-backend.onrender.com/api/relational-return',
         ));
@@ -1187,6 +1188,17 @@ Visitor response: " . $message;
     }
 
     public function register_rest() {
+        register_rest_route(self::REST_NS, '/emergency-resources', array(
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => array($this, 'resource_location_handler'),
+            'permission_callback' => '__return_true',
+            'args' => array(
+                'country' => array('required'=>true,'type'=>'string','sanitize_callback'=>'sanitize_text_field','validate_callback'=>function($value){return is_string($value) && trim($value) !== '' && mb_strlen($value) <= 100;}),
+                'safety_stage' => array('required'=>true,'type'=>'string','sanitize_callback'=>'sanitize_key'),
+                'safety_question' => array('required'=>true,'type'=>'string','sanitize_callback'=>'sanitize_text_field'),
+                'safety_message' => array('required'=>false,'type'=>'string','sanitize_callback'=>'sanitize_text_field','default'=>''),
+            ),
+        ));
         register_rest_route(self::REST_NS, self::REST_ROUTE, array(
             'methods' => WP_REST_Server::CREATABLE,
             'callback' => array($this, 'rest_handler'),
@@ -1205,6 +1217,82 @@ Visitor response: " . $message;
                 'session_id' => array('required'=>false,'type'=>'string','default'=>'','sanitize_callback'=>'sanitize_text_field'),
                 'full_conversation' => array('required'=>false,'type'=>'string','default'=>'','sanitize_callback'=>'sanitize_textarea_field'),
             ),
+        ));
+    }
+
+    /**
+     * Resource-only location operation. It deliberately does not enter the
+     * conversation handler, safety answer classifier, or safety transition.
+     */
+    public function resource_location_handler(WP_REST_Request $request) {
+        $country = $this->normalize_country($request->get_param('country'));
+        $stage = sanitize_key((string)$request->get_param('safety_stage'));
+        $question = (string)$request->get_param('safety_question');
+        $message = (string)$request->get_param('safety_message');
+        if ($country === '') {
+            return new WP_Error('lah_rn_location_required', 'Please provide a country so local resources can be selected.', array('status'=>400));
+        }
+        if (!$this->safety_stage_valid($stage)) {
+            return new WP_Error('lah_rn_invalid_safety_stage', 'The current safety stage could not be confirmed.', array('status'=>400));
+        }
+
+        // Keep HRN's existing registry as a continuity fallback while EI
+        // coverage and independent verification are completed.
+        $legacy = $this->safety_resource_bundle($country, $stage, '');
+        $resources = array();
+        $seen = array();
+        $ei_used = false;
+
+        if (function_exists('living_archive_emergency_resolve')) {
+            $needs = array('general_emergency', 'medical', 'crisis_support');
+            foreach ($needs as $need) {
+                try {
+                    $result = living_archive_emergency_resolve($need, array('explicit_country'=>$country), $stage, 'acute_emergency');
+                    $selection = is_array($result) ? ($result['selection'] ?? array()) : array();
+                    if (($selection['selection_status'] ?? '') !== 'SELECTED') continue;
+                    $resource = $selection['primary'] ?? array();
+                    $number = sanitize_text_field($resource['number'] ?? '');
+                    if ($number === '' || isset($seen[$number])) continue;
+                    $name = sanitize_text_field($resource['display_name'] ?? 'Emergency support');
+                    $group = ($need === 'crisis_support') ? 'Crisis support' : 'Emergency help';
+                    $resources[] = array(
+                        'title'=>$name,
+                        'phone'=>$number,
+                        'display_phone'=>$number,
+                        'group'=>$group,
+                        'channels'=>array('call'),
+                    );
+                    $seen[$number] = true;
+                    $ei_used = true;
+                } catch (Throwable $e) {
+                    error_log('[Living Archive HRN] EI resource lookup failed; retaining legacy resource fallback: '.$e->getMessage());
+                    break;
+                }
+            }
+        }
+
+        // Preserve HRN's existing resources whenever EI cannot provide an
+        // eligible match. Do not manufacture a number or verification claim.
+        foreach (($legacy['resources'] ?? array()) as $resource) {
+            $number = sanitize_text_field($resource['phone'] ?? '');
+            if ($number !== '' && isset($seen[$number])) continue;
+            if ($number !== '') $seen[$number] = true;
+            $resources[] = $resource;
+        }
+        if (!$resources && !empty($legacy['fallback'])) $resources[] = $legacy['fallback'];
+
+        return rest_ensure_response(array(
+            'operation'=>'resource_location_resolution',
+            'stage'=>$stage,
+            'safety'=>$stage,
+            'message'=>$message,
+            'question'=>$question,
+            'safety_question'=>$question,
+            'country'=>$country,
+            'resources'=>$resources,
+            'location_required'=>false,
+            'resource_provenance'=>$ei_used ? 'ei_with_hrn_legacy_fallback' : 'hrn_legacy_fallback',
+            'ei_registry_version'=>function_exists('living_archive_emergency_resolve') && isset($result['registry_version']) ? $result['registry_version'] : null,
         ));
     }
 
