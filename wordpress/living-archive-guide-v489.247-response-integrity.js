@@ -1088,10 +1088,11 @@ async function submitSafetyFollowup() {
     var data =
       await res.json();
 
-    if (guideActiveRequestToken !== requestToken) return;
-    if (data && data.query && String(data.query).trim() !== query) {
-      throw new Error('The Guide received a response for a different question.');
-    }
+    /*
+     * Safety follow-ups have their own serialized in-flight guard.
+     * Do not reference the main-query request token or query here: those
+     * variables belong only to useGuideSubmit and are not in this scope.
+     */
 
     /*
      * Safety remains authoritative on
