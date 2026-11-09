@@ -4573,7 +4573,9 @@ def _guide_finalize_visitor_payload(payload, query):
         relational = compose_relational_fractal(query)
         if relational is not None:
             safe = dict(payload)
-            safe["response"] = relational
+            # compose_relational_fractal returns a structured payload; the
+            # visitor contract requires response itself to remain renderable text.
+            safe["response"] = str(relational.get("response") or "") if isinstance(relational, dict) else str(relational)
             safe["processing"] = "final_visitor_boundary_relational_orientation"
             safe["route_source"] = "guide_final_visitor_boundary"
             safe["visitor_boundary_version"] = APP_VERSION
