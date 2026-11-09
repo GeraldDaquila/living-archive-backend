@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - ei/standalone-provenance-20261109
+      - safety/standalone-deterministic-20261109
     paths:
       - 'plugins/living-archive-emergency-intelligence/**'
       - 'tests/php/test_ei_registry_provenance_and_expiry.php'
