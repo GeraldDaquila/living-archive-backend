@@ -17,7 +17,7 @@ CONTRACT_VERSION = "v2"
 STAGES = ["observation", "implication", "so_what", "inquiry"]
 
 _RELATION_TERMS = re.compile(
-    r"\b(?:friend|friendship|partner|relationship|colleague|family|sibling|"
+    r"\b(?:friend|friendship|partner|relationships?|colleague|family|sibling|"
     r"husband|wife|spouse|parent|child|coworker|teammate)\b", re.I
 )
 _SIGNAL_PATTERNS = (
