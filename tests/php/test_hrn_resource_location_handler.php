@@ -44,7 +44,18 @@ function living_archive_emergency_resolve($need, $location, $stage, $policy) {
     }
     return array('registry_version'=>'test-registry', 'selection'=>array('selection_status'=>'NO_MATCH'));
 }
-require_once __DIR__ . '/../../plugins/human-relational-navigator/human-relational-navigator.php';
+// The source checkout omits the production canonical-retriever include. This handler test
+// does not exercise retrieval, so provide a temporary empty include and remove it immediately.
+$hrn_plugin_dir = __DIR__ . '/../../plugins/human-relational-navigator';
+$hrn_includes_dir = $hrn_plugin_dir . '/includes';
+$hrn_retriever_stub = $hrn_includes_dir . '/class-hrn-canonical-retriever.php';
+$hrn_created_dir = !is_dir($hrn_includes_dir);
+if ($hrn_created_dir) mkdir($hrn_includes_dir, 0777, true);
+$hrn_created_stub = !file_exists($hrn_retriever_stub);
+if ($hrn_created_stub) file_put_contents($hrn_retriever_stub, "<?php // Intentionally empty test-only dependency stub.\\n");
+require_once $hrn_plugin_dir . '/human-relational-navigator.php';
+if ($hrn_created_stub) unlink($hrn_retriever_stub);
+if ($hrn_created_dir) rmdir($hrn_includes_dir);
 
 function assert_true($condition, $message) {
     if (!$condition) { fwrite(STDERR, "FAIL: ".$message."\n"); exit(1); }
