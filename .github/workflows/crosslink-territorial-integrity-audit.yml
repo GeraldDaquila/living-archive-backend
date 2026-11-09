@@ -59,7 +59,10 @@ jobs:
           git checkout -- archive_crosslink_snapshot.json archive_crosslink_snapshot.sha256
       - name: Run read-only integrity audit
         env:
-          LINK_CHECK: ${{ github.event_name == 'workflow_dispatch' && inputs.link_check || 'identity-only' }}
+          LINK_CHECK: full-destination-check
+      # Candidate promotion requires destination validation; identity-only mode is audit-only.
+      #
+      # LINK_CHECK: ${{ github.event_name == 'workflow_dispatch' && inputs.link_check || 'identity-only' }}
         run: |
           if [ "$LINK_CHECK" = "full-destination-check" ]; then
             python -m scripts.audit_archive_crosslink_integrity --snapshot candidate-output/archive_crosslink_snapshot.json --checksum candidate-output/archive_crosslink_snapshot.sha256 --manifest archive_crosslink_editorial_manifest.json --output-dir audit-output
