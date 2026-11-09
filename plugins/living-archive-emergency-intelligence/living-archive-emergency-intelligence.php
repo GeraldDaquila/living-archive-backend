@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Living Archive Emergency Intelligence
  * Description: Verified, independently updateable emergency-resource intelligence for Living Archive instruments.
- * Version: 0.1.2
+ * Version: 0.1.3
  * Author: Living Archive
  * Requires at least: 6.2
  * Requires PHP: 7.4
@@ -11,7 +11,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('LAEI_VERSION', '0.1.2');
+define('LAEI_VERSION', '0.1.3');
 define('LAEI_FILE', __FILE__);
 define('LAEI_DIR', plugin_dir_path(__FILE__));
 define('LAEI_URL', plugin_dir_url(__FILE__));
