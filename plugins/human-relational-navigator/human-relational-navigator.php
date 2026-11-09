@@ -1436,6 +1436,7 @@ Visitor response: " . $message;
                     'ok'=>true,'version'=>self::VERSION,'safety'=>$direct_stage,'safety_interrupt'=>true,
                     'safety_message'=>$safety['message'],'safety_question'=>$safety['question'],
                     'safety_resources'=>$safety['resources'],'safety_note'=>$safety['note'] ?? '',
+                    'safety_resource_provenance'=>$safety['resource_provenance'] ?? 'ei_location_resolution_pending',
                     'safety_location_required'=>$safety['location_required'] ?? false,'country'=>$country
                 ));
             }
