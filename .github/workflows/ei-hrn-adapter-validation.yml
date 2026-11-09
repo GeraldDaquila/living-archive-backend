@@ -8,6 +8,7 @@ on:
       - 'plugins/human-relational-navigator/**'
       - 'plugins/living-archive-emergency-intelligence/**'
       - 'tests/test_ei_hrn_location_only_contract.py'
+      - 'tests/php/**'
       - 'scripts/validate-ei-hrn-boundary.php'
       - '.github/workflows/ei-hrn-adapter-validation.yml'
   pull_request:
