@@ -1253,21 +1253,33 @@ Visitor response: " . $message;
                 try {
                     $result = living_archive_emergency_resolve($need, array('explicit_country'=>$country), $stage, 'acute_emergency');
                     $selection = is_array($result) ? ($result['selection'] ?? array()) : array();
-                    if (($selection['selection_status'] ?? '') !== 'SELECTED') continue;
-                    $resource = $selection['primary'] ?? array();
-                    $number = sanitize_text_field($resource['number'] ?? '');
-                    if ($number === '' || isset($seen[$number])) continue;
-                    $name = sanitize_text_field($resource['display_name'] ?? 'Emergency support');
-                    $group = ($need === 'crisis_support') ? 'Crisis support' : 'Emergency help';
-                    $resources[] = array(
-                        'title'=>$name,
-                        'phone'=>$number,
-                        'display_phone'=>$number,
-                        'group'=>$group,
-                        'channels'=>array('call'),
-                    );
-                    $seen[$number] = true;
-                    $ei_used = true;
+                    $selection_status = $selection['selection_status'] ?? '';
+                    if ($selection_status === 'SELECTED') {
+                        $candidates = array($selection['primary'] ?? array());
+                    } elseif ($selection_status === 'MULTIPLE_EQUIVALENT' && is_array($selection['primary'] ?? null)) {
+                        // EI may identify equivalent official routes (for example
+                        // the 999/112 pair). Preserve both rather than dropping
+                        // the EI result and reverting to a single legacy entry.
+                        $candidates = $selection['primary'];
+                    } else {
+                        continue;
+                    }
+                    foreach ($candidates as $resource) {
+                        if (!is_array($resource)) continue;
+                        $number = sanitize_text_field($resource['number'] ?? '');
+                        if ($number === '' || isset($seen[$number])) continue;
+                        $name = sanitize_text_field($resource['display_name'] ?? 'Emergency support');
+                        $group = ($need === 'crisis_support') ? 'Crisis support' : 'Emergency help';
+                        $resources[] = array(
+                            'title'=>$name,
+                            'phone'=>$number,
+                            'display_phone'=>$number,
+                            'group'=>$group,
+                            'channels'=>array('call'),
+                        );
+                        $seen[$number] = true;
+                        $ei_used = true;
+                    }
                 } catch (Throwable $e) {
                     error_log('[Living Archive HRN] EI resource lookup failed; retaining legacy resource fallback: '.$e->getMessage());
                     break;
