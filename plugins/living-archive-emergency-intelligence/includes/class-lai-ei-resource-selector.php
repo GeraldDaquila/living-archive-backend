@@ -37,14 +37,13 @@ class LAEI_Resource_Selector {
         }
 
         $eligible = [];
-        $expired_verification = false;
+        $verification_failures = [];
         foreach ($candidates as $resource) {
-            $verification = LAEI_Registry::get_verification($resource['verification_id'] ?? '');
             if (($resource['status'] ?? '') !== 'active') continue;
-            if (!self::verification_is_current($verification)) {
-                if (is_array($verification) && ($verification['status'] ?? '') === 'verified') {
-                    $expired_verification = true;
-                }
+            $verification = LAEI_Registry::get_verification($resource['verification_id'] ?? '');
+            $verification_state = self::verification_state($verification, $resource['resource_id'] ?? '');
+            if (!$verification_state['current']) {
+                $verification_failures[$verification_state['reason']] = true;
                 continue;
             }
             if (!self::coverage_applies($resource, $location)) continue;
@@ -53,7 +52,21 @@ class LAEI_Resource_Selector {
         }
 
         if (!$eligible) {
-            return self::fallback($status, $expired_verification ? 'verification_expired' : 'no_eligible_resource');
+            $reason = 'no_eligible_resource';
+            foreach ([
+                'verification_expired',
+                'verification_future_dated',
+                'verification_invalid_dates',
+                'verification_provenance_missing',
+                'verification_unverified',
+                'verification_missing',
+            ] as $candidate_reason) {
+                if (isset($verification_failures[$candidate_reason])) {
+                    $reason = $candidate_reason;
+                    break;
+                }
+            }
+            return self::fallback($status, $reason);
         }
 
         usort($eligible, function($a, $b) {
@@ -88,24 +101,36 @@ class LAEI_Resource_Selector {
         ];
     }
 
-    private static function verification_is_current($verification) {
-        if (!is_array($verification) || ($verification['status'] ?? '') !== 'verified') return false;
+    private static function verification_state($verification, $resource_id) {
+        if (!is_array($verification)) return ['current' => false, 'reason' => 'verification_missing'];
+        if (($verification['status'] ?? '') !== 'verified') return ['current' => false, 'reason' => 'verification_unverified'];
+        if (!LAEI_Registry::verification_provenance_valid($verification, $resource_id)) {
+            return ['current' => false, 'reason' => 'verification_provenance_missing'];
+        }
 
         $verified_at = (string)($verification['verified_at'] ?? '');
         $review_due = (string)($verification['review_due'] ?? '');
-        $date_pattern = '/^\\d{4}-\\d{2}-\\d{2}$/';
+        $verified_timestamp = self::utc_date_timestamp($verified_at, false);
+        $review_timestamp = self::utc_date_timestamp($review_due, true);
+        if ($verified_timestamp === false || $review_timestamp === false || $review_timestamp < $verified_timestamp) {
+            return ['current' => false, 'reason' => 'verification_invalid_dates'];
+        }
 
-        if (!preg_match($date_pattern, $verified_at) || !preg_match($date_pattern, $review_due)) return false;
+        $now = (int)current_time('timestamp', true);
+        if ($verified_timestamp > $now) return ['current' => false, 'reason' => 'verification_future_dated'];
+        if ($review_timestamp < $now) return ['current' => false, 'reason' => 'verification_expired'];
 
-        $verified_timestamp = strtotime($verified_at . ' 00:00:00 UTC');
-        $review_timestamp = strtotime($review_due . ' 23:59:59 UTC');
-        $now = current_time('timestamp', true);
+        return ['current' => true, 'reason' => null];
+    }
 
-        if ($verified_timestamp === false || $review_timestamp === false) return false;
-        if ($verified_timestamp > $now || $review_timestamp < $now) return false;
-        if ($review_timestamp < $verified_timestamp) return false;
-
-        return true;
+    private static function utc_date_timestamp($value, $end_of_day = false) {
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) return false;
+        $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value, new DateTimeZone('UTC'));
+        $errors = DateTimeImmutable::getLastErrors();
+        if (!$date || ($errors && ($errors['warning_count'] > 0 || $errors['error_count'] > 0))) return false;
+        if ($date->format('Y-m-d') !== $value) return false;
+        if ($end_of_day) $date = $date->setTime(23, 59, 59);
+        return $date->getTimestamp();
     }
 
     private static function coverage_applies($resource, $location) {
@@ -122,6 +147,11 @@ class LAEI_Resource_Selector {
         if ($reason === 'unsupported_country') $selection_status = 'UNSUPPORTED_COUNTRY';
         if ($reason === 'no_matching_service') $selection_status = 'NO_MATCHING_SERVICE';
         if ($reason === 'verification_expired') $selection_status = 'VERIFICATION_EXPIRED';
+        if ($reason === 'verification_future_dated') $selection_status = 'VERIFICATION_FUTURE_DATED';
+        if ($reason === 'verification_invalid_dates') $selection_status = 'VERIFICATION_INVALID';
+        if ($reason === 'verification_provenance_missing') $selection_status = 'VERIFICATION_PROVENANCE_MISSING';
+        if ($reason === 'verification_unverified') $selection_status = 'VERIFICATION_UNVERIFIED';
+        if ($reason === 'verification_missing') $selection_status = 'VERIFICATION_MISSING';
         if ($reason === 'invalid_service_need') $selection_status = 'INVALID_SERVICE_NEED';
 
         return [
