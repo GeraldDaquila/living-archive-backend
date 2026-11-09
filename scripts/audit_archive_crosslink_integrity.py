@@ -21,6 +21,7 @@ import json
 import re
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import unicodedata
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -37,7 +38,8 @@ WP_API = "https://geralddaquila.com/wp-json/wp/v2"
 PAGE_SIZE = 100
 MAX_PAGES = 50
 REQUEST_TIMEOUT = 12
-LINK_TIMEOUT = 8
+LINK_TIMEOUT = 6
+LINK_WORKERS = 12
 USER_AGENT = "LivingArchiveTerritorialIntegrityAudit/1.0"
 AUDIT_VERSION = "1.0.0"
 
@@ -314,8 +316,10 @@ def build_report(snapshot: dict[str, Any], snapshot_sha: str, snapshot_bytes: in
         or comparison["duplicate_wp_ids_in_registry"] or comparison["duplicate_wp_ids_in_snapshot"]
     )
     links_ok = link_check_performed and not broken
+    declared_count_matches = snapshot.get("asset_count") == len(assets)
     complete = bool(
-        actual_sha_matches and canonical_match and comparison["snapshot_identity_count"] == len(assets)
+        actual_sha_matches and declared_count_matches and canonical_match
+        and comparison["snapshot_identity_count"] == len(assets)
         and addressability["non_addressable_count"] == 0 and links_ok
     )
     return {
@@ -331,6 +335,7 @@ def build_report(snapshot: dict[str, Any], snapshot_sha: str, snapshot_bytes: in
             "source": snapshot.get("source"),
             "asset_count_declared": snapshot.get("asset_count"),
             "asset_count_actual": len(assets),
+            "asset_count_matches": snapshot.get("asset_count") == len(assets),
             "refreshed_at": datetime.fromtimestamp(refreshed_at, timezone.utc).isoformat() if refreshed_at else None,
             "age_seconds": round(age_seconds, 1),
             "age_days": round(age_seconds / 86400, 2),
@@ -364,6 +369,7 @@ def build_report(snapshot: dict[str, Any], snapshot_sha: str, snapshot_bytes: in
         "overall_status": "COMPLETE" if complete else "ATTENTION REQUIRED",
         "completeness_gates": {
             "snapshot_checksum_matches": actual_sha_matches,
+            "snapshot_asset_count_consistent": declared_count_matches,
             "canonical_identity_reconciled": canonical_match,
             "all_snapshot_assets_have_unique_wp_identity": comparison["snapshot_identity_count"] == len(assets),
             "all_assets_metadata_addressable": addressability["non_addressable_count"] == 0,
@@ -455,8 +461,16 @@ def main() -> int:
     assets = snapshot.get("assets", [])
     if not args.skip_link_check:
         selected = assets if args.max_link_checks <= 0 else assets[:args.max_link_checks]
-        for asset in selected:
-            link_results.append(check_destination(asset))
+        # Use a conservative worker pool so a few slow destinations do not turn
+        # the audit into a multi-hour serial scan. Each request remains timeout-bound.
+        with ThreadPoolExecutor(max_workers=LINK_WORKERS) as executor:
+            futures = [executor.submit(check_destination, asset) for asset in selected]
+            for future in as_completed(futures):
+                link_results.append(future.result())
+        # Restore deterministic snapshot order for audit diffs and reports.
+        result_by_id_url = {(item["wp_id"], item["url"]): item for item in link_results}
+        link_results = [result_by_id_url.get((str(asset.get("wp_id") or ""), normalize_url(asset.get("url")))) for asset in selected]
+        link_results = [item for item in link_results if item is not None]
         link_check_performed = len(selected) == len(assets) and len(assets) > 0
 
     report = build_report(
