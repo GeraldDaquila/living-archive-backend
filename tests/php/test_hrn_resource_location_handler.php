@@ -4,6 +4,7 @@
  * This is not a full WordPress bootstrap or browser/integration test.
  */
 define('ABSPATH', __DIR__ . '/');
+define('LAEI_VERSION', '0.1.3');
 class WP_REST_Server { const CREATABLE = 'POST'; }
 class WP_REST_Request {
     private $params;
