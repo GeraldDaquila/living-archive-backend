@@ -18,7 +18,7 @@ The route accepts only:
 
 It does not accept a visitor `message`, transcript, conversation history, or visitor-history payload. It does not call `rest_handler_inner()`, `safety_answer_class()`, or `safety_transition()`.
 
-The route returns the supplied stage, question, and message unchanged, together with a resource list. The adapter attempts EI resolution for `general_emergency`, `medical`, and `crisis_support`. Only `SELECTED` EI results are rendered as EI resources. HRN's existing local resource bundle is retained as a continuity fallback and as a source of additional distinct alternatives. No numbers or URLs are synthesized.
+The route returns the supplied stage, question, and message unchanged, together with a resource list. The adapter attempts EI resolution for `general_emergency`, `medical`, and `crisis_support`. EI `SELECTED` results and `MULTIPLE_EQUIVALENT` results are rendered as EI resources; equivalent official routes are retained together. HRN's existing local resource bundle is retained as a continuity fallback and as a source of additional distinct alternatives. No numbers or URLs are synthesized.
 
 The frontend now submits location to the dedicated route. It no longer sends the country as a visitor message to the ordinary conversation route. The frontend does not send conversation or visitor-history data during this operation. The script URL is cache-busted with an asset-version suffix.
 
@@ -42,7 +42,7 @@ Static source checks confirmed:
 
 ## Known limitations / not yet verified
 
-- PHP syntax validation passed for all PHP files in both plugins in GitHub Actions run [42583715617](https://github.com/GeraldDaquila/living-archive-backend/actions/runs/42583715617).
+- PHP syntax validation passed for all PHP files in both plugins in GitHub Actions run [42583888156](https://github.com/GeraldDaquila/living-archive-backend/actions/runs/42583715617).
 - Frontend JavaScript syntax validation passed in the same run.
 - Static location-only boundary assertions passed in the same run.
 - Five focused Python source-contract regression tests passed in the same run.
