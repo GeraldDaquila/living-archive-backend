@@ -38,9 +38,12 @@ $interrupt_response = rest_do_request($interrupt);
 ei_hrn_assert($interrupt_response->get_status() === 200, 'deterministic HRN safety interrupt responds through WordPress REST');
 $interrupt_data = $interrupt_response->get_data();
 ei_hrn_assert(!empty($interrupt_data['safety_interrupt']), 'explicit safety signal interrupts ordinary interpretation');
-ei_hrn_assert(($interrupt_data['safety_resources'] ?? null) === [], 'HRN safety interrupt exposes no legacy telephone resources');
-ei_hrn_assert(!empty($interrupt_data['safety_location_required']), 'HRN safety interrupt directs resource lookup through explicit EI location resolution');
-ei_hrn_assert(($interrupt_data['safety_resource_provenance'] ?? '') === 'ei_location_resolution_pending', 'HRN safety interrupt marks EI resolution as pending');
+ei_hrn_assert(!empty($interrupt_data['safety_resources']), 'HRN safety interrupt can return current resources resolved by EI');
+ei_hrn_assert(empty($interrupt_data['safety_location_required']), 'known country does not trigger a redundant location prompt');
+ei_hrn_assert(($interrupt_data['safety_resource_provenance'] ?? '') === 'ei_verified_only', 'HRN safety interrupt identifies EI as the sole resource authority');
+foreach (($interrupt_data['safety_resources'] ?? []) as $resource) {
+    ei_hrn_assert(($resource['verification_status'] ?? '') === 'verified_by_ei', 'every callable safety resource is marked as selected by EI verification');
+}
 
 $canonical = json_decode(file_get_contents(LAEI_REGISTRY_FILE), true);
 if (!is_array($canonical)) throw new RuntimeException('Canonical EI registry fixture could not be loaded.');
