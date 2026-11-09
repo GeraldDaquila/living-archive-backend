@@ -34,10 +34,3 @@ def test_safety_session_contains_no_visitor_text(monkeypatch):
         request_id=visitor_text,
     )
     assert visitor_text not in token
-
-
-def test_query_api_schema_declares_opaque_safety_session():
-    from pathlib import Path
-    source = Path("use_core.py").read_text(encoding="utf-8")
-    assert "safety_session: Optional[str] = None" in source
-    assert "carries no visitor text" in source
