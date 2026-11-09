@@ -42,7 +42,7 @@ Static source checks confirmed:
 
 ## Known limitations / not yet verified
 
-- PHP syntax validation passed for all PHP files in both plugins in GitHub Actions run [42583379198](https://github.com/GeraldDaquila/living-archive-backend/actions/runs/42583379198).
+- PHP syntax validation passed for all PHP files in both plugins in GitHub Actions run [42583715617](https://github.com/GeraldDaquila/living-archive-backend/actions/runs/42583715617).
 - Frontend JavaScript syntax validation passed in the same run.
 - Static location-only boundary assertions passed in the same run.
 - Five focused Python source-contract regression tests passed in the same run.
