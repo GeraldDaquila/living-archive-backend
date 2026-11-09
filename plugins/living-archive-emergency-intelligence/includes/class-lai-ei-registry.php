@@ -149,6 +149,7 @@ class LAEI_Registry {
         $verification_ids = [];
         $verification_records = [];
         foreach ($data['verification_records'] as $record) {
+            if (!is_array($record)) return ['valid' => false, 'error' => 'Verification record must be an object.'];
             foreach (['verification_id','status','authority_level','verification_scope','verified_at','review_due','source','resource_ids','source_urls'] as $key) {
                 if (!array_key_exists($key, $record) || (is_string($record[$key]) && trim($record[$key]) === '') || $record[$key] === null) {
                     return ['valid' => false, 'error' => 'Verification record missing required fields.'];
@@ -156,7 +157,7 @@ class LAEI_Registry {
             }
             if (isset($verification_ids[$record['verification_id']])) return ['valid' => false, 'error' => 'Duplicate verification ID.'];
             if (!in_array($record['status'], ['verified','unverified','rejected'], true)) return ['valid' => false, 'error' => 'Verification record has invalid status.'];
-            if (!preg_match('/^\\d{4}-\\d{2}-\\d{2}$/', (string)$record['verified_at']) || strtotime($record['verified_at'] . ' 00:00:00 UTC') === false) {
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$record['verified_at']) || strtotime($record['verified_at'] . ' 00:00:00 UTC') === false) {
                 return ['valid' => false, 'error' => 'Verification record has invalid verified_at date.'];
             }
             if (!preg_match('/^\\d{4}-\\d{2}-\\d{2}$/', (string)$record['review_due']) || strtotime($record['review_due'] . ' 23:59:59 UTC') === false) {
