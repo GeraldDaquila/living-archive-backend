@@ -87,7 +87,7 @@ assert_true(($fallback['resource_provenance'] ?? '') === 'hrn_legacy_fallback', 
 $GLOBALS['la_test_ei_mode'] = 'empty';
 $unsupported = $hrn->resource_location_handler(new WP_REST_Request(array('country'=>'Atlantis','safety_stage'=>'acute_contact','safety_question'=>$question,'safety_message'=>$safety_message)));
 assert_true($unsupported instanceof WP_Error && $unsupported->get_error_code() === 'lah_rn_location_required', 'unrecognized country fails closed and requests a valid location rather than fabricating a resource');
-assert_true(($unsupported['stage'] ?? '') === 'acute_contact', 'unsupported country does not change safety stage');
+assert_true(($unsupported->get_error_data()['status'] ?? 0) === 400, 'unrecognized country returns a client-correctable validation status');
 
 $invalid = $hrn->resource_location_handler(new WP_REST_Request(array('country'=>'PH','safety_stage'=>'not-a-stage','safety_question'=>$question,'safety_message'=>$safety_message)));
 assert_true($invalid instanceof WP_Error && $invalid->get_error_code() === 'lah_rn_invalid_safety_stage', 'invalid safety stage fails closed');
