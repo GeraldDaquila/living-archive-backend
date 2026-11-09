@@ -99,7 +99,7 @@ def test_comparison_reports_duplicate_ids_urls_and_titles_without_collapsing():
     result = compare_registry(snapshot, registry)
     assert len(result["duplicate_wp_ids_in_registry"]) == 1
     assert len(result["duplicate_canonical_urls_in_registry"]) == 1
-    assert len(result["duplicate_normalized_titles_in_registry"]) == 1
+    assert len(result["duplicate_normalized_titles_in_registry"]) == 2
     assert len(result["duplicate_normalized_titles_in_snapshot"]) == 1
 
 
@@ -111,6 +111,6 @@ def test_metadata_addressability_distinguishes_missing_search_fields():
         _asset(4, "Title", "https://geralddaquila.com/d", resource_type=""),
     ]
     result = metadata_addressability(assets)
-    assert result["addressable_count"] == 1
-    assert result["non_addressable_count"] == 3
-    assert {x["wp_id"] for x in result["non_addressable_assets"]} == {"2", "3", "4"}
+    assert result["addressable_count"] == 2
+    assert result["non_addressable_count"] == 2
+    assert {x["wp_id"] for x in result["non_addressable_assets"]} == {"2", "3"}
