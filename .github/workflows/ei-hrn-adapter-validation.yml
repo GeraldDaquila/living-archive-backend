@@ -9,6 +9,7 @@ on:
       - 'plugins/living-archive-emergency-intelligence/**'
       - 'tests/test_ei_hrn_location_only_contract.py'
       - 'tests/php/**'
+      - 'tests/e2e/**'
       - 'scripts/validate-ei-hrn-boundary.php'
       - '.github/workflows/ei-hrn-adapter-validation.yml'
   pull_request:
@@ -126,3 +127,25 @@ jobs:
           cp tests/php/test_ei_hrn_wordpress_integration.php /tmp/wp/wp-content/
           cd /tmp/wp
           wp eval-file wp-content/test_ei_hrn_wordpress_integration.php --allow-root
+
+
+  browser-safety-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: npm install --no-save --package-lock=false playwright
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Exercise browser safety-location success and failure paths
+        run: node tests/e2e/ei-hrn-browser-safety.js
