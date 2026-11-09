@@ -3,7 +3,9 @@
   "purpose": "Explicit editorial territorial decisions for archive crosslink publication. Identity is determined by WordPress ID and canonical URL; this manifest records deliberate exclusions rather than inferring them from title similarity.",
   "include_wp_ids": [
     "76640",
-    "80702"
+    "80702",
+    "75221",
+    "7390"
   ],
   "exclude_wp_ids": {
     "6177": "legacy URL explicitly outside current public territorial contract",
@@ -43,9 +45,5 @@
     "76403": "numeric duplicate variant; canonical unsuffixed counterpart retained",
     "76432": "numeric duplicate variant; canonical unsuffixed counterpart retained",
     "76455": "numeric duplicate variant; canonical unsuffixed counterpart retained"
-  },
-  "review_required_wp_ids": {
-    "7390": "Threshold Flame resolves to site root; requires explicit root-identity policy",
-    "75221": "Institutional Cornerstones -2 has no same-title counterpart in the current registry; editorial canonical status unresolved"
   }
 }
