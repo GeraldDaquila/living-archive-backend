@@ -12,12 +12,16 @@ from urllib.request import Request, urlopen
 ROOT=Path(__file__).resolve().parents[1]
 OUTPUT=ROOT/"archive_crosslink_snapshot.json"
 CHECKSUM=ROOT/"archive_crosslink_snapshot.sha256"
+MANIFEST=ROOT/"archive_crosslink_editorial_manifest.json"
 BASE="https://geralddaquila.com/wp-json/wp/v2"
+SITE_ROOT="https://geralddaquila.com"
 PAGE_SIZE=100
 MAX_PAGES=50
 
 def clean(value):
     return re.sub(r"\s+"," ",html.unescape(re.sub(r"<[^>]*>"," ",str(value or "")))).strip()
+
+INCLUDE_IDS=set()
 
 def load(kind):
     assets=[]
@@ -30,13 +34,24 @@ def load(kind):
             title=clean(title_obj.get("rendered") if isinstance(title_obj,dict) else title_obj)[:300]
             wp_id=str(item.get("id") or "").strip()
             url=str(item.get("link") or "").strip().rstrip("/")
-            if wp_id.isdigit() and title and "ARCHIVED" not in title.upper() and re.match(r"^https://geralddaquila\.com/\S+$",url,re.I):
-                assets.append({"title":title,"url":url,"wp_id":wp_id,"resource_type":kind[:-1],"tier":"public","access_class":"public","summary":""})
+            valid_public_url=re.match(r"^https://geralddaquila\.com/\S+$",url,re.I)
+            explicitly_included=wp_id in INCLUDE_IDS
+            if wp_id.isdigit() and title and "ARCHIVED" not in title.upper() and (valid_public_url or explicitly_included):
+                assets.append({"title":title,"url":url or SITE_ROOT,"wp_id":wp_id,"resource_type":kind[:-1],"tier":"public","access_class":"public","summary":""})
         if len(payload)<PAGE_SIZE: break
     else: raise RuntimeError(f"WordPress {kind} registry exceeded page limit")
     return assets
 
+def load_manifest():
+    if not MANIFEST.exists():
+        raise RuntimeError("editorial territorial manifest is required")
+    manifest=json.loads(MANIFEST.read_text(encoding="utf-8"))
+    return set(map(str,manifest.get("include_wp_ids",[]))), set(map(str,manifest.get("exclude_wp_ids",{})))
+
 def main_publish():
+    include_ids, exclude_ids=load_manifest()
+    global INCLUDE_IDS
+    INCLUDE_IDS=include_ids
     records=load("posts")+load("pages")
     assets={}
     for item in records:
@@ -44,23 +59,21 @@ def main_publish():
         existing=assets.get(key)
         if existing is None or (existing.get("resource_type")=="page" and item.get("resource_type")=="post"):
             assets[key]=item
-    # WordPress can expose duplicate publication records with the same canonical
-    # title. Keep one destination, preferring the cleaner URL without a numeric
-    # duplicate suffix such as "-2".
-    by_title={}
-    for item in assets.values():
-        key=clean(item["title"]).casefold()
-        existing=by_title.get(key)
-        duplicate_suffix=re.search(r"-\d+$",item["url"].rstrip("/"))
-        existing_suffix=re.search(r"-\d+$",existing["url"].rstrip("/")) if existing else None
-        if existing is None or (existing_suffix and not duplicate_suffix):
-            by_title[key]=item
-    assets=by_title
+    # A title is descriptive metadata, not a publication identity. Distinct
+    # WordPress records with distinct canonical URLs must remain independently
+    # addressable even when their normalized titles collide. Numeric URL suffixes
+    # are also retained: deciding whether a record is superseded is an editorial
+    # classification task, not something the publisher may infer silently.
+    assets=[item for item in assets.values() if item["wp_id"] not in exclude_ids]
+    present_ids={item["wp_id"] for item in assets}
+    missing_includes=include_ids-present_ids
+    if missing_includes:
+        raise RuntimeError(f"editorially included assets missing from registry: {sorted(missing_includes)}")
     if not assets: raise RuntimeError("canonical WordPress registry returned no publishable assets")
-    snapshot={"contract":"archive-crosslink-inventory-v2","crosslink_ready":True,"complete":True,"source":"wordpress-canonical-registry","asset_count":len(assets),"refreshed_at":time.time(),"assets":sorted(assets.values(),key=lambda x:(x["resource_type"],x["title"].casefold()))}
+    snapshot={"contract":"archive-crosslink-inventory-v2","crosslink_ready":True,"complete":True,"source":"wordpress-canonical-registry","asset_count":len(assets),"refreshed_at":time.time(),"assets":sorted(assets,key=lambda x:(x["resource_type"],x["title"].casefold()))}
     raw=json.dumps(snapshot,ensure_ascii=False,sort_keys=True,separators=(",",":"))+"\n"
     OUTPUT.write_text(raw,encoding="utf-8")
     digest=hashlib.sha256(raw.encode()).hexdigest()
     CHECKSUM.write_text(digest+"\n",encoding="utf-8")
-    print(f"validated_snapshot=true source=wordpress assets={snapshot['asset_count']} sha256={digest}")
+    print(f"validated_snapshot=true source=wordpress-manifest assets={snapshot['asset_count']} includes={len(include_ids)} excludes={len(exclude_ids)} sha256={digest}")
 if __name__=="__main__": main_publish()

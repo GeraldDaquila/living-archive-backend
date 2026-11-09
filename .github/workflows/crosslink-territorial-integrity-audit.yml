@@ -1,0 +1,87 @@
+name: Crosslink Territorial Integrity Audit
+
+on:
+  push:
+    branches:
+      - feat/crosslink-territorial-integrity-audit
+    paths:
+      - "scripts/audit_archive_crosslink_integrity.py"
+      - "archive_crosslink_snapshot.json"
+      - "archive_crosslink_editorial_manifest.json"
+      - "scripts/publish_archive_crosslink_snapshot.py"
+      - ".github/workflows/crosslink-territorial-integrity-audit.yml"
+  pull_request:
+    paths:
+      - "scripts/audit_archive_crosslink_integrity.py"
+      - "archive_crosslink_snapshot.json"
+      - ".github/workflows/crosslink-territorial-integrity-audit.yml"
+  workflow_dispatch:
+    inputs:
+      link_check:
+        description: "Run bounded HTTP checks for all snapshot destinations"
+        required: true
+        type: choice
+        options:
+          - identity-only
+          - full-destination-check
+        default: identity-only
+
+permissions:
+  contents: read
+
+jobs:
+  territorial-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/crosslink-territorial-integrity-audit
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate editorial manifest and candidate publisher
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m=json.loads(Path("archive_crosslink_editorial_manifest.json").read_text())
+          overlap=set(map(str,m.get("include_wp_ids",[]))) & set(map(str,m.get("exclude_wp_ids",{})))
+          if overlap: raise SystemExit(f"manifest include/exclude overlap: {sorted(overlap)}")
+          print(f"manifest_valid=true includes={len(m.get('include_wp_ids',[]))} excludes={len(m.get('exclude_wp_ids',{}))}")
+          PY
+          python -m scripts.publish_archive_crosslink_snapshot
+          mkdir -p candidate-output
+          cp archive_crosslink_snapshot.json candidate-output/archive_crosslink_snapshot.json
+          cp archive_crosslink_snapshot.sha256 candidate-output/archive_crosslink_snapshot.sha256
+          git checkout -- archive_crosslink_snapshot.json archive_crosslink_snapshot.sha256
+      - name: Run read-only integrity audit
+        env:
+          LINK_CHECK: full-destination-check
+      # Candidate promotion requires destination validation; identity-only mode is audit-only.
+      #
+      # LINK_CHECK: ${{ github.event_name == 'workflow_dispatch' && inputs.link_check || 'identity-only' }}
+        run: |
+          if [ "$LINK_CHECK" = "full-destination-check" ]; then
+            python -m scripts.audit_archive_crosslink_integrity --snapshot candidate-output/archive_crosslink_snapshot.json --checksum candidate-output/archive_crosslink_snapshot.sha256 --manifest archive_crosslink_editorial_manifest.json --output-dir audit-output
+          else
+            python -m scripts.audit_archive_crosslink_integrity --snapshot candidate-output/archive_crosslink_snapshot.json --checksum candidate-output/archive_crosslink_snapshot.sha256 --skip-link-check --manifest archive_crosslink_editorial_manifest.json --output-dir audit-output
+          fi
+      - name: Upload candidate snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crosslink-candidate-snapshot
+          path: candidate-output/
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Upload audit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crosslink-territorial-integrity
+          path: audit-output/
+          if-no-files-found: warn
+          retention-days: 30

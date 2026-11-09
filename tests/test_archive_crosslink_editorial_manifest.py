@@ -1,0 +1,31 @@
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_manifest():
+    return json.loads((ROOT / "archive_crosslink_editorial_manifest.json").read_text())
+
+
+def test_manifest_preserves_verified_live_canonical_assets():
+    manifest = load_manifest()
+    assert {"76640", "80702", "75221", "7390"} <= set(manifest["include_wp_ids"])
+
+
+def test_manifest_has_no_unresolved_live_assets():
+    manifest = load_manifest()
+    assert not manifest.get("review_required_wp_ids")
+
+
+def test_manifest_makes_duplicate_exclusions_explicit():
+    manifest = load_manifest()
+    excluded = manifest["exclude_wp_ids"]
+    assert len([key for key, value in excluded.items() if value.startswith("numeric duplicate")]) == 34
+    assert excluded["6357"].startswith("legacy URL")
+
+
+def test_live_assets_are_not_in_the_exclusion_register():
+    manifest = load_manifest()
+    protected = {"76640", "80702", "75221", "7390"}
+    assert protected.isdisjoint(set(manifest["exclude_wp_ids"]))
