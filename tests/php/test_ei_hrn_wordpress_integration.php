@@ -27,6 +27,21 @@ ei_hrn_assert($status->get_status() === 200, 'EI status endpoint responds throug
 $status_data = $status->get_data();
 ei_hrn_assert(is_array($status_data) && ($status_data['plugin_version'] ?? '') === '0.1.3', 'EI status payload is serialized by WordPress REST');
 
+$_SERVER['HTTP_CF_IPCOUNTRY'] = 'PH';
+$unconfirmed = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
+$unconfirmed->set_header('content-type', 'application/json');
+$unconfirmed->set_body_params([
+    'message' => 'I want to kill myself.',
+    'safety_stage' => 'green'
+]);
+$unconfirmed_response = rest_do_request($unconfirmed);
+ei_hrn_assert($unconfirmed_response->get_status() === 200, 'safety interrupt responds when only IP-derived country evidence is available');
+$unconfirmed_data = $unconfirmed_response->get_data();
+ei_hrn_assert(($unconfirmed_data['safety_resources'] ?? null) === [], 'IP-derived country alone cannot produce callable EI resources');
+ei_hrn_assert(!empty($unconfirmed_data['safety_location_required']), 'IP-derived country alone requires explicit country confirmation');
+ei_hrn_assert(($unconfirmed_data['safety_resource_provenance'] ?? '') === 'ei_location_resolution_pending', 'unconfirmed location keeps EI resource resolution pending');
+unset($_SERVER['HTTP_CF_IPCOUNTRY']);
+
 $interrupt = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
 $interrupt->set_header('content-type', 'application/json');
 $interrupt->set_body_params([
