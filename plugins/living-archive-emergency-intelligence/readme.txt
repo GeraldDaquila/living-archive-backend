@@ -26,6 +26,8 @@ Security:
 
 Release status:
 - Development branch only.
-- Standalone PHP/registry validation has passed.
-- Full country-parity, contextual-selection, resource-alternative, WordPress integration, and browser E2E gates remain outstanding.
+- Standalone PHP/registry validation and disposable WordPress REST integration have passed (GitHub Actions run 42604360666).
+- Full country parity and contextual-selection gates remain outstanding.
+- Browser E2E of a visitor-facing emergency flow remains outstanding because standalone EI exposes a resource-resolution API and does not own a visitor-facing UI; any consumer integration must be tested separately.
+- Browser-level admin-page smoke testing also remains outstanding.
 - This plugin is not a substitute for contacting official emergency services.
