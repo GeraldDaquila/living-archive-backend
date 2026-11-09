@@ -15,6 +15,8 @@ on:
       - 'tests/test_safety_first_turn_resource_handoff.py'
       - 'QA/V488_SAFETY_BOUNDARY_QA.py'
       - 'wordpress/living-archive-guide-v489.247-response-integrity.js'
+      - 'wordpress/candidates/living-archive-guide-v489.313-safety-location-confirmation-candidate.js'
+      - 'QA/test_frontend_safety_candidate.py'
       - '.github/workflows/safety-standalone-validation.yml'
   pull_request:
     paths:
@@ -53,4 +55,4 @@ jobs:
         run: python QA/V488_SAFETY_BOUNDARY_QA.py
 
       - name: Safety state machine regression tests
-        run: pytest -q tests/test_safety_first_turn_resource_handoff.py tests/test_safety_session.py
+        run: pytest -q tests/test_safety_first_turn_resource_handoff.py tests/test_safety_session.py QA/test_frontend_safety_candidate.py
