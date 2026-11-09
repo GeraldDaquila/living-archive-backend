@@ -1,0 +1,41 @@
+Living Archive Emergency Intelligence
+QA Report — v0.1.1
+Date: 2026-09-29
+
+STATUS: PASS — uploadable prototype build
+
+Validated:
+- PHP syntax across all plugin PHP files
+- JSON parsing for registry and diagnostic fixtures
+- Registry structural validation
+- Country / architecture / resource / verification referential integrity
+- Five-country resource selection:
+  Philippines 911
+  United States 911
+  Germany 112
+  China 110 / 119 / 120 / 122
+  United Kingdom 999 / 112 equivalence
+- Unknown location -> LOCATION_REQUIRED
+- Refused location -> FALLBACK_GENERAL_EMERGENCY
+- Conflicting location evidence -> highest-strength evidence selected
+- Partial location evidence -> resource selection remains available
+- Unsupported country -> general emergency fallback
+- Presenter phone action generation
+- Invalid registry rejection
+- Duplicate ID rejection
+- Unknown country/architecture/verification reference rejection
+- Same-version registry rejection
+- Content-hash mismatch rejection
+- Signed-registry rejection while no trusted public key is provisioned
+- Newer valid registry activation
+- Active registry version promotion
+
+Important limitation:
+This QA was performed against the actual plugin code using a controlled WordPress-function test harness. It is not a live production WordPress installation test. WordPress installation/activation and browser-level REST testing remain to be performed after upload.
+
+Architecture status:
+- Standalone only
+- No Human Relational Navigator integration
+- No HRN files modified
+- Local registry remains the emergency-path source of truth
+- Emergency path does not wait for registry refresh
