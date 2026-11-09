@@ -10,11 +10,13 @@ class LAEI_Registry {
 
     public static function load($force = false) {
         if (self::$registry !== null && !$force) return self::$registry;
+        if ($force) self::$registry = null;
         if (!file_exists(LAEI_REGISTRY_FILE)) return null;
         $json = file_get_contents(LAEI_REGISTRY_FILE);
         $data = json_decode($json, true);
         if (!is_array($data)) return null;
-        if (!self::validate_structure($data)) return null;
+        $validation = self::validate_candidate($data);
+        if (empty($validation['valid'])) return null;
         self::$registry = $data;
         return self::$registry;
     }
