@@ -89,3 +89,10 @@ A separate draft PR now contains a CLI-only candidate for creating the required 
 The candidate requires a pre-existing private output directory with mode 0700 outside the WordPress root. It captures both complete plugin trees, includes the EI registry, writes a path/size/SHA-256 manifest, rejects symlinks and common credential signatures, reopens and re-hashes every archive member, writes a SHA-256 sidecar, and makes the resulting artifacts read-only. The fixture test also restores every manifest entry into a separate temporary tree and verifies the restored hashes.
 
 This is **not yet a production backup mechanism**. The tests use disposable fixture directories; they do not prove access permissions, storage durability, or restore behavior on the actual hosting environment. A human review of the live plugin trees remains required because automated filename/signature screening cannot guarantee that no secret is embedded in source content. The next gate is to rehearse capture and restoration against an isolated WordPress copy, with the resulting archive held outside the public web root. No production files or settings were changed.
+
+
+### Disposable WordPress filesystem run
+
+A further test used WP-CLI to download a clean WordPress 7.1.4 filesystem, copied the candidate HRN/EI plugin trees into its plugin directory, and successfully generated a verified archive containing 18 files with the expected candidate identities (HRN 0.5.334, EI 0.1.3, registry schema 0.2, registry version 2026.11.09.001).
+
+The first independent restore-job attempt stopped at the shell checksum command because the sidecar stores the archive basename while the check was invoked from the repository working directory. The workflow was corrected to verify the checksum from the private archive directory. The follow-up run for that correction has not yet been observed, so the WordPress-filesystem rehearsal remains **pending final CI confirmation**. The earlier isolated fixture workflow, including manifest verification, restore-hash checks, public-root refusal, symlink refusal, and credential refusal, passed.
