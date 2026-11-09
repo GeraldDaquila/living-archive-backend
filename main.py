@@ -6620,6 +6620,15 @@ def _guide_deterministic_discovery_response(subject, doorway, evidence):
     )
 
 
+def _guide_discovery_doorway_should_be_suppressed(
+    discovery_subject, concept_subject, doorway, evidence
+):
+    """Keep reviewed concept crosslinks distinct from ordinary evidence-gated discovery."""
+    return bool(discovery_subject) and not bool(concept_subject) and not _guide_discovery_doorway_is_evidence_backed(
+        doorway, evidence
+    )
+
+
 def _guide_discovery_doorway_is_evidence_backed(doorway, evidence):
     """Require the selected canonical body to match the final discovery doorway URL."""
     if not isinstance(doorway, dict):
@@ -7271,8 +7280,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # retrieval recommendation is not sufficient: the final selected canonical
     # page body must support the exact doorway being returned. This also keeps
     # answer_basis from claiming Archive support when discovery fell back.
-    if discovery_subject and not _guide_discovery_doorway_is_evidence_backed(
-        authoritative_doorway, discovery_selected_evidence
+    if _guide_discovery_doorway_should_be_suppressed(
+        discovery_subject,
+        concept_subject,
+        authoritative_doorway,
+        discovery_selected_evidence,
     ):
         authoritative_doorway = None
         composition_context.pop("authoritative_doorway", None)

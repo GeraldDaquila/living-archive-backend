@@ -125,3 +125,39 @@ def test_model_selected_node_must_match_registry_subject_destination(monkeypatch
         "Where can I find material about leadership foundations?",
         "libraries",
     )
+
+
+def test_reviewed_concept_crosslink_survives_missing_discovery_body_evidence():
+    concept = main._established_general_knowledge_recovery("What is the Law of One?")
+    assert concept is not None
+    doorway = concept["doorway"]
+
+    assert not main._guide_discovery_doorway_should_be_suppressed(
+        concept["subject"], concept["subject"], doorway, []
+    )
+
+
+def test_ordinary_subject_discovery_still_fails_closed_without_body_evidence():
+    doorway = {
+        "title": "A possibly related page",
+        "url": "https://geralddaquila.com/possibly-related/",
+    }
+
+    assert main._guide_discovery_doorway_should_be_suppressed(
+        "institutional responsibility", "", doorway, []
+    )
+
+
+def test_ordinary_subject_discovery_survives_when_selected_page_body_matches():
+    doorway = {
+        "title": "Institutional Stewardship",
+        "url": "https://geralddaquila.com/institutional-stewardship/",
+    }
+    evidence = [{
+        "url": "https://geralddaquila.com/institutional-stewardship/",
+        "text": "Institutional stewardship requires clear responsibility.",
+    }]
+
+    assert not main._guide_discovery_doorway_should_be_suppressed(
+        "institutional responsibility", "", doorway, evidence
+    )
