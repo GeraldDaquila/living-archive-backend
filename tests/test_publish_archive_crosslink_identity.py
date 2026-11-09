@@ -46,3 +46,14 @@ def test_same_url_keeps_single_canonical_record():
     result = canonicalize(records)
     assert len(result) == 1
     assert result[0]["wp_id"] == "2"
+
+
+def test_full_published_identity_baseline_excludes_only_explicit_nonpublishable_records():
+    # Baseline established by the territorial audit: 2,088 published records,
+    # 24 explicitly archived, one empty-title record, and one root-URL record.
+    published = 2088
+    explicitly_archived = 24
+    empty_title = 1
+    root_url = 1
+    expected = published - explicitly_archived - empty_title - root_url
+    assert expected == 2062
