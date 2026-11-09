@@ -9,6 +9,7 @@ class WP_REST_Request {
     private $params;
     public function __construct($params) { $this->params = $params; }
     public function get_param($key) { return $this->params[$key] ?? null; }
+    public function get_params() { return $this->params; }
 }
 class WP_Error {
     private $code; private $message; private $data;
@@ -108,6 +109,15 @@ $GLOBALS['la_test_ei_mode'] = 'empty';
 $unsupported = $hrn->resource_location_handler(new WP_REST_Request(array('country'=>'Atlantis','safety_stage'=>'acute_contact','safety_question'=>$question,'safety_message'=>$safety_message)));
 assert_true($unsupported instanceof WP_Error && $unsupported->get_error_code() === 'lah_rn_location_required', 'unrecognized country fails closed and requests a valid location rather than fabricating a resource');
 assert_true(($unsupported->get_error_data()['status'] ?? 0) === 400, 'unrecognized country returns a client-correctable validation status');
+
+$visitor_answer_request = new WP_REST_Request(array('country'=>'PH','safety_stage'=>'acute_contact','safety_question'=>$question,'safety_message'=>$safety_message,'message'=>'yes, I can contact someone'));
+$visitor_answer_rejected = $hrn->resource_location_handler($visitor_answer_request);
+assert_true($visitor_answer_rejected instanceof WP_Error && $visitor_answer_rejected->get_error_code() === 'lah_rn_visitor_content_not_accepted', 'runtime handler rejects visitor-answer fields even when extra REST parameters are supplied');
+assert_true(($visitor_answer_rejected->get_error_data()['status'] ?? 0) === 400, 'visitor-answer field rejection is a client-correctable 400 response');
+
+$visitor_history_request = new WP_REST_Request(array('country'=>'PH','safety_stage'=>'acute_contact','safety_question'=>$question,'safety_message'=>$safety_message,'conversation'=>'visitor transcript'));
+$visitor_history_rejected = $hrn->resource_location_handler($visitor_history_request);
+assert_true($visitor_history_rejected instanceof WP_Error && $visitor_history_rejected->get_error_code() === 'lah_rn_visitor_content_not_accepted', 'runtime handler rejects conversation/transcript fields');
 
 $invalid = $hrn->resource_location_handler(new WP_REST_Request(array('country'=>'PH','safety_stage'=>'not-a-stage','safety_question'=>$question,'safety_message'=>$safety_message)));
 assert_true($invalid instanceof WP_Error && $invalid->get_error_code() === 'lah_rn_invalid_safety_stage', 'invalid safety stage fails closed');
