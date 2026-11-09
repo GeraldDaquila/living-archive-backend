@@ -37,7 +37,7 @@ def test_resource_adapter_never_enters_hrn_safety_answer_or_conversation_pipelin
     assert "'message'=>$message" in adapter
 
 
-def test_adapter_uses_ei_first_and_retains_legacy_continuity_fallback():
+def test_adapter_uses_ei_as_the_only_callable_resource_authority():
     source = HRN_PHP.read_text(encoding="utf-8")
     start = source.index("public function resource_location_handler")
     end = source.index("public function add_runtime_timing_headers", start)
@@ -49,8 +49,24 @@ def test_adapter_uses_ei_first_and_retains_legacy_continuity_fallback():
     assert "$selection_status === 'SELECTED'" in adapter
     assert "$selection_status === 'MULTIPLE_EQUIVALENT'" in adapter
     assert "$candidates = $selection['primary']" in adapter
-    assert "$this->safety_resource_bundle($country, $stage, '')" in adapter
-    assert "foreach (($legacy['resources'] ?? array()) as $resource)" in adapter
+    assert "$this->safety_resource_bundle(" not in adapter
+    assert "$legacy" not in adapter
+    assert "'resource_provenance'=>$ei_used ? 'ei_verified_only' : 'ei_no_verified_fallback'" in adapter
+    assert "'resource_status'=>$resource_status" in adapter
+
+
+def test_initial_hrn_safety_interrupt_cannot_emit_legacy_emergency_resources():
+    source = HRN_PHP.read_text(encoding="utf-8")
+    start = source.index("private function safety_response(")
+    end = source.index("private function safety_answer_class(", start)
+    response = source[start:end]
+
+    assert "'resources'=>array()" in response
+    assert "'location_required'=>true" in response
+    assert "'resource_provenance'=>'ei_location_resolution_pending'" in response
+    assert "$this->safety_resource_bundle(" not in response
+    assert "native_registry" not in response
+    assert "findahelpline_fallback" not in response
 
 
 def test_frontend_location_submission_sends_no_visitor_answer_or_transcript():
