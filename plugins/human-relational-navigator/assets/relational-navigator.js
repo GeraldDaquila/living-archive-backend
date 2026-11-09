@@ -12,7 +12,7 @@ ready(function(){
 
   var turns=[],loading=false,recordAvailable=false,unitTurns=0;
   var pendingVisitorMessage=null;
-  var safetyStage='green',safetyQuestion='',country='';
+  var safetyStage='green',safetyQuestion='',safetyMessage='',country='';
   var threadSummary='',workingHypothesis='',unresolved='',underlyingNeed='',desiredCondition='',emergingDelta='',perspectiveDelta='',bodyOfThought='',movementDirection='',nextMovement='',resourceFit='';
   var fractalStage='opening',fractalTransition='',newTerrain='',completedInsight='',nextHorizon='',conversationPurpose='',currentFractal='',fractalMaturity='',pivotSignal='',leadershipNeed='';
   var fractalHistory=[];
@@ -269,6 +269,9 @@ ready(function(){
    var stage=response.stage||response.safety||'current';
    var message=response.message||response.safety_message||'';
    var question=response.question||response.safety_question||'';
+   safetyMessage=message;
+   if(question)safetyQuestion=question;
+   if(stage)safetyStage=stage;
    var resources=Array.isArray(response.resources)?response.resources:(Array.isArray(response.safety_resources)?response.safety_resources:[]);
    var locationRequired=!!(response.location_required||response.safety_location_required);
    var note=response.note||response.safety_note||'';
@@ -328,9 +331,16 @@ ready(function(){
   }
   function submitSafetyLocation(v){
    setLoading(true);
-   fetch(LAHRN.endpoint,{method:'POST',headers:{'Content-Type':'application/json','X-WP-Nonce':LAHRN.nonce},body:JSON.stringify({message:v,conversation:contextText(),visitor_history:visitorHistoryText(),safety_stage:'acute',safety_question:safetyQuestion,country:v})})
+   fetch(LAHRN.emergency_endpoint,{method:'POST',headers:{'Content-Type':'application/json','X-WP-Nonce':LAHRN.nonce},body:JSON.stringify({country:v,safety_stage:safetyStage,safety_question:safetyQuestion,safety_message:safetyMessage})})
    .then(function(r){return r.text().then(function(text){var d=null;try{d=text?JSON.parse(text):null}catch(e){throw new Error('The server returned an unexpected response (HTTP '+r.status+').')}if(!r.ok)throw new Error(d&&d.message?d.message:'The local resource request could not be completed.');if(!d)throw new Error('The server returned an empty response (HTTP '+r.status+').');return d})})
-   .then(function(d){showSafety(d,v);safetyStage=d.safety||d.stage||'acute';safetyQuestion=d.safety_question||d.question||''})
+   .then(function(d){
+    if(d.operation!=='resource_location_resolution')throw new Error('The server returned an unexpected resource response.');
+    country=d.country||v;
+    safetyStage=d.stage||safetyStage;
+    safetyQuestion=d.question||safetyQuestion;
+    safetyMessage=d.message||safetyMessage;
+    showSafety(d,'');
+   })
    .catch(function(){current.innerHTML='';var e=document.createElement('div');e.className='lah-rn-safety';renderText(e,'I could not load the local resource list right now. If you may be in immediate danger, contact the emergency service where you are or go to the nearest emergency department, and stay with another person.','navigator');current.appendChild(e)})
    .finally(function(){setLoading(false)})
   }
