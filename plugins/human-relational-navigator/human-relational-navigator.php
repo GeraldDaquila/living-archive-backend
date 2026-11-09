@@ -1005,7 +1005,7 @@ final class Living_Archive_Human_Relational_Navigator {
         if ($stage === 'acute_hold') {
             $response['message'] = 'I hear you. I am going to stop asking you to repeat the same safety step. Please stay away from anything you could use to hurt yourself and contact an emergency service you already know is valid where you are now. If you have already injured yourself or taken something, seek emergency medical care now.';
             $response['question'] = '';
-            $response['note'] = 'Please use the emergency or crisis support above now. Do not stay alone with this if another person can safely be brought in.';
+            $response['note'] = 'Please contact an emergency service you already know is valid where you are now. Do not stay alone with this if another person can safely be brought in; if you have already injured yourself or taken something, go to the nearest emergency department now.';
             return $response;
         }
         if ($stage === 'recovery') {
