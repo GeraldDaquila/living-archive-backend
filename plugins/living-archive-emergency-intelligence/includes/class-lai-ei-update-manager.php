@@ -47,6 +47,23 @@ class LAEI_Update_Manager {
 
     public static function check_now() {
         update_option(self::OPTION_LAST_CHECK, time());
+
+        /*
+         * SECURITY GATE (fail closed):
+         * The current plugin has no trusted public key and no implemented
+         * cryptographic signature verifier. A content hash detects accidental
+         * corruption; it does not authenticate the publisher. Do not fetch or
+         * activate remote registry candidates until signature verification is
+         * implemented, provisioned, and covered by tests.
+         *
+         * This deliberately leaves the locally installed registry available.
+         * It does not block HRN's safety intervention or resource fallback.
+         */
+        return self::record_result([
+            'status' => 'disabled_security_gate',
+            'message' => 'Remote registry updates are disabled until mandatory cryptographic signature verification is implemented and a trusted public key is provisioned.',
+        ]);
+
         $endpoint = trim((string)get_option(self::OPTION_ENDPOINT, ''));
         if (!$endpoint || !wp_http_validate_url($endpoint)) {
             $result = ['status' => 'not_configured', 'message' => 'Canonical registry endpoint is not configured.'];
