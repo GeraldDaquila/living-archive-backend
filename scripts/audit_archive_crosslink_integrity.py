@@ -496,9 +496,10 @@ def main() -> int:
         link_results = [item for item in link_results if item is not None]
         link_check_performed = len(selected) == len(assets) and len(assets) > 0
 
+    manifest = json.loads(args.manifest.read_text(encoding="utf-8")) if args.manifest else None
     report = build_report(
         snapshot, snapshot_sha, snapshot_bytes, checksum_expected,
-        registry_data, link_results, link_check_performed,
+        registry_data, link_results, link_check_performed, manifest,
     )
     if not link_check_performed:
         report["completeness_gates"]["destination_check_performed"] = False
