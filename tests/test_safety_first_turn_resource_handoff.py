@@ -383,3 +383,24 @@ def test_recovery_release_requires_a_distinct_second_safety_confirmation():
         "recovery",
         safety_intelligence._safety_answer_class("yes", "recovery"),
     ) == "release"
+
+def test_local_recovery_state_releases_only_after_second_yes(monkeypatch):
+    monkeypatch.setattr(
+        safety_intelligence,
+        "_request_emergency_intelligence",
+        lambda **kwargs: {},
+    )
+    history = (
+        "assistant: It is important to stay connected to support. We do not need to return to the other conversation yet.\\n"
+        "assistant question: Are you safe from acting on these thoughts right now?"
+    )
+    result = safety_intelligence.resolve_safety(
+        query="yes",
+        history=history,
+        safety_state="acute_followthrough",
+        country="PH",
+    )
+    assert result["safety_state"] == "recovery"
+    assert result["safety_release_ready"] is True
+    assert result["safety_question"] == ""
+    assert result["resolver_status"] == "standalone_deterministic_state_machine"
