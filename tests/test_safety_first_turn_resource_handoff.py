@@ -348,3 +348,38 @@ def test_safety_snapshot_has_no_hrn_dependency():
     assert snapshot["hrn_dependency"] is False
     assert snapshot["standalone_safety_state_machine"] is True
     assert not hasattr(safety_intelligence, "_request_hrn_safety")
+
+def test_repeated_safety_question_recovers_distinct_stage_from_assistant_movement():
+    infer = safety_intelligence._safety_stage_from_history
+    question = "Are you safe from acting on these thoughts right now?"
+    connection_history = (
+        "assistant: If someone is with you, please stay connected with them while we make sure the immediate danger has passed.\\n"
+        "assistant question: " + question
+    )
+    contact_history = (
+        "assistant: If you have reached someone or emergency support, stay connected. If you have not, contact emergency or crisis support now.\\n"
+        "assistant question: " + question
+    )
+    recovery_history = (
+        "assistant: It is important to stay connected to support. We do not need to return to the other conversation yet.\\n"
+        "assistant question: " + question
+    )
+    assert infer(connection_history, question, "acute_followthrough") == "acute_connection"
+    assert infer(contact_history, question, "acute_followthrough") == "acute_contact"
+    assert infer(recovery_history, question, "acute_followthrough") == "recovery"
+
+
+def test_recovery_release_requires_a_distinct_second_safety_confirmation():
+    history = (
+        "assistant: It is important to stay connected to support. We do not need to return to the other conversation yet.\\n"
+        "assistant question: Are you safe from acting on these thoughts right now?"
+    )
+    assert safety_intelligence._safety_stage_from_history(
+        history,
+        "Are you safe from acting on these thoughts right now?",
+        "acute_followthrough",
+    ) == "recovery"
+    assert safety_intelligence._safety_transition(
+        "recovery",
+        safety_intelligence._safety_answer_class("yes", "recovery"),
+    ) == "release"
