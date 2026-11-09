@@ -51,7 +51,7 @@ def main_publish():
     # classification task, not something the publisher may infer silently.
     assets=list(assets.values())
     if not assets: raise RuntimeError("canonical WordPress registry returned no publishable assets")
-    snapshot={"contract":"archive-crosslink-inventory-v2","crosslink_ready":True,"complete":True,"source":"wordpress-canonical-registry","asset_count":len(assets),"refreshed_at":time.time(),"assets":sorted(assets.values(),key=lambda x:(x["resource_type"],x["title"].casefold()))}
+    snapshot={"contract":"archive-crosslink-inventory-v2","crosslink_ready":True,"complete":True,"source":"wordpress-canonical-registry","asset_count":len(assets),"refreshed_at":time.time(),"assets":sorted(assets,key=lambda x:(x["resource_type"],x["title"].casefold()))}
     raw=json.dumps(snapshot,ensure_ascii=False,sort_keys=True,separators=(",",":"))+"\n"
     OUTPUT.write_text(raw,encoding="utf-8")
     digest=hashlib.sha256(raw.encode()).hexdigest()
