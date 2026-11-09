@@ -286,7 +286,7 @@ def main():
     ]
     assert '"intent": "SAFETY_INTERRUPT"' in safety_segment
     assert "return await _use_send_json(send" in safety_segment
-    assert '"bypasses_ordinary_hrn": True' in safety_segment
+    assert '"bypasses_ordinary_relational_composition": True' in safety_segment
     assert '"bypasses_llm": True' in safety_segment
     assert '"bypasses_retrieval": True' in safety_segment
     assert "_FASTAPI_APP" not in safety_segment
