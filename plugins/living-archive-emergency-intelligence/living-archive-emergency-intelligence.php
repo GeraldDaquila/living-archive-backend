@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Living Archive Emergency Intelligence
- * Description: Verified, independently updateable emergency-resource intelligence for Living Archive instruments.
+ * Description: Deterministic, provenance-verified emergency-resource intelligence for Living Archive instruments.
  * Version: 0.1.3
  * Author: Living Archive
  * Requires at least: 6.2
@@ -48,7 +48,7 @@ add_action('plugins_loaded', function () {
 
 /**
  * Public service interface for Living Archive tools.
- * HRN and other instruments should call this interface rather than internal classes.
+ * Callers should use this interface rather than depending on internal implementation classes.
  */
 function living_archive_emergency_resolve($service_need, $location = [], $safety_state = 'unknown', $presentation_policy = null) {
     return LAEI_Engine::resolve($service_need, $location, $safety_state, $presentation_policy);
