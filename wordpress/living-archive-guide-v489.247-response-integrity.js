@@ -73,6 +73,7 @@ var guideSafetySubmissionInFlight = false;
 var guideSafetyLocationRequired = false;
 var guideSafetyCountry = '';
 var guideSafetyLocationRefused = false;
+var guideSafetyDeferredLocation = false;
 
 var guideRequestSequence = 0;
 var guideActiveRequestToken = 0;
@@ -708,6 +709,85 @@ function setSafetyFollowupVisible(
   }, 100);
 }
 
+async function resolveSafetyCountryResource(countryInput, actionButton) {
+
+  var country = String(countryInput && countryInput.value || '').trim();
+
+  if (!country) {
+    if (countryInput) countryInput.focus();
+    return;
+  }
+
+  if (actionButton) {
+    actionButton.disabled = true;
+    actionButton.textContent = 'Finding verified contact…';
+  }
+
+  try {
+    var response = await fetch(
+      'https://geralddaquila.com/wp-json/living-archive/emergency/v1/resolve',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_need: 'general_emergency',
+          safety_state: 'acute',
+          location: {
+            explicit_country: country,
+            user_confirmation: true
+          }
+        })
+      }
+    );
+
+    if (!response.ok) throw new Error('Emergency Intelligence unavailable');
+
+    var payload = await response.json();
+    var selection = payload && payload.selection ? payload.selection : {};
+    var primary = selection.primary;
+    var resources = primary ? [{
+      title: primary.display_name || 'Emergency assistance',
+      phone: primary.number || '',
+      service_type: Array.isArray(primary.service_types) ? primary.service_types[0] : '',
+      priority: primary.presentation_priority || 0,
+      source: primary._verification && primary._verification.source || '',
+      verification: primary._verification && primary._verification.status || ''
+    }] : [];
+
+    if (!resources.length || !resources[0].phone) {
+      throw new Error('No verified resource available');
+    }
+
+    guideSafetyCountry = country;
+    guideSafetyLocationRequired = false;
+    guideSafetyDeferredLocation = false;
+
+    var resourceBox = document.getElementById('archive-safety-resources');
+    if (resourceBox) {
+      resourceBox.innerHTML = renderSafetyResources(resources);
+      resourceBox.style.display = 'block';
+    }
+
+    var fields = document.getElementById('archive-safety-location-fields');
+    if (fields) fields.remove();
+
+    setSafetyFollowupVisible(
+      guideSafetyQuestion,
+      guideSafetyActive
+    );
+
+  } catch (error) {
+    if (actionButton) {
+      actionButton.disabled = false;
+      actionButton.textContent = 'Find verified emergency contact';
+    }
+  }
+}
+
+/* ================================================================
+   SAFETY LOCATION
+   ================================================================ */
+
 function syncSafetyLocationFields() {
 
   var wrapper = document.getElementById('archive-safety-followup');
@@ -795,9 +875,26 @@ function syncSafetyLocationFields() {
     refusalLabel.appendChild(refusal);
     refusalLabel.appendChild(refusalText);
 
+    var actionButton = document.createElement('button');
+    actionButton.type = 'button';
+    actionButton.textContent = 'Find verified emergency contact';
+    actionButton.style.marginTop = '12px';
+    actionButton.style.minHeight = '44px';
+    actionButton.style.padding = '10px 14px';
+    actionButton.style.border = '0';
+    actionButton.style.borderRadius = '10px';
+    actionButton.style.background = '#000';
+    actionButton.style.color = '#fff';
+    actionButton.style.font = 'inherit';
+    actionButton.style.cursor = 'pointer';
+    actionButton.addEventListener('click', function() {
+      resolveSafetyCountryResource(countryInput, actionButton);
+    });
+
     existing.appendChild(label);
     existing.appendChild(countryInput);
     existing.appendChild(refusalLabel);
+    existing.appendChild(actionButton);
     wrapper.insertBefore(existing, input);
   } else {
     var existingCountry = document.getElementById('archive-safety-country');
@@ -909,7 +1006,17 @@ function renderSafetyResponse(data) {
   }
 
   guideSafetyQuestion = question;
-  guideSafetyLocationRequired = Boolean(data && data.safety_location_required);
+  guideSafetyDeferredLocation = Boolean(
+    isInitialTurn &&
+    data &&
+    data.safety_location_required &&
+    question
+  );
+  guideSafetyLocationRequired = Boolean(
+    data &&
+    data.safety_location_required &&
+    !guideSafetyDeferredLocation
+  );
   guideSafetyState = String(
     data && data.safety && data.safety.state
       ? data.safety.state
@@ -953,8 +1060,12 @@ function renderSafetyResponse(data) {
       !safetyReleaseReady
     );
 
+  var locationOnlyStep =
+    guideSafetyLocationRequired &&
+    !resources.length;
+
   setSafetyFollowupVisible(
-    question,
+    locationOnlyStep ? '' : question,
     guideSafetyActive
   );
   syncSafetyLocationFields();
@@ -1443,6 +1554,7 @@ function resetGuideConversationHistory() {
   guideSafetyLocationRequired = false;
   guideSafetyCountry = '';
   guideSafetyLocationRefused = false;
+  guideSafetyDeferredLocation = false;
 }
 
 function handleResponseControl() {
