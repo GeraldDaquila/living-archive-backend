@@ -9,7 +9,7 @@ from safety_intelligence import (
     safety_intelligence_snapshot,
 )
 
-SAFETY_UTILITY_VERSION = "v3"
+SAFETY_UTILITY_VERSION = "v4"
 
 def build_safety_contribution(
     *,
