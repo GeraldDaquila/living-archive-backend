@@ -1225,6 +1225,10 @@ Visitor response: " . $message;
      * conversation handler, safety answer classifier, or safety transition.
      */
     public function resource_location_handler(WP_REST_Request $request) {
+        $integrity_error = self::perform_method_integrity_check();
+        if ($integrity_error !== '') {
+            return new WP_Error('lah_rn_runtime_integrity_failure', 'The resource request could not be processed because this HRN release failed its internal integrity check.', array('status'=>503,'retryable'=>true,'operation'=>'resource_location_runtime_integrity'));
+        }
         $country = $this->normalize_country($request->get_param('country'));
         $stage = sanitize_key((string)$request->get_param('safety_stage'));
         $question = (string)$request->get_param('safety_question');
