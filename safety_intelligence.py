@@ -41,7 +41,7 @@ _ACUTE_PATTERNS = (
     re.compile(r"\b(?:i\s+(?:overdosed|have\s+overdosed|took\s+an\s+overdose)|i\s+(?:have\s+hurt|have\s+harmed)\s+myself)\b", re.I),
     re.compile(r"\bi\s+(?:can't|cannot)\s+(?:keep|stay)\s+myself\s+safe\b", re.I),
     re.compile(r"\bi\s+want\s+to\s+die\b", re.I),
-    # Plain first-person suicidal intent belongs to the native acute HRN safety loop.
+    # Plain first-person suicidal intent belongs to the native acute safety loop.
     # Do not downgrade this boundary to the generic current-risk branch.
     re.compile(r"\b(?:i(?:'m| am)?\s+want(?:ing)?\s+to)\s+(?:kill\s+myself|end\s+my\s+life)\b", re.I),
 )
@@ -93,7 +93,7 @@ def normalize_safety_state(query: str, *, history: str = "") -> str | None:
     history_lines = [line.strip() for line in str(history or "").splitlines() if line.strip()]
     recent = " ".join(history_lines[-2:]).casefold()
     # A safety conversation remains in the safety lane while the visitor is
-    # answering one of HRN's active safety questions. Short answers such as
+    # answering one of the active safety questions. Short answers such as
     # "yes", "no", "not yet", or "I don't know" contain too little standalone
     # semantic material to classify safely. The preceding HRN question is the
     # authoritative conversational context and must therefore keep the request
@@ -135,7 +135,7 @@ def normalize_safety_state(query: str, *, history: str = "") -> str | None:
 
 
 # v488.60 boundary invariant: a short answer must remain inside the active
-# safety conversation when the preceding HRN question is still open.
+# safety conversation when the preceding safety question is still open.
 if normalize_safety_state(
     "yes",
     history="visitor: I don't want to live anymore.\nassistant: Do you think you might act on these thoughts right now?"
@@ -483,13 +483,11 @@ def repair_safety_question(
     query: str = "",
     history: str = "",
 ) -> str:
-    """Restore the next native safety movement when HRN returns no question.
+    """Restore the next native safety movement when a response omits its question.
 
-    This is a continuity guard, not a second safety system. HRN remains the
-    semantic authority whenever it returns a valid next question. The repair
-    exists only to prevent a live safety interruption from becoming a dead end.
-    It advances the visitor through the existing safety sequence rather than
-    repeating one generic question.
+    This is a continuity guard within the standalone deterministic state machine.
+    It prevents a live safety interruption from becoming a dead end and advances
+    the visitor through the governed safety sequence rather than repeating a question.
     """
     state = str(safety_state or "").strip().casefold()
     previous = " ".join(str(previous_question or "").strip().casefold().split())
@@ -721,9 +719,9 @@ def normalize_safety_resolution(
     safety_release_ready = bool(data.get("safety_release_ready"))
 
     if not safety_interrupt:
-        raise RuntimeError("HRN safety lane did not return an active safety interrupt.")
+        raise RuntimeError("Standalone safety state machine did not return an active safety interrupt.")
     if not safety_message:
-        raise RuntimeError("HRN safety lane returned no safety_message.")
+        raise RuntimeError("Standalone safety state machine returned no safety message.")
 
     # The local deterministic state machine owns safety state and language.
     # Emergency Intelligence alone owns phone resources. Never merge any
@@ -746,7 +744,7 @@ def normalize_safety_resolution(
         and resources
     )
     if not resources_are_location_grounded:
-        # A country guess from HRN is not location evidence. Keep the immediate
+        # A country guess from an untrusted source is not location evidence. Keep the immediate
         # safety exchange intact, disclose the missing local-resource context,
         # and let the UI/request boundary collect location before showing a number.
         resources = []
