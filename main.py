@@ -296,8 +296,10 @@ SAFETY_UTILITY_DIAGNOSTICS = safety_utility_snapshot()
 SAFETY_INTELLIGENCE_DIAGNOSTICS = safety_intelligence_snapshot()
 if SAFETY_INTELLIGENCE_DIAGNOSTICS.get("contract_version") != SAFETY_INTELLIGENCE_CONTRACT_VERSION:
     raise RuntimeError("USE safety intelligence contract integrity failure.")
-if SAFETY_UTILITY_DIAGNOSTICS.get("hrn_dependency") is not True:
-    raise RuntimeError("USE safety utility integrity failure: HRN safety linkage missing.")
+if SAFETY_UTILITY_DIAGNOSTICS.get("hrn_dependency") is not False:
+    raise RuntimeError("USE safety utility integrity failure: unexpected HRN dependency.")
+if SAFETY_UTILITY_DIAGNOSTICS.get("standalone_safety_state_machine") is not True:
+    raise RuntimeError("USE safety utility integrity failure: standalone deterministic state machine missing.")
 
 
 # Seeing the Relationship contribution invariant: HRN's human voice is
@@ -9233,9 +9235,9 @@ async def _use_request_boundary(scope, receive, send):
         return
 
     # Highest-priority sitewide Safety / Crisis boundary. The Guide owns
-    # the interruption boundary, but the existing HRN Safety Fractal +
-    # Emergency Intelligence system remains the semantic/resource authority.
-    # This is deliberately a sibling linkage, not a replacement safety routine.
+    # deterministic safety detection and orchestration; the standalone local
+    # state machine owns transitions and intervention language, while EI owns
+    # location-grounded emergency resources.
     history_text = _history_text(history)
     safety_question_hint = str(parsed_body.get("safety_question") or "").strip()
     safety_state_hint = str(parsed_body.get("safety_state") or "").strip().casefold()
@@ -9322,11 +9324,10 @@ async def _use_request_boundary(scope, receive, send):
                 raise RuntimeError("Safety utility returned no visitor response.")
 
             # Fail-closed continuity contract: an active safety interruption
-            # may never silently release because HRN returned a response without
-            # its next question. HRN remains the semantic authority. The shared
-            # safety-intelligence layer supplies a state-aware native next
-            # movement only when HRN omitted one; this boundary repeats that
-            # contract defensively for any malformed specialist payload.
+            # may never silently release because a safety response omitted its
+            # next question. The standalone state machine supplies the next
+            # deterministic movement; this boundary repeats that contract
+            # defensively for any malformed specialist payload.
             safety_release_ready = bool(safety_payload.get("safety_release_ready"))
             safety_question = str(safety_payload.get("safety_question") or "").strip()
             if not safety_release_ready and not safety_question:
@@ -9343,7 +9344,7 @@ async def _use_request_boundary(scope, receive, send):
             print(
                 "The Guide sitewide Safety utility: "
                 f"request_id={request_id}, state={safety_state}, "
-                "hrn_safety_lane=called, ordinary_hrn=not_called, llm=not_called, retrieval=not_called"
+                "standalone_safety_state_machine=called, hrn=not_called, llm=not_called, retrieval=not_called"
             )
             return await _use_send_json(send, {
                 "ok": True,
@@ -9359,8 +9360,7 @@ async def _use_request_boundary(scope, receive, send):
                 "handoff": "safety",
                 "handoff_mode": "interrupt",
                 "handoff_pending": False,
-                # Preserve the existing flat HRN safety response contract so
-                # the established safety UI can render without redesign.
+                # Preserve the flat safety response contract for the existing UI.
                 "safety_message": safety_payload.get("safety_message") or safety_response,
                 "safety_question": safety_payload.get("safety_question") or "",
                 "safety_note": safety_payload.get("safety_note") or "",
@@ -9372,7 +9372,7 @@ async def _use_request_boundary(scope, receive, send):
                 "safety": {
                     "state": safety_payload.get("safety_state") or safety_state,
                     "interrupt": True,
-                    "display_mode": safety_payload.get("display_mode") or "hrn_safety",
+                    "display_mode": safety_payload.get("display_mode") or "safety",
                     "resources": safety_payload.get("safety_resources") or safety_payload.get("resources") or [],
                     "next_movement": safety_payload.get("next_movement") or safety_payload.get("safety_question") or "",
                     "safety_message": safety_payload.get("safety_message") or safety_response,
