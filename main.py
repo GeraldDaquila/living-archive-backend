@@ -9382,7 +9382,7 @@ async def _use_request_boundary(scope, receive, send):
                     "country": safety_payload.get("country") or safety_country,
                     "safety_release_ready": bool(safety_payload.get("safety_release_ready")),
                     "safety_continuity_guard": safety_payload.get("safety_continuity_guard") or "",
-                    "bypasses_ordinary_hrn": True,
+                    "bypasses_ordinary_relational_composition": True,
                     "bypasses_llm": True,
                     "bypasses_retrieval": True,
                     "safety_intelligence_contract_version": SAFETY_INTELLIGENCE_CONTRACT_VERSION,
@@ -9421,7 +9421,7 @@ async def _use_request_boundary(scope, receive, send):
                 "safety": {
                     "state": safety_state,
                     "interrupt": True,
-                    "display_mode": "hrn_safety",
+                    "display_mode": "safety",
                     "resources": [],
                     "bypasses_ordinary_hrn": True,
                     "bypasses_llm": True,
@@ -10645,7 +10645,7 @@ app = streaming_entry(_guide_outer_visitor_response_boundary)
 
 
 print(f"USE ACTIVE + FORMATION SPECIALIST v1: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, formation_contract={FORMATION_CONTRIBUTION_CONTRACT_VERSION}, formation_voice_policy={FORMATION_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, provider_bank_contract={PROVIDER_BANK_CONTRACT_VERSION}, boundary_resilience={BOUNDARY_RESILIENCE_CONTRACT_VERSION}, guide_node_registry_state={guide_node_registry_state().get('state')}, capability_routing=provider_model_bank")
-print(f"USE SAFETY INTELLIGENCE: contract={SAFETY_INTELLIGENCE_CONTRACT_VERSION}, authority=HRN_Safety_Fractal_and_Emergency_Intelligence, resource_owner=Emergency Intelligence, resource_contract=living-archive/emergency/v1/resolve, sibling_link=relationship")
+print(f"USE SAFETY INTELLIGENCE: contract={SAFETY_INTELLIGENCE_CONTRACT_VERSION}, authority=Guide_Standalone_Deterministic_Safety_State_Machine_and_Emergency_Intelligence, resource_owner=Emergency Intelligence, resource_contract=living-archive/emergency/v1/resolve, sibling_link=relationship")
 
 # v487.88 synthesis hardening invariant: shared synthesis packaging is bounded and consumed downstream.
 if SHARED_EVIDENCE_CONTRACT_VERSION != "v1":
