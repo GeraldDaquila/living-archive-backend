@@ -114,6 +114,17 @@ $wrong_mapping_selection = LAEI_Resource_Selector::select('general_emergency', e
 ei_assert(($wrong_mapping_selection['selection_status'] ?? '') === 'VERIFICATION_PROVENANCE_MISSING', 'runtime selection rejects a resource not explicitly mapped to its evidence');
 ei_assert(count(ei_actions($wrong_mapping_selection)) === 0, 'mismatched resource-to-evidence mapping cannot generate a telephone action');
 
+$missing_authority = $canonical;
+foreach ($missing_authority['verification_records'] as &$record) {
+    if ($record['verification_id'] === 'VER-PH-911-2026') unset($record['authority_level']);
+}
+unset($record);
+ei_assert(LAEI_Registry::validate_candidate($missing_authority)['valid'] === false, 'candidate validator rejects missing authority metadata');
+ei_load_fixture($missing_authority);
+$missing_authority_selection = LAEI_Resource_Selector::select('general_emergency', ei_location('PH'), 'acute');
+ei_assert(($missing_authority_selection['selection_status'] ?? '') === 'VERIFICATION_PROVENANCE_MISSING', 'runtime selection rejects incomplete authority metadata');
+ei_assert(count(ei_actions($missing_authority_selection)) === 0, 'incomplete authority metadata cannot generate a telephone action');
+
 $missing_verification = $canonical;
 foreach ($missing_verification['resources'] as &$resource) {
     if ($resource['resource_id'] === 'PH-911-GENERAL') $resource['verification_id'] = 'VER-NOT-PRESENT';
