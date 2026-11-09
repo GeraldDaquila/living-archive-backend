@@ -37,7 +37,7 @@ class LAEI_Location_Resolver {
                 $conflicts[] = [
                     'scope' => 'country',
                     'values' => $distinct,
-                    'resolution' => 'highest_strength_evidence'
+                    'resolution' => isset($input['explicit_country']) && trim((string)$input['explicit_country']) !== '' ? 'explicit_user_statement' : 'highest_strength_evidence'
                 ];
             }
             $status = $country_confidence === 'high' ? 'RESOLVED' : 'PARTIALLY_RESOLVED';
@@ -69,18 +69,40 @@ class LAEI_Location_Resolver {
     private static function add_country(&$candidates, &$evidence, $value, $source, $confidence) {
         if (!$value) return;
         $value = strtoupper(sanitize_text_field($value));
-        $weights = ['high' => 100, 'medium' => 60, 'low' => 20];
-        $candidates[] = ['value' => $value, 'confidence' => $confidence, 'weight' => $weights[$confidence]];
+        // Explicit current user statements outrank all inferred location signals.
+        $weights = [
+            'explicit_user_statement' => 120,
+            'browser_geolocation' => 100,
+            'ip_geolocation' => 60,
+            'timezone' => 20,
+            'language_locale' => 10,
+        ];
+        $candidates[] = ['value' => $value, 'confidence' => $confidence, 'weight' => $weights[$source] ?? 0];
         $evidence[] = ['source' => $source, 'scope' => 'country', 'value' => $value, 'confidence' => $confidence];
     }
 
     private static function resource_selection_confidence($country, $status) {
         if ($status === 'REFUSED' || !$country) return 'unknown';
         $resources = LAEI_Registry::get_resources($country, 'general_emergency');
+        $now = (int)current_time('timestamp', true);
+
         foreach ($resources as $resource) {
+            if (($resource['status'] ?? '') !== 'active') continue;
             $verification = LAEI_Registry::get_verification($resource['verification_id'] ?? '');
-            if (($verification['status'] ?? '') === 'verified') return 'high';
+            if (!is_array($verification) || ($verification['status'] ?? '') !== 'verified') continue;
+            if (!LAEI_Registry::verification_provenance_valid($verification, $resource['resource_id'] ?? '')) continue;
+
+            $verified_at = (string)($verification['verified_at'] ?? '');
+            $review_due = (string)($verification['review_due'] ?? '');
+            if (!LAEI_Registry::valid_iso_date($verified_at) || !LAEI_Registry::valid_iso_date($review_due)) continue;
+
+            $verified = DateTimeImmutable::createFromFormat('!Y-m-d', $verified_at, new DateTimeZone('UTC'));
+            $review = DateTimeImmutable::createFromFormat('!Y-m-d', $review_due, new DateTimeZone('UTC'));
+            if (!$verified || !$review || $review < $verified) continue;
+            if ($verified->getTimestamp() > $now || $review->setTime(23, 59, 59)->getTimestamp() < $now) continue;
+
+            return 'high';
         }
-        return 'medium';
+        return 'unknown';
     }
 }
