@@ -14,6 +14,7 @@ OUTPUT=ROOT/"archive_crosslink_snapshot.json"
 CHECKSUM=ROOT/"archive_crosslink_snapshot.sha256"
 MANIFEST=ROOT/"archive_crosslink_editorial_manifest.json"
 BASE="https://geralddaquila.com/wp-json/wp/v2"
+SITE_ROOT="https://geralddaquila.com"
 PAGE_SIZE=100
 MAX_PAGES=50
 
@@ -63,7 +64,7 @@ def main_publish():
     # root URL rather than a normal per-record canonical URL. Keep that record
     # addressable under its WordPress identity and do not treat the URL shape as
     # grounds for territorial exclusion.
-    root_includes={str(r.get("id")) for r in records if str(r.get("id")) in include_ids and str(r.get("link","")).rstrip("/") == BASE.rstrip("/")}
+    root_includes={str(r.get("id")) for r in records if str(r.get("id")) in include_ids and str(r.get("link","")).rstrip("/") == SITE_ROOT.rstrip("/")}
     missing_includes=include_ids-present_ids-root_includes
     if missing_includes:
         raise RuntimeError(f"editorially included assets missing from registry: {sorted(missing_includes)}")
