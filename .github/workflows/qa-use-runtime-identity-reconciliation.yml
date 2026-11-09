@@ -16,13 +16,19 @@ jobs:
   reconcile:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout exact QA branch commit
+      - name: Checkout QA tooling branch
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Preserve read-only verifier and check out exact live commit
+        run: |
+          cp scripts/qa/reconcile_use_runtime_identity.py /tmp/reconcile_use_runtime_identity.py
+          git checkout --detach 94c6127bba3b76537b1d1262add98c43e77c64ab
+          mkdir -p scripts/qa
+          cp /tmp/reconcile_use_runtime_identity.py scripts/qa/reconcile_use_runtime_identity.py
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Recompute production runtime source manifest
+      - name: Recompute runtime source manifest from exact live commit
         run: python scripts/qa/reconcile_use_runtime_identity.py
