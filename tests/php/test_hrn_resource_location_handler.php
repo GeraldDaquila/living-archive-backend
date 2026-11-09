@@ -35,6 +35,7 @@ function living_archive_emergency_resolve($need, $location, $stage, $policy) {
     $GLOBALS['la_test_ei_calls'][] = array($need, $location, $stage, $policy);
     if ($GLOBALS['la_test_ei_mode'] === 'throw') throw new RuntimeException('EI unavailable');
     if ($GLOBALS['la_test_ei_mode'] === 'empty') return array('selection'=>array('selection_status'=>'NO_MATCH'));
+    if ($GLOBALS['la_test_ei_mode'] === 'duplicate') return array('registry_version'=>'test-registry', 'selection'=>array('selection_status'=>'SELECTED','primary'=>array('number'=>'911','display_name'=>'Emergency services')));
     if ($need === 'general_emergency') {
         if ($GLOBALS['la_test_ei_mode'] === 'equivalent') return array('registry_version'=>'test-registry', 'selection'=>array('selection_status'=>'MULTIPLE_EQUIVALENT','primary'=>array(
             array('number'=>'999','display_name'=>'Emergency services'),
@@ -76,6 +77,17 @@ $phones = array_values(array_filter(array_map(function($r){ return $r['phone'] ?
 assert_true(in_array('999', $phones, true) && in_array('112', $phones, true), 'equivalent emergency numbers are both retained');
 assert_true(count($GLOBALS['la_test_ei_calls']) === 3, 'EI is queried for the three defined resource categories');
 assert_true(($response['ei_registry_version'] ?? '') === 'test-registry', 'EI registry version is surfaced');
+
+$GLOBALS['la_test_ei_mode'] = 'duplicate';
+$deduplicated = $hrn->resource_location_handler($request);
+$dedupe_phones = array_values(array_filter(array_map(function($r){ return $r['phone'] ?? ''; }, $deduplicated['resources'] ?? array())));
+assert_true(count(array_filter($dedupe_phones, function($number){ return $number === '911'; })) === 1, 'duplicate emergency numbers from multiple EI categories are emitted only once');
+
+$GLOBALS['la_test_ei_mode'] = 'empty';
+$no_match = $hrn->resource_location_handler(new WP_REST_Request(array('country'=>'PH','safety_stage'=>'acute_contact','safety_question'=>$question,'safety_message'=>$safety_message)));
+assert_true(is_array($no_match) && !empty($no_match['resources']), 'EI no-match retains existing HRN continuity resources when available');
+assert_true(($no_match['resource_provenance'] ?? '') === 'hrn_legacy_fallback', 'EI no-match is accurately labelled as legacy fallback');
+assert_true(($no_match['stage'] ?? '') === 'acute_contact' && ($no_match['question'] ?? '') === $question, 'EI no-match preserves the active safety stage and question');
 
 $GLOBALS['la_test_ei_mode'] = 'throw';
 $GLOBALS['la_test_ei_calls'] = array();
