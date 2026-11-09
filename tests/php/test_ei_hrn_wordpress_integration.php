@@ -40,7 +40,7 @@ ei_hrn_assert(($data['stage'] ?? '') === 'acute_contact', 'HRN active safety sta
 ei_hrn_assert(($data['question'] ?? '') === 'Can you contact emergency support now?', 'HRN active safety question survives real REST dispatch');
 ei_hrn_assert(($data['message'] ?? '') === 'Please tell me which country you are in.', 'HRN existing prompt survives real REST dispatch');
 ei_hrn_assert(isset($data['resources']) && is_array($data['resources']), 'HRN response contains a structured resource list');
-ei_hrn_assert(in_array(($data['resource_provenance'] ?? ''), ['ei_verified_registry','hrn_legacy_fallback','combined'], true), 'HRN resource provenance is explicit');
+ei_hrn_assert(in_array(($data['resource_provenance'] ?? ''), ['ei_with_hrn_legacy_fallback','hrn_legacy_fallback'], true), 'HRN resource provenance is explicit');
 
 $bad = new WP_REST_Request('POST', '/living-archive/v1/emergency-resources');
 $bad->set_body_params([
