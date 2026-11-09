@@ -49,3 +49,14 @@ def test_conceptual_question_is_not_misclassified_as_practical_how_to():
     from general_guide_composition import is_practical_application_question
 
     assert not is_practical_application_question(RELATIONSHIP_QUESTION)
+
+
+def test_explanatory_question_rejects_deliberative_template_contamination():
+    from general_guide_composition import is_generic_nonanswer
+    query = "How can developmental language become hierarchical or dismissive?"
+    response = (
+        "A practical way to approach this is by clarifying the outcome and the responsibilities involved.\n\n"
+        "Next, compare a small number of realistic options and consider likely benefits, foreseeable harms, and who carries the costs.\n\n"
+        "Finally, act on the best-supported option and review the consequences."
+    )
+    assert is_generic_nonanswer(query, response)
