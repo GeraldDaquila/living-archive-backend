@@ -93,8 +93,11 @@ class LAEI_Registry {
 
     public static function verification_provenance_valid($record, $resource_id) {
         if (!is_array($record) || !is_array($record['resource_ids'] ?? null)) return false;
+        foreach (['verification_id','authority_level','verification_scope','source','evidence_type'] as $key) {
+            if (empty($record[$key])) return false;
+        }
         if (!in_array((string)$resource_id, $record['resource_ids'], true)) return false;
-        if (empty($record['source']) || !self::source_urls_valid($record['source_urls'] ?? null)) return false;
+        if (!self::source_urls_valid($record['source_urls'] ?? null)) return false;
         return true;
     }
 
