@@ -128,7 +128,7 @@ assert_true($invalid instanceof WP_Error && $invalid->get_error_code() === 'lah_
 
 $safety_method = new ReflectionMethod($hrn, 'safety_response');
 $safety_method->setAccessible(true);
-$initial_interrupt = $safety_method->invoke($hrn, 'acute', 'PH', 'I want to kill myself.');
+$initial_interrupt = $safety_method->invoke($hrn, 'acute', '', 'I want to kill myself.');
 assert_true(is_array($initial_interrupt) && ($initial_interrupt['resources'] ?? null) === array(), 'initial HRN safety interrupt exposes no legacy resource numbers');
 assert_true(!empty($initial_interrupt['location_required']), 'initial HRN safety interrupt requires explicit location before EI resource resolution');
 assert_true(($initial_interrupt['resource_provenance'] ?? '') === 'ei_location_resolution_pending', 'initial HRN safety interrupt marks EI resource resolution as pending');
