@@ -410,3 +410,18 @@ def test_emergency_contact_followthrough_is_deterministic():
     assert classify("I called 911", "acute_contact")["answer_class"] == "yes"
     assert classify("I haven't been able to reach anyone", "acute_contact")["answer_class"] == "no"
     assert classify("I have taken an overdose", "current")["self_harm"] is True
+
+
+def test_country_resource_step_is_a_discrete_followup_contract():
+    """Country resolution must not require unrelated free-text safety input."""
+    source = __import__('pathlib').Path('wordpress/living-archive-guide-v489.247-response-integrity.js').read_text(encoding='utf-8')
+    assert 'async function resolveSafetyCountryResource' in source
+    assert 'Find verified emergency contact' in source
+    assert 'explicit_country: country' in source
+
+
+def test_initial_safety_defers_location_until_after_immediate_question():
+    source = __import__('pathlib').Path('wordpress/living-archive-guide-v489.247-response-integrity.js').read_text(encoding='utf-8')
+    assert 'guideSafetyDeferredLocation' in source
+    assert 'isInitialTurn' in source
+    assert 'locationOnlyStep ? \'\' : question' in source
