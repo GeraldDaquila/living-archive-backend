@@ -7,6 +7,8 @@ on:
     paths:
       - "scripts/audit_archive_crosslink_integrity.py"
       - "archive_crosslink_snapshot.json"
+      - "archive_crosslink_editorial_manifest.json"
+      - "scripts/publish_archive_crosslink_snapshot.py"
       - ".github/workflows/crosslink-territorial-integrity-audit.yml"
   pull_request:
     paths:
@@ -40,6 +42,21 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Validate editorial manifest and candidate publisher
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m=json.loads(Path("archive_crosslink_editorial_manifest.json").read_text())
+          overlap=set(map(str,m.get("include_wp_ids",[]))) & set(map(str,m.get("exclude_wp_ids",{})))
+          if overlap: raise SystemExit(f"manifest include/exclude overlap: {sorted(overlap)}")
+          print(f"manifest_valid=true includes={len(m.get('include_wp_ids',[]))} excludes={len(m.get('exclude_wp_ids',{}))}")
+          PY
+          python -m scripts.publish_archive_crosslink_snapshot
+          mkdir -p candidate-output
+          cp archive_crosslink_snapshot.json candidate-output/archive_crosslink_snapshot.json
+          cp archive_crosslink_snapshot.sha256 candidate-output/archive_crosslink_snapshot.sha256
+          git checkout -- archive_crosslink_snapshot.json archive_crosslink_snapshot.sha256
       - name: Run read-only integrity audit
         env:
           LINK_CHECK: ${{ github.event_name == 'workflow_dispatch' && inputs.link_check || 'identity-only' }}
@@ -49,6 +66,14 @@ jobs:
           else
             python -m scripts.audit_archive_crosslink_integrity --skip-link-check --output-dir audit-output
           fi
+      - name: Upload candidate snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crosslink-candidate-snapshot
+          path: candidate-output/
+          if-no-files-found: warn
+          retention-days: 30
       - name: Upload audit reports
         if: always()
         uses: actions/upload-artifact@v4
