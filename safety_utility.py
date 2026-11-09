@@ -1,4 +1,4 @@
-"""Sitewide Safety / Crisis utility backed by the existing HRN safety system."""
+"""Sitewide Safety / Crisis utility backed by the standalone deterministic safety state machine."""
 from __future__ import annotations
 from typing import Any, Mapping
 
@@ -37,7 +37,7 @@ def build_safety_contribution(
         "request_id": str(request_id),
         "specialist_id": "safety",
         "status": "CONTRIBUTION",
-        "voice_policy": "preserve_hrn_safety_system",
+        "voice_policy": "preserve_standalone_deterministic_safety_system",
         "canonical_candidates": [],
         "boundary_notes": {
             "utility_version": SAFETY_UTILITY_VERSION,
@@ -49,7 +49,7 @@ def build_safety_contribution(
             "bypasses_retrieval": True,
             "resource_owner": "Emergency Intelligence",
             "language_owner": "HRN Safety Fractal",
-            "resolver_status": resolution.get("resolver_status", "hrn_emergency_intelligence"),
+            "resolver_status": resolution.get("resolver_status", "standalone_deterministic_safety_state_machine"),
             "emergency_selection_status": resolution.get("emergency_selection_status", ""),
             "emergency_presentation": resolution.get("emergency_presentation") or {},
             "emergency_registry_authority": "Emergency Intelligence",
@@ -67,7 +67,7 @@ def build_safety_contribution(
             "human_response": resolution.get("safety_message") or "",
             "safety_interrupt": True,
             "safety_state": resolution.get("safety") or state,
-            "display_mode": "hrn_safety",
+            "display_mode": "safety",
             "safety_message": resolution.get("safety_message") or "",
             "safety_question": resolution.get("safety_question") or "",
             "safety_note": resolution.get("safety_note") or "",
@@ -96,8 +96,9 @@ def safety_utility_snapshot() -> dict[str, Any]:
         "routing": "deterministic_pre_routing",
         "llm": False,
         "retrieval": False,
-        "hrn_dependency": True,
-        "hrn_role": "closest_sibling_safety_intelligence_provider",
+        "hrn_dependency": False,
+        "standalone_safety_state_machine": True,
+        "safety_state_machine": "standalone_deterministic",
         "safety_intelligence_contract_version": SAFETY_INTELLIGENCE_CONTRACT_VERSION,
         "safety_intelligence": snapshot,
     }
