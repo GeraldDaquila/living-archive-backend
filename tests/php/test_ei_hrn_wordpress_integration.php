@@ -22,7 +22,7 @@ ei_hrn_assert(isset($routes['/living-archive/emergency/v1/resolve-bundle']), 'EI
 $status = rest_do_request(new WP_REST_Request('GET', '/living-archive/emergency/v1/status'));
 ei_hrn_assert($status->get_status() === 200, 'EI status endpoint responds through WordPress REST dispatch');
 $status_data = $status->get_data();
-ei_hrn_assert(is_array($status_data) && ($status_data['plugin_version'] ?? '') === '0.1.2', 'EI status payload is serialized by WordPress REST');
+ei_hrn_assert(is_array($status_data) && ($status_data['plugin_version'] ?? '') === '0.1.3', 'EI status payload is serialized by WordPress REST');
 
 $req = new WP_REST_Request('POST', '/living-archive/v1/emergency-resources');
 $req->set_header('content-type', 'application/json');
