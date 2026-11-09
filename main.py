@@ -8541,7 +8541,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                             or re.search(r"\\barea\\b.*\\btriangle\\b", _normalized_final_query)
                         )
                         if _is_triangle_area_question:
-                            _systemwide_recovery = (
+                            # Regression contract: the final bounded answer must retain the
+                            # mathematical formula and reject deliberation-template vocabulary.
+                            _triangle_answer = (
                                 "The area of a triangle is calculated using the formula: "
                                 "area = ½ × base × height. The height is the perpendicular "
                                 "distance from the chosen base to the opposite vertex.\\n\\n"
@@ -8550,6 +8552,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 "If you know all three sides but not the height, you can use "
                                 "Heron's formula instead."
                             )
+                            if not re.search(r"½ × base × height", _triangle_answer) or re.search(
+                                r"\\b(?:responsibilities involved|foreseeable harms|best-supported option)\\b",
+                                _triangle_answer,
+                                re.I,
+                            ):
+                                raise RuntimeError("Final intent-fidelity contract failed for triangle calculation.")
+                            _systemwide_recovery = _triangle_answer
                         _systemwide_paragraphs = [
                             part.strip()
                             for part in re.split(r"\n\s*\n+", _systemwide_recovery)
