@@ -35,6 +35,7 @@ function living_archive_emergency_resolve($need, $location, $stage, $policy) {
     $GLOBALS['la_test_ei_calls'][] = array($need, $location, $stage, $policy);
     if ($GLOBALS['la_test_ei_mode'] === 'throw') throw new RuntimeException('EI unavailable');
     if ($GLOBALS['la_test_ei_mode'] === 'empty') return array('selection'=>array('selection_status'=>'NO_MATCH'));
+    if ($GLOBALS['la_test_ei_mode'] === 'malformed') return array('selection'=>'malformed-selection');
     if ($GLOBALS['la_test_ei_mode'] === 'duplicate') return array('registry_version'=>'test-registry', 'selection'=>array('selection_status'=>'SELECTED','primary'=>array('number'=>'911','display_name'=>'Emergency services')));
     if ($need === 'general_emergency') {
         if ($GLOBALS['la_test_ei_mode'] === 'equivalent') return array('registry_version'=>'test-registry', 'selection'=>array('selection_status'=>'MULTIPLE_EQUIVALENT','primary'=>array(
@@ -77,6 +78,7 @@ $phones = array_values(array_filter(array_map(function($r){ return $r['phone'] ?
 assert_true(in_array('999', $phones, true) && in_array('112', $phones, true), 'equivalent emergency numbers are both retained');
 assert_true(count($GLOBALS['la_test_ei_calls']) === 3, 'EI is queried for the three defined resource categories');
 assert_true(($response['ei_registry_version'] ?? '') === 'test-registry', 'EI registry version is surfaced');
+assert_true(count($GLOBALS['la_test_ei_calls'][0]) === 4 && !in_array($safety_message, $GLOBALS['la_test_ei_calls'][0], true), 'EI receives only resource need, explicit location, safety-state context, and policy—not the visitor answer or HRN prompt');
 
 $GLOBALS['la_test_ei_mode'] = 'duplicate';
 $deduplicated = $hrn->resource_location_handler($request);
@@ -88,6 +90,12 @@ $no_match = $hrn->resource_location_handler(new WP_REST_Request(array('country'=
 assert_true(is_array($no_match) && !empty($no_match['resources']), 'EI no-match retains existing HRN continuity resources when available');
 assert_true(($no_match['resource_provenance'] ?? '') === 'hrn_legacy_fallback', 'EI no-match is accurately labelled as legacy fallback');
 assert_true(($no_match['stage'] ?? '') === 'acute_contact' && ($no_match['question'] ?? '') === $question, 'EI no-match preserves the active safety stage and question');
+
+$GLOBALS['la_test_ei_mode'] = 'malformed';
+$malformed = $hrn->resource_location_handler($request);
+assert_true(is_array($malformed) && !empty($malformed['resources']), 'malformed EI selection is ignored and continuity resources remain available');
+assert_true(($malformed['stage'] ?? '') === 'acute_contact' && ($malformed['question'] ?? '') === $question, 'malformed EI output cannot change the active safety stage or question');
+assert_true(($malformed['resource_provenance'] ?? '') === 'hrn_legacy_fallback', 'malformed EI output is labelled as legacy fallback');
 
 $GLOBALS['la_test_ei_mode'] = 'throw';
 $GLOBALS['la_test_ei_calls'] = array();
@@ -108,4 +116,11 @@ $hrn->register_rest();
 $routes = $GLOBALS['la_test_routes'];
 $route = $routes['living-archive/v1/emergency-resources'] ?? array();
 assert_true(($route['permission_callback'] ?? '') === '__return_true', 'public route registration is explicit (rate limiting remains a separate security review)');
+assert_true(($route['methods'] ?? '') === WP_REST_Server::CREATABLE, 'resource-only route accepts POST requests');
+$route_args = $route['args'] ?? array();
+assert_true(array_keys($route_args) === array('country','safety_stage','safety_question','safety_message'), 'resource-only route exposes only country, safety stage, existing safety question, and existing HRN prompt');
+assert_true(!array_intersect(array('message','conversation','visitor_history','full_conversation'), array_keys($route_args)), 'visitor answers and conversation transcripts are not accepted by the EI adapter route');
+assert_true(($route_args['country']['validate_callback'])(str_repeat('A', 100)) === true && ($route_args['country']['validate_callback'])(str_repeat('A', 101)) === false, 'country input is length-bounded at 100 characters');
+assert_true(($route_args['safety_question']['validate_callback'])(str_repeat('Q', 500)) === true && ($route_args['safety_question']['validate_callback'])(str_repeat('Q', 501)) === false, 'safety question input is length-bounded at 500 characters');
+assert_true(($route_args['safety_message']['validate_callback'])(str_repeat('M', 1000)) === true && ($route_args['safety_message']['validate_callback'])(str_repeat('M', 1001)) === false, 'HRN prompt input is length-bounded at 1000 characters');
 echo "All isolated HRN handler execution tests passed.\n";
