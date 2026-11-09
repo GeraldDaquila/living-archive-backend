@@ -1,5 +1,5 @@
 {
-  "test_version": "0.1.1",
+  "test_version": "0.2.0",
   "tests": [
     {"id":"PH-GENERAL-001","country":"PH","service_need":"general_emergency","expected":["911"]},
     {"id":"US-GENERAL-001","country":"US","service_need":"general_emergency","expected":["911"]},
@@ -10,6 +10,6 @@
     {"id":"CN-TRAFFIC-001","country":"CN","service_need":"traffic","expected":["122"]},
     {"id":"GB-GENERAL-001","country":"GB","service_need":"general_emergency","expected_equivalence_group":"GB-EMERGENCY"},
     {"id":"UNKNOWN-GENERAL-001","country":null,"service_need":"general_emergency","expected_status":"LOCATION_REQUIRED"},
-    {"id":"REFUSED-GENERAL-001","country":null,"service_need":"general_emergency","refused":true,"expected_status":"FALLBACK_GENERAL_EMERGENCY"}
+    {"id":"REFUSED-GENERAL-001","country":null,"service_need":"general_emergency","refused":true,"expected_status":"LOCATION_REFUSED"}
   ]
 }
