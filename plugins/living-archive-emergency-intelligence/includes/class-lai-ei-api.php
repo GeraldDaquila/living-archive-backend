@@ -22,6 +22,16 @@ class LAEI_API {
                 'location' => ['required' => false, 'type' => 'object'],
             ],
         ]);
+        register_rest_route('living-archive/emergency/v1', '/resolve-bundle', [
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => [__CLASS__, 'resolve_bundle'],
+            'permission_callback' => '__return_true',
+            'args' => [
+                'service_needs' => ['required' => true, 'type' => 'array'],
+                'safety_state' => ['required' => false, 'type' => 'string'],
+                'location' => ['required' => true, 'type' => 'object'],
+            ],
+        ]);
     }
 
     public static function status() {
@@ -40,5 +50,35 @@ class LAEI_API {
         $location = $request->get_param('location');
         if (!is_array($location)) $location = [];
         return rest_ensure_response(LAEI_Engine::resolve($service, $location, $safety));
+    }
+
+    /**
+     * Resolve several resource categories from location evidence only.
+     * This endpoint never receives or interprets a visitor's safety answer.
+     */
+    public static function resolve_bundle(WP_REST_Request $request) {
+        $service_needs = $request->get_param('service_needs');
+        $location = $request->get_param('location');
+        $safety = sanitize_key($request->get_param('safety_state') ?: 'unknown');
+
+        if (!is_array($service_needs) || !is_array($location)) {
+            return new WP_Error('laei_invalid_bundle_request', 'A service list and location object are required.', ['status' => 400]);
+        }
+
+        $service_needs = array_values(array_unique(array_filter(array_map('sanitize_key', $service_needs))));
+        if (!$service_needs || count($service_needs) > 10) {
+            return new WP_Error('laei_invalid_service_list', 'Provide between one and ten service categories.', ['status' => 400]);
+        }
+
+        $results = [];
+        foreach ($service_needs as $service_need) {
+            $results[$service_need] = LAEI_Engine::resolve($service_need, $location, $safety);
+        }
+
+        return rest_ensure_response([
+            'operation' => 'resource_location_resolution',
+            'registry_version' => LAEI_Registry::version(),
+            'results' => $results,
+        ]);
     }
 }
