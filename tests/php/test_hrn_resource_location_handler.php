@@ -118,6 +118,9 @@ assert_true(($visitor_answer_rejected->get_error_data()['status'] ?? 0) === 400,
 $visitor_history_request = new WP_REST_Request(array('country'=>'PH','safety_stage'=>'acute_contact','safety_question'=>$question,'safety_message'=>$safety_message,'conversation'=>'visitor transcript'));
 $visitor_history_rejected = $hrn->resource_location_handler($visitor_history_request);
 assert_true($visitor_history_rejected instanceof WP_Error && $visitor_history_rejected->get_error_code() === 'lah_rn_visitor_content_not_accepted', 'runtime handler rejects conversation/transcript fields');
+$unknown_extra_request = new WP_REST_Request(array('country'=>'PH','safety_stage'=>'acute_contact','safety_question'=>$question,'safety_message'=>$safety_message,'unregistered_payload'=>'must not enter this operation'));
+$unknown_extra_rejected = $hrn->resource_location_handler($unknown_extra_request);
+assert_true($unknown_extra_rejected instanceof WP_Error && $unknown_extra_rejected->get_error_code() === 'lah_rn_visitor_content_not_accepted', 'runtime handler rejects arbitrary unregistered payload fields under a strict allowlist');
 
 $invalid = $hrn->resource_location_handler(new WP_REST_Request(array('country'=>'PH','safety_stage'=>'not-a-stage','safety_question'=>$question,'safety_message'=>$safety_message)));
 assert_true($invalid instanceof WP_Error && $invalid->get_error_code() === 'lah_rn_invalid_safety_stage', 'invalid safety stage fails closed');
