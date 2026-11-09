@@ -181,7 +181,8 @@
       "routing_model": "regional_dispatch",
       "verification_id": "VER-US-911-2026",
       "presentation_priority": 100,
-      "status": "active"
+      "status": "active",
+      "coverage_note": "911 is the national emergency number; local public-safety answering point coverage and service availability may vary by jurisdiction."
     },
     {
       "resource_id": "DE-112-EMERGENCY",
