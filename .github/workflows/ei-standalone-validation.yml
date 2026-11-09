@@ -1,0 +1,50 @@
+name: EI Standalone Validation
+
+on:
+  push:
+    branches:
+      - ei/standalone-provenance-20261109
+    paths:
+      - 'plugins/living-archive-emergency-intelligence/**'
+      - 'tests/php/test_ei_registry_provenance_and_expiry.php'
+      - 'tests/php/test_ei_update_manager_fail_closed.php'
+      - '.github/workflows/ei-standalone-validation.yml'
+  pull_request:
+    paths:
+      - 'plugins/living-archive-emergency-intelligence/**'
+      - 'tests/php/test_ei_registry_provenance_and_expiry.php'
+      - 'tests/php/test_ei_update_manager_fail_closed.php'
+      - '.github/workflows/ei-standalone-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  standalone-ei:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: PHP syntax validation
+        shell: bash
+        run: |
+          find plugins/living-archive-emergency-intelligence -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l tests/php/test_ei_registry_provenance_and_expiry.php
+          php -l tests/php/test_ei_update_manager_fail_closed.php
+
+      - name: Registry JSON validation
+        run: |
+          php -r '$data = json_decode(file_get_contents("plugins/living-archive-emergency-intelligence/data/emergency-registry.json"), true); if (!is_array($data)) { fwrite(STDERR, "Invalid EI registry JSON\n"); exit(1); } echo "EI registry JSON parses successfully.\n";'
+
+      - name: EI provenance and expiry contract
+        run: php tests/php/test_ei_registry_provenance_and_expiry.php
+
+      - name: EI remote-update fail-closed contract
+        run: php tests/php/test_ei_update_manager_fail_closed.php
