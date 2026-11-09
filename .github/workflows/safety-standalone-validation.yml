@@ -5,6 +5,7 @@ on:
     branches:
       - safety/standalone-deterministic-20261109
       - safety/visitor-flow-20261110
+      - safety/frontend-validation-20261110
     paths:
       - 'safety_intelligence.py'
       - 'safety_utility.py'
