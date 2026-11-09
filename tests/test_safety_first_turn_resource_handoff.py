@@ -32,8 +32,7 @@ def test_safety_adapter_does_not_turn_opening_query_into_prior_question(monkeypa
 
 def test_first_turn_waits_long_enough_for_verified_emergency_resource(monkeypatch):
     def fake_emergency_resolution(**kwargs):
-        # The live WordPress endpoint takes about 0.7s in production.
-        # Simulate realistic remote latency without calling the live registry.
+        # Simulate realistic resource endpoint latency without calling production.
         time.sleep(0.8)
         return {
             "selection": {
@@ -140,7 +139,7 @@ def test_followthrough_keeps_resource_when_country_name_resolves_to_iso_code():
     assert normalized["safety_location_required"] is False
 
 
-def test_followthrough_does_not_assert_another_person_is_present_without_evidence(monkeypatch):
+def test_followthrough_uses_local_deterministic_state_machine_without_hrn(monkeypatch):
     emergency_resolution = {
         "selection": {
             "selection_status": "SELECTED",
@@ -156,46 +155,34 @@ def test_followthrough_does_not_assert_another_person_is_present_without_evidenc
                 },
             },
         },
-        "location": {"location": {"country": {"value": "PH"}}},
+        "location": {
+            "resolution_status": "RESOLVED",
+            "location": {"country": {"value": "PH"}},
+        },
     }
 
     def fake_emergency(**kwargs):
         return emergency_resolution
 
-    def fake_hrn(**kwargs):
-        return {
-            "safety_interrupt": True,
-            "safety_message": (
-                "It helps to have another person with you. Please stay together "
-                "while we make sure the immediate danger has passed."
-            ),
-            "safety_question": "Are you safe from acting on these thoughts right now?",
-            "safety_note": "",
-            "safety_location_required": False,
-            "safety_release_ready": False,
-            "safety": "acute_connection",
-            "country": "PH",
-        }
-
     monkeypatch.setattr(safety_intelligence, "_request_emergency_intelligence", fake_emergency)
-    monkeypatch.setattr(safety_intelligence, "_request_hrn_safety", fake_hrn)
 
     result = safety_intelligence.resolve_safety(
-        query="No, I don't think I will act on them right now.",
+        query="yes, someone is with me",
         history=(
             "visitor: I don't want to live anymore.\\n"
-            "assistant: Do you think you might act on these thoughts right now?"
+            "assistant: Have you moved away from anything you could use to hurt yourself?"
         ),
         safety_state="acute_followthrough",
         country="Philippines",
     )
 
-    assert result["safety_presence"] == "unknown"
-    assert "another person with you" not in result["safety_message"].casefold()
+    assert result["resolver_status"] == "standalone_deterministic_state_machine"
+    assert result["safety_presence"] == "present"
+    assert "someone is with you" not in result["safety_message"].casefold()
     assert "stay together" not in result["safety_message"].casefold()
     assert result["safety_question"] == "Is there someone you trust who can stay with you right now?"
-    assert result["loop_guard"] == "unsupported_presence_claim_repaired"
     assert result["safety_resources"][0]["phone"] == "911"
+    assert not hasattr(safety_intelligence, "_request_hrn_safety")
 
 
 
@@ -312,3 +299,52 @@ def test_hypothetical_calibration_helper_ignores_unrelated_queries():
     assert main._hypothetical_safety_calibration_payload(
         "What is stewardship and why does it matter now more than ever?"
     ) is None
+
+def test_safety_transition_table_is_deterministic():
+    transition = safety_intelligence._safety_transition
+    assert transition("current", {"answer_class": "yes"}) == "immediacy"
+    assert transition("current", {"answer_class": "no"}) == "plan"
+    assert transition("current", {"answer_class": "uncertain"}) == "support"
+    assert transition("immediacy", {"answer_class": "yes"}) == "acute"
+    assert transition("immediacy", {"answer_class": "no"}) == "plan"
+    assert transition("acute", {"answer_class": "yes"}) == "acute_connection"
+    assert transition("acute", {"answer_class": "no"}) == "acute_followthrough"
+    assert transition("acute_followthrough", {"answer_class": "yes"}) == "acute_connection"
+    assert transition("acute_followthrough", {"answer_class": "no"}) == "acute_contact"
+    assert transition("acute_connection", {"answer_class": "yes"}) == "recovery"
+    assert transition("acute_connection", {"answer_class": "no"}) == "acute_contact"
+    assert transition("acute_contact", {"answer_class": "no"}) == "acute_barrier"
+    assert transition("acute_barrier", {"answer_class": "no"}) == "acute_hold"
+    assert transition("recovery", {"answer_class": "yes"}) == "release"
+    assert transition("acute", {"answer_class": "no", "self_harm": True}) == "acute"
+
+
+def test_safety_stage_is_recovered_from_the_active_question():
+    infer = safety_intelligence._safety_stage_from_question
+    assert infer("Do you think you might act on these thoughts right now?", "acute_followthrough") == "immediacy"
+    assert infer("Have you moved away from anything you could use to hurt yourself?", "acute_followthrough") == "acute"
+    assert infer("Is there someone you trust who can stay with you right now?", "acute") == "acute_followthrough"
+    assert infer("Can you contact emergency or crisis support now?", "acute") == "acute_contact"
+
+
+def test_emergency_resource_failure_does_not_block_deterministic_safety(monkeypatch):
+    def unavailable(**kwargs):
+        raise RuntimeError("simulated EI outage")
+    monkeypatch.setattr(safety_intelligence, "_request_emergency_intelligence", unavailable)
+    result = safety_intelligence.resolve_safety(
+        query="I want to die.",
+        safety_state="acute",
+        country="PH",
+    )
+    assert result["safety_interrupt"] is True
+    assert result["safety_message"]
+    assert result["safety_question"] == "Have you moved away from anything you could use to hurt yourself?"
+    assert result["safety_resources"] == []
+    assert result["safety_location_required"] is True
+
+
+def test_safety_snapshot_has_no_hrn_dependency():
+    snapshot = safety_intelligence.safety_intelligence_snapshot()
+    assert snapshot["hrn_dependency"] is False
+    assert snapshot["standalone_safety_state_machine"] is True
+    assert not hasattr(safety_intelligence, "_request_hrn_safety")
