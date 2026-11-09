@@ -1,7 +1,7 @@
 {
-  "registry_version": "2026.10.13.001",
-  "schema_version": "0.1",
-  "published_at": "2026-09-29T00:00:00Z",
+  "registry_version": "2026.11.09.001",
+  "schema_version": "0.2",
+  "published_at": "2026-11-09T00:00:00Z",
   "signature_required": false,
   "countries": [
     {
@@ -358,8 +358,15 @@
       "verification_scope": "national",
       "verified_at": "2026-09-29",
       "review_due": "2027-03-29",
-      "source": "DILG",
-      "evidence_type": "official_government_publication"
+      "source": "DILG / Philippine government hotline directory",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "PH-911-GENERAL"
+      ],
+      "source_urls": [
+        "https://ehotlines.e.gov.ph/",
+        "https://ncr.dilg.gov.ph/dilg-leads-nationwide-campaign-for-unified-911-emergency-hotline/"
+      ]
     },
     {
       "verification_id": "VER-US-911-2026",
@@ -368,8 +375,15 @@
       "verification_scope": "national",
       "verified_at": "2026-09-29",
       "review_due": "2027-03-29",
-      "source": "National 911 Program",
-      "evidence_type": "official_government_publication"
+      "source": "National 911 Program / Federal Communications Commission",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "US-911-GENERAL"
+      ],
+      "source_urls": [
+        "https://www.911.gov/",
+        "https://www.fcc.gov/general/9-1-1-and-e9-1-1-services"
+      ]
     },
     {
       "verification_id": "VER-DE-112-2026",
@@ -378,8 +392,15 @@
       "verification_scope": "national",
       "verified_at": "2026-09-29",
       "review_due": "2027-03-29",
-      "source": "gesund.bund.de",
-      "evidence_type": "official_government_publication"
+      "source": "German Federal Ministry of Health / European Commission",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "DE-112-EMERGENCY"
+      ],
+      "source_urls": [
+        "https://www.bundesgesundheitsministerium.de/service/gesetze-und-verordnungen/guv-21-lp/notfallreform/faq-notfallreform",
+        "https://digital-strategy.ec.europa.eu/en/policies/112"
+      ]
     },
     {
       "verification_id": "VER-CN-110-2026",
@@ -388,8 +409,15 @@
       "verification_scope": "national",
       "verified_at": "2026-09-29",
       "review_due": "2027-03-29",
-      "source": "Chinese government sources",
-      "evidence_type": "official_government_publication"
+      "source": "Beijing Municipal Government / UK Foreign, Commonwealth & Development Office",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "CN-110-POLICE"
+      ],
+      "source_urls": [
+        "https://english.beijing.gov.cn/travellinginbeijing/quickguideontravelservices/traveltips/202108/t20210811_2466839.html",
+        "https://www.gov.uk/foreign-travel-advice/china/getting-help"
+      ]
     },
     {
       "verification_id": "VER-CN-119-2026",
@@ -398,8 +426,15 @@
       "verification_scope": "national",
       "verified_at": "2026-09-29",
       "review_due": "2027-03-29",
-      "source": "Chinese government sources",
-      "evidence_type": "official_government_publication"
+      "source": "Beijing Municipal Government / UK Foreign, Commonwealth & Development Office",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "CN-119-FIRE"
+      ],
+      "source_urls": [
+        "https://english.beijing.gov.cn/travellinginbeijing/quickguideontravelservices/traveltips/202108/t20210811_2466839.html",
+        "https://www.gov.uk/foreign-travel-advice/china/getting-help"
+      ]
     },
     {
       "verification_id": "VER-CN-120-2026",
@@ -408,8 +443,15 @@
       "verification_scope": "national",
       "verified_at": "2026-09-29",
       "review_due": "2027-03-29",
-      "source": "Chinese government sources",
-      "evidence_type": "official_government_publication"
+      "source": "Beijing Municipal Government / UK Foreign, Commonwealth & Development Office",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "CN-120-MEDICAL"
+      ],
+      "source_urls": [
+        "https://english.beijing.gov.cn/travellinginbeijing/quickguideontravelservices/traveltips/202108/t20210811_2466839.html",
+        "https://www.gov.uk/foreign-travel-advice/china/getting-help"
+      ]
     },
     {
       "verification_id": "VER-CN-122-2026",
@@ -418,8 +460,15 @@
       "verification_scope": "national",
       "verified_at": "2026-09-29",
       "review_due": "2027-03-29",
-      "source": "Chinese government sources",
-      "evidence_type": "official_government_publication"
+      "source": "Beijing Municipal Government / UK Foreign, Commonwealth & Development Office",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "CN-122-TRAFFIC"
+      ],
+      "source_urls": [
+        "https://english.beijing.gov.cn/travellinginbeijing/quickguideontravelservices/traveltips/202108/t20210811_2466839.html",
+        "https://www.gov.uk/foreign-travel-advice/china/getting-help"
+      ]
     },
     {
       "verification_id": "VER-GB-999-112-2026",
@@ -428,8 +477,15 @@
       "verification_scope": "national",
       "verified_at": "2026-09-29",
       "review_due": "2027-03-29",
-      "source": "GOV.UK",
-      "evidence_type": "official_government_publication"
+      "source": "UK Government",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "GB-999-EMERGENCY",
+        "GB-112-EMERGENCY"
+      ],
+      "source_urls": [
+        "https://www.gov.uk/guidance/999-and-112-the-uks-national-emergency-numbers"
+      ]
     },
     {
       "verification_id": "VER-PH-NCMH-2026",
@@ -438,8 +494,15 @@
       "verification_scope": "national",
       "verified_at": "2026-10-13",
       "review_due": "2027-04-13",
-      "source": "https://ehotlines.e.gov.ph/ ; https://ekwentomo.dswd.gov.ph/faqs/",
-      "evidence_type": "official_government_publication"
+      "source": "Department of Social Welfare and Development / Philippine government hotline directory",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "PH-NCMH-CRISIS-24-7"
+      ],
+      "source_urls": [
+        "https://ekwentomo.dswd.gov.ph/faqs/",
+        "https://ehotlines.e.gov.ph/"
+      ]
     }
   ],
   "regional_overrides": []
