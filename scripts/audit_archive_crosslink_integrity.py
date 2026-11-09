@@ -21,7 +21,6 @@ import json
 import re
 import sys
 import time
-import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import unicodedata
 from collections import defaultdict
@@ -38,6 +37,8 @@ CHECKSUM_PATH = ROOT / "archive_crosslink_snapshot.sha256"
 WP_API = "https://geralddaquila.com/wp-json/wp/v2"
 PAGE_SIZE = 100
 MAX_PAGES = 50
+REGISTRY_PAGE_DELAY = 1.0
+REGISTRY_RETRIES = 5
 REQUEST_TIMEOUT = 12
 LINK_TIMEOUT = 6
 LINK_WORKERS = 12
@@ -109,7 +110,7 @@ def fetch_registry_type(post_type: str) -> dict[str, Any]:
         request = Request(url, headers={"Accept": "application/json", "User-Agent": USER_AGENT})
         started = time.monotonic()
         last_exc = None
-        for attempt in range(4):
+        for attempt in range(REGISTRY_RETRIES):
             try:
                 with urlopen(request, timeout=REQUEST_TIMEOUT) as response:
                     payload = json.loads(response.read().decode("utf-8"))
@@ -117,8 +118,13 @@ def fetch_registry_type(post_type: str) -> dict[str, Any]:
                 break
             except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
                 last_exc = exc
-                if isinstance(exc, HTTPError) and exc.code == 429 and attempt < 3:
-                    time.sleep(2.0 * (attempt + 1))
+                if isinstance(exc, HTTPError) and exc.code == 429 and attempt < REGISTRY_RETRIES - 1:
+                    retry_after = exc.headers.get("Retry-After") if getattr(exc, "headers", None) else None
+                    try:
+                        wait = float(retry_after) if retry_after else 5.0 * (attempt + 1)
+                    except (TypeError, ValueError):
+                        wait = 5.0 * (attempt + 1)
+                    time.sleep(wait)
                     continue
                 raise RuntimeError(f"WordPress {post_type} page {page} failed: {type(exc).__name__}: {exc}") from exc
         else:
@@ -148,6 +154,9 @@ def fetch_registry_type(post_type: str) -> dict[str, Any]:
                 "url": url,
                 "modified": clean_text(item.get("modified"), 100),
             })
+        # Pace normal pagination as well; the public REST API can throttle sustained bursts.
+        if REGISTRY_PAGE_DELAY:
+            time.sleep(REGISTRY_PAGE_DELAY)
         total_pages = headers.get("X-WP-TotalPages")
         if total_pages and page >= int(total_pages):
             break
