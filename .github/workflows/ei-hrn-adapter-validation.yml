@@ -48,6 +48,8 @@ jobs:
         shell: bash
         run: |
           find plugins/human-relational-navigator plugins/living-archive-emergency-intelligence -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: EI registry provenance and expiry tests
+        run: php tests/php/test_ei_registry_provenance_and_expiry.php
 
       - name: Frontend JavaScript syntax validation
         run: node --check plugins/human-relational-navigator/assets/relational-navigator.js
