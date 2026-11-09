@@ -74,6 +74,16 @@ try {
     check($badStatus !== 0 && strpos(implode("\n", $badOutput), 'outside the WordPress root') !== false,
         'Public-root output was not refused.');
 
+    // Safety gate: symlinks in either plugin tree must be refused.
+    $symlinkPath = $wp . '/wp-content/plugins/human-relational-navigator/linked-fixture.php';
+    symlink($wp . '/wp-content/plugins/human-relational-navigator/includes.php', $symlinkPath);
+    $symlinkCommand = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($script)
+        . ' --wp-root=' . escapeshellarg($wp) . ' --output-dir=' . escapeshellarg($out) . ' 2>&1';
+    exec($symlinkCommand, $symlinkOutput, $symlinkStatus);
+    check($symlinkStatus !== 0 && strpos(implode("\n", $symlinkOutput), 'Symlinks are not permitted') !== false,
+        'Plugin-tree symlink was not refused.');
+    unlink($symlinkPath);
+
     // Safety gate: credential-like content must be refused.
     file_put_contents($wp . '/wp-content/plugins/human-relational-navigator/fixture-data.php',
         "<?php // ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890\n");
