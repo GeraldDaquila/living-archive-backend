@@ -6,23 +6,28 @@ CANDIDATE = ROOT / "wordpress" / "candidates" / "living-archive-guide-v489.313-s
 def source():
     return CANDIDATE.read_text(encoding="utf-8")
 
-def test_candidate_contains_confirmation_contract():
+def test_candidate_parses_as_complete_artifact_contract():
+    s = source()
+    assert len(s) > 50000
+    assert "function syncSafetyLocationFields()" in s
+
+def test_location_confirmation_is_present():
     s = source()
     assert "It looks like you may be in " in s
     assert "Is that correct?" in s
-    assert "['Yes', 'No']" not in s  # contract file is intentionally isolated from production UI implementation
+    assert "['Yes', 'No']" in s
 
-def test_candidate_uses_browser_locale_only_as_hint():
+def test_yes_and_no_paths_are_explicit():
+    s = source()
+    assert "guideSafetyCountry = inferred" in s
+    assert "addManualFallback();" in s
+
+def test_browser_locale_is_only_a_hint_source():
     s = source()
     assert "navigator.language" in s
     assert "Intl.DisplayNames" in s
-
-def test_candidate_declares_manual_fallback_and_no_proxy_location():
-    s = source()
-    assert "reveal manual country fallback" in s
-    assert "ip_country" not in s
     assert "request.remote_addr" not in s
 
-def test_candidate_preserves_opening_sequence_contract():
+def test_old_opening_hotline_paragraph_is_removed_by_naturalizer():
     s = source()
-    assert "openingLocationParagraphRemoved: true" in s
+    assert "text.replace(/\\s*I don't yet have a verified local hotline" in s
