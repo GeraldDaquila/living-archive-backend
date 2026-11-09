@@ -1225,6 +1225,16 @@ Visitor response: " . $message;
      * conversation handler, safety answer classifier, or safety transition.
      */
     public function resource_location_handler(WP_REST_Request $request) {
+        // Enforce the resource-only boundary at runtime, not merely in the
+        // registered argument schema. WordPress REST requests can carry
+        // additional parameters unless the callback explicitly rejects them.
+        $all_params = method_exists($request, 'get_params') ? (array)$request->get_params() : array();
+        $forbidden_params = array('message','original_question','guide_question','query','conversation','visitor_history','full_conversation','unit_turns','session_id');
+        foreach ($forbidden_params as $forbidden_param) {
+            if (array_key_exists($forbidden_param, $all_params)) {
+                return new WP_Error('lah_rn_visitor_content_not_accepted', 'This resource-only operation accepts location and existing safety context only; visitor answers and conversation history are not accepted.', array('status'=>400,'operation'=>'resource_location_resolution'));
+            }
+        }
         $integrity_error = self::perform_method_integrity_check();
         if ($integrity_error !== '') {
             return new WP_Error('lah_rn_runtime_integrity_failure', 'The resource request could not be processed because this HRN release failed its internal integrity check.', array('status'=>503,'retryable'=>true,'operation'=>'resource_location_runtime_integrity'));
