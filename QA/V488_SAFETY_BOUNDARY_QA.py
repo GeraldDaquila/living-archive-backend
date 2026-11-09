@@ -31,7 +31,12 @@ def main():
     fast_initial = namespace["_initial_deterministic_safety_response"]
     normalize_resolution = namespace["normalize_safety_resolution"]
     repair = namespace["repair_safety_question"]
-    assert namespace["SAFETY_INTELLIGENCE_CONTRACT_VERSION"] == "v2.7"
+    assert namespace["SAFETY_INTELLIGENCE_CONTRACT_VERSION"] == "v3.0"
+    snapshot = namespace["safety_intelligence_snapshot"]()
+    assert snapshot["hrn_dependency"] is False
+    assert snapshot["standalone_safety_state_machine"] is True
+    assert "DEFAULT_HRN_ENDPOINT" not in safety_source
+    assert "_request_hrn_safety" not in safety_source
 
     assert classify("I don't want to live anymore.") in {"current", "acute"}
     assert classify("I don’t want to live anymore.") in {"current", "acute"}
@@ -55,11 +60,11 @@ def main():
     assert classify("I want to die.") == "acute"
 
     # High-confidence first-turn safety disclosures must have an immediate,
-    # provider-independent movement. The HRN safety composer is not allowed
-    # to become the critical path for this first question.
+    # provider-independent movement. No external conversational processor
+    # is allowed to become the critical path for this first question.
     fast = fast_initial(query="I want to die.", safety_state="acute", country="NL", emergency_resolution={})
     assert fast["safety"] == "acute"
-    assert fast["safety_question"] == "Do you think you might act on these thoughts right now?"
+    assert fast["safety_question"] == "Have you moved away from anything you could use to hurt yourself?"
     assert fast["safety_release_ready"] is False
     assert fast["resolver_status"] == "deterministic_initial_fast_path"
     assert "another person" in fast["safety_message"].casefold()
@@ -73,7 +78,7 @@ def main():
         },
         "selection": {"selection_status": "LOCATION_REQUIRED", "primary": []},
     }
-    hrn_with_us_numbers = {
+    unsafe_unscoped_resources = {
         "safety": "acute_connection",
         "safety_interrupt": True,
         "safety_message": "Please stay with another person while we make sure you are safe.",
@@ -88,7 +93,7 @@ def main():
         "safety_release_ready": False,
     }
     unlocated = normalize_resolution(
-        hrn_with_us_numbers,
+        unsafe_unscoped_resources,
         requested_state="acute",
         country="",
         emergency_resolution=unknown_location,
