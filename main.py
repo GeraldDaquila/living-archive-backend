@@ -36,7 +36,6 @@ from relationship_contribution import (
     relationship_contract_snapshot,
     validate_relationship_contribution,
 )
-from relationship_adapter import RelationshipAdapter
 from philippine_systems_adapter import PhilippineSystemsAdapter
 from formation_adapter import FormationAdapter
 from formation_contribution import (
@@ -285,7 +284,7 @@ if BOUNDARY_RESILIENCE_CONTRACT_VERSION != "v1":
 validate_registry()
 SPECIALIST_CAPABILITY_REGISTRY = registry_snapshot()
 SPECIALIST_ADAPTER_REGISTRY = SpecialistAdapterRegistry()
-SPECIALIST_ADAPTER_REGISTRY.register(RelationshipAdapter())
+# Relationship inquiries are handled natively by The Guide; no separate HRN specialist is registered.
 SPECIALIST_ADAPTER_REGISTRY.register(PhilippineSystemsAdapter())
 SPECIALIST_ADAPTER_REGISTRY.register(FormationAdapter())
 SPECIALIST_ADAPTER_REGISTRY.register(SafetyUtilityAdapter())
@@ -4127,79 +4126,6 @@ def _guide_capability_route(query, history=None):
         f"mode={mode}, confidence={confidence:.3f}, reason={reason[:180]!r}"
     )
     return result
-
-
-def _relationship_specialist_response(query, history, route, request_id, raw_body=None):
-    """Run Seeing the Relationship through the common specialist pipe."""
-    context = _relationship_guide_context(history, raw_body or {})
-    context["route_interpretation"] = route.get("round1_interpretation") or {}
-    hub_request = build_hub_request(
-        request_id=request_id,
-        guide_version=APP_VERSION,
-        original_question=query,
-        recognized_territory="human relationships",
-        processing_purpose="open relational exploration from The Guide",
-        guide_context=context,
-        safety_state="green",
-    )
-    hub_contribution = route_spoke(
-        request=hub_request,
-        specialist_id="relationship",
-        invoke=lambda **kwargs: invoke_specialist(
-            SPECIALIST_ADAPTER_REGISTRY,
-            **kwargs,
-        ),
-    )
-    contribution = {
-        "status": hub_contribution.status,
-        "voice_policy": hub_contribution.voice_policy,
-        "human_response": str(
-            (hub_contribution.payload or {}).get("human_response") or ""
-        ),
-        "interpretation": dict(
-            (hub_contribution.payload or {}).get("interpretation")
-            or hub_contribution.payload
-            or {}
-        ),
-        "perspectives": list(
-            (hub_contribution.payload or {}).get("perspectives") or []
-        ),
-        "movement": dict(
-            (hub_contribution.payload or {}).get("movement") or {}
-        ),
-        "canonical_candidates": list(hub_contribution.canonical_candidates),
-        "journey": dict(
-            (hub_contribution.payload or {}).get("journey") or {}
-        ),
-    }
-    response = _relationship_integrated_response(contribution)
-    if not response:
-        raise RuntimeError("Seeing the Relationship returned no human response.")
-
-    journey = contribution.get("journey") or {}
-    movement = contribution.get("movement") or {}
-    interpretation = contribution.get("interpretation") or {}
-
-    return {
-        "response": response,
-        "relational_delegation": {
-            "state": "open",
-            "specialist": "Seeing the Relationship",
-            "specialist_id": "relationship",
-            "contract_version": RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION,
-            "voice_policy": RELATIONSHIP_VOICE_POLICY,
-            "session_id": request_id,
-            "seed_message": query,
-            "conversation": context.get("conversation") or "",
-            "handoff_reason": "The Guide recognized that this lived situation is best explored as a relationship before choosing a doorway into the Archive.",
-            "hrn_endpoint": "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator",
-            "guide_return_endpoint": "/api/relational-return",
-            "return_mode": "guide_integrated",
-            "movement": movement,
-            "interpretation": interpretation,
-            "journey": journey,
-        },
-    }
 
 
 def _philippine_systems_specialist_response(query, history, route, request_id):
@@ -10543,11 +10469,6 @@ async def _formation_entrance_route(request: Request):
 
 if not any(getattr(route, "path", "") == "/api/formation-entrance" for route in app.routes):
     raise RuntimeError("USE formation entrance route registration invariant failed")
-
-@app.post("/api/relational-return")
-async def _v48755_relational_return_route(request: Request):
-    return await _v48755_relational_return(request)
-
 
 # v488.17 Philippine Systems native doorway invariant.
 if _philippine_systems_handoff_url("test") != "https://geralddaquila.com/understanding-the-philippines-culture-society-history-and-systemic-transformation/":
