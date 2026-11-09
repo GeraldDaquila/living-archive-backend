@@ -213,8 +213,7 @@ def main():
     assert 'safety_state_hint = str((safety_session or {}).get("state") or "").strip().casefold()' in main_source
     assert 'parsed_body.get("safety_active")' not in main_source
     assert 'issue_safety_session(' in main_source
-    assert 'safety_active_hint = bool(parsed_body.get("safety_active"))' in main_source
-    assert 'safety_state = "acute_followthrough"' in main_source
+    assert 'safety_state = safety_state_hint or "acute_followthrough"' in main_source
     assert '"safety_question": safety_question_hint' in main_source
     assert "safety_continuity_guard" in main_source
     assert "native_next_movement_repaired" in main_source
