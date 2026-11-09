@@ -27,6 +27,21 @@ ei_hrn_assert($status->get_status() === 200, 'EI status endpoint responds throug
 $status_data = $status->get_data();
 ei_hrn_assert(is_array($status_data) && ($status_data['plugin_version'] ?? '') === '0.1.3', 'EI status payload is serialized by WordPress REST');
 
+$interrupt = new WP_REST_Request('POST', '/living-archive/v1/relational-navigator');
+$interrupt->set_header('content-type', 'application/json');
+$interrupt->set_body_params([
+    'message' => 'I want to kill myself.',
+    'safety_stage' => 'green',
+    'country' => 'Philippines'
+]);
+$interrupt_response = rest_do_request($interrupt);
+ei_hrn_assert($interrupt_response->get_status() === 200, 'deterministic HRN safety interrupt responds through WordPress REST');
+$interrupt_data = $interrupt_response->get_data();
+ei_hrn_assert(!empty($interrupt_data['safety_interrupt']), 'explicit safety signal interrupts ordinary interpretation');
+ei_hrn_assert(($interrupt_data['safety_resources'] ?? null) === [], 'HRN safety interrupt exposes no legacy telephone resources');
+ei_hrn_assert(!empty($interrupt_data['safety_location_required']), 'HRN safety interrupt directs resource lookup through explicit EI location resolution');
+ei_hrn_assert(($interrupt_data['resource_provenance'] ?? '') === 'ei_location_resolution_pending', 'HRN safety interrupt marks EI resolution as pending');
+
 $canonical = json_decode(file_get_contents(LAEI_REGISTRY_FILE), true);
 if (!is_array($canonical)) throw new RuntimeException('Canonical EI registry fixture could not be loaded.');
 $registry_property = new ReflectionProperty('LAEI_Registry', 'registry');
