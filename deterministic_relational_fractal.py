@@ -74,8 +74,15 @@ def compose_relational_fractal(query):
 
     sentences = _sentences(q)
     matched = [label for pattern, label in _SIGNAL_PATTERNS if pattern.search(q)]
+    # Broader relational pattern inquiries may not contain a concrete surface
+    # signal (conflict, distance, workload, etc.). They still benefit from the
+    # same grounded, uncertainty-preserving orientation rather than falling
+    # through to the generic systems-analysis template.
     if not matched:
-        return None
+        if re.search(r"\b(?:repeat(?:ing|ed)?|recurr(?:ing|ence)|same pattern|painful pattern|always end up)\b", q, re.I):
+            matched = ["recurring pattern"]
+        else:
+            return None
 
     observation = _specific_observation(q, sentences, matched)
     if not observation:
@@ -120,6 +127,16 @@ def compose_relational_fractal(query):
         inquiry = (
             "When you notice this pattern, what feels most important to understand: what may be happening "
             "for the other person, or what balance would feel sustainable for you?"
+        )
+    elif "recurring pattern" in signal_set:
+        implication = (
+            "A repeated pattern can be worth examining without assuming that there is one hidden cause or that you are simply choosing the same outcome."
+        )
+        stake = (
+            "The useful question may be less why this keeps happening in the abstract and more what tends to become familiar, necessary, or difficult to change as the pattern takes shape."
+        )
+        inquiry = (
+            "Looking across the last two or three times this pattern appeared, what seems to happen earliest—before the relationship reaches the part that becomes painful?"
         )
     else:
         implication = (
