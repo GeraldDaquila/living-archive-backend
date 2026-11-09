@@ -65,7 +65,7 @@ jobs:
           result="$(php scripts/ei-hrn-release-snapshot.php --wp-root=/tmp/snapshot-wp --output-dir=/tmp/private-recovery)"
           echo "$result"
           archive="$(printf '%s' "$result" | php -r '$v=json_decode(stream_get_contents(STDIN),true); if (($v["status"] ?? "") !== "verified") exit(1); echo $v["archive"];')"
-          sha256sum -c "$archive.sha256"
+          (cd "$(dirname "$archive")" && sha256sum -c "$(basename "$archive").sha256")
           mkdir -p /tmp/restored-wp/wp-content/plugins
           unzip -q "$archive" -d /tmp/restored-wp/wp-content/plugins
           php -r '
