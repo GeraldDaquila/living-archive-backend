@@ -400,7 +400,7 @@ def test_local_recovery_state_releases_only_after_second_yes(monkeypatch):
         safety_state="acute_followthrough",
         country="PH",
     )
-    assert result["safety_state"] == "recovery"
+    assert result["safety"] == "recovery"
     assert result["safety_release_ready"] is True
     assert result["safety_question"] == ""
     assert result["resolver_status"] == "standalone_deterministic_state_machine"
