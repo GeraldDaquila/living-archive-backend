@@ -92,7 +92,7 @@ class LAEI_Registry {
     }
 
     public static function valid_iso_date($value) {
-        if (!is_string($value) || !preg_match('/^\\d{4}-\\d{2}-\\d{2}$/', $value)) return false;
+        if (!is_string($value) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) return false;
         $parts = explode('-', $value);
         return count($parts) === 3 && checkdate((int)$parts[1], (int)$parts[2], (int)$parts[0]);
     }
