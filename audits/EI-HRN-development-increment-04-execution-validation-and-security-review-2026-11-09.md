@@ -27,6 +27,11 @@ The EI–HRN adapter validation workflow completed successfully. All workflow st
 The PHP test loads the actual HRN plugin class and executes its handler under minimal WordPress stubs. The repository checkout does not contain the production canonical-retriever include, so the harness creates a temporary empty test-only include solely to satisfy plugin initialization, then removes it. The tested handler does not invoke canonical retrieval.
 This is not a full WordPress bootstrap, production plugin runtime, live EI registry integration, browser test, or end-to-end visitor journey. It does not certify WordPress hook ordering, actual REST serialization, reverse-proxy behavior, browser state, or hosting-level controls.
 
+
+## Additional read-only WordPress cache inspection
+A read-only inspection through the site's authorized Cowboy MCP administration path reported LiteSpeed Cache 7.9.3. Its `cache-rest` setting is enabled with a 3600-second REST cache TTL. This is not evidence that POST requests to these resource endpoints are cached; it does mean endpoint-specific cache behavior must be checked rather than assumed.
+The LiteSpeed object-cache feature flag is off in the returned settings, despite localhost/Memcached connection fields being populated. Therefore the rate-limit design must not assume a functioning distributed object cache or atomic shared counter. Confirm actual runtime behavior before choosing a counter store. No settings were changed.
+
 ## Security review — open findings
 1. The HRN resource-only route is public (`permission_callback => __return_true`). This is intentional for crisis accessibility, but the route currently has no explicit application-level rate limiting or abuse telemetry.
 2. The EI `/resolve` and `/resolve-bundle` routes are also public. Bundle validation limits the number of service categories to 10, but request-size controls, rate limiting and abuse telemetry need a separate review.
