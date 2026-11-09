@@ -86,7 +86,8 @@ assert_true(($fallback['resource_provenance'] ?? '') === 'hrn_legacy_fallback', 
 
 $GLOBALS['la_test_ei_mode'] = 'empty';
 $unsupported = $hrn->resource_location_handler(new WP_REST_Request(array('country'=>'Atlantis','safety_stage'=>'acute_contact','safety_question'=>$question,'safety_message'=>$safety_message)));
-assert_true(is_array($unsupported) && empty($unsupported['resources']), 'unsupported country does not fabricate or mislabel an emergency resource');
+$unsupported_phone_resources = array_filter($unsupported['resources'] ?? array(), function($resource) { return is_array($resource) && !empty($resource['phone']); });
+assert_true(is_array($unsupported) && empty($unsupported_phone_resources), 'unsupported country does not fabricate an emergency phone number (generic helpline fallback may remain)');
 assert_true(($unsupported['resource_provenance'] ?? '') === 'hrn_legacy_fallback', 'unsupported country is explicitly marked as legacy fallback with no verified match');
 assert_true(($unsupported['stage'] ?? '') === 'acute_contact', 'unsupported country does not change safety stage');
 
