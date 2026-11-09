@@ -1,6 +1,11 @@
 name: Crosslink Territorial Integrity Audit
 
 on:
+  pull_request:
+    paths:
+      - "scripts/audit_archive_crosslink_integrity.py"
+      - "archive_crosslink_snapshot.json"
+      - ".github/workflows/crosslink-territorial-integrity-audit.yml"
   workflow_dispatch:
     inputs:
       link_check:
@@ -30,7 +35,7 @@ jobs:
           python-version: "3.11"
       - name: Run read-only integrity audit
         env:
-          LINK_CHECK: ${{ inputs.link_check }}
+          LINK_CHECK: ${{ github.event_name == 'workflow_dispatch' && inputs.link_check || 'identity-only' }}
         run: |
           if [ "$LINK_CHECK" = "full-destination-check" ]; then
             python -m scripts.audit_archive_crosslink_integrity --output-dir audit-output
