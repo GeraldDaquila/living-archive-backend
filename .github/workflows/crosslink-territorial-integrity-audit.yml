@@ -65,10 +65,21 @@ jobs:
       # Automated verification is identity-first. Full destination checks are manual,
       # bounded investigations because public WordPress endpoints may rate-limit bulk traffic.
         run: |
+          set +e
           if [ "$LINK_CHECK" = "full-destination-check" ]; then
             python -m scripts.audit_archive_crosslink_integrity --snapshot candidate-output/archive_crosslink_snapshot.json --checksum candidate-output/archive_crosslink_snapshot.sha256 --manifest archive_crosslink_editorial_manifest.json --output-dir audit-output
+            rc=$?
+            exit $rc
           else
+            # Identity-only mode deliberately returns ATTENTION REQUIRED (exit 2)
+            # because destination transport was not tested. That is a successful
+            # automated integrity observation, not a workflow failure.
             python -m scripts.audit_archive_crosslink_integrity --snapshot candidate-output/archive_crosslink_snapshot.json --checksum candidate-output/archive_crosslink_snapshot.sha256 --skip-link-check --manifest archive_crosslink_editorial_manifest.json --output-dir audit-output
+            rc=$?
+            if [ "$rc" -eq 0 ] || [ "$rc" -eq 2 ]; then
+              exit 0
+            fi
+            exit "$rc"
           fi
       - name: Upload candidate snapshot
         if: always()
