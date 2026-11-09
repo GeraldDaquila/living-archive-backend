@@ -65,6 +65,7 @@ from provider_bank import (
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
 import archive_crosslink
+from archive_concept_registry import LAW_OF_ONE_CONCEPT_RECORD
 from pinecone_retrieval_budget import install_pinecone_retrieval_budget, PineconeRequestBudgetMiddleware
 from guide_request_budget import (
     REQUEST_BUDGET_SECONDS as GUIDE_REQUEST_BUDGET_SECONDS,
@@ -6655,32 +6656,10 @@ def _established_general_knowledge_recovery(query):
     if not normalized:
         return None
 
-    # Public concept registry: these are bounded, stable orientation records.
-    # They are explicitly general knowledge, never Archive attribution. New
-    # concepts must be registered with a precise phrase and reviewed response;
-    # fuzzy title matches are not permitted to manufacture definitions.
-    public_concepts = {
-        "law of one": {
-            "fact_id": "public_concept_law_of_one",
-            # The public concept answer is not a navigation bypass. This exact
-            # subject is also used for canonical Archive retrieval so a glossary
-            # record or relevant essay can still become a qualified doorway.
-            "subject": "Law of One",
-            # A reviewed canonical doorway belongs to the concept record itself.
-            # This keeps recognized concepts navigable even when vector retrieval
-            # is temporarily unavailable (for example, an index quota outage).
-            "doorway": {
-                "title": "Law of One — Living Glossary",
-                "url": "https://geralddaquila.com/glossary/",
-            },
-            "response": (
-                "“The Law of One” is a spiritual and philosophical idea centered on the unity of all existence. "
-                "The phrase is especially associated with *The Law of One* (the Ra Material), where reality is described as ultimately one, with apparent differences understood within a larger unity.\n\n"
-                "That is a general orientation to the term, not a claim about how the Living Archive uses it. "
-                "Different traditions may give the idea different meanings, so the specific source or tradition matters when a more precise interpretation is needed."
-            ),
-        },
-    }
+    # Concept registry: bounded, reviewed records may represent general
+    # knowledge or an Archive-specific canonical definition. Each record owns
+    # its attribution and doorway; do not infer either from a fuzzy title match.
+    public_concepts = {"law of one": LAW_OF_ONE_CONCEPT_RECORD}
     named_concept = re.match(
         r"^(?:(?:can|could)\s+you\s+|please\s+)?"
         r"(?:what\s+is|what\s+does|define|explain|meaning\s+of)\s+"

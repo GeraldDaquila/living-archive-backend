@@ -2070,6 +2070,18 @@ def _requires_archive_scoped_stewardship(question: str) -> bool:
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    # Constitutional questions have a source-specific reasoning contract that
+    # ordinary paragraph/definition checks cannot establish. Enforce it after
+    # provider composition and every deterministic rewrite, including recovery.
+    if _is_archive_constitutional_question(question) and not _has_archive_constitutional_reasoning(candidate):
+        # The final boundary has no canonical-source payload, so it must never
+        # manufacture a constitutional explanation. Evidence-gated recovery
+        # belongs in compose(), where the retrieved Constitutional Register
+        # and its verified doorway are available together.
+        raise RuntimeError(
+            "Archive constitutional-reasoning contract failed at final visitor boundary; "
+            "evidence-grounded recovery was not supplied."
+        )
     if _requires_fragmented_knowledge_explanation(question) and not _has_fragmented_knowledge_explanation(candidate):
         candidate = _fragmented_knowledge_recovery()
     if _requires_fragmented_knowledge_explanation(question) and not _has_fragmented_knowledge_explanation(candidate):
@@ -2134,6 +2146,45 @@ def enforce_response_contracts(question: str, response: str) -> str:
         raise RuntimeError("Responsibility-boundary response contract failed after recovery.")
     candidate = _remove_visitor_meta_commentary(candidate)
     return candidate
+
+
+def _has_archive_constitutional_reasoning(response: str) -> bool:
+    """Require the Archive-specific constitutional reasoning distinctions."""
+    text = _normalize_space(response).casefold()
+    required = (
+        r"\bconstitutional reasoning\b",
+        r"\bgoverning relationships\b",
+        r"\bconstitutional architecture\b",
+        r"\b(?:later interpretation|subsequent interpretation|interpretive layer)\b",
+        r"\brecovery before translation\b",
+    )
+    return all(re.search(pattern, text) for pattern in required)
+
+
+def _archive_constitutional_reasoning_recovery() -> str:
+    """Bounded answer contract for Archive-specific constitutional questions."""
+    return (
+        "Within the Living Archive, constitutional reasoning means recovering the principles "
+        "and governing relationships that organize its canonical body of knowledge. It asks "
+        "how concepts, responsibilities, and source texts relate to one another, rather than "
+        "treating each page as an isolated statement or assuming that a later explanation "
+        "establishes the underlying rule. The aim is to make the Archive's constitutional "
+        "architecture legible while distinguishing what the sources establish from what "
+        "a reader may reasonably infer.\n\n"
+        "The order matters: recovery before translation, and clarity before application. "
+        "For example, when two Archive texts address governance and stewardship, constitutional "
+        "reasoning first identifies the governing relationships and commitments actually "
+        "supported by the canonical material. Only after those relationships are recovered "
+        "should they be translated into public language, institutional practice, or a practical "
+        "decision. This prevents a convenient interpretation from being mistaken for the source "
+        "architecture itself.\n\n"
+        "Recovered constitutional architecture must therefore remain distinct from later "
+        "interpretation. A connection stated directly in a canonical source can be described "
+        "as established; a connection inferred across sources should be labelled as inference; "
+        "and an unsupported formal rule should not be invented. Constitutional reasoning is "
+        "the discipline of preserving those distinctions so that translation and application "
+        "remain faithful to what the Archive actually establishes."
+    )
 
 
 def _has_responsibility_boundary_explanation(response: str) -> bool:

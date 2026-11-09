@@ -946,6 +946,18 @@ def expand_context(
         )
         return []
     assets = select_crosslinks(query, seed_documents, snapshot)
+    # Emit privacy-safe evidence that the selector actually ran. Previously,
+    # only successful additions were logged, making a healthy zero-match
+    # evaluation indistinguishable from a bypassed integration.
+    _log(
+        "USE archive meta-crosslink selection: "
+        f"snapshot_contract={snapshot.get('contract')}, "
+        f"assets_available={len(snapshot.get('assets', []))}, "
+        f"seed_documents={len(seed_documents or [])}, "
+        f"query_token_count={len(_tokens(query))}, "
+        f"selected={len(assets)}, "
+        "mode=territorial_navigation"
+    )
     # v2 is a territorial navigation map, not a substitute corpus. Its
     # canonical WordPress records supply destination links without Pinecone.
     return [
