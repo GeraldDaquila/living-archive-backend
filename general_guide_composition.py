@@ -883,6 +883,21 @@ def _orientation_anchor_recovery() -> str:
     )
 
 
+def _explanatory_template_mismatch(query: str, response: str) -> bool:
+    """Reject decision-planning boilerplate when an explanatory question was asked."""
+    if _question_shape(query) != "explanatory":
+        return False
+    text = _normalize_space(response).casefold()
+    planning_markers = (
+        "clarifying the outcome and the responsibilities involved",
+        "compare a small number of realistic options",
+        "likely benefits, foreseeable harms",
+        "act on the best-supported option",
+        "who carries the costs",
+    )
+    return sum(marker in text for marker in planning_markers) >= 2
+
+
 def is_generic_nonanswer(query: str, response: str) -> bool:
     """Reject generic composition filler and off-task openings even when formatted well."""
     text = _normalize_space(response).casefold()
@@ -891,6 +906,8 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
     if not _has_direct_definition_for_subject(query, response):
         return True
     if any(re.search(pattern, text, re.I) for pattern in _GENERIC_NONANSWER_PATTERNS):
+        return True
+    if _explanatory_template_mismatch(query, response):
         return True
 
     paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", response) if p.strip()]
