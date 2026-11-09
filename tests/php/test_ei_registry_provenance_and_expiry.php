@@ -14,7 +14,7 @@ define('LAEI_REGISTRY_FILE', $temp_registry);
 
 $GLOBALS['laei_test_now'] = strtotime('2026-11-09 12:00:00 UTC');
 function current_time($type, $gmt = false) { return $GLOBALS['laei_test_now']; }
-function sanitize_key($value) { return preg_replace('/[^a-z0-9_\\-]/', '', strtolower((string)$value)); }
+function sanitize_key($value) { return preg_replace('/[^a-z0-9_-]/', '', strtolower((string)$value)); }
 function sanitize_text_field($value) { return trim(strip_tags((string)$value)); }
 
 require_once __DIR__ . '/../../plugins/living-archive-emergency-intelligence/includes/class-lai-ei-registry.php';
