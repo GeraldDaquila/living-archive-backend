@@ -4,6 +4,15 @@ if (!defined('ABSPATH')) exit;
 class LAEI_Resource_Selector {
     public static function select($service_need, $location, $safety_state = 'unknown') {
         $service_need = sanitize_key($service_need);
+        $service_aliases = [
+            'emergency' => 'general_emergency',
+            'emergency_medical' => 'medical',
+            'medical_emergency' => 'medical',
+            'crisis' => 'crisis_support',
+            'mental_health' => 'mental_health_support',
+            'suicide_crisis' => 'suicidal_crisis',
+        ];
+        $service_need = $service_aliases[$service_need] ?? $service_need;
         $country = strtoupper((string)($location['location']['country']['value'] ?? ''));
         $status = $location['resolution_status'] ?? 'UNKNOWN';
 
@@ -16,9 +25,6 @@ class LAEI_Resource_Selector {
         }
 
         $candidates = LAEI_Registry::get_resources($country, $service_need);
-        if (!$candidates && $service_need === 'emergency') {
-            $candidates = LAEI_Registry::get_resources($country, 'general_emergency');
-        }
         if (!$candidates) {
             return self::fallback($status, 'no_matching_service');
         }
