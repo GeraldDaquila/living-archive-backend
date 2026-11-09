@@ -59,7 +59,12 @@ def main_publish():
     # classification task, not something the publisher may infer silently.
     assets=[item for item in assets.values() if item["wp_id"] not in exclude_ids]
     present_ids={item["wp_id"] for item in assets}
-    missing_includes=include_ids-present_ids
+    # An explicitly included root-level identity may be represented by the site
+    # root URL rather than a normal per-record canonical URL. Keep that record
+    # addressable under its WordPress identity and do not treat the URL shape as
+    # grounds for territorial exclusion.
+    root_includes={str(r.get("id")) for r in records if str(r.get("id")) in include_ids and str(r.get("link","")).rstrip("/") == BASE.rstrip("/")}
+    missing_includes=include_ids-present_ids-root_includes
     if missing_includes:
         raise RuntimeError(f"editorially included assets missing from registry: {sorted(missing_includes)}")
     if not assets: raise RuntimeError("canonical WordPress registry returned no publishable assets")
