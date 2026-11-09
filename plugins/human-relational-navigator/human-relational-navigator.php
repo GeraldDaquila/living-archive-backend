@@ -941,7 +941,7 @@ final class Living_Archive_Human_Relational_Navigator {
         $resources = array();
         $seen = array();
         $ei_used = false;
-        $ei_available = function_exists('living_archive_emergency_resolve');
+        $ei_available = function_exists('living_archive_emergency_resolve') && defined('LAEI_VERSION') && version_compare((string)LAEI_VERSION, '0.1.3', '>=');
         $failure_reasons = array();
         $registry_version = null;
 
