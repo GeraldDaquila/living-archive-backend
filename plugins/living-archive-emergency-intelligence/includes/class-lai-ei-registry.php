@@ -160,7 +160,7 @@ class LAEI_Registry {
             if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$record['verified_at']) || strtotime($record['verified_at'] . ' 00:00:00 UTC') === false) {
                 return ['valid' => false, 'error' => 'Verification record has invalid verified_at date.'];
             }
-            if (!preg_match('/^\\d{4}-\\d{2}-\\d{2}$/', (string)$record['review_due']) || strtotime($record['review_due'] . ' 23:59:59 UTC') === false) {
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$record['review_due']) || strtotime($record['review_due'] . ' 23:59:59 UTC') === false) {
                 return ['valid' => false, 'error' => 'Verification record has invalid review_due date.'];
             }
             if (!is_array($record['resource_ids']) || empty($record['resource_ids'])) return ['valid' => false, 'error' => 'Verification record must map to one or more resource IDs.'];
