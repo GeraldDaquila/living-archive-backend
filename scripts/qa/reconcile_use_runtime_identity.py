@@ -32,9 +32,10 @@ def runtime_source_manifest_sha256() -> tuple[str, int, list[str]]:
         relative_name = path.relative_to(ROOT).as_posix()
         names.append(relative_name)
         digest.update(relative_name.encode("utf-8"))
-        digest.update(b"\0")
+        # Match main.py byte-for-byte: this is backslash + "0", not a NUL byte.
+        digest.update(b"\\0")
         digest.update(path.read_bytes())
-        digest.update(b"\0")
+        digest.update(b"\\0")
     return digest.hexdigest(), len(source_files), names
 
 
