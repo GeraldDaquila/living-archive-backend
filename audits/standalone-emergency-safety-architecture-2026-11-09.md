@@ -38,7 +38,7 @@ The EI plugin is maintained separately on `ei/standalone-provenance-20261109` an
 
 ## Validation evidence
 ### EI branch
-- GitHub Actions run #42604630371: success.
+- GitHub Actions run #42606912256 on the combined Safety branch: success.
 - PHP syntax, registry JSON, provenance/expiry, location precedence, resource alternatives, update security gate.
 - Disposable WordPress + MariaDB bootstrap with EI plugin only.
 - Real REST dispatch: PH 911, unknown location, refusal, unsupported country, POST-only resolve route, status route, and strict visitor-content rejection.
@@ -48,7 +48,7 @@ The EI plugin is maintained separately on `ei/standalone-provenance-20261109` an
 - Python compile of Safety and Guide modules.
 - V488 Safety Boundary QA.
 - Safety state-machine regression tests: first-turn fast path, no-HRN follow-up, deterministic transition matrix, stage recovery from serialized history, two-step recovery/release, EI outage continuity, emergency-contact classification, and no-HRN snapshot.
-- The tests import the Guide runtime and verify the standalone safety contract.
+- The tests import the Guide runtime and verify the standalone safety contract. The latest Safety branch run #42606711297 passed.
 
 ## Mini-USE infrastructure boundary
 Mini-USE Workspace was inspected read-only. The existing Catalogue production, stewardship, and candidate services were not repurposed, reconfigured, redeployed, or replaced. No new Render service was created.
