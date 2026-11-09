@@ -43,7 +43,7 @@ if ($safetyStart === false || $safetyEnd === false) {
 $safetyResponse = substr($php, $safetyStart, $safetyEnd - $safetyStart);
 if (strpos($safetyResponse, '$this->resolve_ei_resource_bundle($country_code, $stage)') === false ||
     strpos($safetyResponse, "'resources'=>\$bundle['resources']") === false ||
-    strpos($safetyResponse, "'location_required'=>($country_code === '')") === false ||
+    strpos($safetyResponse, "'location_required'=>(\$country_code === '')") === false ||
     strpos($safetyResponse, '$this->safety_resource_bundle(') !== false) {
     fwrite(STDERR, "Initial HRN safety response is not using the EI-only resource resolver.\\n");
     exit(1);
