@@ -9,8 +9,10 @@ or any live provider.
 from pathlib import Path
 import ast
 import json
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 
 def _source(path: str) -> str:
@@ -31,7 +33,12 @@ def main():
     fast_initial = namespace["_initial_deterministic_safety_response"]
     normalize_resolution = namespace["normalize_safety_resolution"]
     repair = namespace["repair_safety_question"]
-    assert namespace["SAFETY_INTELLIGENCE_CONTRACT_VERSION"] == "v2.7"
+    assert namespace["SAFETY_INTELLIGENCE_CONTRACT_VERSION"] == "v3.0"
+    snapshot = namespace["safety_intelligence_snapshot"]()
+    assert snapshot["hrn_dependency"] is False
+    assert snapshot["standalone_safety_state_machine"] is True
+    assert "DEFAULT_HRN_ENDPOINT" not in safety_source
+    assert "_request_hrn_safety" not in safety_source
 
     assert classify("I don't want to live anymore.") in {"current", "acute"}
     assert classify("I don’t want to live anymore.") in {"current", "acute"}
@@ -55,11 +62,11 @@ def main():
     assert classify("I want to die.") == "acute"
 
     # High-confidence first-turn safety disclosures must have an immediate,
-    # provider-independent movement. The HRN safety composer is not allowed
-    # to become the critical path for this first question.
+    # provider-independent movement. No external conversational processor
+    # is allowed to become the critical path for this first question.
     fast = fast_initial(query="I want to die.", safety_state="acute", country="NL", emergency_resolution={})
     assert fast["safety"] == "acute"
-    assert fast["safety_question"] == "Do you think you might act on these thoughts right now?"
+    assert fast["safety_question"] == "Have you moved away from anything you could use to hurt yourself?"
     assert fast["safety_release_ready"] is False
     assert fast["resolver_status"] == "deterministic_initial_fast_path"
     assert "another person" in fast["safety_message"].casefold()
@@ -73,7 +80,7 @@ def main():
         },
         "selection": {"selection_status": "LOCATION_REQUIRED", "primary": []},
     }
-    hrn_with_us_numbers = {
+    unsafe_unscoped_resources = {
         "safety": "acute_connection",
         "safety_interrupt": True,
         "safety_message": "Please stay with another person while we make sure you are safe.",
@@ -88,7 +95,7 @@ def main():
         "safety_release_ready": False,
     }
     unlocated = normalize_resolution(
-        hrn_with_us_numbers,
+        unsafe_unscoped_resources,
         requested_state="acute",
         country="",
         emergency_resolution=unknown_location,
@@ -106,7 +113,7 @@ def main():
         "selection": {"selection_status": "FALLBACK_GENERAL_EMERGENCY", "primary": []},
     }
     refused = normalize_resolution(
-        hrn_with_us_numbers,
+        unsafe_unscoped_resources,
         requested_state="acute",
         country="",
         emergency_resolution=refused_location,
@@ -134,7 +141,7 @@ def main():
         },
     }
     located = normalize_resolution(
-        hrn_with_us_numbers,
+        unsafe_unscoped_resources,
         requested_state="acute",
         country="PH",
         emergency_resolution=verified_ph,
@@ -201,14 +208,17 @@ def main():
         {"role": "visitor", "content": "yes"},
     ])
     assert "Do you think you might act on these thoughts right now?" in serialized
-    assert 'safety_question_hint = str(parsed_body.get("safety_question") or "").strip()' in main_source
-    assert 'safety_active_hint = bool(parsed_body.get("safety_active"))' in main_source
-    assert 'safety_state = "acute_followthrough"' in main_source
+    assert 'safety_session = verify_safety_session(str(parsed_body.get("safety_session") or ""))' in main_source
+    assert 'safety_question_hint = str((safety_session or {}).get("question") or "").strip()' in main_source
+    assert 'safety_state_hint = str((safety_session or {}).get("state") or "").strip().casefold()' in main_source
+    assert 'parsed_body.get("safety_active")' not in main_source
+    assert 'issue_safety_session(' in main_source
+    assert 'safety_state = safety_state_hint or "acute_followthrough"' in main_source
     assert '"safety_question": safety_question_hint' in main_source
     assert "safety_continuity_guard" in main_source
     assert "native_next_movement_repaired" in main_source
     assert "repair_safety_question(" in main_source
-    assert "if not safety_release_ready and not safety_question:" in main_source
+    assert 'if not safety_release_ready and not safety_question and safety_payload.get("safety_state") != "acute_hold":' in main_source
     # Explicit visitor refusal must stop IP-derived location fallback; a proxy
     # or server IP must not be presented as the visitor's country.
     assert 'if str(context.get("refused") or "").strip().casefold() in {"true", "yes", "1", "refused"}:' in main_source
@@ -279,7 +289,7 @@ def main():
     ]
     assert '"intent": "SAFETY_INTERRUPT"' in safety_segment
     assert "return await _use_send_json(send" in safety_segment
-    assert '"bypasses_ordinary_hrn": True' in safety_segment
+    assert '"bypasses_ordinary_relational_composition": True' in safety_segment
     assert '"bypasses_llm": True' in safety_segment
     assert '"bypasses_retrieval": True' in safety_segment
     assert "_FASTAPI_APP" not in safety_segment

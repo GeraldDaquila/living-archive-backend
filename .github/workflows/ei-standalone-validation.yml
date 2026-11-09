@@ -1,0 +1,119 @@
+name: EI Standalone Validation
+
+on:
+  push:
+    branches:
+      - ei/standalone-provenance-20261109
+      - safety/standalone-deterministic-20261109
+    paths:
+      - 'plugins/living-archive-emergency-intelligence/**'
+      - 'tests/php/test_ei_registry_provenance_and_expiry.php'
+      - 'tests/php/test_ei_update_manager_fail_closed.php'
+      - 'tests/php/test_ei_location_resolution.php'
+      - 'tests/php/test_ei_wordpress_rest_integration.php'
+      - '.github/workflows/ei-standalone-validation.yml'
+  pull_request:
+    paths:
+      - 'plugins/living-archive-emergency-intelligence/**'
+      - 'tests/php/test_ei_registry_provenance_and_expiry.php'
+      - 'tests/php/test_ei_update_manager_fail_closed.php'
+      - '.github/workflows/ei-standalone-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  standalone-ei:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: PHP syntax validation
+        shell: bash
+        run: |
+          find plugins/living-archive-emergency-intelligence -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l tests/php/test_ei_registry_provenance_and_expiry.php
+          php -l tests/php/test_ei_update_manager_fail_closed.php
+          php -l tests/php/test_ei_location_resolution.php
+          php -l tests/php/test_ei_wordpress_rest_integration.php
+
+      - name: Registry JSON validation
+        run: |
+          php -r '$data = json_decode(file_get_contents("plugins/living-archive-emergency-intelligence/data/emergency-registry.json"), true); if (!is_array($data)) { fwrite(STDERR, "Invalid EI registry JSON\n"); exit(1); } echo "EI registry JSON parses successfully.\n";'
+
+      - name: EI provenance and expiry contract
+        run: php tests/php/test_ei_registry_provenance_and_expiry.php
+
+      - name: EI remote-update fail-closed contract
+        run: php tests/php/test_ei_update_manager_fail_closed.php
+
+      - name: EI location precedence and confidence contract
+        run: php tests/php/test_ei_location_resolution.php
+
+  wordpress-rest-integration:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: wordpress
+          MARIADB_DATABASE: wordpress
+          MARIADB_USER: wordpress
+          MARIADB_PASSWORD: wordpress
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP with WordPress requirements
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, mbstring, curl, json, xml, zip
+          coverage: none
+
+      - name: Install WP-CLI
+        run: |
+          curl --fail --silent --show-error --location https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar --output /tmp/wp-cli.phar
+          php /tmp/wp-cli.phar --info
+          chmod +x /tmp/wp-cli.phar
+          sudo mv /tmp/wp-cli.phar /usr/local/bin/wp
+
+      - name: Install disposable WordPress
+        env:
+          WORDPRESS_DB_HOST: 127.0.0.1:3306
+          WORDPRESS_DB_NAME: wordpress
+          WORDPRESS_DB_USER: wordpress
+          WORDPRESS_DB_PASSWORD: wordpress
+        run: |
+          mkdir -p /tmp/wp
+          cd /tmp/wp
+          wp core download --allow-root
+          wp config create --dbname="$WORDPRESS_DB_NAME" --dbuser="$WORDPRESS_DB_USER" --dbpass="$WORDPRESS_DB_PASSWORD" --dbhost="$WORDPRESS_DB_HOST" --dbprefix=wp_ --allow-root
+          wp core install --url=http://127.0.0.1 --title="EI Standalone CI" --admin_user=ci-admin --admin_password="ci-only-password" --admin_email=ci@example.invalid --skip-email --allow-root
+
+      - name: Install and activate EI only
+        run: |
+          mkdir -p /tmp/wp/wp-content/plugins
+          cp -a plugins/living-archive-emergency-intelligence /tmp/wp/wp-content/plugins/
+          cd /tmp/wp
+          wp plugin activate living-archive-emergency-intelligence --allow-root
+
+      - name: Exercise real WordPress REST bootstrap and dispatch
+        run: |
+          cp tests/php/test_ei_wordpress_rest_integration.php /tmp/wp/wp-content/
+          cd /tmp/wp
+          wp eval-file wp-content/test_ei_wordpress_rest_integration.php --allow-root

@@ -1,0 +1,510 @@
+{
+  "registry_version": "2026.11.09.001",
+  "schema_version": "0.2",
+  "published_at": "2026-11-09T00:00:00Z",
+  "signature_required": true,
+  "countries": [
+    {
+      "country_id": "PH",
+      "iso2": "PH",
+      "name": "Philippines",
+      "emergency_architecture_id": "PH-INTEGRATED-911",
+      "status": "active",
+      "aliases": [
+        "PH",
+        "PHILIPPINES",
+        "REPUBLIC OF THE PHILIPPINES"
+      ]
+    },
+    {
+      "country_id": "US",
+      "iso2": "US",
+      "name": "United States",
+      "emergency_architecture_id": "US-DECENTRALIZED-911",
+      "status": "active",
+      "aliases": [
+        "US",
+        "USA",
+        "UNITED STATES",
+        "UNITED STATES OF AMERICA"
+      ]
+    },
+    {
+      "country_id": "DE",
+      "iso2": "DE",
+      "name": "Germany",
+      "emergency_architecture_id": "DE-INTEGRATED-112",
+      "status": "active",
+      "aliases": [
+        "DE",
+        "GERMANY",
+        "FEDERAL REPUBLIC OF GERMANY"
+      ]
+    },
+    {
+      "country_id": "CN",
+      "iso2": "CN",
+      "name": "China",
+      "emergency_architecture_id": "CN-MULTI-NUMBER",
+      "status": "active",
+      "aliases": [
+        "CN",
+        "CHINA",
+        "PEOPLE'S REPUBLIC OF CHINA",
+        "PRC"
+      ]
+    },
+    {
+      "country_id": "GB",
+      "iso2": "GB",
+      "name": "United Kingdom",
+      "emergency_architecture_id": "GB-HYBRID-999-112",
+      "status": "active",
+      "aliases": [
+        "GB",
+        "UK",
+        "UNITED KINGDOM",
+        "GREAT BRITAIN",
+        "UNITED KINGDOM OF GREAT BRITAIN AND NORTHERN IRELAND"
+      ]
+    }
+  ],
+  "architectures": [
+    {
+      "architecture_id": "PH-INTEGRATED-911",
+      "architecture_type": "integrated",
+      "centralization": "national_with_regional_operations",
+      "service_selection": "central_dispatch",
+      "supports_multiple_services": true,
+      "services": [
+        "general_emergency",
+        "police",
+        "fire",
+        "medical",
+        "rescue"
+      ]
+    },
+    {
+      "architecture_id": "US-DECENTRALIZED-911",
+      "architecture_type": "decentralized",
+      "centralization": "decentralized",
+      "service_selection": "operator_selects_service",
+      "supports_multiple_services": true,
+      "services": [
+        "general_emergency",
+        "police",
+        "fire",
+        "medical"
+      ]
+    },
+    {
+      "architecture_id": "DE-INTEGRATED-112",
+      "architecture_type": "integrated",
+      "centralization": "national_with_regional_operations",
+      "service_selection": "central_dispatch",
+      "supports_multiple_services": true,
+      "services": [
+        "general_emergency",
+        "medical",
+        "fire"
+      ]
+    },
+    {
+      "architecture_id": "CN-MULTI-NUMBER",
+      "architecture_type": "multi_number",
+      "centralization": "mixed",
+      "service_selection": "caller_selects_service",
+      "supports_multiple_services": false,
+      "services": [
+        "police",
+        "fire",
+        "medical",
+        "traffic"
+      ]
+    },
+    {
+      "architecture_id": "GB-HYBRID-999-112",
+      "architecture_type": "hybrid",
+      "centralization": "national_with_regional_operations",
+      "service_selection": "operator_selects_service",
+      "supports_multiple_services": true,
+      "services": [
+        "general_emergency",
+        "police",
+        "fire",
+        "medical",
+        "rescue"
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "resource_id": "PH-911-GENERAL",
+      "country_id": "PH",
+      "region_id": null,
+      "service_types": [
+        "general_emergency",
+        "police",
+        "fire",
+        "medical",
+        "rescue"
+      ],
+      "display_name": "Unified 911 Emergency Hotline",
+      "number": "911",
+      "access_method": "telephone",
+      "coverage": "national",
+      "availability": "24_7",
+      "resource_relationship": "primary",
+      "equivalence_group": null,
+      "routing_model": "central_dispatch",
+      "verification_id": "VER-PH-911-2026",
+      "presentation_priority": 100,
+      "status": "active"
+    },
+    {
+      "resource_id": "US-911-GENERAL",
+      "country_id": "US",
+      "region_id": null,
+      "service_types": [
+        "general_emergency",
+        "police",
+        "fire",
+        "medical"
+      ],
+      "display_name": "911 Emergency Services",
+      "number": "911",
+      "access_method": "telephone",
+      "coverage": "national",
+      "availability": "24_7",
+      "resource_relationship": "primary",
+      "equivalence_group": null,
+      "routing_model": "regional_dispatch",
+      "verification_id": "VER-US-911-2026",
+      "presentation_priority": 100,
+      "status": "active",
+      "coverage_note": "911 is the national emergency number; local public-safety answering point coverage and service availability may vary by jurisdiction."
+    },
+    {
+      "resource_id": "DE-112-EMERGENCY",
+      "country_id": "DE",
+      "region_id": null,
+      "service_types": [
+        "general_emergency",
+        "medical",
+        "fire"
+      ],
+      "display_name": "Emergency Services",
+      "number": "112",
+      "access_method": "telephone",
+      "coverage": "national",
+      "availability": "24_7",
+      "resource_relationship": "primary",
+      "equivalence_group": null,
+      "routing_model": "central_dispatch",
+      "verification_id": "VER-DE-112-2026",
+      "presentation_priority": 100,
+      "status": "active"
+    },
+    {
+      "resource_id": "CN-110-POLICE",
+      "country_id": "CN",
+      "region_id": null,
+      "service_types": [
+        "police"
+      ],
+      "display_name": "Police Emergency",
+      "number": "110",
+      "access_method": "telephone",
+      "coverage": "national",
+      "availability": "24_7",
+      "resource_relationship": "primary",
+      "equivalence_group": null,
+      "routing_model": "regional_dispatch",
+      "verification_id": "VER-CN-110-2026",
+      "presentation_priority": 100,
+      "status": "active"
+    },
+    {
+      "resource_id": "CN-119-FIRE",
+      "country_id": "CN",
+      "region_id": null,
+      "service_types": [
+        "fire",
+        "rescue"
+      ],
+      "display_name": "Fire and Rescue",
+      "number": "119",
+      "access_method": "telephone",
+      "coverage": "national",
+      "availability": "24_7",
+      "resource_relationship": "primary",
+      "equivalence_group": null,
+      "routing_model": "regional_dispatch",
+      "verification_id": "VER-CN-119-2026",
+      "presentation_priority": 100,
+      "status": "active"
+    },
+    {
+      "resource_id": "CN-120-MEDICAL",
+      "country_id": "CN",
+      "region_id": null,
+      "service_types": [
+        "medical"
+      ],
+      "display_name": "Emergency Medical Rescue",
+      "number": "120",
+      "access_method": "telephone",
+      "coverage": "national",
+      "availability": "24_7",
+      "resource_relationship": "primary",
+      "equivalence_group": null,
+      "routing_model": "regional_dispatch",
+      "verification_id": "VER-CN-120-2026",
+      "presentation_priority": 100,
+      "status": "active"
+    },
+    {
+      "resource_id": "CN-122-TRAFFIC",
+      "country_id": "CN",
+      "region_id": null,
+      "service_types": [
+        "traffic"
+      ],
+      "display_name": "Traffic Accident Police",
+      "number": "122",
+      "access_method": "telephone",
+      "coverage": "national",
+      "availability": "24_7",
+      "resource_relationship": "primary",
+      "equivalence_group": null,
+      "routing_model": "regional_dispatch",
+      "verification_id": "VER-CN-122-2026",
+      "presentation_priority": 100,
+      "status": "active"
+    },
+    {
+      "resource_id": "GB-999-EMERGENCY",
+      "country_id": "GB",
+      "region_id": null,
+      "service_types": [
+        "general_emergency",
+        "police",
+        "fire",
+        "medical",
+        "rescue"
+      ],
+      "display_name": "Emergency Services",
+      "number": "999",
+      "access_method": "telephone",
+      "coverage": "national",
+      "availability": "24_7",
+      "resource_relationship": "equivalent",
+      "equivalence_group": "GB-EMERGENCY",
+      "routing_model": "central_dispatch",
+      "verification_id": "VER-GB-999-112-2026",
+      "presentation_priority": 100,
+      "status": "active"
+    },
+    {
+      "resource_id": "GB-112-EMERGENCY",
+      "country_id": "GB",
+      "region_id": null,
+      "service_types": [
+        "general_emergency",
+        "police",
+        "fire",
+        "medical",
+        "rescue"
+      ],
+      "display_name": "Emergency Services",
+      "number": "112",
+      "access_method": "telephone",
+      "coverage": "national",
+      "availability": "24_7",
+      "resource_relationship": "equivalent",
+      "equivalence_group": "GB-EMERGENCY",
+      "routing_model": "central_dispatch",
+      "verification_id": "VER-GB-999-112-2026",
+      "presentation_priority": 90,
+      "status": "active"
+    },
+    {
+      "resource_id": "PH-NCMH-CRISIS-24-7",
+      "country_id": "PH",
+      "region_id": null,
+      "service_types": [
+        "crisis_support",
+        "mental_health_support",
+        "suicidal_crisis",
+        "emotional_distress"
+      ],
+      "display_name": "National Center for Mental Health Crisis Hotline",
+      "number": "0917-899-8727",
+      "access_method": "telephone",
+      "coverage": "national",
+      "availability": "24_7",
+      "resource_relationship": "primary",
+      "equivalence_group": null,
+      "routing_model": "direct_support",
+      "verification_id": "VER-PH-NCMH-2026",
+      "presentation_priority": 95,
+      "status": "active"
+    }
+  ],
+  "verification_records": [
+    {
+      "verification_id": "VER-PH-911-2026",
+      "status": "verified",
+      "authority_level": "national_government",
+      "verification_scope": "national",
+      "verified_at": "2026-09-29",
+      "review_due": "2027-03-29",
+      "source": "DILG / Philippine government hotline directory",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "PH-911-GENERAL"
+      ],
+      "source_urls": [
+        "https://ehotlines.e.gov.ph/",
+        "https://ncr.dilg.gov.ph/dilg-leads-nationwide-campaign-for-unified-911-emergency-hotline/"
+      ]
+    },
+    {
+      "verification_id": "VER-US-911-2026",
+      "status": "verified",
+      "authority_level": "national_government",
+      "verification_scope": "national",
+      "verified_at": "2026-09-29",
+      "review_due": "2027-03-29",
+      "source": "National 911 Program / Federal Communications Commission",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "US-911-GENERAL"
+      ],
+      "source_urls": [
+        "https://www.911.gov/",
+        "https://www.fcc.gov/general/9-1-1-and-e9-1-1-services"
+      ]
+    },
+    {
+      "verification_id": "VER-DE-112-2026",
+      "status": "verified",
+      "authority_level": "national_government",
+      "verification_scope": "national",
+      "verified_at": "2026-09-29",
+      "review_due": "2027-03-29",
+      "source": "German Federal Ministry of Health / European Commission",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "DE-112-EMERGENCY"
+      ],
+      "source_urls": [
+        "https://www.bundesgesundheitsministerium.de/service/gesetze-und-verordnungen/guv-21-lp/notfallreform/faq-notfallreform",
+        "https://digital-strategy.ec.europa.eu/en/policies/112"
+      ]
+    },
+    {
+      "verification_id": "VER-CN-110-2026",
+      "status": "verified",
+      "authority_level": "national_government",
+      "verification_scope": "national",
+      "verified_at": "2026-09-29",
+      "review_due": "2027-03-29",
+      "source": "Beijing Municipal Government / UK Foreign, Commonwealth & Development Office",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "CN-110-POLICE"
+      ],
+      "source_urls": [
+        "https://english.beijing.gov.cn/travellinginbeijing/quickguideontravelservices/traveltips/202108/t20210811_2466839.html",
+        "https://www.gov.uk/foreign-travel-advice/china/getting-help"
+      ]
+    },
+    {
+      "verification_id": "VER-CN-119-2026",
+      "status": "verified",
+      "authority_level": "national_government",
+      "verification_scope": "national",
+      "verified_at": "2026-09-29",
+      "review_due": "2027-03-29",
+      "source": "Beijing Municipal Government / UK Foreign, Commonwealth & Development Office",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "CN-119-FIRE"
+      ],
+      "source_urls": [
+        "https://english.beijing.gov.cn/travellinginbeijing/quickguideontravelservices/traveltips/202108/t20210811_2466839.html",
+        "https://www.gov.uk/foreign-travel-advice/china/getting-help"
+      ]
+    },
+    {
+      "verification_id": "VER-CN-120-2026",
+      "status": "verified",
+      "authority_level": "national_government",
+      "verification_scope": "national",
+      "verified_at": "2026-09-29",
+      "review_due": "2027-03-29",
+      "source": "Beijing Municipal Government / UK Foreign, Commonwealth & Development Office",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "CN-120-MEDICAL"
+      ],
+      "source_urls": [
+        "https://english.beijing.gov.cn/travellinginbeijing/quickguideontravelservices/traveltips/202108/t20210811_2466839.html",
+        "https://www.gov.uk/foreign-travel-advice/china/getting-help"
+      ]
+    },
+    {
+      "verification_id": "VER-CN-122-2026",
+      "status": "verified",
+      "authority_level": "national_government",
+      "verification_scope": "national",
+      "verified_at": "2026-09-29",
+      "review_due": "2027-03-29",
+      "source": "Beijing Municipal Government / UK Foreign, Commonwealth & Development Office",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "CN-122-TRAFFIC"
+      ],
+      "source_urls": [
+        "https://english.beijing.gov.cn/travellinginbeijing/quickguideontravelservices/traveltips/202108/t20210811_2466839.html",
+        "https://www.gov.uk/foreign-travel-advice/china/getting-help"
+      ]
+    },
+    {
+      "verification_id": "VER-GB-999-112-2026",
+      "status": "verified",
+      "authority_level": "national_government",
+      "verification_scope": "national",
+      "verified_at": "2026-09-29",
+      "review_due": "2027-03-29",
+      "source": "UK Government",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "GB-999-EMERGENCY",
+        "GB-112-EMERGENCY"
+      ],
+      "source_urls": [
+        "https://www.gov.uk/guidance/999-and-112-the-uks-national-emergency-numbers"
+      ]
+    },
+    {
+      "verification_id": "VER-PH-NCMH-2026",
+      "status": "verified",
+      "authority_level": "national_government",
+      "verification_scope": "national",
+      "verified_at": "2026-10-13",
+      "review_due": "2027-04-13",
+      "source": "Department of Social Welfare and Development / Philippine government hotline directory",
+      "evidence_type": "official_government_publication",
+      "resource_ids": [
+        "PH-NCMH-CRISIS-24-7"
+      ],
+      "source_urls": [
+        "https://ekwentomo.dswd.gov.ph/faqs/",
+        "https://ehotlines.e.gov.ph/"
+      ]
+    }
+  ],
+  "regional_overrides": []
+}

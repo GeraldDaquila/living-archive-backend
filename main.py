@@ -81,6 +81,7 @@ from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSIT
 from safety_utility import classify_safety, safety_utility_snapshot
 from safety_adapter import SafetyUtilityAdapter
 from safety_intelligence import SAFETY_INTELLIGENCE_CONTRACT_VERSION, is_hypothetical_safety_discussion, normalize_safety_state, repair_safety_question, safety_intelligence_snapshot
+from safety_session import issue_safety_session, safety_session_available, verify_safety_session
 from streaming_transport import streaming_entry, STREAM_CONTRACT_VERSION, STREAM_TRANSPORT_VERSION
 
 _BASE_MODULE_NAME = "guide_runtime"
@@ -296,8 +297,10 @@ SAFETY_UTILITY_DIAGNOSTICS = safety_utility_snapshot()
 SAFETY_INTELLIGENCE_DIAGNOSTICS = safety_intelligence_snapshot()
 if SAFETY_INTELLIGENCE_DIAGNOSTICS.get("contract_version") != SAFETY_INTELLIGENCE_CONTRACT_VERSION:
     raise RuntimeError("USE safety intelligence contract integrity failure.")
-if SAFETY_UTILITY_DIAGNOSTICS.get("hrn_dependency") is not True:
-    raise RuntimeError("USE safety utility integrity failure: HRN safety linkage missing.")
+if SAFETY_UTILITY_DIAGNOSTICS.get("hrn_dependency") is not False:
+    raise RuntimeError("USE safety utility integrity failure: unexpected HRN dependency.")
+if SAFETY_UTILITY_DIAGNOSTICS.get("standalone_safety_state_machine") is not True:
+    raise RuntimeError("USE safety utility integrity failure: standalone deterministic state machine missing.")
 
 
 # Seeing the Relationship contribution invariant: HRN's human voice is
@@ -9206,6 +9209,7 @@ def _hypothetical_safety_calibration_payload(query):
     }
 
 
+
 async def _use_request_boundary(scope, receive, send):
     if scope.get("type") != "http":
         await _FASTAPI_APP(scope, receive, send)
@@ -9233,31 +9237,20 @@ async def _use_request_boundary(scope, receive, send):
         return
 
     # Highest-priority sitewide Safety / Crisis boundary. The Guide owns
-    # the interruption boundary, but the existing HRN Safety Fractal +
-    # Emergency Intelligence system remains the semantic/resource authority.
-    # This is deliberately a sibling linkage, not a replacement safety routine.
+    # deterministic safety detection and orchestration; the standalone local
+    # state machine owns transitions and intervention language, while EI owns
+    # location-grounded emergency resources.
     history_text = _history_text(history)
-    safety_question_hint = str(parsed_body.get("safety_question") or "").strip()
-    safety_state_hint = str(parsed_body.get("safety_state") or "").strip().casefold()
-    safety_active_hint = bool(parsed_body.get("safety_active"))
+    safety_session = verify_safety_session(str(parsed_body.get("safety_session") or ""))
+    safety_question_hint = str((safety_session or {}).get("question") or "").strip()
+    safety_state_hint = str((safety_session or {}).get("state") or "").strip().casefold()
     safety_state = classify_safety(query, history=history_text)
 
-    # Conversation continuity contract: a specialist safety turn may carry an
-    # explicit active-state/question alongside its structured history. This is
-    # a server-side continuity aid, not a client-authorized escalation; it can
-    # only keep an already-active safety conversation inside the safety lane.
-    if (
-        not safety_state
-        and safety_active_hint
-        and safety_question_hint
-    ):
-        safety_state = "acute_followthrough"
-    elif (
-        not safety_state
-        and safety_active_hint
-        and safety_state_hint in {"acute", "plan", "immediacy", "current", "acute_followthrough"}
-    ):
-        safety_state = safety_state_hint
+    # Authenticated continuity contract: once a safety session is active, the
+    # client may carry only an opaque server-signed token. Client-supplied
+    # safety_state, safety_question and safety_active are not state authority.
+    if not safety_state and safety_session:
+        safety_state = safety_state_hint or "acute_followthrough"
 
     # Boundary recovery: the protected core remains the authoritative
     # deterministic fallback if the auxiliary safety classifier misses a
@@ -9322,14 +9315,13 @@ async def _use_request_boundary(scope, receive, send):
                 raise RuntimeError("Safety utility returned no visitor response.")
 
             # Fail-closed continuity contract: an active safety interruption
-            # may never silently release because HRN returned a response without
-            # its next question. HRN remains the semantic authority. The shared
-            # safety-intelligence layer supplies a state-aware native next
-            # movement only when HRN omitted one; this boundary repeats that
-            # contract defensively for any malformed specialist payload.
+            # may never silently release because a safety response omitted its
+            # next question. The standalone state machine supplies the next
+            # deterministic movement; this boundary repeats that contract
+            # defensively for any malformed specialist payload.
             safety_release_ready = bool(safety_payload.get("safety_release_ready"))
             safety_question = str(safety_payload.get("safety_question") or "").strip()
-            if not safety_release_ready and not safety_question:
+            if not safety_release_ready and not safety_question and safety_payload.get("safety_state") != "acute_hold":
                 safety_question = repair_safety_question(
                     safety_state=safety_state,
                     previous_question=safety_question_hint,
@@ -9343,8 +9335,16 @@ async def _use_request_boundary(scope, receive, send):
             print(
                 "The Guide sitewide Safety utility: "
                 f"request_id={request_id}, state={safety_state}, "
-                "hrn_safety_lane=called, ordinary_hrn=not_called, llm=not_called, retrieval=not_called"
+                "standalone_safety_state_machine=called, hrn=not_called, llm=not_called, retrieval=not_called"
             )
+            next_safety_session = ""
+            if not safety_release_ready:
+                next_safety_session = issue_safety_session(
+                    state=str(safety_payload.get("safety_state") or safety_state),
+                    question=safety_question,
+                    request_id=request_id,
+                )
+
             return await _use_send_json(send, {
                 "ok": True,
                 "version": APP_VERSION,
@@ -9359,8 +9359,7 @@ async def _use_request_boundary(scope, receive, send):
                 "handoff": "safety",
                 "handoff_mode": "interrupt",
                 "handoff_pending": False,
-                # Preserve the existing flat HRN safety response contract so
-                # the established safety UI can render without redesign.
+                # Preserve the flat safety response contract for the existing UI.
                 "safety_message": safety_payload.get("safety_message") or safety_response,
                 "safety_question": safety_payload.get("safety_question") or "",
                 "safety_note": safety_payload.get("safety_note") or "",
@@ -9369,10 +9368,11 @@ async def _use_request_boundary(scope, receive, send):
                 "country": safety_payload.get("country") or safety_country,
                 "safety_release_ready": bool(safety_payload.get("safety_release_ready")),
                 "safety_continuity_guard": safety_payload.get("safety_continuity_guard") or "",
+                "safety_session": next_safety_session,
                 "safety": {
                     "state": safety_payload.get("safety_state") or safety_state,
                     "interrupt": True,
-                    "display_mode": safety_payload.get("display_mode") or "hrn_safety",
+                    "display_mode": safety_payload.get("display_mode") or "safety",
                     "resources": safety_payload.get("safety_resources") or safety_payload.get("resources") or [],
                     "next_movement": safety_payload.get("next_movement") or safety_payload.get("safety_question") or "",
                     "safety_message": safety_payload.get("safety_message") or safety_response,
@@ -9382,7 +9382,7 @@ async def _use_request_boundary(scope, receive, send):
                     "country": safety_payload.get("country") or safety_country,
                     "safety_release_ready": bool(safety_payload.get("safety_release_ready")),
                     "safety_continuity_guard": safety_payload.get("safety_continuity_guard") or "",
-                    "bypasses_ordinary_hrn": True,
+                    "bypasses_ordinary_relational_composition": True,
                     "bypasses_llm": True,
                     "bypasses_retrieval": True,
                     "safety_intelligence_contract_version": SAFETY_INTELLIGENCE_CONTRACT_VERSION,
@@ -9421,7 +9421,7 @@ async def _use_request_boundary(scope, receive, send):
                 "safety": {
                     "state": safety_state,
                     "interrupt": True,
-                    "display_mode": "hrn_safety",
+                    "display_mode": "safety",
                     "resources": [],
                     "bypasses_ordinary_hrn": True,
                     "bypasses_llm": True,
@@ -10645,7 +10645,7 @@ app = streaming_entry(_guide_outer_visitor_response_boundary)
 
 
 print(f"USE ACTIVE + FORMATION SPECIALIST v1: version={APP_VERSION}, fingerprint={DEPLOYMENT_FINGERPRINT}, core_sha={EXPECTED_CORE_BLOB_SHA}, source_sha256={RUNTIME_SOURCE_SHA256}, specialist_contract={SPECIALIST_PIPE_CONTRACT_VERSION}, adapter_contract={SPECIALIST_ADAPTER_CONTRACT_VERSION}, relationship_contract={RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION}, relationship_voice_policy={RELATIONSHIP_VOICE_POLICY}, formation_contract={FORMATION_CONTRIBUTION_CONTRACT_VERSION}, formation_voice_policy={FORMATION_VOICE_POLICY}, registered_specialists={len(SPECIALIST_CAPABILITY_REGISTRY)}, active_adapters={len(SPECIALIST_ADAPTER_REGISTRY.ids())}, provider_bank_contract={PROVIDER_BANK_CONTRACT_VERSION}, boundary_resilience={BOUNDARY_RESILIENCE_CONTRACT_VERSION}, guide_node_registry_state={guide_node_registry_state().get('state')}, capability_routing=provider_model_bank")
-print(f"USE SAFETY INTELLIGENCE: contract={SAFETY_INTELLIGENCE_CONTRACT_VERSION}, authority=HRN_Safety_Fractal_and_Emergency_Intelligence, resource_owner=Emergency Intelligence, resource_contract=living-archive/emergency/v1/resolve, sibling_link=relationship")
+print(f"USE SAFETY INTELLIGENCE: contract={SAFETY_INTELLIGENCE_CONTRACT_VERSION}, authority=Guide_Standalone_Deterministic_Safety_State_Machine_and_Emergency_Intelligence, resource_owner=Emergency Intelligence, resource_contract=living-archive/emergency/v1/resolve, sibling_link=relationship")
 
 # v487.88 synthesis hardening invariant: shared synthesis packaging is bounded and consumed downstream.
 if SHARED_EVIDENCE_CONTRACT_VERSION != "v1":

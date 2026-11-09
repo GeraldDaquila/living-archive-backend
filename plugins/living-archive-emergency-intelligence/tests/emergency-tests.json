@@ -1,0 +1,15 @@
+{
+  "test_version": "0.2.0",
+  "tests": [
+    {"id":"PH-GENERAL-001","country":"PH","service_need":"general_emergency","expected":["911"]},
+    {"id":"US-GENERAL-001","country":"US","service_need":"general_emergency","expected":["911"]},
+    {"id":"DE-MEDICAL-001","country":"DE","service_need":"medical","expected":["112"]},
+    {"id":"CN-MEDICAL-001","country":"CN","service_need":"medical","expected":["120"]},
+    {"id":"CN-POLICE-001","country":"CN","service_need":"police","expected":["110"]},
+    {"id":"CN-FIRE-001","country":"CN","service_need":"fire","expected":["119"]},
+    {"id":"CN-TRAFFIC-001","country":"CN","service_need":"traffic","expected":["122"]},
+    {"id":"GB-GENERAL-001","country":"GB","service_need":"general_emergency","expected_equivalence_group":"GB-EMERGENCY"},
+    {"id":"UNKNOWN-GENERAL-001","country":null,"service_need":"general_emergency","expected_status":"LOCATION_REQUIRED"},
+    {"id":"REFUSED-GENERAL-001","country":null,"service_need":"general_emergency","refused":true,"expected_status":"LOCATION_REFUSED"}
+  ]
+}

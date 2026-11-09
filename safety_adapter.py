@@ -1,4 +1,4 @@
-"""Adapter for the shared sitewide HRN Safety / Emergency Intelligence system."""
+"""Adapter for the Guide-owned standalone deterministic Safety / Emergency Intelligence system."""
 from __future__ import annotations
 from typing import Any, Mapping
 
