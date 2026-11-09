@@ -77,10 +77,24 @@ class LAEI_Location_Resolver {
     private static function resource_selection_confidence($country, $status) {
         if ($status === 'REFUSED' || !$country) return 'unknown';
         $resources = LAEI_Registry::get_resources($country, 'general_emergency');
+        $now = current_time('timestamp', true);
         foreach ($resources as $resource) {
             $verification = LAEI_Registry::get_verification($resource['verification_id'] ?? '');
-            if (($verification['status'] ?? '') === 'verified') return 'high';
+            if (!is_array($verification) || ($verification['status'] ?? '') !== 'verified') continue;
+
+            $verified_at = (string)($verification['verified_at'] ?? '');
+            $review_due = (string)($verification['review_due'] ?? '');
+            if (!preg_match('/^\\d{4}-\\d{2}-\\d{2}$/', $verified_at)) continue;
+            if (!preg_match('/^\\d{4}-\\d{2}-\\d{2}$/', $review_due)) continue;
+
+            $verified_timestamp = strtotime($verified_at . ' 00:00:00 UTC');
+            $review_timestamp = strtotime($review_due . ' 23:59:59 UTC');
+            if ($verified_timestamp === false || $review_timestamp === false) continue;
+            if ($verified_timestamp > $now || $review_timestamp < $now) continue;
+            if ($review_timestamp < $verified_timestamp) continue;
+
+            return 'high';
         }
-        return 'medium';
+        return 'unknown';
     }
 }
