@@ -76,7 +76,7 @@ jobs:
           name: crosslink-candidate-snapshot
           path: candidate-output/
           if-no-files-found: warn
-          retention-days: 30
+          retention-days: 90
       - name: Upload audit reports
         if: always()
         uses: actions/upload-artifact@v4
