@@ -65,7 +65,7 @@ class LAEI_API {
             return new WP_Error('laei_invalid_bundle_request', 'A service list and location object are required.', ['status' => 400]);
         }
 
-        $service_needs = array_values(array_unique(array_filter(array_map('sanitize_key', $service_needs))));
+        $service_needs = array_values(array_unique(array_filter(array_map(function($value) { return is_string($value) ? sanitize_key($value) : ''; }, $service_needs))));
         if (!$service_needs || count($service_needs) > 10) {
             return new WP_Error('laei_invalid_service_list', 'Provide between one and ten service categories.', ['status' => 400]);
         }
