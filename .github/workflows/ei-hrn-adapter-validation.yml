@@ -47,31 +47,4 @@ jobs:
         run: node --check plugins/human-relational-navigator/assets/relational-navigator.js
 
       - name: Location-only boundary assertions
-        shell: bash
-        run: |
-          php -r '
-          $p = file_get_contents("plugins/human-relational-navigator/human-relational-navigator.php");
-          $j = file_get_contents("plugins/human-relational-navigator/assets/relational-navigator.js");
-          $start = strpos($p, "public function resource_location_handler");
-          $end = strpos($p, "public function add_runtime_timing_headers", $start);
-          if ($start === false || $end === false) { fwrite(STDERR, "Adapter boundary missing
-"); exit(1); }
-          $adapter = substr($p, $start, $end - $start);
-          foreach (["safety_answer_class(", "safety_transition(", "rest_handler_inner("] as $forbidden) {
-            if (strpos($adapter, $forbidden) !== false) { fwrite(STDERR, "Forbidden safety/conversation call: $forbidden
-"); exit(1); }
-          }
-          if (strpos($p, "living_archive_emergency_resolve($need") === false) { fwrite(STDERR, "EI public resolver not wired
-"); exit(1); }
-          $jsStart = strpos($j, "function submitSafetyLocation(v)");
-          $jsEnd = strpos($j, "function returnCompletedJourneyToGuide", $jsStart);
-          $submit = substr($j, $jsStart, $jsEnd - $jsStart);
-          if (strpos($submit, "LAHRN.emergency_endpoint") === false) { fwrite(STDERR, "Dedicated endpoint not used
-"); exit(1); }
-          foreach (["message:v", "conversation:", "visitor_history:"] as $forbidden) {
-            if (strpos($submit, $forbidden) !== false) { fwrite(STDERR, "Location operation leaks conversation field: $forbidden
-"); exit(1); }
-          }
-          echo "Location-only boundary assertions passed
-";
-          '
+        run: php scripts/validate-ei-hrn-boundary.php
