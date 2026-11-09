@@ -92,6 +92,7 @@ assert_true(($unsupported->get_error_data()['status'] ?? 0) === 400, 'unrecogniz
 $invalid = $hrn->resource_location_handler(new WP_REST_Request(array('country'=>'PH','safety_stage'=>'not-a-stage','safety_question'=>$question,'safety_message'=>$safety_message)));
 assert_true($invalid instanceof WP_Error && $invalid->get_error_code() === 'lah_rn_invalid_safety_stage', 'invalid safety stage fails closed');
 
+$hrn->register_rest();
 $routes = $GLOBALS['la_test_routes'];
 $route = $routes['living-archive/v1/emergency-resources'] ?? array();
 assert_true(($route['permission_callback'] ?? '') === '__return_true', 'public route registration is explicit (rate limiting remains a separate security review)');
