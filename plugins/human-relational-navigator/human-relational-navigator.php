@@ -1195,8 +1195,8 @@ Visitor response: " . $message;
             'args' => array(
                 'country' => array('required'=>true,'type'=>'string','sanitize_callback'=>'sanitize_text_field','validate_callback'=>function($value){return is_string($value) && trim($value) !== '' && mb_strlen($value) <= 100;}),
                 'safety_stage' => array('required'=>true,'type'=>'string','sanitize_callback'=>'sanitize_key'),
-                'safety_question' => array('required'=>true,'type'=>'string','sanitize_callback'=>'sanitize_text_field'),
-                'safety_message' => array('required'=>false,'type'=>'string','sanitize_callback'=>'sanitize_text_field','default'=>''),
+                'safety_question' => array('required'=>true,'type'=>'string','validate_callback'=>function($value){return is_string($value) && mb_strlen($value) <= 500; }),
+                'safety_message' => array('required'=>false,'type'=>'string','validate_callback'=>function($value){return is_string($value) && mb_strlen($value) <= 1000; },'default'=>''),
             ),
         ));
         register_rest_route(self::REST_NS, self::REST_ROUTE, array(
