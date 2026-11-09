@@ -75,7 +75,7 @@ try {
         'Public-root output was not refused.');
 
     // Safety gate: credential-like content must be refused.
-    file_put_contents($wp . '/wp-content/plugins/human-relational-navigator/fixture-secret.php',
+    file_put_contents($wp . '/wp-content/plugins/human-relational-navigator/fixture-data.php',
         "<?php // ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890\n");
     $secretCommand = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($script)
         . ' --wp-root=' . escapeshellarg($wp) . ' --output-dir=' . escapeshellarg($out) . ' 2>&1';
