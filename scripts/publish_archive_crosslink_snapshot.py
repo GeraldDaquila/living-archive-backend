@@ -12,6 +12,7 @@ from urllib.request import Request, urlopen
 ROOT=Path(__file__).resolve().parents[1]
 OUTPUT=ROOT/"archive_crosslink_snapshot.json"
 CHECKSUM=ROOT/"archive_crosslink_snapshot.sha256"
+MANIFEST=ROOT/"archive_crosslink_editorial_manifest.json"
 BASE="https://geralddaquila.com/wp-json/wp/v2"
 PAGE_SIZE=100
 MAX_PAGES=50
@@ -36,7 +37,14 @@ def load(kind):
     else: raise RuntimeError(f"WordPress {kind} registry exceeded page limit")
     return assets
 
+def load_manifest():
+    if not MANIFEST.exists():
+        raise RuntimeError("editorial territorial manifest is required")
+    manifest=json.loads(MANIFEST.read_text(encoding="utf-8"))
+    return set(map(str,manifest.get("include_wp_ids",[]))), set(map(str,manifest.get("exclude_wp_ids",{})))
+
 def main_publish():
+    include_ids, exclude_ids=load_manifest()
     records=load("posts")+load("pages")
     assets={}
     for item in records:
@@ -49,12 +57,16 @@ def main_publish():
     # addressable even when their normalized titles collide. Numeric URL suffixes
     # are also retained: deciding whether a record is superseded is an editorial
     # classification task, not something the publisher may infer silently.
-    assets=list(assets.values())
+    assets=[item for item in assets.values() if item["wp_id"] not in exclude_ids]
+    present_ids={item["wp_id"] for item in assets}
+    missing_includes=include_ids-present_ids
+    if missing_includes:
+        raise RuntimeError(f"editorially included assets missing from registry: {sorted(missing_includes)}")
     if not assets: raise RuntimeError("canonical WordPress registry returned no publishable assets")
     snapshot={"contract":"archive-crosslink-inventory-v2","crosslink_ready":True,"complete":True,"source":"wordpress-canonical-registry","asset_count":len(assets),"refreshed_at":time.time(),"assets":sorted(assets,key=lambda x:(x["resource_type"],x["title"].casefold()))}
     raw=json.dumps(snapshot,ensure_ascii=False,sort_keys=True,separators=(",",":"))+"\n"
     OUTPUT.write_text(raw,encoding="utf-8")
     digest=hashlib.sha256(raw.encode()).hexdigest()
     CHECKSUM.write_text(digest+"\n",encoding="utf-8")
-    print(f"validated_snapshot=true source=wordpress assets={snapshot['asset_count']} sha256={digest}")
+    print(f"validated_snapshot=true source=wordpress-manifest assets={snapshot['asset_count']} includes={len(include_ids)} excludes={len(exclude_ids)} sha256={digest}")
 if __name__=="__main__": main_publish()
