@@ -54,5 +54,8 @@ jobs:
       - name: Location-only boundary assertions
         run: php scripts/validate-ei-hrn-boundary.php
 
+      - name: Isolated HRN resource-handler execution tests
+        run: php tests/php/test_hrn_resource_location_handler.php
+
       - name: EI-HRN location-only regression tests
         run: pytest -q tests/test_ei_hrn_location_only_contract.py
