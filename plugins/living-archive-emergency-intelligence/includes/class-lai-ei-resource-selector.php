@@ -13,6 +13,13 @@ class LAEI_Resource_Selector {
             'suicide_crisis' => 'suicidal_crisis',
         ];
         $service_need = $service_aliases[$service_need] ?? $service_need;
+        $allowed_services = [
+            'general_emergency','police','fire','medical','rescue','traffic',
+            'crisis_support','mental_health_support','emotional_distress','suicidal_crisis',
+        ];
+        if (!in_array($service_need, $allowed_services, true)) {
+            return self::fallback('UNKNOWN', 'invalid_service_need');
+        }
         $country = strtoupper((string)($location['location']['country']['value'] ?? ''));
         $status = $location['resolution_status'] ?? 'UNKNOWN';
 
@@ -115,6 +122,7 @@ class LAEI_Resource_Selector {
         if ($reason === 'unsupported_country') $selection_status = 'UNSUPPORTED_COUNTRY';
         if ($reason === 'no_matching_service') $selection_status = 'NO_MATCHING_SERVICE';
         if ($reason === 'verification_expired') $selection_status = 'VERIFICATION_EXPIRED';
+        if ($reason === 'invalid_service_need') $selection_status = 'INVALID_SERVICE_NEED';
 
         return [
             'selection_status' => $selection_status,
