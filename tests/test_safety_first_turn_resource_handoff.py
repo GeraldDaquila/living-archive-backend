@@ -169,7 +169,7 @@ def test_followthrough_uses_local_deterministic_state_machine_without_hrn(monkey
     result = safety_intelligence.resolve_safety(
         query="yes, someone is with me",
         history=(
-            "visitor: I don't want to live anymore.\\n"
+            "visitor: I don't want to live anymore.\n"
             "assistant: Have you moved away from anything you could use to hurt yourself?"
         ),
         safety_state="acute_followthrough",
@@ -353,15 +353,15 @@ def test_repeated_safety_question_recovers_distinct_stage_from_assistant_movemen
     infer = safety_intelligence._safety_stage_from_history
     question = "Are you safe from acting on these thoughts right now?"
     connection_history = (
-        "assistant: If someone is with you, please stay connected with them while we make sure the immediate danger has passed.\\n"
+        "assistant: If someone is with you, please stay connected with them while we make sure the immediate danger has passed.\n"
         "assistant question: " + question
     )
     contact_history = (
-        "assistant: If you have reached someone or emergency support, stay connected. If you have not, contact emergency or crisis support now.\\n"
+        "assistant: If you have reached someone or emergency support, stay connected. If you have not, contact emergency or crisis support now.\n"
         "assistant question: " + question
     )
     recovery_history = (
-        "assistant: It is important to stay connected to support. We do not need to return to the other conversation yet.\\n"
+        "assistant: It is important to stay connected to support. We do not need to return to the other conversation yet.\n"
         "assistant question: " + question
     )
     assert infer(connection_history, question, "acute_followthrough") == "acute_connection"
@@ -371,7 +371,7 @@ def test_repeated_safety_question_recovers_distinct_stage_from_assistant_movemen
 
 def test_recovery_release_requires_a_distinct_second_safety_confirmation():
     history = (
-        "assistant: It is important to stay connected to support. We do not need to return to the other conversation yet.\\n"
+        "assistant: It is important to stay connected to support. We do not need to return to the other conversation yet.\n"
         "assistant question: Are you safe from acting on these thoughts right now?"
     )
     assert safety_intelligence._safety_stage_from_history(
@@ -391,7 +391,7 @@ def test_local_recovery_state_releases_only_after_second_yes(monkeypatch):
         lambda **kwargs: {},
     )
     history = (
-        "assistant: It is important to stay connected to support. We do not need to return to the other conversation yet.\\n"
+        "assistant: It is important to stay connected to support. We do not need to return to the other conversation yet.\n"
         "assistant question: Are you safe from acting on these thoughts right now?"
     )
     result = safety_intelligence.resolve_safety(
