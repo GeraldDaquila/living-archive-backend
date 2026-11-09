@@ -21,3 +21,11 @@ def test_elementary_fact_recovery_does_not_match_unrelated_questions():
     assert main._established_general_knowledge_recovery("What is the best way to govern a community?") is None
     assert main._established_general_knowledge_recovery("How many sides does a square have?") is None
     assert main._established_general_knowledge_recovery("Why does a boat float?") is None
+
+
+def test_triangle_area_is_answered_as_bounded_general_knowledge():
+    result = main._established_general_knowledge_recovery("How do I calculate the area of a triangle?")
+    assert result is not None
+    assert result["fact_id"] == "triangle_area_formula"
+    assert "½ × base × height" in result["response"]
+    assert "responsibilities involved" not in result["response"].lower()
