@@ -9,10 +9,21 @@ class LAEI_Presenter {
             $number = sanitize_text_field($r['number'] ?? '');
             $name = sanitize_text_field($r['display_name'] ?? 'Emergency Services');
             $location_text = self::location_text($selection['location'] ?? null);
+            $secondary = [];
+            foreach (($selection['secondary'] ?? []) as $alternative) {
+                $alternative_number = sanitize_text_field($alternative['number'] ?? '');
+                $alternative_name = sanitize_text_field($alternative['display_name'] ?? 'Alternative service');
+                if ($alternative_number === '' || $alternative_number === $number) continue;
+                $secondary[] = [
+                    'title' => $alternative_name . ' — ' . $alternative_number,
+                    'number' => $alternative_number,
+                    'action' => ['type' => 'tel', 'value' => $alternative_number, 'label' => 'Call ' . $alternative_number],
+                ];
+            }
             return [
                 'title' => $name . ' — ' . $number,
                 'primary_action' => 'Call ' . $number,
-                'secondary' => [],
+                'secondary' => $secondary,
                 'location_text' => $location_text,
                 'supporting_text' => $location_text ? 'If you can, tell them your location when they answer.' : '',
                 'actions' => $number ? [['type' => 'tel', 'value' => $number, 'label' => 'Call ' . $number]] : [],
