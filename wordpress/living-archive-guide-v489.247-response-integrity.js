@@ -74,6 +74,8 @@ var guideSafetyLocationRequired = false;
 var guideSafetyCountry = '';
 var guideSafetyLocationRefused = false;
 var guideSafetyDeferredLocation = false;
+var guideSafetyInferredCountry = '';
+var guideSafetyCountryConfirmed = false;
 
 var guideRequestSequence = 0;
 var guideActiveRequestToken = 0;
@@ -788,6 +790,80 @@ async function resolveSafetyCountryResource(countryInput, actionButton) {
    SAFETY LOCATION
    ================================================================ */
 
+function inferSafetyCountry() {
+  var languages = [];
+  if (navigator.languages && navigator.languages.length) languages = navigator.languages;
+  else if (navigator.language) languages = [navigator.language];
+
+  for (var i = 0; i < languages.length; i++) {
+    var match = String(languages[i] || '').match(/[-_]([A-Z]{2})$/i);
+    if (match) {
+      var code = match[1].toUpperCase();
+      var names = { PH: 'Philippines', US: 'United States', DE: 'Germany', CN: 'China', GB: 'United Kingdom' };
+      if (names[code]) return names[code];
+    }
+  }
+  return '';
+}
+
+function renderSafetyLocationConfirmation(country) {
+  var wrapper = document.getElementById('archive-safety-followup');
+  var input = document.getElementById('archive-safety-input');
+  if (!wrapper || !input || !country) return;
+
+  var existing = document.getElementById('archive-safety-location-fields');
+  if (existing) existing.remove();
+
+  var card = document.createElement('div');
+  card.id = 'archive-safety-location-fields';
+  card.style.margin = '0 0 12px';
+  card.style.padding = '12px 14px';
+  card.style.border = '1px solid #cfcfcf';
+  card.style.borderRadius = '12px';
+  card.style.background = '#fff';
+
+  var label = document.createElement('div');
+  label.textContent = 'It looks like you may be in ' + country + '. Is that correct?';
+  label.style.fontWeight = '600';
+  label.style.lineHeight = '1.45';
+  card.appendChild(label);
+
+  var actions = document.createElement('div');
+  actions.style.display = 'flex';
+  actions.style.gap = '10px';
+  actions.style.marginTop = '12px';
+
+  ['Yes', 'No'].forEach(function(choice) {
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = choice;
+    button.style.minHeight = '42px';
+    button.style.padding = '8px 18px';
+    button.style.border = choice === 'Yes' ? '0' : '1px solid #999';
+    button.style.borderRadius = '9px';
+    button.style.background = choice === 'Yes' ? '#000' : '#fff';
+    button.style.color = choice === 'Yes' ? '#fff' : '#222';
+    button.style.font = 'inherit';
+    button.style.cursor = 'pointer';
+    button.addEventListener('click', function() {
+      if (choice === 'Yes') {
+        guideSafetyCountry = country;
+        guideSafetyCountryConfirmed = true;
+        resolveSafetyCountryResource({ value: country }, button);
+      } else {
+        guideSafetyInferredCountry = '';
+        guideSafetyCountryConfirmed = false;
+        card.remove();
+        syncSafetyLocationFields();
+      }
+    });
+    actions.appendChild(button);
+  });
+
+  card.appendChild(actions);
+  wrapper.insertBefore(card, input);
+}
+
 function syncSafetyLocationFields() {
 
   var wrapper = document.getElementById('archive-safety-followup');
@@ -801,6 +877,14 @@ function syncSafetyLocationFields() {
     guideSafetyCountry = '';
     guideSafetyLocationRefused = false;
     return;
+  }
+
+  if (!guideSafetyCountry && !guideSafetyLocationRefused) {
+    if (!guideSafetyInferredCountry) guideSafetyInferredCountry = inferSafetyCountry();
+    if (guideSafetyInferredCountry) {
+      renderSafetyLocationConfirmation(guideSafetyInferredCountry);
+      return;
+    }
   }
 
   if (!existing) {
@@ -959,6 +1043,10 @@ function renderSafetyResponse(data) {
           ),
       isInitialTurn
     );
+
+  if (isInitialTurn) {
+    message = message.replace(/\s*I don't yet have a verified local hotline[\s\S]*?appropriate local resource\.?/i, '').trim();
+  }
 
   var question =
     String(
