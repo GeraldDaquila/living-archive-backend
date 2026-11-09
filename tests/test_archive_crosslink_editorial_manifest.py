@@ -25,6 +25,7 @@ def test_manifest_makes_duplicate_exclusions_explicit():
     assert excluded["6357"].startswith("legacy URL")
 
 
-def test_unresolved_records_are_not_silently_classified():
+def test_live_assets_are_not_in_the_exclusion_register():
     manifest = load_manifest()
-    assert set(manifest["review_required_wp_ids"]) == {"75221", "7390"}
+    protected = {"76640", "80702", "75221", "7390"}
+    assert protected.isdisjoint(set(manifest["exclude_wp_ids"]))
