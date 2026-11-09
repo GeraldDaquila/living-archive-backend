@@ -41,7 +41,9 @@ REGISTRY_PAGE_DELAY = 1.0
 REGISTRY_RETRIES = 5
 REQUEST_TIMEOUT = 12
 LINK_TIMEOUT = 6
-LINK_WORKERS = 12
+LINK_WORKERS = 2
+LINK_DELAY_SECONDS = 0.75
+LINK_429_RETRIES = 3
 USER_AGENT = "LivingArchiveTerritorialIntegrityAudit/1.0"
 AUDIT_VERSION = "1.0.0"
 
@@ -295,6 +297,20 @@ def check_destination(asset: dict[str, Any]) -> dict[str, Any]:
                 "final_url": response.geturl(),
             }
     except HTTPError as exc:
+        # A public site rate-limit is an audit transport condition, not evidence
+        # that the destination is broken. Retry politely before classifying it.
+        if exc.code == 429:
+            for attempt in range(LINK_429_RETRIES):
+                time.sleep(5.0 * (attempt + 1))
+                try:
+                    with urlopen(request, timeout=LINK_TIMEOUT) as response:
+                        return {**base, "status": "ok" if 200 <= response.status < 400 else "http_error", "http_status": response.status, "final_url": response.geturl(), "method": "HEAD-retry"}
+                except HTTPError as retry_exc:
+                    if retry_exc.code != 429:
+                        return {**base, "status": "http_error", "http_status": retry_exc.code, "final_url": retry_exc.geturl()}
+                except (URLError, TimeoutError) as retry_exc:
+                    return {**base, "status": "network_error", "http_status": None, "error": type(retry_exc).__name__, "final_url": None}
+            return {**base, "status": "rate_limited", "http_status": 429, "final_url": exc.geturl()}
         # Some hosts reject HEAD while allowing GET. Try a bounded GET for common cases.
         if exc.code not in (403, 405, 501):
             return {**base, "status": "http_error", "http_status": exc.code, "final_url": exc.geturl()}
@@ -311,6 +327,8 @@ def check_destination(asset: dict[str, Any]) -> dict[str, Any]:
                 "method": "GET",
             }
     except HTTPError as exc:
+        if exc.code == 429:
+            return {**base, "status": "rate_limited", "http_status": 429, "final_url": exc.geturl(), "method": "GET"}
         return {**base, "status": "http_error", "http_status": exc.code, "final_url": exc.geturl(), "method": "GET"}
     except (URLError, TimeoutError) as exc:
         return {**base, "status": "network_error", "http_status": None, "error": type(exc).__name__, "final_url": None, "method": "GET"}
