@@ -50,97 +50,17 @@ class LAEI_Update_Manager {
 
         /*
          * SECURITY GATE (fail closed):
-         * The current plugin has no trusted public key and no implemented
-         * cryptographic signature verifier. A content hash detects accidental
-         * corruption; it does not authenticate the publisher. Do not fetch or
-         * activate remote registry candidates until signature verification is
-         * implemented, provisioned, and covered by tests.
+         * This plugin does not yet implement cryptographic signature
+         * verification against a provisioned trusted public key. A content
+         * hash detects accidental corruption; it does not authenticate the
+         * publisher. Therefore remote registry updates are disabled.
          *
-         * This deliberately leaves the locally installed registry available.
-         * It does not block HRN's safety intervention or resource fallback.
+         * The locally installed registry remains available. This gate does
+         * not block HRN's safety state machine or its existing fallback.
          */
         return self::record_result([
             'status' => 'disabled_security_gate',
-            'message' => 'Remote registry updates are disabled until mandatory cryptographic signature verification is implemented and a trusted public key is provisioned.',
-        ]);
-
-        $endpoint = trim((string)get_option(self::OPTION_ENDPOINT, ''));
-        if (!$endpoint || !wp_http_validate_url($endpoint)) {
-            $result = ['status' => 'not_configured', 'message' => 'Canonical registry endpoint is not configured.'];
-            update_option(self::OPTION_LAST_RESULT, $result);
-            return $result;
-        }
-
-        $response = wp_remote_get($endpoint, [
-            'timeout' => 5,
-            'redirection' => 2,
-            'headers' => ['Accept' => 'application/json'],
-        ]);
-        if (is_wp_error($response)) {
-            return self::record_result(['status' => 'failed', 'message' => $response->get_error_message()]);
-        }
-
-        $code = (int)wp_remote_retrieve_response_code($response);
-        if ($code !== 200) {
-            return self::record_result(['status' => 'failed', 'message' => 'Registry endpoint returned HTTP ' . $code . '.']);
-        }
-
-        $body = wp_remote_retrieve_body($response);
-        $candidate = json_decode($body, true);
-        $validation = LAEI_Registry::validate_candidate($candidate);
-        if (!$validation['valid']) {
-            return self::record_result(['status' => 'rejected', 'message' => $validation['error']]);
-        }
-
-        $current = LAEI_Registry::version();
-        if (self::version_compare_registry($candidate['registry_version'], $current) <= 0) {
-            return self::record_result([
-                'status' => 'current',
-                'message' => 'No newer registry available.',
-                'version' => $current
-            ]);
-        }
-
-        $canonical_hash = self::canonical_hash($candidate);
-        if (!empty($candidate['content_hash']) && !hash_equals((string)$candidate['content_hash'], $canonical_hash)) {
-            return self::record_result(['status' => 'rejected', 'message' => 'Registry content hash mismatch.']);
-        }
-
-        // Signature enforcement is intentionally dormant until the canonical
-        // registry public key is provisioned. We do not claim cryptographic
-        // authenticity until a trusted key exists in the plugin configuration.
-        if (!empty($candidate['signature_required'])) {
-            return self::record_result([
-                'status' => 'rejected',
-                'message' => 'Signed registry received but no trusted verification key is provisioned.'
-            ]);
-        }
-
-        $tmp = LAEI_REGISTRY_FILE . '.tmp';
-        $payload = wp_json_encode($candidate, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        if (file_put_contents($tmp, $payload, LOCK_EX) === false) {
-            return self::record_result(['status' => 'failed', 'message' => 'Unable to write temporary registry.']);
-        }
-
-        $old = LAEI_REGISTRY_FILE . '.previous';
-        if (file_exists(LAEI_REGISTRY_FILE)) @copy(LAEI_REGISTRY_FILE, $old);
-        if (!@rename($tmp, LAEI_REGISTRY_FILE)) {
-            @unlink($tmp);
-            return self::record_result(['status' => 'failed', 'message' => 'Unable to activate new registry.']);
-        }
-
-        if (!LAEI_Registry::load(true)) {
-            if (file_exists($old)) @copy($old, LAEI_REGISTRY_FILE);
-            return self::record_result(['status' => 'failed', 'message' => 'Activated registry could not be loaded; previous registry restored.']);
-        }
-
-        update_option(self::OPTION_ACTIVE_VERSION, LAEI_Registry::version());
-        update_option(self::OPTION_LAST_SUCCESS, time());
-        return self::record_result([
-            'status' => 'updated',
-            'message' => 'Registry updated successfully.',
-            'version' => LAEI_Registry::version(),
-            'sha256' => $canonical_hash
+            'message' => 'Remote registry updates are disabled until mandatory cryptographic signature verification is implemented, provisioned, and tested.',
         ]);
     }
 
