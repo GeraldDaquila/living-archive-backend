@@ -91,6 +91,12 @@ class LAEI_Registry {
         return true;
     }
 
+    public static function valid_iso_date($value) {
+        if (!is_string($value) || !preg_match('/^\\d{4}-\\d{2}-\\d{2}$/', $value)) return false;
+        $parts = explode('-', $value);
+        return count($parts) === 3 && checkdate((int)$parts[1], (int)$parts[2], (int)$parts[0]);
+    }
+
     public static function verification_provenance_valid($record, $resource_id) {
         if (!is_array($record) || !is_array($record['resource_ids'] ?? null)) return false;
         foreach (['verification_id','authority_level','verification_scope','source','evidence_type'] as $key) {
@@ -160,10 +166,10 @@ class LAEI_Registry {
             }
             if (isset($verification_ids[$record['verification_id']])) return ['valid' => false, 'error' => 'Duplicate verification ID.'];
             if (!in_array($record['status'], ['verified','unverified','rejected'], true)) return ['valid' => false, 'error' => 'Verification record has invalid status.'];
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$record['verified_at']) || strtotime($record['verified_at'] . ' 00:00:00 UTC') === false) {
+            if (!self::valid_iso_date((string)$record['verified_at'])) {
                 return ['valid' => false, 'error' => 'Verification record has invalid verified_at date.'];
             }
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$record['review_due']) || strtotime($record['review_due'] . ' 23:59:59 UTC') === false) {
+            if (!self::valid_iso_date((string)$record['review_due']) || $record['review_due'] < $record['verified_at']) {
                 return ['valid' => false, 'error' => 'Verification record has invalid review_due date.'];
             }
             if (!is_array($record['resource_ids']) || empty($record['resource_ids'])) return ['valid' => false, 'error' => 'Verification record must map to one or more resource IDs.'];
