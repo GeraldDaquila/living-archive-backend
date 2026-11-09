@@ -20,8 +20,10 @@ foreach (array('safety_answer_class(', 'safety_transition(', 'rest_handler_inner
         exit(1);
     }
 }
-if (strpos($php, 'living_archive_emergency_resolve($need') === false) {
-    fwrite(STDERR, "EI public resolver is not wired into the adapter.\n");
+if (strpos($php, 'living_archive_emergency_resolve($need') === false ||
+    strpos($php, "defined('LAEI_VERSION')") === false ||
+    strpos($php, "version_compare((string)LAEI_VERSION, '0.1.3', '>=')") === false) {
+    fwrite(STDERR, "Provenance-capable EI public resolver/version guard is missing.\\n");
     exit(1);
 }
 if (strpos($adapter, '$this->safety_resource_bundle(') !== false || strpos($adapter, '$legacy') !== false) {
