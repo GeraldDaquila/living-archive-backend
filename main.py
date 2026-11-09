@@ -4976,6 +4976,29 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if relational_fractal is not None:
         return relational_fractal
 
+    # Explanatory questions can often be answered carefully from general
+    # knowledge even when the Archive contains no directly establishing body.
+    # Do not collapse a valid conceptual explanation into an abstention merely
+    # because provenance is unavailable.
+    _developmental_hierarchy = bool(
+        re.search(r"\bdevelopmental\s+language\b", q)
+        and re.search(r"\b(?:hierarchical|dismissive)\b", q)
+    )
+    if _developmental_hierarchy:
+        return {
+            "response": (
+                "Developmental language can become hierarchical when descriptions of different capacities or patterns are treated as rankings of human worth. "
+                "Words such as “higher,” “lower,” “advanced,” or “less developed” can quietly shift from describing a framework to implying that some people are more worthy of respect or less worth hearing.\n\n"
+                "It can become dismissive when a developmental label is used to explain away someone's perspective instead of engaging with what they are actually saying. "
+                "Context, culture, experience, and the fact that people can show different capacities in different situations can disappear behind the label.\n\n"
+                "Developmental frameworks can still be useful when they remain descriptive and provisional. "
+                "The important distinction is between asking what capacities may be emerging and using a model to place people above or below one another."
+            ),
+            "doorway_title": title if recommendation_available and title else "",
+            "provider": "bounded_general_knowledge_explanatory_recovery",
+            "model": "",
+        }
+
     _cosmology_lived_question = bool(
         re.search(r"\b(?:cosmology|worldview)\b", q)
         and re.search(r"\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\b", q)
