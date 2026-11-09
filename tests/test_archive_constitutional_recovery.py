@@ -1,6 +1,8 @@
 """Regression tests for evidence-gated Archive constitutional recovery."""
 
 import general_guide_composition as guide
+import main
+from archive_concept_registry import LAW_OF_ONE_CONCEPT_RECORD
 from deterministic_answer_recovery import compose_recovery
 
 
@@ -82,3 +84,37 @@ def test_constitutional_recovery_fails_closed_without_constitutional_register_ev
     )
 
     assert result is None
+
+
+
+def test_law_of_one_recovery_uses_exact_published_glossary_record():
+    result = main._established_general_knowledge_recovery("What is the Law of One?")
+
+    assert result is not None
+    assert result["fact_id"] == "archive_glossary_law_of_one"
+    assert result["subject"] == "Law of One"
+    assert result["classification"] == "Principle / Ethical Orientation"
+    assert result["source"]["post_id"] == 5578
+    assert result["source"]["authority"] == "published_wordpress_glossary"
+    assert result["doorway"] == LAW_OF_ONE_CONCEPT_RECORD["doorway"]
+    assert result["response"] == LAW_OF_ONE_CONCEPT_RECORD["response"]
+    assert result["response"] == (
+        "A unifying principle expressing the inherent interconnectedness of all existence. "
+        "In this framework, the Law of One is not a doctrine, channeling source, or external authority, "
+        "but an ethical and perceptual orientation: recognition that harm, coercion, and extraction "
+        "anywhere diminish coherence everywhere. Practiced maturely, it emphasizes unity without "
+        "erasing individuality, sovereignty without isolation, and compassion without loss of "
+        "responsibility. Unity is understood here as relational coherence, not sameness, fusion, "
+        "or loss of agency."
+    )
+
+
+def test_law_of_one_archive_paraphrase_resolves_to_same_canonical_record():
+    result = main._established_general_knowledge_recovery(
+        "Explain the Law of One in the Living Archive."
+    )
+
+    assert result is not None
+    assert result["fact_id"] == LAW_OF_ONE_CONCEPT_RECORD["fact_id"]
+    assert result["response"] == LAW_OF_ONE_CONCEPT_RECORD["response"]
+    assert result["doorway"] == LAW_OF_ONE_CONCEPT_RECORD["doorway"]
