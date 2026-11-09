@@ -8,9 +8,14 @@ def load_manifest():
     return json.loads((ROOT / "archive_crosslink_editorial_manifest.json").read_text())
 
 
-def test_manifest_preserves_two_verified_candidate_omissions():
+def test_manifest_preserves_verified_live_canonical_assets():
     manifest = load_manifest()
-    assert set(manifest["include_wp_ids"]) == {"76640", "80702"}
+    assert {"76640", "80702", "75221", "7390"} <= set(manifest["include_wp_ids"])
+
+
+def test_manifest_has_no_unresolved_live_assets():
+    manifest = load_manifest()
+    assert not manifest.get("review_required_wp_ids")
 
 
 def test_manifest_makes_duplicate_exclusions_explicit():
