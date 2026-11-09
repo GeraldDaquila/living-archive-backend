@@ -1,12 +1,11 @@
-"""Shared HRN Safety Fractal + Emergency Intelligence bridge.
+"""Guide-owned deterministic Safety state machine with standalone Emergency Intelligence.
 
-The Guide owns the sitewide safety boundary. HRN remains authoritative for
-semantic safety state, safety language, follow-through and release. The
-standalone Living Archive Emergency Intelligence plugin remains authoritative
-for location resolution, verified resources, selection and presentation.
+The Guide owns sitewide safety detection and orchestration. This module owns
+local deterministic answer classification, state transitions, intervention
+sequence, and continuity. The standalone Emergency Intelligence plugin owns
+location resolution, verified resources, selection, and presentation.
 
-This module is deliberately a bridge between those two sibling authorities.
-It does not create a second emergency registry.
+No HRN endpoint or HRN visitor-routing dependency is used.
 """
 from __future__ import annotations
 
@@ -20,11 +19,8 @@ from typing import Any, Mapping
 
 from provider_bank import route as route_with_model_bank
 
-SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v2.7"
+SAFETY_INTELLIGENCE_CONTRACT_VERSION = "v3.0"
 
-DEFAULT_HRN_ENDPOINT = (
-    "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator"
-)
 DEFAULT_EMERGENCY_INTELLIGENCE_ENDPOINT = (
     "https://geralddaquila.com/wp-json/living-archive/emergency/v1/resolve"
 )
@@ -433,41 +429,6 @@ def _request_emergency_intelligence(
     )
 
 
-def _request_hrn_safety(
-    *,
-    endpoint: str,
-    query: str,
-    history: str,
-    safety_state: str,
-    safety_question: str,
-    country: str,
-    unit_turns: int = 0,
-    safety_presence: str = "unknown",
-    timeout: float = 5.0,
-) -> Mapping[str, Any]:
-    payload = {
-        "message": query,
-        "conversation": history,
-        "visitor_history": history,
-        "unit_turns": int(unit_turns or 0),
-        "safety_stage": safety_state,
-        "safety_question": safety_question or query,
-        "country": country,
-        "safety_only": True,
-        "safety_source": "the_guide_sitewide_safety",
-        # Compatibility context for the HRN safety loop. These fields are
-        # additive; HRN remains free to ignore them until its native loop
-        # consumes the explicit semantic signal.
-        "safety_presence": safety_presence,
-    }
-    return _request_json(
-        endpoint=endpoint,
-        payload=payload,
-        user_agent="Living-Archive-The-Guide/Safety-Intelligence",
-        timeout=timeout,
-    )
-
-
 def _resource_projection(emergency_resolution: Mapping[str, Any]) -> list[dict[str, Any]]:
     selection = dict(emergency_resolution.get("selection") or {})
     primary = selection.get("primary")
@@ -581,6 +542,168 @@ def repair_safety_question(
 
     return "Do you think you might act on these thoughts right now?"
 
+
+def _safety_stage_from_question(question: str, fallback_state: str) -> str:
+    """Recover the active deterministic stage from the last safety question."""
+    q = " ".join(str(question or "").strip().casefold().split())
+    fallback = str(fallback_state or "current").strip().casefold()
+    if "are you thinking about killing yourself right now" in q:
+        return "current"
+    if "have you made a plan to act on these thoughts" in q:
+        return "plan"
+    if "do you feel you might act on these thoughts right now" in q or "do you think you might act on these thoughts right now" in q:
+        return "immediacy"
+    if "have you moved away from anything you could use to hurt yourself" in q:
+        return "acute"
+    if "is there someone you can be with right now" in q:
+        return "support"
+    if "is there someone you trust who can stay with you right now" in q:
+        return "acute_followthrough"
+    if "can you contact emergency or crisis support now" in q:
+        return "acute_contact"
+    if "what is making it difficult" in q or "what is preventing you" in q:
+        return "acute_barrier"
+    if "are you safe from acting on these thoughts right now" in q:
+        return fallback if fallback in {"acute_connection", "acute_contact", "recovery"} else "acute_connection"
+    return fallback
+
+
+def _safety_answer_class(query: str, stage: str) -> dict[str, Any]:
+    """Deterministically decode a reply only in relation to the active question."""
+    text = " ".join(str(query or "").strip().casefold().split()).replace("’", "'")
+    if not text:
+        return {"answer_class": "uncertain", "current_suicidal": False, "imminent": False, "plan": False, "self_harm": False}
+
+    if re.search(r"\b(?:i(?:'ve| have)\s+(?:overdosed|taken an overdose)|i\s+(?:overdosed|took an overdose)|i\s+(?:have\s+)?(?:hurt|harmed)\s+myself|i am attempting suicide)\b", text, re.I):
+        return {"answer_class": "yes", "current_suicidal": True, "imminent": True, "plan": False, "self_harm": True}
+
+    if stage == "acute_connection":
+        negative_connection = re.search(r"\b(?:can't|cannot|couldn't|could not|do not|don't|no|nobody|no one|not able)\b.*\b(?:call|contact|text|message|reach|phone|stay on the phone)\b", text, re.I)
+        positive_connection = re.search(r"\b(?:i can|i could|i will|i'll|i am able to|i'm able to|i can probably|i could probably)\b.*\b(?:call|contact|text|message|reach|phone|stay on the phone)\b", text, re.I)
+        if negative_connection:
+            answer = "no"
+        elif positive_connection:
+            answer = "yes"
+        else:
+            answer = "uncertain"
+        return {"answer_class": answer, "current_suicidal": False, "imminent": False, "plan": False, "self_harm": False}
+
+    if stage == "acute" and re.search(r"\b(?:someone|a person|my (?:friend|partner|family|husband|wife|parent|sister|brother))\s+(?:is|are)\s+(?:with|here|beside)\s+me\b", text, re.I):
+        answer = "uncertain"
+    elif stage == "acute_followthrough" and re.search(r"\b(?:someone|a person|my (?:friend|partner|family|husband|wife|parent|sister|brother))\s+(?:is|are)\s+(?:with|here|beside)\s+me\b", text, re.I):
+        answer = "yes"
+    elif re.search(r"\b(?:i don't want to answer|i do not want to answer|prefer not to answer|i would rather not answer|not answering)\b", text, re.I):
+        answer = "refusal"
+    elif re.search(r"\b(?:maybe|not sure|i don't know|i do not know|unsure|uncertain|hard to say|i can't tell|i cannot tell)\b", text, re.I):
+        answer = "uncertain"
+    elif re.match(r"^(?:yes|yeah|yep|yup|i do|i am|i might|i think so|probably|definitely|sometimes yes)\b", text, re.I):
+        answer = "yes"
+    elif re.match(r"^(?:no|nope|not now|not really|i don't|i do not|i won't|i will not|i am not|i'm not)\b", text, re.I):
+        answer = "no"
+    else:
+        answer = "uncertain"
+
+    return {"answer_class": answer, "current_suicidal": False, "imminent": False, "plan": False, "self_harm": False}
+
+
+def _safety_transition(stage: str, answer: Mapping[str, Any]) -> str:
+    """Port of the protected deterministic safety transition table."""
+    answer_class = str(answer.get("answer_class") or "uncertain")
+    if bool(answer.get("self_harm")):
+        return "acute"
+    if stage == "current":
+        if answer_class == "yes": return "immediacy"
+        if answer_class == "no": return "plan"
+        return "support"
+    if stage == "immediacy":
+        if answer_class == "yes" or bool(answer.get("imminent")): return "acute"
+        if answer_class == "no": return "plan"
+        return "support"
+    if stage == "plan":
+        return "support"
+    if stage == "support":
+        return "recovery" if answer_class == "yes" else "acute_followthrough"
+    if stage == "acute":
+        return "acute_connection" if answer_class == "yes" else "acute_followthrough"
+    if stage == "acute_followthrough":
+        return "acute_connection" if answer_class == "yes" else "acute_contact"
+    if stage == "acute_connection":
+        return "recovery" if answer_class == "yes" else "acute_contact"
+    if stage == "acute_contact":
+        return "recovery" if answer_class == "yes" else "acute_barrier"
+    if stage == "acute_barrier":
+        return "recovery" if answer_class == "yes" else "acute_hold"
+    if stage == "acute_hold":
+        return "acute_hold"
+    if stage == "recovery":
+        return "release" if answer_class == "yes" else "acute_contact"
+    return "acute_contact"
+
+
+def _safety_response(stage: str, emergency_resolution: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """Deterministic visitor-facing movement; emergency numbers come only from EI."""
+    selection = dict((emergency_resolution or {}).get("selection") or {})
+    has_resources = selection.get("selection_status") in {"SELECTED", "MULTIPLE_EQUIVALENT"}
+    if stage == "current":
+        message = "Thank you for telling me. I want to take what you just said seriously."
+        question = "Are you thinking about killing yourself right now?"
+    elif stage == "plan":
+        message = "Thank you for telling me. I want to understand how close these thoughts feel to action."
+        question = "Have you made a plan to act on these thoughts?"
+    elif stage == "immediacy":
+        message = "I'm taking your answer seriously. I want to make sure you are not facing this alone."
+        question = "Do you feel you might act on these thoughts right now?"
+    elif stage == "support":
+        message = "You do not have to carry this entirely by yourself."
+        question = "Is there someone you can be with right now?"
+    elif stage == "acute":
+        message = "Please move away from anything you could use to hurt yourself. Then bring another person into this if you can."
+        question = "Have you moved away from anything you could use to hurt yourself?"
+    elif stage == "acute_followthrough":
+        message = "Please stay away from anything you could use to hurt yourself. If that is difficult, we can stay with that problem rather than asking you to repeat the same step."
+        question = "Is there someone you trust who can stay with you right now?"
+    elif stage == "acute_connection":
+        message = "If someone is with you, please stay connected with them while we make sure the immediate danger has passed. If no one is with you, contact someone you trust now."
+        question = "Are you safe from acting on these thoughts right now?"
+    elif stage == "acute_contact":
+        message = "If you have reached someone or emergency support, stay connected. If you have not, contact emergency or crisis support now."
+        question = "Are you safe from acting on these thoughts right now?"
+    elif stage == "acute_barrier":
+        message = "I hear that something is making the next safety step difficult. We do not need to pretend that it is easy. Please stay away from anything you could use to hurt yourself and use an emergency or crisis option if you can."
+        question = "What is making it difficult to move away from harm or get another person involved right now?"
+    elif stage == "acute_hold":
+        message = "I hear you. I am going to stop asking you to repeat the same safety step. Please stay away from anything you could use to hurt yourself and use emergency or crisis support now. If you have already injured yourself or taken something, seek emergency medical care now."
+        question = ""
+    elif stage == "recovery":
+        message = "It is important to stay connected to support. We do not need to return to the other conversation yet. First, I want to make sure the immediate danger has passed."
+        question = "Are you safe from acting on these thoughts right now?"
+    elif stage == "release":
+        message = "You have taken a step to stay connected to support. You do not have to return to the other conversation yet."
+        question = ""
+    else:
+        message = "If you may be in immediate danger, contact the emergency service where you are or go to the nearest emergency department now."
+        question = "Do you think you might act on these thoughts right now?"
+
+    if stage in {"acute_followthrough", "acute_connection", "acute_contact", "acute_barrier", "acute_hold", "recovery"}:
+        note = "If you have already injured yourself or taken something, seek emergency medical care now."
+    elif has_resources:
+        note = "If you are in immediate danger, use the verified emergency service above or go to the nearest emergency department."
+    else:
+        note = "If you may act on these thoughts now, contact the emergency service where you are or go to the nearest emergency department rather than waiting for an online directory."
+
+    return {
+        "safety": "recovery" if stage == "release" else stage,
+        "safety_interrupt": True,
+        "safety_message": message,
+        "safety_question": question,
+        "safety_note": note,
+        "safety_resources": [],
+        "safety_location_required": not has_resources,
+        "country": "",
+        "safety_release_ready": stage == "release",
+    }
+
+
 def normalize_safety_resolution(
     data: Mapping[str, Any],
     *,
@@ -602,12 +725,9 @@ def normalize_safety_resolution(
     if not safety_message:
         raise RuntimeError("HRN safety lane returned no safety_message.")
 
-    # HRN remains authoritative for the safety state, immediate message,
-    # and next conversational movement. Emergency Intelligence is the sole
-    # authority for visitor-facing emergency phone resources because its
-    # selection is grounded in a resolved location and verified registry
-    # evidence. Never merge HRN's unscoped/static hotline list into a visitor
-    # response: those numbers may belong to a different country.
+    # The local deterministic state machine owns safety state and language.
+    # Emergency Intelligence alone owns phone resources. Never merge any
+    # unscoped/static hotline list into a visitor response.
     emergency_resources = _resource_projection(emergency_resolution or {})
     resources = [dict(resource) for resource in emergency_resources if isinstance(resource, Mapping)]
 
@@ -619,7 +739,7 @@ def normalize_safety_resolution(
     verified_resource_country = str(resolved_country_data.get("value") or "").strip().upper()
     selected_country = str(resolved_country_data.get("value") or country or "").strip().upper()
     resources_are_location_grounded = bool(
-        emergency_status == "SELECTED"
+        emergency_status in {"SELECTED", "MULTIPLE_EQUIVALENT"}
         and verified_resource_country
         and selected_country
         and verified_resource_country == selected_country
@@ -670,80 +790,21 @@ def _initial_deterministic_safety_response(
     country: str = "",
     emergency_resolution: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Return the first safety movement without waiting for an LLM/provider.
-
-    High-confidence first-turn disclosures already have a deterministic state.
-    There is no safety-language reason to send those turns through the HRN
-    Safety composer before answering. The emergency/resource resolver may still
-    contribute resources when it returns quickly, but it is not allowed to
-    delay the first human-facing movement.
-    """
+    """Generate the first safety movement locally without an HRN or LLM call."""
     state = str(safety_state or "").strip().casefold()
-    resources = _resource_projection(emergency_resolution or {})
-    if state == "acute":
-        message = (
-            "Thank you for telling me. I want to take what you're saying "
-            "seriously. Please don't stay alone with this. If you can, move "
-            "away from anything you could use to hurt yourself and bring "
-            "another person into this now."
-        )
-        question = "Do you think you might act on these thoughts right now?"
-    elif state in {"plan", "immediacy"}:
-        message = (
-            "Please don't stay alone with this. Move away from anything you "
-            "could use to hurt yourself, and bring another person into this "
-            "now if you can."
-        )
-        question = "Have you moved away from anything you could use to hurt yourself?"
-    else:
-        message = (
-            "Thank you for telling me. I want to take what you're saying "
-            "seriously. Please stay with another person if you can while we "
-            "make sure you are safe."
-        )
-        question = "Do you think you might act on these thoughts right now?"
-
-    return {
-        "safety": state,
-        "safety_interrupt": True,
-        "safety_message": message,
-        "safety_question": question,
-        "safety_note": (
-            "If you are in immediate danger or have already injured yourself, "
-            "contact your local emergency service or go to the nearest emergency "
-            "department now."
-        ),
-        "safety_resources": resources,
-        "safety_location_required": (
-            not bool(resources)
-            or str(
-                ((emergency_resolution or {}).get("selection") or {}).get("selection_status") or ""
-            ) != "SELECTED"
-        ),
-        "country": str(
-            country
-            or (
-                (((emergency_resolution or {}).get("location") or {}).get("location") or {})
-                .get("country", {}).get("value", "")
-                if str(((emergency_resolution or {}).get("selection") or {}).get("selection_status") or "") == "SELECTED"
-                else ""
-            )
-            or ""
-        ).strip(),
-        "safety_release_ready": False,
-        "resolver_status": "deterministic_initial_fast_path",
-        "safety_continuity_guard": "deterministic_initial_movement",
-        "next_movement": question,
-        "safety_presence": "unknown",
-        "safety_question_context": "",
-        "emergency_resolution_status": (
-            str(
-                (emergency_resolution or {}).get("selection", {}).get("selection_status")
-            )
-            if isinstance((emergency_resolution or {}).get("selection"), Mapping)
-            else "unavailable"
-        ),
-    }
+    data = _safety_response(state, emergency_resolution)
+    normalized = normalize_safety_resolution(
+        data,
+        requested_state=state,
+        country=country,
+        emergency_resolution=emergency_resolution,
+    )
+    normalized["resolver_status"] = "deterministic_initial_fast_path"
+    normalized["safety_continuity_guard"] = "deterministic_initial_movement"
+    normalized["next_movement"] = normalized.get("safety_question") or ""
+    normalized["safety_presence"] = _presence_signal(query)
+    normalized["safety_question_context"] = ""
+    return normalized
 
 
 def resolve_safety(
@@ -756,12 +817,9 @@ def resolve_safety(
     unit_turns: int = 0,
     location: Mapping[str, Any] | None = None,
     service_need: str = "general_emergency",
-    endpoint: str | None = None,
     emergency_endpoint: str | None = None,
 ) -> dict[str, Any]:
-    endpoint_url = str(
-        endpoint or os.getenv("HRN_ENDPOINT_URL") or DEFAULT_HRN_ENDPOINT
-    ).strip()
+    """Resolve a safety turn locally; EI is called only for verified resources."""
     emergency_endpoint_url = str(
         emergency_endpoint
         or os.getenv("EMERGENCY_INTELLIGENCE_ENDPOINT")
@@ -771,243 +829,90 @@ def resolve_safety(
     location_input = _emergency_location(country=country, location=location)
     previous_question = safety_question or _last_safety_question(history)
     presence = _presence_signal(query)
+    stage = _safety_stage_from_question(previous_question, safety_state)
 
-    # High-confidence first-turn safety disclosures must not wait for the
-    # provider-backed HRN Safety composer. The state is already deterministic;
-    # the first human-facing movement should therefore be deterministic too.
-    #
-    # Resource intelligence is best-effort and bounded to a short window. It
-    # can enrich the first response when already fast, but it must never become
-    # the critical path for the first safety question.
     initial_safety_fast_path = (
         not str(history or "").strip()
         and not str(safety_question or "").strip()
-        and safety_state in {"acute", "plan", "immediacy", "current"}
+        and stage in {"acute", "plan", "immediacy", "current"}
     )
-    if initial_safety_fast_path:
-        emergency_resolution_fast: Mapping[str, Any] | None = None
-        try:
-            fast_executor = ThreadPoolExecutor(
-                max_workers=1,
-                thread_name_prefix="guide-safety-resource-fast",
-            )
-            fast_future = fast_executor.submit(
-                _request_emergency_intelligence,
-                endpoint=emergency_endpoint_url,
-                service_need=service_need,
-                safety_state=safety_state,
-                location=location_input,
-                timeout=1.2,
-            )
-            try:
-                emergency_resolution_fast = fast_future.result(timeout=1.3)
-            except Exception as exc:
-                print(f"Fast safety resource enrichment unavailable; returning immediately: {exc}")
-                emergency_resolution_fast = {}
-            finally:
-                fast_executor.shutdown(wait=False, cancel_futures=True)
-        except Exception as exc:
-            print(f"Fast safety resource path unavailable; returning deterministic movement: {exc}")
-            emergency_resolution_fast = {}
 
+    emergency_resolution: Mapping[str, Any] = {}
+    try:
+        timeout = 1.2 if initial_safety_fast_path else 3.0
+        emergency_resolution = _request_emergency_intelligence(
+            endpoint=emergency_endpoint_url,
+            service_need=service_need,
+            safety_state=stage,
+            location=location_input,
+            timeout=timeout,
+        )
+    except Exception as exc:
+        print(f"Emergency Intelligence unavailable; deterministic safety remains active: {exc}")
+        emergency_resolution = {}
+
+    if initial_safety_fast_path:
         return _initial_deterministic_safety_response(
             query=query,
-            safety_state=safety_state,
-            country=country,
-            emergency_resolution=emergency_resolution_fast,
-        )
-
-    emergency_resolution: Mapping[str, Any] | None = None
-    emergency_error = ""
-    data: Mapping[str, Any] | None = None
-    hrn_error = ""
-
-    executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="guide-safety")
-    emergency_future = executor.submit(
-        _request_emergency_intelligence,
-        endpoint=emergency_endpoint_url,
-        service_need=service_need,
-        safety_state=safety_state,
-        location=location_input,
-        timeout=3.0,
-    )
-    hrn_future = executor.submit(
-        _request_hrn_safety,
-        endpoint=endpoint_url,
-        query=query,
-        history=history,
-        safety_state=safety_state,
-        safety_question=previous_question or query,
-        country=country,
-        unit_turns=unit_turns,
-        safety_presence=presence,
-        timeout=5.0,
-    )
-
-    try:
-        try:
-            emergency_resolution = emergency_future.result(timeout=3.2)
-        except Exception as exc:
-            emergency_error = str(exc)
-            emergency_resolution = {}
-            print(f"Emergency Intelligence unavailable; HRN safety remains active: {exc}")
-
-        try:
-            data = hrn_future.result(timeout=5.2)
-        except Exception as exc:
-            hrn_error = str(exc)
-            data = None
-            print(f"HRN safety sibling unavailable within bound: {exc}")
-    finally:
-        executor.shutdown(wait=False, cancel_futures=True)
-
-    try:
-        if data is None:
-            raise RuntimeError(hrn_error or "HRN safety sibling returned no response.")
-        normalized = normalize_safety_resolution(
-            data,
-            requested_state=safety_state,
+            safety_state=stage,
             country=country,
             emergency_resolution=emergency_resolution,
         )
 
-        if (
-            not bool(normalized.get("safety_release_ready"))
-            and not str(normalized.get("safety_question") or "").strip()
-        ):
-            repaired_question = repair_safety_question(
-                safety_state=safety_state,
-                previous_question=previous_question,
-                query=query,
-                history=history,
-            )
-            normalized["safety_question"] = repaired_question
-            normalized["safety_continuity_guard"] = "native_next_movement_repaired"
-            normalized["next_movement"] = repaired_question
+    answer = _safety_answer_class(query, stage)
+    next_stage = _safety_transition(stage, answer)
 
-        # The opening safety turn should sound like a human response to what
-        # the visitor actually said. Older HRN safety wording sometimes refers
-        # to a previous "yes" even when the visitor has just disclosed suicidal
-        # thinking. That is a broken conversational reference, not merely a
-        # stylistic preference. Repair it at the shared boundary so every
-        # Guide entry point receives the same coherent opening.
-        if not str(history or "").strip():
-            opening_message = str(normalized.get("safety_message") or "")
-            if re.search(
-                r"taking your\s+[“\"']?yes[”\"']?\s+seriously",
-                opening_message,
-                re.I,
-            ):
-                normalized["safety_message"] = (
-                    "Thank you for telling me. I want to take what you're "
-                    "saying seriously."
-                )
-
-            opening_question = str(normalized.get("safety_question") or "")
-            if re.fullmatch(
-                r"Do you feel you might act on these thoughts right now\?",
-                opening_question,
-                re.I,
-            ):
-                normalized["safety_question"] = (
-                    "Do you think you might act on these thoughts right now?"
-                )
-
-        # Presence claims must be grounded in the visitor's own words.
-        # HRN has occasionally asserted that another person is already with
-        # the visitor even when the visitor has not said so. That can falsely
-        # imply that immediate support is present. Only preserve that claim
-        # when the current turn explicitly establishes human presence.
-        message = str(normalized.get("safety_message") or "")
-        unsupported_presence_claim = re.search(
-            r"\b(?:it helps (?:that|to have)|you have|there is)\b.{0,55}"
-            r"\b(?:someone|somebody|another person|them)\b.{0,45}"
-            r"\b(?:with you|with them|stay together)\b|"
-            r"\b(?:someone|somebody|another person)\s+is\s+with\s+you\b",
-            message,
-            re.I,
+    if stage == "support" and next_stage == "recovery":
+        data = _safety_response("recovery", emergency_resolution)
+        data["safety_message"] = (
+            "You have taken a step toward support. You do not have to return to the other conversation yet."
         )
-        if presence != "present" and unsupported_presence_claim:
-            normalized["safety_message"] = (
-                "Thank you for answering. Let's focus on keeping you safe right now."
-            )
-            normalized["safety_question"] = (
-                "Is there someone you trust who can stay with you right now?"
-            )
-            normalized["safety_release_ready"] = False
-            normalized["loop_guard"] = "unsupported_presence_claim_repaired"
-            message = str(normalized["safety_message"])
+        data["safety_question"] = "Are you safe from acting on these thoughts right now?"
+        data["safety_release_ready"] = False
+        next_stage = "recovery"
+    elif stage == "recovery" and next_stage == "release":
+        data = _safety_response("release", emergency_resolution)
+        next_stage = "recovery"
+    elif stage == "recovery" and next_stage != "release":
+        next_stage = "acute_followthrough"
+        data = _safety_response(next_stage, emergency_resolution)
+    else:
+        data = _safety_response(next_stage, emergency_resolution)
 
-        # Compatibility guard for the known HRN loop defect. If the visitor
-        # explicitly establishes human presence, HRN must not pass through a
-        # generated assertion that the visitor is alone. We repair the
-        # contradiction conservatively and keep the safety latch closed.
-        if presence == "present" and re.search(
-            r"\b(?:you are|you(?:'re| are)?)\s+alone\b|\bsince you are alone\b",
-            message,
-            re.I,
-        ):
-            normalized["safety_message"] = (
-                "It helps that someone is with you. Please stay with them and "
-                "keep away from anything you could use to hurt yourself."
-            )
-            if "moved away" in previous_question.casefold():
-                normalized["safety_question"] = (
-                    "Are you safe from acting on these thoughts right now?"
-                    if re.search(r"\b(?:yes|i did|i have|i moved|i'm away|i am away)\b", query.casefold())
-                    else "Have you moved away from anything you could use to hurt yourself?"
-                )
-            else:
-                normalized["safety_question"] = (
-                    "Have you moved away from anything you could use to hurt yourself?"
-                )
-            normalized["safety_release_ready"] = False
-            normalized["loop_guard"] = "contradictory_presence_claim_repaired"
+    normalized = normalize_safety_resolution(
+        data,
+        requested_state=next_stage,
+        country=country,
+        emergency_resolution=emergency_resolution,
+    )
 
-        normalized["safety_presence"] = presence
-        normalized["safety_question_context"] = previous_question
-        normalized["emergency_resolution_status"] = (
-            str(selection_status)
-            if (selection_status := (
-                (emergency_resolution or {}).get("selection", {}).get("selection_status")
-                if isinstance((emergency_resolution or {}).get("selection"), Mapping)
-                else ""
-            ))
-            else "unavailable"
-        )
-        if emergency_error:
-            normalized["emergency_error"] = emergency_error
-        return normalized
+    # Do not assert that another person is physically present unless the
+    # visitor has said so. The deterministic wording above is conditional,
+    # but retain a defensive repair for future wording changes.
+    message = str(normalized.get("safety_message") or "")
+    unsupported_presence_claim = re.search(
+        r"\b(?:it helps (?:that|to have)|you have|there is)\b.{0,55}"
+        r"\b(?:someone|somebody|another person|them)\b.{0,45}"
+        r"\b(?:with you|with them|stay together)\b|"
+        r"\b(?:someone|somebody|another person)\s+is\s+with\s+you\b",
+        message,
+        re.I,
+    )
+    if presence != "present" and unsupported_presence_claim:
+        normalized["safety_message"] = "Thank you for answering. Let's focus on keeping you safe right now."
+        normalized["safety_question"] = "Is there someone you trust who can stay with you right now?"
+        normalized["safety_release_ready"] = False
+        normalized["loop_guard"] = "unsupported_presence_claim_repaired"
 
-    except Exception as exc:
-        return {
-            "safety": safety_state,
-            "safety_interrupt": True,
-            "safety_message": (
-                "If you may be in immediate danger, contact the emergency "
-                "service where you are or go to the nearest emergency "
-                "department, and stay with another person."
-            ),
-            "safety_question": "",
-            "safety_note": "",
-            "safety_resources": _resource_projection(emergency_resolution or {}),
-            "safety_location_required": (
-                not bool(emergency_resolution)
-                or str(
-                    ((emergency_resolution or {}).get("selection") or {}).get("selection_status")
-                    or ""
-                ) == "LOCATION_REQUIRED"
-            ),
-            "country": str(country or "").strip(),
-            "safety_release_ready": False,
-            "resolver_status": "fallback",
-            "resolver_error": str(exc),
-            "emergency_resolution": dict(emergency_resolution or {}),
-            "emergency_error": emergency_error,
-            "safety_presence": presence,
-            "safety_question_context": previous_question,
-        }
-
+    normalized["resolver_status"] = "standalone_deterministic_state_machine"
+    normalized["safety_continuity_guard"] = "local_deterministic_transition"
+    normalized["safety_presence"] = presence
+    normalized["safety_question_context"] = previous_question
+    normalized["safety_answer_class"] = answer.get("answer_class", "uncertain")
+    normalized["emergency_resolution_status"] = str(
+        (emergency_resolution.get("selection") or {}).get("selection_status") or "unavailable"
+    )
+    return normalized
 
 
 # v488.67 invariants: ordinary relational language stays out of safety,
@@ -1037,15 +942,17 @@ if normalize_safety_state("I want to die.") != "acute":
 def safety_intelligence_snapshot() -> dict[str, Any]:
     return {
         "contract_version": SAFETY_INTELLIGENCE_CONTRACT_VERSION,
-        "authority": "HRN_Safety_Fractal_and_Emergency_Intelligence",
+        "authority": "Guide_Standalone_Deterministic_Safety_State_Machine_and_Emergency_Intelligence",
         "emergency_intelligence_endpoint": DEFAULT_EMERGENCY_INTELLIGENCE_ENDPOINT,
         "resource_owner": "Emergency Intelligence",
         "resource_contract": "living-archive/emergency/v1/resolve",
-        "language_owner": "HRN_Safety_Fractal",
+        "language_owner": "Guide_Standalone_Deterministic_Safety_State_Machine",
         "guide_role": "sitewide_boundary_and_contract_preservation",
         "ordinary_hrn_composition_bypassed": True,
+        "hrn_dependency": False,
+        "standalone_safety_state_machine": True,
         "retrieval_bypassed": True,
         "emergency_registry_authority": "Emergency Intelligence",
-        "safety_loop_guard": "sitewide_compatibility_guard",
+        "safety_loop_guard": "standalone_deterministic_state_machine",
         "continuity_repair": "state_aware_native_next_movement",
     }
