@@ -74,11 +74,24 @@ async function makePage(browser, failEmergency) {
       if (url === window.LAHRN.emergency_endpoint) {
         window.__eiRequests.push({ kind: 'ei', body });
         await new Promise(resolve => setTimeout(resolve, 150));
-        if (window.__eiFail) {
+        if (window.__eiFail === true) {
           return new Response(JSON.stringify({ message: 'Simulated local resource outage' }), {
             status: 503,
             headers: { 'Content-Type': 'application/json' }
           });
+        }
+        if (window.__eiFail === 'unverified') {
+          return new Response(JSON.stringify({
+            operation: 'resource_location_resolution',
+            country: 'Philippines',
+            stage: 'acute_contact',
+            message: 'Please contact emergency or crisis support now.',
+            question: 'Stay with another person while you contact support.',
+            resources: [],
+            resource_provenance: 'ei_no_verified_fallback',
+            resource_status: 'ei_no_verified_resource',
+            note: 'I could not confirm a current, verified local emergency number for this location. I will not display an unverified number.'
+          }), { status: 200, headers: { 'Content-Type': 'application/json' } });
         }
         return new Response(JSON.stringify({
           operation: 'resource_location_resolution',
@@ -92,6 +105,8 @@ async function makePage(browser, failEmergency) {
             phone: '911',
             hours: '24/7'
           }],
+          resource_provenance: 'ei_verified_only',
+          resource_status: 'ei_verified_resources',
           note: 'Use this service for immediate emergency assistance.'
         }), { status: 200, headers: { 'Content-Type': 'application/json' } });
       }
@@ -140,7 +155,15 @@ async function beginLocationFlow(page) {
     assert.equal(await failurePage.locator('.lah-rn-submit').isEnabled(), true, 'error path must restore the composer control');
     await failurePage.close();
 
-    console.log('PASS: browser safety-location flow renders verified resources, preserves the location-only EI boundary, and clears loading state on success and failure.');
+    const unverifiedPage = await makePage(browser, 'unverified');
+    await beginLocationFlow(unverifiedPage);
+    await unverifiedPage.getByText('I could not confirm a current, verified local emergency number', { exact: false })
+      .waitFor({ state: 'visible', timeout: 5000 });
+    assert.equal(await unverifiedPage.locator('a[href^="tel:"]').count(), 0, 'unverified EI outcome must not render a callable telephone link');
+    assert.equal(await unverifiedPage.locator('.lah-rn.is-loading').count(), 0, 'unverified outcome must clear loading state');
+    await unverifiedPage.close();
+
+    console.log('PASS: browser safety-location flow renders EI-verified resources, withholds unverified numbers, preserves the location-only EI boundary, and clears loading state on success and failure.');
   } finally {
     await browser.close();
   }
