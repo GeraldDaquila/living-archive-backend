@@ -1,0 +1,47 @@
+name: Crosslink Territorial Integrity Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      link_check:
+        description: "Run bounded HTTP checks for all snapshot destinations"
+        required: true
+        type: choice
+        options:
+          - identity-only
+          - full-destination-check
+        default: identity-only
+
+permissions:
+  contents: read
+
+jobs:
+  territorial-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/crosslink-territorial-integrity-audit
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run read-only integrity audit
+        env:
+          LINK_CHECK: ${{ inputs.link_check }}
+        run: |
+          if [ "$LINK_CHECK" = "full-destination-check" ]; then
+            python -m scripts.audit_archive_crosslink_integrity --output-dir audit-output
+          else
+            python -m scripts.audit_archive_crosslink_integrity --skip-link-check --output-dir audit-output
+          fi
+      - name: Upload audit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crosslink-territorial-integrity
+          path: audit-output/
+          if-no-files-found: warn
+          retention-days: 30
