@@ -29,3 +29,11 @@ def test_triangle_area_is_answered_as_bounded_general_knowledge():
     assert result["fact_id"] == "triangle_area_formula"
     assert "½ × base × height" in result["response"]
     assert "responsibilities involved" not in result["response"].lower()
+
+
+def test_bounded_fact_is_exempt_from_three_paragraph_presentation_recovery():
+    source = main._basic_inquiry_response.__code__.co_names
+    assert "_established_general_knowledge_recovery" in source
+    assert main._established_general_knowledge_recovery(
+        "How do I calculate the area of a triangle?"
+    )["fact_id"] == "triangle_area_formula"
