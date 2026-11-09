@@ -9210,24 +9210,6 @@ def _hypothetical_safety_calibration_payload(query):
 
 
 
-# OpenAPI request-contract hint. The ASGI boundary accepts additional continuity
-# metadata directly, so the public schema must declare the opaque safety token.
-# This model is intentionally permissive to preserve legacy query aliases.
-try:
-    from pydantic import BaseModel, ConfigDict
-
-    class SafetyContinuityRequest(BaseModel):
-        model_config = ConfigDict(extra="allow")
-        query: str | None = None
-        user_query: str | None = None
-        question: str | None = None
-        text: str | None = None
-        history: list | None = None
-        conversation_history: list | None = None
-        safety_session: str | None = None
-except Exception:
-    SafetyContinuityRequest = None
-
 async def _use_request_boundary(scope, receive, send):
     if scope.get("type") != "http":
         await _FASTAPI_APP(scope, receive, send)
