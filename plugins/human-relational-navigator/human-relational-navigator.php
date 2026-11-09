@@ -1280,7 +1280,7 @@ Visitor response: " . $message;
                         // Preserve verified equivalent routes (for example 999/112).
                         $candidates = $selection['primary'];
                     } else {
-                        $ei_failure_reasons[] = sanitize_key($selection['failure_reason'] ?? $selection_status ?: 'no_eligible_resource');
+                        $ei_failure_reasons[] = sanitize_key($selection['failure_reason'] ?? ($selection_status ?: 'no_eligible_resource'));
                         continue;
                     }
                     foreach ($candidates as $resource) {
