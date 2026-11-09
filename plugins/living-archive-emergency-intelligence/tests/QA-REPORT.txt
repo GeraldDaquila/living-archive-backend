@@ -2,7 +2,7 @@ Living Archive Emergency Intelligence
 QA Report — v0.1.3 candidate
 Date: 2026-11-09
 
-STATUS: PASS — isolated provenance / expiry regression suite and disposable WordPress REST integration
+STATUS: PASS — isolated provenance / expiry regression suite, disposable WordPress REST integration, and browser UI lifecycle tests
 
 Registry:
 - Schema version 0.2
@@ -10,6 +10,7 @@ Registry:
 - Nine verification records carry HTTPS source URLs
 - Every verification record explicitly maps to one or more resource IDs
 - UK 999/112 equivalence uses one shared verification record mapped to both resources
+- US 911 resource retains the FCC qualification that local PSAP coverage/service availability may vary by jurisdiction
 - Remote registry signature is marked mandatory
 - Remote registry updates remain disabled until trusted-key cryptographic signature verification is implemented and tested
 
@@ -25,22 +26,31 @@ Validated:
 - Missing source URLs are rejected and produce no telephone action
 - Non-HTTPS source URLs are rejected by candidate validation
 - Resource-to-verification mismatch is rejected and produces no telephone action
+- Missing authority metadata is rejected and produces no telephone action
 - Missing verification record is rejected and produces no telephone action
-- Impossible calendar date is rejected and produces no telephone action
+- Impossible calendar date is rejected by candidate validation and runtime selection
 - UK 999/112 equivalence remains available only with current shared provenance
 - Candidate validation rejects missing source provenance and mismatched resource mappings
 - Disposable WordPress REST bootstrap and dispatch integration passed
 - HRN location-only input boundary remains intact
+- Playwright browser test passed the safety-location UI flow using controlled API responses:
+  - location-required prompt appears
+  - country selection submits only country, safety stage, safety question and existing safety prompt to EI
+  - visitor answer and transcript fields are not sent to EI
+  - verified telephone resource is rendered as a tel: action
+  - loading state clears on success
+  - local-resource failure produces a safe fallback and clears loading state
 
 CI evidence:
-- EI-HRN Adapter Validation: run 42593630295
+- EI-HRN Adapter Validation: run 42594325981
 - syntax-and-boundary: PASS
 - wordpress-rest-integration: PASS
+- browser-safety-e2e: PASS
 
 Important limitations:
+- Browser E2E uses controlled fetch responses to exercise the actual HRN JavaScript UI. It is not a full browser-to-live-WordPress HTTP test.
 - Disposable WordPress integration uses a test-only empty canonical-retriever stub. It validates REST bootstrap and dispatch, not canonical retrieval integration.
-- Browser-level E2E has not yet been performed.
-- Source URLs and their asserted meaning still require human editorial review; URL shape validation does not prove that a page supports a specific number or service.
+- Source URLs and their asserted meaning still require human editorial review; HTTPS URL-shape validation does not prove that a page supports a specific number or service.
 - No production WordPress installation, registry, Render service, or deployment was changed.
 
 Architecture status:
