@@ -83,7 +83,7 @@ try {
     check($secretStatus !== 0 && strpos(implode("\n", $secretOutput), 'Credential-like material detected') !== false,
         'Credential-like content was not refused.');
 
-    echo "PASS: snapshot creation, manifest hashing, archive reopen, checksum, restore rehearsal, public-root refusal, and credential refusal.\n";
+    echo "PASS: snapshot creation, manifest hashing, archive reopen, checksum, restore rehearsal, public-root refusal, symlink refusal, and credential refusal.\n";
 } finally {
     remove_tree($root);
 }
