@@ -44,7 +44,7 @@ function living_archive_emergency_resolve($need, $location, $stage, $policy) {
     }
     return array('registry_version'=>'test-registry', 'selection'=>array('selection_status'=>'NO_MATCH'));
 }
-require_once __DIR__ . '/../plugins/human-relational-navigator/human-relational-navigator.php';
+require_once __DIR__ . '/../../plugins/human-relational-navigator/human-relational-navigator.php';
 
 function assert_true($condition, $message) {
     if (!$condition) { fwrite(STDERR, "FAIL: ".$message."\n"); exit(1); }
