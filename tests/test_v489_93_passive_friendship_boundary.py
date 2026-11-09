@@ -1,11 +1,11 @@
-"""Regression contract for passive friendship routing and isolated HRN sessions in v489.104.
+"""Regression contract for native Guide handling after intentional HRN retirement.
 
-Exercises both the authoritative boundary decision and the real ASGI /api/query
-request boundary. Definition-only and explicit Archive-search requests remain bounded.
+The relational classifier remains useful as observational evidence, but the
+visitor-facing request path must remain inside The Guide. No HRN specialist
+handoff or relational-delegation session may be created.
 """
 import asyncio
 import json
-import re
 from pathlib import Path
 
 import main as use_main
@@ -15,19 +15,14 @@ TEXT = SOURCE.read_text(encoding="utf-8")
 
 TARGET = "I am struggling with a friendship where I want to be understood but also need boundaries."
 NATURAL_TARGET = "I keep putting off a conversation with a friend because I am afraid it will change the friendship."
+COMPACT_TARGET = (
+    "I keep trying to explain why the same argument hurts me, but we end up "
+    "arguing about whether I should still feel hurt."
+)
 
 
-def _function_body(name: str, next_marker: str) -> str:
-    start = TEXT.index(f"def {name}(")
-    end = TEXT.index(next_marker, start)
-    return TEXT[start:end]
-
-
-async def _post_query(query: str, session_id: str | None = None):
-    body_payload = {"query": query}
-    if session_id is not None:
-        body_payload["session_id"] = session_id
-    body = json.dumps(body_payload).encode("utf-8")
+async def _post_query(query: str):
+    body = json.dumps({"query": query}).encode("utf-8")
     sent = []
     consumed = False
 
@@ -63,95 +58,53 @@ async def _post_query(query: str, session_id: str | None = None):
     return start["status"], json.loads(response_body.decode("utf-8"))
 
 
-def test_passive_friendship_boundary_cues_are_present():
+def _assert_native_guide_response(status, payload):
+    assert status == 200
+    assert payload["intent"] == "TOPICAL_INQUIRY"
+    assert payload.get("handoff") != "relationship"
+    assert "relational_delegation" not in payload
+    assert payload.get("handoff_pending") is not True
+
+
+def test_passive_friendship_boundary_cues_remain_detectable():
     assert r'\b(?:a|this|our|my)\s+friendship\b' in TEXT
     assert r'\b(?:i|we)\s+(?:want|need|hope|wish)\s+to\s+be\s+(?:understood|heard|seen|respected)\b' in TEXT
 
 
-def test_exact_passive_friendship_query_opens_hrn_boundary():
+def test_exact_passive_friendship_query_is_observed_but_not_delegated():
     decision = use_main._relational_boundary_decision(TARGET)
     assert decision["open"] is True
     assert decision["reason"] == "lived_relational_structure"
     assert decision["signals"]["first_person"] is True
     assert decision["signals"]["counterpart"] is True
     assert decision["signals"]["inquiry"] is True
+    status, payload = asyncio.run(_post_query(TARGET))
+    _assert_native_guide_response(status, payload)
 
 
-def test_natural_friend_conversation_cues_open_hrn_boundary():
+def test_natural_friend_conversation_remains_native_guide_inquiry():
     decision = use_main._relational_boundary_decision(NATURAL_TARGET)
     assert decision["open"] is True
     assert decision["reason"] == "lived_relational_structure"
     assert decision["signals"]["first_person"] is True
     assert decision["signals"]["counterpart"] is True
     assert decision["signals"]["dynamic"] is True
-
-
-def test_natural_friend_conversation_request_hands_off_to_hrn():
     status, payload = asyncio.run(_post_query(NATURAL_TARGET))
-    assert status == 200
-    assert payload["intent"] == "RELATIONAL_HANDOFF"
-    assert payload["handoff"] == "relationship"
-    assert payload["relational_delegation"]["specialist_id"] == "relationship"
+    _assert_native_guide_response(status, payload)
 
 
-def test_real_query_request_boundary_hands_off_to_hrn():
-    status, payload = asyncio.run(_post_query(TARGET))
-    assert status == 200
-    assert payload["intent"] == "RELATIONAL_HANDOFF"
-    assert payload["handoff"] == "relationship"
-    assert payload["handoff_mode"] == "immediate"
-    assert payload["handoff_pending"] is True
-    assert payload["relational_delegation"]["specialist_id"] == "relationship"
-    assert re.fullmatch(r"relationship-[0-9a-f]{24}", payload["relational_delegation"]["session_id"])
-
-
-def test_identical_opening_queries_receive_distinct_hrn_sessions():
-    _, first = asyncio.run(_post_query(TARGET))
-    _, second = asyncio.run(_post_query(TARGET))
-    first_id = first["relational_delegation"]["session_id"]
-    second_id = second["relational_delegation"]["session_id"]
-    assert first_id != second_id, "Identical visitor questions must not share a persisted HRN ledger."
-
-
-def test_explicit_client_session_token_is_stable_across_retries():
-    token = "browser-session-token-1234567890"
-    _, first = asyncio.run(_post_query(TARGET, session_id=token))
-    _, second = asyncio.run(_post_query(TARGET, session_id=token))
-    assert first["relational_delegation"]["session_id"] == second["relational_delegation"]["session_id"]
-
-
-
-def test_compact_repeated_argument_explanation_opens_hrn_boundary():
-    decision = use_main._relational_boundary_decision(
-        "I keep trying to explain why the same argument hurts me, but we end up arguing about whether I should still feel hurt."
-    )
+def test_compact_repeated_argument_is_observed_but_not_delegated():
+    decision = use_main._relational_boundary_decision(COMPACT_TARGET)
     assert decision["open"] is True
     assert decision["reason"] == "lived_relational_structure"
     assert decision["signals"]["first_person"] is True
     assert decision["signals"]["dynamic"] is True
     assert decision["signals"]["inquiry"] is True
+    status, payload = asyncio.run(_post_query(COMPACT_TARGET))
+    _assert_native_guide_response(status, payload)
 
 
-def test_compact_repeated_argument_request_hands_off_to_hrn():
-    query = (
-        "I keep trying to explain why the same argument hurts me, but we end up "
-        "arguing about whether I should still feel hurt."
-    )
-    status, payload = asyncio.run(_post_query(query))
-    assert status == 200
-    assert payload["intent"] == "RELATIONAL_HANDOFF"
-    assert payload["handoff"] == "relationship"
-    assert payload["handoff_mode"] == "immediate"
-    assert payload["handoff_pending"] is True
-    assert payload["relational_delegation"]["specialist_id"] == "relationship"
-    assert payload["relational_delegation"]["seed_message"] == query
-    assert re.fullmatch(
-        r"relationship-[0-9a-f]{24}",
-        payload["relational_delegation"]["session_id"],
-    )
-
-
-def test_explanatory_and_archive_queries_do_not_open_hrn_boundary():
+def test_explanatory_and_archive_queries_do_not_open_relational_observation():
     explanatory = use_main._relational_boundary_decision(
         "What is a relationship and why are relationships important?"
     )
@@ -163,15 +116,21 @@ def test_explanatory_and_archive_queries_do_not_open_hrn_boundary():
     assert archive_search["reason"] == "bounded_archive_or_definition_request"
 
 
+def test_retirement_contract_is_explicit_in_request_boundary():
+    assert "The Guide relational inquiry retained natively" in TEXT
+    assert "HRN is no longer a visitor-facing destination" in TEXT
+    assert "rather than invoking the specialist" in TEXT
+
+
 def test_bounded_archive_and_definition_exclusions_remain():
-    body = _function_body("_relational_boundary_decision", "_route_probe_lived_relational =")
+    start = TEXT.index("def _relational_boundary_decision(")
+    end = TEXT.index("_route_probe_lived_relational =", start)
+    body = TEXT[start:end]
     assert "if bounded or definition:" in body
     assert "bounded_archive_or_definition_request" in body
 
 
 def test_version_integrity_is_sequential():
-    # Validate the current release identity as a coherent set without pinning
-    # this regression test to a retired version number or fingerprint.
     version_line = next(
         (line for line in TEXT.splitlines() if line.startswith('APP_VERSION = "')),
         None,
