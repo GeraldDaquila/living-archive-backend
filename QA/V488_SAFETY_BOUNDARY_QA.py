@@ -215,7 +215,7 @@ def main():
     assert "safety_continuity_guard" in main_source
     assert "native_next_movement_repaired" in main_source
     assert "repair_safety_question(" in main_source
-    assert "if not safety_release_ready and not safety_question:" in main_source
+    assert 'if not safety_release_ready and not safety_question and safety_payload.get("safety_state") != "acute_hold":' in main_source
     # Explicit visitor refusal must stop IP-derived location fallback; a proxy
     # or server IP must not be presented as the visitor's country.
     assert 'if str(context.get("refused") or "").strip().casefold() in {"true", "yes", "1", "refused"}:' in main_source
