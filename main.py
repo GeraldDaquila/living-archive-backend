@@ -269,30 +269,6 @@ use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
 if getattr(_base, "_core_runtime_sha", "") != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError("USE protected core integrity failure: protected core mismatch.")
 
-# The protected core retains its own immutable historical provenance. The active
-# visitor-facing runtime identity is established here, after the protected core
-# integrity check, and is the sole identity used for application requests.
-ACTIVE_RUNTIME_IDENTITY = {
-    "build_id": CANONICAL_BUILD_ID,
-    "version": APP_VERSION,
-    "fingerprint": DEPLOYMENT_FINGERPRINT,
-    "source_sha256": RUNTIME_SOURCE_SHA256,
-    "protected_core_sha": EXPECTED_CORE_BLOB_SHA,
-}
-if (
-    getattr(use_core, "APP_VERSION", None) != APP_VERSION
-    or getattr(use_core, "DEPLOYMENT_FINGERPRINT", None) != DEPLOYMENT_FINGERPRINT
-    or getattr(use_core, "CANONICAL_BUILD_ID", None) != CANONICAL_BUILD_ID
-):
-    raise RuntimeError("USE active runtime identity failure: core identity injection mismatch.")
-print(
-    "USE ACTIVE RUNTIME IDENTITY: "
-    f"build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
-    f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, "
-    f"protected_core_sha={EXPECTED_CORE_BLOB_SHA}",
-    flush=True,
-)
-
 if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
     raise RuntimeError("USE provider gateway contract integrity failure: unsupported provider gateway contract.")
 
