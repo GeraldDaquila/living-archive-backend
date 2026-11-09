@@ -9679,40 +9679,15 @@ async def _use_request_boundary(scope, receive, send):
     # and before provider/model routing, so a natural lived relationship inquiry
     # cannot be consumed by the generic Guide path simply because the model later
     # labels it TOPICAL_INQUIRY.
+    # Relationship inquiries are now answered natively by The Guide.
+    # Keep the classifier as observational evidence during the HRN retirement
+    # transition, but do not divert the visitor into the legacy specialist.
     relational_boundary = _relational_boundary_decision(query)
     if relational_boundary.get("open"):
-        request_id = _relational_handoff_session_id(parsed_body)
         print(
-            "The Guide immediate HRN handoff: "
-            f"request_id={request_id}, query_chars={len(query)}"
+            "The Guide relational inquiry retained natively: "
+            f"query_chars={len(query)}, reason={relational_boundary.get('reason')}"
         )
-        return await _use_send_json(send, {
-            "ok": True,
-            "version": APP_VERSION,
-            "query": query,
-            "intent": "RELATIONAL_HANDOFF",
-            "response": "",
-            "handoff": "relationship",
-            "handoff_mode": "immediate",
-            "handoff_pending": True,
-            "relational_delegation": {
-                "state": "pending",
-                "specialist": "Seeing the Relationship",
-                "specialist_id": "relationship",
-                "contract_version": RELATIONSHIP_CONTRIBUTION_CONTRACT_VERSION,
-                "voice_policy": RELATIONSHIP_VOICE_POLICY,
-                "session_id": request_id,
-                "seed_message": query,
-                "conversation": _history_text(history),
-                "handoff_reason": "The Guide recognized a lived relational inquiry and is opening Seeing the Relationship directly.",
-                "hrn_endpoint": "https://geralddaquila.com/wp-json/living-archive/v1/relational-navigator",
-                "return_mode": "guide_integrated",
-            },
-            "visitor_boundary_version": APP_VERSION,
-            "request_id": request_id,
-            "relational_boundary_contract": RELATIONAL_BOUNDARY_CONTRACT_VERSION,
-            "relational_boundary_reason": relational_boundary.get("reason"),
-        })
 
     # High-confidence Case Navigator boundary: explicit Case Study requests
     # belong to the native structural case search. Do not let provider routing
