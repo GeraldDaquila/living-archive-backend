@@ -8430,8 +8430,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     _final_discovery_only = bool(discovery_subject) and (
         _final_explicit_navigation_request or _final_title_like_discovery
     )
+    # Registered bounded facts are already complete answers. The three-paragraph
+    # presentation contract is for substantive explanatory composition and must
+    # never replace a verified formula or stable fact with generic recovery prose.
     _final_requires_gold_standard = (
-        not _final_discovery_only
+        general_knowledge_recovery is None
+        and not _final_discovery_only
         and (
             general_guide_composition._requires_three_paragraph_default(query)
             or len(_final_comparative_subjects) == 2
