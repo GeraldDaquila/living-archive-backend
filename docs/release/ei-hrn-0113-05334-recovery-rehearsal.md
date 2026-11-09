@@ -75,3 +75,17 @@ A snapshot is accepted only if every manifest entry matches the captured bytes, 
 - Smoke tests and rollback checks are executable and documented.
 
 PR #1107 remains draft and unmerged. This document does not authorize merge, production file writes, activation/deactivation, registry changes, or deployment.
+
+
+## Snapshot utility QA candidate (2026-11-09)
+
+A separate draft PR now contains a CLI-only candidate for creating the required artifact:
+
+- PR: [#1109 — byte-verifiable EI/HRN release snapshot tool](https://github.com/GeraldDaquila/living-archive-backend/pull/1109)
+- Branch: `qa/ei-hrn-snapshot-tool-20261109`
+- Validated head: `879b8c94ba2a4061d31a60a45011fdf01c804943`
+- Dedicated PHP 8.2 + ZIP fixture workflow: run #4 passed.
+
+The candidate requires a pre-existing private output directory with mode 0700 outside the WordPress root. It captures both complete plugin trees, includes the EI registry, writes a path/size/SHA-256 manifest, rejects symlinks and common credential signatures, reopens and re-hashes every archive member, writes a SHA-256 sidecar, and makes the resulting artifacts read-only. The fixture test also restores every manifest entry into a separate temporary tree and verifies the restored hashes.
+
+This is **not yet a production backup mechanism**. The tests use disposable fixture directories; they do not prove access permissions, storage durability, or restore behavior on the actual hosting environment. A human review of the live plugin trees remains required because automated filename/signature screening cannot guarantee that no secret is embedded in source content. The next gate is to rehearse capture and restoration against an isolated WordPress copy, with the resulting archive held outside the public web root. No production files or settings were changed.
