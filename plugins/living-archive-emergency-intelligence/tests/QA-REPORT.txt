@@ -1,41 +1,36 @@
 Living Archive Emergency Intelligence
-QA Report — v0.1.1
-Date: 2026-09-29
+QA Report — v0.1.3 standalone development candidate
+Date: 2026-11-09
 
-STATUS: PASS — uploadable prototype build
+STATUS: PASS — isolated PHP and registry contract suite
+CI: EI Standalone Validation #42604147783 passed before the latest secondary-resource presentation additions. A fresh run is required for the latest branch head.
 
 Validated:
-- PHP syntax across all plugin PHP files
-- JSON parsing for registry and diagnostic fixtures
-- Registry structural validation
-- Country / architecture / resource / verification referential integrity
-- Five-country resource selection:
-  Philippines 911
-  United States 911
-  Germany 112
-  China 110 / 119 / 120 / 122
-  United Kingdom 999 / 112 equivalence
-- Unknown location -> LOCATION_REQUIRED
-- Refused location -> FALLBACK_GENERAL_EMERGENCY
-- Conflicting location evidence -> highest-strength evidence selected
-- Partial location evidence -> resource selection remains available
-- Unsupported country -> general emergency fallback
-- Presenter phone action generation
-- Invalid registry rejection
-- Duplicate ID rejection
-- Unknown country/architecture/verification reference rejection
-- Same-version registry rejection
-- Content-hash mismatch rejection
-- Signed-registry rejection while no trusted public key is provisioned
-- Newer valid registry activation
-- Active registry version promotion
+- PHP syntax across EI plugin PHP files.
+- Registry JSON parsing.
+- Provenance-aware schema 0.2 candidate validation.
+- HTTPS source URL shape and explicit resource-to-verification mappings.
+- Current verification permits resource selection.
+- Expired, future-dated, unverified, missing, mismapped, and provenance-deficient records fail closed.
+- Impossible calendar dates are rejected.
+- Invalid local registry data is rejected on load; forced reload clears stale in-memory registry state.
+- UK 999/112 equivalence requires shared current verification.
+- Remote registry update check performs no HTTP request while signature verification is unavailable.
+- Explicit user location outranks browser and IP inference; conflicts remain observable.
+- Expired verification does not inflate resource-selection confidence.
+- Refused location produces LOCATION_REFUSED and no callable number.
+- Secondary resource presentation is being added with provenance-validated fixtures.
 
-Important limitation:
-This QA was performed against the actual plugin code using a controlled WordPress-function test harness. It is not a live production WordPress installation test. WordPress installation/activation and browser-level REST testing remain to be performed after upload.
+Known release blockers:
+- Registry contains five countries, not the ten-country parity target.
+- Source URLs are structurally validated, but their actual content and claimed service coverage require human editorial verification.
+- Context-sensitive selection by safety state and service priority needs further specification and tests.
+- Full WordPress bootstrap/REST integration and real browser E2E have not been run on this standalone branch.
+- Cryptographic signature verification, trusted-key provisioning/rotation, and replay protection are not implemented; remote updates remain disabled.
+- This branch is not approved for production deployment.
 
-Architecture status:
-- Standalone only
-- No Human Relational Navigator integration
-- No HRN files modified
-- Local registry remains the emergency-path source of truth
-- Emergency path does not wait for registry refresh
+Architecture:
+- EI remains a deterministic standalone PHP subsystem.
+- No HRN plugin files are changed on this branch.
+- No HRN visitor routing, handoff, or session ledger is included.
+- No production WordPress, Render service, registry, or deployment has been modified.
