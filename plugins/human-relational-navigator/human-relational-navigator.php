@@ -931,29 +931,114 @@ final class Living_Archive_Human_Relational_Navigator {
         return 'green';
     }
 
+    /**
+     * Resolve callable emergency resources exclusively through standalone EI.
+     * The only inputs crossing this boundary are country and safety-stage context.
+     * No visitor answer, message, or transcript is accepted by this helper.
+     */
+    private function resolve_ei_resource_bundle($country_code, $stage) {
+        $resources = array();
+        $seen = array();
+        $ei_used = false;
+        $ei_available = function_exists('living_archive_emergency_resolve');
+        $failure_reasons = array();
+        $registry_version = null;
+
+        if ($ei_available) {
+            foreach (array('general_emergency', 'medical', 'crisis_support') as $need) {
+                try {
+                    $result = living_archive_emergency_resolve($need, array('explicit_country'=>$country_code), $stage, 'acute_emergency');
+                    if (!is_array($result)) {
+                        $failure_reasons[] = 'resolver_unavailable';
+                        continue;
+                    }
+                    if (!empty($result['registry_version'])) $registry_version = sanitize_text_field($result['registry_version']);
+                    $selection = is_array($result['selection'] ?? null) ? $result['selection'] : array();
+                    $selection_status = $selection['selection_status'] ?? '';
+                    if ($selection_status === 'SELECTED') {
+                        $candidates = array($selection['primary'] ?? array());
+                    } elseif ($selection_status === 'MULTIPLE_EQUIVALENT' && is_array($selection['primary'] ?? null)) {
+                        $candidates = $selection['primary'];
+                    } else {
+                        $failure_reasons[] = sanitize_key($selection['failure_reason'] ?? ($selection_status ?: 'no_eligible_resource'));
+                        continue;
+                    }
+                    foreach ($candidates as $resource) {
+                        if (!is_array($resource)) continue;
+                        $number = sanitize_text_field($resource['number'] ?? '');
+                        if ($number === '' || isset($seen[$number])) continue;
+                        $name = sanitize_text_field($resource['display_name'] ?? 'Emergency support');
+                        $resources[] = array(
+                            'title'=>$name,
+                            'phone'=>$number,
+                            'display_phone'=>$number,
+                            'group'=>($need === 'crisis_support') ? 'Crisis support' : 'Emergency help',
+                            'channels'=>array('call'),
+                            'verification_status'=>'verified_by_ei',
+                        );
+                        $seen[$number] = true;
+                        $ei_used = true;
+                    }
+                } catch (Throwable $e) {
+                    $failure_reasons[] = 'resolver_error';
+                    error_log('[Living Archive HRN] EI resource lookup failed; no legacy telephone fallback will be used: '.$e->getMessage());
+                    break;
+                }
+            }
+        } else {
+            $failure_reasons[] = 'resolver_unavailable';
+        }
+
+        $resource_status = $ei_used ? 'ei_verified_resources' : ($ei_available ? 'ei_no_verified_resource' : 'ei_unavailable');
+        $note = '';
+        if (!$ei_used) {
+            $note = 'I could not confirm a current, verified local emergency number for this location. I will not display an unverified number. If you may be in immediate danger, use an emergency service you already know is valid where you are or go to the nearest emergency department. Stay with another person if you can.';
+        } elseif ($failure_reasons) {
+            $note = 'Only resources with current verification are shown. Some local resource categories could not be independently verified and have been withheld.';
+        }
+
+        return array(
+            'resources'=>$resources,
+            'resource_status'=>$resource_status,
+            'resource_provenance'=>$ei_used ? 'ei_verified_only' : 'ei_no_verified_fallback',
+            'resource_failure_reasons'=>array_values(array_unique($failure_reasons)),
+            'ei_registry_version'=>$registry_version,
+            'note'=>$note,
+        );
+    }
+
     private function safety_response($stage, $country_code='', $message='') {
-        // The HRN safety classifier may interrupt a conversation, but it is not
-        // an emergency-resource authority. Always collect explicit country context
-        // and let the standalone EI resolver provide only currently verified resources.
-        // Never expose the legacy HRN registry or directory fallback as a callable
-        // emergency resource from this conversational response.
         $country_code = $this->normalize_country($country_code);
+        $bundle = $country_code !== ''
+            ? $this->resolve_ei_resource_bundle($country_code, $stage)
+            : array(
+                'resources'=>array(),
+                'resource_status'=>'ei_location_required',
+                'resource_provenance'=>'ei_location_resolution_pending',
+                'resource_failure_reasons'=>array(),
+                'ei_registry_version'=>null,
+                'note'=>'Please tell me the country where you are now so I can check the emergency resources independently verified for that location.',
+            );
         $response = array(
             'stage'=>$stage,
             'question'=>'',
             'message'=>'',
-            'resources'=>array(),
-            'location_required'=>true,
+            'resources'=>$bundle['resources'],
+            'location_required'=>($country_code === ''),
             'country'=>$country_code,
             'release'=>false,
             'support_needed'=>false,
-            'resource_provenance'=>'ei_location_resolution_pending',
+            'resource_provenance'=>$bundle['resource_provenance'],
+            'resource_status'=>$bundle['resource_status'],
+            'resource_failure_reasons'=>$bundle['resource_failure_reasons'],
+            'ei_registry_version'=>$bundle['ei_registry_version'],
+            'note'=>$bundle['note'],
         );
 
         if ($stage === 'current') {
             $response['message'] = 'Thank you for telling me. I want to take what you just said seriously.';
             $response['question'] = 'Are you thinking about killing yourself right now?';
-            $response['note'] = 'If you may act on these thoughts now, use an emergency service you already know is valid where you are or go to the nearest emergency department. Do not wait for an online directory.';
+            if ($bundle['resources']) $response['note'] = 'If you are in immediate danger, use one of the verified emergency resources shown above or go to the nearest emergency department.';
             return $response;
         }
         if ($stage === 'plan') {
@@ -975,7 +1060,7 @@ final class Living_Archive_Human_Relational_Navigator {
         if ($stage === 'acute') {
             $response['message'] = 'Please move away from anything you could use to hurt yourself. Then bring another person into this if you can.';
             $response['question'] = 'Have you moved away from anything you could use to hurt yourself?';
-            $response['note'] = 'If you may act on these thoughts now, use an emergency service you already know is valid where you are or go to the nearest emergency department. Do not wait for an online directory.';
+            if ($bundle['resources']) $response['note'] = 'If the danger is immediate, use one of the verified emergency resources shown above or go to the nearest emergency department.';
             return $response;
         }
         if ($stage === 'acute_followthrough') {
@@ -997,7 +1082,7 @@ final class Living_Archive_Human_Relational_Navigator {
             return $response;
         }
         if ($stage === 'acute_barrier') {
-            $response['message'] = 'I hear that something is making the next safety step difficult. We do not need to pretend that it is easy. Please stay away from anything you could use to hurt yourself and use one of the emergency or crisis options above if you can.';
+            $response['message'] = 'I hear that something is making the next safety step difficult. We do not need to pretend that it is easy. Please stay away from anything you could use to hurt yourself and contact an emergency service you already know is valid where you are if you can.';
             $response['question'] = 'What is making it difficult to move away from harm or get another person involved right now?';
             $response['note'] = 'If you have already injured yourself or taken something, seek emergency medical care now.';
             return $response;
@@ -1251,73 +1336,7 @@ Visitor response: " . $message;
             return new WP_Error('lah_rn_invalid_safety_stage', 'The current safety stage could not be confirmed.', array('status'=>400));
         }
 
-        // EI is the sole authority for callable emergency-resource selection.
-        // The older HRN registry is deliberately NOT a fallback: it has no
-        // independently enforced provenance/expiry contract and could reintroduce
-        // a number EI rejected.
-        $resources = array();
-        $seen = array();
-        $ei_used = false;
-        $ei_available = function_exists('living_archive_emergency_resolve');
-        $ei_failure_reasons = array();
-        $ei_registry_version = null;
-
-        if ($ei_available) {
-            $needs = array('general_emergency', 'medical', 'crisis_support');
-            foreach ($needs as $need) {
-                try {
-                    $result = living_archive_emergency_resolve($need, array('explicit_country'=>$country), $stage, 'acute_emergency');
-                    if (!is_array($result)) {
-                        $ei_failure_reasons[] = 'resolver_unavailable';
-                        continue;
-                    }
-                    if (!empty($result['registry_version'])) $ei_registry_version = sanitize_text_field($result['registry_version']);
-                    $selection = is_array($result['selection'] ?? null) ? $result['selection'] : array();
-                    $selection_status = $selection['selection_status'] ?? '';
-                    if ($selection_status === 'SELECTED') {
-                        $candidates = array($selection['primary'] ?? array());
-                    } elseif ($selection_status === 'MULTIPLE_EQUIVALENT' && is_array($selection['primary'] ?? null)) {
-                        // Preserve verified equivalent routes (for example 999/112).
-                        $candidates = $selection['primary'];
-                    } else {
-                        $ei_failure_reasons[] = sanitize_key($selection['failure_reason'] ?? ($selection_status ?: 'no_eligible_resource'));
-                        continue;
-                    }
-                    foreach ($candidates as $resource) {
-                        if (!is_array($resource)) continue;
-                        $number = sanitize_text_field($resource['number'] ?? '');
-                        if ($number === '' || isset($seen[$number])) continue;
-                        $name = sanitize_text_field($resource['display_name'] ?? 'Emergency support');
-                        $group = ($need === 'crisis_support') ? 'Crisis support' : 'Emergency help';
-                        $resources[] = array(
-                            'title'=>$name,
-                            'phone'=>$number,
-                            'display_phone'=>$number,
-                            'group'=>$group,
-                            'channels'=>array('call'),
-                            'verification_status'=>'verified_by_ei',
-                        );
-                        $seen[$number] = true;
-                        $ei_used = true;
-                    }
-                } catch (Throwable $e) {
-                    $ei_failure_reasons[] = 'resolver_error';
-                    error_log('[Living Archive HRN] EI resource lookup failed; no legacy telephone fallback will be used: '.$e->getMessage());
-                    break;
-                }
-            }
-        } else {
-            $ei_failure_reasons[] = 'resolver_unavailable';
-        }
-
-        $resource_status = $ei_used ? 'ei_verified_resources' : ($ei_available ? 'ei_no_verified_resource' : 'ei_unavailable');
-        $note = '';
-        if (!$ei_used) {
-            $note = 'I could not confirm a current, verified local emergency number for this location. I will not display an unverified number. If you may be in immediate danger, use an emergency service you already know is valid where you are or go to the nearest emergency department. Stay with another person if you can.';
-        } elseif ($ei_failure_reasons) {
-            $note = 'Only resources with current verification are shown. Some local resource categories could not be independently verified and have been withheld.';
-        }
-
+        $bundle = $this->resolve_ei_resource_bundle($country, $stage);
         return rest_ensure_response(array(
             'operation'=>'resource_location_resolution',
             'stage'=>$stage,
@@ -1326,13 +1345,13 @@ Visitor response: " . $message;
             'question'=>$question,
             'safety_question'=>$question,
             'country'=>$country,
-            'resources'=>$resources,
+            'resources'=>$bundle['resources'],
             'location_required'=>false,
-            'resource_provenance'=>$ei_used ? 'ei_verified_only' : 'ei_no_verified_fallback',
-            'resource_status'=>$resource_status,
-            'resource_failure_reasons'=>array_values(array_unique($ei_failure_reasons)),
-            'note'=>$note,
-            'ei_registry_version'=>$ei_registry_version,
+            'resource_provenance'=>$bundle['resource_provenance'],
+            'resource_status'=>$bundle['resource_status'],
+            'resource_failure_reasons'=>$bundle['resource_failure_reasons'],
+            'note'=>$bundle['note'],
+            'ei_registry_version'=>$bundle['ei_registry_version'],
         ));
     }
 
