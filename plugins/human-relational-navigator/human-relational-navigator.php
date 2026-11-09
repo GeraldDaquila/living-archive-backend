@@ -1145,7 +1145,7 @@ Visitor response: " . $message;
         global $post;
         if (!$post || !has_shortcode($post->post_content, self::SHORTCODE)) return;
         wp_enqueue_style('lah-rn', plugins_url('assets/relational-navigator.css', __FILE__), array(), self::VERSION);
-        wp_enqueue_script('lah-rn', plugins_url('assets/relational-navigator.js', __FILE__), array(), self::VERSION, true);
+        wp_enqueue_script('lah-rn', plugins_url('assets/relational-navigator.js', __FILE__), array(), self::VERSION . '.ei-location-1', true);
         wp_localize_script('lah-rn', 'LAHRN', array(
             'endpoint' => esc_url_raw(rest_url(self::REST_NS . self::REST_ROUTE)),
             'emergency_endpoint' => esc_url_raw(rest_url(self::REST_NS . '/emergency-resources')),
