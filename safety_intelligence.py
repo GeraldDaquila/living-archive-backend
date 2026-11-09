@@ -548,7 +548,7 @@ def repair_safety_question(
 def _last_safety_message(history: str) -> str:
     """Return the most recent assistant-facing safety message from serialized history."""
     for line in reversed(str(history or "").splitlines()):
-        match = re.match(r"^\\s*(?:assistant|system)\\s*:\\s*(.+)$", line, re.I)
+        match = re.match(r"^\s*(?:assistant|system)\s*:\s*(.+)$", line, re.I)
         if match:
             value = match.group(1).strip()
             if value and not value.casefold().startswith("question:"):
