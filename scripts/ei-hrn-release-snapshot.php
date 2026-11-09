@@ -32,6 +32,7 @@ function snapshot_plugin_version(string $mainFile): string {
     return trim($match[1]);
 }
 function snapshot_scan_tree(string $directory, string $archivePrefix): array {
+    if (is_link($directory)) snapshot_fail("Plugin directory symlink is not permitted: {$directory}");
     $base = realpath($directory);
     if ($base === false || !is_dir($base)) snapshot_fail("Plugin directory missing: {$directory}");
     $files = [];
@@ -74,6 +75,7 @@ function snapshot_zip_hash(ZipArchive $zip, string $entry): array {
     return ['size' => $size, 'sha256' => hash_final($context)];
 }
 
+$snapshotCompleted = false;
 try {
     $options = getopt('', ['wp-root:', 'output-dir:']);
     if (empty($options['wp-root']) || empty($options['output-dir'])) {
@@ -165,11 +167,14 @@ try {
 
     $archiveHash = hash_file('sha256', $archivePath);
     if (!$archiveHash) snapshot_fail('Cannot calculate archive checksum.');
-    if (file_put_contents($checksumPath, $archiveHash . '  ' . basename($archivePath) . "\n", LOCK_EX) === false) {
+     $sidecarContents = $archiveHash . '  ' . basename($archivePath) . "\n";
+    if (file_put_contents($checksumPath, $sidecarContents, LOCK_EX) === false) {
         snapshot_fail('Cannot write archive checksum sidecar.');
     }
+    if (file_get_contents($checksumPath) !== $sidecarContents) snapshot_fail('Archive checksum sidecar read-back failed.');
     if (!hash_equals($archiveHash, hash_file('sha256', $archivePath))) snapshot_fail('Second archive checksum verification failed.');
     if (!chmod($archivePath, 0400) || !chmod($checksumPath, 0400)) snapshot_fail('Could not make verified artifacts read-only.');
+    $snapshotCompleted = true;
 
     echo json_encode([
         'status' => 'verified',
@@ -182,8 +187,8 @@ try {
         'registry_version' => $manifest['plugins']['living-archive-emergency-intelligence']['registry_version'],
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
 } catch (Throwable $error) {
-    if (isset($archivePath) && is_file($archivePath) && !isset($archiveHash)) @unlink($archivePath);
-    if (isset($checksumPath) && is_file($checksumPath) && !isset($archiveHash)) @unlink($checksumPath);
+    if (!$snapshotCompleted && isset($archivePath) && is_file($archivePath)) @unlink($archivePath);
+    if (!$snapshotCompleted && isset($checksumPath) && is_file($checksumPath)) @unlink($checksumPath);
     fwrite(STDERR, 'SNAPSHOT REFUSED: ' . $error->getMessage() . "\n");
     exit(1);
 }
