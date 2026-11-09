@@ -24,6 +24,27 @@ if (strpos($php, 'living_archive_emergency_resolve($need') === false) {
     fwrite(STDERR, "EI public resolver is not wired into the adapter.\n");
     exit(1);
 }
+if (strpos($adapter, '$this->safety_resource_bundle(') !== false || strpos($adapter, '$legacy') !== false) {
+    fwrite(STDERR, "Legacy HRN resource fallback remains in the EI adapter.\\n");
+    exit(1);
+}
+if (strpos($adapter, "'ei_no_verified_fallback'") === false || strpos($adapter, "'ei_verified_only'") === false) {
+    fwrite(STDERR, "EI-only provenance states are missing from the adapter.\\n");
+    exit(1);
+}
+$safetyStart = strpos($php, 'private function safety_response(');
+$safetyEnd = strpos($php, 'private function safety_answer_class(', $safetyStart === false ? 0 : $safetyStart);
+if ($safetyStart === false || $safetyEnd === false) {
+    fwrite(STDERR, "HRN safety response boundary is missing.\\n");
+    exit(1);
+}
+$safetyResponse = substr($php, $safetyStart, $safetyEnd - $safetyStart);
+if (strpos($safetyResponse, "'resources'=>array()") === false ||
+    strpos($safetyResponse, "'location_required'=>true") === false ||
+    strpos($safetyResponse, '$this->safety_resource_bundle(') !== false) {
+    fwrite(STDERR, "Initial HRN safety response can still expose legacy resources.\\n");
+    exit(1);
+}
 $jsStart = strpos($js, 'function submitSafetyLocation(v)');
 $jsEnd = strpos($js, 'function returnCompletedJourneyToGuide', $jsStart === false ? 0 : $jsStart);
 if ($jsStart === false || $jsEnd === false) {
