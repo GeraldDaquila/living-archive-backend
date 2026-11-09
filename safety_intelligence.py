@@ -899,7 +899,9 @@ def resolve_safety(
 
     emergency_resolution: Mapping[str, Any] = {}
     try:
-        # Resource resolution is part of the first-turn safety handoff when a verified location is available.\n        # Keep the budget bounded, but do not prematurely declare a verified resource unavailable.\n        timeout = 3.0
+        # Resource resolution is part of the first-turn safety handoff when a verified location is available.
+        # Keep the budget bounded, but do not prematurely declare a verified resource unavailable.
+        timeout = 3.0
         emergency_resolution = _request_emergency_intelligence(
             endpoint=emergency_endpoint_url,
             service_need=service_need,
