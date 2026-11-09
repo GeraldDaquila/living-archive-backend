@@ -62,6 +62,13 @@ def test_adapter_uses_ei_as_the_only_callable_resource_authority():
     assert "'resource_status'=>$bundle['resource_status']" in adapter
 
 
+def test_hrn_does_not_treat_ip_country_detection_as_explicit_user_location():
+    source = HRN_PHP.read_text(encoding="utf-8")
+    assert "$country_explicit = ($country !== '')" in source
+    assert "$safety_resource_country = $country_explicit ? $country : ''" in source
+    assert "$this->safety_response($direct_stage, $safety_resource_country, $message)" in source
+
+
 def test_initial_hrn_safety_response_uses_ei_or_requests_location_without_legacy_fallback():
     source = HRN_PHP.read_text(encoding="utf-8")
     start = source.index("private function safety_response(")
