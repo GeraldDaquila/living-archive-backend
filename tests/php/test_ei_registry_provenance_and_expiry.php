@@ -140,6 +140,7 @@ foreach ($invalid_date['verification_records'] as &$record) {
     if ($record['verification_id'] === 'VER-PH-911-2026') $record['review_due'] = '2026-02-31';
 }
 unset($record);
+ei_assert(LAEI_Registry::validate_candidate($invalid_date)['valid'] === false, 'candidate validator rejects impossible calendar dates');
 ei_load_fixture($invalid_date);
 $invalid_date_selection = LAEI_Resource_Selector::select('general_emergency', ei_location('PH'), 'acute');
 ei_assert(($invalid_date_selection['selection_status'] ?? '') === 'VERIFICATION_INVALID', 'impossible calendar date is rejected');
