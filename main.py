@@ -269,7 +269,30 @@ use_core.EXPECTED_CORE_BLOB_SHA = EXPECTED_CORE_BLOB_SHA
 if getattr(_base, "_core_runtime_sha", "") != EXPECTED_CORE_BLOB_SHA:
     raise RuntimeError("USE protected core integrity failure: protected core mismatch.")
 
-# The protected core retains its own immutable historical provenance. The active\n# visitor-facing runtime identity is established here, after the protected core\n# integrity check, and is the sole identity used for application requests.\nACTIVE_RUNTIME_IDENTITY = {\n    "build_id": CANONICAL_BUILD_ID,\n    "version": APP_VERSION,\n    "fingerprint": DEPLOYMENT_FINGERPRINT,\n    "source_sha256": RUNTIME_SOURCE_SHA256,\n    "protected_core_sha": EXPECTED_CORE_BLOB_SHA,\n}\nif (\n    getattr(use_core, "APP_VERSION", None) != APP_VERSION\n    or getattr(use_core, "DEPLOYMENT_FINGERPRINT", None) != DEPLOYMENT_FINGERPRINT\n    or getattr(use_core, "CANONICAL_BUILD_ID", None) != CANONICAL_BUILD_ID\n):\n    raise RuntimeError("USE active runtime identity failure: core identity injection mismatch.")\nprint(\n    "USE ACTIVE RUNTIME IDENTITY: "\n    f"build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "\n    f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, "\n    f"protected_core_sha={EXPECTED_CORE_BLOB_SHA}",\n    flush=True,\n)\n
+# The protected core retains its own immutable historical provenance. The active
+# visitor-facing runtime identity is established here, after the protected core
+# integrity check, and is the sole identity used for application requests.
+ACTIVE_RUNTIME_IDENTITY = {
+    "build_id": CANONICAL_BUILD_ID,
+    "version": APP_VERSION,
+    "fingerprint": DEPLOYMENT_FINGERPRINT,
+    "source_sha256": RUNTIME_SOURCE_SHA256,
+    "protected_core_sha": EXPECTED_CORE_BLOB_SHA,
+}
+if (
+    getattr(use_core, "APP_VERSION", None) != APP_VERSION
+    or getattr(use_core, "DEPLOYMENT_FINGERPRINT", None) != DEPLOYMENT_FINGERPRINT
+    or getattr(use_core, "CANONICAL_BUILD_ID", None) != CANONICAL_BUILD_ID
+):
+    raise RuntimeError("USE active runtime identity failure: core identity injection mismatch.")
+print(
+    "USE ACTIVE RUNTIME IDENTITY: "
+    f"build_id={CANONICAL_BUILD_ID}, version={APP_VERSION}, "
+    f"fingerprint={DEPLOYMENT_FINGERPRINT}, source_sha256={RUNTIME_SOURCE_SHA256}, "
+    f"protected_core_sha={EXPECTED_CORE_BLOB_SHA}",
+    flush=True,
+)
+
 if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
     raise RuntimeError("USE provider gateway contract integrity failure: unsupported provider gateway contract.")
 
@@ -1088,7 +1111,9 @@ def _recommendation_answer_with_authority(query, docs, profile, canonical_docs):
     if secondary:
         parts.append(f"A nearby path is [{secondary['title']}]({secondary['url']}), which opens another aspect of the question without asking you to treat either doorway as the whole answer.")
     parts.append("You can stay with this lens, follow the connected material, or return with another part of the question that feels more relevant.")
-    return "\n\n".join(parts)
+    return "
+
+".join(parts)
 
 
 def _normalize_shared_evidence_for_use(documents, *, provenance="supplied"):
@@ -1167,7 +1192,11 @@ def _parse_context_documents(context_blocks):
         parsed = parser(context_blocks)
         return _normalize_shared_evidence_for_use(parsed, provenance="retrieved-context")
     docs = []
-    for block in str(context_blocks or "").split("\n\n---\n\n"):
+    for block in str(context_blocks or "").split("
+
+---
+
+"):
         tm = re.search(r"^Title:\s*(.+?)\s*$", block, re.M)
         um = re.search(r"^URL:\s*(https?://\S+)\s*$", block, re.M | re.I)
         cm = re.search(r"^Content:\s*(.*)$", block, re.M | re.S)
@@ -1217,8 +1246,14 @@ def _serialize_context_documents(docs):
         text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").strip()
         if not title or not re.match(r"^https://\S+$", url, re.I) or not text:
             continue
-        blocks.append(f"Title: {title}\nURL: {url}\nContent: {text}")
-    return "\n\n---\n\n".join(blocks)
+        blocks.append(f"Title: {title}
+URL: {url}
+Content: {text}")
+    return "
+
+---
+
+".join(blocks)
 
 
 def _authoritative_recommendation_docs(query, docs, profile):
@@ -1289,7 +1324,11 @@ def _recommendation_first_fetch(query_str):
                     extra_block_text = _serialize_context_documents(block_additions)
                     if extra_block_text:
                         data["context_blocks"] = (
-                            existing_block_text + "\n\n---\n\n" + extra_block_text
+                            existing_block_text + "
+
+---
+
+" + extra_block_text
                             if existing_block_text else extra_block_text
                         )
                     print(
@@ -1436,7 +1475,15 @@ _probe_fallback_answer = _recommendation_answer_with_authority(_probe_query, _pr
 if _probe_fallback_answer:
     raise RuntimeError("USE v487.49 invariant failed: fallback recommendation leaked decoy-only context")
 
-_probe_gap = {"evidence_sufficiency_unavailable": True, "canonical_link_context": "Title: Unraveling Abuse: The Harm We Inherit, The Healing We Choose\nURL: https://geralddaquila.com/2025/06/01/unraveling-abuse-the-harm-we-inherit-the-healing-we-choose/\nContent: Abuse in relationships involves conflict, projection, and anger.\n\n---\n\nTitle: Suicide and the Journey of the Soul: A Unified Exploration of Mind, Spirit, and Society\nURL: https://geralddaquila.com/suicide\nContent: Suicide and despair are discussed."}
+_probe_gap = {"evidence_sufficiency_unavailable": True, "canonical_link_context": "Title: Unraveling Abuse: The Harm We Inherit, The Healing We Choose
+URL: https://geralddaquila.com/2025/06/01/unraveling-abuse-the-harm-we-inherit-the-healing-we-choose/
+Content: Abuse in relationships involves conflict, projection, and anger.
+
+---
+
+Title: Suicide and the Journey of the Soul: A Unified Exploration of Mind, Spirit, and Society
+URL: https://geralddaquila.com/suicide
+Content: Suicide and despair are discussed."}
 _bridge_docs = _parse_context_documents(_probe_gap["canonical_link_context"])
 if not _bridge_docs or not _recommendation_first_fetch:
     raise RuntimeError("USE v487.49 invariant failed: evidence bridge unavailable")
@@ -1490,7 +1537,8 @@ def _history_text(history):
             value = str(item).strip()
             if value:
                 parts.append(value)
-    return "\n".join(parts)
+    return "
+".join(parts)
 # Historical HRN journey and relational-return machinery retired. Native relational orientation is provided by compose_relational_fractal and the Guide's relational boundary.
 # The shared journey normalizer remains because it is used by other native Guide flows.
 
@@ -1538,7 +1586,8 @@ def _guide_route_history_text(history):
             value = str(item).strip()
             if value:
                 parts.append(value)
-    return "\n".join(parts)[-6000:]
+    return "
+".join(parts)[-6000:]
 
 
 def _normalize_glossary_term(query, interpretation=None):
@@ -1553,7 +1602,8 @@ def _normalize_glossary_term(query, interpretation=None):
     if candidate:
         candidate = re.sub(r"^[\s\"']+|[\s\"'?.!]+$", "", candidate)
         candidate = re.sub(r"^(?:the\s+term\s+|the\s+word\s+|word\s+)", "", candidate, flags=re.I)
-        if 1 <= len(candidate) <= 120 and not re.search(r"[?\n]", candidate):
+        if 1 <= len(candidate) <= 120 and not re.search(r"[?
+]", candidate):
             return candidate
 
     normalized = re.sub(r"\s+", " ", str(query or "").strip()).strip()
@@ -1571,7 +1621,8 @@ def _normalize_glossary_term(query, interpretation=None):
     if canonical_definition:
         term = canonical_definition.group(1).strip().strip("\\\"'?.! ")
         term = re.sub(r"^(?:the\s+term\s+|the\s+word\s+|word\s+)", "", term, flags=re.I)
-        if 1 <= len(term) <= 120 and not re.search(r"[?\n]", term):
+        if 1 <= len(term) <= 120 and not re.search(r"[?
+]", term):
             return term
 
     # Explicit destination language is different from an explanatory definition
@@ -1585,7 +1636,8 @@ def _normalize_glossary_term(query, interpretation=None):
     if navigation:
         candidate = re.sub(r"^[\s\"']+|[\s\"'?.!]+$", "", str(navigation.group(1) or ""))
         candidate = re.sub(r"^(?:the\s+term\s+|the\s+word\s+|word\s+)", "", candidate, flags=re.I)
-        if candidate and len(candidate) <= 120 and not re.search(r"[?\n]", candidate):
+        if candidate and len(candidate) <= 120 and not re.search(r"[?
+]", candidate):
             return candidate
 
     patterns = (
@@ -1929,7 +1981,8 @@ def _extract_embedded_glossary_term(query):
             flags=re.I,
         )
 
-        if 1 <= len(term) <= 120 and not re.search(r"[?\n]", term):
+        if 1 <= len(term) <= 120 and not re.search(r"[?
+]", term):
             return term
 
     return ""
@@ -2448,11 +2501,15 @@ def _trust_community_stewardship_recovery():
         "Trust helps people in a community rely on one another. In community stewardship, "
         "that means people can share responsibility, speak honestly, and follow through on "
         "commitments without having to control every action. Trust is not blind confidence; "
-        "it grows when people can see that words and actions match.\n\n"
+        "it grows when people can see that words and actions match.
+
+"
         "Think of a shared garden. The garden depends on people tending their part, sharing "
         "tools and information, noticing when something is neglected, and talking openly "
         "when a commitment is missed. Those ordinary actions let people coordinate and repair "
-        "problems before resentment takes over.\n\n"
+        "problems before resentment takes over.
+
+"
         "Stewardship is tending the garden together. Trust makes that shared work possible, "
         "while accountable stewardship gives trust a history: people see that others return, "
         "listen, keep promises, and address harm. The Living Archive's Trust Architecture "
@@ -2480,11 +2537,15 @@ def _healthy_community_answer_recovery():
     return (
         "A healthy community is not simply one where people always agree or where conflict never happens. "
         "It is one where people can participate, raise concerns, work through differences, and have a meaningful say "
-        "in decisions that affect them. Health shows up in how people live and decide together, not in the absence of disagreement.\n\n"
+        "in decisions that affect them. Health shows up in how people live and decide together, not in the absence of disagreement.
+
+"
         "You can begin to recognize a healthy community by looking at whose voices are heard, how responsibility is shared, "
         "whether people feel safe enough to disagree, and what happens when someone is excluded or harmed. "
         "A community's response to those moments matters: does it listen, repair what it can, and change the conditions "
-        "that caused harm, or does it hide the problem and leave the burden with the person affected?\n\n"
+        "that caused harm, or does it hide the problem and leave the burden with the person affected?
+
+"
         "You do not need to know the Living Archive's vocabulary to begin exploring this. Start with the everyday signs: "
         "who gets to participate, how decisions are made, and whether people can raise concerns without being pushed aside. "
         "The Archive's resource on what healthy communities actually look like can offer a deeper next step, while the "
@@ -2855,10 +2916,17 @@ def _guide_capability_route(query, history=None):
     fallback = _guide_route_fallback(query, history)
     history_text = _guide_route_history_text(history)
     user_content = (
-        "Visitor question:\n"
+        "Visitor question:
+"
         + str(query).strip()
-        + ("\n\nRecent conversation context:\n" + history_text if history_text else "")
-        + "\n\nApproved Guide Nodes currently available (JSON):\n"
+        + ("
+
+Recent conversation context:
+" + history_text if history_text else "")
+        + "
+
+Approved Guide Nodes currently available (JSON):
+"
         + _guide_node_prompt_context()
     )
     messages = [
@@ -3270,15 +3338,21 @@ Return ONLY valid JSON with exactly:
 
 def _sanitize_basic_inquiry_response(text):
     """Enforce the visitor-language boundary while preserving readable structure."""
-    raw = str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    raw = str(text or "").replace("\r
+", "
+").replace("\r", "
+").strip()
     if not raw:
         return ""
 
     # Providers sometimes return HTML fragments even though the public contract is
     # plain visitor prose/Markdown. Preserve paragraph/list boundaries, then remove
     # markup and decode entities before applying the existing language boundary.
-    raw = re.sub(r"(?i)<\s*br\s*/?\s*>", "\n", raw)
-    raw = re.sub(r"(?i)</\s*(?:p|div|li|h[1-6]|section|article)\s*>", "\n\n", raw)
+    raw = re.sub(r"(?i)<\s*br\s*/?\s*>", "
+", raw)
+    raw = re.sub(r"(?i)</\s*(?:p|div|li|h[1-6]|section|article)\s*>", "
+
+", raw)
     raw = re.sub(r"(?is)<[^>]{1,1000}>", "", raw)
     raw = unescape(raw)
 
@@ -3333,23 +3407,29 @@ def _sanitize_basic_inquiry_response(text):
     # The final visitor boundary must not undo Markdown normalization performed
     # by General Guide Composition. Providers vary in list style and may emit
     # numbered actions inline, so apply the same bounded structural repair here.
-    action_label = r"\*\*[^*\n]{2,100}\*\*"
+    action_label = r"\*\*[^*
+]{2,100}\*\*"
     action_separator = r"(?:\s*:\s*|\s+[–—−-]\s+)"
     raw = re.sub(
         rf"\s+-\s+(?={action_label}{action_separator})",
-        "\n- ",
+        "
+- ",
         raw,
     )
     raw = re.sub(
         rf"(?<=\S)\s+(?=\d{{1,2}}[.)]\s+{action_label}{action_separator})",
-        "\n",
+        "
+",
         raw,
     )
 
     paragraphs = []
-    for block in re.split(r"\n\s*\n+", raw):
+    for block in re.split(r"
+\s*
++", raw):
         lines = []
-        for line in block.split("\n"):
+        for line in block.split("
+"):
             line = re.sub(r"\s+", " ", line).strip()
             if not line:
                 continue
@@ -3357,9 +3437,12 @@ def _sanitize_basic_inquiry_response(text):
             line = re.sub(r"([.!?])\s*\1+", r"\1", line)
             lines.append(line)
         if lines:
-            paragraphs.append("\n".join(lines))
+            paragraphs.append("
+".join(lines))
 
-    return "\n\n".join(paragraphs).strip()
+    return "
+
+".join(paragraphs).strip()
 
 
 _BASIC_INQUIRY_VISITOR_LANGUAGE_PROBE = _sanitize_basic_inquiry_response(
@@ -3375,9 +3458,11 @@ _BASIC_INQUIRY_MARKDOWN_PROBE = _sanitize_basic_inquiry_response(
     "Treat downtime as non-negotiable. 2. **Delegate and trust** – hand off tasks. "
     "3. **Seek support** – ask a peer."
 )
-if "\n2. **Delegate and trust**" not in _BASIC_INQUIRY_MARKDOWN_PROBE:
+if "
+2. **Delegate and trust**" not in _BASIC_INQUIRY_MARKDOWN_PROBE:
     raise RuntimeError("USE v489.28 invariant failed: final boundary flattened numbered Markdown steps.")
-if "\n3. **Seek support**" not in _BASIC_INQUIRY_MARKDOWN_PROBE:
+if "
+3. **Seek support**" not in _BASIC_INQUIRY_MARKDOWN_PROBE:
     raise RuntimeError("USE v489.28 invariant failed: final boundary flattened consecutive numbered Markdown steps.")
 
 _BASIC_INQUIRY_FINAL_BOUNDARY_PROBE = _sanitize_basic_inquiry_response(
@@ -3388,8 +3473,12 @@ if _BASIC_INQUIRY_FINAL_BOUNDARY_PROBE != "A useful place to begin is the Archiv
 
 # v489.206 regression: ordinary explanatory prose must not expose formulaic section labels.
 _BASIC_INQUIRY_NATURAL_PROSE_PROBE = _sanitize_basic_inquiry_response(
-    "Stewardship means caring for what is entrusted to us.\n\n"
-    "Why it matters now: carelessness passes costs to others.\n\n"
+    "Stewardship means caring for what is entrusted to us.
+
+"
+    "Why it matters now: carelessness passes costs to others.
+
+"
     "Practical implication: consider who will live with the consequences."
 )
 if re.search(r"(?i)\b(?:why it matters now|practical implication)\s*:", _BASIC_INQUIRY_NATURAL_PROSE_PROBE):
@@ -3445,10 +3534,14 @@ def _guide_historical_origin_recovery():
         "The Philippines can look patriarchal today while carrying a long history in which women held substantial social, economic, and spiritual authority. "
         "In many precolonial communities, women could own or inherit property, participate in trade, and exercise influence in family and community decisions. "
         "Women known in some traditions as babaylan also served as healers, ritual leaders, and interpreters of spiritual life. "
-        "These practices varied across regions and communities, so it is more accurate to speak of strong traditions of female authority than to describe the whole archipelago as uniformly matriarchal.\n\n"
+        "These practices varied across regions and communities, so it is more accurate to speak of strong traditions of female authority than to describe the whole archipelago as uniformly matriarchal.
+
+"
         "Spanish colonial rule introduced and strengthened institutions shaped by Catholic patriarchy, including new expectations around marriage, public authority, and women's proper social roles. "
         "Those influences did not erase earlier practices all at once, nor did they create every form of gender hierarchy; local customs, class, religion, colonial administration, and later political and economic changes interacted over centuries. "
-        "Women's authority persisted in families, livelihoods, community leadership, and religious life even as formal institutions often privileged men.\n\n"
+        "Women's authority persisted in families, livelihoods, community leadership, and religious life even as formal institutions often privileged men.
+
+"
         "The tension today is therefore not a contradiction so much as the result of layered histories. "
         "Women in the Philippines have held visible roles in commerce, civic life, and national leadership, while patriarchal expectations and unequal power remain in many settings. "
         "Calling the country simply matriarchal or patriarchal can hide that complexity: the more useful question is where women hold real decision-making power, where they do not, and how those patterns differ by region, class, generation, and institution."
@@ -3644,10 +3737,17 @@ def _basic_inquiry_round1_response(query, interpretation, context_data):
         "desired_movement": str(interpretation.get("desired_movement") or "").strip(),
     }
     user_content = (
-        "Surface question:\n" + str(query).strip()
-        + "\n\nTentative internal interpretation:\n"
+        "Surface question:
+" + str(query).strip()
+        + "
+
+Tentative internal interpretation:
+"
         + json.dumps(internal, ensure_ascii=False)
-        + "\n\nCanonical evidence:\n"
+        + "
+
+Canonical evidence:
+"
         + json.dumps(evidence, ensure_ascii=False)
     )
 
@@ -3729,7 +3829,9 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
         ))
         _foundation_response = (
             _base._foundation_teacherly_answer(query)
-            + "\n\nThe Archive's work is also organized through four complementary movements: Recover, Remember, Apply, and Refine. These connect the recovery of constitutional understanding with institutional memory, practical stewardship, and the continuing refinement of methods."
+            + "
+
+The Archive's work is also organized through four complementary movements: Recover, Remember, Apply, and Refine. These connect the recovery of constitutional understanding with institutional memory, practical stewardship, and the continuing refinement of methods."
             if _foundation_query and _base._inquiry_profile(query).get("action") == "foundation"
             else ""
         )
@@ -3864,9 +3966,13 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         return {
             "response": (
                 "Developmental language can become hierarchical when descriptions of different capacities or patterns are treated as rankings of human worth. "
-                "Words such as “higher,” “lower,” “advanced,” or “less developed” can quietly shift from describing a framework to implying that some people are more worthy of respect or less worth hearing.\n\n"
+                "Words such as “higher,” “lower,” “advanced,” or “less developed” can quietly shift from describing a framework to implying that some people are more worthy of respect or less worth hearing.
+
+"
                 "It can become dismissive when a developmental label is used to explain away someone's perspective instead of engaging with what they are actually saying. "
-                "Context, culture, experience, and the fact that people can show different capacities in different situations can disappear behind the label.\n\n"
+                "Context, culture, experience, and the fact that people can show different capacities in different situations can disappear behind the label.
+
+"
                 "Developmental frameworks can still be useful when they remain descriptive and provisional. "
                 "The important distinction is between asking what capacities may be emerging and using a model to place people above or below one another."
             ),
@@ -3882,11 +3988,15 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if _cosmology_lived_question:
         _cosmology_response = (
             "Cosmology is an understanding of how reality works and how we belong within it—not only a theory about the physical universe. "
-            "The picture we carry of people, nature, change, and our place in the world shapes what we notice and how we make decisions.\n\n"
+            "The picture we carry of people, nature, change, and our place in the world shapes what we notice and how we make decisions.
+
+"
             "The Living Archive explores a contrast between a separation-based worldview and a unity-informed worldview. "
             "A separation-based view tends to organize life around competition, control, earned worth, and fear of loss. "
             "A unity-informed view sees people as distinct but connected, treats worth as inherent, and understands growth as something that can emerge through relationship, responsibility, and cooperation. "
-            "These are ways of interpreting experience, not labels for judging a person.\n\n"
+            "These are ways of interpreting experience, not labels for judging a person.
+
+"
             "This matters because a worldview can become an invisible guide for everyday choices. "
             "If every disagreement is treated as a contest for control, people may protect status instead of looking for a workable answer. "
             "If people see themselves as distinct but connected, they can recognize differences without treating them as threats. "
@@ -3918,7 +4028,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if relational_care_signal and relational_context_signal:
         response = (
             "It isn't foolish to care about a friendship that has mattered to you. Caring doesn't switch off simply because a relationship becomes difficult, disappointing, or uncertain. "
-            "But caring about someone and deciding how much of yourself to keep investing in the friendship are two different things. You don't have to deny what the friendship means to you in order to take your own feelings seriously.\n\n"
+            "But caring about someone and deciding how much of yourself to keep investing in the friendship are two different things. You don't have to deny what the friendship means to you in order to take your own feelings seriously.
+
+"
             "Perhaps a useful place to begin is this: what makes you feel foolish for still caring—is it how the other person has treated you, the lack of reciprocity, or the feeling that you haven't been able to let go of what the friendship once was?"
         )
         return {
@@ -3949,7 +4061,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         response = (
             "It sounds as though people rely on you, while your own needs may be going unnoticed. "
             "Being dependable and feeling cared for are not the same thing, and carrying that gap can be lonely. "
-            "I don't want to assume how your family sees the situation from one sentence.\n\n"
+            "I don't want to assume how your family sees the situation from one sentence.
+
+"
             "When you say nobody asks how you are, what do you most wish someone in your family would notice or understand?"
         )
         # A broad resource such as a general flourishing page is not a grounded
@@ -3976,9 +4090,13 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     ):
         response = (
             "A community can practice stewardship by making its responsibilities visible and considering who is affected by each decision. "
-            "For example, before changing a shared space or allocating a limited budget, invite the people who rely on it to explain what they need and what could be lost.\n\n"
+            "For example, before changing a shared space or allocating a limited budget, invite the people who rely on it to explain what they need and what could be lost.
+
+"
             "Agree on clear criteria, use the same criteria for everyone, name who will maintain the result, and make the reasons for the decision accessible. "
-            "Where people disagree, record the trade-offs and choose a time to review the outcome rather than treating the first decision as beyond question.\n\n"
+            "Where people disagree, record the trade-offs and choose a time to review the outcome rather than treating the first decision as beyond question.
+
+"
             "These are general practical suggestions, not a claim that a specific Archive text prescribes this process. I could not verify a sufficiently direct Archive resource to recommend for this question."
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_practical_stewardship_recovery", "model": ""}
@@ -3990,7 +4108,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if re.search(r"\b(?:understand|make sense of|interpret)\b", q) and re.search(r"\b(?:difficult situation|situation|what happened|someone's behavior|their behavior)\b", q) and re.search(r"\b(?:judge|judgment|judgement|assume|assumption|rush)\b", q):
         response = (
             "When a situation is difficult, it helps to separate what you know from what you think it means. "
-            "You can acknowledge your first reaction without treating it as the whole truth; there may be details you have not seen or another explanation for what happened.\n\n"
+            "You can acknowledge your first reaction without treating it as the whole truth; there may be details you have not seen or another explanation for what happened.
+
+"
             "You do not have to suspend judgment forever or ignore your own boundaries. Sometimes giving yourself a little time, or asking one honest question before deciding, is enough to help you respond more fairly."
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_reflective_general_knowledge_recovery", "model": ""}
@@ -4004,8 +4124,12 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         and re.search(r"\b(?:protect|protecting|preserve|preserving|worth|values)\b", q)
     ):
         response = (
-            "When people disagree about what is worth protecting, the disagreement often reflects different values, responsibilities, or fears about what could be lost. One person may want to preserve continuity; another may believe change is necessary to protect people or keep something useful. It helps to name those underlying concerns before treating the other person as careless or unreasonable.\n\n"
-            "A practical next step is to ask what each person is trying to protect, who would bear the costs of each option, and which responsibilities or rights cannot simply be traded away. Separate shared facts from judgments, and look for options that preserve the most important interests while making the unavoidable trade-offs explicit.\n\n"
+            "When people disagree about what is worth protecting, the disagreement often reflects different values, responsibilities, or fears about what could be lost. One person may want to preserve continuity; another may believe change is necessary to protect people or keep something useful. It helps to name those underlying concerns before treating the other person as careless or unreasonable.
+
+"
+            "A practical next step is to ask what each person is trying to protect, who would bear the costs of each option, and which responsibilities or rights cannot simply be traded away. Separate shared facts from judgments, and look for options that preserve the most important interests while making the unavoidable trade-offs explicit.
+
+"
             "People may not reach identical priorities, and stewardship does not require pretending otherwise. They can still agree on a fair process, explain their reasons, consider the people affected but not represented, and review the decision when new evidence or consequences emerge. The aim is to handle disagreement responsibly, not to erase it."
         )
         return {"response": response, "doorway_title": title, "provider": "bounded_conflict_stewardship_recovery", "model": ""}
@@ -4019,8 +4143,12 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     ):
         response = (
             "Sovereignty, in a human-relations context, can be understood as a person's or community's authority to participate in shaping decisions that affect them, rather than having their choices or identity controlled by someone else. "
-            "It is closely connected to agency, consent, boundaries, and the ability to take responsibility for one's own life. It does not mean being free of every obligation or never needing others.\n\n"
-            "For example, in a family or community decision, respecting sovereignty means listening to the people who will live with the consequences, making room for their informed choice, and not treating care or leadership as permission to decide everything for them. People can still negotiate shared responsibilities; the key is that participation is not replaced by coercion or assumed authority.\n\n"
+            "It is closely connected to agency, consent, boundaries, and the ability to take responsibility for one's own life. It does not mean being free of every obligation or never needing others.
+
+"
+            "For example, in a family or community decision, respecting sovereignty means listening to the people who will live with the consequences, making room for their informed choice, and not treating care or leadership as permission to decide everything for them. People can still negotiate shared responsibilities; the key is that participation is not replaced by coercion or assumed authority.
+
+"
             "That is a general conceptual explanation, not a verified quotation or definitive statement of the Living Archive's own doctrine. The Archive's specific framing should be checked against its canonical text on Governance & Sovereignty. The retrieved resource is a relevant next step, but the title alone does not establish every detail of its argument."
         )
         relevant_doorway = title if re.search(r"\b(?:sovereignty|governance)\b", title, re.I) else ""
@@ -4037,9 +4165,13 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         response = (
             "Reciprocity means a relationship of mutual response: people give, receive, and support one another over time. "
             "It does not mean keeping score or expecting every act to be repaid immediately or in equal measure. "
-            "People may give more at one point and need more help at another; what matters is that support can move in both directions over time.\n\n"
+            "People may give more at one point and need more help at another; what matters is that support can move in both directions over time.
+
+"
             "Think of neighbors taking turns checking on an older resident or helping one another with errands. "
-            "One neighbor may do more during a difficult week and receive help later. The relationship can still be reciprocal even when each exchange is different.\n\n"
+            "One neighbor may do more during a difficult week and receive help later. The relationship can still be reciprocal even when each exchange is different.
+
+"
             "Reciprocity should never be used to demand access, obedience, or repayment from someone who cannot freely offer it. "
             "Mutual support works best when people respond to one another's real circumstances, not when kindness becomes a debt ledger."
         )
@@ -4050,7 +4182,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "Responsibility is about what you are answerable for: a task, a promise, a role, or the consequences of a decision. "
             "It can be assigned to you, shared, or delegated. "
             "Stewardship is about how you care for something placed in your hands, especially when its value reaches beyond your immediate needs. "
-            "It asks you to maintain, protect, or improve it for others and for the future.\n\n"
+            "It asks you to maintain, protect, or improve it for others and for the future.
+
+"
             "The two belong together, but they are not identical. Responsibility asks, ‘What am I accountable for?’ "
             "Stewardship asks, ‘How should I care for what I have been entrusted with?’ "
             "You can fulfill a duty narrowly and still neglect the wider trust; stewardship asks you to consider that wider effect while respecting your own limits."
@@ -4064,8 +4198,12 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if "stewardship" in q and re.search(r"\b(?:what\s+is|explain|define|describe|meaning|means|understand|why|matter|important|everyday|life)\b", q):
         response = (
             "Stewardship means taking care of something entrusted to you—such as your time, relationships, shared spaces, money, or the natural world—rather than treating it as if only your immediate needs matter. "
-            "In everyday life, it shows up in small choices: keeping a promise, maintaining what others rely on, using resources thoughtfully, and considering how your decisions affect people around you.\n\n"
-            "It matters because ordinary choices accumulate. Carelessness can pass costs to other people or to the future, while responsible care helps preserve trust, usefulness, and possibilities for those who come after us.\n\n"
+            "In everyday life, it shows up in small choices: keeping a promise, maintaining what others rely on, using resources thoughtfully, and considering how your decisions affect people around you.
+
+"
+            "It matters because ordinary choices accumulate. Carelessness can pass costs to other people or to the future, while responsible care helps preserve trust, usefulness, and possibilities for those who come after us.
+
+"
             "Stewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for, acting responsibly within your limits, and leaving things no worse—and where possible better—than you found them."
         )
         # The deterministic last-resort path must preserve an explicit visitor
@@ -4077,8 +4215,12 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
 
     if "burnout" in q and re.search(r"\b(manager|manage|leader|supervisor)\b", q):
         response = (
-            "As a manager, treat burnout as a workload and recovery problem—not simply a personal failure to cope. Start by identifying what is draining you most: excessive hours, constant availability, unclear priorities, emotional demands, or too little control over the work.\n\n"
-            "Choose one pressure you can reduce this week. For example, if every decision comes to you, name which decisions your team can make without your approval and agree on clear limits for when they should escalate. That gives you some recovery time while building the team's capacity.\n\n"
+            "As a manager, treat burnout as a workload and recovery problem—not simply a personal failure to cope. Start by identifying what is draining you most: excessive hours, constant availability, unclear priorities, emotional demands, or too little control over the work.
+
+"
+            "Choose one pressure you can reduce this week. For example, if every decision comes to you, name which decisions your team can make without your approval and agree on clear limits for when they should escalate. That gives you some recovery time while building the team's capacity.
+
+"
             "Also protect basic recovery: take real breaks, set a reasonable end to the workday where possible, and speak with your own manager about priorities that cannot all fit. If exhaustion is persistent, affecting your health, or making daily functioning difficult, consider professional support. You do not have to solve a structural workload problem by pushing yourself harder."
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_general_knowledge_recovery", "model": ""}
@@ -4098,8 +4240,12 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # knowledge. This is explicitly general knowledge, not Archive attribution.
     if re.search(r"\binstitutional responsibility\b", q):
         response = (
-            "Institutional responsibility means that an organization and the people who lead or act for it must answer for the decisions they make, the duties they hold, and the effects those decisions have on others. It is not enough for an institution to say that a harmful outcome was nobody’s personal intention; its rules, choices, and failures to act can still have real consequences.\n\n"
-            "For example, if a public office repeatedly loses applications, responsibility includes more than blaming the employee at the desk. The office should examine its process, explain what went wrong, correct the problem, and make it less likely to happen again. Individual people may also be accountable for their own choices, but the institution must address problems built into its systems.\n\n"
+            "Institutional responsibility means that an organization and the people who lead or act for it must answer for the decisions they make, the duties they hold, and the effects those decisions have on others. It is not enough for an institution to say that a harmful outcome was nobody’s personal intention; its rules, choices, and failures to act can still have real consequences.
+
+"
+            "For example, if a public office repeatedly loses applications, responsibility includes more than blaming the employee at the desk. The office should examine its process, explain what went wrong, correct the problem, and make it less likely to happen again. Individual people may also be accountable for their own choices, but the institution must address problems built into its systems.
+
+"
             "Institutional responsibility does not mean an organization can control everything or guarantee perfect results. It means being clear about its obligations, making decisions fairly, giving reasons, listening to people affected, correcting preventable harm, and accepting appropriate oversight. The exact duties depend on the institution’s role, the rules that govern it, and the situation involved."
         )
         return {
@@ -4117,9 +4263,13 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         response = (
             "Political dynasties are families whose members hold or repeatedly win elected office across generations. "
             "Their influence can shape candidate selection, local party organization, public appointments, and access to public resources. "
-            "The effects depend on how elections, public institutions, and oversight operate around those family networks.\n\n"
+            "The effects depend on how elections, public institutions, and oversight operate around those family networks.
+
+"
             "Where family networks dominate nominations, appointments, or access to services, accountability can weaken because officials may face stronger incentives to answer to a family network than to the wider public. "
-            "But the existence of a dynasty alone does not prove corruption or poor performance; those are claims that require evidence about specific decisions and outcomes.\n\n"
+            "But the existence of a dynasty alone does not prove corruption or poor performance; those are claims that require evidence about specific decisions and outcomes.
+
+"
             "To assess a particular locality, examine who holds which offices and their family relationships, how competitive elections are, procurement and budget records, conflicts of interest, and whether courts, auditors, media, and citizens can scrutinize decisions. "
             "These indicators help distinguish a structural risk from an unsupported claim about a particular person or family."
         )
@@ -4142,12 +4292,20 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if national_systems_question:
         response = (
             "The Living Archive's systems analysis points to a central distinction: the Philippines does not lack human or natural potential; it struggles to convert those strengths into consistent, broadly shared outcomes. "
-            "The Archive frames this as a complex-system problem, where institutions, households, markets, infrastructure, and cultural patterns interact. The question is not whether Filipinos are capable, but whether the surrounding systems reward and coordinate that capability well.\n\n"
+            "The Archive frames this as a complex-system problem, where institutions, households, markets, infrastructure, and cultural patterns interact. The question is not whether Filipinos are capable, but whether the surrounding systems reward and coordinate that capability well.
+
+"
             "One important feedback loop is infrastructure and state capacity: weak connectivity raises logistics costs and isolates regional enterprise; that constrains economic activity and the public revenue available for investment; limited investment then allows the infrastructure gap to persist. "
             "A second constraint is governance as a coordination problem. Institutions and actors operate with different incentives, time horizons, and accountability structures. When short-term private or political rewards outweigh long-term public value, cooperation becomes harder to sustain and reforms are vulnerable to discontinuity. "
-            "The Archive's broader account also treats culture as accumulated adaptation: people learn what is rewarded, what is punished, and what feels possible under the systems they inhabit. These patterns should not be mistaken for an inherent defect in the Filipino character.\n\n"
-            "This helps interpret the Philippines–Vietnam comparison without turning it into a judgment about either people. Vietnam's export-manufacturing trajectory makes it a useful case for examining how industrial coordination, investment, infrastructure, and integration into supply chains can reinforce one another. The Archive's systems lens asks which arrangements create productive feedback loops and which keep potential trapped—not which nation is inherently superior. A precise ranking of the countries' performance, and the weight of each cause, still requires comparable current data.\n\n"
-            "The practical response is to change the conditions that shape outcomes. First, treat inter-island transport, ports, energy, and digital connectivity as an integrated productivity system, and measure how they affect regional firms and jobs. Second, align public incentives and accountability with sustained delivery across political cycles: publish project costs, milestones, procurement records, and outcomes, not just announcements. Third, make it easier for productive local firms to grow, innovate, and enter export markets, while reducing barriers that protect connections rather than performance. Fourth, invest in human development and local institutional capability so education, community knowledge, and diaspora experience can translate into domestic opportunity. Fifth, strengthen civic trust through transparent decisions and meaningful participation by the communities bearing the consequences.\n\n"
+            "The Archive's broader account also treats culture as accumulated adaptation: people learn what is rewarded, what is punished, and what feels possible under the systems they inhabit. These patterns should not be mistaken for an inherent defect in the Filipino character.
+
+"
+            "This helps interpret the Philippines–Vietnam comparison without turning it into a judgment about either people. Vietnam's export-manufacturing trajectory makes it a useful case for examining how industrial coordination, investment, infrastructure, and integration into supply chains can reinforce one another. The Archive's systems lens asks which arrangements create productive feedback loops and which keep potential trapped—not which nation is inherently superior. A precise ranking of the countries' performance, and the weight of each cause, still requires comparable current data.
+
+"
+            "The practical response is to change the conditions that shape outcomes. First, treat inter-island transport, ports, energy, and digital connectivity as an integrated productivity system, and measure how they affect regional firms and jobs. Second, align public incentives and accountability with sustained delivery across political cycles: publish project costs, milestones, procurement records, and outcomes, not just announcements. Third, make it easier for productive local firms to grow, innovate, and enter export markets, while reducing barriers that protect connections rather than performance. Fourth, invest in human development and local institutional capability so education, community knowledge, and diaspora experience can translate into domestic opportunity. Fifth, strengthen civic trust through transparent decisions and meaningful participation by the communities bearing the consequences.
+
+"
             "The Archive's underlying principle is stewardship: build systems that preserve and develop shared human, social, and ecological capacity over time. That is not a call for a foreign template or a dogmatic blueprint. It is a sovereign, evidence-led process of identifying the Philippines' own bottlenecks, testing reforms against measurable outcomes, learning from other countries selectively, and correcting course when results do not follow. "
             "The first move is a national bottleneck review that links each proposed reform to a causal mechanism, a responsible institution, a public measure, and a review date."
         )
@@ -4171,8 +4329,12 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # independent and evidence-grounded.
     if re.search(r"\brelationship between personal agency and responsibility to others\b", q):
         response = (
-            "Personal agency and responsibility to others are not opposing forces but interdependent aspects of the same moral life. Agency is the capacity to make choices and act on them; responsibility is the recognition that those choices have consequences for people who are affected by them. You cannot exercise genuine agency without acknowledging that your actions exist within a web of relationships, and you cannot fulfill responsibility to others without the freedom to choose how to act.\n\n"
-            "The tension arises when agency is understood as pure independence—the idea that you are a self-contained individual whose choices are yours alone. In reality, our decisions are shaped by the people we are connected to, and those people are shaped by our decisions. For example, a manager who exercises agency to restructure a team is not just making a personal career move; they are altering the working conditions, security, and morale of the people on that team. The manager's freedom to decide is real, but it is bounded by the legitimate needs and rights of the employees. Ignoring that boundary does not make the choice freer; it makes it less responsible.\n\n"
+            "Personal agency and responsibility to others are not opposing forces but interdependent aspects of the same moral life. Agency is the capacity to make choices and act on them; responsibility is the recognition that those choices have consequences for people who are affected by them. You cannot exercise genuine agency without acknowledging that your actions exist within a web of relationships, and you cannot fulfill responsibility to others without the freedom to choose how to act.
+
+"
+            "The tension arises when agency is understood as pure independence—the idea that you are a self-contained individual whose choices are yours alone. In reality, our decisions are shaped by the people we are connected to, and those people are shaped by our decisions. For example, a manager who exercises agency to restructure a team is not just making a personal career move; they are altering the working conditions, security, and morale of the people on that team. The manager's freedom to decide is real, but it is bounded by the legitimate needs and rights of the employees. Ignoring that boundary does not make the choice freer; it makes it less responsible.
+
+"
             "The key distinction is between agency as the ability to act and agency as the right to act without regard for impact. True agency includes the willingness to be accountable for the effects of your choices. Responsibility to others is not a constraint on your freedom; it is the condition that makes your freedom meaningful. When you act with awareness of how your choices affect others, you are not surrendering your agency—you are exercising it fully."
         )
         return {
@@ -4193,10 +4355,14 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         response = (
             "When a community cannot fully fund both priorities, it should agree on transparent criteria before choosing. "
             "Compare the urgency of each need, the consequences of delaying it, who would be affected, and whether a smaller "
-            "or phased option could protect the most important outcomes.\n\n"
+            "or phased option could protect the most important outcomes.
+
+"
             "Make the trade-offs explicit: what each option would protect, what it would leave unmet, and who would carry the cost. "
             "Use the same criteria for both options, include the people most affected, and record the reasons for the decision. "
-            "Where uncertainty remains, consider a time-limited allocation with a clear review point rather than presenting the choice as permanent.\n\n"
+            "Where uncertainty remains, consider a time-limited allocation with a clear review point rather than presenting the choice as permanent.
+
+"
             "This is a general decision framework, not a claim that the Archive supplied a definitive answer. I did not identify "
             "a sufficiently direct Archive resource to recommend for this question."
         )
@@ -4238,7 +4404,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             else "I could not identify a sufficiently relevant Archive resource to recommend here."
         )
     return {
-        "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
+        "response": "
+
+".join(part for part in (opening, explanation, closing) if part),
         "doorway_title": title if recommendation_available else "",
         "provider": "deterministic_question_preserving_recovery",
         "model": "",
@@ -4264,13 +4432,15 @@ def _guide_html_to_source_text(raw_html):
             if tag in self.IGNORED:
                 self.ignored_depth += 1
             elif not self.ignored_depth and tag in self.BLOCKS:
-                self.parts.append("\n")
+                self.parts.append("
+")
         def handle_endtag(self, tag):
             tag = tag.casefold()
             if tag in self.IGNORED and self.ignored_depth:
                 self.ignored_depth -= 1
             elif not self.ignored_depth and tag in self.BLOCKS:
-                self.parts.append("\n")
+                self.parts.append("
+")
         def handle_data(self, data):
             if not self.ignored_depth and data:
                 self.parts.append(data)
@@ -4279,7 +4449,8 @@ def _guide_html_to_source_text(raw_html):
     parser.feed(str(raw_html or ""))
     parser.close()
     blocks = []
-    for block in re.split(r"\n+", "".join(parser.parts)):
+    for block in re.split(r"
++", "".join(parser.parts)):
         block = re.sub(r"\s+", " ", html.unescape(block)).strip()
         if not block:
             continue
@@ -4291,7 +4462,8 @@ def _guide_html_to_source_text(raw_html):
         ):
             continue
         blocks.append(block)
-    return "\n".join(blocks)
+    return "
+".join(blocks)
 
 def _wordpress_fetch_selected_canonical_body(url):
     """Fetch the selected public Archive page directly when search misses its body."""
@@ -5588,7 +5760,9 @@ def _established_general_knowledge_recovery(query):
             },
             "response": (
                 "“The Law of One” is a spiritual and philosophical idea centered on the unity of all existence. "
-                "The phrase is especially associated with *The Law of One* (the Ra Material), where reality is described as ultimately one, with apparent differences understood within a larger unity.\n\n"
+                "The phrase is especially associated with *The Law of One* (the Ra Material), where reality is described as ultimately one, with apparent differences understood within a larger unity.
+
+"
                 "That is a general orientation to the term, not a claim about how the Living Archive uses it. "
                 "Different traditions may give the idea different meanings, so the specific source or tradition matters when a more precise interpretation is needed."
             ),
@@ -5642,7 +5816,9 @@ def _established_general_knowledge_recovery(query):
             "fact_id": "water_boiling_point_sea_level",
             "response": (
                 "At sea level, water boils at 100°C (212°F) under standard atmospheric pressure. "
-                "As altitude increases and air pressure decreases, water boils at a lower temperature.\n\n"
+                "As altitude increases and air pressure decreases, water boils at a lower temperature.
+
+"
                 "The key point is that boiling depends on pressure, not just temperature."
             ),
         }
@@ -5657,7 +5833,9 @@ def _established_general_knowledge_recovery(query):
             "fact_id": "triangle_area_formula",
             "response": (
                 "The area of a triangle is calculated with the formula: **Area = ½ × base × height**. "
-                "The height must be the perpendicular distance from the chosen base to the opposite vertex.\n\n"
+                "The height must be the perpendicular distance from the chosen base to the opposite vertex.
+
+"
                 "For example, if the base is 10 units and the height is 6 units, the area is ½ × 10 × 6 = **30 square units**."
             ),
         }
@@ -5723,11 +5901,15 @@ def _established_archive_cosmology_recovery(query):
         "recovery_id": "archive_informed_cosmology_lived_significance",
         "response": (
             "Cosmology is an understanding of how reality works and how we belong within it—not only a theory about the physical universe. "
-            "The picture we carry of people, nature, change, and our place in the world shapes what we notice and how we make decisions.\n\n"
+            "The picture we carry of people, nature, change, and our place in the world shapes what we notice and how we make decisions.
+
+"
             "The Living Archive explores a contrast between a separation-based worldview and a unity-informed worldview. "
             "A separation-based view tends to organize life around competition, control, earned worth, and fear of loss. "
             "A unity-informed view sees people as distinct but connected, treats worth as inherent, and understands growth as something that can emerge through relationship, responsibility, and cooperation. "
-            "These are ways of interpreting experience, not labels for judging a person.\n\n"
+            "These are ways of interpreting experience, not labels for judging a person.
+
+"
             "This matters because a worldview can become an invisible guide for everyday choices. "
             "If every disagreement is treated as a contest for control, people may protect status instead of looking for a workable answer. "
             "If people see themselves as distinct but connected, they can recognize differences without treating them as threats. "
@@ -6861,7 +7043,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     + _trust_title
                     + " explains how that confidence helps communities and institutions work together. "
                     + _stewardship_title
-                    + " brings in the other side: the responsibility to care for what people share and depend on.\n\n"
+                    + " brings in the other side: the responsibility to care for what people share and depend on.
+
+"
                     "Think of a shared garden. Trust means people can count on one another to show up and do their part. "
                     "Stewardship is tending the garden so it remains healthy for everyone. One makes cooperation possible; "
                     "the other helps that cooperation endure."
@@ -6928,7 +7112,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     "Trust helps people in a community rely on one another. It gives "
                     "people confidence that others will do their part and act with care. "
                     "Stewardship is the shared responsibility to care for what people "
-                    "depend on.\n\n"
+                    "depend on.
+
+"
                     + "Think of a shared garden. Trust means people can count on one "
                     "another to show up and do their part. Stewardship is tending the "
                     "garden so it remains healthy for everyone. Trust makes cooperation "
@@ -6945,8 +7131,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         )
         if not _conceptual_human_voice_supported and not locals().get("conceptual_subject_recovery") and _human_development_question:
             response = _sanitize_basic_inquiry_response(
-                "Human development is more than growing older, gaining knowledge, or learning a skill. It is the gradual shaping of how a person understands the world, makes choices, lives with others, and takes responsibility for the life they share.\n\n"
-                "Its significance lies in what those capacities make possible. A person who can think things through, learn from experience, and understand another person's point of view has more room to choose how to respond—not simply repeat what circumstances have taught them. Those choices matter in everyday life: in how people care for themselves, raise children, work through differences, and contribute to their communities.\n\n"
+                "Human development is more than growing older, gaining knowledge, or learning a skill. It is the gradual shaping of how a person understands the world, makes choices, lives with others, and takes responsibility for the life they share.
+
+"
+                "Its significance lies in what those capacities make possible. A person who can think things through, learn from experience, and understand another person's point of view has more room to choose how to respond—not simply repeat what circumstances have taught them. Those choices matter in everyday life: in how people care for themselves, raise children, work through differences, and contribute to their communities.
+
+"
                 "Human development is therefore both personal and shared. People are shaped by the conditions in which they grow, but they also help shape those conditions for others. When people have room to learn, exercise judgment, and participate, families and communities can become more capable of meeting life together. When that room is denied, the loss is not only individual; it can narrow what a whole community is able to become."
             )
             archive_evidence_unavailable = False
@@ -7357,7 +7547,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         ))
         _last_paragraphs = [
             part.strip()
-            for part in re.split(r"\n\s*\n+", response)
+            for part in re.split(r"
+\s*
++", response)
             if part.strip()
         ]
         _current_response_nonanswer = general_guide_composition.is_generic_nonanswer(query, response) or general_guide_composition.is_meta_answer_failure(response)
@@ -7372,8 +7564,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 print("The Guide final payload boundary: bounded trust-stewardship recovery PASS.")
             elif _normalized_question == "what distinguishes leadership from positional authority":
                 response = (
-                    "Positional authority comes from a formal role: a person may be entitled to make decisions, assign work, or direct others because of the position they hold. Leadership is demonstrated through conduct and influence—how someone exercises judgment, helps people understand a shared purpose, and earns trust. A title can grant authority, but it does not automatically make others trust the person or willingly follow their lead.\n\n"
-                    "The distinction becomes visible in practice. A manager may have the authority to issue an instruction, while a colleague without that title may show leadership by listening to competing concerns, clarifying the real problem, and helping the group choose a responsible course. Conversely, someone with formal authority can also be a strong leader when they use their position fairly, explain their reasoning, accept accountability, and make room for others to contribute.\n\n"
+                    "Positional authority comes from a formal role: a person may be entitled to make decisions, assign work, or direct others because of the position they hold. Leadership is demonstrated through conduct and influence—how someone exercises judgment, helps people understand a shared purpose, and earns trust. A title can grant authority, but it does not automatically make others trust the person or willingly follow their lead.
+
+"
+                    "The distinction becomes visible in practice. A manager may have the authority to issue an instruction, while a colleague without that title may show leadership by listening to competing concerns, clarifying the real problem, and helping the group choose a responsible course. Conversely, someone with formal authority can also be a strong leader when they use their position fairly, explain their reasoning, accept accountability, and make room for others to contribute.
+
+"
                     "In short, positional authority answers, “What power or responsibility comes with this role?” Leadership asks, “How does this person guide collective action, and why should others have confidence in that guidance?” Authority can provide a structure for leadership, but leadership depends on the quality of judgment and action within that structure—not on the title alone."
                 )
                 print("The Guide final payload boundary: deterministic substantive recovery PASS for leadership-versus-authority regression.")
@@ -7414,7 +7610,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 )
                 _last_retry_paragraphs = [
                     part.strip()
-                    for part in re.split(r"\n\s*\n+", _last_retry_text)
+                    for part in re.split(r"
+\s*
++", _last_retry_text)
                     if part.strip()
                 ]
                 _retry_is_meta_answer = general_guide_composition.is_meta_answer_failure(
@@ -7429,7 +7627,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     _bounded_recovery_text = _sanitize_basic_inquiry_response(_bounded_recovery or "")
                     _bounded_recovery_paragraphs = [
                         part.strip()
-                        for part in re.split(r"\n\s*\n+", _bounded_recovery_text)
+                        for part in re.split(r"
+\s*
++", _bounded_recovery_text)
                         if part.strip()
                     ]
                     _bounded_recovery_is_substantive = bool(
@@ -7453,7 +7653,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         )
                         _systemwide_paragraphs = [
                             part.strip()
-                            for part in re.split(r"\n\s*\n+", _systemwide_recovery)
+                            for part in re.split(r"
+\s*
++", _systemwide_recovery)
                             if part.strip()
                         ]
                         _systemwide_is_meta = general_guide_composition.is_meta_answer_failure(
@@ -8877,7 +9079,9 @@ async def _use_request_boundary(scope, receive, send):
     # Philippine Systems is a visitor-facing native knowledge surface.
     # The LLM has already made the macro routing decision above; hand the
     # visitor directly to its native landing page.
-    # systems_ph now participates in the shared specialist pipe below. The canonical\n    # landing page remains a specialist-provided doorway rather than an early direct return.\n
+    # systems_ph now participates in the shared specialist pipe below. The canonical
+    # landing page remains a specialist-provided doorway rather than an early direct return.
+
     if route_id == "fsd":
         fsd_url = _fsd_handoff_url(query)
         request_id = "fsd-" + hashlib.sha1(
