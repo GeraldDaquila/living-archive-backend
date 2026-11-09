@@ -81,6 +81,32 @@ class LAEI_Registry {
         return null;
     }
 
+    public static function source_urls_valid($urls) {
+        if (!is_array($urls) || empty($urls)) return false;
+        foreach ($urls as $url) {
+            if (!is_string($url) || filter_var($url, FILTER_VALIDATE_URL) === false) return false;
+            $parts = parse_url($url);
+            if (!is_array($parts) || strtolower((string)($parts['scheme'] ?? '')) !== 'https' || empty($parts['host'])) return false;
+        }
+        return true;
+    }
+
+    public static function valid_iso_date($value) {
+        if (!is_string($value) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) return false;
+        $parts = explode('-', $value);
+        return count($parts) === 3 && checkdate((int)$parts[1], (int)$parts[2], (int)$parts[0]);
+    }
+
+    public static function verification_provenance_valid($record, $resource_id) {
+        if (!is_array($record) || !is_array($record['resource_ids'] ?? null)) return false;
+        foreach (['verification_id','authority_level','verification_scope','source','evidence_type'] as $key) {
+            if (empty($record[$key])) return false;
+        }
+        if (!in_array((string)$resource_id, $record['resource_ids'], true)) return false;
+        if (!self::source_urls_valid($record['source_urls'] ?? null)) return false;
+        return true;
+    }
+
     public static function get_overrides() {
         $r = self::load();
         return $r['regional_overrides'] ?? [];
@@ -97,7 +123,7 @@ class LAEI_Registry {
 
     public static function validate_candidate($data) {
         if (!self::validate_structure($data)) return ['valid' => false, 'error' => 'Invalid registry structure.'];
-        if (($data['schema_version'] ?? '') !== '0.1') return ['valid' => false, 'error' => 'Unsupported schema version.'];
+        if (($data['schema_version'] ?? '') !== '0.2') return ['valid' => false, 'error' => 'Unsupported schema version.'];
         if (!preg_match('/^\d{4}\.\d{2}\.\d{2}\.\d{3}$/', (string)($data['registry_version'] ?? ''))) {
             return ['valid' => false, 'error' => 'Invalid registry version.'];
         }
@@ -130,12 +156,29 @@ class LAEI_Registry {
         }
 
         $verification_ids = [];
+        $verification_records = [];
         foreach ($data['verification_records'] as $record) {
-            foreach (['verification_id','status','authority_level','verification_scope','verified_at','source'] as $key) {
-                if (empty($record[$key])) return ['valid' => false, 'error' => 'Verification record missing required fields.'];
+            if (!is_array($record)) return ['valid' => false, 'error' => 'Verification record must be an object.'];
+            foreach (['verification_id','status','authority_level','verification_scope','verified_at','review_due','source','resource_ids','source_urls'] as $key) {
+                if (!array_key_exists($key, $record) || (is_string($record[$key]) && trim($record[$key]) === '') || $record[$key] === null) {
+                    return ['valid' => false, 'error' => 'Verification record missing required fields.'];
+                }
             }
             if (isset($verification_ids[$record['verification_id']])) return ['valid' => false, 'error' => 'Duplicate verification ID.'];
+            if (!in_array($record['status'], ['verified','unverified','rejected'], true)) return ['valid' => false, 'error' => 'Verification record has invalid status.'];
+            if (!self::valid_iso_date((string)$record['verified_at'])) {
+                return ['valid' => false, 'error' => 'Verification record has invalid verified_at date.'];
+            }
+            if (!self::valid_iso_date((string)$record['review_due']) || $record['review_due'] < $record['verified_at']) {
+                return ['valid' => false, 'error' => 'Verification record has invalid review_due date.'];
+            }
+            if (!is_array($record['resource_ids']) || empty($record['resource_ids'])) return ['valid' => false, 'error' => 'Verification record must map to one or more resource IDs.'];
+            foreach ($record['resource_ids'] as $resource_id) {
+                if (!is_string($resource_id) || trim($resource_id) === '') return ['valid' => false, 'error' => 'Verification record has an invalid resource ID mapping.'];
+            }
+            if (!self::source_urls_valid($record['source_urls'])) return ['valid' => false, 'error' => 'Verification record must contain valid HTTPS source URLs.'];
             $verification_ids[$record['verification_id']] = true;
+            $verification_records[$record['verification_id']] = $record;
         }
 
         $resource_ids = [];
@@ -148,9 +191,18 @@ class LAEI_Registry {
             if (!isset($country_ids[strtoupper((string)$resource['country_id'])])) return ['valid' => false, 'error' => 'Resource references unknown country.'];
             if (!is_array($resource['service_types'] ?? null) || empty($resource['service_types'])) return ['valid' => false, 'error' => 'Resource has no service types.'];
             if (!isset($verification_ids[$resource['verification_id']])) return ['valid' => false, 'error' => 'Resource has no verification record.'];
+            if (!self::verification_provenance_valid($verification_records[$resource['verification_id']], $resource['resource_id'])) {
+                return ['valid' => false, 'error' => 'Resource is not explicitly mapped to its verification sources.'];
+            }
             if (!in_array($resource['status'], ['active','retired'], true)) return ['valid' => false, 'error' => 'Resource has invalid status.'];
             if (!in_array($resource['coverage'], ['national','regional','local'], true)) return ['valid' => false, 'error' => 'Resource has invalid coverage.'];
             if (($resource['coverage'] !== 'national') && empty($resource['region_id'])) return ['valid' => false, 'error' => 'Regional or local resource missing region ID.'];
+        }
+
+        foreach ($verification_records as $record) {
+            foreach ($record['resource_ids'] as $mapped_resource_id) {
+                if (!isset($resource_ids[$mapped_resource_id])) return ['valid' => false, 'error' => 'Verification record references an unknown resource.'];
+            }
         }
 
         return ['valid' => true, 'error' => null];

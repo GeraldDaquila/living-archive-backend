@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.333
+ * Version: 0.5.334
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.333';
+    const VERSION = '0.5.334';
+    // RELEASE v0.5.334: route emergency-resource selection exclusively through EI with explicit country evidence and fail-closed provenance; frozen relational writer unchanged.
     // RELEASE v0.5.333: require pending visitor evidence in terminal closure and recognize natural closure language; frozen writer unchanged.
     // RELEASE v0.5.332: reject abstract task-allocation framing for explicit one-sided friendship effort and recover grounded prose plus question after provider exhaustion; frozen writer unchanged.
     // RELEASE v0.5.331: reject the abstract effort-overlook template and recover a grounded question for explicit one-sided effort; frozen writer unchanged.
@@ -931,27 +932,114 @@ final class Living_Archive_Human_Relational_Navigator {
         return 'green';
     }
 
+    /**
+     * Resolve callable emergency resources exclusively through standalone EI.
+     * The only inputs crossing this boundary are country and safety-stage context.
+     * No visitor answer, message, or transcript is accepted by this helper.
+     */
+    private function resolve_ei_resource_bundle($country_code, $stage) {
+        $resources = array();
+        $seen = array();
+        $ei_used = false;
+        $ei_available = function_exists('living_archive_emergency_resolve') && defined('LAEI_VERSION') && version_compare((string)LAEI_VERSION, '0.1.3', '>=');
+        $failure_reasons = array();
+        $registry_version = null;
+
+        if ($ei_available) {
+            foreach (array('general_emergency', 'medical', 'crisis_support') as $need) {
+                try {
+                    $result = living_archive_emergency_resolve($need, array('explicit_country'=>$country_code), $stage, 'acute_emergency');
+                    if (!is_array($result)) {
+                        $failure_reasons[] = 'resolver_unavailable';
+                        continue;
+                    }
+                    if (!empty($result['registry_version'])) $registry_version = sanitize_text_field($result['registry_version']);
+                    $selection = is_array($result['selection'] ?? null) ? $result['selection'] : array();
+                    $selection_status = $selection['selection_status'] ?? '';
+                    if ($selection_status === 'SELECTED') {
+                        $candidates = array($selection['primary'] ?? array());
+                    } elseif ($selection_status === 'MULTIPLE_EQUIVALENT' && is_array($selection['primary'] ?? null)) {
+                        $candidates = $selection['primary'];
+                    } else {
+                        $failure_reasons[] = sanitize_key($selection['failure_reason'] ?? ($selection_status ?: 'no_eligible_resource'));
+                        continue;
+                    }
+                    foreach ($candidates as $resource) {
+                        if (!is_array($resource)) continue;
+                        $number = sanitize_text_field($resource['number'] ?? '');
+                        if ($number === '' || isset($seen[$number])) continue;
+                        $name = sanitize_text_field($resource['display_name'] ?? 'Emergency support');
+                        $resources[] = array(
+                            'title'=>$name,
+                            'phone'=>$number,
+                            'display_phone'=>$number,
+                            'group'=>($need === 'crisis_support') ? 'Crisis support' : 'Emergency help',
+                            'channels'=>array('call'),
+                            'verification_status'=>'verified_by_ei',
+                        );
+                        $seen[$number] = true;
+                        $ei_used = true;
+                    }
+                } catch (Throwable $e) {
+                    $failure_reasons[] = 'resolver_error';
+                    error_log('[Living Archive HRN] EI resource lookup failed; no legacy telephone fallback will be used: '.$e->getMessage());
+                    break;
+                }
+            }
+        } else {
+            $failure_reasons[] = 'resolver_unavailable';
+        }
+
+        $resource_status = $ei_used ? 'ei_verified_resources' : ($ei_available ? 'ei_no_verified_resource' : 'ei_unavailable');
+        $note = '';
+        if (!$ei_used) {
+            $note = 'I could not confirm a current, verified local emergency number for this location. I will not display an unverified number. If you may be in immediate danger, use an emergency service you already know is valid where you are or go to the nearest emergency department. Stay with another person if you can.';
+        } elseif ($failure_reasons) {
+            $note = 'Only resources with current verification are shown. Some local resource categories could not be independently verified and have been withheld.';
+        }
+
+        return array(
+            'resources'=>$resources,
+            'resource_status'=>$resource_status,
+            'resource_provenance'=>$ei_used ? 'ei_verified_only' : 'ei_no_verified_fallback',
+            'resource_failure_reasons'=>array_values(array_unique($failure_reasons)),
+            'ei_registry_version'=>$registry_version,
+            'note'=>$note,
+        );
+    }
+
     private function safety_response($stage, $country_code='', $message='') {
         $country_code = $this->normalize_country($country_code);
-        $bundle = $this->safety_resource_bundle($country_code, $stage, $message);
-        $resources = $bundle['registry'];
-        $all_resources = $bundle['resources'];
-        $response = array('stage'=>$stage,'question'=>'','message'=>'','resources'=>$all_resources,'location_required'=>false,'country'=>$country_code,'release'=>false,'support_needed'=>false,'resource_provenance'=>$resources ? 'native_registry' : 'findahelpline_fallback');
-
-        if (!$resources && $country_code !== '') {
-            $fallback = $bundle['fallback'];
-            $response['resources'] = array($fallback);
-        }
-        if (!$resources && $country_code === '') {
-            $response['location_required'] = true;
-            $response['resources'] = array($bundle['fallback']);
-        }
+        $bundle = $country_code !== ''
+            ? $this->resolve_ei_resource_bundle($country_code, $stage)
+            : array(
+                'resources'=>array(),
+                'resource_status'=>'ei_location_required',
+                'resource_provenance'=>'ei_location_resolution_pending',
+                'resource_failure_reasons'=>array(),
+                'ei_registry_version'=>null,
+                'note'=>'Please tell me the country where you are now so I can check the emergency resources independently verified for that location.',
+            );
+        $response = array(
+            'stage'=>$stage,
+            'question'=>'',
+            'message'=>'',
+            'resources'=>$bundle['resources'],
+            'location_required'=>($country_code === ''),
+            'country'=>$country_code,
+            'release'=>false,
+            'support_needed'=>false,
+            'resource_provenance'=>$bundle['resource_provenance'],
+            'resource_status'=>$bundle['resource_status'],
+            'resource_failure_reasons'=>$bundle['resource_failure_reasons'],
+            'ei_registry_version'=>$bundle['ei_registry_version'],
+            'note'=>$bundle['note'],
+        );
 
         if ($stage === 'current') {
             $response['message'] = 'Thank you for telling me. I want to take what you just said seriously.';
             $response['question'] = 'Are you thinking about killing yourself right now?';
-            if ($resources) $response['note'] = 'If you are in immediate danger, use the emergency service above or go to the nearest emergency department.';
-            else $response['note'] = 'If you may act on these thoughts now, contact the emergency service where you are or go to the nearest emergency department rather than waiting for an online directory.';
+            if ($bundle['resources']) $response['note'] = 'If you are in immediate danger, use one of the verified emergency resources shown above or go to the nearest emergency department.';
             return $response;
         }
         if ($stage === 'plan') {
@@ -973,8 +1061,7 @@ final class Living_Archive_Human_Relational_Navigator {
         if ($stage === 'acute') {
             $response['message'] = 'Please move away from anything you could use to hurt yourself. Then bring another person into this if you can.';
             $response['question'] = 'Have you moved away from anything you could use to hurt yourself?';
-            if ($resources) $response['note'] = $resources['note'] ?? 'If the danger is immediate, use the emergency service above or go to the nearest emergency department.';
-            else $response['note'] = 'If you may act on these thoughts now, contact the emergency service where you are or go to the nearest emergency department rather than waiting for an online directory.';
+            if ($bundle['resources']) $response['note'] = 'If the danger is immediate, use one of the verified emergency resources shown above or go to the nearest emergency department.';
             return $response;
         }
         if ($stage === 'acute_followthrough') {
@@ -996,15 +1083,15 @@ final class Living_Archive_Human_Relational_Navigator {
             return $response;
         }
         if ($stage === 'acute_barrier') {
-            $response['message'] = 'I hear that something is making the next safety step difficult. We do not need to pretend that it is easy. Please stay away from anything you could use to hurt yourself and use one of the emergency or crisis options above if you can.';
+            $response['message'] = 'I hear that something is making the next safety step difficult. We do not need to pretend that it is easy. Please stay away from anything you could use to hurt yourself and contact an emergency service you already know is valid where you are if you can.';
             $response['question'] = 'What is making it difficult to move away from harm or get another person involved right now?';
             $response['note'] = 'If you have already injured yourself or taken something, seek emergency medical care now.';
             return $response;
         }
         if ($stage === 'acute_hold') {
-            $response['message'] = 'I hear you. I am going to stop asking you to repeat the same safety step. Please stay away from anything you could use to hurt yourself and use the emergency or crisis support above now. If you have already injured yourself or taken something, seek emergency medical care now.';
+            $response['message'] = 'I hear you. I am going to stop asking you to repeat the same safety step. Please stay away from anything you could use to hurt yourself and contact an emergency service you already know is valid where you are now. If you have already injured yourself or taken something, seek emergency medical care now.';
             $response['question'] = '';
-            $response['note'] = 'Please use the emergency or crisis support above now. Do not stay alone with this if another person can safely be brought in.';
+            $response['note'] = 'Please contact an emergency service you already know is valid where you are now. Do not stay alone with this if another person can safely be brought in; if you have already injured yourself or taken something, go to the nearest emergency department now.';
             return $response;
         }
         if ($stage === 'recovery') {
@@ -1250,63 +1337,7 @@ Visitor response: " . $message;
             return new WP_Error('lah_rn_invalid_safety_stage', 'The current safety stage could not be confirmed.', array('status'=>400));
         }
 
-        // Keep HRN's existing registry as a continuity fallback while EI
-        // coverage and independent verification are completed.
-        $legacy = $this->safety_resource_bundle($country, $stage, '');
-        $resources = array();
-        $seen = array();
-        $ei_used = false;
-
-        if (function_exists('living_archive_emergency_resolve')) {
-            $needs = array('general_emergency', 'medical', 'crisis_support');
-            foreach ($needs as $need) {
-                try {
-                    $result = living_archive_emergency_resolve($need, array('explicit_country'=>$country), $stage, 'acute_emergency');
-                    $selection = is_array($result) ? ($result['selection'] ?? array()) : array();
-                    $selection_status = $selection['selection_status'] ?? '';
-                    if ($selection_status === 'SELECTED') {
-                        $candidates = array($selection['primary'] ?? array());
-                    } elseif ($selection_status === 'MULTIPLE_EQUIVALENT' && is_array($selection['primary'] ?? null)) {
-                        // EI may identify equivalent official routes (for example
-                        // the 999/112 pair). Preserve both rather than dropping
-                        // the EI result and reverting to a single legacy entry.
-                        $candidates = $selection['primary'];
-                    } else {
-                        continue;
-                    }
-                    foreach ($candidates as $resource) {
-                        if (!is_array($resource)) continue;
-                        $number = sanitize_text_field($resource['number'] ?? '');
-                        if ($number === '' || isset($seen[$number])) continue;
-                        $name = sanitize_text_field($resource['display_name'] ?? 'Emergency support');
-                        $group = ($need === 'crisis_support') ? 'Crisis support' : 'Emergency help';
-                        $resources[] = array(
-                            'title'=>$name,
-                            'phone'=>$number,
-                            'display_phone'=>$number,
-                            'group'=>$group,
-                            'channels'=>array('call'),
-                        );
-                        $seen[$number] = true;
-                        $ei_used = true;
-                    }
-                } catch (Throwable $e) {
-                    error_log('[Living Archive HRN] EI resource lookup failed; retaining legacy resource fallback: '.$e->getMessage());
-                    break;
-                }
-            }
-        }
-
-        // Preserve HRN's existing resources whenever EI cannot provide an
-        // eligible match. Do not manufacture a number or verification claim.
-        foreach (($legacy['resources'] ?? array()) as $resource) {
-            $number = sanitize_text_field($resource['phone'] ?? '');
-            if ($number !== '' && isset($seen[$number])) continue;
-            if ($number !== '') $seen[$number] = true;
-            $resources[] = $resource;
-        }
-        if (!$resources && !empty($legacy['fallback'])) $resources[] = $legacy['fallback'];
-
+        $bundle = $this->resolve_ei_resource_bundle($country, $stage);
         return rest_ensure_response(array(
             'operation'=>'resource_location_resolution',
             'stage'=>$stage,
@@ -1315,10 +1346,13 @@ Visitor response: " . $message;
             'question'=>$question,
             'safety_question'=>$question,
             'country'=>$country,
-            'resources'=>$resources,
+            'resources'=>$bundle['resources'],
             'location_required'=>false,
-            'resource_provenance'=>$ei_used ? 'ei_with_hrn_legacy_fallback' : 'hrn_legacy_fallback',
-            'ei_registry_version'=>function_exists('living_archive_emergency_resolve') && isset($result['registry_version']) ? $result['registry_version'] : null,
+            'resource_provenance'=>$bundle['resource_provenance'],
+            'resource_status'=>$bundle['resource_status'],
+            'resource_failure_reasons'=>$bundle['resource_failure_reasons'],
+            'note'=>$bundle['note'],
+            'ei_registry_version'=>$bundle['ei_registry_version'],
         ));
     }
 
@@ -1381,6 +1415,8 @@ Visitor response: " . $message;
         if (!$this->safety_stage_valid($safety_stage)) $safety_stage='green';
         $safety_question = trim((string)$request->get_param('safety_question'));
         $country = $this->normalize_country($request->get_param('country'));
+        $country_explicit = ($country !== '');
+        $safety_resource_country = $country_explicit ? $country : '';
         if ($country === '') $country = $this->normalize_country($this->detect_country());
         $session_id = trim((string)$request->get_param('session_id'));
         if ($session_id === '') $session_id = 'hrn-' . wp_generate_uuid4();
@@ -1417,12 +1453,13 @@ Visitor response: " . $message;
                 // of Journey Reckoning and prevents suicidal language such as 'want to
                 // die' from being treated as ordinary relational terrain.
                 $direct_stage = ($direct_signal === 'red') ? 'acute' : 'current';
-                $safety = $this->safety_response($direct_stage, $country, $message);
+                $safety = $this->safety_response($direct_stage, $safety_resource_country, $message);
                 return rest_ensure_response(array(
                     'ok'=>true,'version'=>self::VERSION,'safety'=>$direct_stage,'safety_interrupt'=>true,
                     'safety_message'=>$safety['message'],'safety_question'=>$safety['question'],
                     'safety_resources'=>$safety['resources'],'safety_note'=>$safety['note'] ?? '',
-                    'safety_location_required'=>$safety['location_required'] ?? false,'country'=>$country
+                    'safety_resource_provenance'=>$safety['resource_provenance'] ?? 'ei_location_resolution_pending',
+                    'safety_location_required'=>$safety['location_required'] ?? false,'country'=>$safety_resource_country
                 ));
             }
         }
@@ -1431,18 +1468,18 @@ Visitor response: " . $message;
             $next = $this->safety_transition($safety_stage,$answer,$country);
             if ($safety_stage === 'support' && $next === 'release') {
                 $release = $this->safety_release_response($message,$conversation);
-                return rest_ensure_response(array('ok'=>true,'version'=>self::VERSION,'safety'=>'recovery','safety_interrupt'=>true,'safety_message'=>$release['message'],'safety_question'=>'Are you safe from acting on these thoughts right now?','safety_resources'=>$this->safety_response('recovery',$country)['resources'],'safety_note'=>$this->safety_response('recovery',$country)['note'],'safety_location_required'=>false,'country'=>$country,'safety_release_ready'=>false));
+                return rest_ensure_response(array('ok'=>true,'version'=>self::VERSION,'safety'=>'recovery','safety_interrupt'=>true,'safety_message'=>$release['message'],'safety_question'=>'Are you safe from acting on these thoughts right now?','safety_resources'=>$this->safety_response('recovery',$safety_resource_country)['resources'],'safety_note'=>$this->safety_response('recovery',$safety_resource_country)['note'],'safety_location_required'=>false,'country'=>$safety_resource_country,'safety_release_ready'=>false));
             }
             if ($safety_stage === 'recovery') {
                 if ($next === 'release') {
-                    return rest_ensure_response(array('ok'=>true,'version'=>self::VERSION,'safety'=>'recovery','safety_interrupt'=>true,'safety_message'=>'You have told me that you are not going to act on these thoughts right now. You do not have to go straight back into the relationship conversation. You can stay connected to the people helping you, make a simple plan for the next few hours, or return here later.','safety_question'=>'','safety_resources'=>$this->safety_response('recovery',$country)['resources'],'safety_note'=>$this->safety_response('recovery',$country)['note'],'safety_location_required'=>false,'country'=>$country,'safety_release_ready'=>true));
+                    return rest_ensure_response(array('ok'=>true,'version'=>self::VERSION,'safety'=>'recovery','safety_interrupt'=>true,'safety_message'=>'You have told me that you are not going to act on these thoughts right now. You do not have to go straight back into the relationship conversation. You can stay connected to the people helping you, make a simple plan for the next few hours, or return here later.','safety_question'=>'','safety_resources'=>$this->safety_response('recovery',$safety_resource_country)['resources'],'safety_note'=>$this->safety_response('recovery',$safety_resource_country)['note'],'safety_location_required'=>false,'country'=>$safety_resource_country,'safety_release_ready'=>true));
                 }
-                $safety = $this->safety_response('acute_followthrough',$country);
-                return rest_ensure_response(array('ok'=>true,'version'=>self::VERSION,'safety'=>'acute_followthrough','safety_interrupt'=>true,'safety_message'=>$safety['message'],'safety_question'=>$safety['question'],'safety_resources'=>$safety['resources'],'safety_note'=>$safety['note'] ?? '','safety_location_required'=>$safety['location_required'] ?? false,'country'=>$country,'safety_release_ready'=>false));
+                $safety = $this->safety_response('acute_followthrough',$safety_resource_country);
+                return rest_ensure_response(array('ok'=>true,'version'=>self::VERSION,'safety'=>'acute_followthrough','safety_interrupt'=>true,'safety_message'=>$safety['message'],'safety_question'=>$safety['question'],'safety_resources'=>$safety['resources'],'safety_note'=>$safety['note'] ?? '','safety_location_required'=>$safety['location_required'] ?? false,'country'=>$safety_resource_country,'safety_release_ready'=>false));
             }
             $next_stage = ($next === 'release') ? 'recovery' : $next;
-            $safety = $this->safety_response($next_stage,$country,$message);
-            return rest_ensure_response(array('ok'=>true,'version'=>self::VERSION,'safety'=>$next_stage,'safety_interrupt'=>true,'safety_message'=>$safety['message'],'safety_question'=>$safety['question'],'safety_resources'=>$safety['resources'],'safety_note'=>$safety['note'] ?? '','safety_location_required'=>$safety['location_required'] ?? false,'country'=>$country,'safety_release_ready'=>false));
+            $safety = $this->safety_response($next_stage,$safety_resource_country,$message);
+            return rest_ensure_response(array('ok'=>true,'version'=>self::VERSION,'safety'=>$next_stage,'safety_interrupt'=>true,'safety_message'=>$safety['message'],'safety_question'=>$safety['question'],'safety_resources'=>$safety['resources'],'safety_note'=>$safety['note'] ?? '','safety_location_required'=>$safety['location_required'] ?? false,'country'=>$safety_resource_country,'safety_release_ready'=>false));
         }
 
         // FROZEN HUMAN-VOICE ENFORCEMENT: ordinary relational generation is not allowed

@@ -582,7 +582,7 @@ def test_hrn_contract_recovery_corrects_rejected_provider_output():
             "body_of_thought": "reaching out feels risky while the reason for the distance is unknown",
         }) + "\\nSomeone I love has become distant.",
     }]
-    rejected = json.dumps({"question": "What feels hardest?", "rest": False})
+    rejected = json.dumps({"question": "What makes reaching out feel risky while the reason for the distance remains uncertain?", "rest": False})
     corrected = json.dumps({
         "response": "The distance is something you can observe, while the reason for it remains uncertain. Those are different kinds of information, and holding that distinction leaves room to describe the impact without deciding what the other person intended.",
         "question": "What makes reaching out feel risky while the reason for the distance remains uncertain?",

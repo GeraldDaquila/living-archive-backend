@@ -267,6 +267,7 @@ ready(function(){
    clearSafetyReveal();
    response=response||{};
    var stage=response.stage||response.safety||'current';
+   if(response.country)country=String(response.country);
    var message=response.message||response.safety_message||'';
    var question=response.question||response.safety_question||'';
    safetyMessage=message;
