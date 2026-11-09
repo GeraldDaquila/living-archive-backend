@@ -48,6 +48,8 @@ def test_adapter_uses_ei_as_the_only_callable_resource_authority():
 
     assert "$this->resolve_ei_resource_bundle($country, $stage)" in adapter
     assert "function_exists('living_archive_emergency_resolve')" in helper
+    assert "defined('LAEI_VERSION')" in helper
+    assert "version_compare((string)LAEI_VERSION, '0.1.3', '>=')" in helper
     assert "living_archive_emergency_resolve($need" in helper
     assert "array('general_emergency', 'medical', 'crisis_support')" in helper
     assert "$selection_status === 'SELECTED'" in helper
