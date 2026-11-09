@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "purpose": "Explicit editorial territorial decisions for archive crosslink publication. Identity is determined by WordPress ID and canonical URL; this manifest records deliberate exclusions rather than inferring them from title similarity.",
+  "include_wp_ids": [
+    "76640",
+    "80702"
+  ],
+  "exclude_wp_ids": {
+    "6177": "legacy URL explicitly outside current public territorial contract",
+    "6268": "legacy URL explicitly outside current public territorial contract",
+    "6357": "legacy URL explicitly outside current public territorial contract",
+    "12326": "numeric duplicate variant; canonical unsuffixed/snapshot counterpart retained",
+    "75426": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75432": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75506": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75512": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75551": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75552": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75588": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75589": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75633": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75634": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75665": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75666": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75730": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75731": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75927": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75956": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "75989": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76062": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76106": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76128": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76152": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76180": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76207": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76251": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76270": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76294": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76313": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76330": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76354": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76380": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76403": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76432": "numeric duplicate variant; canonical unsuffixed counterpart retained",
+    "76455": "numeric duplicate variant; canonical unsuffixed counterpart retained"
+  },
+  "review_required_wp_ids": {
+    "7390": "Threshold Flame resolves to site root; requires explicit root-identity policy",
+    "75221": "Institutional Cornerstones -2 has no same-title counterpart in the current registry; editorial canonical status unresolved"
+  }
+}
