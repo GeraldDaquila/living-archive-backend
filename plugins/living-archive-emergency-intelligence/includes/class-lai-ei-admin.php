@@ -5,7 +5,6 @@ class LAEI_Admin {
     public static function init() {
         add_action('admin_menu', [__CLASS__, 'menu']);
         add_action('admin_init', [__CLASS__, 'settings']);
-        add_action('admin_post_laei_check_now', [__CLASS__, 'check_now']);
         add_action('admin_post_laei_run_tests', [__CLASS__, 'run_tests']);
     }
 
@@ -14,9 +13,7 @@ class LAEI_Admin {
     }
 
     public static function settings() {
-        register_setting('laei_settings', LAEI_Update_Manager::OPTION_ENDPOINT, [
-            'sanitize_callback' => function($value) { return esc_url_raw(trim((string)$value)); }
-        ]);
+        // Remote registry updates remain disabled pending trusted-key signature verification.
     }
 
     public static function page() {
@@ -24,7 +21,6 @@ class LAEI_Admin {
         $result = get_option(LAEI_Update_Manager::OPTION_LAST_RESULT, null);
         $last = (int)get_option(LAEI_Update_Manager::OPTION_LAST_CHECK, 0);
         $success = (int)get_option(LAEI_Update_Manager::OPTION_LAST_SUCCESS, 0);
-        $endpoint = esc_attr((string)get_option(LAEI_Update_Manager::OPTION_ENDPOINT, ''));
         $tests = get_transient('laei_test_results');
         ?>
         <div class="wrap">
@@ -39,15 +35,10 @@ class LAEI_Admin {
                 </tbody>
             </table>
 
-            <h2>Canonical Registry Endpoint</h2>
-            <form method="post" action="options.php">
-                <?php settings_fields('laei_settings'); ?>
-                <input type="url" name="<?php echo esc_attr(LAEI_Update_Manager::OPTION_ENDPOINT); ?>" value="<?php echo $endpoint; ?>" class="regular-text" placeholder="https://.../emergency-registry.json" />
-                <?php submit_button('Save Endpoint', 'secondary'); ?>
-            </form>
+            <h2>Remote Registry Updates</h2>
+            <p><strong>Disabled — fail-closed.</strong> No remote registry endpoint is contacted. Updates will remain disabled until cryptographic signature verification, trusted-key management, and replay protection are implemented and tested.</p>
 
             <p>
-                <a class="button button-primary" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=laei_check_now'), 'laei_check_now')); ?>">Check for Update Now</a>
                 <a class="button" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=laei_run_tests'), 'laei_run_tests')); ?>">Run Diagnostics</a>
             </p>
 
@@ -68,14 +59,6 @@ class LAEI_Admin {
             <?php endif; ?>
         </div>
         <?php
-    }
-
-    public static function check_now() {
-        if (!current_user_can('manage_options')) wp_die('Unauthorized.');
-        check_admin_referer('laei_check_now');
-        LAEI_Update_Manager::check_now();
-        wp_safe_redirect(admin_url('tools.php?page=laei'));
-        exit;
     }
 
     public static function run_tests() {
