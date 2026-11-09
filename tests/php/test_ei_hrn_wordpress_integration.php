@@ -68,6 +68,17 @@ ei_hrn_assert($transcript_response->get_status() === 400, 'conversation transcri
 
 $unknown = new WP_REST_Request('POST', '/living-archive/v1/emergency-resources');
 $unknown->set_body_params([
+    'country' => 'Philippines',
+    'safety_stage' => 'acute_contact',
+    'safety_question' => 'Can you contact emergency support now?',
+    'safety_message' => 'Please tell me which country you are in.',
+    'unregistered_payload' => 'Unrecognized content must be rejected.'
+]);
+$unknown_response = rest_do_request($unknown);
+ei_hrn_assert($unknown_response->get_status() === 400, 'arbitrary unregistered fields are rejected by the strict REST input allowlist');
+
+$unknown = new WP_REST_Request('POST', '/living-archive/v1/emergency-resources');
+$unknown->set_body_params([
     'country' => 'Atlantis',
     'safety_stage' => 'acute_contact',
     'safety_question' => 'Can you contact emergency support now?',
