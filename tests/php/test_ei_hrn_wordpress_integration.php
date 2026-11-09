@@ -40,7 +40,7 @@ $interrupt_data = $interrupt_response->get_data();
 ei_hrn_assert(!empty($interrupt_data['safety_interrupt']), 'explicit safety signal interrupts ordinary interpretation');
 ei_hrn_assert(($interrupt_data['safety_resources'] ?? null) === [], 'HRN safety interrupt exposes no legacy telephone resources');
 ei_hrn_assert(!empty($interrupt_data['safety_location_required']), 'HRN safety interrupt directs resource lookup through explicit EI location resolution');
-ei_hrn_assert(($interrupt_data['resource_provenance'] ?? '') === 'ei_location_resolution_pending', 'HRN safety interrupt marks EI resolution as pending');
+ei_hrn_assert(($interrupt_data['safety_resource_provenance'] ?? '') === 'ei_location_resolution_pending', 'HRN safety interrupt marks EI resolution as pending');
 
 $canonical = json_decode(file_get_contents(LAEI_REGISTRY_FILE), true);
 if (!is_array($canonical)) throw new RuntimeException('Canonical EI registry fixture could not be loaded.');
