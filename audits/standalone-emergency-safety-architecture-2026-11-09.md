@@ -48,13 +48,13 @@ The EI plugin is maintained separately on `ei/standalone-provenance-20261109` an
 - Python compile of Safety and Guide modules.
 - V488 Safety Boundary QA.
 - Safety state-machine regression tests: first-turn fast path, no-HRN follow-up, deterministic transition matrix, stage recovery from serialized history, two-step recovery/release, EI outage continuity, emergency-contact classification, and no-HRN snapshot.
-- The tests import the Guide runtime and verify the standalone safety contract. The latest Safety branch run #42606711297 passed.
+- The tests import the Guide runtime and verify the standalone safety contract. The latest authenticated-continuity Safety run #42607961197 passed.
 
 ## Mini-USE infrastructure boundary
 Mini-USE Workspace was inspected read-only. The existing Catalogue production, stewardship, and candidate services were not repurposed, reconfigured, redeployed, or replaced. No new Render service was created.
 
 ## Remaining release blockers
-1. **Safety-session integrity:** stage continuity currently relies on serialized conversation history supplied with the request. No server-side safety-state ledger was identified in the Guide safety path; the existing request/session identifier is not a persisted safety-state authority. A signed safety-state token or equivalent authenticated server-side ledger is needed before production to prevent state tampering and strengthen continuity.
+1. **Safety-session integrity:** **development mitigation implemented.** Active safety continuity now uses an HMAC-authenticated opaque token containing only deterministic state, active question, nonce, request hash, and expiry—never visitor text. Client-supplied `safety_state`, `safety_question`, and `safety_active` are no longer continuity authority. Production still requires provisioning a strong `SAFETY_SESSION_SECRET`, secure secret rotation, and final review of token/session lifetime behavior.
 2. **Country parity:** the EI registry currently covers five countries, not the ten-country target.
 3. **Source review:** HTTPS URL and provenance structure checks do not prove that the source supports the claimed service, coverage, or availability. Every record needs human verification against authoritative sources.
 4. **Visitor-facing E2E:** no browser E2E has been run against the actual Guide visitor interface. The standalone EI plugin is an API/resource subsystem, not a visitor UI. A safe WordPress/Guide staging target is required; production must not be used.
