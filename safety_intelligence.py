@@ -620,12 +620,12 @@ def _safety_answer_class(query: str, stage: str) -> dict[str, Any]:
 
     if stage == "acute_contact":
         negative_contact = re.search(
-            r"\\b(?:i (?:cannot|can't|could not|couldn't|have not|haven't|am unable to)|no one answered|nobody answered|not yet)\\b.*\\b(?:call|contact|reach|phone)\\b",
+            r"\b(?:i (?:cannot|can't|could not|couldn't|have not|haven't|am unable to)|no one answered|nobody answered|not yet)\b.*\b(?:call|contact|reach|phone)\b",
             text,
             re.I,
         )
         positive_contact = re.search(
-            r"\\b(?:i (?:have )?(?:called|contacted|reached)|i'm on the phone|someone answered|help is on the way)\\b",
+            r"\b(?:i (?:have )?(?:called|contacted|reached)|i'm on the phone|someone answered|help is on the way)\b",
             text,
             re.I,
         )
