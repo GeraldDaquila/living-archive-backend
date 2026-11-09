@@ -1087,9 +1087,7 @@ def _recommendation_answer_with_authority(query, docs, profile, canonical_docs):
     if secondary:
         parts.append(f"A nearby path is [{secondary['title']}]({secondary['url']}), which opens another aspect of the question without asking you to treat either doorway as the whole answer.")
     parts.append("You can stay with this lens, follow the connected material, or return with another part of the question that feels more relevant.")
-    return "
-
-".join(parts)
+    return "\n\n".join(parts)
 
 
 def _normalize_shared_evidence_for_use(documents, *, provenance="supplied"):
@@ -1168,11 +1166,7 @@ def _parse_context_documents(context_blocks):
         parsed = parser(context_blocks)
         return _normalize_shared_evidence_for_use(parsed, provenance="retrieved-context")
     docs = []
-    for block in str(context_blocks or "").split("
-
----
-
-"):
+    for block in str(context_blocks or "").split("\n\n---\n\n"):
         tm = re.search(r"^Title:\s*(.+?)\s*$", block, re.M)
         um = re.search(r"^URL:\s*(https?://\S+)\s*$", block, re.M | re.I)
         cm = re.search(r"^Content:\s*(.*)$", block, re.M | re.S)
@@ -1222,14 +1216,8 @@ def _serialize_context_documents(docs):
         text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").strip()
         if not title or not re.match(r"^https://\S+$", url, re.I) or not text:
             continue
-        blocks.append(f"Title: {title}
-URL: {url}
-Content: {text}")
-    return "
-
----
-
-".join(blocks)
+        blocks.append(f"Title: {title}\nURL: {url}\nContent: {text}")
+    return "\n\n---\n\n".join(blocks)
 
 
 def _authoritative_recommendation_docs(query, docs, profile):
@@ -1300,11 +1288,7 @@ def _recommendation_first_fetch(query_str):
                     extra_block_text = _serialize_context_documents(block_additions)
                     if extra_block_text:
                         data["context_blocks"] = (
-                            existing_block_text + "
-
----
-
-" + extra_block_text
+                            existing_block_text + "\n\n---\n\n" + extra_block_text
                             if existing_block_text else extra_block_text
                         )
                     print(
@@ -1451,15 +1435,7 @@ _probe_fallback_answer = _recommendation_answer_with_authority(_probe_query, _pr
 if _probe_fallback_answer:
     raise RuntimeError("USE v487.49 invariant failed: fallback recommendation leaked decoy-only context")
 
-_probe_gap = {"evidence_sufficiency_unavailable": True, "canonical_link_context": "Title: Unraveling Abuse: The Harm We Inherit, The Healing We Choose
-URL: https://geralddaquila.com/2025/06/01/unraveling-abuse-the-harm-we-inherit-the-healing-we-choose/
-Content: Abuse in relationships involves conflict, projection, and anger.
-
----
-
-Title: Suicide and the Journey of the Soul: A Unified Exploration of Mind, Spirit, and Society
-URL: https://geralddaquila.com/suicide
-Content: Suicide and despair are discussed."}
+_probe_gap = {"evidence_sufficiency_unavailable": True, "canonical_link_context": "Title: Unraveling Abuse: The Harm We Inherit, The Healing We Choose\nURL: https://geralddaquila.com/2025/06/01/unraveling-abuse-the-harm-we-inherit-the-healing-we-choose/\nContent: Abuse in relationships involves conflict, projection, and anger.\n\n---\n\nTitle: Suicide and the Journey of the Soul: A Unified Exploration of Mind, Spirit, and Society\nURL: https://geralddaquila.com/suicide\nContent: Suicide and despair are discussed."}
 _bridge_docs = _parse_context_documents(_probe_gap["canonical_link_context"])
 if not _bridge_docs or not _recommendation_first_fetch:
     raise RuntimeError("USE v487.49 invariant failed: evidence bridge unavailable")
@@ -1513,10 +1489,83 @@ def _history_text(history):
             value = str(item).strip()
             if value:
                 parts.append(value)
-    return "
-".join(parts)
-# Historical HRN journey and relational-return machinery retired. Native relational orientation is provided by compose_relational_fractal and the Guide's relational boundary.
-# The shared journey normalizer remains because it is used by other native Guide flows.
+    return "\n".join(parts)
+_RELATIONSHIP_INTERACTION_PATTERNS=(
+    r"\bbetween us\b",r"\bbetween me and\b",r"\bbetween you and\b",r"\bwe keep\b",
+    r"\bwe(?:'re| are)\b",r"\bwe can(?:'t|not)\b",r"\bwe don't\b",r"\bwe disagree\b",
+    r"\bwe argue\b",r"\bargu(?:e|ing|ed)\b",r"\bconflict\b",r"\btension\b",
+    r"\bcommunication\b",r"\bcommunicat(?:e|ing|ion)\b",r"\bunderstand(?:ing)?\b",
+    r"\bmisunderstand(?:ing)?\b",r"\bdistance\b",r"\bdisconnect(?:ed|ion)?\b",
+    r"\breconnect\b",r"\btrust\b",r"\bforgive(?:ness)?\b",r"\bresent(?:ment|ful)?\b",
+    r"\bboundar(?:y|ies)\b",r"\bhurt\b",r"\bheal(?:ing)?\b",r"\bcare about\b",
+    r"\bclose to\b",r"\bdrift(?:ed|ing)?\b",r"\bfeel(?:ing)? unheard\b",r"\bfeel(?:ing)? unseen\b",
+)
+_RELATIONSHIP_PERSON_PATTERNS=(
+    r"\bsomeone i care about\b",r"\bperson i care about\b",r"\bpeople i care about\b",
+    r"\bsomeone i love\b",r"\bmy partner\b",r"\bmy spouse\b",r"\bmy husband\b",
+    r"\bmy wife\b",r"\bmy family\b",r"\bmy friend\b",r"\bmy friends\b",
+    r"\ba friend\b",r"\ba loved one\b",r"\bmy relationship\b",r"\bour relationship\b",
+    r"\bthis relationship\b",r"\bwith someone\b",r"\bwith my\b",
+)
+
+def _relationship_guide_context(history, raw_body):
+    history_text=_history_text(history)
+    return {"conversation":history_text,"visitor_history":history_text,"unit_turns":len(history) if isinstance(history,list) else 0,"safety_question":str((raw_body or {}).get("safety_question") or ""),"country":str((raw_body or {}).get("country") or "")}
+
+def _relationship_primary_doorway(contribution):
+    for index,item in enumerate(contribution.get("canonical_candidates") or []):
+        if not isinstance(item,dict): continue
+        title=str(item.get("title") or "").strip(); url=str(item.get("url") or item.get("canonical_url") or "").strip()
+        access_class=str(item.get("access_class") or "public").strip().casefold()
+        if title and re.match(r"^https://geralddaquila\.com/\S+$",url,re.I) and access_class in {"public",""}: return index,title,url
+    return None
+
+RELATIONSHIP_JOURNEY_CONTRACT_VERSION = "v2"
+_RELATIONSHIP_JOURNEY_ACTIONS = frozenset({"continue", "end"})
+_RELATIONSHIP_LOCAL_STATES = frozenset({"in_progress", "spiral_complete", "journey_complete"})
+
+def _relationship_integrated_response(contribution):
+    """Preserve HRN's human response and its steering question; doorway selection stays with USE at closure."""
+    human = str(contribution.get("human_response") or "").strip()
+    if not human:
+        return ""
+    movement = contribution.get("movement") or {}
+    parts = [human]
+    question = str(movement.get("question") or "").strip()
+    if question and not bool(movement.get("rest")):
+        parts.append(question)
+    return "\n\n".join(parts)
+
+
+def _relationship_journey_state(contribution):
+    movement = contribution.get("movement") or {}
+    state = str(
+        movement.get("journey_state")
+        or contribution.get("journey_state")
+        or ""
+    ).strip().casefold()
+    if state not in _RELATIONSHIP_LOCAL_STATES:
+        state = "spiral_complete" if bool(
+            movement.get("spiral_complete")
+            or movement.get("topic_complete")
+            or movement.get("unit_complete")
+        ) else "in_progress"
+        if str(movement.get("movement_state") or "").strip().casefold() in {"journey_complete", "complete"}:
+            state = "journey_complete"
+    action = str(
+        movement.get("journey_action")
+        or contribution.get("journey_action")
+        or ""
+    ).strip().casefold()
+    if action not in _RELATIONSHIP_JOURNEY_ACTIONS:
+        action = "continue" if state != "journey_complete" else "end"
+    return {
+        "state": state,
+        "action": action,
+        "spiral_complete": state == "spiral_complete",
+        "journey_complete": state == "journey_complete",
+    }
+
 
 def _build_journey_contribution_for_use(body):
     """Package HRN closure material without selecting, retrieving, or generating."""
@@ -1541,6 +1590,1020 @@ def _build_journey_contribution_for_use(body):
     }
     return _normalize_shared_journey(payload)
 
+
+def _relational_communication_focus(query):
+    """Recognize explicit listening/being-heard concerns without lexical polysemy."""
+    q = _normalize_query(query)
+    return bool(re.search(
+        r"\b(?:unheard|not being heard|not heard|being heard|listen(?:ing)?|"
+        r"not listening|ignored|dismissed|(?:do not|don't|does not|doesn't|cannot|can't) "
+        r"(?:hear|listen)(?: me| to me)?|cannot get through to|can't get through to)\b",
+        q,
+    ))
+
+
+def _relational_discernment_focus(query):
+    """Recognize explicit uncertainty about perception/inference, not schema boilerplate."""
+    q = _normalize_query(query)
+    return bool(re.search(
+        r"\b(?:projection|projecting|projected|what i(?:'|’)m sensing|what i sense|"
+        r"what i infer|what i am inferring|what is real|am i misreading|am i assuming|"
+        r"am i projecting|could i be misreading|could i be assuming|could i be projecting|"
+        r"reading too much into|misreading|judge(?: them)? unfairly|misjudge|"
+        r"am i being unfair|could i be unfair|distinguish what i observed from what i inferred)\b",
+        q,
+    ))
+
+
+def _relational_return_topic_anchor(original_question, underlying_need, perspective_delta):
+    """Add bounded, earned semantic anchors without replacing the visitor's own question."""
+    q = _normalize_query(" ".join(str(value or "") for value in (
+        original_question, underlying_need, perspective_delta
+    )))
+    additions = []
+    effort_imbalance = bool(re.search(
+        r"\b(?:always the one|making an effort|more effort|reaching out|initiating contact|"
+        r"feel unseen|feeling unseen|not reciprocated|giving more|doing all the work)\b", q
+    ))
+    if effort_imbalance:
+        additions.append(
+            "Relational effort imbalance: overgiving, giving more than receiving, mutuality, "
+            "feeling valued, care without self-erasure."
+        )
+    # HRN's standard synthesis often says a sequence is "observable" and
+    # another person's "intention" is unknown. Those phrases alone do not mean
+    # the visitor's central question is discernment; classify from the opening
+    # question and underlying need, not the generated perspective boilerplate.
+    discernment_query = _normalize_query(
+        " ".join(str(value or "") for value in (original_question, underlying_need))
+    )
+    discernment = _relational_discernment_focus(discernment_query)
+    if discernment:
+        additions.append(
+            "Relational discernment: distinguish observable behavior from inference and "
+            "assumptions about another person's intentions."
+        )
+    boundary = bool(re.search(r"\b(?:boundaries|taking over|responsibility|self-erasure)\b", q))
+    if boundary:
+        additions.append("Relational boundaries: care, mutuality, agency, and what remains yours to carry.")
+    # A disagreement is not automatically a listening problem. Only add this
+    # semantic expansion when the visitor actually describes not being heard,
+    # listening, or dismissal; otherwise it contaminates retrieval with unrelated
+    # communication-themed Archive pages.
+    communication = _relational_communication_focus(q)
+    if communication:
+        additions.append(
+            "Relational communication during disagreement: listening, acknowledgment, "
+            "being heard, and receiving another person's point before responding."
+        )
+    return " ".join(additions)
+
+
+def _relational_return_conflict_topic_fit(query, doc):
+    """Require source evidence for the visitor's concrete recurring-conflict focus."""
+    if not isinstance(doc, dict):
+        return False
+    q = _normalize_query(query)
+    recurring_argument_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        q,
+    ))
+    if not recurring_argument_focus:
+        return True
+
+    title = str(doc.get("title") or "").casefold()
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    direct_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        title,
+    ))
+    if direct_title:
+        return True
+
+    # Require a sentence linking a concrete conflict action to its relational
+    # impact. Broad concepts such as cognitive dissonance, communication, or
+    # emotional growth cannot qualify through scattered vocabulary alone.
+    core_terms = {
+        "argument", "argue", "disagreement", "repair", "blame",
+        "reopen", "reopening", "incident",
+    }
+    impact_terms = {
+        "hurt", "listening", "heard", "hearing", "partner",
+        "relationship", "conflict", "argument", "disagreement",
+    }
+    for sentence in re.split(r"(?<=[.!?])\s+|\n+", body):
+        tokens = set(re.findall(r"[a-z0-9]+", sentence))
+        if core_terms & tokens and impact_terms & tokens:
+            return True
+    return False
+
+
+def _relational_return_is_generic_doorway(doc):
+    """Reject broad entrance pages as the earned gift after a completed HRN journey.
+
+    A successful closure must hand the visitor a resource connected to the
+    perspective they reached. Generic Orientation/Home/Welcome pages are not
+    a substitute for a topic-fit canonical doorway; if no specific asset qualifies,
+    the existing safe no-doorway response is more honest.
+    """
+    if not isinstance(doc, dict):
+        return False
+    title = str(doc.get("title") or "").casefold().strip()
+    title = re.sub(r"^[^a-z0-9]+", "", title)
+    title = re.sub(r"[^a-z0-9]+", " ", title).strip()
+    return bool(re.fullmatch(
+        r"(?:(?:living archive )?orientation|home(?: page)?|"
+        r"welcome(?: to (?:the )?(?:archive|living archive))?|"
+        r"start here|the guide|life understood)",
+        title,
+    ))
+
+
+def _relational_return_workplace_change_focus(query):
+    """Recognize a concrete work-agreement change that has become interpersonal."""
+    q = _normalize_query(query)
+    # Workplace relational closure must include managerial trust and decision-rights
+    # tensions, not only project/scope-change vocabulary. HRN can surface these as
+    # an earned perspective after several turns, so classify the opening context too.
+    work_context = bool(re.search(
+        r"\b(?:project|work|workplace|manager|boss|supervisor|colleague|team|deadline|scope|deliverable|agreement|role)\b", q
+    ))
+    change_context = bool(re.search(
+        r"\b(?:changed scope|scope changed|changed work|new work|agreement changed|"
+        r"deadline|scope|agreement|making too much of it|unreasonable|overreacting|"
+        r"trust|questions every decision|question(?:s|ed|ing)? (?:every )?decision|"
+        r"decision rights|decision boundaries|decision is within my role|"
+        r"prove my competence|prove i know what i'm doing|repeated scrutiny)\b", q
+    ))
+    interpersonal_context = bool(re.search(
+        r"\b(?:colleague|manager|boss|supervisor|team|other person|conversation|between us|"
+        r"making too much of it|unreasonable|overreacting|reaction|responsibility|"
+        r"trust|judgment|decision|role|review|questions every decision)\b", q
+    ))
+    return work_context and change_context and interpersonal_context
+
+
+def _relational_return_workplace_change_fit(query, doc):
+    """Accept a directly titled work-conflict asset for a grounded scope/agreement change."""
+    if not isinstance(doc, dict) or not _relational_return_workplace_change_focus(query):
+        return False
+    title = str(doc.get("title") or "").casefold()
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    direct_title = bool(re.search(r"\b(?:conflict|disagreement|trust|team)\b", title))
+    work_evidence = bool(re.search(
+        r"\b(?:team|teams|work|workplace|project|scope|deadline|agreement|expectations|responsibility)\b",
+        body,
+    ))
+    interaction_evidence = bool(re.search(
+        r"\b(?:conflict|disagreement|conversation|communication|trust|relationship)\b",
+        body,
+    ))
+    return direct_title and work_evidence and interaction_evidence
+
+
+def _relational_return_earned_focus_fit(query, doc):
+    """Accept only a canonical resource that supports an earned relational focus."""
+    if not isinstance(doc, dict) or _relational_return_is_generic_doorway(doc):
+        return False
+    if _relational_return_workplace_change_focus(query):
+        return _relational_return_workplace_change_fit(query, doc)
+    q = _normalize_query(query)
+    title = str(doc.get("title") or "").casefold()
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    material = " ".join((title, body))
+    if not _relational_return_conflict_topic_fit(query, doc):
+        return False
+
+    # A specific recurring-argument journey must not fall back to a broad
+    # relationship/communication essay just because it mentions conflict.
+    # Require a directly named conflict/repair doorway for this narrow case;
+    # otherwise only the direct-topic gate may admit a resource.
+    recurring_argument_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        q,
+    ))
+    direct_conflict_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        title,
+    ))
+    if recurring_argument_focus and not direct_conflict_title:
+        return False
+    relationship_evidence = bool(re.search(
+        r"\b(?:relationship|relationships|relational|friendship|friends|connection|"
+        r"love|care|communication|between people)\b", material
+    ))
+    if not relationship_evidence:
+        return False
+    effort_focus = bool(re.search(
+        r"\b(?:effort imbalance|making an effort|more effort|overgiving|giving more|"
+        r"feel unseen|feeling unseen|feeling valued|mutuality|reciproc|unfairly|self-erasure)\b", q
+    ))
+    effort_evidence = bool(re.search(
+        r"\b(?:imbalance|overgiving|self-sacrifice|giving more|receiving more|"
+        r"mutual support|mutuality|reciproc|valued|effort|boundaries|self-erasure)\b", material
+    ))
+    discernment_focus = _relational_discernment_focus(q)
+    discernment_evidence_terms = set(re.findall(
+        r"\b(?:perception|behavior|behaviour|interpret(?:ation|ed|ing)?|"
+        r"assumption|inference|intentions?|projection|observation|observed)\b",
+        material,
+    ))
+    # A single generic mention of communication or silence is not evidence for
+    # a perception/inference resource. Require a cluster of distinct cues.
+    discernment_evidence = len(discernment_evidence_terms) >= 2
+    # Disagreement alone does not establish that the visitor's central concern
+    # is listening or being heard. Keep this exception narrow so a broad
+    # relationship essay cannot qualify solely because it mentions dialogue.
+    # "A hurt is heard as blame" describes how a statement is interpreted;
+    # it does not establish that the visitor feels unheard or that listening is
+    # the central problem. Require an explicit listening/being-heard signal.
+    communication_focus = _relational_communication_focus(q)
+    communication_evidence = bool(re.search(
+        r"\b(?:listen|listening|heard|hearing|acknowledge|acknowledgment|acknowledgement|"
+        r"communication|dialogue|being heard)\b", material
+    ))
+    return bool(
+        (effort_focus and effort_evidence)
+        or (discernment_focus and discernment_evidence)
+        or (communication_focus and relationship_evidence and communication_evidence)
+    )
+
+
+def _relational_return_direct_topic_fit(query, doc):
+    """Require evidence for the visitor's earned relational topic, not just a plausible title."""
+    if not isinstance(doc, dict) or _relational_return_is_generic_doorway(doc):
+        return False
+    if _relational_return_workplace_change_focus(query):
+        return _relational_return_workplace_change_fit(query, doc)
+    q = _normalize_query(query)
+    title = str(doc.get("title") or "").casefold()
+    body_text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").casefold()
+    material = " ".join((title, body_text)).casefold()
+    if not _relational_return_conflict_topic_fit(query, doc):
+        return False
+
+    # Keep completed journeys about an explicit recurring argument anchored to
+    # a directly named conflict/repair resource. The Guide may append semantic
+    # expansions such as communication, listening, and being heard to the
+    # retrieval query; those additions must not turn a broad governance essay
+    # into a topical match.
+    recurring_argument_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        q,
+    ))
+    direct_conflict_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        title,
+    ))
+    if recurring_argument_focus and not direct_conflict_title:
+        return False
+
+    recurring_argument_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        q,
+    ))
+    direct_conflict_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        title,
+    ))
+    if recurring_argument_focus and direct_conflict_title:
+        # For a specific recurring-conflict query, a directly named conflict/
+        # repair title plus body evidence about relational conflict is stronger
+        # than exact lexical overlap with incidental wording such as "improve".
+        body_conflict = bool(re.search(
+            r"\b(?:argument|argue|conflict|disagreement|repair|blame|incident|criticism|defensiveness|stonewalling)\b",
+            body_text,
+        ))
+        body_relational = bool(re.search(
+            r"\b(?:relationship|relational|partner|hurt|listening|heard|criticism|defensiveness|stonewalling)\b",
+            body_text,
+        ))
+        if body_conflict and body_relational:
+            return True
+
+    projection_query = bool(re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", q))
+    if projection_query:
+        # A canonical title explicitly about projection is direct topical evidence
+        # even when its body uses broader language and does not repeat "relationship".
+        if re.search(r"\b(?:projection|projecting|projected)\b", title):
+            return True
+        direct_projection = bool(re.search(r"\b(?:projection|projecting|projected)\b", material))
+        observed_inferred = (
+            bool(re.search(r"\b(?:observed|observation|notice|noticing)\b", material))
+            and bool(re.search(r"\b(?:infer|inference|interpretation|assumption)\b", material))
+        )
+        if not (direct_projection or observed_inferred):
+            return False
+        if not re.search(r"\b(?:relationship|relational|between people|other person|communication|silence|withdrawal)\b", material):
+            return False
+        return True
+
+    # General relational closures must also demonstrate topic fit. A document
+    # that merely shares the broad relational atmosphere is not a valid gift.
+    query_terms = set(_subject_terms(q))
+    if not query_terms:
+        return False
+    title_tokens = set(re.findall(r"[a-z0-9]+", title))
+    material_tokens = set(re.findall(r"[a-z0-9]+", body_text))
+    generic_terms = {
+        "relationship", "relational", "partner", "person", "people", "other",
+        "conversation", "situation", "feeling", "feel", "think", "know",
+        "meaning", "understand", "something", "someone", "change", "experience",
+        "life", "human", "interaction", "dynamic",
+    }
+    specific_terms = query_terms - generic_terms
+    title_hits = {term for term in query_terms if _term_forms(term) & title_tokens}
+    body_hits = {term for term in query_terms if _term_forms(term) & material_tokens}
+    specific_title_hits = {term for term in specific_terms if _term_forms(term) & title_tokens}
+    specific_body_hits = {term for term in specific_terms if _term_forms(term) & material_tokens}
+
+    # Scattered mentions across a broad essay are not direct topic fit.
+    # Require either a distinctive title anchor with corroborating body evidence,
+    # or at least two substantive query terms in the same sentence. This prevents
+    # a broad family/couple doorway from passing merely because the essay mentions
+    # silence, rejection, and intention in unrelated passages.
+    sentence_specific_hits = 0
+    for sentence in re.split(r"(?<=[.!?])(?:[\"'”’)\]]+)?\s+|\n+", body_text):
+        sentence_tokens = set(re.findall(r"[a-z0-9]+", sentence))
+        sentence_hits = {
+            term for term in specific_terms
+            if _term_forms(term) & sentence_tokens
+        }
+        sentence_specific_hits = max(sentence_specific_hits, len(sentence_hits))
+
+    if len(specific_terms) == 1:
+        # Single-topic queries need the topic named in both title and body.
+        return bool(specific_title_hits and specific_body_hits)
+
+    return bool(
+        (specific_title_hits and len(body_hits) >= 2)
+        or sentence_specific_hits >= 2
+    )
+
+
+def _relational_return_verified_workplace_candidate(query):
+    """Fetch the verified public Conflict & Trust Arc page for work-agreement friction.
+
+    This direct canonical fallback prevents the bounded WordPress search pool
+    from changing the return decision when unrelated candidates time out. It is
+    still subject to the same workplace-change title/body evidence gate.
+    """
+    if not _relational_return_workplace_change_focus(query):
+        return None
+    endpoint = "https://geralddaquila.com/wp-json/wp/v2/pages/39753"
+    try:
+        request = UrlRequest(
+            endpoint,
+            headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
+            method="GET",
+        )
+        with urlopen(request, timeout=3.0) as response:
+            resource = json.loads(response.read().decode("utf-8"))
+        if not isinstance(resource, dict):
+            return None
+        import html
+        title_obj = resource.get("title")
+        title = str(
+            title_obj.get("rendered") if isinstance(title_obj, dict) else title_obj or ""
+        ).strip()
+        content_obj = resource.get("content")
+        content_html = str(
+            content_obj.get("rendered") if isinstance(content_obj, dict) else content_obj or ""
+        )
+        content_html = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", content_html)
+        content = re.sub(r"(?s)<[^>]+>", " ", content_html)
+        content = re.sub(r"\s+", " ", html.unescape(content)).strip()
+        candidate = {
+            "title": title,
+            "url": str(resource.get("link") or "https://geralddaquila.com/conflict-trust-arc/").strip(),
+            "text": content[:6000],
+        }
+        if (
+            candidate["title"]
+            and re.match(r"^https://geralddaquila\.com/\S+$", candidate["url"], re.I)
+            and _relational_return_workplace_change_fit(query, candidate)
+        ):
+            return candidate
+        return None
+    except Exception as exc:
+        print(
+            "The Guide verified workplace canonical recovery: "
+            f"unavailable ({type(exc).__name__})."
+        )
+        return None
+
+
+def _relational_return_apply_verified_workplace_candidate(original_question, direct_topic_query, primary, outward):
+    """Prefer the verified canonical work-conflict doorway over retrieval-pool variation."""
+    if not _relational_return_workplace_change_focus(original_question):
+        return primary, outward
+    verified = _relational_return_verified_workplace_candidate(original_question)
+    if verified and _relational_return_direct_topic_fit(direct_topic_query, verified):
+        return verified, [verified]
+    return primary, outward
+
+def _relational_return_search_recovery(original_question, direct_topic_query, profile):
+    """Use bounded WordPress search only when focused vector retrieval found no honest doorway."""
+    normalized_original = _normalize_query(original_question)
+    conflict_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        normalized_original,
+    ))
+    workplace_change_focus = _relational_return_workplace_change_focus(normalized_original)
+    if not conflict_focus and not workplace_change_focus:
+        return None, []
+    if workplace_change_focus and not conflict_focus:
+        verified_candidate = _relational_return_verified_workplace_candidate(original_question)
+        if verified_candidate:
+            print(
+                "The Guide verified workplace canonical recovery: "
+                f"selected={verified_candidate['title']}."
+            )
+            return verified_candidate, [verified_candidate]
+    # Bounded WordPress search supplements vector retrieval for two concrete
+    # relational cases: recurring arguments and a changed work agreement that
+    # has become interpersonal. Every candidate still passes the same topic-fit
+    # and canonical gates before a doorway can be released.
+    search_queries = (
+        ("relationship repair", "conflict repair", "argument hurt")
+        if conflict_focus
+        else ("workplace conflict", "project scope agreement", "conflict moment")
+    )
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=len(search_queries)) as executor:
+        candidate_sets = list(executor.map(
+            lambda search_query: _wordpress_search_canonical_candidates(search_query, limit=5),
+            search_queries,
+        ))
+
+    ranked_candidates = []
+    seen = set()
+    candidate_index = 0
+    for search_query, candidates in zip(search_queries, candidate_sets):
+        # These candidates were fetched from the canonical WordPress REST API
+        # and contain the full published text. The generic outward sanitizer is
+        # tuned for ordinary Guide answers and can discard a directly titled
+        # conflict/repair asset before the stricter journey-specific evidence
+        # gates run. For this bounded recovery lane, use the canonical candidates
+        # directly, but require the exact original-topic and earned-focus gates
+        # below before ranking or releasing anything.
+        query_outward = candidates
+        for doc in query_outward:
+            if not (
+                _relational_return_direct_topic_fit(direct_topic_query, doc)
+                or _relational_return_earned_focus_fit(direct_topic_query, doc)
+            ):
+                continue
+            key = (
+                str(doc.get("title") or "").strip().casefold(),
+                str(doc.get("url") or doc.get("canonical_url") or "").strip().casefold(),
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            metrics = _subject_metrics(search_query, doc)
+            context = _contextual_fit(search_query, doc)
+            score = (
+                metrics[2], metrics[3], metrics[0], metrics[1],
+                context[2], context[1], -candidate_index,
+            )
+            ranked_candidates.append((score, doc))
+            candidate_index += 1
+
+    # Rank each candidate against the exact bounded query that retrieved it.
+    # Rechecking every candidate against only the first phrase would silently
+    # discard valid candidates discovered by the secondary queries.
+    ranked_candidates.sort(key=lambda item: item[0], reverse=True)
+    outward = [doc for _score, doc in ranked_candidates]
+    primary = outward[0] if outward else None
+    print(
+        "The Guide relational doorway recovery: "
+        f"queries={len(search_queries)}, candidates={sum(len(items) for items in candidate_sets)}, "
+        f"eligible={len(outward)}, selected={primary['title'] if primary else 'none'}."
+    )
+    return primary, (outward if primary else [])
+
+
+def _relational_return_retry_after_broad_candidate(primary, outward, original_question, direct_topic_query, profile):
+    """Retry the bounded conflict search only after a broad candidate was rejected."""
+    if primary is not None:
+        return primary, outward
+    conflict_focus = bool(re.search(
+        r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+        r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+        _normalize_query(original_question),
+    ))
+    if not conflict_focus:
+        return None, []
+    candidate, candidates = _relational_return_search_recovery(
+        original_question, direct_topic_query, profile
+    )
+    if not candidate:
+        return None, []
+    direct_title = bool(re.search(
+        r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+        str(candidate.get("title") or "").casefold(),
+    ))
+    return (candidate, candidates) if direct_title else (None, [])
+
+
+async def _v48755_relational_return(request: Request):
+    # This is a server-to-server handoff from the authenticated WordPress adapter.
+    # Never accept visitor-browser calls or parse an unauthenticated payload.
+    authorize_provider_gateway(
+        request.headers.get("X-Living-Archive-Provider-Key")
+    )
+
+    max_body_bytes = 131072
+    declared_length = request.headers.get("content-length")
+    if declared_length:
+        try:
+            declared_length = int(declared_length)
+        except (TypeError, ValueError):
+            return JSONResponse(
+                status_code=400,
+                content={"ok": False, "error_type": "relational_return_invalid_content_length"},
+            )
+        if declared_length < 0:
+            return JSONResponse(
+                status_code=400,
+                content={"ok": False, "error_type": "relational_return_invalid_content_length"},
+            )
+        if declared_length > max_body_bytes:
+            return JSONResponse(
+                status_code=413,
+                content={"ok": False, "error_type": "relational_return_payload_too_large"},
+            )
+
+    if "application/json" not in str(request.headers.get("content-type") or "").lower():
+        return JSONResponse(
+            status_code=415,
+            content={"ok": False, "error_type": "relational_return_json_required"},
+        )
+
+    body_chunks = []
+    received_bytes = 0
+    async for chunk in request.stream():
+        received_bytes += len(chunk)
+        if received_bytes > max_body_bytes:
+            return JSONResponse(
+                status_code=413,
+                content={"ok": False, "error_type": "relational_return_payload_too_large"},
+            )
+        body_chunks.append(chunk)
+
+    try:
+        body = json.loads(b"".join(body_chunks).decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return JSONResponse(
+            status_code=400,
+            content={"ok": False, "error_type": "relational_return_invalid_json"},
+        )
+    if not isinstance(body, dict):
+        return JSONResponse(
+            status_code=400,
+            content={"ok": False, "error_type": "relational_return_invalid_payload"},
+        )
+
+    session_id = str(body.get("session_id") or "").strip()
+    journey_contribution = _build_journey_contribution_for_use(body)
+    original_question = journey_contribution.original_question
+    conversation = journey_contribution.conversation
+    thread_summary = journey_contribution.thread_summary
+    working_hypothesis = journey_contribution.working_hypothesis
+    completed_insight = journey_contribution.completed_insight
+    perspective_delta = journey_contribution.perspective_delta
+    body_of_thought = journey_contribution.body_of_thought
+    underlying_need = journey_contribution.underlying_need
+    desired_condition = journey_contribution.desired_condition
+    next_horizon = journey_contribution.next_horizon
+    resource_fit = journey_contribution.resource_fit
+    journey_action = journey_contribution.journey_action
+    journey_synthesis = journey_contribution.journey_synthesis
+    journey_ledger = dict(journey_contribution.journey_ledger)
+    fractal_records = list(journey_contribution.fractal_records)
+    round_synthesis_history = list(journey_contribution.round_synthesis_history)
+
+    if journey_action != "end":
+        return JSONResponse(
+            status_code=409,
+            content={
+                "ok": False,
+                "version": APP_VERSION,
+                "error_type": "relational_return_requires_closure",
+                "response": "The relational journey is still open.",
+            },
+        )
+
+    if not original_question or not conversation:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "ok": False,
+                "version": APP_VERSION,
+                "error_type": "relational_return_incomplete",
+                "response": "The completed relational conversation was not supplied in full.",
+            },
+        )
+
+    # The Guide receives the whole journey only after the visitor has explicitly
+    # chosen to close it. Mid-journey topic-fractal junctions never trigger this path.
+    synthesis_parts = [
+        original_question,
+        "Conversation thread: " + thread_summary,
+        "What became clearer: " + perspective_delta,
+        "Completed insight: " + completed_insight,
+        "Underlying need: " + underlying_need,
+        "Desired condition: " + desired_condition,
+        "Living body of thought: " + body_of_thought,
+        "Previous topic-fractal syntheses: " + json.dumps(fractal_records, ensure_ascii=False),
+        "Round-by-round synthesis history: " + json.dumps(round_synthesis_history, ensure_ascii=False),
+        "Journey ledger: " + json.dumps(journey_ledger, ensure_ascii=False),
+        "Whole-journey synthesis from Seeing the Relationship: " + journey_synthesis,
+        "Next horizon: " + next_horizon,
+        "Canonical doorway fit noted by Seeing the Relationship: " + resource_fit,
+    ]
+    synthesis_query = "\n".join(part for part in synthesis_parts if part.split(": ", 1)[-1].strip())
+    synthesis_query = synthesis_query[:18000]
+
+    try:
+        # Select the doorway from the earned relational perspective first. The full
+        # transcript/ledger query is useful evidence, but it can dilute the visitor's
+        # actual movement with incidental themes. Keep the first retrieval focused.
+        topic_anchor = original_question
+        topic_anchor += " " + _relational_return_topic_anchor(
+            original_question, underlying_need, perspective_delta
+        )
+        # Preserve the specialist's explicit resource-fit note as retrieval evidence.
+        # It was in the synthesis payload but dropped from both doorway queries.
+        if resource_fit:
+            topic_anchor += " Relational resource fit: " + str(resource_fit)
+        if re.search(r"\b(?:project(?:ion|ing|ed)?|what i(?:'|’)m sensing|what i sense|what i infer|what is real)\b", _normalize_query(original_question)):
+            topic_anchor += " Relational projection: distinguish what is observed from what is inferred in the relationship."
+        # Retrieval uses the visitor's opening plus the earned need/perspective,
+        # not the full closure synthesis, which can dilute the actual concern.
+        doorway_query = " ".join(
+            value for value in (
+                topic_anchor,
+                underlying_need,
+                completed_insight,
+                perspective_delta,
+                resource_fit,
+            ) if value
+        )[:6000]
+        direct_topic_query = " ".join(
+            value for value in (topic_anchor, underlying_need, perspective_delta, completed_insight, resource_fit)
+            if value
+        )[:5000] or topic_anchor
+        context_data = _original_fetch_canonical_context(doorway_query)
+        canonical_context = str(
+            context_data.get("canonical_link_context")
+            or context_data.get("context_blocks")
+            or ""
+        ) if isinstance(context_data, dict) else ""
+        docs = _parse_context_documents(canonical_context)
+
+        # The final doorway remains a Guide responsibility. The completed
+        # perspective, not the visitor's opening wording alone, governs the gift.
+        profile = _base._inquiry_profile(doorway_query)
+        profile["action"] = "recommendation"
+        profile["recommendation"] = max(float(profile.get("recommendation", 0.0)), 0.95)
+        # This endpoint is entered only after HRN closes a relational journey.
+        # Preserve that specialist boundary even if generic lexical cues lean elsewhere.
+        profile["primary"] = "relational"
+        profile["relational"] = True
+        outward = _sanitize_outward_context(doorway_query, docs, profile)
+        outward = [
+            doc for doc in outward
+            if _relational_return_direct_topic_fit(direct_topic_query, doc)
+            or _relational_return_earned_focus_fit(direct_topic_query, doc)
+        ]
+        primary = _canonical_primary_from_docs(outward, direct_topic_query, profile)
+        # v489.226: a verified canonical workplace-conflict page outranks vector/search pool variation.
+        primary, outward = _relational_return_apply_verified_workplace_candidate(
+            original_question, direct_topic_query, primary, outward
+        )
+
+        if not primary:
+            # A second bounded attempt may use only the earned perspective.
+            # Never reintroduce the full transcript/ledger here: if neither focused
+            # query supports a canonical resource, return no doorway rather than a
+            # plausible-looking but unrelated gift.
+            fallback_query = " ".join(
+                value for value in (
+                    underlying_need,
+                    perspective_delta,
+                    completed_insight,
+                    resource_fit,
+                    str(journey_ledger.get("current_terrain") or ""),
+                    str(journey_ledger.get("unresolved") or ""),
+                ) if value
+            )[:4000]
+            fallback_data = _original_fetch_canonical_context(fallback_query)
+            fallback_context = str(
+                fallback_data.get("canonical_link_context")
+                or fallback_data.get("context_blocks")
+                or ""
+            ) if isinstance(fallback_data, dict) else ""
+            fallback_docs = _parse_context_documents(fallback_context)
+            fallback_outward = _sanitize_outward_context(fallback_query, fallback_docs, profile)
+            fallback_outward = [
+                doc for doc in fallback_outward
+                if _relational_return_direct_topic_fit(fallback_query, doc)
+                or _relational_return_earned_focus_fit(fallback_query, doc)
+            ]
+            primary = _canonical_primary_from_docs(fallback_outward, fallback_query, profile)
+            if primary:
+                outward = fallback_outward
+
+        if not primary:
+            # Vector retrieval can return no sufficiently direct doorway even
+            # when the public Archive contains a clearly relevant conflict/repair
+            # resource. Try bounded WordPress search, then apply the same relevance
+            # and canonical gates before releasing any recommendation.
+            search_primary, search_outward = _relational_return_search_recovery(
+                original_question, direct_topic_query, profile
+            )
+            if search_primary:
+                primary = search_primary
+                outward = search_outward
+
+        # Last-mile canonical doorway invariant: even if retrieval normalization
+        # or a future relevance branch changes, a completed recurring-argument
+        # journey cannot release a broad resource whose title does not name
+        # conflict, argument, disagreement, repair, reconciliation, or being heard.
+        original_recurring_argument_focus = bool(re.search(
+            r"\b(?:same argument|argument keeps returning|repeated argument|recurring argument|"
+            r"argue about|repeated conflict|hurt.{0,35}blame|blame.{0,35}hurt)\b",
+            _normalize_query(original_question),
+        ))
+        primary_title_is_direct_conflict = bool(
+            primary and re.search(
+                r"\b(?:argument|argue|conflict|disagreement|repair|reconciliation|being heard)\b",
+                str(primary.get("title") or "").casefold(),
+            )
+        )
+        if primary and original_recurring_argument_focus and not primary_title_is_direct_conflict:
+            print(
+                "The Guide v489.201 rejected a non-conflict canonical doorway "
+                f"for recurring-argument return: {primary.get('title')}"
+            )
+            primary = None
+            outward = []
+
+        # Structural retry: a broad vector candidate can survive the initial
+        # retrieval path, then be correctly rejected by the last-mile conflict
+        # title guard. That rejection must not end retrieval before the bounded
+        # conflict-specific WordPress search has had its turn. Reuse the same
+        # direct-topic and earned-focus gates; never relax the relevance boundary.
+        if original_recurring_argument_focus and primary is None:
+            primary, outward = _relational_return_retry_after_broad_candidate(
+                primary, outward, original_question, direct_topic_query, profile
+            )
+
+        # Operational telemetry is deliberately content-free. Do not log the
+        # visitor's question, transcript, or session identifier.
+        print(
+            "The Guide relational return completed: "
+            f"session_present={bool(session_id)}, "
+            f"doorway_selected={bool(primary)}, "
+            f"conversation_chars={len(conversation)}, "
+            f"ledger_fractals={len(fractal_records)}, "
+            f"round_syntheses={len(round_synthesis_history)}"
+        )
+
+        journey_payload = {
+            "state": "complete",
+            "session_id": session_id,
+            "perspective_delta": perspective_delta,
+            "completed_insight": completed_insight,
+            "next_horizon": next_horizon,
+            "journey_synthesis": journey_synthesis,
+            "fractal_records": fractal_records,
+            "round_synthesis_history": round_synthesis_history,
+        }
+
+        if primary:
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "ok": True,
+                    "version": APP_VERSION,
+                    "request_id": session_id,
+                    "intent": "RELATIONAL_CANONICAL_RETURN",
+                    "response": "There is a place in the Archive that may carry this new perspective further.",
+                    "display_mode": "hrn",
+                    "canonical_doorway": {
+                        "title": primary["title"],
+                        "url": primary["url"],
+                    },
+                    "relational_journey": journey_payload,
+                    "visitor_boundary_version": APP_VERSION,
+                },
+            )
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                "ok": True,
+                "version": APP_VERSION,
+                "request_id": session_id,
+                "intent": "RELATIONAL_CANONICAL_RETURN",
+                "response": "You have brought the conversation to a meaningful place. No doorway was close enough to offer honestly from what emerged.",
+                "canonical_doorway": None,
+                "display_mode": "hrn",
+                "relational_journey": journey_payload,
+                "visitor_boundary_version": APP_VERSION,
+            },
+        )
+    except Exception as exc:
+        print(
+            "The Guide relational closure failed safely: "
+            f"exception_type={type(exc).__name__}"
+        )
+        return JSONResponse(
+            status_code=200,
+            content={
+                "ok": False,
+                "version": APP_VERSION,
+                "request_id": session_id,
+                "intent": "RELATIONAL_CANONICAL_RETURN",
+                "response": "The conversation is complete, but the Archive doorway could not be prepared right now.",
+                "canonical_doorway": None,
+                "error_type": "relational_return_retrieval_failure",
+            },
+        )
+
+
+# ---------------------------------------------------------------------
+# v487.57 — EARLY GUIDE CAPABILITY ROUTING
+# ---------------------------------------------------------------------
+#
+# The first Guide decision is now an LLM interpretation task, not a
+# deterministic specialist keyword gate. The purpose of this pass is only
+# to understand what kind of doorway the question may need. It does not
+# answer the visitor, select canonical resources, or release Guide ownership.
+#
+# Existing USE/Groq model discovery and capability management are reused from
+# use_core.py. Deterministic governance remains authoritative after the model
+# proposes a route. A specialist is invoked only when it is registered and
+# explicitly available.
+#
+_GUIDE_ROUTE_IDS = frozenset({
+    "guide",
+    "relationship",
+    "formation",
+    "catalogue",
+    "atlas",
+    "navigator",
+    "systems_ph",
+    "safety",
+    "glossary",
+    "glyph",
+    "case",
+    "fsd",
+    "guide_node",
+})
+
+_GUIDE_ROUTE_PROMPT = """You are the private Round 1 interpretation layer behind The Guide,
+the macro orientation layer of the Living Archive.
+
+The visitor's first question is an open human inquiry. Do not treat it as a
+keyword-classification exercise. Before choosing a route, reason about what
+the visitor may actually be trying to understand, resolve, explore, find,
+change, or move toward.
+
+Use the same disciplined first-move reasoning used by Seeing the Relationship,
+but at the macro level of the Archive.
+
+First distinguish:
+- what the visitor literally says;
+- the presenting situation or proposition;
+- the experience or human reality being brought;
+- the assumption, explanation, or proposed solution the visitor is already
+  carrying;
+- the underlying question or tension that may be more important than the
+  literal wording;
+- what remains genuinely uncertain;
+- what kind of movement would actually help the visitor now.
+
+Do not assume the visitor's explanation is correct. Do not manufacture hidden
+motives, diagnoses, mental states, or facts about other people. Preserve
+uncertainty. A tentative interpretation is not a fact.
+
+Then determine what kind of processing would best serve the visitor at this
+moment.
+
+Possible routes:
+- guide: The Guide remains with broad Archive orientation/navigation
+- relationship: Seeing the Relationship; open relational exploration across
+  self, person-to-person, family, group, community, organization,
+  institution, and intergroup situations
+- formation: Stewardship Formation Navigator; formation-oriented inquiry about
+  what a situation may be asking someone to learn, practice, examine, or carry
+- catalogue: Stewardship Catalogue; bounded stewardship-resource navigation
+- atlas: Living Archive Atlas Finder; bounded visual Reference Map navigation
+- navigator: Living Archive Navigator; the universal entry/orientation surface when the visitor is trying to find where to begin, how to enter the Living Archive, or how to discover a useful path through it rather than retrieve one particular resource
+- systems_ph: Philippine Systems Lens; bounded inquiry into interacting
+  Philippine systems and conditions
+- safety: Safety / Crisis
+- glossary: vocabulary/definition lookup
+- glyph: glyph/symbol lookup
+- case: Case Study search; bounded structural case matching based on the visitor situation
+- fsd: Fractal Systems Diagnostic; native systems-pattern orientation and diagnostic navigation
+- guide_node: a specific approved Guide Node; use only when the visitor's need clearly points to one of the approved destinations supplied below
+
+Important routing principles:
+- The initial question may be about anything. Do not require a domain keyword.
+- Do not route by topic alone. Route by the kind of movement or processing the
+  visitor appears to need.
+- A relational topic does not automatically mean Seeing the Relationship.
+- Seeing the Relationship is appropriate when the lived human situation itself
+  is central and exploratory, and relational inquiry is likely to create more
+  perspective than immediately selecting a resource.
+- A question can begin in one terrain and reveal another. On later turns,
+  reconsider the accumulated conversation rather than protecting the initial
+  route.
+- If the visitor explicitly seeks a definition, glyph, catalogue item, or
+  bounded systems/formation task, honor that clear intent.
+- Distinguish outcome evaluation from systems-pattern diagnosis. When the
+  visitor asks whether an intervention, revised approach, policy, or response
+  is actually reducing harm or improving outcomes, the first need is usually
+  evidence-oriented evaluation: observable outcomes, comparison over time,
+  feedback from affected people, unintended or displaced harms, and
+  accountability for interpreting results. Keep the Guide in control and
+  prefer relevant canonical resources or a clarifying move; do not route
+  directly to fsd solely because the question mentions a group, organization,
+  harm, a system, or change.
+- Examples of outcome-evaluation intent include: "How can we tell whether our
+  revised approach is genuinely reducing harm rather than making us feel we
+  addressed it?", "How do we know this intervention is working?", and "What
+  evidence would show that conditions improved for the people affected?"
+  These are not automatically FSD requests.
+- FSD is appropriate when the visitor's primary need is to map or diagnose
+  recurring system patterns, feedback loops, authority gaps, incentives,
+  information flow, resistance to change, or possible leverage points. It may
+  be a useful second step when outcome evidence is missing or contradictory,
+  but must not substitute for evaluating outcomes.
+- When outcome-evaluation and systems-diagnosis intent are both plausible,
+  preserve the distinction in the interpretation and prefer the least
+  committal useful next move (Guide orientation, evidence-oriented resources,
+  or one clarifying question) rather than starting a ten-question diagnostic.
+- When the visitor is asking where to begin, how to enter, or how to find a
+  useful way into the Living Archive or site as a whole, prefer navigator when
+  that orientation need is central. Do not require the visitor to name the
+  Navigator.
+- If the visitor is presenting a lived situation whose useful next step is
+  discovery rather than retrieval, prefer the processing mode that can create
+  that discovery.
+- Do not select a specialist merely because its subject appears somewhere in
+  the question.
+- Preserve ambiguity when no specialized processing is clearly warranted.
+- Safety concerns remain the highest boundary.
+- The Guide remains the steward of the whole journey even when processing is
+  delegated.
+- The specialist is an internal capability, not a visitor-facing explanation
+  of the machinery.
+
+Return ONLY valid JSON with exactly these keys:
+{
+  "human_reality": "what human reality is being brought, if discernible",
+  "presenting_situation": "what is happening on the surface",
+  "visitor_proposition": "the explanation, assumption, or proposed solution the visitor is carrying",
+  "underlying_question": "what the visitor may actually be trying to understand or resolve",
+  "uncertainty": "the uncertainty whose clarification would most change direction",
+  "desired_movement": "the kind of movement that would help now",
+  "processing_need": "exploration|orientation|retrieval|definition|lookup|formation|systems_inquiry|safety|clarification",
+  "route": "guide|relationship|formation|catalogue|atlas|navigator|systems_ph|safety|glossary|glyph|case|fsd|guide_node",
+  "mode": "direct|delegated_journey|lookup|clarify|safety",
+  "confidence": 0.0,
+  "reason": "short internal explanation of why this processing mode and route fit",
+  "alternatives": ["guide"],
+  "glossary_term": "canonical term only when route=glossary",
+  "guide_node_id": "canonical Guide Node ID only when route=guide_node"
+}
+
+The interpretation fields are internal reasoning instruments. They are not
+visitor-facing labels.
+
+A critical distinction:
+- route answers WHERE the visitor should be processed;
+- mode answers HOW the question should be processed there.
+Do not return relationship + direct when the visitor's lived relational
+situation itself calls for exploratory relational processing. Likewise, do not
+force delegated processing when the visitor is simply asking for a resource
+or definition.
+
+Think strategically: the first move sets the tone for the journey. The goal
+is not to solve the visitor's question in Round 1. The goal is to choose the
+most intelligent next mode of engagement.
+"""
+
 def _guide_route_history_text(history):
     if not isinstance(history, list):
         return ""
@@ -1562,8 +2625,7 @@ def _guide_route_history_text(history):
             value = str(item).strip()
             if value:
                 parts.append(value)
-    return "
-".join(parts)[-6000:]
+    return "\n".join(parts)[-6000:]
 
 
 def _normalize_glossary_term(query, interpretation=None):
@@ -1578,8 +2640,7 @@ def _normalize_glossary_term(query, interpretation=None):
     if candidate:
         candidate = re.sub(r"^[\s\"']+|[\s\"'?.!]+$", "", candidate)
         candidate = re.sub(r"^(?:the\s+term\s+|the\s+word\s+|word\s+)", "", candidate, flags=re.I)
-        if 1 <= len(candidate) <= 120 and not re.search(r"[?
-]", candidate):
+        if 1 <= len(candidate) <= 120 and not re.search(r"[?\n]", candidate):
             return candidate
 
     normalized = re.sub(r"\s+", " ", str(query or "").strip()).strip()
@@ -1597,8 +2658,7 @@ def _normalize_glossary_term(query, interpretation=None):
     if canonical_definition:
         term = canonical_definition.group(1).strip().strip("\\\"'?.! ")
         term = re.sub(r"^(?:the\s+term\s+|the\s+word\s+|word\s+)", "", term, flags=re.I)
-        if 1 <= len(term) <= 120 and not re.search(r"[?
-]", term):
+        if 1 <= len(term) <= 120 and not re.search(r"[?\n]", term):
             return term
 
     # Explicit destination language is different from an explanatory definition
@@ -1612,8 +2672,7 @@ def _normalize_glossary_term(query, interpretation=None):
     if navigation:
         candidate = re.sub(r"^[\s\"']+|[\s\"'?.!]+$", "", str(navigation.group(1) or ""))
         candidate = re.sub(r"^(?:the\s+term\s+|the\s+word\s+|word\s+)", "", candidate, flags=re.I)
-        if candidate and len(candidate) <= 120 and not re.search(r"[?
-]", candidate):
+        if candidate and len(candidate) <= 120 and not re.search(r"[?\n]", candidate):
             return candidate
 
     patterns = (
@@ -1957,8 +3016,7 @@ def _extract_embedded_glossary_term(query):
             flags=re.I,
         )
 
-        if 1 <= len(term) <= 120 and not re.search(r"[?
-]", term):
+        if 1 <= len(term) <= 120 and not re.search(r"[?\n]", term):
             return term
 
     return ""
@@ -2477,15 +3535,11 @@ def _trust_community_stewardship_recovery():
         "Trust helps people in a community rely on one another. In community stewardship, "
         "that means people can share responsibility, speak honestly, and follow through on "
         "commitments without having to control every action. Trust is not blind confidence; "
-        "it grows when people can see that words and actions match.
-
-"
+        "it grows when people can see that words and actions match.\n\n"
         "Think of a shared garden. The garden depends on people tending their part, sharing "
         "tools and information, noticing when something is neglected, and talking openly "
         "when a commitment is missed. Those ordinary actions let people coordinate and repair "
-        "problems before resentment takes over.
-
-"
+        "problems before resentment takes over.\n\n"
         "Stewardship is tending the garden together. Trust makes that shared work possible, "
         "while accountable stewardship gives trust a history: people see that others return, "
         "listen, keep promises, and address harm. The Living Archive's Trust Architecture "
@@ -2513,15 +3567,11 @@ def _healthy_community_answer_recovery():
     return (
         "A healthy community is not simply one where people always agree or where conflict never happens. "
         "It is one where people can participate, raise concerns, work through differences, and have a meaningful say "
-        "in decisions that affect them. Health shows up in how people live and decide together, not in the absence of disagreement.
-
-"
+        "in decisions that affect them. Health shows up in how people live and decide together, not in the absence of disagreement.\n\n"
         "You can begin to recognize a healthy community by looking at whose voices are heard, how responsibility is shared, "
         "whether people feel safe enough to disagree, and what happens when someone is excluded or harmed. "
         "A community's response to those moments matters: does it listen, repair what it can, and change the conditions "
-        "that caused harm, or does it hide the problem and leave the burden with the person affected?
-
-"
+        "that caused harm, or does it hide the problem and leave the burden with the person affected?\n\n"
         "You do not need to know the Living Archive's vocabulary to begin exploring this. Start with the everyday signs: "
         "who gets to participate, how decisions are made, and whether people can raise concerns without being pushed aside. "
         "The Archive's resource on what healthy communities actually look like can offer a deeper next step, while the "
@@ -2892,17 +3942,10 @@ def _guide_capability_route(query, history=None):
     fallback = _guide_route_fallback(query, history)
     history_text = _guide_route_history_text(history)
     user_content = (
-        "Visitor question:
-"
+        "Visitor question:\n"
         + str(query).strip()
-        + ("
-
-Recent conversation context:
-" + history_text if history_text else "")
-        + "
-
-Approved Guide Nodes currently available (JSON):
-"
+        + ("\n\nRecent conversation context:\n" + history_text if history_text else "")
+        + "\n\nApproved Guide Nodes currently available (JSON):\n"
         + _guide_node_prompt_context()
     )
     messages = [
@@ -3314,21 +4357,15 @@ Return ONLY valid JSON with exactly:
 
 def _sanitize_basic_inquiry_response(text):
     """Enforce the visitor-language boundary while preserving readable structure."""
-    raw = str(text or "").replace("\r
-", "
-").replace("\r", "
-").strip()
+    raw = str(text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
     if not raw:
         return ""
 
     # Providers sometimes return HTML fragments even though the public contract is
     # plain visitor prose/Markdown. Preserve paragraph/list boundaries, then remove
     # markup and decode entities before applying the existing language boundary.
-    raw = re.sub(r"(?i)<\s*br\s*/?\s*>", "
-", raw)
-    raw = re.sub(r"(?i)</\s*(?:p|div|li|h[1-6]|section|article)\s*>", "
-
-", raw)
+    raw = re.sub(r"(?i)<\s*br\s*/?\s*>", "\n", raw)
+    raw = re.sub(r"(?i)</\s*(?:p|div|li|h[1-6]|section|article)\s*>", "\n\n", raw)
     raw = re.sub(r"(?is)<[^>]{1,1000}>", "", raw)
     raw = unescape(raw)
 
@@ -3383,29 +4420,23 @@ def _sanitize_basic_inquiry_response(text):
     # The final visitor boundary must not undo Markdown normalization performed
     # by General Guide Composition. Providers vary in list style and may emit
     # numbered actions inline, so apply the same bounded structural repair here.
-    action_label = r"\*\*[^*
-]{2,100}\*\*"
+    action_label = r"\*\*[^*\n]{2,100}\*\*"
     action_separator = r"(?:\s*:\s*|\s+[–—−-]\s+)"
     raw = re.sub(
         rf"\s+-\s+(?={action_label}{action_separator})",
-        "
-- ",
+        "\n- ",
         raw,
     )
     raw = re.sub(
         rf"(?<=\S)\s+(?=\d{{1,2}}[.)]\s+{action_label}{action_separator})",
-        "
-",
+        "\n",
         raw,
     )
 
     paragraphs = []
-    for block in re.split(r"
-\s*
-+", raw):
+    for block in re.split(r"\n\s*\n+", raw):
         lines = []
-        for line in block.split("
-"):
+        for line in block.split("\n"):
             line = re.sub(r"\s+", " ", line).strip()
             if not line:
                 continue
@@ -3413,12 +4444,9 @@ def _sanitize_basic_inquiry_response(text):
             line = re.sub(r"([.!?])\s*\1+", r"\1", line)
             lines.append(line)
         if lines:
-            paragraphs.append("
-".join(lines))
+            paragraphs.append("\n".join(lines))
 
-    return "
-
-".join(paragraphs).strip()
+    return "\n\n".join(paragraphs).strip()
 
 
 _BASIC_INQUIRY_VISITOR_LANGUAGE_PROBE = _sanitize_basic_inquiry_response(
@@ -3434,11 +4462,9 @@ _BASIC_INQUIRY_MARKDOWN_PROBE = _sanitize_basic_inquiry_response(
     "Treat downtime as non-negotiable. 2. **Delegate and trust** – hand off tasks. "
     "3. **Seek support** – ask a peer."
 )
-if "
-2. **Delegate and trust**" not in _BASIC_INQUIRY_MARKDOWN_PROBE:
+if "\n2. **Delegate and trust**" not in _BASIC_INQUIRY_MARKDOWN_PROBE:
     raise RuntimeError("USE v489.28 invariant failed: final boundary flattened numbered Markdown steps.")
-if "
-3. **Seek support**" not in _BASIC_INQUIRY_MARKDOWN_PROBE:
+if "\n3. **Seek support**" not in _BASIC_INQUIRY_MARKDOWN_PROBE:
     raise RuntimeError("USE v489.28 invariant failed: final boundary flattened consecutive numbered Markdown steps.")
 
 _BASIC_INQUIRY_FINAL_BOUNDARY_PROBE = _sanitize_basic_inquiry_response(
@@ -3449,12 +4475,8 @@ if _BASIC_INQUIRY_FINAL_BOUNDARY_PROBE != "A useful place to begin is the Archiv
 
 # v489.206 regression: ordinary explanatory prose must not expose formulaic section labels.
 _BASIC_INQUIRY_NATURAL_PROSE_PROBE = _sanitize_basic_inquiry_response(
-    "Stewardship means caring for what is entrusted to us.
-
-"
-    "Why it matters now: carelessness passes costs to others.
-
-"
+    "Stewardship means caring for what is entrusted to us.\n\n"
+    "Why it matters now: carelessness passes costs to others.\n\n"
     "Practical implication: consider who will live with the consequences."
 )
 if re.search(r"(?i)\b(?:why it matters now|practical implication)\s*:", _BASIC_INQUIRY_NATURAL_PROSE_PROBE):
@@ -3510,14 +4532,10 @@ def _guide_historical_origin_recovery():
         "The Philippines can look patriarchal today while carrying a long history in which women held substantial social, economic, and spiritual authority. "
         "In many precolonial communities, women could own or inherit property, participate in trade, and exercise influence in family and community decisions. "
         "Women known in some traditions as babaylan also served as healers, ritual leaders, and interpreters of spiritual life. "
-        "These practices varied across regions and communities, so it is more accurate to speak of strong traditions of female authority than to describe the whole archipelago as uniformly matriarchal.
-
-"
+        "These practices varied across regions and communities, so it is more accurate to speak of strong traditions of female authority than to describe the whole archipelago as uniformly matriarchal.\n\n"
         "Spanish colonial rule introduced and strengthened institutions shaped by Catholic patriarchy, including new expectations around marriage, public authority, and women's proper social roles. "
         "Those influences did not erase earlier practices all at once, nor did they create every form of gender hierarchy; local customs, class, religion, colonial administration, and later political and economic changes interacted over centuries. "
-        "Women's authority persisted in families, livelihoods, community leadership, and religious life even as formal institutions often privileged men.
-
-"
+        "Women's authority persisted in families, livelihoods, community leadership, and religious life even as formal institutions often privileged men.\n\n"
         "The tension today is therefore not a contradiction so much as the result of layered histories. "
         "Women in the Philippines have held visible roles in commerce, civic life, and national leadership, while patriarchal expectations and unequal power remain in many settings. "
         "Calling the country simply matriarchal or patriarchal can hide that complexity: the more useful question is where women hold real decision-making power, where they do not, and how those patterns differ by region, class, generation, and institution."
@@ -3713,17 +4731,10 @@ def _basic_inquiry_round1_response(query, interpretation, context_data):
         "desired_movement": str(interpretation.get("desired_movement") or "").strip(),
     }
     user_content = (
-        "Surface question:
-" + str(query).strip()
-        + "
-
-Tentative internal interpretation:
-"
+        "Surface question:\n" + str(query).strip()
+        + "\n\nTentative internal interpretation:\n"
         + json.dumps(internal, ensure_ascii=False)
-        + "
-
-Canonical evidence:
-"
+        + "\n\nCanonical evidence:\n"
         + json.dumps(evidence, ensure_ascii=False)
     )
 
@@ -3805,9 +4816,7 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
         ))
         _foundation_response = (
             _base._foundation_teacherly_answer(query)
-            + "
-
-The Archive's work is also organized through four complementary movements: Recover, Remember, Apply, and Refine. These connect the recovery of constitutional understanding with institutional memory, practical stewardship, and the continuing refinement of methods."
+            + "\n\nThe Archive's work is also organized through four complementary movements: Recover, Remember, Apply, and Refine. These connect the recovery of constitutional understanding with institutional memory, practical stewardship, and the continuing refinement of methods."
             if _foundation_query and _base._inquiry_profile(query).get("action") == "foundation"
             else ""
         )
@@ -3942,13 +4951,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         return {
             "response": (
                 "Developmental language can become hierarchical when descriptions of different capacities or patterns are treated as rankings of human worth. "
-                "Words such as “higher,” “lower,” “advanced,” or “less developed” can quietly shift from describing a framework to implying that some people are more worthy of respect or less worth hearing.
-
-"
+                "Words such as “higher,” “lower,” “advanced,” or “less developed” can quietly shift from describing a framework to implying that some people are more worthy of respect or less worth hearing.\n\n"
                 "It can become dismissive when a developmental label is used to explain away someone's perspective instead of engaging with what they are actually saying. "
-                "Context, culture, experience, and the fact that people can show different capacities in different situations can disappear behind the label.
-
-"
+                "Context, culture, experience, and the fact that people can show different capacities in different situations can disappear behind the label.\n\n"
                 "Developmental frameworks can still be useful when they remain descriptive and provisional. "
                 "The important distinction is between asking what capacities may be emerging and using a model to place people above or below one another."
             ),
@@ -3964,15 +4969,11 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if _cosmology_lived_question:
         _cosmology_response = (
             "Cosmology is an understanding of how reality works and how we belong within it—not only a theory about the physical universe. "
-            "The picture we carry of people, nature, change, and our place in the world shapes what we notice and how we make decisions.
-
-"
+            "The picture we carry of people, nature, change, and our place in the world shapes what we notice and how we make decisions.\n\n"
             "The Living Archive explores a contrast between a separation-based worldview and a unity-informed worldview. "
             "A separation-based view tends to organize life around competition, control, earned worth, and fear of loss. "
             "A unity-informed view sees people as distinct but connected, treats worth as inherent, and understands growth as something that can emerge through relationship, responsibility, and cooperation. "
-            "These are ways of interpreting experience, not labels for judging a person.
-
-"
+            "These are ways of interpreting experience, not labels for judging a person.\n\n"
             "This matters because a worldview can become an invisible guide for everyday choices. "
             "If every disagreement is treated as a contest for control, people may protect status instead of looking for a workable answer. "
             "If people see themselves as distinct but connected, they can recognize differences without treating them as threats. "
@@ -4004,9 +5005,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if relational_care_signal and relational_context_signal:
         response = (
             "It isn't foolish to care about a friendship that has mattered to you. Caring doesn't switch off simply because a relationship becomes difficult, disappointing, or uncertain. "
-            "But caring about someone and deciding how much of yourself to keep investing in the friendship are two different things. You don't have to deny what the friendship means to you in order to take your own feelings seriously.
-
-"
+            "But caring about someone and deciding how much of yourself to keep investing in the friendship are two different things. You don't have to deny what the friendship means to you in order to take your own feelings seriously.\n\n"
             "Perhaps a useful place to begin is this: what makes you feel foolish for still caring—is it how the other person has treated you, the lack of reciprocity, or the feeling that you haven't been able to let go of what the friendship once was?"
         )
         return {
@@ -4037,9 +5036,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         response = (
             "It sounds as though people rely on you, while your own needs may be going unnoticed. "
             "Being dependable and feeling cared for are not the same thing, and carrying that gap can be lonely. "
-            "I don't want to assume how your family sees the situation from one sentence.
-
-"
+            "I don't want to assume how your family sees the situation from one sentence.\n\n"
             "When you say nobody asks how you are, what do you most wish someone in your family would notice or understand?"
         )
         # A broad resource such as a general flourishing page is not a grounded
@@ -4066,13 +5063,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     ):
         response = (
             "A community can practice stewardship by making its responsibilities visible and considering who is affected by each decision. "
-            "For example, before changing a shared space or allocating a limited budget, invite the people who rely on it to explain what they need and what could be lost.
-
-"
+            "For example, before changing a shared space or allocating a limited budget, invite the people who rely on it to explain what they need and what could be lost.\n\n"
             "Agree on clear criteria, use the same criteria for everyone, name who will maintain the result, and make the reasons for the decision accessible. "
-            "Where people disagree, record the trade-offs and choose a time to review the outcome rather than treating the first decision as beyond question.
-
-"
+            "Where people disagree, record the trade-offs and choose a time to review the outcome rather than treating the first decision as beyond question.\n\n"
             "These are general practical suggestions, not a claim that a specific Archive text prescribes this process. I could not verify a sufficiently direct Archive resource to recommend for this question."
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_practical_stewardship_recovery", "model": ""}
@@ -4084,9 +5077,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if re.search(r"\b(?:understand|make sense of|interpret)\b", q) and re.search(r"\b(?:difficult situation|situation|what happened|someone's behavior|their behavior)\b", q) and re.search(r"\b(?:judge|judgment|judgement|assume|assumption|rush)\b", q):
         response = (
             "When a situation is difficult, it helps to separate what you know from what you think it means. "
-            "You can acknowledge your first reaction without treating it as the whole truth; there may be details you have not seen or another explanation for what happened.
-
-"
+            "You can acknowledge your first reaction without treating it as the whole truth; there may be details you have not seen or another explanation for what happened.\n\n"
             "You do not have to suspend judgment forever or ignore your own boundaries. Sometimes giving yourself a little time, or asking one honest question before deciding, is enough to help you respond more fairly."
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_reflective_general_knowledge_recovery", "model": ""}
@@ -4100,12 +5091,8 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         and re.search(r"\b(?:protect|protecting|preserve|preserving|worth|values)\b", q)
     ):
         response = (
-            "When people disagree about what is worth protecting, the disagreement often reflects different values, responsibilities, or fears about what could be lost. One person may want to preserve continuity; another may believe change is necessary to protect people or keep something useful. It helps to name those underlying concerns before treating the other person as careless or unreasonable.
-
-"
-            "A practical next step is to ask what each person is trying to protect, who would bear the costs of each option, and which responsibilities or rights cannot simply be traded away. Separate shared facts from judgments, and look for options that preserve the most important interests while making the unavoidable trade-offs explicit.
-
-"
+            "When people disagree about what is worth protecting, the disagreement often reflects different values, responsibilities, or fears about what could be lost. One person may want to preserve continuity; another may believe change is necessary to protect people or keep something useful. It helps to name those underlying concerns before treating the other person as careless or unreasonable.\n\n"
+            "A practical next step is to ask what each person is trying to protect, who would bear the costs of each option, and which responsibilities or rights cannot simply be traded away. Separate shared facts from judgments, and look for options that preserve the most important interests while making the unavoidable trade-offs explicit.\n\n"
             "People may not reach identical priorities, and stewardship does not require pretending otherwise. They can still agree on a fair process, explain their reasons, consider the people affected but not represented, and review the decision when new evidence or consequences emerge. The aim is to handle disagreement responsibly, not to erase it."
         )
         return {"response": response, "doorway_title": title, "provider": "bounded_conflict_stewardship_recovery", "model": ""}
@@ -4119,12 +5106,8 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     ):
         response = (
             "Sovereignty, in a human-relations context, can be understood as a person's or community's authority to participate in shaping decisions that affect them, rather than having their choices or identity controlled by someone else. "
-            "It is closely connected to agency, consent, boundaries, and the ability to take responsibility for one's own life. It does not mean being free of every obligation or never needing others.
-
-"
-            "For example, in a family or community decision, respecting sovereignty means listening to the people who will live with the consequences, making room for their informed choice, and not treating care or leadership as permission to decide everything for them. People can still negotiate shared responsibilities; the key is that participation is not replaced by coercion or assumed authority.
-
-"
+            "It is closely connected to agency, consent, boundaries, and the ability to take responsibility for one's own life. It does not mean being free of every obligation or never needing others.\n\n"
+            "For example, in a family or community decision, respecting sovereignty means listening to the people who will live with the consequences, making room for their informed choice, and not treating care or leadership as permission to decide everything for them. People can still negotiate shared responsibilities; the key is that participation is not replaced by coercion or assumed authority.\n\n"
             "That is a general conceptual explanation, not a verified quotation or definitive statement of the Living Archive's own doctrine. The Archive's specific framing should be checked against its canonical text on Governance & Sovereignty. The retrieved resource is a relevant next step, but the title alone does not establish every detail of its argument."
         )
         relevant_doorway = title if re.search(r"\b(?:sovereignty|governance)\b", title, re.I) else ""
@@ -4141,13 +5124,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         response = (
             "Reciprocity means a relationship of mutual response: people give, receive, and support one another over time. "
             "It does not mean keeping score or expecting every act to be repaid immediately or in equal measure. "
-            "People may give more at one point and need more help at another; what matters is that support can move in both directions over time.
-
-"
+            "People may give more at one point and need more help at another; what matters is that support can move in both directions over time.\n\n"
             "Think of neighbors taking turns checking on an older resident or helping one another with errands. "
-            "One neighbor may do more during a difficult week and receive help later. The relationship can still be reciprocal even when each exchange is different.
-
-"
+            "One neighbor may do more during a difficult week and receive help later. The relationship can still be reciprocal even when each exchange is different.\n\n"
             "Reciprocity should never be used to demand access, obedience, or repayment from someone who cannot freely offer it. "
             "Mutual support works best when people respond to one another's real circumstances, not when kindness becomes a debt ledger."
         )
@@ -4158,9 +5137,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "Responsibility is about what you are answerable for: a task, a promise, a role, or the consequences of a decision. "
             "It can be assigned to you, shared, or delegated. "
             "Stewardship is about how you care for something placed in your hands, especially when its value reaches beyond your immediate needs. "
-            "It asks you to maintain, protect, or improve it for others and for the future.
-
-"
+            "It asks you to maintain, protect, or improve it for others and for the future.\n\n"
             "The two belong together, but they are not identical. Responsibility asks, ‘What am I accountable for?’ "
             "Stewardship asks, ‘How should I care for what I have been entrusted with?’ "
             "You can fulfill a duty narrowly and still neglect the wider trust; stewardship asks you to consider that wider effect while respecting your own limits."
@@ -4174,12 +5151,8 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if "stewardship" in q and re.search(r"\b(?:what\s+is|explain|define|describe|meaning|means|understand|why|matter|important|everyday|life)\b", q):
         response = (
             "Stewardship means taking care of something entrusted to you—such as your time, relationships, shared spaces, money, or the natural world—rather than treating it as if only your immediate needs matter. "
-            "In everyday life, it shows up in small choices: keeping a promise, maintaining what others rely on, using resources thoughtfully, and considering how your decisions affect people around you.
-
-"
-            "It matters because ordinary choices accumulate. Carelessness can pass costs to other people or to the future, while responsible care helps preserve trust, usefulness, and possibilities for those who come after us.
-
-"
+            "In everyday life, it shows up in small choices: keeping a promise, maintaining what others rely on, using resources thoughtfully, and considering how your decisions affect people around you.\n\n"
+            "It matters because ordinary choices accumulate. Carelessness can pass costs to other people or to the future, while responsible care helps preserve trust, usefulness, and possibilities for those who come after us.\n\n"
             "Stewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is yours to care for, acting responsibly within your limits, and leaving things no worse—and where possible better—than you found them."
         )
         # The deterministic last-resort path must preserve an explicit visitor
@@ -4191,12 +5164,8 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
 
     if "burnout" in q and re.search(r"\b(manager|manage|leader|supervisor)\b", q):
         response = (
-            "As a manager, treat burnout as a workload and recovery problem—not simply a personal failure to cope. Start by identifying what is draining you most: excessive hours, constant availability, unclear priorities, emotional demands, or too little control over the work.
-
-"
-            "Choose one pressure you can reduce this week. For example, if every decision comes to you, name which decisions your team can make without your approval and agree on clear limits for when they should escalate. That gives you some recovery time while building the team's capacity.
-
-"
+            "As a manager, treat burnout as a workload and recovery problem—not simply a personal failure to cope. Start by identifying what is draining you most: excessive hours, constant availability, unclear priorities, emotional demands, or too little control over the work.\n\n"
+            "Choose one pressure you can reduce this week. For example, if every decision comes to you, name which decisions your team can make without your approval and agree on clear limits for when they should escalate. That gives you some recovery time while building the team's capacity.\n\n"
             "Also protect basic recovery: take real breaks, set a reasonable end to the workday where possible, and speak with your own manager about priorities that cannot all fit. If exhaustion is persistent, affecting your health, or making daily functioning difficult, consider professional support. You do not have to solve a structural workload problem by pushing yourself harder."
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_general_knowledge_recovery", "model": ""}
@@ -4216,12 +5185,8 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # knowledge. This is explicitly general knowledge, not Archive attribution.
     if re.search(r"\binstitutional responsibility\b", q):
         response = (
-            "Institutional responsibility means that an organization and the people who lead or act for it must answer for the decisions they make, the duties they hold, and the effects those decisions have on others. It is not enough for an institution to say that a harmful outcome was nobody’s personal intention; its rules, choices, and failures to act can still have real consequences.
-
-"
-            "For example, if a public office repeatedly loses applications, responsibility includes more than blaming the employee at the desk. The office should examine its process, explain what went wrong, correct the problem, and make it less likely to happen again. Individual people may also be accountable for their own choices, but the institution must address problems built into its systems.
-
-"
+            "Institutional responsibility means that an organization and the people who lead or act for it must answer for the decisions they make, the duties they hold, and the effects those decisions have on others. It is not enough for an institution to say that a harmful outcome was nobody’s personal intention; its rules, choices, and failures to act can still have real consequences.\n\n"
+            "For example, if a public office repeatedly loses applications, responsibility includes more than blaming the employee at the desk. The office should examine its process, explain what went wrong, correct the problem, and make it less likely to happen again. Individual people may also be accountable for their own choices, but the institution must address problems built into its systems.\n\n"
             "Institutional responsibility does not mean an organization can control everything or guarantee perfect results. It means being clear about its obligations, making decisions fairly, giving reasons, listening to people affected, correcting preventable harm, and accepting appropriate oversight. The exact duties depend on the institution’s role, the rules that govern it, and the situation involved."
         )
         return {
@@ -4239,13 +5204,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         response = (
             "Political dynasties are families whose members hold or repeatedly win elected office across generations. "
             "Their influence can shape candidate selection, local party organization, public appointments, and access to public resources. "
-            "The effects depend on how elections, public institutions, and oversight operate around those family networks.
-
-"
+            "The effects depend on how elections, public institutions, and oversight operate around those family networks.\n\n"
             "Where family networks dominate nominations, appointments, or access to services, accountability can weaken because officials may face stronger incentives to answer to a family network than to the wider public. "
-            "But the existence of a dynasty alone does not prove corruption or poor performance; those are claims that require evidence about specific decisions and outcomes.
-
-"
+            "But the existence of a dynasty alone does not prove corruption or poor performance; those are claims that require evidence about specific decisions and outcomes.\n\n"
             "To assess a particular locality, examine who holds which offices and their family relationships, how competitive elections are, procurement and budget records, conflicts of interest, and whether courts, auditors, media, and citizens can scrutinize decisions. "
             "These indicators help distinguish a structural risk from an unsupported claim about a particular person or family."
         )
@@ -4268,20 +5229,12 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if national_systems_question:
         response = (
             "The Living Archive's systems analysis points to a central distinction: the Philippines does not lack human or natural potential; it struggles to convert those strengths into consistent, broadly shared outcomes. "
-            "The Archive frames this as a complex-system problem, where institutions, households, markets, infrastructure, and cultural patterns interact. The question is not whether Filipinos are capable, but whether the surrounding systems reward and coordinate that capability well.
-
-"
+            "The Archive frames this as a complex-system problem, where institutions, households, markets, infrastructure, and cultural patterns interact. The question is not whether Filipinos are capable, but whether the surrounding systems reward and coordinate that capability well.\n\n"
             "One important feedback loop is infrastructure and state capacity: weak connectivity raises logistics costs and isolates regional enterprise; that constrains economic activity and the public revenue available for investment; limited investment then allows the infrastructure gap to persist. "
             "A second constraint is governance as a coordination problem. Institutions and actors operate with different incentives, time horizons, and accountability structures. When short-term private or political rewards outweigh long-term public value, cooperation becomes harder to sustain and reforms are vulnerable to discontinuity. "
-            "The Archive's broader account also treats culture as accumulated adaptation: people learn what is rewarded, what is punished, and what feels possible under the systems they inhabit. These patterns should not be mistaken for an inherent defect in the Filipino character.
-
-"
-            "This helps interpret the Philippines–Vietnam comparison without turning it into a judgment about either people. Vietnam's export-manufacturing trajectory makes it a useful case for examining how industrial coordination, investment, infrastructure, and integration into supply chains can reinforce one another. The Archive's systems lens asks which arrangements create productive feedback loops and which keep potential trapped—not which nation is inherently superior. A precise ranking of the countries' performance, and the weight of each cause, still requires comparable current data.
-
-"
-            "The practical response is to change the conditions that shape outcomes. First, treat inter-island transport, ports, energy, and digital connectivity as an integrated productivity system, and measure how they affect regional firms and jobs. Second, align public incentives and accountability with sustained delivery across political cycles: publish project costs, milestones, procurement records, and outcomes, not just announcements. Third, make it easier for productive local firms to grow, innovate, and enter export markets, while reducing barriers that protect connections rather than performance. Fourth, invest in human development and local institutional capability so education, community knowledge, and diaspora experience can translate into domestic opportunity. Fifth, strengthen civic trust through transparent decisions and meaningful participation by the communities bearing the consequences.
-
-"
+            "The Archive's broader account also treats culture as accumulated adaptation: people learn what is rewarded, what is punished, and what feels possible under the systems they inhabit. These patterns should not be mistaken for an inherent defect in the Filipino character.\n\n"
+            "This helps interpret the Philippines–Vietnam comparison without turning it into a judgment about either people. Vietnam's export-manufacturing trajectory makes it a useful case for examining how industrial coordination, investment, infrastructure, and integration into supply chains can reinforce one another. The Archive's systems lens asks which arrangements create productive feedback loops and which keep potential trapped—not which nation is inherently superior. A precise ranking of the countries' performance, and the weight of each cause, still requires comparable current data.\n\n"
+            "The practical response is to change the conditions that shape outcomes. First, treat inter-island transport, ports, energy, and digital connectivity as an integrated productivity system, and measure how they affect regional firms and jobs. Second, align public incentives and accountability with sustained delivery across political cycles: publish project costs, milestones, procurement records, and outcomes, not just announcements. Third, make it easier for productive local firms to grow, innovate, and enter export markets, while reducing barriers that protect connections rather than performance. Fourth, invest in human development and local institutional capability so education, community knowledge, and diaspora experience can translate into domestic opportunity. Fifth, strengthen civic trust through transparent decisions and meaningful participation by the communities bearing the consequences.\n\n"
             "The Archive's underlying principle is stewardship: build systems that preserve and develop shared human, social, and ecological capacity over time. That is not a call for a foreign template or a dogmatic blueprint. It is a sovereign, evidence-led process of identifying the Philippines' own bottlenecks, testing reforms against measurable outcomes, learning from other countries selectively, and correcting course when results do not follow. "
             "The first move is a national bottleneck review that links each proposed reform to a causal mechanism, a responsible institution, a public measure, and a review date."
         )
@@ -4305,12 +5258,8 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # independent and evidence-grounded.
     if re.search(r"\brelationship between personal agency and responsibility to others\b", q):
         response = (
-            "Personal agency and responsibility to others are not opposing forces but interdependent aspects of the same moral life. Agency is the capacity to make choices and act on them; responsibility is the recognition that those choices have consequences for people who are affected by them. You cannot exercise genuine agency without acknowledging that your actions exist within a web of relationships, and you cannot fulfill responsibility to others without the freedom to choose how to act.
-
-"
-            "The tension arises when agency is understood as pure independence—the idea that you are a self-contained individual whose choices are yours alone. In reality, our decisions are shaped by the people we are connected to, and those people are shaped by our decisions. For example, a manager who exercises agency to restructure a team is not just making a personal career move; they are altering the working conditions, security, and morale of the people on that team. The manager's freedom to decide is real, but it is bounded by the legitimate needs and rights of the employees. Ignoring that boundary does not make the choice freer; it makes it less responsible.
-
-"
+            "Personal agency and responsibility to others are not opposing forces but interdependent aspects of the same moral life. Agency is the capacity to make choices and act on them; responsibility is the recognition that those choices have consequences for people who are affected by them. You cannot exercise genuine agency without acknowledging that your actions exist within a web of relationships, and you cannot fulfill responsibility to others without the freedom to choose how to act.\n\n"
+            "The tension arises when agency is understood as pure independence—the idea that you are a self-contained individual whose choices are yours alone. In reality, our decisions are shaped by the people we are connected to, and those people are shaped by our decisions. For example, a manager who exercises agency to restructure a team is not just making a personal career move; they are altering the working conditions, security, and morale of the people on that team. The manager's freedom to decide is real, but it is bounded by the legitimate needs and rights of the employees. Ignoring that boundary does not make the choice freer; it makes it less responsible.\n\n"
             "The key distinction is between agency as the ability to act and agency as the right to act without regard for impact. True agency includes the willingness to be accountable for the effects of your choices. Responsibility to others is not a constraint on your freedom; it is the condition that makes your freedom meaningful. When you act with awareness of how your choices affect others, you are not surrendering your agency—you are exercising it fully."
         )
         return {
@@ -4331,14 +5280,10 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         response = (
             "When a community cannot fully fund both priorities, it should agree on transparent criteria before choosing. "
             "Compare the urgency of each need, the consequences of delaying it, who would be affected, and whether a smaller "
-            "or phased option could protect the most important outcomes.
-
-"
+            "or phased option could protect the most important outcomes.\n\n"
             "Make the trade-offs explicit: what each option would protect, what it would leave unmet, and who would carry the cost. "
             "Use the same criteria for both options, include the people most affected, and record the reasons for the decision. "
-            "Where uncertainty remains, consider a time-limited allocation with a clear review point rather than presenting the choice as permanent.
-
-"
+            "Where uncertainty remains, consider a time-limited allocation with a clear review point rather than presenting the choice as permanent.\n\n"
             "This is a general decision framework, not a claim that the Archive supplied a definitive answer. I did not identify "
             "a sufficiently direct Archive resource to recommend for this question."
         )
@@ -4380,9 +5325,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             else "I could not identify a sufficiently relevant Archive resource to recommend here."
         )
     return {
-        "response": "
-
-".join(part for part in (opening, explanation, closing) if part),
+        "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
         "doorway_title": title if recommendation_available else "",
         "provider": "deterministic_question_preserving_recovery",
         "model": "",
@@ -4408,15 +5351,13 @@ def _guide_html_to_source_text(raw_html):
             if tag in self.IGNORED:
                 self.ignored_depth += 1
             elif not self.ignored_depth and tag in self.BLOCKS:
-                self.parts.append("
-")
+                self.parts.append("\n")
         def handle_endtag(self, tag):
             tag = tag.casefold()
             if tag in self.IGNORED and self.ignored_depth:
                 self.ignored_depth -= 1
             elif not self.ignored_depth and tag in self.BLOCKS:
-                self.parts.append("
-")
+                self.parts.append("\n")
         def handle_data(self, data):
             if not self.ignored_depth and data:
                 self.parts.append(data)
@@ -4425,8 +5366,7 @@ def _guide_html_to_source_text(raw_html):
     parser.feed(str(raw_html or ""))
     parser.close()
     blocks = []
-    for block in re.split(r"
-+", "".join(parser.parts)):
+    for block in re.split(r"\n+", "".join(parser.parts)):
         block = re.sub(r"\s+", " ", html.unescape(block)).strip()
         if not block:
             continue
@@ -4438,8 +5378,7 @@ def _guide_html_to_source_text(raw_html):
         ):
             continue
         blocks.append(block)
-    return "
-".join(blocks)
+    return "\n".join(blocks)
 
 def _wordpress_fetch_selected_canonical_body(url):
     """Fetch the selected public Archive page directly when search misses its body."""
@@ -5736,9 +6675,7 @@ def _established_general_knowledge_recovery(query):
             },
             "response": (
                 "“The Law of One” is a spiritual and philosophical idea centered on the unity of all existence. "
-                "The phrase is especially associated with *The Law of One* (the Ra Material), where reality is described as ultimately one, with apparent differences understood within a larger unity.
-
-"
+                "The phrase is especially associated with *The Law of One* (the Ra Material), where reality is described as ultimately one, with apparent differences understood within a larger unity.\n\n"
                 "That is a general orientation to the term, not a claim about how the Living Archive uses it. "
                 "Different traditions may give the idea different meanings, so the specific source or tradition matters when a more precise interpretation is needed."
             ),
@@ -5792,9 +6729,7 @@ def _established_general_knowledge_recovery(query):
             "fact_id": "water_boiling_point_sea_level",
             "response": (
                 "At sea level, water boils at 100°C (212°F) under standard atmospheric pressure. "
-                "As altitude increases and air pressure decreases, water boils at a lower temperature.
-
-"
+                "As altitude increases and air pressure decreases, water boils at a lower temperature.\n\n"
                 "The key point is that boiling depends on pressure, not just temperature."
             ),
         }
@@ -5809,9 +6744,7 @@ def _established_general_knowledge_recovery(query):
             "fact_id": "triangle_area_formula",
             "response": (
                 "The area of a triangle is calculated with the formula: **Area = ½ × base × height**. "
-                "The height must be the perpendicular distance from the chosen base to the opposite vertex.
-
-"
+                "The height must be the perpendicular distance from the chosen base to the opposite vertex.\n\n"
                 "For example, if the base is 10 units and the height is 6 units, the area is ½ × 10 × 6 = **30 square units**."
             ),
         }
@@ -5877,15 +6810,11 @@ def _established_archive_cosmology_recovery(query):
         "recovery_id": "archive_informed_cosmology_lived_significance",
         "response": (
             "Cosmology is an understanding of how reality works and how we belong within it—not only a theory about the physical universe. "
-            "The picture we carry of people, nature, change, and our place in the world shapes what we notice and how we make decisions.
-
-"
+            "The picture we carry of people, nature, change, and our place in the world shapes what we notice and how we make decisions.\n\n"
             "The Living Archive explores a contrast between a separation-based worldview and a unity-informed worldview. "
             "A separation-based view tends to organize life around competition, control, earned worth, and fear of loss. "
             "A unity-informed view sees people as distinct but connected, treats worth as inherent, and understands growth as something that can emerge through relationship, responsibility, and cooperation. "
-            "These are ways of interpreting experience, not labels for judging a person.
-
-"
+            "These are ways of interpreting experience, not labels for judging a person.\n\n"
             "This matters because a worldview can become an invisible guide for everyday choices. "
             "If every disagreement is treated as a contest for control, people may protect status instead of looking for a workable answer. "
             "If people see themselves as distinct but connected, they can recognize differences without treating them as threats. "
@@ -7019,9 +7948,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     + _trust_title
                     + " explains how that confidence helps communities and institutions work together. "
                     + _stewardship_title
-                    + " brings in the other side: the responsibility to care for what people share and depend on.
-
-"
+                    + " brings in the other side: the responsibility to care for what people share and depend on.\n\n"
                     "Think of a shared garden. Trust means people can count on one another to show up and do their part. "
                     "Stewardship is tending the garden so it remains healthy for everyone. One makes cooperation possible; "
                     "the other helps that cooperation endure."
@@ -7088,9 +8015,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     "Trust helps people in a community rely on one another. It gives "
                     "people confidence that others will do their part and act with care. "
                     "Stewardship is the shared responsibility to care for what people "
-                    "depend on.
-
-"
+                    "depend on.\n\n"
                     + "Think of a shared garden. Trust means people can count on one "
                     "another to show up and do their part. Stewardship is tending the "
                     "garden so it remains healthy for everyone. Trust makes cooperation "
@@ -7107,12 +8032,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         )
         if not _conceptual_human_voice_supported and not locals().get("conceptual_subject_recovery") and _human_development_question:
             response = _sanitize_basic_inquiry_response(
-                "Human development is more than growing older, gaining knowledge, or learning a skill. It is the gradual shaping of how a person understands the world, makes choices, lives with others, and takes responsibility for the life they share.
-
-"
-                "Its significance lies in what those capacities make possible. A person who can think things through, learn from experience, and understand another person's point of view has more room to choose how to respond—not simply repeat what circumstances have taught them. Those choices matter in everyday life: in how people care for themselves, raise children, work through differences, and contribute to their communities.
-
-"
+                "Human development is more than growing older, gaining knowledge, or learning a skill. It is the gradual shaping of how a person understands the world, makes choices, lives with others, and takes responsibility for the life they share.\n\n"
+                "Its significance lies in what those capacities make possible. A person who can think things through, learn from experience, and understand another person's point of view has more room to choose how to respond—not simply repeat what circumstances have taught them. Those choices matter in everyday life: in how people care for themselves, raise children, work through differences, and contribute to their communities.\n\n"
                 "Human development is therefore both personal and shared. People are shaped by the conditions in which they grow, but they also help shape those conditions for others. When people have room to learn, exercise judgment, and participate, families and communities can become more capable of meeting life together. When that room is denied, the loss is not only individual; it can narrow what a whole community is able to become."
             )
             archive_evidence_unavailable = False
@@ -7523,9 +8444,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         ))
         _last_paragraphs = [
             part.strip()
-            for part in re.split(r"
-\s*
-+", response)
+            for part in re.split(r"\n\s*\n+", response)
             if part.strip()
         ]
         _current_response_nonanswer = general_guide_composition.is_generic_nonanswer(query, response) or general_guide_composition.is_meta_answer_failure(response)
@@ -7540,12 +8459,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 print("The Guide final payload boundary: bounded trust-stewardship recovery PASS.")
             elif _normalized_question == "what distinguishes leadership from positional authority":
                 response = (
-                    "Positional authority comes from a formal role: a person may be entitled to make decisions, assign work, or direct others because of the position they hold. Leadership is demonstrated through conduct and influence—how someone exercises judgment, helps people understand a shared purpose, and earns trust. A title can grant authority, but it does not automatically make others trust the person or willingly follow their lead.
-
-"
-                    "The distinction becomes visible in practice. A manager may have the authority to issue an instruction, while a colleague without that title may show leadership by listening to competing concerns, clarifying the real problem, and helping the group choose a responsible course. Conversely, someone with formal authority can also be a strong leader when they use their position fairly, explain their reasoning, accept accountability, and make room for others to contribute.
-
-"
+                    "Positional authority comes from a formal role: a person may be entitled to make decisions, assign work, or direct others because of the position they hold. Leadership is demonstrated through conduct and influence—how someone exercises judgment, helps people understand a shared purpose, and earns trust. A title can grant authority, but it does not automatically make others trust the person or willingly follow their lead.\n\n"
+                    "The distinction becomes visible in practice. A manager may have the authority to issue an instruction, while a colleague without that title may show leadership by listening to competing concerns, clarifying the real problem, and helping the group choose a responsible course. Conversely, someone with formal authority can also be a strong leader when they use their position fairly, explain their reasoning, accept accountability, and make room for others to contribute.\n\n"
                     "In short, positional authority answers, “What power or responsibility comes with this role?” Leadership asks, “How does this person guide collective action, and why should others have confidence in that guidance?” Authority can provide a structure for leadership, but leadership depends on the quality of judgment and action within that structure—not on the title alone."
                 )
                 print("The Guide final payload boundary: deterministic substantive recovery PASS for leadership-versus-authority regression.")
@@ -7586,9 +8501,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 )
                 _last_retry_paragraphs = [
                     part.strip()
-                    for part in re.split(r"
-\s*
-+", _last_retry_text)
+                    for part in re.split(r"\n\s*\n+", _last_retry_text)
                     if part.strip()
                 ]
                 _retry_is_meta_answer = general_guide_composition.is_meta_answer_failure(
@@ -7603,9 +8516,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     _bounded_recovery_text = _sanitize_basic_inquiry_response(_bounded_recovery or "")
                     _bounded_recovery_paragraphs = [
                         part.strip()
-                        for part in re.split(r"
-\s*
-+", _bounded_recovery_text)
+                        for part in re.split(r"\n\s*\n+", _bounded_recovery_text)
                         if part.strip()
                     ]
                     _bounded_recovery_is_substantive = bool(
@@ -7629,9 +8540,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         )
                         _systemwide_paragraphs = [
                             part.strip()
-                            for part in re.split(r"
-\s*
-+", _systemwide_recovery)
+                            for part in re.split(r"\n\s*\n+", _systemwide_recovery)
                             if part.strip()
                         ]
                         _systemwide_is_meta = general_guide_composition.is_meta_answer_failure(
@@ -8724,11 +9633,18 @@ async def _use_request_boundary(scope, receive, send):
             "request_id": request_id,
         })
 
-    # Native lived-relational boundary. This executes before Basic Inquiry
+    # Immediate lived-relational handoff: do not spend a Guide routing-model call
+    # or invoke the HRN specialist before the HRN surface is opened. The visitor's
+    # question is already sufficient to establish this bounded structural route.
+    # The Guide remains authoritative for the handoff; HRN owns the actual
+    # interpretation/composition journey after the browser arrives there.
+    # v488.72 authoritative relational boundary. This executes before Basic Inquiry
     # and before provider/model routing, so a natural lived relationship inquiry
     # cannot be consumed by the generic Guide path simply because the model later
     # labels it TOPICAL_INQUIRY.
-    # Relationship inquiries are answered natively by The Guide.
+    # Relationship inquiries are now answered natively by The Guide.
+    # Keep the classifier as observational evidence during the HRN retirement
+    # transition, but do not divert the visitor into the legacy specialist.
     relational_boundary = _relational_boundary_decision(query)
     if relational_boundary.get("open"):
         print(
@@ -9055,9 +9971,7 @@ async def _use_request_boundary(scope, receive, send):
     # Philippine Systems is a visitor-facing native knowledge surface.
     # The LLM has already made the macro routing decision above; hand the
     # visitor directly to its native landing page.
-    # systems_ph now participates in the shared specialist pipe below. The canonical
-    # landing page remains a specialist-provided doorway rather than an early direct return.
-
+    # systems_ph now participates in the shared specialist pipe below. The canonical\n    # landing page remains a specialist-provided doorway rather than an early direct return.\n
     if route_id == "fsd":
         fsd_url = _fsd_handoff_url(query)
         request_id = "fsd-" + hashlib.sha1(
@@ -9616,8 +10530,12 @@ _fsd_nonroute_probes = (
 if any(_is_fsd_request(item) for item in _fsd_nonroute_probes):
     raise RuntimeError("USE v488.17 invariant failed: glossary definitions were captured by FSD.")
 
-# The middleware owns visitor-response boundaries. Relationship inquiries remain
-# inside The Guide; there is no separate HRN visitor or return route.
+# The middleware, not mutation of FastAPI's stored endpoint objects, owns
+# relational interception. This preserves the base route's validated request
+# contract for every non-relational query.
+# HRN retirement: relationship inquiries remain inside The Guide. The legacy
+# relational-return route is retained temporarily for backward compatibility,
+# but it is no longer part of the normal visitor routing path.
 
 # Single authoritative request boundary; all non-specialist requests fall through once.
 if STREAM_CONTRACT_VERSION != "SSE-VALIDATED-v1" or STREAM_TRANSPORT_VERSION != "0.1.1":
