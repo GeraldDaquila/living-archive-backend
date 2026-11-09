@@ -7,6 +7,8 @@ on:
     paths:
       - 'plugins/human-relational-navigator/**'
       - 'plugins/living-archive-emergency-intelligence/**'
+      - 'tests/test_ei_hrn_location_only_contract.py'
+      - 'scripts/validate-ei-hrn-boundary.php'
       - '.github/workflows/ei-hrn-adapter-validation.yml'
   pull_request:
     paths:
@@ -38,6 +40,14 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install test dependency
+        run: python -m pip install pytest
+
       - name: PHP syntax validation
         shell: bash
         run: |
@@ -48,3 +58,6 @@ jobs:
 
       - name: Location-only boundary assertions
         run: php scripts/validate-ei-hrn-boundary.php
+
+      - name: EI-HRN location-only regression tests
+        run: pytest -q tests/test_ei_hrn_location_only_contract.py
