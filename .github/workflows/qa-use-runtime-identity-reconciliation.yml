@@ -1,0 +1,28 @@
+name: USE Runtime Identity Reconciliation (QA Only)
+
+on:
+  push:
+    branches:
+      - qa/use-runtime-identity-reconciliation-20261109
+    paths:
+      - 'scripts/qa/reconcile_use_runtime_identity.py'
+      - '.github/workflows/qa-use-runtime-identity-reconciliation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact QA branch commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Recompute production runtime source manifest
+        run: python scripts/qa/reconcile_use_runtime_identity.py
