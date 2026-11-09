@@ -118,7 +118,7 @@ $no_active_data = ei_hrn_no_callable_resources(ei_hrn_request('Philippines'), 'n
 
 // Unsupported country must not cause an HRN registry telephone fallback.
 ei_hrn_set_registry($registry_property, $canonical);
-$unsupported_data = ei_hrn_no_callable_resources(ei_hrn_request('Atlantis'), 'unsupported country');
+$unsupported_data = ei_hrn_no_callable_resources(ei_hrn_request('Japan'), 'country not covered by the EI registry');
 
 // The adapter boundary continues to reject visitor answers and transcripts.
 ei_hrn_set_registry($registry_property, $canonical);
