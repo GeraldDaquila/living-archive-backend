@@ -1414,6 +1414,8 @@ Visitor response: " . $message;
         if (!$this->safety_stage_valid($safety_stage)) $safety_stage='green';
         $safety_question = trim((string)$request->get_param('safety_question'));
         $country = $this->normalize_country($request->get_param('country'));
+        $country_explicit = ($country !== '');
+        $safety_resource_country = $country_explicit ? $country : '';
         if ($country === '') $country = $this->normalize_country($this->detect_country());
         $session_id = trim((string)$request->get_param('session_id'));
         if ($session_id === '') $session_id = 'hrn-' . wp_generate_uuid4();
@@ -1450,13 +1452,13 @@ Visitor response: " . $message;
                 // of Journey Reckoning and prevents suicidal language such as 'want to
                 // die' from being treated as ordinary relational terrain.
                 $direct_stage = ($direct_signal === 'red') ? 'acute' : 'current';
-                $safety = $this->safety_response($direct_stage, $country, $message);
+                $safety = $this->safety_response($direct_stage, $safety_resource_country, $message);
                 return rest_ensure_response(array(
                     'ok'=>true,'version'=>self::VERSION,'safety'=>$direct_stage,'safety_interrupt'=>true,
                     'safety_message'=>$safety['message'],'safety_question'=>$safety['question'],
                     'safety_resources'=>$safety['resources'],'safety_note'=>$safety['note'] ?? '',
                     'safety_resource_provenance'=>$safety['resource_provenance'] ?? 'ei_location_resolution_pending',
-                    'safety_location_required'=>$safety['location_required'] ?? false,'country'=>$country
+                    'safety_location_required'=>$safety['location_required'] ?? false,'country'=>$safety_resource_country
                 ));
             }
         }
@@ -1465,17 +1467,17 @@ Visitor response: " . $message;
             $next = $this->safety_transition($safety_stage,$answer,$country);
             if ($safety_stage === 'support' && $next === 'release') {
                 $release = $this->safety_release_response($message,$conversation);
-                return rest_ensure_response(array('ok'=>true,'version'=>self::VERSION,'safety'=>'recovery','safety_interrupt'=>true,'safety_message'=>$release['message'],'safety_question'=>'Are you safe from acting on these thoughts right now?','safety_resources'=>$this->safety_response('recovery',$country)['resources'],'safety_note'=>$this->safety_response('recovery',$country)['note'],'safety_location_required'=>false,'country'=>$country,'safety_release_ready'=>false));
+                return rest_ensure_response(array('ok'=>true,'version'=>self::VERSION,'safety'=>'recovery','safety_interrupt'=>true,'safety_message'=>$release['message'],'safety_question'=>'Are you safe from acting on these thoughts right now?','safety_resources'=>$this->safety_response('recovery',$safety_resource_country)['resources'],'safety_note'=>$this->safety_response('recovery',$country)['note'],'safety_location_required'=>false,'country'=>$country,'safety_release_ready'=>false));
             }
             if ($safety_stage === 'recovery') {
                 if ($next === 'release') {
                     return rest_ensure_response(array('ok'=>true,'version'=>self::VERSION,'safety'=>'recovery','safety_interrupt'=>true,'safety_message'=>'You have told me that you are not going to act on these thoughts right now. You do not have to go straight back into the relationship conversation. You can stay connected to the people helping you, make a simple plan for the next few hours, or return here later.','safety_question'=>'','safety_resources'=>$this->safety_response('recovery',$country)['resources'],'safety_note'=>$this->safety_response('recovery',$country)['note'],'safety_location_required'=>false,'country'=>$country,'safety_release_ready'=>true));
                 }
-                $safety = $this->safety_response('acute_followthrough',$country);
+                $safety = $this->safety_response('acute_followthrough',$safety_resource_country);
                 return rest_ensure_response(array('ok'=>true,'version'=>self::VERSION,'safety'=>'acute_followthrough','safety_interrupt'=>true,'safety_message'=>$safety['message'],'safety_question'=>$safety['question'],'safety_resources'=>$safety['resources'],'safety_note'=>$safety['note'] ?? '','safety_location_required'=>$safety['location_required'] ?? false,'country'=>$country,'safety_release_ready'=>false));
             }
             $next_stage = ($next === 'release') ? 'recovery' : $next;
-            $safety = $this->safety_response($next_stage,$country,$message);
+            $safety = $this->safety_response($next_stage,$safety_resource_country,$message);
             return rest_ensure_response(array('ok'=>true,'version'=>self::VERSION,'safety'=>$next_stage,'safety_interrupt'=>true,'safety_message'=>$safety['message'],'safety_question'=>$safety['question'],'safety_resources'=>$safety['resources'],'safety_note'=>$safety['note'] ?? '','safety_location_required'=>$safety['location_required'] ?? false,'country'=>$country,'safety_release_ready'=>false));
         }
 
