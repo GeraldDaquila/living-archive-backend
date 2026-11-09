@@ -147,6 +147,44 @@ $invalid_date_selection = LAEI_Resource_Selector::select('general_emergency', ei
 ei_assert(count(ei_actions($invalid_date_selection)) === 0, 'a local registry with an impossible verification date cannot generate a telephone action');
 
 ei_load_fixture($canonical);
+$with_alternative = $canonical;
+$with_alternative['resources'][] = [
+    'resource_id' => 'PH-911-ALTERNATIVE',
+    'country_id' => 'PH',
+    'region_id' => null,
+    'service_types' => ['general_emergency'],
+    'display_name' => 'Test Alternative Emergency Dispatch',
+    'number' => '1122',
+    'access_method' => 'telephone',
+    'coverage' => 'national',
+    'availability' => '24_7',
+    'resource_relationship' => 'secondary',
+    'equivalence_group' => null,
+    'routing_model' => 'central_dispatch',
+    'verification_id' => 'VER-PH-ALT-2026',
+    'presentation_priority' => 50,
+    'status' => 'active',
+];
+$with_alternative['verification_records'][] = [
+    'verification_id' => 'VER-PH-ALT-2026',
+    'status' => 'verified',
+    'authority_level' => 'national_government',
+    'verification_scope' => 'national',
+    'verified_at' => '2026-09-29',
+    'review_due' => '2027-03-29',
+    'source' => 'Disposable test fixture',
+    'evidence_type' => 'official_government_publication',
+    'resource_ids' => ['PH-911-ALTERNATIVE'],
+    'source_urls' => ['https://example.gov/emergency'],
+];
+ei_assert(LAEI_Registry::validate_candidate($with_alternative)['valid'] === true, 'secondary-resource test fixture has complete provenance');
+ei_load_fixture($with_alternative);
+$alternative_selection = LAEI_Resource_Selector::select('general_emergency', ei_location('PH'), 'acute');
+$alternative_presentation = LAEI_Presenter::present($alternative_selection, 'acute_emergency');
+ei_assert(($alternative_presentation['actions'][0]['value'] ?? '') === '911', 'verified primary emergency resource remains the primary action');
+ei_assert(($alternative_presentation['secondary'][0]['phone'] ?? '') === '1122', 'verified secondary emergency resource is presented as an alternative action');
+
+ei_load_fixture($canonical);
 $equivalent = LAEI_Resource_Selector::select('general_emergency', ei_location('GB'), 'acute');
 ei_assert(($equivalent['selection_status'] ?? '') === 'MULTIPLE_EQUIVALENT', 'UK 999/112 equivalence remains available with shared explicit provenance');
 $equivalent_actions = ei_actions($equivalent);
