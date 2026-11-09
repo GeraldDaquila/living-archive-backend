@@ -67,6 +67,31 @@ ei_wp_assert($get_response->get_status() >= 400, 'resource resolution route reje
 $status_response = rest_do_request(new WP_REST_Request('GET', $status_route));
 ei_wp_assert($status_response->get_status() === 200, 'read-only EI status route responds successfully');
 
+$visitor_content = new WP_REST_Request('POST', $resolve_route);
+$visitor_content->set_param('service_need', 'general_emergency');
+$visitor_content->set_param('location', ['explicit_country' => 'PH']);
+$visitor_content->set_param('message', 'This visitor answer must not enter EI.');
+$visitor_content_response = rest_do_request($visitor_content);
+ei_wp_assert($visitor_content_response->get_status() === 400, 'EI rejects visitor message content at the REST boundary');
+
+$extra_location = new WP_REST_Request('POST', $resolve_route);
+$extra_location->set_param('service_need', 'general_emergency');
+$extra_location->set_param('location', ['explicit_country' => 'PH', 'visitor_history' => 'not accepted']);
+$extra_location_response = rest_do_request($extra_location);
+ei_wp_assert($extra_location_response->get_status() === 400, 'EI rejects transcript-like fields inside location context');
+
+$oversized_location = new WP_REST_Request('POST', $resolve_route);
+$oversized_location->set_param('service_need', 'general_emergency');
+$oversized_location->set_param('location', ['explicit_country' => str_repeat('P', 81)]);
+$oversized_location_response = rest_do_request($oversized_location);
+ei_wp_assert($oversized_location_response->get_status() === 400, 'EI rejects overlength location values');
+
+$invalid_service = new WP_REST_Request('POST', $resolve_route);
+$invalid_service->set_param('service_need', 'not_a_real_service');
+$invalid_service->set_param('location', ['explicit_country' => 'PH']);
+$invalid_service_response = rest_do_request($invalid_service);
+ei_wp_assert($invalid_service_response->get_status() === 400, 'EI rejects unsupported service categories');
+
 $update_result = get_option(LAEI_Update_Manager::OPTION_LAST_RESULT, []);
 ei_wp_assert(($update_result['status'] ?? '') === 'disabled_security_gate', 'real WordPress runtime records remote updates as disabled fail-closed');
 echo "All standalone EI WordPress REST integration tests passed.\n";
