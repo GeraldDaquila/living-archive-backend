@@ -4542,11 +4542,43 @@ def _guide_historical_origin_recovery():
     )
 
 
+def _guide_relational_template_mismatch(query, response_text):
+    """Detect when generic systems prose has overridden a lived relational inquiry.
+
+    This is a narrow quality boundary harvested from HRN: preserve uncertainty,
+    distinguish the visible event from the conditions around it, name the human
+    stake without prescribing a decision, and end with one answerable inquiry.
+    """
+    q = _normalize_query(query)
+    if compose_relational_fractal(q) is None:
+        return False
+    text = str(response_text or "").casefold()
+    generic_markers = (
+        "look at the evidence, incentives, constraints, relationships, and decisions",
+        "unclear responsibilities or conflicting incentives",
+        "strongest explanation accounts for the available facts",
+    )
+    return any(marker in text for marker in generic_markers)
+
+
 def _guide_finalize_visitor_payload(payload, query):
     """Apply shared visitor-facing quality and contamination boundaries to every route."""
     if not isinstance(payload, dict):
         return payload
     response_text = str(payload.get("response") or "")
+    # Native relational quality boundary. Only intervene when a recognizable
+    # relational inquiry has been answered with a known generic systems template.
+    # Otherwise preserve the Guide's ordinary reasoning and voice.
+    if _guide_relational_template_mismatch(query, response_text):
+        relational = compose_relational_fractal(query)
+        if relational is not None:
+            safe = dict(payload)
+            safe["response"] = relational
+            safe["processing"] = "final_visitor_boundary_relational_orientation"
+            safe["route_source"] = "guide_final_visitor_boundary"
+            safe["visitor_boundary_version"] = APP_VERSION
+            print("The Guide relational quality boundary: replaced generic systems template with native relational orientation.")
+            return safe
     # Final semantic guard: specialist, handoff, and fallback routes must meet
     # the same discernment contract as the ordinary Guide composer.
     if general_guide_composition._requires_conflicting_information_discernment(query):
