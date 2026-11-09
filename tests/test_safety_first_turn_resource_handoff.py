@@ -404,3 +404,9 @@ def test_local_recovery_state_releases_only_after_second_yes(monkeypatch):
     assert result["safety_release_ready"] is True
     assert result["safety_question"] == ""
     assert result["resolver_status"] == "standalone_deterministic_state_machine"
+
+def test_emergency_contact_followthrough_is_deterministic():
+    classify = safety_intelligence._safety_answer_class
+    assert classify("I called 911", "acute_contact")["answer_class"] == "yes"
+    assert classify("I haven't been able to reach anyone", "acute_contact")["answer_class"] == "no"
+    assert classify("I have taken an overdose", "current")["self_harm"] is True
