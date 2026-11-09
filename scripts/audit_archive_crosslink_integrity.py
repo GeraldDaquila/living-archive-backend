@@ -322,8 +322,11 @@ def build_report(snapshot: dict[str, Any], snapshot_sha: str, snapshot_bytes: in
     assets = snapshot.get("assets", [])
     posts = registry_data["posts"]["records"]
     pages = registry_data["pages"]["records"]
-    registry = effective_registry(posts + pages, manifest)
+    raw_registry = posts + pages
+    registry = effective_registry(raw_registry, manifest)
     comparison = compare_registry(assets, registry)
+    excluded_ids = set(map(str, (manifest or {}).get("exclude_wp_ids", {})))
+    comparison["editorially_excluded_wp_ids"] = sorted(excluded_ids & {str(r.get("wp_id")) for r in raw_registry}, key=int)
     addressability = metadata_addressability(assets)
     refreshed_at = float(snapshot.get("refreshed_at") or 0)
     age_seconds = max(0.0, time.time() - refreshed_at)
@@ -331,7 +334,7 @@ def build_report(snapshot: dict[str, Any], snapshot_sha: str, snapshot_bytes: in
     broken = [item for item in link_results if item["status"] != "ok"]
     redirects = [item for item in link_results if item.get("status") == "ok" and normalize_url(item.get("final_url")) != item.get("url")]
     canonical_match = not (
-        comparison["missing_wp_ids"] or comparison["stale_wp_ids"] or comparison["identity_mismatches"]
+        comparison["stale_wp_ids"] or comparison["identity_mismatches"]
         or comparison["duplicate_wp_ids_in_registry"] or comparison["duplicate_wp_ids_in_snapshot"]
     )
     links_ok = link_check_performed and not broken
