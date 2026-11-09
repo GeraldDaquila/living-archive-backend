@@ -28,8 +28,10 @@ if (strpos($adapter, '$this->safety_resource_bundle(') !== false || strpos($adap
     fwrite(STDERR, "Legacy HRN resource fallback remains in the EI adapter.\\n");
     exit(1);
 }
-if (strpos($adapter, "'ei_no_verified_fallback'") === false || strpos($adapter, "'ei_verified_only'") === false) {
-    fwrite(STDERR, "EI-only provenance states are missing from the adapter.\\n");
+if (strpos($adapter, "'resource_provenance'=>\$bundle['resource_provenance']") === false ||
+    strpos($php, "'ei_no_verified_fallback'") === false ||
+    strpos($php, "'ei_verified_only'") === false) {
+    fwrite(STDERR, "EI-only provenance states are missing from the shared resolver/adapter.\\n");
     exit(1);
 }
 $safetyStart = strpos($php, 'private function safety_response(');
