@@ -46,7 +46,7 @@ def test_adapter_uses_ei_first_and_retains_legacy_continuity_fallback():
     assert "function_exists('living_archive_emergency_resolve')" in adapter
     assert "living_archive_emergency_resolve($need" in adapter
     assert "array('general_emergency', 'medical', 'crisis_support')" in adapter
-    assert "($selection['selection_status'] ?? '') !== 'SELECTED'" in adapter
+    assert "$selection_status === 'SELECTED'" in adapter
     assert "$selection_status === 'MULTIPLE_EQUIVALENT'" in adapter
     assert "$candidates = $selection['primary']" in adapter
     assert "$this->safety_resource_bundle($country, $stage, '')" in adapter
