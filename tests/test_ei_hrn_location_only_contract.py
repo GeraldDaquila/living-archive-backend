@@ -95,6 +95,7 @@ def test_frontend_location_submission_sends_no_visitor_answer_or_transcript():
     assert "safety_stage:safetyStage" in submit
     assert "safety_question:safetyQuestion" in submit
     assert "safety_message:safetyMessage" in submit
+    assert "if(response.country)country=String(response.country)" in source
     for forbidden in ("message:v", "conversation:", "visitor_history:"):
         assert forbidden not in submit
 
