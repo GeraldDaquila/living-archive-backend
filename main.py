@@ -9330,7 +9330,7 @@ async def _use_request_boundary(scope, receive, send):
             # defensively for any malformed specialist payload.
             safety_release_ready = bool(safety_payload.get("safety_release_ready"))
             safety_question = str(safety_payload.get("safety_question") or "").strip()
-            if not safety_release_ready and not safety_question:
+            if not safety_release_ready and not safety_question and safety_payload.get("safety_state") != "acute_hold":
                 safety_question = repair_safety_question(
                     safety_state=safety_state,
                     previous_question=safety_question_hint,
