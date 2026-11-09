@@ -932,26 +932,28 @@ final class Living_Archive_Human_Relational_Navigator {
     }
 
     private function safety_response($stage, $country_code='', $message='') {
+        // The HRN safety classifier may interrupt a conversation, but it is not
+        // an emergency-resource authority. Always collect explicit country context
+        // and let the standalone EI resolver provide only currently verified resources.
+        // Never expose the legacy HRN registry or directory fallback as a callable
+        // emergency resource from this conversational response.
         $country_code = $this->normalize_country($country_code);
-        $bundle = $this->safety_resource_bundle($country_code, $stage, $message);
-        $resources = $bundle['registry'];
-        $all_resources = $bundle['resources'];
-        $response = array('stage'=>$stage,'question'=>'','message'=>'','resources'=>$all_resources,'location_required'=>false,'country'=>$country_code,'release'=>false,'support_needed'=>false,'resource_provenance'=>$resources ? 'native_registry' : 'findahelpline_fallback');
-
-        if (!$resources && $country_code !== '') {
-            $fallback = $bundle['fallback'];
-            $response['resources'] = array($fallback);
-        }
-        if (!$resources && $country_code === '') {
-            $response['location_required'] = true;
-            $response['resources'] = array($bundle['fallback']);
-        }
+        $response = array(
+            'stage'=>$stage,
+            'question'=>'',
+            'message'=>'',
+            'resources'=>array(),
+            'location_required'=>true,
+            'country'=>$country_code,
+            'release'=>false,
+            'support_needed'=>false,
+            'resource_provenance'=>'ei_location_resolution_pending',
+        );
 
         if ($stage === 'current') {
             $response['message'] = 'Thank you for telling me. I want to take what you just said seriously.';
             $response['question'] = 'Are you thinking about killing yourself right now?';
-            if ($resources) $response['note'] = 'If you are in immediate danger, use the emergency service above or go to the nearest emergency department.';
-            else $response['note'] = 'If you may act on these thoughts now, contact the emergency service where you are or go to the nearest emergency department rather than waiting for an online directory.';
+            $response['note'] = 'If you may act on these thoughts now, use an emergency service you already know is valid where you are or go to the nearest emergency department. Do not wait for an online directory.';
             return $response;
         }
         if ($stage === 'plan') {
@@ -973,8 +975,7 @@ final class Living_Archive_Human_Relational_Navigator {
         if ($stage === 'acute') {
             $response['message'] = 'Please move away from anything you could use to hurt yourself. Then bring another person into this if you can.';
             $response['question'] = 'Have you moved away from anything you could use to hurt yourself?';
-            if ($resources) $response['note'] = $resources['note'] ?? 'If the danger is immediate, use the emergency service above or go to the nearest emergency department.';
-            else $response['note'] = 'If you may act on these thoughts now, contact the emergency service where you are or go to the nearest emergency department rather than waiting for an online directory.';
+            $response['note'] = 'If you may act on these thoughts now, use an emergency service you already know is valid where you are or go to the nearest emergency department. Do not wait for an online directory.';
             return $response;
         }
         if ($stage === 'acute_followthrough') {
@@ -1002,7 +1003,7 @@ final class Living_Archive_Human_Relational_Navigator {
             return $response;
         }
         if ($stage === 'acute_hold') {
-            $response['message'] = 'I hear you. I am going to stop asking you to repeat the same safety step. Please stay away from anything you could use to hurt yourself and use the emergency or crisis support above now. If you have already injured yourself or taken something, seek emergency medical care now.';
+            $response['message'] = 'I hear you. I am going to stop asking you to repeat the same safety step. Please stay away from anything you could use to hurt yourself and contact an emergency service you already know is valid where you are now. If you have already injured yourself or taken something, seek emergency medical care now.';
             $response['question'] = '';
             $response['note'] = 'Please use the emergency or crisis support above now. Do not stay alone with this if another person can safely be brought in.';
             return $response;
