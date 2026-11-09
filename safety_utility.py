@@ -44,11 +44,11 @@ def build_safety_contribution(
             "safety_intelligence_contract_version": SAFETY_INTELLIGENCE_CONTRACT_VERSION,
             "sitewide": True,
             "priority": "highest",
-            "bypasses_ordinary_hrn": True,
+            "bypasses_ordinary_relational_composition": True,
             "bypasses_llm": True,
             "bypasses_retrieval": True,
             "resource_owner": "Emergency Intelligence",
-            "language_owner": "HRN Safety Fractal",
+            "language_owner": "Guide Standalone Deterministic Safety State Machine",
             "resolver_status": resolution.get("resolver_status", "standalone_deterministic_safety_state_machine"),
             "emergency_selection_status": resolution.get("emergency_selection_status", ""),
             "emergency_presentation": resolution.get("emergency_presentation") or {},
@@ -82,7 +82,7 @@ def build_safety_contribution(
             "emergency_selection_status": resolution.get("emergency_selection_status") or "",
             "safety_presence": resolution.get("safety_presence") or "unknown",
             "safety_question_context": resolution.get("safety_question_context") or "",
-            "resolver_status": resolution.get("resolver_status", "hrn_emergency_intelligence"),
+            "resolver_status": resolution.get("resolver_status", "standalone_deterministic_safety_state_machine"),
         },
     }
 
