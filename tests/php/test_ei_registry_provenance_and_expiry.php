@@ -91,10 +91,10 @@ foreach ($no_sources['verification_records'] as &$record) {
 }
 unset($record);
 ei_assert(LAEI_Registry::validate_candidate($no_sources)['valid'] === false, 'candidate validator rejects a verification record without source URLs');
-ei_load_fixture($no_sources);
+$no_sources_loaded = ei_load_fixture($no_sources);
+ei_assert($no_sources_loaded === null, 'runtime loader rejects a local registry with missing source provenance');
 $no_sources_selection = LAEI_Resource_Selector::select('general_emergency', ei_location('PH'), 'acute');
-ei_assert(($no_sources_selection['selection_status'] ?? '') === 'VERIFICATION_PROVENANCE_MISSING', 'runtime selection rejects missing source provenance');
-ei_assert(count(ei_actions($no_sources_selection)) === 0, 'missing source provenance cannot generate a telephone action');
+ei_assert(count(ei_actions($no_sources_selection)) === 0, 'a local registry with missing source provenance cannot generate a telephone action');
 
 $bad_url = $canonical;
 foreach ($bad_url['verification_records'] as &$record) {
@@ -109,10 +109,10 @@ foreach ($wrong_mapping['verification_records'] as &$record) {
 }
 unset($record);
 ei_assert(LAEI_Registry::validate_candidate($wrong_mapping)['valid'] === false, 'candidate validator rejects verification records mapped to the wrong resource');
-ei_load_fixture($wrong_mapping);
+$wrong_mapping_loaded = ei_load_fixture($wrong_mapping);
+ei_assert($wrong_mapping_loaded === null, 'runtime loader rejects a local registry with mismatched resource-to-evidence mapping');
 $wrong_mapping_selection = LAEI_Resource_Selector::select('general_emergency', ei_location('PH'), 'acute');
-ei_assert(($wrong_mapping_selection['selection_status'] ?? '') === 'VERIFICATION_PROVENANCE_MISSING', 'runtime selection rejects a resource not explicitly mapped to its evidence');
-ei_assert(count(ei_actions($wrong_mapping_selection)) === 0, 'mismatched resource-to-evidence mapping cannot generate a telephone action');
+ei_assert(count(ei_actions($wrong_mapping_selection)) === 0, 'a local registry with mismatched evidence mapping cannot generate a telephone action');
 
 $missing_authority = $canonical;
 foreach ($missing_authority['verification_records'] as &$record) {
@@ -120,20 +120,20 @@ foreach ($missing_authority['verification_records'] as &$record) {
 }
 unset($record);
 ei_assert(LAEI_Registry::validate_candidate($missing_authority)['valid'] === false, 'candidate validator rejects missing authority metadata');
-ei_load_fixture($missing_authority);
+$missing_authority_loaded = ei_load_fixture($missing_authority);
+ei_assert($missing_authority_loaded === null, 'runtime loader rejects a local registry with incomplete authority metadata');
 $missing_authority_selection = LAEI_Resource_Selector::select('general_emergency', ei_location('PH'), 'acute');
-ei_assert(($missing_authority_selection['selection_status'] ?? '') === 'VERIFICATION_PROVENANCE_MISSING', 'runtime selection rejects incomplete authority metadata');
-ei_assert(count(ei_actions($missing_authority_selection)) === 0, 'incomplete authority metadata cannot generate a telephone action');
+ei_assert(count(ei_actions($missing_authority_selection)) === 0, 'a local registry with incomplete authority metadata cannot generate a telephone action');
 
 $missing_verification = $canonical;
 foreach ($missing_verification['resources'] as &$resource) {
     if ($resource['resource_id'] === 'PH-911-GENERAL') $resource['verification_id'] = 'VER-NOT-PRESENT';
 }
 unset($resource);
-ei_load_fixture($missing_verification);
+$missing_verification_loaded = ei_load_fixture($missing_verification);
+ei_assert($missing_verification_loaded === null, 'runtime loader rejects a local registry referencing a missing verification record');
 $missing_selection = LAEI_Resource_Selector::select('general_emergency', ei_location('PH'), 'acute');
-ei_assert(($missing_selection['selection_status'] ?? '') === 'VERIFICATION_MISSING', 'missing verification record fails closed');
-ei_assert(count(ei_actions($missing_selection)) === 0, 'missing verification record cannot generate a telephone action');
+ei_assert(count(ei_actions($missing_selection)) === 0, 'a local registry referencing a missing verification record cannot generate a telephone action');
 
 $invalid_date = $canonical;
 foreach ($invalid_date['verification_records'] as &$record) {
@@ -141,10 +141,10 @@ foreach ($invalid_date['verification_records'] as &$record) {
 }
 unset($record);
 ei_assert(LAEI_Registry::validate_candidate($invalid_date)['valid'] === false, 'candidate validator rejects impossible calendar dates');
-ei_load_fixture($invalid_date);
+$invalid_date_loaded = ei_load_fixture($invalid_date);
+ei_assert($invalid_date_loaded === null, 'runtime loader rejects a local registry containing an impossible calendar date');
 $invalid_date_selection = LAEI_Resource_Selector::select('general_emergency', ei_location('PH'), 'acute');
-ei_assert(($invalid_date_selection['selection_status'] ?? '') === 'VERIFICATION_INVALID', 'impossible calendar date is rejected');
-ei_assert(count(ei_actions($invalid_date_selection)) === 0, 'invalid verification date cannot generate a telephone action');
+ei_assert(count(ei_actions($invalid_date_selection)) === 0, 'a local registry with an impossible verification date cannot generate a telephone action');
 
 ei_load_fixture($canonical);
 $equivalent = LAEI_Resource_Selector::select('general_emergency', ei_location('GB'), 'acute');
