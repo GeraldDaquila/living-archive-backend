@@ -81,6 +81,7 @@ from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSIT
 from safety_utility import classify_safety, safety_utility_snapshot
 from safety_adapter import SafetyUtilityAdapter
 from safety_intelligence import SAFETY_INTELLIGENCE_CONTRACT_VERSION, is_hypothetical_safety_discussion, normalize_safety_state, repair_safety_question, safety_intelligence_snapshot
+from safety_session import issue_safety_session, safety_session_available, verify_safety_session
 from streaming_transport import streaming_entry, STREAM_CONTRACT_VERSION, STREAM_TRANSPORT_VERSION
 
 _BASE_MODULE_NAME = "guide_runtime"
@@ -9239,27 +9240,16 @@ async def _use_request_boundary(scope, receive, send):
     # state machine owns transitions and intervention language, while EI owns
     # location-grounded emergency resources.
     history_text = _history_text(history)
-    safety_question_hint = str(parsed_body.get("safety_question") or "").strip()
-    safety_state_hint = str(parsed_body.get("safety_state") or "").strip().casefold()
-    safety_active_hint = bool(parsed_body.get("safety_active"))
+    safety_session = verify_safety_session(str(parsed_body.get("safety_session") or ""))
+    safety_question_hint = str((safety_session or {}).get("question") or "").strip()
+    safety_state_hint = str((safety_session or {}).get("state") or "").strip().casefold()
     safety_state = classify_safety(query, history=history_text)
 
-    # Conversation continuity contract: a specialist safety turn may carry an
-    # explicit active-state/question alongside its structured history. This is
-    # a server-side continuity aid, not a client-authorized escalation; it can
-    # only keep an already-active safety conversation inside the safety lane.
-    if (
-        not safety_state
-        and safety_active_hint
-        and safety_question_hint
-    ):
-        safety_state = "acute_followthrough"
-    elif (
-        not safety_state
-        and safety_active_hint
-        and safety_state_hint in {"acute", "plan", "immediacy", "current", "acute_followthrough"}
-    ):
-        safety_state = safety_state_hint
+    # Authenticated continuity contract: once a safety session is active, the
+    # client may carry only an opaque server-signed token. Client-supplied
+    # safety_state, safety_question and safety_active are not state authority.
+    if not safety_state and safety_session:
+        safety_state = safety_state_hint or "acute_followthrough"
 
     # Boundary recovery: the protected core remains the authoritative
     # deterministic fallback if the auxiliary safety classifier misses a
@@ -9346,6 +9336,14 @@ async def _use_request_boundary(scope, receive, send):
                 f"request_id={request_id}, state={safety_state}, "
                 "standalone_safety_state_machine=called, hrn=not_called, llm=not_called, retrieval=not_called"
             )
+            next_safety_session = ""
+            if not safety_release_ready:
+                next_safety_session = issue_safety_session(
+                    state=str(safety_payload.get("safety_state") or safety_state),
+                    question=safety_question,
+                    request_id=request_id,
+                )
+
             return await _use_send_json(send, {
                 "ok": True,
                 "version": APP_VERSION,
@@ -9369,6 +9367,7 @@ async def _use_request_boundary(scope, receive, send):
                 "country": safety_payload.get("country") or safety_country,
                 "safety_release_ready": bool(safety_payload.get("safety_release_ready")),
                 "safety_continuity_guard": safety_payload.get("safety_continuity_guard") or "",
+                "safety_session": next_safety_session,
                 "safety": {
                     "state": safety_payload.get("safety_state") or safety_state,
                     "interrupt": True,
