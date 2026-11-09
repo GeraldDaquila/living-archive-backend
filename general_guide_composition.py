@@ -6,6 +6,7 @@ Provider Bank so no individual LLM is an architectural dependency.
 """
 
 import hashlib
+import os
 import json
 import re
 import threading
@@ -2338,6 +2339,37 @@ def compose(
     if not question:
         return None
 
+    # Gold Star selection is always observable. Guided influence is explicitly
+    # opt-in and intended for the dedicated QA service until calibration proves
+    # reliable generalization. Guidance is structural only: it cannot supply an
+    # old answer, facts, citations, examples, or destinations.
+    gold_star_guidance = ""
+    try:
+        from gold_star_shadow import evaluate_gold_star_shadow
+        from gold_star_lessons import build_exemplar_guidance
+        shadow = evaluate_gold_star_shadow(question)
+        _emit_guide_outcome(
+            "gold_star_shadow",
+            selected=shadow.get("selected"),
+            benchmark_id=shadow.get("benchmark_id"),
+            score=shadow.get("score"),
+            reason=shadow.get("reason"),
+        )
+        mode = str(os.getenv("GOLD_STAR_LESSONS_MODE") or "shadow").strip().casefold()
+        if mode == "guided" and shadow.get("selected"):
+            gold_star_guidance, guidance_id = build_exemplar_guidance(question)
+            if gold_star_guidance:
+                _emit_guide_outcome(
+                    "gold_star_guidance_applied",
+                    benchmark_id=guidance_id,
+                    score=shadow.get("score"),
+                )
+    except Exception as exc:
+        # Gold Star observability or guidance must never become a dependency of
+        # ordinary answer composition.
+        gold_star_guidance = ""
+        _emit_guide_outcome("gold_star_shadow_unavailable", error=type(exc).__name__)
+
     # Exact approved/frozen benchmark questions use their registered reference
     # response. This is deliberately exact-match only: it protects approved
     # standards without turning the Guide into a canned-answer service for
@@ -2461,6 +2493,7 @@ def compose(
             if _requires_distress_sensitive_pacing(question)
             else ""
         )
+        + (gold_star_guidance if gold_star_guidance else "")
         + glossary_authority_instruction
         + f"Archive material available to ground the answer:\n{_evidence_payload(documents) if documents else 'No relevant Archive material was retrieved for this question. Use reliable general knowledge where appropriate; do not invent Archive-specific claims or sources.'}"
     )

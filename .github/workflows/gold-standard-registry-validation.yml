@@ -2,7 +2,7 @@ name: Gold Standard Registry Validation
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, feat/gold-star-lessons-production]
     paths:
       - "docs/qa/gold_standard_registry.json"
       - "scripts/qa/report_gold_standard_registry.py"
@@ -15,7 +15,7 @@ on:
       - "tests/test_live_guide_gold_standard_capture.py"
       - ".github/workflows/gold-standard-registry-validation.yml"
   push:
-    branches: [main]
+    branches: [main, feat/gold-star-lessons-production]
     paths:
       - "docs/qa/gold_standard_registry.json"
       - "scripts/qa/report_gold_standard_registry.py"
