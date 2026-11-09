@@ -297,13 +297,32 @@ def check_destination(asset: dict[str, Any]) -> dict[str, Any]:
         return {**base, "status": "network_error", "http_status": None, "error": type(exc).__name__, "final_url": None, "method": "GET"}
 
 
+def effective_registry(records: list[dict[str, Any]], manifest: dict[str, Any] | None) -> list[dict[str, Any]]:
+    manifest = manifest or {}
+    include_ids = set(map(str, manifest.get("include_wp_ids", [])))
+    exclude_ids = set(map(str, manifest.get("exclude_wp_ids", {})))
+    effective = []
+    for record in records:
+        wp_id = str(record.get("wp_id") or "")
+        title = clean_text(record.get("title"))
+        url = record.get("url") or ""
+        if wp_id in exclude_ids:
+            continue
+        if "ARCHIVED" in title.upper() or not title:
+            continue
+        if not url and wp_id not in include_ids:
+            continue
+        effective.append(record)
+    return effective
+
+
 def build_report(snapshot: dict[str, Any], snapshot_sha: str, snapshot_bytes: int,
                  checksum_expected: str, registry_data: dict[str, Any],
-                 link_results: list[dict[str, Any]], link_check_performed: bool) -> dict[str, Any]:
+                 link_results: list[dict[str, Any]], link_check_performed: bool, manifest: dict[str, Any] | None = None) -> dict[str, Any]:
     assets = snapshot.get("assets", [])
     posts = registry_data["posts"]["records"]
     pages = registry_data["pages"]["records"]
-    registry = posts + pages
+    registry = effective_registry(posts + pages, manifest)
     comparison = compare_registry(assets, registry)
     addressability = metadata_addressability(assets)
     refreshed_at = float(snapshot.get("refreshed_at") or 0)
@@ -445,6 +464,7 @@ def main() -> int:
     parser.add_argument("--snapshot", type=Path, default=SNAPSHOT_PATH)
     parser.add_argument("--checksum", type=Path, default=CHECKSUM_PATH)
     parser.add_argument("--output-dir", type=Path, default=ROOT / "audit-output")
+    parser.add_argument("--manifest", type=Path, help="Optional editorial territorial manifest for candidate audits")
     parser.add_argument("--skip-link-check", action="store_true", help="Skip destination HEAD/GET checks; report remains ATTENTION REQUIRED")
     parser.add_argument("--max-link-checks", type=int, default=0, help="Limit destination checks (0 means all; report remains ATTENTION REQUIRED when limited)")
     args = parser.parse_args()
