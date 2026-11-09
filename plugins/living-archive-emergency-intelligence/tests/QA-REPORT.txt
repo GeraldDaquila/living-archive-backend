@@ -54,8 +54,10 @@ Important limitations:
 - No production WordPress installation, registry, Render service, or deployment was changed.
 
 Architecture status:
-- EI remains a standalone resource authority.
-- HRN remains location-only; no visitor answers or transcripts are passed to EI.
+- EI remains a standalone, deterministic, fail-closed resource authority on the dedicated QA branch.
+- HRN retirement is intentional: HRN is not a visitor-facing destination and no HRN specialist handoff or session ledger is created.
+- The Guide handles relationship inquiries natively; its LLM reasoning path is retained.
+- EI's request boundary remains location/safety-context only: visitor answers and transcripts are not passed to EI.
 - Local registry remains the emergency-path source of truth.
 - Emergency path does not wait for remote registry refresh.
 - Remote updates remain fail-closed pending cryptographic signature verification.
