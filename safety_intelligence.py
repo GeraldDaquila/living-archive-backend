@@ -618,6 +618,25 @@ def _safety_answer_class(query: str, stage: str) -> dict[str, Any]:
     if re.search(r"\b(?:i(?:'ve| have)\s+(?:overdosed|taken an overdose)|i\s+(?:overdosed|took an overdose)|i\s+(?:have\s+)?(?:hurt|harmed)\s+myself|i am attempting suicide)\b", text, re.I):
         return {"answer_class": "yes", "current_suicidal": True, "imminent": True, "plan": False, "self_harm": True}
 
+    if stage == "acute_contact":
+        negative_contact = re.search(
+            r"\\b(?:i (?:cannot|can't|could not|couldn't|have not|haven't|am unable to)|no one answered|nobody answered|not yet)\\b.*\\b(?:call|contact|reach|phone)\\b",
+            text,
+            re.I,
+        )
+        positive_contact = re.search(
+            r"\\b(?:i (?:have )?(?:called|contacted|reached)|i'm on the phone|someone answered|help is on the way)\\b",
+            text,
+            re.I,
+        )
+        if negative_contact:
+            answer = "no"
+        elif positive_contact:
+            answer = "yes"
+        else:
+            answer = "uncertain"
+        return {"answer_class": answer, "current_suicidal": False, "imminent": False, "plan": False, "self_harm": False}
+
     if stage == "acute_connection":
         negative_connection = re.search(r"\b(?:can't|cannot|couldn't|could not|do not|don't|no|nobody|no one|not able)\b.*\b(?:call|contact|text|message|reach|phone|stay on the phone)\b", text, re.I)
         positive_connection = re.search(r"\b(?:i can|i could|i will|i'll|i am able to|i'm able to|i can probably|i could probably)\b.*\b(?:call|contact|text|message|reach|phone|stay on the phone)\b", text, re.I)
