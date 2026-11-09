@@ -83,7 +83,7 @@ ei_hrn_assert(in_array('911', $phones, true), 'current verified Philippines emer
 // Expired verification must not be replaced by the legacy HRN number.
 $expired = $canonical;
 foreach ($expired['verification_records'] as &$record) {
-    if (($record['verification_id'] ?? '') === 'VER-PH-911-2026') $record['review_due'] = '2026-11-08';
+    if (in_array(($record['verification_id'] ?? ''), ['VER-PH-911-2026','VER-PH-NCMH-2026'], true)) $record['review_due'] = '2026-11-08';
 }
 unset($record);
 ei_hrn_set_registry($registry_property, $expired);
@@ -92,7 +92,7 @@ $expired_data = ei_hrn_no_callable_resources(ei_hrn_request('Philippines'), 'exp
 // Missing provenance must not be replaced by the legacy HRN number.
 $missing_provenance = $canonical;
 foreach ($missing_provenance['verification_records'] as &$record) {
-    if (($record['verification_id'] ?? '') === 'VER-PH-911-2026') $record['source_urls'] = [];
+    if (in_array(($record['verification_id'] ?? ''), ['VER-PH-911-2026','VER-PH-NCMH-2026'], true)) $record['source_urls'] = [];
 }
 unset($record);
 ei_hrn_set_registry($registry_property, $missing_provenance);
@@ -101,7 +101,7 @@ $provenance_data = ei_hrn_no_callable_resources(ei_hrn_request('Philippines'), '
 // Explicitly unverified records must not yield callable resources.
 $unverified = $canonical;
 foreach ($unverified['verification_records'] as &$record) {
-    if (($record['verification_id'] ?? '') === 'VER-PH-911-2026') $record['status'] = 'unverified';
+    if (in_array(($record['verification_id'] ?? ''), ['VER-PH-911-2026','VER-PH-NCMH-2026'], true)) $record['status'] = 'unverified';
 }
 unset($record);
 ei_hrn_set_registry($registry_property, $unverified);
