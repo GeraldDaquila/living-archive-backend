@@ -21,6 +21,7 @@ import json
 import re
 import sys
 import time
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import unicodedata
 from collections import defaultdict
@@ -107,12 +108,21 @@ def fetch_registry_type(post_type: str) -> dict[str, Any]:
         )
         request = Request(url, headers={"Accept": "application/json", "User-Agent": USER_AGENT})
         started = time.monotonic()
-        try:
-            with urlopen(request, timeout=REQUEST_TIMEOUT) as response:
-                payload = json.loads(response.read().decode("utf-8"))
-                headers = response.headers
-        except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
-            raise RuntimeError(f"WordPress {post_type} page {page} failed: {type(exc).__name__}: {exc}") from exc
+        last_exc = None
+        for attempt in range(4):
+            try:
+                with urlopen(request, timeout=REQUEST_TIMEOUT) as response:
+                    payload = json.loads(response.read().decode("utf-8"))
+                    headers = response.headers
+                break
+            except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
+                last_exc = exc
+                if isinstance(exc, HTTPError) and exc.code == 429 and attempt < 3:
+                    time.sleep(2.0 * (attempt + 1))
+                    continue
+                raise RuntimeError(f"WordPress {post_type} page {page} failed: {type(exc).__name__}: {exc}") from exc
+        else:
+            raise RuntimeError(f"WordPress {post_type} page {page} failed after throttling retries: {type(last_exc).__name__}: {last_exc}") from last_exc
         if not isinstance(payload, list):
             raise RuntimeError(f"WordPress {post_type} page {page} returned a non-list payload")
         page_reports.append({
