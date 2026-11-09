@@ -344,8 +344,12 @@ def _last_safety_question(history: str) -> str:
             for marker in (
                 "moved away",
                 "someone you trust",
+                "someone you can be with",
                 "contact emergency",
                 "safe from acting",
+                "might act on these thoughts",
+                "thinking about killing yourself",
+                "made a plan to act",
                 "hurt yourself",
                 "danger",
             )
