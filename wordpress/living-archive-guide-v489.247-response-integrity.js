@@ -333,6 +333,38 @@ function useTransportRetryableStatus(status) {
   );
 }
 
+function guideBrowserLocationHints() {
+  var hints = {};
+  var locale = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+  if (locale) {
+    hints.locale = String(locale);
+    try {
+      if (typeof Intl !== 'undefined' && Intl.Locale) {
+        var region = new Intl.Locale(locale).region;
+        if (region) hints.locale_country = String(region).toUpperCase();
+      }
+    } catch (ignore) {}
+    if (!hints.locale_country) {
+      var match = String(locale).match(/[-_]([A-Z]{2})$/i);
+      if (match) hints.locale_country = match[1].toUpperCase();
+    }
+  }
+  try {
+    if (typeof Intl !== 'undefined' && Intl.DateTimeFormat) {
+      hints.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    }
+  } catch (ignoreTimezone) {}
+  return hints;
+}
+
+function withGuideLocationHints(payload) {
+  var request = Object.assign({}, payload || {});
+  var hints = guideBrowserLocationHints();
+  if (hints.locale_country && !request.locale_country) request.locale_country = hints.locale_country;
+  if (hints.timezone && !request.timezone) request.timezone = hints.timezone;
+  return request;
+}
+
 async function fetchUSEEndpoint(endpoint, payload) {
 
   var controller =
@@ -357,7 +389,7 @@ async function fetchUSEEndpoint(endpoint, payload) {
           'Content-Type':
             'application/json'
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(withGuideLocationHints(payload)),
         signal: controller
           ? controller.signal
           : undefined
@@ -791,19 +823,15 @@ async function resolveSafetyCountryResource(countryInput, actionButton) {
    ================================================================ */
 
 function inferSafetyCountry() {
-  var languages = [];
-  if (navigator.languages && navigator.languages.length) languages = navigator.languages;
-  else if (navigator.language) languages = [navigator.language];
-
-  for (var i = 0; i < languages.length; i++) {
-    var match = String(languages[i] || '').match(/[-_]([A-Z]{2})$/i);
-    if (match) {
-      var code = match[1].toUpperCase();
-      var names = { PH: 'Philippines', US: 'United States', DE: 'Germany', CN: 'China', GB: 'United Kingdom' };
-      if (names[code]) return names[code];
+  var hints = guideBrowserLocationHints();
+  var code = String(hints.locale_country || '').toUpperCase();
+  if (!code) return '';
+  try {
+    if (typeof Intl !== 'undefined' && Intl.DisplayNames) {
+      return new Intl.DisplayNames([(navigator.language || 'en')], { type: 'region' }).of(code) || '';
     }
-  }
-  return '';
+  } catch (ignore) {}
+  return code;
 }
 
 function renderSafetyLocationConfirmation(country) {
