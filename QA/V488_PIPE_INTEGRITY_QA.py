@@ -1,12 +1,12 @@
 """Post-Oct.1 Guide hub pipe integrity audit.
 
-This audit deliberately checks the transport/routing seams that can fail
-before visitor experience testing:
+This audit checks the transport/routing seams that can fail before visitor
+experience testing:
 - current mainline deployment identity is structurally bounded;
-- specialist routing crosses the explicit hub contract;
+- active specialist routing crosses the explicit hub contract;
 - the protected core remains the only legacy FastAPI fallback;
 - the hub does not contain retrieval/provider authority;
-- no new specialist route is wired directly around the hub contract.
+- retired HRN routing is observational only and is not reintroduced as a spoke.
 """
 
 from pathlib import Path
@@ -29,11 +29,11 @@ def main():
     assert 'from hub_contracts import (' in main_source
     assert "build_hub_request" in main_source
     assert "route_spoke" in main_source
-    assert main_source.count("route_spoke(") == 3
+    # Only the two active visitor-facing spokes use the hub. HRN's former
+    # relationship specialist route is intentionally retired.
+    assert main_source.count("route_spoke(") == 2
 
-    # Relationship, Formation, and Philippine Systems must enter through the common hub pipe.
     for marker in (
-        'specialist_id="relationship"',
         'specialist_id="formation"',
         'specialist_id="systems_ph"',
         "SPECIALIST_ADAPTER_REGISTRY",
@@ -41,8 +41,16 @@ def main():
     ):
         assert marker in main_source, marker
 
+    # HRN remains retired from visitor routing: the relationship classifier
+    # may be observed, but no relationship specialist is invoked through hub.
+    assert 'specialist_id="relationship"' not in main_source
+    assert "def _relationship_specialist_response(" not in main_source
+    assert 'if route_id == "relationship":' in main_source
+    assert "rather than invoking the specialist" in main_source
+    assert "The Guide relational inquiry retained natively" in main_source
+
     # The active request boundary has two protected-app fallbacks. Empty-query
-    # passthrough remains direct; the normal non-specialist JSON path now passes
+    # passthrough remains direct; the normal non-specialist JSON path passes
     # through the shared final visitor-response guard.
     assert main_source.count("_FASTAPI_APP(scope, _use_replay_receive(raw_body), send)") == 1
     assert main_source.count("_FASTAPI_APP(scope, _use_replay_receive(raw_body), _send_with_final_visitor_boundary)") == 1
@@ -60,13 +68,12 @@ def main():
     ):
         assert forbidden not in lower_hub, forbidden
 
-    # No specialist handoff may bypass the hub callable contract.
+    # Active specialist implementations must not bypass the hub callable.
+    tree = ast.parse(main_source)
     for specialist_fn in (
-        "_relationship_specialist_response",
         "_formation_specialist_response",
         "_philippine_systems_specialist_response",
     ):
-        tree = ast.parse(main_source)
         fn = next(
             node for node in tree.body
             if isinstance(node, ast.FunctionDef)

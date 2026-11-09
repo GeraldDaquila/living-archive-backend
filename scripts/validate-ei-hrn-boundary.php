@@ -20,8 +20,34 @@ foreach (array('safety_answer_class(', 'safety_transition(', 'rest_handler_inner
         exit(1);
     }
 }
-if (strpos($php, 'living_archive_emergency_resolve($need') === false) {
-    fwrite(STDERR, "EI public resolver is not wired into the adapter.\n");
+if (strpos($php, 'living_archive_emergency_resolve($need') === false ||
+    strpos($php, "defined('LAEI_VERSION')") === false ||
+    strpos($php, "version_compare((string)LAEI_VERSION, '0.1.3', '>=')") === false) {
+    fwrite(STDERR, "Provenance-capable EI public resolver/version guard is missing.\\n");
+    exit(1);
+}
+if (strpos($adapter, '$this->safety_resource_bundle(') !== false || strpos($adapter, '$legacy') !== false) {
+    fwrite(STDERR, "Legacy HRN resource fallback remains in the EI adapter.\\n");
+    exit(1);
+}
+if (strpos($adapter, "'resource_provenance'=>\$bundle['resource_provenance']") === false ||
+    strpos($php, "'ei_no_verified_fallback'") === false ||
+    strpos($php, "'ei_verified_only'") === false) {
+    fwrite(STDERR, "EI-only provenance states are missing from the shared resolver/adapter.\\n");
+    exit(1);
+}
+$safetyStart = strpos($php, 'private function safety_response(');
+$safetyEnd = strpos($php, 'private function safety_answer_class(', $safetyStart === false ? 0 : $safetyStart);
+if ($safetyStart === false || $safetyEnd === false) {
+    fwrite(STDERR, "HRN safety response boundary is missing.\\n");
+    exit(1);
+}
+$safetyResponse = substr($php, $safetyStart, $safetyEnd - $safetyStart);
+if (strpos($safetyResponse, '$this->resolve_ei_resource_bundle($country_code, $stage)') === false ||
+    strpos($safetyResponse, "'resources'=>\$bundle['resources']") === false ||
+    strpos($safetyResponse, "'location_required'=>(\$country_code === '')") === false ||
+    strpos($safetyResponse, '$this->safety_resource_bundle(') !== false) {
+    fwrite(STDERR, "Initial HRN safety response is not using the EI-only resource resolver.\\n");
     exit(1);
 }
 $jsStart = strpos($js, 'function submitSafetyLocation(v)');

@@ -4,6 +4,7 @@
  * This is not a full WordPress bootstrap or browser/integration test.
  */
 define('ABSPATH', __DIR__ . '/');
+define('LAEI_VERSION', '0.1.3');
 class WP_REST_Server { const CREATABLE = 'POST'; }
 class WP_REST_Request {
     private $params;
@@ -88,22 +89,23 @@ assert_true(count(array_filter($dedupe_phones, function($number){ return $number
 
 $GLOBALS['la_test_ei_mode'] = 'empty';
 $no_match = $hrn->resource_location_handler(new WP_REST_Request(array('country'=>'PH','safety_stage'=>'acute_contact','safety_question'=>$question,'safety_message'=>$safety_message)));
-assert_true(is_array($no_match) && !empty($no_match['resources']), 'EI no-match retains existing HRN continuity resources when available');
-assert_true(($no_match['resource_provenance'] ?? '') === 'hrn_legacy_fallback', 'EI no-match is accurately labelled as legacy fallback');
+assert_true(is_array($no_match) && empty($no_match['resources']), 'EI no-match exposes no legacy telephone resources');
+assert_true(($no_match['resource_provenance'] ?? '') === 'ei_no_verified_fallback', 'EI no-match is explicitly labelled as fail-closed');
+assert_true(($no_match['resource_status'] ?? '') === 'ei_no_verified_resource' && !empty($no_match['note']), 'EI no-match provides safe explanatory guidance without a callable number');
 assert_true(($no_match['stage'] ?? '') === 'acute_contact' && ($no_match['question'] ?? '') === $question, 'EI no-match preserves the active safety stage and question');
 
 $GLOBALS['la_test_ei_mode'] = 'malformed';
 $malformed = $hrn->resource_location_handler($request);
-assert_true(is_array($malformed) && !empty($malformed['resources']), 'malformed EI selection is ignored and continuity resources remain available');
+assert_true(is_array($malformed) && empty($malformed['resources']), 'malformed EI selection cannot reintroduce legacy telephone resources');
 assert_true(($malformed['stage'] ?? '') === 'acute_contact' && ($malformed['question'] ?? '') === $question, 'malformed EI output cannot change the active safety stage or question');
-assert_true(($malformed['resource_provenance'] ?? '') === 'hrn_legacy_fallback', 'malformed EI output is labelled as legacy fallback');
+assert_true(($malformed['resource_provenance'] ?? '') === 'ei_no_verified_fallback', 'malformed EI output is labelled as fail-closed');
 
 $GLOBALS['la_test_ei_mode'] = 'throw';
 $GLOBALS['la_test_ei_calls'] = array();
 $fallback = $hrn->resource_location_handler($request);
-assert_true(is_array($fallback) && !empty($fallback['resources']), 'EI exception retains HRN legacy resources');
+assert_true(is_array($fallback) && empty($fallback['resources']), 'EI exception exposes no HRN legacy telephone resources');
 assert_true(($fallback['stage'] ?? '') === 'acute_contact' && ($fallback['question'] ?? '') === $question, 'EI outage does not alter the active safety stage or question');
-assert_true(($fallback['resource_provenance'] ?? '') === 'hrn_legacy_fallback', 'EI outage is labelled as legacy fallback');
+assert_true(($fallback['resource_status'] ?? '') === 'ei_no_verified_resource' && !empty($fallback['note']), 'EI outage returns safe guidance rather than an unverified number');
 
 $GLOBALS['la_test_ei_mode'] = 'empty';
 $unsupported = $hrn->resource_location_handler(new WP_REST_Request(array('country'=>'Atlantis','safety_stage'=>'acute_contact','safety_question'=>$question,'safety_message'=>$safety_message)));
@@ -124,6 +126,13 @@ assert_true($unknown_extra_rejected instanceof WP_Error && $unknown_extra_reject
 
 $invalid = $hrn->resource_location_handler(new WP_REST_Request(array('country'=>'PH','safety_stage'=>'not-a-stage','safety_question'=>$question,'safety_message'=>$safety_message)));
 assert_true($invalid instanceof WP_Error && $invalid->get_error_code() === 'lah_rn_invalid_safety_stage', 'invalid safety stage fails closed');
+
+$safety_method = new ReflectionMethod($hrn, 'safety_response');
+$safety_method->setAccessible(true);
+$initial_interrupt = $safety_method->invoke($hrn, 'acute', '', 'I want to kill myself.');
+assert_true(is_array($initial_interrupt) && ($initial_interrupt['resources'] ?? null) === array(), 'initial HRN safety interrupt exposes no legacy resource numbers');
+assert_true(!empty($initial_interrupt['location_required']), 'initial HRN safety interrupt requires explicit location before EI resource resolution');
+assert_true(($initial_interrupt['resource_provenance'] ?? '') === 'ei_location_resolution_pending', 'initial HRN safety interrupt marks EI resource resolution as pending');
 
 $hrn->register_rest();
 $routes = $GLOBALS['la_test_routes'];
