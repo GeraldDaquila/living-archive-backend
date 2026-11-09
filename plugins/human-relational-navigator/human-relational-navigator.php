@@ -1250,28 +1250,36 @@ Visitor response: " . $message;
             return new WP_Error('lah_rn_invalid_safety_stage', 'The current safety stage could not be confirmed.', array('status'=>400));
         }
 
-        // Keep HRN's existing registry as a continuity fallback while EI
-        // coverage and independent verification are completed.
-        $legacy = $this->safety_resource_bundle($country, $stage, '');
+        // EI is the sole authority for callable emergency-resource selection.
+        // The older HRN registry is deliberately NOT a fallback: it has no
+        // independently enforced provenance/expiry contract and could reintroduce
+        // a number EI rejected.
         $resources = array();
         $seen = array();
         $ei_used = false;
+        $ei_available = function_exists('living_archive_emergency_resolve');
+        $ei_failure_reasons = array();
+        $ei_registry_version = null;
 
-        if (function_exists('living_archive_emergency_resolve')) {
+        if ($ei_available) {
             $needs = array('general_emergency', 'medical', 'crisis_support');
             foreach ($needs as $need) {
                 try {
                     $result = living_archive_emergency_resolve($need, array('explicit_country'=>$country), $stage, 'acute_emergency');
-                    $selection = is_array($result) ? ($result['selection'] ?? array()) : array();
+                    if (!is_array($result)) {
+                        $ei_failure_reasons[] = 'resolver_unavailable';
+                        continue;
+                    }
+                    if (!empty($result['registry_version'])) $ei_registry_version = sanitize_text_field($result['registry_version']);
+                    $selection = is_array($result['selection'] ?? null) ? $result['selection'] : array();
                     $selection_status = $selection['selection_status'] ?? '';
                     if ($selection_status === 'SELECTED') {
                         $candidates = array($selection['primary'] ?? array());
                     } elseif ($selection_status === 'MULTIPLE_EQUIVALENT' && is_array($selection['primary'] ?? null)) {
-                        // EI may identify equivalent official routes (for example
-                        // the 999/112 pair). Preserve both rather than dropping
-                        // the EI result and reverting to a single legacy entry.
+                        // Preserve verified equivalent routes (for example 999/112).
                         $candidates = $selection['primary'];
                     } else {
+                        $ei_failure_reasons[] = sanitize_key($selection['failure_reason'] ?? $selection_status ?: 'no_eligible_resource');
                         continue;
                     }
                     foreach ($candidates as $resource) {
@@ -1286,26 +1294,28 @@ Visitor response: " . $message;
                             'display_phone'=>$number,
                             'group'=>$group,
                             'channels'=>array('call'),
+                            'verification_status'=>'verified_by_ei',
                         );
                         $seen[$number] = true;
                         $ei_used = true;
                     }
                 } catch (Throwable $e) {
-                    error_log('[Living Archive HRN] EI resource lookup failed; retaining legacy resource fallback: '.$e->getMessage());
+                    $ei_failure_reasons[] = 'resolver_error';
+                    error_log('[Living Archive HRN] EI resource lookup failed; no legacy telephone fallback will be used: '.$e->getMessage());
                     break;
                 }
             }
+        } else {
+            $ei_failure_reasons[] = 'resolver_unavailable';
         }
 
-        // Preserve HRN's existing resources whenever EI cannot provide an
-        // eligible match. Do not manufacture a number or verification claim.
-        foreach (($legacy['resources'] ?? array()) as $resource) {
-            $number = sanitize_text_field($resource['phone'] ?? '');
-            if ($number !== '' && isset($seen[$number])) continue;
-            if ($number !== '') $seen[$number] = true;
-            $resources[] = $resource;
+        $resource_status = $ei_used ? 'ei_verified_resources' : ($ei_available ? 'ei_no_verified_resource' : 'ei_unavailable');
+        $note = '';
+        if (!$ei_used) {
+            $note = 'I could not confirm a current, verified local emergency number for this location. I will not display an unverified number. If you may be in immediate danger, use an emergency service you already know is valid where you are or go to the nearest emergency department. Stay with another person if you can.';
+        } elseif ($ei_failure_reasons) {
+            $note = 'Only resources with current verification are shown. Some local resource categories could not be independently verified and have been withheld.';
         }
-        if (!$resources && !empty($legacy['fallback'])) $resources[] = $legacy['fallback'];
 
         return rest_ensure_response(array(
             'operation'=>'resource_location_resolution',
@@ -1317,8 +1327,11 @@ Visitor response: " . $message;
             'country'=>$country,
             'resources'=>$resources,
             'location_required'=>false,
-            'resource_provenance'=>$ei_used ? 'ei_with_hrn_legacy_fallback' : 'hrn_legacy_fallback',
-            'ei_registry_version'=>function_exists('living_archive_emergency_resolve') && isset($result['registry_version']) ? $result['registry_version'] : null,
+            'resource_provenance'=>$ei_used ? 'ei_verified_only' : 'ei_no_verified_fallback',
+            'resource_status'=>$resource_status,
+            'resource_failure_reasons'=>array_values(array_unique($ei_failure_reasons)),
+            'note'=>$note,
+            'ei_registry_version'=>$ei_registry_version,
         ));
     }
 
