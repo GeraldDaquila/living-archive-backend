@@ -42,7 +42,10 @@ Static source checks confirmed:
 
 ## Known limitations / not yet verified
 
-- No PHP lint or WordPress runtime test has been executed in this workflow.
+- PHP syntax validation passed for all PHP files in both plugins in GitHub Actions run [42583379198](https://github.com/GeraldDaquila/living-archive-backend/actions/runs/42583379198).
+- Frontend JavaScript syntax validation passed in the same run.
+- Static location-only boundary assertions passed in the same run.
+- No WordPress runtime/integration test has been executed.
 - No browser E2E test has been run.
 - No live request has yet confirmed that EI loads before the HRN callback in the target WordPress runtime, although the plugin loading hooks and public interface were inspected.
 - EI's public route remains unauthenticated in the same way as the existing HRN public REST route; request throttling and abuse controls still need a separate review.
