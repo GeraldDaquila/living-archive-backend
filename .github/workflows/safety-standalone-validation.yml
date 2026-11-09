@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - safety/standalone-deterministic-20261109
+      - safety/visitor-flow-20261110
     paths:
       - 'safety_intelligence.py'
       - 'safety_utility.py'
@@ -13,6 +14,7 @@ on:
       - 'use_core.py'
       - 'tests/test_safety_first_turn_resource_handoff.py'
       - 'QA/V488_SAFETY_BOUNDARY_QA.py'
+      - 'wordpress/living-archive-guide-v489.247-response-integrity.js'
       - '.github/workflows/safety-standalone-validation.yml'
   pull_request:
     paths:
