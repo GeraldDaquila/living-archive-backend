@@ -1,41 +1,51 @@
 Living Archive Emergency Intelligence
-QA Report — v0.1.1
-Date: 2026-09-29
+QA Report — v0.1.3 candidate
+Date: 2026-11-09
 
-STATUS: PASS — uploadable prototype build
+STATUS: PASS — isolated provenance / expiry regression suite and disposable WordPress REST integration
+
+Registry:
+- Schema version 0.2
+- Registry version 2026.11.09.001
+- Nine verification records carry HTTPS source URLs
+- Every verification record explicitly maps to one or more resource IDs
+- UK 999/112 equivalence uses one shared verification record mapped to both resources
+- Remote registry signature is marked mandatory
+- Remote registry updates remain disabled until trusted-key cryptographic signature verification is implemented and tested
 
 Validated:
-- PHP syntax across all plugin PHP files
-- JSON parsing for registry and diagnostic fixtures
-- Registry structural validation
-- Country / architecture / resource / verification referential integrity
-- Five-country resource selection:
-  Philippines 911
-  United States 911
-  Germany 112
-  China 110 / 119 / 120 / 122
-  United Kingdom 999 / 112 equivalence
-- Unknown location -> LOCATION_REQUIRED
-- Refused location -> FALLBACK_GENERAL_EMERGENCY
-- Conflicting location evidence -> highest-strength evidence selected
-- Partial location evidence -> resource selection remains available
-- Unsupported country -> general emergency fallback
-- Presenter phone action generation
-- Invalid registry rejection
-- Duplicate ID rejection
-- Unknown country/architecture/verification reference rejection
-- Same-version registry rejection
-- Content-hash mismatch rejection
-- Signed-registry rejection while no trusted public key is provisioned
-- Newer valid registry activation
-- Active registry version promotion
+- PHP syntax across EI and HRN plugin PHP files
+- Existing EI-HRN location-only boundary assertions
+- Existing isolated HRN resource-handler execution tests
+- Existing EI-HRN location-only regression tests
+- Current verified resource selection produces the expected telephone action
+- Expired verification is rejected and produces no telephone action
+- Future-dated verification is rejected and produces no telephone action
+- Unverified resource is rejected and produces no telephone action
+- Missing source URLs are rejected and produce no telephone action
+- Non-HTTPS source URLs are rejected by candidate validation
+- Resource-to-verification mismatch is rejected and produces no telephone action
+- Missing verification record is rejected and produces no telephone action
+- Impossible calendar date is rejected and produces no telephone action
+- UK 999/112 equivalence remains available only with current shared provenance
+- Candidate validation rejects missing source provenance and mismatched resource mappings
+- Disposable WordPress REST bootstrap and dispatch integration passed
+- HRN location-only input boundary remains intact
 
-Important limitation:
-This QA was performed against the actual plugin code using a controlled WordPress-function test harness. It is not a live production WordPress installation test. WordPress installation/activation and browser-level REST testing remain to be performed after upload.
+CI evidence:
+- EI-HRN Adapter Validation: run 42593630295
+- syntax-and-boundary: PASS
+- wordpress-rest-integration: PASS
+
+Important limitations:
+- Disposable WordPress integration uses a test-only empty canonical-retriever stub. It validates REST bootstrap and dispatch, not canonical retrieval integration.
+- Browser-level E2E has not yet been performed.
+- Source URLs and their asserted meaning still require human editorial review; URL shape validation does not prove that a page supports a specific number or service.
+- No production WordPress installation, registry, Render service, or deployment was changed.
 
 Architecture status:
-- Standalone only
-- No Human Relational Navigator integration
-- No HRN files modified
-- Local registry remains the emergency-path source of truth
-- Emergency path does not wait for registry refresh
+- EI remains a standalone resource authority.
+- HRN remains location-only; no visitor answers or transcripts are passed to EI.
+- Local registry remains the emergency-path source of truth.
+- Emergency path does not wait for remote registry refresh.
+- Remote updates remain fail-closed pending cryptographic signature verification.
