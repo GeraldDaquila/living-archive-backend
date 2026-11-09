@@ -10575,8 +10575,9 @@ if any(_is_fsd_request(item) for item in _fsd_nonroute_probes):
 # The middleware, not mutation of FastAPI's stored endpoint objects, owns
 # relational interception. This preserves the base route's validated request
 # contract for every non-relational query.
-if not any(getattr(route, "path", "") == "/api/relational-return" for route in app.routes):
-    raise RuntimeError("USE v487.57 invariant failed: relational return route not registered")
+# HRN retirement: relationship inquiries remain inside The Guide. The legacy
+# relational-return route is retained temporarily for backward compatibility,
+# but it is no longer part of the normal visitor routing path.
 
 # Single authoritative request boundary; all non-specialist requests fall through once.
 if STREAM_CONTRACT_VERSION != "SSE-VALIDATED-v1" or STREAM_TRANSPORT_VERSION != "0.1.1":
