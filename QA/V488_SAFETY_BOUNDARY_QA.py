@@ -9,8 +9,10 @@ or any live provider.
 from pathlib import Path
 import ast
 import json
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 
 def _source(path: str) -> str:
