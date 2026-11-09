@@ -60,3 +60,14 @@ def test_explanatory_question_rejects_deliberative_template_contamination():
         "Finally, act on the best-supported option and review the consequences."
     )
     assert is_generic_nonanswer(query, response)
+
+
+def test_developmental_language_gold_star_recovery_principle():
+    from general_guide_composition import is_generic_nonanswer
+    query = "How can developmental language become hierarchical or dismissive?"
+    response = (
+        "Developmental language can become hierarchical when descriptions of different capacities "
+        "or patterns are treated as rankings of human worth. A framework becomes dismissive when "
+        "a label explains away someone's perspective rather than engaging with what they are saying."
+    )
+    assert not is_generic_nonanswer(query, response)
