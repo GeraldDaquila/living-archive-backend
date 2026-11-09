@@ -1,6 +1,13 @@
 name: Crosslink Territorial Integrity Audit
 
 on:
+  push:
+    branches:
+      - feat/crosslink-territorial-integrity-audit
+    paths:
+      - "scripts/audit_archive_crosslink_integrity.py"
+      - "archive_crosslink_snapshot.json"
+      - ".github/workflows/crosslink-territorial-integrity-audit.yml"
   pull_request:
     paths:
       - "scripts/audit_archive_crosslink_integrity.py"
