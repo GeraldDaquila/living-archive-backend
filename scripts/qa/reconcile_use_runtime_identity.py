@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only USE runtime identity reconciliation for a checked-out Git commit.
-
-The script mirrors main.py::_runtime_source_manifest_sha256 exactly.
-It is intentionally stored under scripts/qa so it is excluded from the
-application-owned runtime manifest.
-"""
+"""Read-only USE runtime identity reconciliation for a checked-out Git commit."""
 from __future__ import annotations
 
 import hashlib
@@ -37,18 +32,18 @@ def runtime_source_manifest_sha256() -> tuple[str, int, list[str]]:
         relative_name = path.relative_to(ROOT).as_posix()
         names.append(relative_name)
         digest.update(relative_name.encode("utf-8"))
-        digest.update(b"\\0")
+        digest.update(b"\0")
         digest.update(path.read_bytes())
-        digest.update(b"\\0")
+        digest.update(b"\0")
     return digest.hexdigest(), len(source_files), names
 
 
 def main() -> int:
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
-    version = re.search(r'^APP_VERSION\\s*=\\s*["\\']([^"\\']+)', main_source, re.M)
-    fingerprint = re.search(r'^DEPLOYMENT_FINGERPRINT\\s*=\\s*["\\']([^"\\']+)', main_source, re.M)
-    build_id = re.search(r'^CANONICAL_BUILD_ID\\s*=\\s*["\\']([^"\\']+)', main_source, re.M)
-    expected_core = re.search(r'^EXPECTED_CORE_BLOB_SHA\\s*=\\s*["\\']([0-9a-f]{40})', main_source, re.M)
+    version = re.search(r'^APP_VERSION\s*=\s*["\']([^"\']+)', main_source, re.M)
+    fingerprint = re.search(r'^DEPLOYMENT_FINGERPRINT\s*=\s*["\']([^"\']+)', main_source, re.M)
+    build_id = re.search(r'^CANONICAL_BUILD_ID\s*=\s*["\']([^"\']+)', main_source, re.M)
+    expected_core = re.search(r'^EXPECTED_CORE_BLOB_SHA\s*=\s*["\']([0-9a-f]{40})', main_source, re.M)
 
     source_sha, count, names = runtime_source_manifest_sha256()
     core_sha = subprocess.check_output(
