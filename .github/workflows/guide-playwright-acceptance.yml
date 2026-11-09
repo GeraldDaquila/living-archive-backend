@@ -1,0 +1,30 @@
+name: Guide Playwright Acceptance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'QA/playwright.config.js'
+      - 'QA/test_guide_browser_routing.js'
+      - 'package.json'
+      - '.github/workflows/guide-playwright-acceptance.yml'
+
+jobs:
+  guide-browser-routing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:guide-e2e
+        env:
+          GUIDE_URL: https://geralddaquila.com/the-guide-find-your-way2/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore
