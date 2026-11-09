@@ -113,7 +113,7 @@ def main():
         "selection": {"selection_status": "FALLBACK_GENERAL_EMERGENCY", "primary": []},
     }
     refused = normalize_resolution(
-        hrn_with_us_numbers,
+        unsafe_unscoped_resources,
         requested_state="acute",
         country="",
         emergency_resolution=refused_location,
@@ -141,7 +141,7 @@ def main():
         },
     }
     located = normalize_resolution(
-        hrn_with_us_numbers,
+        unsafe_unscoped_resources,
         requested_state="acute",
         country="PH",
         emergency_resolution=verified_ph,
