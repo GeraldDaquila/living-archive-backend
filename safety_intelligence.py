@@ -545,6 +545,45 @@ def repair_safety_question(
     return "Do you think you might act on these thoughts right now?"
 
 
+def _last_safety_message(history: str) -> str:
+    """Return the most recent assistant-facing safety message from serialized history."""
+    for line in reversed(str(history or "").splitlines()):
+        match = re.match(r"^\\s*(?:assistant|system)\\s*:\\s*(.+)$", line, re.I)
+        if match:
+            value = match.group(1).strip()
+            if value and not value.casefold().startswith("question:"):
+                return value
+    return ""
+
+
+def _safety_stage_from_history(history: str, question: str, fallback_state: str) -> str:
+    """Disambiguate repeated safety questions using the preceding assistant movement."""
+    message = " ".join(_last_safety_message(history).casefold().split())
+    if "you have taken a step to stay connected to support" in message:
+        return "release"
+    if "it is important to stay connected to support" in message:
+        return "recovery"
+    if "if you have reached someone or emergency support" in message:
+        return "acute_contact"
+    if "if someone is with you" in message:
+        return "acute_connection"
+    if "i hear you. i am going to stop asking you to repeat the same safety step" in message:
+        return "acute_hold"
+    if "please stay away from anything you could use to hurt yourself" in message:
+        return "acute_followthrough"
+    if "please move away from anything you could use to hurt yourself" in message:
+        return "acute"
+    if "you do not have to carry this entirely by yourself" in message:
+        return "support"
+    if "i want to understand how close these thoughts feel to action" in message:
+        return "plan"
+    if "i'm taking your answer seriously" in message:
+        return "immediacy"
+    if "i want to take what you just said seriously" in message:
+        return "current"
+    return _safety_stage_from_question(question, fallback_state)
+
+
 def _safety_stage_from_question(question: str, fallback_state: str) -> str:
     """Recover the active deterministic stage from the last safety question."""
     q = " ".join(str(question or "").strip().casefold().split())
@@ -831,7 +870,7 @@ def resolve_safety(
     location_input = _emergency_location(country=country, location=location)
     previous_question = safety_question or _last_safety_question(history)
     presence = _presence_signal(query)
-    stage = _safety_stage_from_question(previous_question, safety_state)
+    stage = _safety_stage_from_history(history, previous_question, safety_state)
 
     initial_safety_fast_path = (
         not str(history or "").strip()
