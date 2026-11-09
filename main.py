@@ -6748,6 +6748,21 @@ def _established_general_knowledge_recovery(query):
             ),
         }
 
+    triangle_area_question = bool(
+        re.search(r"\btriangle\b", normalized)
+        and re.search(r"\barea\b", normalized)
+        and re.search(r"\b(?:calculate|compute|find|work out|formula)\b", normalized)
+    )
+    if triangle_area_question:
+        return {
+            "fact_id": "triangle_area_formula",
+            "response": (
+                "The area of a triangle is calculated with the formula: **Area = ½ × base × height**. "
+                "The height must be the perpendicular distance from the chosen base to the opposite vertex.\n\n"
+                "For example, if the base is 10 units and the height is 6 units, the area is ½ × 10 × 6 = **30 square units**."
+            ),
+        }
+
     triangle_sides_question = bool(
         re.search(r"\b(?:how many sides|number of sides)\b", normalized)
         and re.search(r"\btriangle\b", normalized)
