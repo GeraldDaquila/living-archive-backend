@@ -17919,9 +17919,6 @@ class FlexibleQueryRequest(BaseModel):
     text: Optional[str] = None
     history: Optional[List[Any]] = None
     conversation_history: Optional[List[Any]] = None
-    # Opaque, server-authenticated continuity token for an active Safety flow.
-    # It is optional and carries no visitor text.
-    safety_session: Optional[str] = None
 
 
 # =====================================================================
