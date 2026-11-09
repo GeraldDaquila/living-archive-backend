@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Human Relational Navigator
  * Description: A bounded Living Archive instrument for exploring human relational patterns without diagnosis, advice-giving, or invented canonical meaning.
- * Version: 0.5.333
+ * Version: 0.5.334
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class Living_Archive_Human_Relational_Navigator {
-    const VERSION = '0.5.333';
+    const VERSION = '0.5.334';
+    // RELEASE v0.5.334: route emergency-resource selection exclusively through EI with explicit country evidence and fail-closed provenance; frozen relational writer unchanged.
     // RELEASE v0.5.333: require pending visitor evidence in terminal closure and recognize natural closure language; frozen writer unchanged.
     // RELEASE v0.5.332: reject abstract task-allocation framing for explicit one-sided friendship effort and recover grounded prose plus question after provider exhaustion; frozen writer unchanged.
     // RELEASE v0.5.331: reject the abstract effort-overlook template and recover a grounded question for explicit one-sided effort; frozen writer unchanged.
