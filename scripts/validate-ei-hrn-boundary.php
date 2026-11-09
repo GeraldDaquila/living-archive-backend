@@ -39,10 +39,11 @@ if ($safetyStart === false || $safetyEnd === false) {
     exit(1);
 }
 $safetyResponse = substr($php, $safetyStart, $safetyEnd - $safetyStart);
-if (strpos($safetyResponse, "'resources'=>array()") === false ||
-    strpos($safetyResponse, "'location_required'=>true") === false ||
+if (strpos($safetyResponse, '$this->resolve_ei_resource_bundle($country_code, $stage)') === false ||
+    strpos($safetyResponse, "'resources'=>\$bundle['resources']") === false ||
+    strpos($safetyResponse, "'location_required'=>($country_code === '')") === false ||
     strpos($safetyResponse, '$this->safety_resource_bundle(') !== false) {
-    fwrite(STDERR, "Initial HRN safety response can still expose legacy resources.\\n");
+    fwrite(STDERR, "Initial HRN safety response is not using the EI-only resource resolver.\\n");
     exit(1);
 }
 $jsStart = strpos($js, 'function submitSafetyLocation(v)');
