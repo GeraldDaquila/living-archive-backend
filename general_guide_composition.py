@@ -1975,7 +1975,13 @@ def _is_archive_constitutional_question(query: str) -> bool:
         r"\b(?:living archive|the archive|archive['’]s)\b",
         question,
     ))
-    return has_constitutional_subject and has_archive_context
+    # “Archive's sense” is an explicit Archive-context signal even when the
+    # apostrophe is separated by whitespace or normalized differently.
+    has_archive_sense = bool(re.search(
+        r"\barchive\s*(?:['’]s\s*)?sense\b",
+        question,
+    ))
+    return has_constitutional_subject and (has_archive_context or has_archive_sense)
 
 
 def _archive_constitutional_recovery(
