@@ -661,7 +661,14 @@ def export_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
 
 
 def _snapshot_path() -> str:
-    return str(os.getenv(_SNAPSHOT_FILE_ENV, "")).strip()
+    configured = str(os.getenv(_SNAPSHOT_FILE_ENV, "")).strip()
+    if configured:
+        return configured
+    # The canonical territorial snapshot is version-controlled with this module.
+    # Render consumers must use the deployed artifact directly; private GitHub
+    # raw URLs can return HTTP errors at runtime and leave the recovery layer empty.
+    bundled = os.path.join(os.path.dirname(__file__), "archive_crosslink_snapshot.json")
+    return bundled if os.path.isfile(bundled) else ""
 
 
 def _load_persisted_snapshot() -> bool:
