@@ -1,4 +1,6 @@
 # USE PRODUCTION VERSION: v489.311 — Bounded Pinecone retrieval budget
+# Preserve the redacted request-boundary contract used by provider diagnostics.
+# USE Relationship specialist failed safely: exception={type(exc).__name__}
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
@@ -1314,6 +1316,11 @@ def _recommendation_first_fetch(query_str):
                             existing_block_text + "\n\n---\n\n" + extra_block_text
                             if existing_block_text else extra_block_text
                         )
+                    print(
+                        "The Guide recovery evidence trace: "
+                        f"selected={len(additions)}; serialized={len(_parse_context_documents(extra_block_text))}; "
+                        f"context_chars={len(extra_block_text)}"
+                    )
                     print(
                         "The Guide full-corpus meta-crosslink: "
                         f"added={len(additions)}, seed={len(existing_urls)}"
