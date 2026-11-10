@@ -25,10 +25,19 @@ DEFAULT_EMERGENCY_INTELLIGENCE_ENDPOINT = (
     "https://geralddaquila.com/wp-json/living-archive/emergency/v1/resolve"
 )
 
+# Deterministic third-person / support lane. This deliberately requires both
+# a recognizable other-person reference and a current self-harm or suicide
+# signal, so general educational discussion remains outside the interruption.
 _SUPPORT_PATTERN = re.compile(
-    r"\b(?:someone|they|he|she|my\s+(?:friend|partner|parent|child|family))\b.*"
-    r"\b(?:suicid(?:e|al|ality)|self[- ]?harm|kill(?:ing)?\s+themselves|"
-    r"want\s+to\s+die|at\s+risk|in\s+danger)\b",
+    r"\b(?:someone|somebody|a\s+(?:friend|person|colleague)|they|he|she|"
+    r"my\s+(?:friend|partner|parent|child|family|brother|sister|son|daughter|"
+    r"husband|wife|colleague|coworker))\b.*"
+    r"\b(?:is\s+(?:suicidal|at\s+risk|in\s+danger)|"
+    r"(?:talk(?:ing)?\s+about|thinking\s+about|considering|trying\s+to|"
+    r"want(?:s|ing)?\s+to|said|says|telling\s+me|mentioned)\s+"
+    r"(?:suicid(?:e|al|ality)|self[- ]?harm|kill(?:ing)?\s+(?:himself|herself|themselves)|"
+    r"end(?:ing)?\s+(?:his|her|their)\s+life|want\s+to\s+die|"
+    r"(?:do(?:es|n't| not)|doesnt)\s+want\s+to\s+live|not\s+be\s+here))\b",
     re.I | re.S,
 )
 _ACUTE_PATTERNS = (
@@ -997,6 +1006,24 @@ if normalize_safety_state("What are common signs of grief?") is not None:
 
 if normalize_safety_state("I want to die.") != "acute":
     raise RuntimeError("USE v488.67 invariant failed: direct 'I want to die' disclosure is not deterministic acute.")
+
+# Safety trigger matrix invariants: explicit third-person concern must enter
+# the support lane without converting ordinary educational discussion into a crisis.
+for _support_case in (
+    "My brother wants to die.",
+    "My daughter says she is going to end her life.",
+    "My colleague is suicidal.",
+    "Someone I love is talking about killing herself.",
+    "My friend says he doesn't want to live.",
+):
+    if normalize_safety_state(_support_case) != "support":
+        raise RuntimeError(f"USE safety matrix invariant failed: third-person support case lost: {_support_case!r}")
+for _non_support_case in (
+    "What does the phrase suicide prevention mean?",
+    "We discussed a historical account of suicide in class.",
+):
+    if normalize_safety_state(_non_support_case) is not None:
+        raise RuntimeError(f"USE safety matrix invariant failed: informational case interrupted: {_non_support_case!r}")
 
 
 def safety_intelligence_snapshot() -> dict[str, Any]:
