@@ -1954,7 +1954,11 @@ def _has_constitutional_governing_relationships(response: str) -> bool:
     """Require constitutional answers to explain relationships, not merely name architecture."""
     text = _normalize_space(response)
     return bool(
-        re.search(r"\b(?:governing relationships?|relationships? among|how .* connect|connect(?:s|ed|ing)? .* concepts?)\b", text, re.I)
+        re.search(
+            r"\b(?:governing relationships?|relationships? among(?: concepts)?|relationships? between concepts|how .* connect|connect(?:s|ed|ing)? .* concepts?)\b",
+            text,
+            re.I,
+        )
         and re.search(r"\b(?:principles?|responsibilit(?:y|ies)|commitments?)\b", text, re.I)
         and re.search(r"\b(?:recovery before translation|clarity before application)\b", text, re.I)
     )
