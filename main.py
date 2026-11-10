@@ -7428,6 +7428,36 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             )
             if composition_result:
                 llm_output = composition_result.get("response", "")
+
+                # Composition may recover a useful answer and independently preserve
+                # one verified Archive doorway from the retrieval/meta-net context.
+                # Promote that complete title/URL pair into the runtime's
+                # authoritative navigation surface. Previously the composer could
+                # select a doorway that was silently lost because only the answer
+                # text crossed this boundary.
+                if not authoritative_doorway:
+                    _composer_doorway_title = str(
+                        composition_result.get("doorway_title") or ""
+                    ).strip()
+                    _composer_doorway_url = str(
+                        composition_result.get("doorway_url") or ""
+                    ).strip()
+                    _composer_doorway = _normalize_authoritative_recommendation({
+                        "title": _composer_doorway_title,
+                        "url": _composer_doorway_url,
+                    })
+                    if _composer_doorway:
+                        authoritative_doorway = _composer_doorway
+                        composition_context["authoritative_doorway"] = authoritative_doorway
+                        composition_context["authoritative_doorway_title"] = (
+                            authoritative_doorway.get("title") or ""
+                        )
+                        archive_evidence_unavailable = False
+                        print(
+                            "The Guide General Composition: promoted verified "
+                            "composer doorway into the runtime navigation surface."
+                        )
+
                 print(
                     "The Guide General Composition: "
                     f"mode=auto, provider={composition_result.get('provider') or 'unknown'}, "
