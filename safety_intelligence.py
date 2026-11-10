@@ -178,16 +178,6 @@ for _expected_state, _coverage_case in _SAFETY_COVERAGE_MATRIX:
             f"Safety coverage invariant failed: {_coverage_case!r} expected {_expected_state!r}, got {_actual_state!r}"
         )
 
-# Indirect first-person disclosures that are not deterministic today must at
-# least reach the bounded semantic recall gate; the model remains advisory.
-for _semantic_case in (
-    "I can't go on anymore.",
-    "I don't see the point of living.",
-    "I'd be better off dead.",
-):
-    if not _semantic_safety_candidate(_semantic_case):
-        raise RuntimeError(f"Safety semantic-gate invariant failed: {_semantic_case!r}")
-
 # Deterministic support-lane regression matrix.
 for _support_case in (
     "My brother wants to die.",
@@ -1088,6 +1078,15 @@ for _non_support_case in (
     if normalize_safety_state(_non_support_case) is not None:
         raise RuntimeError(f"USE safety matrix invariant failed: informational case interrupted: {_non_support_case!r}")
 
+
+# Indirect first-person disclosures must reach the bounded semantic recall gate.
+for _semantic_case in (
+    "I can't go on anymore.",
+    "I don't see the point of living.",
+    "I'd be better off dead.",
+):
+    if not _semantic_safety_candidate(_semantic_case):
+        raise RuntimeError(f"Safety semantic-gate invariant failed: {_semantic_case!r}")
 
 def safety_intelligence_snapshot() -> dict[str, Any]:
     return {
