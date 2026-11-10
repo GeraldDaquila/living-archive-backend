@@ -2069,7 +2069,7 @@
     },
     {
       "benchmark_id": "general-guide-developmental-language-gold-star-2026-11-09",
-      "status": "gold_star",
+      "status": "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE",
       "query": "How can developmental language become hierarchical or dismissive?",
       "answer_type": "bounded_general_explanatory",
       "lesson": "When an explanatory question lacks directly establishing Archive evidence but can be responsibly answered from general knowledge, preserve the visitor's question and provide a bounded conceptual explanation rather than forcing an unrelated template or unnecessarily abstaining.",
@@ -2081,7 +2081,13 @@
         "transfer the recovery principle, not the wording or subject matter"
       ],
       "runtime_transfer": "bounded_general_explanatory_recovery",
-      "source": "live visitor calibration"
+      "subsystem": "general_guide",
+      "provenance": {
+        "source_ref": "live visitor calibration 2026-11-09",
+        "approval_evidence": "Retained as a Gold Star calibration record; exact response fixture is not registered in this record.",
+        "evidence_boundary": "This record preserves the approved calibration lesson and runtime transfer, not a verbatim visitor response fixture."
+      },
+      "freeze_policy": "Preserve the calibration lesson and runtime transfer; do not represent this record as an exact response fixture until one is independently registered."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control. New approved record added on October 26, 2026: the screenshot-approved governance-beyond-administration response is registered as USER_APPROVED_GOLD_STANDARD with exact three-paragraph wording and a separately verified live doorway URL.",
