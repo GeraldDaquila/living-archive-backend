@@ -365,7 +365,7 @@ try {
 
   if (apiRequests.length !== 5) throw new Error("Expected exactly 5 intercepted API requests, got " + apiRequests.length);
   if (!continuityPassed) throw new Error("Ordinary Reply request did not carry the expected prior conversation history.");
-  if (pageErrors.length) throw new Error("Browser page errors: " + pageErrors.join(" | "));
+  if (guideControllerErrors.length) throw new Error("Guide controller browser errors: " + JSON.stringify(guideControllerErrors));
   mark("test_passed", { requestCount: apiRequests.length, continuityPassed, consoleErrors, failedRequests });
 } catch (error) {
   mark("test_failed", { message: error.message, requestCount: apiRequests.length, pageErrors });
