@@ -54,7 +54,7 @@ page.on("requestfailed", request => {
   if (request.url().includes("/api/query")) mark("api_request_failed_event", { method: request.method(), url: request.url(), error: request.failure()?.errorText || "unknown" });
 });
 let mainQueryIndex = 0;
-page.on("pageerror", error => pageErrors.push(error.message));
+page.on("pageerror", error => pageErrors.push(`${error.message}\n${error.stack || ""}`));
 
 await page.route("**/*", async route => {
   const routeUrl = new URL(route.request().url());
