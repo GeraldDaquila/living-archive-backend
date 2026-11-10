@@ -9213,7 +9213,7 @@ def _hypothetical_safety_calibration_payload(query):
 
 def _safety_conversation_fallback(visitor_text):
     text = str(visitor_text or '').strip()
-    if re.search(r'\\b(?:someone is with me|with me|not alone|staying with me)\\b', text, re.I):
+    if re.search(r'\b(?:someone is with me|with me|not alone|staying with me)\b', text, re.I):
         return ('I’m glad someone is with you. If you can, stay connected with them for now. '
                 'You do not have to work everything out at once—just take the next small step that helps you stay safe.')
     return ('Thank you for telling me what is happening. You do not have to solve everything at once. '
