@@ -28,22 +28,27 @@ DEFAULT_EMERGENCY_INTELLIGENCE_ENDPOINT = (
 # Deterministic third-person / support lane. This deliberately requires both
 # a recognizable other-person reference and a current self-harm or suicide
 # signal, so general educational discussion remains outside the interruption.
-_SUPPORT_PATTERN = re.compile(
-    r"\b(?:someone|somebody|a\s+(?:friend|person|colleague)|they|he|she|"
+# Deterministic third-person / support lane. Person-reference detection and
+# safety-signal detection are intentionally separate so natural language between
+# them does not make the classifier brittle. Both conditions are required.
+_SUPPORT_PERSON_PATTERN = re.compile(
+    r"\b(?:someone|somebody|they|he|she|a\s+(?:friend|person|colleague)|"
     r"my\s+(?:friend|partner|parent|child|family|brother|sister|son|daughter|"
-    r"husband|wife|colleague|coworker))\b.*"
-    r"\b(?:is\s+(?:suicidal|at\s+risk|in\s+danger)|"
-    r"(?:talk(?:ing)?\s+about|thinking\s+about|considering|trying\s+to|"
-    r"said|says|telling\s+me|mentioned|going\s+to)\s+"
-    r"(?:he|she|they)?\s*"
-    r"(?:suicid(?:e|al|ality)|self[- ]?harm|kill(?:ing)?\s+(?:himself|herself|themselves)|"
-    r"end(?:ing)?\s+(?:his|her|their)\s+life|want\s+to\s+die|"
-    r"(?:do(?:es|n't| not)|doesnt)\s+want\s+to\s+live|not\s+be\s+here)|"
-    r"want(?:s|ing)?\s+to\s+(?:die|kill\s+(?:himself|herself|themselves)|"
-    r"end\s+(?:his|her|their)\s+life)|"
-    r"(?:do(?:es|n't| not)|doesnt)\s+want\s+to\s+live)\b",
-    re.I | re.S,
+    r"husband|wife|colleague|coworker))\b", re.I
 )
+_SUPPORT_SIGNAL_PATTERN = re.compile(
+    r"\b(?:suicid(?:e|al|ality)|self[- ]?harm|"
+    r"kill(?:ing)?\s+(?:himself|herself|themselves)|"
+    r"end(?:ing)?\s+(?:his|her|their)\s+life|"
+    r"want(?:s|ing)?\s+to\s+die|"
+    r"(?:does(?:n't| not)?|doesnt)\s+want\s+to\s+live|"
+    r"not\s+be\s+here|at\s+risk|in\s+danger)\b", re.I
+)
+
+def _is_third_person_support_concern(text: str) -> bool:
+    """Classify explicit concern about another person without keyword chaining."""
+    return bool(_SUPPORT_PERSON_PATTERN.search(text) and _SUPPORT_SIGNAL_PATTERN.search(text))
+
 _ACUTE_PATTERNS = (
     re.compile(r"\b(?:i(?:'m| am)?\s+going\s+to|i(?:'m| am)?\s+about\s+to|i\s+will)\s+(?:kill|end)\s+(?:myself|my\s+life)\b", re.I),
     # First-person inability to stay safe is urgent even when softened by uncertainty.
@@ -129,7 +134,7 @@ def normalize_safety_state(query: str, *, history: str = "") -> str | None:
     )
     if any(marker in recent for marker in active_markers):
         return "acute_followthrough"
-    if _SUPPORT_PATTERN.search(text):
+    if _is_third_person_support_concern(text):
         return "support"
     if any(pattern.search(text) for pattern in _ACUTE_PATTERNS):
         return "acute"
@@ -146,6 +151,50 @@ def normalize_safety_state(query: str, *, history: str = "") -> str | None:
         return "current"
     return None
 
+
+# Formal safety coverage matrix: deterministic boundaries and semantic-gate candidates.
+# Second-person/hypothetical wording is intentionally not treated as personal crisis
+# without a first-person or conversational-context signal.
+_SAFETY_COVERAGE_MATRIX = (
+    ("acute", "I want to die."),
+    ("acute", "I don't think I can keep myself safe."),
+    ("current", "I'm thinking of ending my life."),
+    ("current", "I wish I were dead."),
+    ("support", "My brother wants to die."),
+    ("support", "My friend says he doesn't want to live."),
+    ("none", "What does suicide prevention mean?"),
+    ("none", "We discussed suicide prevention in class."),
+    ("support", "What should you do if someone says they want to die?"),
+)
+for _expected_state, _coverage_case in _SAFETY_COVERAGE_MATRIX:
+    _actual_state = normalize_safety_state(_coverage_case)
+    if _expected_state == "none":
+        if _actual_state is not None:
+            raise RuntimeError(
+                f"Safety coverage invariant failed: expected no deterministic interrupt for {_coverage_case!r}, got {_actual_state!r}"
+            )
+    elif _actual_state != _expected_state:
+        raise RuntimeError(
+            f"Safety coverage invariant failed: {_coverage_case!r} expected {_expected_state!r}, got {_actual_state!r}"
+        )
+
+# Deterministic support-lane regression matrix.
+for _support_case in (
+    "My brother wants to die.",
+    "My daughter says she is going to end her life.",
+    "My colleague is suicidal.",
+    "Someone I love is talking about killing herself.",
+    "My friend says he doesn't want to live.",
+):
+    if normalize_safety_state(_support_case) != "support":
+        raise RuntimeError(f"Safety support invariant failed: {_support_case!r}")
+
+for _non_support_case in (
+    "What does suicide prevention mean?",
+    "We discussed a historical account of suicide in class.",
+):
+    if normalize_safety_state(_non_support_case) is not None:
+        raise RuntimeError(f"Safety false-positive invariant failed: {_non_support_case!r}")
 
 # v488.60 boundary invariant: a short answer must remain inside the active
 # safety conversation when the preceding safety question is still open.
@@ -1029,6 +1078,10 @@ for _non_support_case in (
     if normalize_safety_state(_non_support_case) is not None:
         raise RuntimeError(f"USE safety matrix invariant failed: informational case interrupted: {_non_support_case!r}")
 
+
+# Indirect first-person language remains a semantic/contextual review lane rather
+# than a deterministic invariant. Do not claim guaranteed recall for ambiguous
+# phrases that the bounded gate intentionally treats conservatively.
 
 def safety_intelligence_snapshot() -> dict[str, Any]:
     return {
