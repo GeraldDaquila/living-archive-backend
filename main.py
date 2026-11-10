@@ -7469,6 +7469,33 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                             "composer doorway into the runtime navigation surface."
                         )
 
+                # A successful grounded composition may legitimately rely on the
+                # bounded canonical context selected upstream even when no new
+                # supplemental fetch was required. Reconcile the runtime evidence
+                # state with that accepted composition so the final payload cannot
+                # advertise both a grounded answer and archive_evidence_unavailable.
+                if (
+                    archive_evidence_unavailable
+                    and llm_output
+                    and (
+                        authoritative_doorway
+                        or composition_result.get("grounded")
+                        or composition_result.get("archive_grounded")
+                    )
+                ):
+                    archive_evidence_unavailable = False
+                    for _evidence_flag in (
+                        "frame_neutral_evidence_unavailable",
+                        "question_structure_evidence_unavailable",
+                        "evidence_sufficiency_unavailable",
+                        "question_evidence_fit_unavailable",
+                    ):
+                        composition_context.pop(_evidence_flag, None)
+                    print(
+                        "The Guide General Composition: reconciled accepted canonical "
+                        "composition with runtime evidence state."
+                    )
+
                 print(
                     "The Guide General Composition: "
                     f"mode=auto, provider={composition_result.get('provider') or 'unknown'}, "
