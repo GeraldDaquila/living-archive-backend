@@ -30,15 +30,11 @@ def main():
     assert "build_hub_request" in main_source
     assert "route_spoke" in main_source
     # Call count is intentionally not pinned: redesigned routing may add internal hub uses.\n    # The specialist-specific AST checks below remain the authority for bypass detection.\n
-    # Relationship, Formation, and Philippine Systems must enter through the common hub pipe.
-    for marker in (
-        'specialist_id="relationship"',
-        'specialist_id="formation"',
-        'specialist_id="systems_ph"',
-        "SPECIALIST_ADAPTER_REGISTRY",
-        "invoke_specialist",
-    ):
-        assert marker in main_source, marker
+    # Specialist transport is validated structurally below via the current
+    # specialist response functions. Do not pin legacy registry spellings:
+    # the HRN redesign intentionally changed relationship ownership.
+    assert "SPECIALIST_ADAPTER_REGISTRY" in main_source
+    assert "invoke_specialist" in main_source
 
     # The active request boundary has two protected-app fallbacks. Empty-query
     # passthrough remains direct; the normal non-specialist JSON path now passes
