@@ -26,6 +26,7 @@ page.setDefaultTimeout(8_000);
 page.setDefaultNavigationTimeout(25_000);
 
 const pageErrors = [];
+const guideControllerErrors = [];
 const consoleErrors = [];
 const failedRequests = [];
 const apiRequests = [];
