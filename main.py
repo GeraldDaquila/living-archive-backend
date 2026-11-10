@@ -8628,7 +8628,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         )
                         if len(_systemwide_paragraphs) >= 3 and not _systemwide_is_meta and not _systemwide_nonanswer:
                             response = _systemwide_recovery
-                            authoritative_doorway = None
+                            # A final answer recovery changes the prose, not the
+                            # independently verified navigation decision. Preserve
+                            # an existing canonical doorway through this boundary;
+                            # only the selection pipeline may establish it.
                             if _systemwide_recovery.startswith("In the Living Archive Glossary,"):
                                 answer_basis = {
                                     "kind": "archive_reference",
@@ -8642,7 +8645,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                     "label": "General knowledge",
                                     "explanation": "A bounded general-knowledge recovery was used after the primary composition path failed; no Archive source attribution is implied.",
                                 }
-                            print("The Guide final payload boundary: system-wide three-paragraph recovery PASS; unverified doorway suppressed.")
+                            print(
+                                "The Guide final payload boundary: system-wide three-paragraph "
+                                "recovery PASS; existing verified doorway preserved="
+                                f"{bool(authoritative_doorway)}."
+                            )
                         else:
                             response = (
                                 "I couldn’t produce a reliable answer to that question just now. "
