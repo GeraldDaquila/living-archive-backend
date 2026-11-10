@@ -29,7 +29,9 @@ def main():
     assert 'from hub_contracts import (' in main_source
     assert "build_hub_request" in main_source
     assert "route_spoke" in main_source
-    # Call count is intentionally not pinned: redesigned routing may add internal hub uses.\n    # The specialist-specific AST checks below remain the authority for bypass detection.\n
+    # Call count is intentionally not pinned: redesigned routing may add internal hub uses.
+    # The specialist-specific AST checks below remain the authority for bypass detection.
+
     # Specialist transport is validated structurally below via the current
     # specialist response functions. Do not pin legacy registry spellings:
     # the HRN redesign intentionally changed relationship ownership.
