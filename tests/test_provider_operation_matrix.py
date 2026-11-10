@@ -20,6 +20,11 @@ def test_every_gateway_operation_has_provider_bank_contract_and_validates():
         assert normalized == operation
         assert messages == [{"role": "user", "content": "Synthetic contract probe"}]
         assert max_tokens == 128
+        # Deterministic safety is gateway-exposed but intentionally bypasses the
+        # provider bank. All other operations require a provider-bank contract.
+        if operation == "safety_conversation":
+            assert operation not in provider_bank.OPERATION_REQUIREMENTS
+            continue
         assert operation in provider_bank.OPERATION_REQUIREMENTS
         # Text-only operations intentionally do not participate in the JSON
         # completion-token floor map. Their output contract is validated by
