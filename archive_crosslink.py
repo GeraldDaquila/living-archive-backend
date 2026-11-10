@@ -989,7 +989,11 @@ def expand_context(
             "title": _text(asset.get("title"), 300),
             "url": _normalize_url(asset.get("url")),
             "summary": _text(asset.get("summary"), 600),
-            "content": "",
+            # The v2 snapshot intentionally carries bounded canonical orientation
+            # rather than corpus text. Preserve that verified summary as context
+            # evidence so the retrieval/composition seam does not silently discard
+            # every selected territorial candidate.
+            "content": _text(asset.get("summary"), 600),
             "resource_type": _text(asset.get("resource_type"), 120),
             "tier": _text(asset.get("tier"), 40),
             "access_class": _text(asset.get("access_class"), 40),
