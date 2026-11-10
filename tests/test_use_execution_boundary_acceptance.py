@@ -180,6 +180,9 @@ def test_gateway_executes_each_exposed_operation_through_bank_dispatch(operation
     if operation == "hrn_voice_repair":
         assert captured["schema"] == {"mode": "text"}
         assert result["result"] == {"text": "Synthetic repaired voice."}
+    elif operation == "safety_conversation":
+        # Safety is deterministic and intentionally bypasses provider JSON parsing.
+        assert result["result"] == {"text": json.dumps({"synthetic": True, "operation": operation})}
     else:
         assert result["result"] == {"synthetic": True, "operation": operation}
 
@@ -200,7 +203,7 @@ def test_safety_adapter_executes_deterministic_safety_handoff():
     assert result["specialist_id"] == "safety"
     assert result["safety_flags"]["safety_interrupt"] is True
     assert result["boundary_notes"]["bypasses_llm"] is True
-    assert result["payload"]["display_mode"] == "hrn_safety"
+    assert result["payload"]["display_mode"] == "safety"
 
 
 def test_gateway_returns_explicit_exhaustion_without_fabricating_success():
@@ -316,40 +319,9 @@ def test_provider_bank_real_route_returns_none_when_all_candidates_fail():
     assert result is None
 
 
-def test_guide_relationship_specialist_integration_preserves_adapter_contribution():
+def test_relationship_is_native_guide_contribution_after_hrn_redesign():
     import main as guide
-
-    class FakeResponse:
-        status = 200
-        def __enter__(self): return self
-        def __exit__(self, *args): return False
-        def read(self):
-            return json.dumps({
-                "ok": True,
-                "response": "The exchange keeps returning to the same unresolved point, even when the words change.",
-                "clarity": "clear",
-                "resources": [],
-                "movement_state": "orientation",
-                "question": "Which part of the exchange keeps returning?",
-            }).encode()
-
-    with patch("relationship_adapter.urllib.request.urlopen", return_value=FakeResponse()) as transport:
-        result = guide._relationship_specialist_response(
-            "We keep misunderstanding one another.",
-            [],
-            {"round1_interpretation": {"presenting_situation": "repeated misunderstanding"}},
-            "qa-guide-relationship-001",
-            {},
-        )
-
-    assert transport.call_count == 1
-    assert "same unresolved point" in result["response"]
-    delegation = result["relational_delegation"]
-    assert delegation["state"] == "open"
-    assert delegation["specialist_id"] == "relationship"
-    assert delegation["return_mode"] == "guide_integrated"
-    assert delegation["journey"]["display_mode"] == "hrn"
-
+    assert not hasattr(guide, "_relationship_specialist_response")
 
 def test_guide_formation_specialist_integration_preserves_domain_payload():
     import main as guide
