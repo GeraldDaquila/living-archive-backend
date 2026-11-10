@@ -1747,6 +1747,15 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                 ):
                     raise ValueError("Archive-scoped meaning answer must not retreat into generic disclaimer language")
 
+        if _is_archive_constitutional_question(query):
+            paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
+            if len(paragraphs) < 3:
+                raise ValueError("constitutional explanation requires three purposeful paragraphs")
+            if not _has_constitutional_governing_relationships(response):
+                raise ValueError(
+                    "constitutional explanation must state governing relationships, stable principles or responsibilities, and the Archive's order of recovery"
+                )
+
         if _requires_discernment_synthesis(query):
             paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
             if len(paragraphs) < 2:
@@ -1939,6 +1948,16 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "That does not make temporary relief superficial or unimportant. Relief can create the space in which deeper change becomes possible. The question is simply whether the experience has altered something that continues to shape life after the feeling itself has passed. This is a general conceptual orientation, not a claim that the Living Archive defines the distinction in exactly these terms."
         )
     return None
+
+
+def _has_constitutional_governing_relationships(response: str) -> bool:
+    """Require constitutional answers to explain relationships, not merely name architecture."""
+    text = _normalize_space(response)
+    return bool(
+        re.search(r"\b(?:governing relationships?|relationships? among|how .* connect|connect(?:s|ed|ing)? .* concepts?)\b", text, re.I)
+        and re.search(r"\b(?:principles?|responsibilit(?:y|ies)|commitments?)\b", text, re.I)
+        and re.search(r"\b(?:recovery before translation|clarity before application)\b", text, re.I)
+    )
 
 
 def _is_archive_constitutional_question(query: str) -> bool:
