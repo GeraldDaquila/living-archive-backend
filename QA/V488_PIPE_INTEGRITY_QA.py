@@ -56,8 +56,9 @@ def main():
         assert forbidden not in lower_hub, forbidden
 
     # No specialist handoff may bypass the hub callable contract.
+    # Relationship is now a native Guide contribution after the HRN redesign;
+    # only active specialist response functions remain in the spoke audit.
     for specialist_fn in (
-        "_relationship_specialist_response",
         "_formation_specialist_response",
         "_philippine_systems_specialist_response",
     ):
