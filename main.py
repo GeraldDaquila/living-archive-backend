@@ -7317,6 +7317,44 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         except Exception as exc:
             print(f"The Guide evidence recovery failed safely: exception={type(exc).__name__}.")
 
+    # Bounded conceptual recovery: when a conceptual explanatory answer has no
+    # doorway and the ordinary supplement gate did not run, perform one canonical
+    # recovery pass. This preserves the established supplement boundary above.
+    if (
+        not healthy_community_short_circuit
+        and _is_conceptual_explanatory_request(query)
+        and not discovery_subject
+        and not authoritative_doorway
+        and not recovered_docs
+    ):
+        try:
+            recovered_docs = _wordpress_search_canonical_candidates(
+                resource_query,
+                limit=_guide_subject_supplement_limit(False, True),
+            )
+            recovered_docs, _frame_boundary_active = use_core._frame_neutral_generation_documents(
+                recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+            )
+            if recovered_docs:
+                recovered_docs, _question_unavailable = use_core._v208_question_evidence_fit_gate(
+                    recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+                )
+                if not _question_unavailable and recovered_docs:
+                    evidence_doorway = _normalize_authoritative_recommendation(
+                        _general_guide_authoritative_doorway(
+                            query,
+                            {
+                                "generation_authority_protected_docs": recovered_docs,
+                                "_skip_doorway_search_recovery": True,
+                            },
+                        )
+                    )
+                    if evidence_doorway:
+                        authoritative_doorway = evidence_doorway
+                        composition_context["authoritative_doorway"] = evidence_doorway
+        except Exception as exc:
+            print(f"The Guide conceptual doorway recovery failed safely: exception={type(exc).__name__}.")
+
     # Recovery may establish a qualifying doorway after the initial selection.
     # Recompute this state from the current authoritative source instead of
     # carrying a stale pre-recovery failure into the final response.
