@@ -5781,7 +5781,7 @@ def _harm_repair_candidate_has_direct_fit(query, document):
     return title_fit and body_fit
 
 
-def _general_guide_authoritative_doorway(query, context_data, *, allow_search_recovery=True):
+def _general_guide_authoritative_doorway(query, context_data):
     """Select a relevant canonical doorway from retrieved evidence only.
 
     A syntactically valid URL is not proof of relevance. Provider/core preselection
@@ -5882,7 +5882,7 @@ def _general_guide_authoritative_doorway(query, context_data, *, allow_search_re
             ]
 
         primary = _canonical_primary_from_docs(evidence_docs, query, profile)
-        if not primary and allow_search_recovery:
+        if not primary and not bool(context_data.get("_skip_doorway_search_recovery")):
             # Retrieval and doorway selection are separate. If the retrieved
             # candidate pool lacks a direct subject match, recover public
             # canonical candidates and subject them to the same relevance gate.
@@ -7015,14 +7015,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             _trust_community_stewardship_canonical_recommendation(query, context_data)
         )
     else:
+        _doorway_context = dict(context_data)
+        if _is_conceptual_explanatory_request(query):
+            _doorway_context["_skip_doorway_search_recovery"] = True
         authoritative_doorway = _select_direct_attribute_doorway(
             query,
             context_data.get("recommendation_canonical_primary"),
             _general_guide_authoritative_doorway,
-            context_data,
+            _doorway_context,
             resource_query=resource_query,
             normalize=_normalize_authoritative_recommendation,
-            allow_search_recovery=not _is_conceptual_explanatory_request(query),
         )
     # Recognized public concepts carry their own reviewed canonical doorway.
     # Retrieval may enrich discovery, but an index outage must not erase a
@@ -7093,6 +7095,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             # than answering from context and silently abandoning the Archive.
             or (
                 _is_conceptual_explanatory_request(query)
+                and not discovery_subject
                 and not authoritative_doorway
             )
         )
@@ -7266,8 +7269,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # against the recovered, gate-passing canonical documents.
                         evidence_doorway = _general_guide_authoritative_doorway(
                             query,
-                            {"generation_authority_protected_docs": recovered_docs},
-                            allow_search_recovery=False,
+                            {
+                                "generation_authority_protected_docs": recovered_docs,
+                                "_skip_doorway_search_recovery": True,
+                            },
                         )
                         evidence_doorway = _normalize_authoritative_recommendation(
                             evidence_doorway
