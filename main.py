@@ -7089,12 +7089,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     )
     if (
         not healthy_community_short_circuit
-        and not _conceptual_retrieval_doorway_ready
         and _guide_requires_canonical_subject_supplement(
             archive_evidence_unavailable,
             discovery_subject,
             _is_conceptual_explanatory_request(query),
         )
+        and not _conceptual_retrieval_doorway_ready
     ):
         # Subject-finding requests always receive a bounded WordPress content
         # supplement, even when the initial vector pass did not set an evidence-
