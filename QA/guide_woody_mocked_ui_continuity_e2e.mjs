@@ -54,7 +54,10 @@ page.on("requestfailed", request => {
   if (request.url().includes("/api/query")) mark("api_request_failed_event", { method: request.method(), url: request.url(), error: request.failure()?.errorText || "unknown" });
 });
 let mainQueryIndex = 0;
-page.on("pageerror", error => pageErrors.push(`${error.message}\n${error.stack || ""}`));
+page.on("pageerror", error => {
+  const location = error.stack ? error.stack.split("\n").find(line => /https?:\/\//.test(line)) || "" : "";
+  pageErrors.push({ message: error.message, stack: error.stack || "", location });
+});
 
 await page.route("**/*", async route => {
   const routeUrl = new URL(route.request().url());
