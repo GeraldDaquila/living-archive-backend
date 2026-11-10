@@ -1880,6 +1880,60 @@ def has_conceptual_relationship_explanation(response: str, question: str = "") -
     return not concepts or all(any(word in text for word in concept.split()) for concept in concepts)
 
 
+def _select_verified_recovery_doorway(
+    question: str,
+    documents: List[Dict[str, Any]],
+) -> Dict[str, str]:
+    """Select one directly relevant retrieved Archive doorway for deterministic recovery.
+
+    Recovery answers must not discard a verified destination merely because model
+    composition was unavailable. This selector is intentionally conservative:
+    it requires a published Archive URL, a title, and meaningful semantic overlap
+    between the visitor's question and the source's title or supplied content.
+    """
+    stop = {
+        "how", "can", "a", "an", "the", "from", "and", "or", "to", "of",
+        "in", "on", "for", "with", "user", "distinguish", "genuine",
+        "temporary", "what", "why", "does", "is", "are",
+    }
+    terms = {
+        token.casefold()
+        for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", _normalize_space(question))
+        if token.casefold() not in stop
+    }
+    best = None
+    for document in documents or []:
+        if not isinstance(document, dict):
+            continue
+        title = _normalize_space(document.get("title") or "")
+        url = _normalize_space(document.get("url") or document.get("canonical_url") or "")
+        content = _normalize_space(
+            document.get("content") or document.get("text") or document.get("excerpt") or ""
+        )
+        if not title or not re.fullmatch(r"https://geralddaquila\.com/[^\s]+", url, re.I):
+            continue
+        title_terms = {
+            token.casefold()
+            for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", title)
+        }
+        content_terms = {
+            token.casefold()
+            for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", content[:6000])
+        }
+        title_overlap = len(terms & title_terms)
+        content_overlap = len(terms & content_terms)
+        score = title_overlap * 3 + content_overlap
+        # A doorway needs more than a shared generic word in body text.
+        if score < 2:
+            continue
+        candidate = (score, title_overlap, title, url)
+        if best is None or candidate[:2] > best[:2]:
+            best = candidate
+    if best is None:
+        return {"doorway_title": "", "doorway_url": ""}
+    return {"doorway_title": best[2], "doorway_url": best[3]}
+
+
 def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     """Provide bounded general-knowledge recovery for a recognized, well-established concept pair."""
     normalized = _normalize_space(question).casefold()
@@ -2538,10 +2592,16 @@ def compose(
             else None
         )
         if relationship_recovery is not None:
-            _emit_guide_outcome("provider_exhaustion_fallback", recovery="conceptual_relationship")
+            doorway = _select_verified_recovery_doorway(question, documents)
+            _emit_guide_outcome(
+                "provider_exhaustion_fallback",
+                recovery="conceptual_relationship",
+                doorway=bool(doorway["doorway_title"]),
+            )
             return {
                 "response": relationship_recovery,
-                "doorway_title": "",
+                "doorway_title": doorway["doorway_title"],
+                "doorway_url": doorway["doorway_url"],
                 "response_shape": "explanatory",
                 "provider": "bounded_conceptual_relationship_recovery",
                 "model": "deterministic-contract-recovery",
