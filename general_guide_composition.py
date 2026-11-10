@@ -1971,6 +1971,14 @@ def _is_archive_constitutional_question(query: str) -> bool:
         r"\b(?:constitutional reasoning|constitutional framework|constitutional architecture|constitutional register)\b",
         question,
     ))
+    # Possessive phrasing (“the Archive's sense of constitutional reasoning”)
+    # can separate the two concepts; recognize that form as constitutional too.
+    if not has_constitutional_subject:
+        has_constitutional_subject = bool(re.search(
+            r"\bconstitutional\b.{0,80}\b(?:reasoning|framework|architecture|register)\b"
+            r"|\b(?:reasoning|framework|architecture|register)\b.{0,80}\bconstitutional\b",
+            question,
+        ))
     has_archive_context = bool(re.search(
         r"\b(?:living archive|the archive|archive['’]s)\b",
         question,
