@@ -4964,6 +4964,21 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if relational_fractal is not None:
         return relational_fractal
 
+    # Conceptual relationship and distinction questions have a bounded
+    # general-knowledge recovery contract. This hook is intentionally shared
+    # rather than query-specific: provider exhaustion must not bypass a valid
+    # conceptual recovery that the composition layer already recognizes.
+    _conceptual_recovery = _guide_composition._conceptual_relationship_recovery(query)
+    if _conceptual_recovery and _guide_composition.has_conceptual_relationship_explanation(
+        _conceptual_recovery, query
+    ):
+        return {
+            "response": _conceptual_recovery,
+            "doorway_title": "",
+            "provider": "bounded_conceptual_relationship_recovery",
+            "model": "",
+        }
+
     # Explanatory questions can often be answered carefully from general
     # knowledge even when the Archive contains no directly establishing body.
     # Do not collapse a valid conceptual explanation into an abstention merely

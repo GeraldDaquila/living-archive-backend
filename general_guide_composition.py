@@ -1843,6 +1843,7 @@ _CONCEPTUAL_RELATIONSHIP_PATTERNS = (
     r"\bhow (?:might|do|does|can|could) .{0,100} (?:reinforce|strengthen|support|shape) one another\b",
     r"\bhow .{0,70} and .{0,70} (?:relate to|connect with|reinforce|shape) (?:one another|each other)\b",
     r"\brelationship between .{0,80} and .{0,80}\b",
+    r"\bdistinguish .{0,100} from .{0,100}\b",
 )
 
 
@@ -1882,14 +1883,20 @@ def has_conceptual_relationship_explanation(response: str, question: str = "") -
 def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     """Provide bounded general-knowledge recovery for a recognized, well-established concept pair."""
     normalized = _normalize_space(question).casefold()
-    if not (re.search(r"\bagency\b", normalized) and re.search(r"\bcircumstances?\b", normalized)):
-        return None
-    return (
-        "Agency is a person’s capacity to choose and act; circumstance is the set of conditions in which those choices are made. "
-        "Their relationship is that people exercise agency within circumstances, rather than outside them. Circumstances can open some possibilities, restrict others, and shape the likely consequences of a choice, but they do not always determine a single response.\n\n"
-        "For example, someone facing financial pressure may have fewer realistic options than someone with ample resources. They may still make meaningful choices about seeking help, negotiating a commitment, or deciding what to prioritize, but those choices must be understood in light of the constraints they face. Recognizing agency without recognizing circumstance can unfairly blame people for limits they did not create; recognizing circumstance without agency can overlook their capacity to respond.\n\n"
-        "The relationship is therefore reciprocal but not symmetrical: circumstances shape the range and cost of available actions, while individual and collective actions can sometimes change those circumstances over time. How much agency is available depends on the actual constraints, resources, power, and support in a particular situation. This is a general conceptual explanation, not a claim that the Living Archive defines the terms in exactly this way."
-    )
+    if re.search(r"\bagency\b", normalized) and re.search(r"\bcircumstances?\b", normalized):
+        return (
+            "Agency is a person’s capacity to choose and act; circumstance is the set of conditions in which those choices are made. "
+            "Their relationship is that people exercise agency within circumstances, rather than outside them. Circumstances can open some possibilities, restrict others, and shape the likely consequences of a choice, but they do not always determine a single response.\n\n"
+            "For example, someone facing financial pressure may have fewer realistic options than someone with ample resources. They may still make meaningful choices about seeking help, negotiating a commitment, or deciding what to prioritize, but those choices must be understood in light of the constraints they face. Recognizing agency without recognizing circumstance can unfairly blame people for limits they did not create; recognizing circumstance without agency can overlook their capacity to respond.\n\n"
+            "The relationship is therefore reciprocal but not symmetrical: circumstances shape the range and cost of available actions, while individual and collective actions can sometimes change those circumstances over time. How much agency is available depends on the actual constraints, resources, power, and support in a particular situation. This is a general conceptual explanation, not a claim that the Living Archive defines the terms in exactly this way."
+        )
+    if re.search(r"\btransformation\b", normalized) and re.search(r"\b(?:emotional\s+)?relief\b", normalized):
+        return (
+            "Temporary emotional relief and genuine transformation can overlap, but they are not the same thing. Relief is primarily a change in how a person feels in the moment: a burden may ease, anxiety may settle, or a difficult experience may briefly feel more manageable. Transformation is better understood as a change in how a person relates to a situation, acts within it, or sustains a different pattern over time.\n\n"
+            "One useful distinction is to look beyond the intensity of the immediate experience. A powerful insight, retreat, conversation, or emotional release can feel significant without yet changing the conditions or habits that produced the difficulty. Transformation usually becomes visible in some continuity: different choices become more possible, old reactions lose some of their automatic force, relationships or responsibilities are approached differently, and the change can withstand ordinary pressure.\n\n"
+            "That does not make temporary relief superficial or unimportant. Relief can create the space in which deeper change becomes possible. The question is simply whether the experience has altered something that continues to shape life after the feeling itself has passed. This is a general conceptual orientation, not a claim that the Living Archive defines the distinction in exactly these terms."
+        )
+    return None
 
 
 def _is_archive_constitutional_question(query: str) -> bool:
