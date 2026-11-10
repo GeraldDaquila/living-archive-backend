@@ -1257,7 +1257,12 @@ def _recommendation_first_fetch(query_str):
     # The meta-crosslink consults the complete Pinecone inventory only for
     # navigation/recommendation intent. It adds a small, separately verified
     # evidence set; it cannot bypass the canonical access or lifecycle gates.
-    if profile.get("action") in {"recommendation", "navigation"}:
+    # Recovery crosslinking is also allowed when ordinary canonical retrieval
+    # returns no usable context at all. This is a bounded visitor-recovery path
+    # against literal-ranking blind spots: it consults the persisted canonical
+    # snapshot, not a live enumeration of the Pinecone corpus. Existing topical
+    # evidence still passes the normal relevance and authority gates below.
+    if not docs or profile.get("action") in {"recommendation", "navigation"}:
         try:
             crosslinks = archive_crosslink.expand_context(
                 str(query_str or ""),
