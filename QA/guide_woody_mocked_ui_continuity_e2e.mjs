@@ -59,16 +59,20 @@ await cdp.send("Runtime.enable");
 cdp.on("Runtime.exceptionThrown", event => {
   const details = event.exceptionDetails || {};
   const frame = details.stackTrace && details.stackTrace.callFrames && details.stackTrace.callFrames[0];
-  pageErrors.push({
+  const entry = {
     message: details.exception && details.exception.description || details.text || "Runtime exception",
     url: frame && frame.url || "",
     line: frame && frame.lineNumber,
     column: frame && frame.columnNumber,
     stack: frame ? JSON.stringify(details.stackTrace.callFrames) : ""
-  });
+  };
+  pageErrors.push(entry);
+  if (entry.url.includes("living-archive-guide-v489.318-edge-confirmation.js")) guideControllerErrors.push(entry);
 });
 page.on("pageerror", error => {
-  pageErrors.push({ message: error.message, stack: error.stack || "", url: "", line: null, column: null });
+  const entry = { message: error.message, stack: error.stack || "", url: "", line: null, column: null };
+  pageErrors.push(entry);
+  if ((entry.stack || "").includes("living-archive-guide-v489.318-edge-confirmation.js")) guideControllerErrors.push(entry);
 });
 
 await page.route("**/*", async route => {
