@@ -822,24 +822,6 @@ def inventory_snapshot() -> dict[str, Any] | None:
         return {key: value for key, value in _SNAPSHOT.items() if key != "assets"}
 
 
-def _conceptual_anchor_tokens(query_tokens: set[str]) -> set[str]:
-    """Add small, deterministic bridges for common orientation relationships."""
-    bridges = {
-        frozenset({"transformation", "relief"}): {
-            "change", "development", "growth", "learning", "integration",
-            "practice", "capacity", "coherence", "adaptation",
-        },
-        frozenset({"agency", "circumstance"}): {
-            "responsibility", "choice", "constraint", "context", "capacity",
-        },
-    }
-    anchors: set[str] = set()
-    for trigger, terms in bridges.items():
-        if trigger.issubset(query_tokens):
-            anchors.update(terms)
-    return anchors
-
-
 def _asset_score(query_tokens: set[str], seed_tokens: set[str], asset: dict[str, Any]) -> float:
     title_tokens = _tokens(asset.get("title"))
     summary_tokens = _tokens(asset.get("summary"))
@@ -857,15 +839,11 @@ def _asset_score(query_tokens: set[str], seed_tokens: set[str], asset: dict[str,
     # title/summary/sample evidence.
     if 2 <= len(query_tokens) <= 5 and len(query_overlap) < 2:
         return 0.0
-    if len(query_tokens) > 5 and not query_overlap and not (_conceptual_anchor_tokens(query_tokens) & searchable_tokens):
+    if len(query_tokens) > 5 and not query_overlap:
         return 0.0
-
-    anchor_tokens = _conceptual_anchor_tokens(query_tokens)
-    anchor_overlap = anchor_tokens & searchable_tokens
 
     score = 0.0
     score += 4.0 * len(query_tokens & title_tokens)
-    score += 0.9 * len(anchor_overlap)
     score += 1.7 * len(query_tokens & summary_tokens)
     score += 0.7 * len(query_tokens & sample_tokens)
     score += 1.2 * len(query_tokens & _tokens(asset.get("resource_type")))
@@ -989,11 +967,7 @@ def expand_context(
             "title": _text(asset.get("title"), 300),
             "url": _normalize_url(asset.get("url")),
             "summary": _text(asset.get("summary"), 600),
-            # The v2 snapshot intentionally carries bounded canonical orientation
-            # rather than corpus text. Preserve that verified summary as context
-            # evidence so the retrieval/composition seam does not silently discard
-            # every selected territorial candidate.
-            "content": _text(asset.get("summary"), 600),
+            "content": "",
             "resource_type": _text(asset.get("resource_type"), 120),
             "tier": _text(asset.get("tier"), 40),
             "access_class": _text(asset.get("access_class"), 40),
