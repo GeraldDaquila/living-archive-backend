@@ -2029,7 +2029,7 @@ def _archive_constitutional_recovery(
 
     response = (
         "Within the Living Archive, constitutional reasoning means recovering the principles and governing relationships "
-        "that organize its body of knowledge, rather than treating each concept or page as an isolated statement. "
+        "among concepts that organize its body of knowledge, rather than treating each concept or page as an isolated statement. "
         "It asks how concepts and responsibilities connect across the canonical sources, and which commitments remain "
         "stable across those relationships.\n\n"
         "The Archive's stated order is recovery before translation, and clarity before application. First identify what "
