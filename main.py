@@ -6182,11 +6182,11 @@ def _guide_requires_canonical_subject_supplement(
 
 def _guide_subject_supplement_limit(discovery_subject, conceptual_inquiry=False):
     """Broaden candidate recall for resource-finding and conceptual questions."""
-    # Conceptual questions need the same wider candidate window as explicit
-    # discovery requests: the central concept source can rank behind broad pages.
-    return 10 if (
-        str(discovery_subject or "").strip() or conceptual_inquiry
-    ) else 5
+    # Explicit resource discovery needs wider recall. Ordinary conceptual
+    # questions already have canonical vector context; keep the WordPress
+    # supplement bounded so a secondary recovery search cannot dominate visitor
+    # latency before composition begins.
+    return 10 if str(discovery_subject or "").strip() else 5
 
 
 def _guide_discovery_evidence_grade(subject, document, node=None):
@@ -7785,6 +7785,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             f"fact_id={general_knowledge_recovery['fact_id']}."
         )
 
+    # Preserve the last independently verified navigation decision before
+    # conceptual answer-recovery gates begin rewriting evidence state. Those gates
+    # may reject prose attribution; they must not silently destroy a doorway that
+    # was already selected for the same visitor question.
+    verified_navigation_doorway = _normalize_authoritative_recommendation(
+        authoritative_doorway
+    )
+    verified_navigation_available = bool(
+        verified_navigation_doorway
+        and not direct_attribute_evidence_missing
+    )
+
     _conceptual_inquiry = _is_conceptual_explanatory_request(query)
     if _conceptual_inquiry and general_knowledge_recovery is None:
         # This is a relationship question: retain the key concepts as
@@ -8285,10 +8297,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 "doorway through the final answer override."
             )
         else:
-            # This recovery changes the explanatory prose. It must not erase a
-            # separately verified canonical doorway that was already selected
-            # for the same visitor question. Only explicit evidence/relevance
-            # gates may clear navigation authority.
+            # This recovery changes explanatory prose, not navigation authority.
+            # Restore the last independently verified doorway when an intervening
+            # conceptual evidence gate cleared it solely while rewriting the answer.
+            # Explicit no-handoff and direct-attribute boundaries remain final.
+            if not authoritative_doorway and verified_navigation_available:
+                authoritative_doorway = verified_navigation_doorway
             if authoritative_doorway:
                 composition_context["authoritative_doorway"] = authoritative_doorway
                 composition_context["authoritative_doorway_title"] = (
