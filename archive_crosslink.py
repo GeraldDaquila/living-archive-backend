@@ -825,7 +825,14 @@ def _asset_score(query_tokens: set[str], seed_tokens: set[str], asset: dict[str,
     # a phrase such as "Law of One" degenerates into a generic "Law" link.
     searchable_tokens = title_tokens | summary_tokens | sample_tokens
     query_overlap = query_tokens & searchable_tokens
-    if len(query_tokens) >= 2 and len(query_overlap) < 2:
+    # The two-token overlap rule protects named concepts, but applying it to
+    # ordinary conceptual questions creates a literal-ranking dead end. Keep
+    # the stricter rule for short phrase-like queries; let longer questions
+    # recover semantically adjacent canonical territory through weighted
+    # title/summary/sample evidence.
+    if 2 <= len(query_tokens) <= 5 and len(query_overlap) < 2:
+        return 0.0
+    if len(query_tokens) > 5 and not query_overlap:
         return 0.0
 
     score = 0.0
