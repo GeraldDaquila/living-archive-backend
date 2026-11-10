@@ -35,10 +35,10 @@ jobs:
       - name: Wait for both production services and verify the live clarification boundary
         run: |
           # The E2E workflow itself does not change the running application. For
-        # workflow-only commits, wait for the most recent commit that changed a
-        # runtime source file instead of requiring Render to deploy a no-op commit.
-        export EXPECTED_RUNTIME_SHA="$(git log -1 --format=%H -- main.py general_guide_composition.py)"
-        python - <<'PY'
+          # workflow-only commits, wait for the most recent commit that changed a
+          # runtime source file instead of requiring Render to deploy a no-op commit.
+          export EXPECTED_RUNTIME_SHA="$(git log -1 --format=%H -- main.py general_guide_composition.py)"
+          python - <<'PY'
           import json
           import os
           import re
