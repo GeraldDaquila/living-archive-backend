@@ -34,7 +34,7 @@ _SUPPORT_PATTERN = re.compile(
     r"husband|wife|colleague|coworker))\b.*"
     r"\b(?:is\s+(?:suicidal|at\s+risk|in\s+danger)|"
     r"(?:talk(?:ing)?\s+about|thinking\s+about|considering|trying\s+to|"
-    r"said|says|telling\s+me|mentioned)\s+"
+    r"said|says|telling\s+me|mentioned|going\s+to)\s+"
     r"(?:suicid(?:e|al|ality)|self[- ]?harm|kill(?:ing)?\s+(?:himself|herself|themselves)|"
     r"end(?:ing)?\s+(?:his|her|their)\s+life|want\s+to\s+die|"
     r"(?:do(?:es|n't| not)|doesnt)\s+want\s+to\s+live|not\s+be\s+here)|"
