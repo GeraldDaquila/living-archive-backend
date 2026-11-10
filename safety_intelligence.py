@@ -152,6 +152,42 @@ def normalize_safety_state(query: str, *, history: str = "") -> str | None:
     return None
 
 
+# Formal safety coverage matrix: deterministic boundaries and semantic-gate candidates.
+# Second-person/hypothetical wording is intentionally not treated as personal crisis
+# without a first-person or conversational-context signal.
+_SAFETY_COVERAGE_MATRIX = (
+    ("acute", "I want to die."),
+    ("acute", "I don't think I can keep myself safe."),
+    ("current", "I'm thinking of ending my life."),
+    ("current", "I wish I were dead."),
+    ("support", "My brother wants to die."),
+    ("support", "My friend says he doesn't want to live."),
+    ("none", "What does suicide prevention mean?"),
+    ("none", "We discussed suicide prevention in class."),
+    ("none", "What should you do if someone says they want to die?"),
+)
+for _expected_state, _coverage_case in _SAFETY_COVERAGE_MATRIX:
+    _actual_state = normalize_safety_state(_coverage_case)
+    if _expected_state == "none":
+        if _actual_state is not None:
+            raise RuntimeError(
+                f"Safety coverage invariant failed: expected no deterministic interrupt for {_coverage_case!r}, got {_actual_state!r}"
+            )
+    elif _actual_state != _expected_state:
+        raise RuntimeError(
+            f"Safety coverage invariant failed: {_coverage_case!r} expected {_expected_state!r}, got {_actual_state!r}"
+        )
+
+# Indirect first-person disclosures that are not deterministic today must at
+# least reach the bounded semantic recall gate; the model remains advisory.
+for _semantic_case in (
+    "I can't go on anymore.",
+    "I don't see the point of living.",
+    "I'd be better off dead.",
+):
+    if not _semantic_safety_candidate(_semantic_case):
+        raise RuntimeError(f"Safety semantic-gate invariant failed: {_semantic_case!r}")
+
 # Deterministic support-lane regression matrix.
 for _support_case in (
     "My brother wants to die.",
