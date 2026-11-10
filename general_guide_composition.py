@@ -2451,6 +2451,18 @@ def compose(
     if _is_broad_existential_question(question):
         return _broad_existential_recovery()
 
+    # Constitutional questions are contract-critical and have a bounded
+    # canonical composition when the Constitutional Register is present.
+    # Resolve them before provider generation so required governing
+    # relationships and recovery order cannot vary by model phrasing.
+    constitutional_recovery = _archive_constitutional_recovery(
+        question,
+        list(context_data.get("documents") or []),
+    )
+    if constitutional_recovery is not None:
+        _emit_guide_outcome("constitutional_canonical_composition")
+        return constitutional_recovery
+
     if is_exact_source_request(question) and not source_trace_has_prior_claim(history_text):
         return {
             "response": (
