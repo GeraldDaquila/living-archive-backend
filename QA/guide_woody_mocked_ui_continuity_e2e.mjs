@@ -54,9 +54,21 @@ page.on("requestfailed", request => {
   if (request.url().includes("/api/query")) mark("api_request_failed_event", { method: request.method(), url: request.url(), error: request.failure()?.errorText || "unknown" });
 });
 let mainQueryIndex = 0;
+const cdp = await page.context().newCDPSession(page);
+await cdp.send("Runtime.enable");
+cdp.on("Runtime.exceptionThrown", event => {
+  const details = event.exceptionDetails || {};
+  const frame = details.stackTrace && details.stackTrace.callFrames && details.stackTrace.callFrames[0];
+  pageErrors.push({
+    message: details.exception && details.exception.description || details.text || "Runtime exception",
+    url: frame && frame.url || "",
+    line: frame && frame.lineNumber,
+    column: frame && frame.columnNumber,
+    stack: frame ? JSON.stringify(details.stackTrace.callFrames) : ""
+  });
+});
 page.on("pageerror", error => {
-  const location = error.stack ? error.stack.split("\n").find(line => /https?:\/\//.test(line)) || "" : "";
-  pageErrors.push({ message: error.message, stack: error.stack || "", location });
+  pageErrors.push({ message: error.message, stack: error.stack || "", url: "", line: null, column: null });
 });
 
 await page.route("**/*", async route => {
