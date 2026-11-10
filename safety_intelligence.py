@@ -164,7 +164,7 @@ _SAFETY_COVERAGE_MATRIX = (
     ("support", "My friend says he doesn't want to live."),
     ("none", "What does suicide prevention mean?"),
     ("none", "We discussed suicide prevention in class."),
-    ("none", "What should you do if someone says they want to die?"),
+    ("support", "What should you do if someone says they want to die?"),
 )
 for _expected_state, _coverage_case in _SAFETY_COVERAGE_MATRIX:
     _actual_state = normalize_safety_state(_coverage_case)
