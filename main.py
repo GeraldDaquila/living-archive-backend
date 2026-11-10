@@ -7077,8 +7077,19 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     discovery_selected_evidence = []
     direct_selected_body = None
     registry_discovery_docs = []
+    # Ordinary conceptual inquiries already have a bounded retrieval context.
+    # When canonical selection has produced a valid doorway, do not place a
+    # WordPress search/fetch recovery in front of the answer. That second
+    # network stage was both latency-critical and allowed a later evidence
+    # recovery to replace an independently selected navigation decision.
+    _conceptual_retrieval_doorway_ready = bool(
+        _is_conceptual_explanatory_request(query)
+        and authoritative_doorway
+        and not direct_attribute_evidence_missing
+    )
     if (
         not healthy_community_short_circuit
+        and not _conceptual_retrieval_doorway_ready
         and _guide_requires_canonical_subject_supplement(
             archive_evidence_unavailable,
             discovery_subject,
@@ -8269,6 +8280,23 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     "The Guide conceptual boundary: no question-matched canonical "
                     "sentences; returned the Archive-only limitation."
                 )
+
+    # Conceptual evidence gates govern explanatory attribution, not a separately
+    # selected canonical next step. Restore the request-level navigation decision
+    # when later prose-evidence recovery cleared it without an explicit no-handoff
+    # or direct-attribute prohibition.
+    if (
+        _conceptual_inquiry
+        and not authoritative_doorway
+        and verified_navigation_available
+        and not direct_attribute_evidence_missing
+    ):
+        authoritative_doorway = verified_navigation_doorway
+        composition_context["authoritative_doorway"] = authoritative_doorway
+        composition_context["authoritative_doorway_title"] = (
+            authoritative_doorway.get("title") or ""
+        )
+        print("The Guide conceptual boundary: restored upstream canonical doorway after prose-evidence recovery.")
 
     # Preserve the question-specific Archive-informed fallback after generic
     # conceptual evidence gating; do not let an unrelated diagnostic template
