@@ -9210,6 +9210,38 @@ def _hypothetical_safety_calibration_payload(query):
 
 
 
+
+def _safety_conversation_fallback(visitor_text):
+    text = str(visitor_text or '').strip()
+    if re.search(r'\b(?:someone is with me|with me|not alone|staying with me)\b', text, re.I):
+        return ('I’m glad someone is with you. If you can, stay connected with them for now. '
+                'You do not have to work everything out at once—just take the next small step that helps you stay safe.')
+    return ('Thank you for telling me what is happening. You do not have to solve everything at once. '
+            'Stay with the next small step that helps you feel safer, and keep connected with someone you trust if you can.')
+
+
+def _valid_safety_conversation_reply(reply):
+    value = str(reply or '').strip()
+    if not value or len(value) > 900:
+        return False
+    blocked = ('a practical way to approach', 'compare a small number of realistic options', 'finally, act on the best-supported option', 'decision clearer than jumping', 'framework', 'tradeoff analysis')
+    folded = value.casefold()
+    return not any(marker in folded for marker in blocked)
+
+
+async def _bounded_safety_conversation(visitor_text, request_id):
+    system = ('You are responding to a visitor after deterministic safety steps and verified support information have already been shown. '
+              'Respond directly to what the visitor just said in 2 to 4 short sentences. Be warm, calm, and humane without sounding formulaic. '
+              'Reinforce connection or personal agency and, at most, suggest one small immediate step. Do not diagnose, analyze, use frameworks, give lists, discuss tradeoffs, invent emergency contacts, or repeat emergency numbers.')
+    try:
+        result = await asyncio.wait_for(asyncio.to_thread(execute_provider_gateway, operation='safety_conversation', messages=[{'role':'system','content':system},{'role':'user','content':str(visitor_text or '').strip()}], max_tokens=220, use_core=use_core, schema={'mode':'text'}), timeout=35.0)
+        candidate = str((result.get('result') or {}).get('text') or '').strip()
+        if bool(result.get('ok')) and _valid_safety_conversation_reply(candidate):
+            return candidate, 'provider_bank'
+    except Exception as exc:
+        print(f'The Guide bounded safety conversation fell back: exception={type(exc).__name__}')
+    return _safety_conversation_fallback(visitor_text), 'deterministic_fallback'
+
 async def _use_request_boundary(scope, receive, send):
     if scope.get("type") != "http":
         await _FASTAPI_APP(scope, receive, send)
@@ -9232,6 +9264,10 @@ async def _use_request_boundary(scope, receive, send):
                 parsed_body.get("question") or parsed_body.get("text") or
                 parsed_body.get("input") or "").strip()
     history = parsed_body.get("history") or parsed_body.get("conversation_history")
+    if str(parsed_body.get("mode") or "").strip().casefold() == "safety_conversation" and query:
+        request_id = "safety-conversation-" + hashlib.sha1(query.encode("utf-8")).hexdigest()[:16]
+        response, source = await _bounded_safety_conversation(query, request_id)
+        return await _use_send_json(send, {"ok": True, "version": APP_VERSION, "request_id": request_id, "query": query, "intent": "SAFETY_CONVERSATION", "response": response, "processing": source, "route_source": "bounded_safety_conversation", "handoff": "safety_conversation", "handoff_mode": "bounded", "bypasses_retrieval": True})
     if not query:
         await _FASTAPI_APP(scope, _use_replay_receive(raw_body), send)
         return
