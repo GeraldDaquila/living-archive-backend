@@ -1264,11 +1264,26 @@ def _recommendation_first_fetch(query_str):
     # evidence still passes the normal relevance and authority gates below.
     if not docs or profile.get("action") in {"recommendation", "navigation"}:
         try:
+            recovery_token_count = len(
+                re.findall(
+                    "[a-z0-9][a-z0-9'-]{1,}",
+                    str(query_str or "").casefold(),
+                )
+            )
+            print(
+                "The Guide recovery trace: "
+                f"query_tokens={recovery_token_count}; "
+                f"seed_docs={len(docs)}; action={profile.get('action') or 'none'}"
+            )
             crosslinks = archive_crosslink.expand_context(
                 str(query_str or ""),
                 docs,
                 getattr(use_core, "index", None),
                 use_core,
+            )
+            print(
+                "The Guide recovery trace: "
+                f"crosslinks_selected={len(crosslinks or [])}"
             )
             if crosslinks:
                 existing_urls = {
