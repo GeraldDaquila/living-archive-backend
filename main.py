@@ -1315,6 +1315,11 @@ def _recommendation_first_fetch(query_str):
                             if existing_block_text else extra_block_text
                         )
                     print(
+                        "The Guide recovery evidence trace: "
+                        f"selected={len(additions)}; serialized={len(_parse_context_documents(extra_block_text))}; "
+                        f"context_chars={len(extra_block_text)}"
+                    )
+                    print(
                         "The Guide full-corpus meta-crosslink: "
                         f"added={len(additions)}, seed={len(existing_urls)}"
                     )
