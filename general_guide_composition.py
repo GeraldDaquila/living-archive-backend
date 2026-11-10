@@ -1884,55 +1884,43 @@ def _select_verified_recovery_doorway(
     question: str,
     documents: List[Dict[str, Any]],
 ) -> Dict[str, str]:
-    """Select one directly relevant retrieved Archive doorway for deterministic recovery.
+    """Preserve the strongest verified Archive destination from retrieval.
 
-    Recovery answers must not discard a verified destination merely because model
-    composition was unavailable. This selector is intentionally conservative:
-    it requires a published Archive URL, a title, and meaningful semantic overlap
-    between the visitor's question and the source's title or supplied content.
+    Retrieval is the Guide's semantic relevance mechanism. Deterministic answer
+    recovery must not replace that mechanism with a second, weaker lexical test:
+    a relevant source can legitimately use different language from the visitor's
+    question. This selector therefore preserves one verified canonical destination
+    according to the retrieval order and any supplied relevance metadata.
     """
-    stop = {
-        "how", "can", "a", "an", "the", "from", "and", "or", "to", "of",
-        "in", "on", "for", "with", "user", "distinguish", "genuine",
-        "temporary", "what", "why", "does", "is", "are",
-    }
-    terms = {
-        token.casefold()
-        for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", _normalize_space(question))
-        if token.casefold() not in stop
-    }
-    best = None
-    for document in documents or []:
+    candidates = []
+    for index, document in enumerate(documents or []):
         if not isinstance(document, dict):
             continue
         title = _normalize_space(document.get("title") or "")
         url = _normalize_space(document.get("url") or document.get("canonical_url") or "")
-        content = _normalize_space(
-            document.get("content") or document.get("text") or document.get("excerpt") or ""
-        )
         if not title or not re.fullmatch(r"https://geralddaquila\.com/[^\s]+", url, re.I):
             continue
-        title_terms = {
-            token.casefold()
-            for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", title)
-        }
-        content_terms = {
-            token.casefold()
-            for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", content[:6000])
-        }
-        title_overlap = len(terms & title_terms)
-        content_overlap = len(terms & content_terms)
-        score = title_overlap * 3 + content_overlap
-        # A doorway needs more than a shared generic word in body text.
-        if score < 2:
-            continue
-        candidate = (score, title_overlap, title, url)
-        if best is None or candidate[:2] > best[:2]:
-            best = candidate
-    if best is None:
-        return {"doorway_title": "", "doorway_url": ""}
-    return {"doorway_title": best[2], "doorway_url": best[3]}
 
+        # Prefer explicit retrieval relevance when available; otherwise preserve
+        # the retriever's ranked order. Never manufacture a destination outside
+        # the material already returned for this visitor question.
+        raw_score = (
+            document.get("score")
+            if document.get("score") is not None
+            else document.get("similarity", document.get("relevance_score"))
+        )
+        try:
+            score = float(raw_score) if raw_score is not None else None
+        except (TypeError, ValueError):
+            score = None
+        candidates.append((score, -index, title, url))
+
+    if not candidates:
+        return {"doorway_title": "", "doorway_url": ""}
+
+    scored = [item for item in candidates if item[0] is not None]
+    selected = max(scored, key=lambda item: (item[0], item[1])) if scored else candidates[0]
+    return {"doorway_title": selected[2], "doorway_url": selected[3]}
 
 def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     """Provide bounded general-knowledge recovery for a recognized, well-established concept pair."""
