@@ -1,4 +1,7 @@
-# USE PRODUCTION VERSION: v489.311 — Bounded Pinecone retrieval budget
+# USE PRODUCTION VERSION:
+# Preserve the redacted request-boundary contract used by provider diagnostics.
+# USE Relationship specialist failed safely: exception={type(exc).__name__}
+ v489.311 — Bounded Pinecone retrieval budget
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
 import hashlib
