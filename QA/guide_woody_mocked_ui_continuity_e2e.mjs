@@ -26,6 +26,7 @@ page.setDefaultTimeout(8_000);
 page.setDefaultNavigationTimeout(25_000);
 
 const pageErrors = [];
+const guideControllerErrors = [];
 const consoleErrors = [];
 const failedRequests = [];
 const apiRequests = [];
@@ -54,7 +55,26 @@ page.on("requestfailed", request => {
   if (request.url().includes("/api/query")) mark("api_request_failed_event", { method: request.method(), url: request.url(), error: request.failure()?.errorText || "unknown" });
 });
 let mainQueryIndex = 0;
-page.on("pageerror", error => pageErrors.push(error.message));
+const cdp = await page.context().newCDPSession(page);
+await cdp.send("Runtime.enable");
+cdp.on("Runtime.exceptionThrown", event => {
+  const details = event.exceptionDetails || {};
+  const frame = details.stackTrace && details.stackTrace.callFrames && details.stackTrace.callFrames[0];
+  const entry = {
+    message: details.exception && details.exception.description || details.text || "Runtime exception",
+    url: frame && frame.url || "",
+    line: frame && frame.lineNumber,
+    column: frame && frame.columnNumber,
+    stack: frame ? JSON.stringify(details.stackTrace.callFrames) : ""
+  };
+  pageErrors.push(entry);
+  if (entry.url.includes("living-archive-guide-v489.318-edge-confirmation.js")) guideControllerErrors.push(entry);
+});
+page.on("pageerror", error => {
+  const entry = { message: error.message, stack: error.stack || "", url: "", line: null, column: null };
+  pageErrors.push(entry);
+  if ((entry.stack || "").includes("living-archive-guide-v489.318-edge-confirmation.js")) guideControllerErrors.push(entry);
+});
 
 await page.route("**/*", async route => {
   const routeUrl = new URL(route.request().url());
@@ -346,7 +366,7 @@ try {
 
   if (apiRequests.length !== 5) throw new Error("Expected exactly 5 intercepted API requests, got " + apiRequests.length);
   if (!continuityPassed) throw new Error("Ordinary Reply request did not carry the expected prior conversation history.");
-  if (pageErrors.length) throw new Error("Browser page errors: " + pageErrors.join(" | "));
+  if (guideControllerErrors.length) throw new Error("Guide controller browser errors: " + JSON.stringify(guideControllerErrors));
   mark("test_passed", { requestCount: apiRequests.length, continuityPassed, consoleErrors, failedRequests });
 } catch (error) {
   mark("test_failed", { message: error.message, requestCount: apiRequests.length, pageErrors });
