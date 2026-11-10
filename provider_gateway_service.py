@@ -82,7 +82,7 @@ def validate_request(body: Mapping[str, Any]) -> tuple[str, list[dict[str, str]]
 def execute(*, operation: str, messages: list[dict[str, str]], max_tokens: int, use_core: Any, schema: Mapping[str, Any] | None = None) -> dict[str, Any]:
     def parse(raw: str) -> dict[str, Any]:
         import json
-        if operation == "hrn_voice_repair":
+        if operation in {"hrn_voice_repair", "safety_conversation"}:
             text = str(raw or "").strip()
             if not text:
                 raise ValueError("Provider Bank text response was empty.")
@@ -93,7 +93,7 @@ def execute(*, operation: str, messages: list[dict[str, str]], max_tokens: int, 
 
     # HRN voice repair is a plain-text contract. Do not let the generic
     # gateway default silently force JSON-object mode for this operation.
-    effective_schema = {"mode": "text"} if operation == "hrn_voice_repair" else schema
+    effective_schema = {"mode": "text"} if operation in {"hrn_voice_repair", "safety_conversation"} else schema
     result = provider_bank_route(
         use_core=use_core,
         messages=messages,
