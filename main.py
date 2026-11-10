@@ -8285,9 +8285,19 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 "doorway through the final answer override."
             )
         else:
-            authoritative_doorway = None
-            composition_context.pop("authoritative_doorway", None)
-            composition_context.pop("authoritative_doorway_title", None)
+            # This recovery changes the explanatory prose. It must not erase a
+            # separately verified canonical doorway that was already selected
+            # for the same visitor question. Only explicit evidence/relevance
+            # gates may clear navigation authority.
+            if authoritative_doorway:
+                composition_context["authoritative_doorway"] = authoritative_doorway
+                composition_context["authoritative_doorway_title"] = (
+                    authoritative_doorway.get("title") or ""
+                )
+                print(
+                    "The Guide cosmology recovery: preserved existing verified "
+                    "doorway through the final answer override."
+                )
         composition_context.pop("evidence_sufficiency_unavailable", None)
         composition_context["archive_reference_recovery"] = _cosmology_lived_recovery["recovery_id"]
         print("The Guide conceptual boundary: applied approved Archive-informed cosmology recovery.")
