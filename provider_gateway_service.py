@@ -28,6 +28,7 @@ ALLOWED_OPERATIONS = frozenset({
     "mini_use",
     "stewardship_pathway",
     "fsd_report_composition",
+    "safety_conversation",
 })
 
 def _shared_secret() -> str:
