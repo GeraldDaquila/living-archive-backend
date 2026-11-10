@@ -7619,11 +7619,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # This runs after composition/discovery paths so generic fallback language
     # cannot replace the explanation requested by the visitor.
     if general_guide_composition.is_conceptual_relationship_question(query):
-        if not general_guide_composition.has_conceptual_relationship_explanation(response):
-            response = _sanitize_basic_inquiry_response(
-                general_guide_composition._conceptual_relationship_recovery()
-            )
-            print("The Guide final relationship-answer boundary: restored concept-to-concept explanation.")
+        if not general_guide_composition.has_conceptual_relationship_explanation(response, query):
+            conceptual_recovery = general_guide_composition._conceptual_relationship_recovery(query)
+            if conceptual_recovery:
+                response = _sanitize_basic_inquiry_response(conceptual_recovery)
+                print("The Guide final relationship-answer boundary: restored concept-to-concept explanation.")
         # A conceptual relationship question does not have to explicitly ask
         # for a link to benefit from a separately validated canonical doorway.
         # Preserve the selected doorway here; earlier relevance, evidence,
