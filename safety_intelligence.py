@@ -41,7 +41,7 @@ _SUPPORT_SIGNAL_PATTERN = re.compile(
     r"kill(?:ing)?\s+(?:himself|herself|themselves)|"
     r"end(?:ing)?\s+(?:his|her|their)\s+life|"
     r"want(?:s|ing)?\s+to\s+die|"
-    r"(?:do(?:es|n't| not)|doesnt)\s+want\s+to\s+live|"
+    r"(?:does(?:n't| not)?|doesnt)\s+want\s+to\s+live|"
     r"not\s+be\s+here|at\s+risk|in\s+danger)\b", re.I
 )
 
