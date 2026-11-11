@@ -980,6 +980,20 @@ def _topic_specific_candidate_fit(query, doc):
 def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     if not isinstance(doc, dict):
         return False
+    # A geographically scoped institutional resource must not become the default
+    # doorway for a general personal/conceptual inquiry merely through incidental
+    # retrieval overlap. Geographic scope is an explicit relevance commitment:
+    # the visitor must invoke that territory or an institutional/public-system frame.
+    q = _normalize_query(query)
+    title_probe = str(doc.get("title") or "")
+    body_probe = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "")
+    geo_scope = bool(re.search(r"\b(?:philippine|philippines)\b", title_probe, re.I))
+    if geo_scope:
+        query_geo = bool(re.search(r"\b(?:philippine|philippines)\b", q, re.I))
+        public_frame = bool(re.search(r"\b(?:institution|institutions|system|systems|governance|government|public|civic|policy|political)\b", q, re.I))
+        candidate_public = bool(re.search(r"\b(?:institution|institutions|system|systems|governance|government|public|civic|policy|political)\b", body_probe, re.I))
+        if not query_geo and not (public_frame and candidate_public):
+            return False
     title = str(doc.get("title") or "").strip()
     url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
     if not title or not re.match(r"^https://\S+$", url, re.I):
