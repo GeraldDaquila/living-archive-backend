@@ -6170,7 +6170,9 @@ def _general_guide_authoritative_doorway(query, context_data):
             ]
 
         primary = _canonical_primary_from_docs(evidence_docs, query, profile)
+        recovered_from_search = False
         if not primary and not bool(context_data.get("_skip_doorway_search_recovery")):
+            recovered_from_search = True
             # Retrieval and doorway selection are separate. If the retrieved
             # candidate pool lacks a direct subject match, recover public
             # canonical candidates and subject them to the same relevance gate.
@@ -6251,6 +6253,39 @@ def _general_guide_authoritative_doorway(query, context_data):
                     if "/" in str(item.get("url") or item.get("canonical_url") or "").split("://", 1)[-1] and str(item.get("url") or item.get("canonical_url") or "").split("://", 1)[-1].split("/", 1)[1].strip("/")
                 ]
             primary = _canonical_primary_from_docs(evidence_docs, query, profile)
+
+        # A search-recovered conceptual doorway needs stronger evidence than a
+        # bare rank. In particular, a page found because it shares one abstract
+        # word (for example, "authority") must not become the next step for a
+        # multi-concept relationship question. Require either a salient title
+        # match or at least two distinct salient subjects in the candidate's
+        # evidence text.
+        if primary and recovered_from_search and relationship_query:
+            _stop = {
+                "what", "does", "mean", "rather", "than", "for", "with", "that",
+                "this", "from", "into", "about", "when", "where", "which", "have",
+                "has", "been", "being", "the", "and", "or", "but", "how", "why",
+                "can", "could", "would", "should", "are", "is", "an", "a", "to",
+                "of", "in", "on", "by", "it", "its", "final", "right",
+            }
+            _salient = {
+                token.casefold()
+                for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", str(query or ""))
+                if token.casefold() not in _stop
+            }
+            _title_words = set(re.findall(
+                r"[A-Za-z][A-Za-z'-]{2,}",
+                str(primary.get("title") or "").casefold(),
+            ))
+            _body_words = set(re.findall(
+                r"[A-Za-z][A-Za-z'-]{2,}",
+                str(primary.get("text") or primary.get("content") or primary.get("excerpt") or "").casefold(),
+            ))
+            _title_fit = bool(_salient & _title_words)
+            _body_fit = len(_salient & _body_words) >= 2
+            if not (_title_fit or _body_fit):
+                print("The Guide canonical doorway: rejected weak search-recovered conceptual candidate.")
+                primary = None
 
         if not primary:
             # A missing recommendation is preferable to an unrelated doorway.
