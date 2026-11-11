@@ -5,6 +5,10 @@ import general_guide_composition as composition
 
 
 class ConceptualEvidenceDistinctionTests(unittest.TestCase):
+    def test_exact_question_enters_conceptual_recovery_class(self):
+        question = "What distinguishes contemplative insight from empirical evidence?"
+        self.assertTrue(composition.is_conceptual_relationship_question(question))
+
     def test_contemplative_insight_and_empirical_evidence_are_answered(self):
         answer = composition._conceptual_relationship_recovery(
             "What distinguishes contemplative insight from empirical evidence?"
