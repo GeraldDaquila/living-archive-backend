@@ -1900,6 +1900,7 @@ _CONCEPTUAL_RELATIONSHIP_PATTERNS = (
     r"\bhow .{0,70} and .{0,70} (?:relate to|connect with|reinforce|shape) (?:one another|each other)\b",
     r"\brelationship between .{0,80} and .{0,80}\b",
     r"\bdistinguish(?:es|ed|ing)? .{0,100} from .{0,100}\b",
+    r"\bwhat role should .{0,100} play in (?:a |an )?.{0,100}\b",
 )
 
 
@@ -2000,6 +2001,37 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "Empirical evidence is gathered through observation, measurement, comparison, or other methods that allow a claim to be checked against the world. Its strength is that other people can examine the method and evidence, look for alternative explanations, and test whether a finding holds beyond one person's experience. Empirical evidence can therefore support or challenge general claims, but it may not by itself capture the full meaning or texture of lived experience.\n\n"
             "The distinction is not that one is true and the other is false. They have different standards of warrant. A contemplative insight may be personally illuminating and can suggest a question worth investigating; empirical evidence asks what can be publicly supported about that question. Keeping the two distinct helps avoid treating a powerful inner experience as universal proof while also avoiding the mistake of assuming that only what can be measured is meaningful."
         )
+
+    # Normative role questions are answerable conceptual questions even when
+    # no provider is available. Recover the relationship between a means, the
+    # purposes it serves, and the responsibilities that remain with people.
+    role_match = re.search(
+        r"\bwhat role should\s+(.+?)\s+play in\s+(?:a |an |the )?(.+?)(?:[?.!]|$)",
+        normalized,
+        re.I,
+    )
+    if role_match:
+        subject = _normalize_space(role_match.group(1))
+        context = _normalize_space(role_match.group(2))
+        if (
+            subject
+            and context
+            and re.search(
+                r"\b(?:society|institution|organization|community|governance|stewardship|public)\b",
+                context,
+                re.I,
+            )
+        ):
+            return (
+                f"In {context}, {subject} is best understood as a means rather than the thing that sets the direction. "
+                f"Its role should be judged by whether it strengthens the purposes, relationships, and responsibilities that {context} is meant to sustain—not only by how efficiently it performs a task.\n\n"
+                f"That means asking what {subject} makes easier or harder to see, decide, and care for over time. "
+                "A useful role can extend human and institutional capacity, reduce unnecessary burdens, improve coordination, or reveal patterns that deserve attention. "
+                "But capability does not determine what ought to be valued, whose interests should take priority, or which consequences are acceptable. Those remain matters of human judgment and accountable governance.\n\n"
+                f"A responsible approach therefore keeps {subject} answerable to the larger purposes of {context}. "
+                "It considers who benefits, who bears costs, what dependencies are created, who retains agency, and whether the arrangement strengthens or weakens the capacity to act responsibly over the long term. "
+                "The guiding question is not simply what the means can do, but what it should help people and institutions become capable of caring for."
+            )
 
     if re.search(r"\btransformation\b", normalized) and re.search(r"\b(?:emotional\s+)?relief\b", normalized):
         return (
