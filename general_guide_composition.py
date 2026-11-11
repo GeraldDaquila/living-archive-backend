@@ -2766,6 +2766,7 @@ def _default_gold_standard_evidence_recovery(
 
 
 def compose(
+
     *,
     use_core: Any,
     query: str,
