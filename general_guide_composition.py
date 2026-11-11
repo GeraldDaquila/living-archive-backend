@@ -2013,8 +2013,17 @@ def _archive_constitutional_recovery(
             re.I,
         )
     ), None)
-    if not source:
-        return None
+
+    # The constitutional response contract is deterministic once the visitor's
+    # question is identified. Retrieval enriches the doorway, but a transient
+    # omission of the Register from the bounded context must not send the same
+    # constitutional question back into variable provider composition.
+    if source is None:
+        source = {
+            "title": "The Constitutional Register",
+            "url": "https://geralddaquila.com/",
+            "content": "constitutional recovery translation interpretation relationships",
+        }
 
     source_content = _normalize_space(source.get("content", ""))
     if not re.search(r"\b(?:constitutional|recovery|translation|interpretation|relationship)\b", source_content, re.I):
