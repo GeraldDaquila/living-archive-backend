@@ -69,7 +69,12 @@ jobs:
           }
 
           def post_query(base_url, query, timeout=90):
-              expected_commit = (os.environ.get("EXPECTED_RUNTIME_SHA") or os.environ.get("GITHUB_SHA") or "").strip()
+              # Semantic contracts are valid only for a positively identified
+              # runtime. Never allow an unset expected SHA to turn a stale
+              # deployment into an accepted visitor response.
+              expected_commit = (os.environ.get("EXPECTED_RUNTIME_SHA") or "").strip()
+              if not expected_commit:
+                  raise SystemExit("EXPECTED_RUNTIME_SHA is required before any live semantic query")
               last_result = (0, {})
               for attempt in range(1, 31):
                   request = urllib.request.Request(
@@ -92,7 +97,6 @@ jobs:
                   last_result = (status, payload)
                   if (
                       status != 200
-                      or not expected_commit
                       or payload.get("deployment_commit_sha") == expected_commit
                   ):
                       return status, payload
