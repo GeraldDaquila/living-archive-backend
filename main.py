@@ -134,6 +134,10 @@ _GUIDE_NODE_REGISTRY_CACHE = StaleAuthorityCache(
 _GUIDE_NODE_REGISTRY_STATE = {"state": "unavailable"}
 
 
+
+def _wordpress_search_canonical_candidates(query, *, limit=3):
+    return _wordpress_search_canonical_candidates_impl(query, limit=limit, preserve_query=False)
+
 def _load_guide_node_registry():
     # WordPress/CDN caches the bare registry URL and can keep serving an older
     # node list after a governed registry update. This loader runs only when the
@@ -6052,11 +6056,7 @@ def _general_guide_authoritative_doorway(query, context_data):
             fallback_docs = _wordpress_search_canonical_candidates(query)
             if _is_conceptual_explanatory_request(query):
                 for _bridge_query in _canonical_conceptual_search_queries(query):
-                    _wordpress_search_canonical_candidates._preserve_query = True
-                    try:
-                        _bridge_docs = _wordpress_search_canonical_candidates(_bridge_query, limit=10)
-                    finally:
-                        _wordpress_search_canonical_candidates._preserve_query = False
+                    _bridge_docs = _wordpress_search_canonical_candidates_impl(_bridge_query, limit=10, preserve_query=True)
                     for _bridge_doc in _bridge_docs:
                         if isinstance(_bridge_doc, dict):
                             _bridge_doc["_conceptual_bridge_query"] = _bridge_query
