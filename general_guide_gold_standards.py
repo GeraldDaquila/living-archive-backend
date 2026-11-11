@@ -1,8 +1,8 @@
 """Exact-match runtime enforcement for approved General Guide standards.
 
-Only records explicitly frozen as reference standards or approved by the user
-are eligible. Recovered historical responses, candidates, and diagnostic
-fixtures remain evaluation material, not production answer authority.
+Only records explicitly approved by the user are eligible. Historical
+references, recovered responses, candidates, and diagnostic fixtures remain
+evaluation or provenance material, not production answer authority.
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 _REGISTRY_PATH = Path(__file__).resolve().parent / "docs" / "qa" / "gold_standard_registry.json"
-_ELIGIBLE_STATUSES = {"FROZEN_REFERENCE_ONLY", "USER_APPROVED_GOLD_STANDARD"}
+_ELIGIBLE_STATUSES = {"USER_APPROVED_GOLD_STANDARD"}
 
 
 def _normalize_question(value: Any) -> str:
@@ -32,7 +32,7 @@ def _normalize_question(value: Any) -> str:
 
 
 def load_approved_standards() -> Dict[str, Dict[str, str]]:
-    """Load exact approved/frozen answers keyed by normalized benchmark question."""
+    """Load exact current approved answers keyed by normalized benchmark question."""
     payload = json.loads(_REGISTRY_PATH.read_text(encoding="utf-8"))
     records = payload.get("records")
     if not isinstance(records, list):
