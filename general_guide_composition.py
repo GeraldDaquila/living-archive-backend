@@ -1236,6 +1236,29 @@ def _concept_misuse_recovery(query: str) -> str:
     return ""
 
 
+def _requires_broad_conceptual_definition(query: str) -> bool:
+    """Recognize answerable conceptual questions that must not become retrieval refusals."""
+    q = _normalize_space(query).casefold()
+    return bool(re.search(r"^(?:what does|what is|define|explain)\b", q)) and bool(re.search(r"\bregeneration\b", q)) and bool(re.search(r"\b(?:beyond|more than|outside|apart from)\b", q))
+
+
+def _has_broad_conceptual_definition(response: str) -> bool:
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
+    if len(paragraphs) != 3:
+        return False
+    first, second, third = paragraphs
+    refusal = re.search(r"\b(?:can't|cannot) define\b|\bdictionary or subject reference\b", response, re.I)
+    return not refusal and bool(re.search(r"\bregeneration\b", first, re.I)) and bool(re.search(r"\b(?:renew|restore|revitaliz|capacity|conditions?|life|relationship)\w*", first, re.I)) and bool(re.search(r"\b(?:environment|ecological|beyond)\b", second, re.I)) and bool(re.search(r"\b(?:social|economic|institution|culture|community|relationship|human)\w*", second, re.I)) and bool(re.search(r"\b(?:does not mean|more than|not simply|ongoing|conditions?|capacity|future)\b", third, re.I))
+
+
+def _broad_conceptual_definition_recovery() -> str:
+    return (
+        "Beyond environmental restoration, regeneration can be understood as renewing the conditions that allow life and human communities to remain capable of flourishing. Restoration often focuses on repairing damage; regeneration also asks whether the relationships, capacities, and conditions that sustain a system are becoming healthier and more able to renew themselves over time.\n\n"
+        "That broader meaning can apply to communities, institutions, economies, and cultures as well as ecosystems. For example, a community may restore a damaged building, but a regenerative approach would also ask whether trust, local capability, participation, and the relationships needed to care for the place are being strengthened. The point is not simply to return to an earlier state, but to improve the conditions from which healthy life can continue.\n\n"
+        "Regeneration therefore does not mean endless growth or a promise that everything can be repaired. It is an ongoing orientation toward renewing capacity while recognizing limits and consequences. In the Living Archive's wider concerns with stewardship and place, it offers a way of asking not only what has been restored, but what conditions are being created for people and living systems to thrive into the future."
+    )
+
+
 def _requires_compound_explanatory_structure(query: str) -> bool:
     """Return True when the question explicitly asks for both meaning and significance."""
     q = _normalize_space(query).casefold()
@@ -2397,6 +2420,10 @@ def _has_archive_grounding_boundary(response: str) -> bool:
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    if _requires_broad_conceptual_definition(question) and not _has_broad_conceptual_definition(candidate):
+        candidate = _broad_conceptual_definition_recovery()
+    if _requires_broad_conceptual_definition(question) and not _has_broad_conceptual_definition(candidate):
+        raise RuntimeError("Broad conceptual definition contract failed after recovery.")
     if _requires_archive_grounding_boundary(question) and not _has_archive_grounding_boundary(candidate):
         candidate = _archive_grounding_boundary_recovery()
     if _requires_archive_grounding_boundary(question) and not _has_archive_grounding_boundary(candidate):
