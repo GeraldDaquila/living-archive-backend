@@ -6409,7 +6409,16 @@ def _broad_conceptual_doorway(query, conceptual_answer=""):
         # Preserve that ranked territorial judgment, but only for canonical,
         # public destinations and only after the authoritative selector has had
         # first refusal above.
-        for item in evidence:
+        eligible = []
+        concept_terms = {
+            term.casefold()
+            for term in re.findall(r"[A-Za-z]{5,}", str(query or ""))
+            if term.casefold() not in {
+                "about", "beyond", "does", "environmental", "meaning",
+                "restoration", "their", "there", "what",
+            }
+        }
+        for position, item in enumerate(evidence):
             access = str(item.get("access_class") or "").casefold()
             url = str(item.get("url") or "").strip()
             title = str(item.get("title") or "").strip()
@@ -6417,7 +6426,20 @@ def _broad_conceptual_doorway(query, conceptual_answer=""):
                 continue
             if access and access not in {"public", "open", "free"}:
                 continue
-            return _normalize_authoritative_recommendation(item)
+            title_terms = {
+                term.casefold()
+                for term in re.findall(r"[A-Za-z]{5,}", title)
+            }
+            # Preserve territorial ranking as the baseline, but prefer a doorway
+            # whose canonical title names the visitor's concept directly when
+            # such a destination exists. This prevents an adjacent systems page
+            # from outranking a closer canonical continuation merely because it
+            # happened to appear first in broad territorial discovery.
+            direct_overlap = len(concept_terms & title_terms)
+            eligible.append((-direct_overlap, position, item))
+        if eligible:
+            eligible.sort(key=lambda candidate: (candidate[0], candidate[1]))
+            return _normalize_authoritative_recommendation(eligible[0][2])
         return None
     except Exception as exc:
         print(
