@@ -111,6 +111,9 @@ try {
   await page.waitForLoadState("load").catch(() => {});
   await Promise.all(controllerBodyReads);
   console.log(JSON.stringify({ stage: "controller_script_diagnostic", controllerRequests, controllerResponses }));
+  if (pageErrors.length) {
+    throw new Error("Browser page errors before interaction: " + pageErrors.join(" | "));
+  }
   const root = page.locator(ROOT);
   await root.waitFor({ state: "attached" });
   const input = root.locator("#archive-query-input");
