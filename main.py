@@ -10674,9 +10674,12 @@ async def _use_request_boundary(scope, receive, send):
                             recovery_text = ""
                 if _basic_inquiry_contains_html_markup(recovery_text):
                     recovery_text = ""
-                recovery_recommendation = _normalize_authoritative_recommendation(
-                    _general_guide_authoritative_doorway(query, recovery_context)
-                )
+                # A deterministic answer recovery has its own provenance. Do not
+                # attach a doorway selected from stale or unrelated request context:
+                # a useful place to continue must be earned by evidence for this
+                # response, not inherited merely because the normal composition
+                # pipeline became unavailable.
+                recovery_recommendation = None
                 if recovery_text:
                     request_id = "basic-recovery-" + hashlib.sha1(
                         (query + "|" + _history_text(history)).encode("utf-8")
