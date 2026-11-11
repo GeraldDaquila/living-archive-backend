@@ -5435,12 +5435,18 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         if any(marker in _normalized_query for marker in _conceptual_relationship_markers)
         else "deterministic_question_preserving_recovery"
     )
-    _final_recommendation = _normalize_authoritative_recommendation(
-        context_data.get("authoritative_doorway")
-    ) if isinstance(context_data, dict) else None
+    # Keep this helper self-contained: isolated recovery tests may not load the
+    # higher-level doorway normalization helpers.
+    _raw_doorway = context_data.get("authoritative_doorway") if isinstance(context_data, dict) else None
+    _final_recommendation = dict(_raw_doorway) if isinstance(_raw_doorway, dict) else None
+    _final_doorway_title = (
+        (_final_recommendation.get("title") or title or "")
+        if recommendation_available
+        else ""
+    )
     return {
         "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
-        "doorway_title": title if recommendation_available else "",
+        "doorway_title": _final_doorway_title,
         "recommendation": _final_recommendation,
         "provider": _final_provider,
         "model": "",
