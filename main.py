@@ -5626,7 +5626,7 @@ def _canonical_conceptual_search_queries(query):
     return bridges
 
 
-def _wordpress_search_canonical_candidates(query, *, limit=3, preserve_query=False):
+def _wordpress_search_canonical_candidates(query, *, limit=3):
     """Recover public canonical candidates when vector retrieval cannot ground a doorway.
 
     WordPress search is a bounded, provider-independent retrieval supplement, not
@@ -5635,6 +5635,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=3, preserve_query=Fal
     """
     import html
 
+    preserve_query = bool(getattr(_wordpress_search_canonical_candidates, "_preserve_query", False))
     # `_subject_terms` may yield a set; sort before ranking so separate Render
     # processes do not send different WordPress queries due to hash iteration order.
     terms = sorted(set(_subject_terms(query)))
@@ -6051,7 +6052,11 @@ def _general_guide_authoritative_doorway(query, context_data):
             fallback_docs = _wordpress_search_canonical_candidates(query)
             if _is_conceptual_explanatory_request(query):
                 for _bridge_query in _canonical_conceptual_search_queries(query):
-                    _bridge_docs = _wordpress_search_canonical_candidates(_bridge_query, limit=10, preserve_query=True)
+                    _wordpress_search_canonical_candidates._preserve_query = True
+                    try:
+                        _bridge_docs = _wordpress_search_canonical_candidates(_bridge_query, limit=10)
+                    finally:
+                        _wordpress_search_canonical_candidates._preserve_query = False
                     for _bridge_doc in _bridge_docs:
                         if isinstance(_bridge_doc, dict):
                             _bridge_doc["_conceptual_bridge_query"] = _bridge_query
