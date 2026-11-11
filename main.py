@@ -4719,6 +4719,27 @@ def _guide_finalize_visitor_payload(payload, query):
         )
         return safe
 
+    # The composition contract is authoritative for explicit epistemic-boundary
+    # questions too. Earlier recovery rules only recognized conceptual and
+    # meta-answer failures, allowing a fluent but off-topic legacy answer to
+    # survive to the visitor. Re-run the narrow contract at the one boundary
+    # guaranteed to see every /api/query payload.
+    if general_guide_composition._requires_archive_grounding_boundary(query):
+        contracted = general_guide_composition.enforce_response_contracts(
+            query, response_text
+        )
+        if contracted != response_text:
+            safe = dict(payload)
+            safe["response"] = _sanitize_basic_inquiry_response(contracted)
+            safe["recommendation"] = None
+            safe["processing"] = "final_visitor_boundary_archive_grounding_contract"
+            safe["route_source"] = "guide_final_visitor_boundary"
+            safe["visitor_boundary_version"] = APP_VERSION
+            print(
+                "The Guide final visitor boundary: restored Archive-grounding distinction contract."
+            )
+            return safe
+
     # Native relational quality boundary. Only intervene when a recognizable
     # relational inquiry has been answered with a known generic systems template.
     # Otherwise preserve the Guide's ordinary reasoning and voice.
