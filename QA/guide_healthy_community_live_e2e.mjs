@@ -56,8 +56,10 @@ page.on("pageerror", error => {
   pageErrorDetails.push({ message: error.message, stack: error.stack || "", name: error.name || "" });
 });
 page.on("console", message => {
-  if (message.type() === "error" || message.type() === "warning") {
-    pageConsole.push({ type: message.type(), text: message.text() });
+  if (message.type() === "error") {
+    pageConsole.push({ type: message.type(), text: message.text(), location: message.location() });
+  } else if (message.type() === "warning") {
+    pageConsole.push({ type: message.type(), text: message.text(), location: message.location() });
   }
 });
 page.on("request", request => {
