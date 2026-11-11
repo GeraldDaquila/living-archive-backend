@@ -876,6 +876,7 @@ def _requires_orientation_anchor(query: str) -> bool:
     return bool(
         re.search(
             r"\b(?:overwhelmed by conflicting|regain my bearings|lost my bearings|"
+            r"recover orientation|recover my orientation|regain orientation|"
             r"know what is real enough|don't know what to believe|cannot tell what to trust|"
             r"too much information|conflicting information)\b",
             q,
@@ -907,6 +908,25 @@ def _orientation_anchor_recovery() -> str:
         "Start by separating what you can verify from what remains uncertain, then notice which assumptions or sources are carrying the most weight in your judgment.\n\n"
         "You do not need perfect certainty before acting. You need a clear enough sense of what is known, what could change your view, and how much responsibility the next step actually carries. "
         "That gives you a place to stand while the larger picture remains incomplete."
+    )
+
+
+
+def _ordinary_language_orientation_recovery(query: str) -> Optional[str]:
+    """Offer bounded orientation for familiar orientation-language questions.
+
+    This is not a formal definition of an Archive term. It answers the ordinary
+    meaning of familiar language when provider composition is unavailable.
+    """
+    q = _normalize_space(query).casefold()
+    if not re.search(r"\b(?:recover|regain)\s+(?:my\s+)?orientation\b", q):
+        return None
+    if not re.search(r"\b(?:uncertain|uncertainty|unclear|season)\b", q):
+        return None
+    return (
+        "To recover orientation during a season of uncertainty is to regain enough sense of where you are, what matters, and what you can attend to next—even when the larger picture is still unclear. It does not require solving the uncertainty or returning immediately to a settled plan. Orientation is a way of finding your bearings within conditions that have not yet resolved.\n\n"
+        "That can begin by distinguishing what is known from what is still uncertain, noticing which commitments or relationships remain important, and resisting the pressure to treat every unanswered question as an emergency. The point is not to manufacture certainty. It is to recover enough context to judge what deserves attention and what can wait.\n\n"
+        "In that sense, orientation is provisional: your bearings can be real without being final. As circumstances change, you may revise your understanding. Recovering orientation means having a place to stand and a way to take the next responsible step while allowing the larger situation to remain unfinished."
     )
 
 
@@ -2687,6 +2707,23 @@ def compose(
         # Preserve the shared explanatory contract when providers are exhausted.
         # This bounded general-knowledge recovery is allowed only for a familiar
         # concept pair and never claims to state Archive doctrine.
+        orientation_recovery = _ordinary_language_orientation_recovery(question)
+        if orientation_recovery is not None:
+            doorway = _select_verified_recovery_doorway(question, documents)
+            _emit_guide_outcome(
+                "provider_exhaustion_fallback",
+                recovery="ordinary_language_orientation",
+                doorway=bool(doorway["doorway_title"]),
+            )
+            return {
+                "response": orientation_recovery,
+                "doorway_title": doorway["doorway_title"],
+                "doorway_url": doorway["doorway_url"],
+                "response_shape": "explanatory",
+                "provider": "bounded_orientation_recovery",
+                "model": "deterministic-contract-recovery",
+            }
+
         relationship_recovery = (
             _conceptual_relationship_recovery(question)
             if is_conceptual_relationship_question(question)
