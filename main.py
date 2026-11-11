@@ -5601,7 +5601,7 @@ def _canonical_conceptual_search_queries(query):
     """
     normalized = _normalize_query(query)
     bridges = []
-    if all(re.search(r"\\b" + re.escape(term) + r"\\b", normalized, re.I)
+    if all(re.search(r"\b" + re.escape(term) + r"\b", normalized, re.I)
            for term in ("culture", "notice", "value", "imagine")):
         bridges.append("stories civilization")
     return bridges
