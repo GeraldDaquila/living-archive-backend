@@ -2348,9 +2348,50 @@ def _requires_archive_scoped_stewardship(question: str) -> bool:
     )
 
 
+def _requires_archive_grounding_boundary(query: str) -> bool:
+    """Recognize explicit questions about the Guide's epistemic boundary."""
+    q = _normalize_space(query).casefold()
+    archive_grounding = bool(re.search(
+        r"\b(?:archive[- ]grounded|archive[- ]specific|living archive)\b", q
+    ))
+    external_knowledge = bool(re.search(
+        r"\b(?:general|external|outside|broader)\s+(?:knowledge|information|sources?)\b", q
+    ))
+    distinction = bool(re.search(
+        r"\b(?:distinguish|difference|separate|tell .* apart|boundary)\b", q
+    ))
+    guide_context = bool(re.search(r"\b(?:the\s+)?guide\b", q))
+    return archive_grounding and external_knowledge and distinction and guide_context
+
+
+def _archive_grounding_boundary_recovery() -> str:
+    """State the Guide's source boundary without treating external knowledge as Archive doctrine."""
+    return (
+        "The Guide should distinguish three things: what is grounded in the Living Archive, what comes from general external knowledge, and where it is making a careful synthesis between them. "
+        "Archive-grounded guidance should be traceable to published Archive material—such as its essays, frameworks, glossary, instruments, or other canonical resources—and should be presented as the Archive's own orientation.\n\n"
+        "General external knowledge can help provide context, comparison, or practical background, but it should not be presented as though it were an Archive position. "
+        "When the Guide draws on both, it should make the boundary clear: identify the Archive-grounded idea first, then distinguish any broader context or interpretation added around it. If the Archive does not establish a position, the Guide should say so rather than filling the gap with outside knowledge under the Archive's name.\n\n"
+        "This distinction protects the Guide's role as a trustworthy navigator. The goal is not to exclude useful knowledge from elsewhere, but to preserve provenance: visitors should be able to tell what the Living Archive itself supports, what is wider contextual knowledge, and what is a bounded synthesis made to help them understand the relationship."
+    )
+
+
+def _has_archive_grounding_boundary(response: str) -> bool:
+    text = _normalize_space(response).casefold()
+    return (
+        re.search(r"\b(?:traceable|published archive material|canonical resources?|archive's own orientation)\b", text)
+        and re.search(r"\b(?:external|general)\s+(?:knowledge|context|information)\b", text)
+        and re.search(r"\b(?:not be presented|not present).*\barchive (?:position|name|doctrine)\b|\bunder the archive's name\b", text)
+        and re.search(r"\b(?:provenance|source boundary|tell what the living archive itself supports)\b", text)
+    )
+
+
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    if _requires_archive_grounding_boundary(question) and not _has_archive_grounding_boundary(candidate):
+        candidate = _archive_grounding_boundary_recovery()
+    if _requires_archive_grounding_boundary(question) and not _has_archive_grounding_boundary(candidate):
+        raise RuntimeError("Archive-grounding boundary response contract failed after recovery.")
     if _requires_fragmented_knowledge_explanation(question) and not _has_fragmented_knowledge_explanation(candidate):
         candidate = _fragmented_knowledge_recovery()
     if _requires_fragmented_knowledge_explanation(question) and not _has_fragmented_knowledge_explanation(candidate):
