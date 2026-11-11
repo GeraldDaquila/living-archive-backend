@@ -1,0 +1,448 @@
+{
+  "version": "1.0",
+  "purpose": "Full historical Gold Star revalidation and best-practice harvesting audit. Historical labels are not treated as current quality proof.",
+  "principles": [
+    "Revalidate whole responses against current Guide standards.",
+    "Harvest component-level strengths without canonizing a weak whole response.",
+    "Preserve controls and fixtures as negative or regression evidence, never learning content.",
+    "Do not promote reconstructed or provenance-incomplete records without explicit governance review."
+  ],
+  "summary": {
+    "historical_reference": 4,
+    "historical_candidate": 15,
+    "candidate_or_incomplete": 7,
+    "control_or_fixture": 10,
+    "other": 1,
+    "provenance_gap": 1,
+    "current_gold_standard": 23
+  },
+  "records": [
+    {
+      "benchmark_id": "general-guide-stewardship-gold-standard-2026-10-14",
+      "query": "Explain stewardship, but do not send me to another page yet.",
+      "current_status": "FROZEN_REFERENCE_ONLY",
+      "audit_lane": "historical_reference",
+      "revalidation_action": "revalidate_before_any_promotion_or_harvesting"
+    },
+    {
+      "benchmark_id": "general-guide-reciprocity-gold-standard-2026-10-19",
+      "query": "What does reciprocity mean in the Living Archive?",
+      "current_status": "FROZEN_REFERENCE_ONLY",
+      "audit_lane": "historical_reference",
+      "revalidation_action": "revalidate_before_any_promotion_or_harvesting"
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-compound-2026-10",
+      "query": "What is stewardship and why does it matter now more than ever?",
+      "current_status": "RECOVERED_HISTORICAL_RESPONSE",
+      "audit_lane": "historical_candidate",
+      "revalidation_action": "component_review_for_reusable_practice_without_claiming_historical_exactness"
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-disagreement-protection-2026-10",
+      "query": "What does stewardship look like when people disagree about what is worth protecting?",
+      "current_status": "RECOVERED_HISTORICAL_RESPONSE",
+      "audit_lane": "historical_candidate",
+      "revalidation_action": "component_review_for_reusable_practice_without_claiming_historical_exactness"
+    },
+    {
+      "benchmark_id": "general-guide-practical-trust-application-2026-10-22",
+      "query": "I understand the importance of trust, but what would I actually do differently in an organization trying to live by it?",
+      "current_status": "FROZEN_REFERENCE_ONLY",
+      "audit_lane": "historical_reference",
+      "revalidation_action": "revalidate_before_any_promotion_or_harvesting"
+    },
+    {
+      "benchmark_id": "general-guide-conceptual-accountability-trust-harm-repair-2026-10-22",
+      "query": "How might accountability, trust, and the ability to repair harm reinforce one another?",
+      "current_status": "FROZEN_REFERENCE_ONLY",
+      "audit_lane": "historical_reference",
+      "revalidation_action": "revalidate_before_any_promotion_or_harvesting"
+    },
+    {
+      "benchmark_id": "general-guide-hindsight-accountability-2026-10",
+      "query": "If the group made the best decision it could with the information available at the time, how should it distinguish genuine accountability from unfairly blaming people in hindsight?",
+      "current_status": "RECOVERED_HISTORICAL_RESPONSE_PENDING_APPROVAL_EVIDENCE",
+      "audit_lane": "candidate_or_incomplete",
+      "revalidation_action": "recover_provenance_and_revalidate_before_harvesting"
+    },
+    {
+      "benchmark_id": "general-guide-ethical-tradeoff-2026-10",
+      "query": "What if each person sincerely believes they are protecting something important, but protecting one person's priorities means another person will lose something they deeply value? How should we decide what to protect?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE",
+      "audit_lane": "candidate_or_incomplete",
+      "revalidation_action": "recover_provenance_and_revalidate_before_harvesting"
+    },
+    {
+      "benchmark_id": "general-guide-responsibility-boundary-2026-10",
+      "query": null,
+      "current_status": "RECOVERED_CONTRACT_PENDING_EXACT_QUESTION_AND_APPROVAL",
+      "audit_lane": "candidate_or_incomplete",
+      "revalidation_action": "recover_provenance_and_revalidate_before_harvesting"
+    },
+    {
+      "benchmark_id": "general-guide-practical-collective-next-step-2026-10",
+      "query": "If the group agrees that something must change but its members disagree about what to do first, what would be a constructive next step?",
+      "current_status": "RECOVERED_REGRESSION_SCENARIO",
+      "audit_lane": "control_or_fixture",
+      "revalidation_action": "retain_for_testing_never_harvest_as_quality_evidence"
+    },
+    {
+      "benchmark_id": "general-guide-harm-reduction-outcome-evaluation-2026-10",
+      "query": "How can a group tell whether its revised approach is genuinely reducing harm, rather than simply making the group feel that it has addressed the problem?",
+      "current_status": "RECOVERED_REGRESSION_SCENARIO",
+      "audit_lane": "control_or_fixture",
+      "revalidation_action": "retain_for_testing_never_harvest_as_quality_evidence"
+    },
+    {
+      "benchmark_id": "general-guide-fuzzy-relevance-balanced-evaluation-2026-10-22",
+      "query": null,
+      "current_status": "RECOVERED_EVALUATION_FIXTURE_NOT_GOLD_STANDARD",
+      "audit_lane": "control_or_fixture",
+      "revalidation_action": "retain_for_testing_never_harvest_as_quality_evidence"
+    },
+    {
+      "benchmark_id": "general-guide-fuzzy-relevance-heldout-paraphrases-2026-10-22",
+      "query": null,
+      "current_status": "RECOVERED_EVALUATION_FIXTURE_NOT_GOLD_STANDARD",
+      "audit_lane": "control_or_fixture",
+      "revalidation_action": "retain_for_testing_never_harvest_as_quality_evidence"
+    },
+    {
+      "benchmark_id": "general-guide-fuzzy-relevance-independent-challenge-2026-10-22",
+      "query": null,
+      "current_status": "RECOVERED_EVALUATION_FIXTURE_NOT_GOLD_STANDARD",
+      "audit_lane": "control_or_fixture",
+      "revalidation_action": "retain_for_testing_never_harvest_as_quality_evidence"
+    },
+    {
+      "benchmark_id": "general-guide-fuzzy-relevance-simulated-question-battery-2026-10-22",
+      "query": null,
+      "current_status": "RECOVERED_EVALUATION_FIXTURE_NOT_GOLD_STANDARD",
+      "audit_lane": "control_or_fixture",
+      "revalidation_action": "retain_for_testing_never_harvest_as_quality_evidence"
+    },
+    {
+      "benchmark_id": "general-guide-fuzzy-fallback-replay-simulated-2026-10-22",
+      "query": null,
+      "current_status": "RECOVERED_DIAGNOSTIC_FIXTURE_NOT_GOLD_STANDARD",
+      "audit_lane": "control_or_fixture",
+      "revalidation_action": "retain_for_testing_never_harvest_as_quality_evidence"
+    },
+    {
+      "benchmark_id": "general-guide-practical-trust-shadow-diagnostic-2026-10",
+      "query": "I understand the importance of trust, but what would I actually do differently in an organization trying to live by it?",
+      "current_status": "RECOVERED_SHADOW_DIAGNOSTIC_NOT_GOLD_STANDARD",
+      "audit_lane": "control_or_fixture",
+      "revalidation_action": "retain_for_testing_never_harvest_as_quality_evidence"
+    },
+    {
+      "benchmark_id": "general-guide-calibration-question-set-2026-09-20",
+      "query": null,
+      "current_status": "RECOVERED_QUESTION_SET_PENDING_PER_ITEM_APPROVAL",
+      "audit_lane": "candidate_or_incomplete",
+      "revalidation_action": "recover_provenance_and_revalidate_before_harvesting"
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-01-2026-10-21",
+      "query": "How does responsibility differ from carrying everything yourself?",
+      "current_status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+      "audit_lane": "historical_candidate",
+      "revalidation_action": "component_review_for_reusable_practice_without_claiming_historical_exactness"
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-02-2026-10-21",
+      "query": "How can I tell when helping has turned into taking over?",
+      "current_status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+      "audit_lane": "historical_candidate",
+      "revalidation_action": "component_review_for_reusable_practice_without_claiming_historical_exactness"
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-03-2026-10-21",
+      "query": "What does sharing responsibility look like when a team is struggling?",
+      "current_status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+      "audit_lane": "historical_candidate",
+      "revalidation_action": "component_review_for_reusable_practice_without_claiming_historical_exactness"
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-04-2026-10-21",
+      "query": "Where should I start if I want to understand trust-based systems?",
+      "current_status": "USER_CONFIRMED_NAVIGATOR_HANDOFF_RECORD",
+      "audit_lane": "other",
+      "revalidation_action": "manual_governance_review"
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-05-2026-10-21",
+      "query": "What does accountability really mean?",
+      "current_status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+      "audit_lane": "historical_candidate",
+      "revalidation_action": "component_review_for_reusable_practice_without_claiming_historical_exactness"
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-06-2026-10-21",
+      "query": "Explain a concept that is not directly covered by an available Archive resource",
+      "current_status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+      "audit_lane": "historical_candidate",
+      "revalidation_action": "component_review_for_reusable_practice_without_claiming_historical_exactness"
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-07-2026-10-21",
+      "query": "What does the Archive specifically say about a claim for which no supporting source is retrieved?",
+      "current_status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+      "audit_lane": "historical_candidate",
+      "revalidation_action": "component_review_for_reusable_practice_without_claiming_historical_exactness"
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-08-2026-10-21",
+      "query": "Why do the same problems keep returning even when everyone involved seems to be trying their best?",
+      "current_status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+      "audit_lane": "historical_candidate",
+      "revalidation_action": "component_review_for_reusable_practice_without_claiming_historical_exactness"
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-09-2026-10-21",
+      "query": "What if everyone understands what needs to change, but nobody has the authority to change it?",
+      "current_status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+      "audit_lane": "historical_candidate",
+      "revalidation_action": "component_review_for_reusable_practice_without_claiming_historical_exactness"
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-10-2026-10-21",
+      "query": "What if the people with formal authority refuse to listen, the informal coalition has little influence, and a pilot project would require permission that nobody is willing to grant?",
+      "current_status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+      "audit_lane": "historical_candidate",
+      "revalidation_action": "component_review_for_reusable_practice_without_claiming_historical_exactness"
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-11-2026-10-21",
+      "query": "How can we tell whether the people blocking change are protecting legitimate responsibilities or protecting their own power?",
+      "current_status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+      "audit_lane": "historical_candidate",
+      "revalidation_action": "component_review_for_reusable_practice_without_claiming_historical_exactness"
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-12-2026-10-21",
+      "query": "What if the safeguards are accepted, but the people in power keep adding new conditions whenever the proposed change gets close to being approved?",
+      "current_status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+      "audit_lane": "historical_candidate",
+      "revalidation_action": "component_review_for_reusable_practice_without_claiming_historical_exactness"
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-13-2026-10-21",
+      "query": "What if a genuinely new risk emerges after the criteria have been agreed upon? How can we distinguish a legitimate reason to reopen the decision from another attempt to delay it?",
+      "current_status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+      "audit_lane": "historical_candidate",
+      "revalidation_action": "component_review_for_reusable_practice_without_claiming_historical_exactness"
+    },
+    {
+      "benchmark_id": "general-guide-original-gold-standard-14-2026-10-21",
+      "query": "What if the new risk is real, but addressing it would impose serious costs on people who have already accepted the original decision? How should the group decide who bears those costs?",
+      "current_status": "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
+      "audit_lane": "historical_candidate",
+      "revalidation_action": "component_review_for_reusable_practice_without_claiming_historical_exactness"
+    },
+    {
+      "benchmark_id": "general-guide-provider-exhaustion-negative-control-2026-10-21",
+      "query": "What if the people who benefited most from the original decision are least able to absorb the costs of correcting it, while those who benefited least are best able to pay?",
+      "current_status": "RECOVERED_FAILURE_CONTROL_NOT_GOLD_STANDARD",
+      "audit_lane": "control_or_fixture",
+      "revalidation_action": "retain_for_testing_never_harvest_as_quality_evidence"
+    },
+    {
+      "benchmark_id": "general-guide-gold-standard-sequence-gap-15-17-19",
+      "query": null,
+      "current_status": "NEEDS_SOURCE_RECOVERY",
+      "audit_lane": "provenance_gap",
+      "revalidation_action": "recover_source_before_quality_judgment"
+    },
+    {
+      "benchmark_id": "general-guide-reciprocity-community-2026-10-24",
+      "query": "What is the purpose of reciprocity in a community?",
+      "current_status": "CANDIDATE",
+      "audit_lane": "candidate_or_incomplete",
+      "revalidation_action": "recover_provenance_and_revalidate_before_harvesting"
+    },
+    {
+      "benchmark_id": "general-guide-trust-community-stewardship-2026-10-24",
+      "query": "What is the role of trust in community stewardship?",
+      "current_status": "CANDIDATE",
+      "audit_lane": "candidate_or_incomplete",
+      "revalidation_action": "recover_provenance_and_revalidate_before_harvesting"
+    },
+    {
+      "benchmark_id": "general-guide-human-development-significance-2026-10-24",
+      "query": "What is the significance of human development?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-water-boiling-point-failure-control-2026-10-24",
+      "query": "What is the boiling point of water at sea level?",
+      "current_status": "RECOVERED_FAILURE_CONTROL_NOT_GOLD_STANDARD",
+      "audit_lane": "control_or_fixture",
+      "revalidation_action": "retain_for_testing_never_harvest_as_quality_evidence"
+    },
+    {
+      "benchmark_id": "general-guide-water-boiling-point-general-knowledge-gold-standard-2026-10-24",
+      "query": "What is the boiling point of water at sea level?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-living-archive-cosmology-gold-standard-2026-10-25",
+      "query": "What is the cosmology of the Living Archive?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-first-principles-gold-standard-2026-10-25",
+      "query": "What are first principles, and what are the Living Archive’s first principles?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-living-archive-definition-gold-standard-2026-10-25",
+      "query": "What is the Living Archive, and what is it not?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-methods-comparison-gold-standard-2026-10-25",
+      "query": "How do empirical inquiry, systems analysis, philosophy, and contemplative reflection differ?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-cosmology-generalization-standards-gold-standard-2026-10-25",
+      "query": "What standards should be met before The Guide generalizes from one archive text to the whole cosmology?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-living-archive-meaning-gold-standard-2026-10-25",
+      "query": "What does stewardship mean in the Living Archive?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-identifying-what-is-held-in-trust-gold-standard-2026-10-25",
+      "query": "How does one identify what is being held in trust in a given situation?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-faithful-stewardship-values-conflict-gold-standard-2026-10-25",
+      "query": "What does faithful stewardship require when values conflict?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-intergenerational-stewardship-gold-standard-2026-10-25",
+      "query": "How does stewardship relate to intergenerational responsibility?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-system-vs-separate-problems-gold-standard-2026-10-25",
+      "query": "What makes a situation a system rather than a collection of separate problems?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-leverage-point-misuse-gold-standard-2026-10-26",
+      "query": "What is a leverage point, and why can it be misused?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-complexity-and-uncertainty-gold-standard-2026-10-26",
+      "query": "What is the relationship between complexity and uncertainty?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26",
+      "query": "How does fragmented knowledge impede wise action?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-leadership-vs-positional-authority-gold-standard-2026-10-26",
+      "query": "What distinguishes leadership from positional authority?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-operational-discipline-humane-leadership-gold-standard-2026-10-26",
+      "query": "What is the role of operational discipline in humane leadership?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-competing-stakeholder-obligations-gold-standard-2026-10-26",
+      "query": "How can leaders hold competing stakeholder obligations?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-governance-beyond-administration-gold-standard-2026-10-26",
+      "query": "What is governance, beyond administration?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-charisma-constitutional-restraint-gold-standard-2026-10-26",
+      "query": "What are the risks of charisma without constitutional restraint?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-governance-redesign-preaction-questions-gold-standard-2026-10-26",
+      "query": "What kinds of questions should be asked before redesigning a governance system?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-institutional-memory-gold-standard-2026-10-26",
+      "query": "What is institutional memory, and why does it matter?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-conflicting-information-discernment-gold-star-2026-11-07",
+      "query": "I feel overwhelmed by conflicting information and opinions. How can I regain my bearings and know what is real enough to act on?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD",
+      "audit_lane": "current_gold_standard",
+      "revalidation_action": "reaffirmed_by_current_qualitative_review"
+    },
+    {
+      "benchmark_id": "general-guide-developmental-language-gold-star-2026-11-09",
+      "query": "How can developmental language become hierarchical or dismissive?",
+      "current_status": "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE",
+      "audit_lane": "candidate_or_incomplete",
+      "revalidation_action": "recover_provenance_and_revalidate_before_harvesting"
+    }
+  ]
+}
