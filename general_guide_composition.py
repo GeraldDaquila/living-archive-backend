@@ -829,6 +829,12 @@ _GENERIC_NONANSWER_PATTERNS = (
     r"\bcheck how the relevant people or institution define and apply the term\b",
     r"\bthe answer is best understood by looking at how the concept operates\b",
     r"\bwhat matters is not just defining the term but understanding its implications\b",
+    # Verification-abstention prose is a non-answer when a bounded recovery exists.
+    # Classify it structurally rather than relying on each response boundary to
+    # recognize one exact wording.
+    r"\bi can(?:not|'t) define .* reliably from the information available .* alone\b",
+    r"\bi don(?:not|'t) want to invent a definition or imply that a guess is established knowledge\b",
+    r"\bfor a general concept, a reliable dictionary or subject reference can establish the ordinary meaning\b",
 )
 
 
