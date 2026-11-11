@@ -434,6 +434,33 @@ def _documents_from_context(use_core: Any, context_data: Dict[str, Any]) -> List
     return output
 
 
+def _constitutional_evidence_documents(use_core: Any, context_data: Dict[str, Any]) -> List[Dict[str, str]]:
+    """Extract a verified Constitutional Register without the general four-document cap."""
+    raw = []
+    for key in ("generation_authority_protected_docs", "question_authority_protected_docs", "documents"):
+        value = context_data.get(key) or []
+        if isinstance(value, list):
+            raw.extend(item for item in value if isinstance(item, dict))
+    try:
+        parsed = use_core.context_blocks_to_documents(str(context_data.get("context_blocks") or ""))
+        if isinstance(parsed, list):
+            raw.extend(item for item in parsed if isinstance(item, dict))
+    except Exception:
+        pass
+    evidence, seen = [], set()
+    for item in raw:
+        title = _normalize_space(item.get("title") or "")
+        content = _normalize_space(item.get("content") or item.get("text") or item.get("excerpt") or "")
+        url = _normalize_space(item.get("url") or item.get("canonical_url") or "")
+        if not title or not content or not re.search(r"constitutional register", title, re.I):
+            continue
+        key = (title, url)
+        if key not in seen:
+            seen.add(key)
+            evidence.append({"title": title, "url": url, "content": content})
+    return evidence
+
+
 def _definition_subject_for_glossary(query: str) -> str:
     """Recognize explicit definition intent and extract its bounded subject."""
     value = _normalize_space(query).strip().rstrip("?.!;:")
@@ -2478,8 +2505,9 @@ def compose(
     # the established document accessor rather than silently falling through to
     # provider composition. Explicit non-empty contexts still fail closed.
     constitutional_documents = list(context_data.get("documents") or [])
-    if not constitutional_documents and not context_data.get("documents"):
-        constitutional_documents = list(_documents_from_context(use_core, context_data) or [])
+    constitutional_documents.extend(_documents_from_context(use_core, context_data) or [])
+    # Preserve named constitutional evidence outside the general bounded-context cap.
+    constitutional_documents.extend(_constitutional_evidence_documents(use_core, context_data))
     constitutional_recovery = _archive_constitutional_recovery(
         question,
         constitutional_documents,
