@@ -9412,6 +9412,30 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "Intergenerational-stewardship Gold Standard failed at the final visitor payload boundary."
         )
 
+    # Final doorway provenance invariant: a registered deterministic recovery is
+    # self-contained unless that recovery itself explicitly establishes a doorway.
+    # This runs immediately before payload construction, after every later answer
+    # repair, so an earlier navigation decision cannot survive an answer-only recovery.
+    try:
+        _final_registered_recovery = _basic_inquiry_round1_deterministic_response(
+            query, interpretation, composition_context, recommendation_available=False
+        )
+        _final_registered_text = _sanitize_basic_inquiry_response(
+            str((_final_registered_recovery or {}).get("response") or "").strip()
+        )
+    except Exception:
+        _final_registered_recovery = None
+        _final_registered_text = ""
+    if (
+        _final_registered_text
+        and str(response or "").strip() == _final_registered_text
+        and not (_final_registered_recovery or {}).get("recommendation")
+    ):
+        authoritative_doorway = None
+        composition_context.pop("authoritative_doorway", None)
+        composition_context.pop("authoritative_doorway_title", None)
+        print("The Guide final visitor boundary: answer-only registered recovery cleared inherited doorway.")
+
     # Final authority boundary: only an explicit no-handoff instruction may
     # suppress an independently verified doorway at the final visitor boundary.
     authoritative_doorway = _enforce_registered_gold_standard_doorway(
