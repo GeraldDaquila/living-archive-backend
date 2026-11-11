@@ -122,3 +122,26 @@ def test_general_personal_transformation_question_can_select_direct_transformati
         "text": "Transformation becomes visible over time through continuity, changed patterns, different choices, and a changed relationship to experience.",
     }
     assert main._eligible_outward_doc(query, direct, profile)
+
+
+def test_transformation_inquiry_gold_star_doorway_policy():
+    """Gold-star calibration: a personal transformation inquiry must not route
+    to a geographically scoped institutional framework and must preserve a
+    coherent, experiential continuation when an appropriate canonical resource
+    is available."""
+    query = "How can a user distinguish genuine transformation from temporary emotional relief?"
+    profile = {"risk": False, "action": "explanatory"}
+
+    irrelevant = {
+        "title": "Philippine Renewal Framework",
+        "url": "https://geralddaquila.com/philippine-renewal-framework/",
+        "text": "A framework for renewal of Philippine institutions, public systems, governance, and civic life.",
+    }
+    coherent = {
+        "title": "After the Awakening: A Gentle Map for the Road That Follows",
+        "url": "https://geralddaquila.com/after-the-awakening/",
+        "text": "A reflective guide to what follows an awakening: continuity, changed patterns, integration, and sustaining transformation over time.",
+    }
+
+    assert not main._eligible_outward_doc(query, irrelevant, profile)
+    assert main._eligible_outward_doc(query, coherent, profile)
