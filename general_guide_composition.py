@@ -2767,12 +2767,6 @@ def _default_gold_standard_evidence_recovery(
 
 def compose(
 
-    # Shadow-only observation: measure whether an approved Gold Star lesson is
-    # relevant without changing the visitor answer. Promotion into composition
-    # remains gated by held-out evaluation and explicit review.
-    _gold_star_id, _gold_star_score = _gold_star_shadow_observation(question)
-    if _gold_star_id:
-        _emit_guide_outcome("gold_star_shadow_match", benchmark=_gold_star_id, score=_gold_star_score)
     *,
     use_core: Any,
     query: str,
@@ -2789,6 +2783,17 @@ def compose(
     question = _normalize_space(query)
     if not question:
         return None
+
+    # Shadow-only observation: measure whether an approved Gold Star lesson is
+    # relevant without changing the visitor answer. Promotion into composition
+    # remains gated by held-out evaluation and explicit review.
+    _gold_star_id, _gold_star_score = _gold_star_shadow_observation(question)
+    if _gold_star_id:
+        _emit_guide_outcome(
+            "gold_star_shadow_match",
+            benchmark=_gold_star_id,
+            score=_gold_star_score,
+        )
 
     # Exact approved/frozen benchmark questions use their registered reference
     # response. This is deliberately exact-match only: it protects approved
