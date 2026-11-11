@@ -6332,6 +6332,54 @@ def _general_guide_authoritative_doorway(query, context_data):
         return None
 
 
+def _broad_conceptual_doorway(query):
+    """Select a canonical doorway independently of broad-concept answer composition.
+
+    Broad conceptual answers intentionally bypass ordinary retrieval so that a
+    provider or retrieval outage cannot suppress a stable answer. Navigation is
+    a separate concern: consult the published territorial map, then pass any
+    candidate through the same authoritative relevance selector used elsewhere.
+    Failure to find or validate a destination is fail-open for the answer and
+    fail-closed for navigation.
+    """
+    try:
+        crosslinks = archive_crosslink.expand_context(
+            str(query or ""),
+            [],
+            getattr(use_core, "index", None),
+            use_core,
+        )
+        evidence = []
+        for item in crosslinks or []:
+            if not isinstance(item, dict):
+                continue
+            title = str(item.get("title") or "").strip()
+            url = str(item.get("url") or item.get("canonical_url") or "").strip()
+            summary = str(item.get("summary") or item.get("text") or "").strip()
+            if not title or not url or not summary:
+                continue
+            evidence.append({"title": title, "url": url, "text": summary})
+
+        if not evidence:
+            return None
+        doorway = _normalize_authoritative_recommendation(
+            _general_guide_authoritative_doorway(
+                str(query or ""),
+                {
+                    "generation_authority_protected_docs": evidence,
+                    "_skip_doorway_search_recovery": True,
+                },
+            )
+        )
+        return doorway
+    except Exception as exc:
+        print(
+            "The Guide broad conceptual doorway: "
+            f"failed safely ({type(exc).__name__})."
+        )
+        return None
+
+
 def _normalize_authoritative_recommendation(doorway):
     """Return the single public navigation contract, or None if invalid.
 
@@ -10372,6 +10420,9 @@ async def _use_request_boundary(scope, receive, send):
             raise RuntimeError(
                 "Broad conceptual definition boundary failed its substantive response contract."
             )
+        # Answer reliability and navigation are separate boundaries. The stable
+        # answer never waits on this best-effort canonical doorway lookup.
+        recommendation = _broad_conceptual_doorway(query)
         print(
             "The Guide broad conceptual boundary: answered before ordinary "
             "routing, retrieval, or provider composition."
@@ -10385,7 +10436,7 @@ async def _use_request_boundary(scope, receive, send):
             "query": query,
             "intent": "BROAD_CONCEPTUAL_DEFINITION",
             "response": response,
-            "recommendation": None,
+            "recommendation": recommendation,
             "answer_basis": {
                 "kind": "general_knowledge",
                 "label": "General knowledge",
