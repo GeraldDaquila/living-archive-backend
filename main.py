@@ -7003,6 +7003,14 @@ def _established_general_knowledge_recovery(query):
     if culture_perception_question:
         return {
             "fact_id": "culture_shapes_attention_value_and_imagination",
+            # This is a reviewed navigation relationship, separate from the
+            # general-knowledge answer itself. It gives a conceptual question
+            # a relevant Archive continuation without falsely attributing the
+            # explanatory prose to the Archive.
+            "doorway": {
+                "title": "Rules of Reasoning",
+                "url": "https://geralddaquila.com/rules-of-reasoning/",
+            },
             "response": (
                 "Culture gives people shared habits of interpretation: stories, symbols, expectations, and ways of deciding what matters. "
                 "Those habits influence what people notice, which differences feel important, and what they take for granted. "
