@@ -829,6 +829,11 @@ _GENERIC_NONANSWER_PATTERNS = (
     r"\bcheck how the relevant people or institution define and apply the term\b",
     r"\bthe answer is best understood by looking at how the concept operates\b",
     r"\bwhat matters is not just defining the term but understanding its implications\b",
+    # Resource-verification fallback is a non-answer when the question has a
+    # registered bounded conceptual orientation. The wording varies by route,
+    # so classify the failure family rather than one exact template.
+    r"\bi could(?: not|n't) verify a reliable answer from the material available\b",
+    r"\bi could(?: not|n't) identify a sufficiently relevant archive resource to recommend\b",
 
 )
 
