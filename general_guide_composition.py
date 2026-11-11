@@ -2097,14 +2097,14 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     # The old four-part phrase test was overly brittle: it missed related
     # formulations and allowed downstream, unrelated recovery paths to win.
     asks_role_meaning = bool(re.search(
-        r"\\b(?:what does it mean|what is meant|what is the role|how should)\\b",
+        r"\b(?:what does it mean|what is meant|what is the role|how should)\b",
         normalized,
     ))
-    names_ai = bool(re.search(r"\\b(?:ai|artificial intelligence)\\b", normalized))
-    names_interpretation = bool(re.search(r"\\b(?:interpret(?:er|ation|ive)|sensemaking)\\b", normalized))
-    names_authority = bool(re.search(r"\\b(?:authorit(?:y|ies)|decision.right|final judgment)\\b", normalized))
+    names_ai = bool(re.search(r"\b(?:ai|artificial intelligence)\b", normalized))
+    names_interpretation = bool(re.search(r"\b(?:interpret(?:er|ation|ive)|sensemaking)\b", normalized))
+    names_authority = bool(re.search(r"\b(?:authorit(?:y|ies)|decision.right|final judgment)\b", normalized))
     contrasts_roles = bool(re.search(
-        r"\\b(?:rather than|instead of|not as|not an|versus|vs\\.?)\\b",
+        r"\b(?:rather than|instead of|not as|not an|versus|vs\.?)\b",
         normalized,
     ))
     if names_ai and names_interpretation and names_authority and (asks_role_meaning or contrasts_roles):
