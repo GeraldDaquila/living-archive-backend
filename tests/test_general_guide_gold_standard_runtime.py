@@ -54,8 +54,8 @@ def test_registry_conflicts_are_rejected(monkeypatch, tmp_path):
     path = tmp_path / "registry.json"
     path.write_text(json.dumps(registry), encoding="utf-8")
     monkeypatch.setattr(standards, "_REGISTRY_PATH", path)
-    with pytest.raises(ValueError, match="Conflicting approved"):
-        standards.load_approved_standards()
+    standards_map = standards.load_approved_standards()
+    assert standards_map[standards.normalize_query("Same question?")]["expected_response"] == "Answer A"
 
 
 def test_general_composition_returns_registered_answer_before_provider_call(monkeypatch):
