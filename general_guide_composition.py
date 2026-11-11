@@ -2787,6 +2787,17 @@ def compose(
         ):
             candidate["doorway_title"] = ""
 
+    # Doorway selection is deterministic and independent of provider compliance.
+    # A substantive answer may legitimately be accepted even when the provider
+    # leaves doorway_title blank; attach a verified relevant Archive resource
+    # from the retrieved evidence before the response reaches the visitor.
+    if not candidate.get("doorway_title") and documents:
+        doorway = _select_verified_recovery_doorway(question, documents)
+        if doorway.get("doorway_title"):
+            candidate["doorway_title"] = doorway["doorway_title"]
+            candidate["doorway_url"] = doorway.get("doorway_url", "")
+            _emit_guide_outcome("authoritative_doorway_attached")
+
     # If identical requests arrive concurrently, the first validated answer
     # wins; every concurrent caller returns that same answer. This prevents
     # response races without serializing unrelated questions.
