@@ -4661,6 +4661,45 @@ def _guide_finalize_visitor_payload(payload, query):
     if not isinstance(payload, dict):
         return payload
     response_text = str(payload.get("response") or "")
+
+    # Absolute last-mile recovery contract. The outer ASGI boundary is the only
+    # layer guaranteed to see every JSON response emitted by /api/query.
+    # Therefore a valid bounded recovery registered by the composition layer
+    # must win here over a generic/meta failure produced by any inner or legacy
+    # response path. This deliberately does not depend on the narrower
+    # conceptual-relationship classifier used by earlier layers.
+    _outer_registered_recovery = (
+        general_guide_composition._conceptual_relationship_recovery(query)
+    )
+    _outer_registered_recovery_valid = bool(
+        _outer_registered_recovery
+        and not general_guide_composition.is_generic_nonanswer(
+            query, _outer_registered_recovery
+        )
+        and not general_guide_composition.is_meta_answer_failure(
+            _outer_registered_recovery
+        )
+    )
+    _outer_response_failure = bool(
+        general_guide_composition.is_generic_nonanswer(query, response_text)
+        or general_guide_composition.is_meta_answer_failure(response_text)
+    )
+    if _outer_registered_recovery_valid and _outer_response_failure:
+        safe = dict(payload)
+        safe["response"] = _sanitize_basic_inquiry_response(
+            _outer_registered_recovery
+        )
+        # A stale or generic fallback doorway is navigation commentary about a
+        # failed answer, not an authority over the recovered orientation.
+        safe["recommendation"] = None
+        safe["processing"] = "outer_visitor_boundary_registered_recovery"
+        safe["route_source"] = "guide_outer_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        print(
+            "The Guide outer visitor boundary: restored bounded registered conceptual orientation."
+        )
+        return safe
+
     # Native relational quality boundary. Only intervene when a recognizable
     # relational inquiry has been answered with a known generic systems template.
     # Otherwise preserve the Guide's ordinary reasoning and voice.
