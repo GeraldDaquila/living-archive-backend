@@ -123,7 +123,10 @@ _DEPLOYED_SOURCE_COMMIT = (
     or os.getenv("SOURCE_COMMIT")
     or "source-commit-unavailable"
 )
-DEPLOYMENT_FINGERPRINT = f"USE-{APP_VERSION}-source-{_DEPLOYED_SOURCE_COMMIT[:12]}"
+# Stable release identity retained for canonical QA and human release tracing.
+DEPLOYMENT_FINGERPRINT = "USE-v489.311-source-derived"
+# Runtime source identity is separate and must be used for deployment/response correlation.
+RUNTIME_SOURCE_FINGERPRINT = f"USE-{APP_VERSION}-source-{_DEPLOYED_SOURCE_COMMIT[:12]}"
 CANONICAL_BUILD_ID = f"USE-BUILD-{_DEPLOYED_SOURCE_COMMIT}"
 
 # v488.64 systemwide safety continuity contract marker.
@@ -273,8 +276,8 @@ if str(APP_VERSION) != "v489.311":
 # source revisions are deliberately separate identities.
 if not str(_DEPLOYED_SOURCE_COMMIT).strip():
     raise RuntimeError("USE source provenance failure: source revision missing.")
-if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-source-"):
-    raise RuntimeError("USE provenance integrity failure: deployment fingerprint mismatch.")
+if not str(RUNTIME_SOURCE_FINGERPRINT).startswith(f"USE-{APP_VERSION}-source-"):
+    raise RuntimeError("USE provenance integrity failure: runtime source fingerprint mismatch.")
 if not str(CANONICAL_BUILD_ID).startswith("USE-BUILD-"):
     raise RuntimeError("USE provenance integrity failure: canonical build identifier mismatch.")
 
@@ -10958,6 +10961,7 @@ async def _use_request_boundary(scope, receive, send):
                 safe_payload.setdefault("build_provenance", {
                     "version": APP_VERSION,
                     "deployment_fingerprint": DEPLOYMENT_FINGERPRINT,
+                    "runtime_source_fingerprint": RUNTIME_SOURCE_FINGERPRINT,
                     "canonical_build_id": CANONICAL_BUILD_ID,
                     "source_commit": _DEPLOYED_SOURCE_COMMIT,
                 })
