@@ -5407,9 +5407,13 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             if recommendation_available
             else "I could not identify a sufficiently relevant Archive resource to recommend here."
         )
+    # This low-level deterministic helper is imported in isolation by recovery
+    # tests, so keep its classification self-contained rather than depending on
+    # the later request-routing helper.
+    _normalized_query = _normalize_query(query)
     _final_provider = (
         "bounded_conceptual_relationship_recovery"
-        if _is_conceptual_explanatory_request(query)
+        if re.search(r"\b(how|why|what)\b.*\b(shape|differ|relationship|interact|influence|affect|meaning|value|imagine|culture|system|pattern)\b", _normalized_query, re.I)
         else "deterministic_question_preserving_recovery"
     )
     return {
