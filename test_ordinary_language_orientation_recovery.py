@@ -14,9 +14,13 @@ class OrdinaryLanguageOrientationRecoveryTests(unittest.TestCase):
         answer = composition._ordinary_language_orientation_recovery(self.QUESTION)
         self.assertIsInstance(answer, str)
         self.assertGreaterEqual(len(answer.split()), 100)
+        self.assertNotIn("can't define", answer.casefold())
+        self.assertNotIn("cannot define", answer.casefold())
         self.assertIn("where you are", answer)
         self.assertIn("what matters", answer)
         self.assertIn("does not require solving the uncertainty", answer.casefold())
+        self.assertIn("place to stand", answer.casefold())
+        self.assertIn("next responsible step", answer.casefold())
 
     def test_unrelated_definition_question_is_not_captured(self):
         self.assertIsNone(
