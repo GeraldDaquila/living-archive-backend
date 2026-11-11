@@ -66,7 +66,7 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
             selected_doorway,
         )
 
-    def test_explicit_no_handoff_standard_suppresses_doorway(self):
+    def test_historical_no_handoff_reference_does_not_control_doorway(self):
         selected_doorway = {
             "title": "Foundational Stewardship Cases",
             "url": "https://geralddaquila.com/level-1-case-catalog/",
@@ -74,10 +74,10 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
         standard = resolve_exact_gold_standard(
             "Explain stewardship, but do not send me to another page yet."
         )
-        self.assertIsNotNone(standard)
-        self.assertTrue(standard["forbids_doorway"])
-        self.assertIsNone(
-            main._enforce_registered_gold_standard_doorway(selected_doorway, standard)
+        self.assertIsNone(standard)
+        self.assertEqual(
+            main._enforce_registered_gold_standard_doorway(selected_doorway, standard),
+            selected_doorway,
         )
 
 
@@ -102,7 +102,7 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
         self.assertEqual(body["recommendation"], selected_doorway)
         self.assertEqual(body["response"], operational_discipline_humane_leadership_recovery(QUESTION))
 
-    def test_universal_json_sender_honors_explicit_no_handoff_standard(self):
+    def test_universal_json_sender_does_not_apply_historical_no_handoff_reference(self):
         messages = []
         payload = {
             "ok": True,
@@ -119,7 +119,7 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
 
         asyncio.run(main._use_send_json(fake_send, payload))
         body = json.loads(messages[-1]["body"].decode("utf-8"))
-        self.assertIsNone(body["recommendation"])
+        self.assertEqual(body["recommendation"], payload["recommendation"])
 
     def test_recovery_is_narrowly_scoped(self):
         self.assertIsNone(
