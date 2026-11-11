@@ -4767,6 +4767,21 @@ def _guide_finalize_visitor_payload(payload, query):
             safe["visitor_boundary_version"] = APP_VERSION
             print("The Guide relational quality boundary: replaced generic systems template with native relational orientation.")
             return safe
+    # Final doorway provenance guard: deterministic recovery answers are complete
+    # visitor responses, not evidence for a separately inherited navigation link.
+    # Apply this at the last public boundary so no earlier route can reattach a
+    # recommendation after recovery has correctly declined one.
+    try:
+        _final_recovery = _compose_provider_exhaustion_recovery(query)
+    except Exception:
+        _final_recovery = None
+    if _final_recovery and str(response_text or "").strip() == str(_final_recovery).strip():
+        safe = dict(payload)
+        safe["recommendation"] = None
+        safe["route_source"] = "final_deterministic_recovery_doorway_guard"
+        payload = safe
+        response_text = str(safe.get("response") or response_text)
+
     # Final semantic guard: specialist, handoff, and fallback routes must meet
     # the same discernment contract as the ordinary Guide composer.
     if general_guide_composition._requires_conflicting_information_discernment(query):
