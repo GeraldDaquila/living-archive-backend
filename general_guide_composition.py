@@ -2508,10 +2508,16 @@ def compose(
     constitutional_documents.extend(_documents_from_context(use_core, context_data) or [])
     # Preserve named constitutional evidence outside the general bounded-context cap.
     constitutional_documents.extend(_constitutional_evidence_documents(use_core, context_data))
-    constitutional_recovery = _archive_constitutional_recovery(
-        question,
-        constitutional_documents,
-    )
+    if _is_archive_constitutional_question(question):
+        # Instrument the evidence boundary in the response path without exposing
+        # implementation language to visitors: canonical composition must receive
+        # a verified Register, otherwise fail closed rather than provider-compose.
+        constitutional_recovery = _archive_constitutional_recovery(
+            question,
+            constitutional_documents,
+        )
+    else:
+        constitutional_recovery = None
     if constitutional_recovery is not None:
         _emit_guide_outcome("constitutional_canonical_composition")
         return constitutional_recovery
