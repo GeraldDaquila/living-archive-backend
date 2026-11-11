@@ -9438,9 +9438,15 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
 
     # Final authority boundary: only an explicit no-handoff instruction may
     # suppress an independently verified doorway at the final visitor boundary.
-    authoritative_doorway = _enforce_registered_gold_standard_doorway(
-        authoritative_doorway, _final_gold_standard, query
-    )
+    # Answer-only registered recovery is itself an explicit no-handoff result.
+    if not (
+        _final_registered_text
+        and str(response or "").strip() == _final_registered_text
+        and not (_final_registered_recovery or {}).get("recommendation")
+    ):
+        authoritative_doorway = _enforce_registered_gold_standard_doorway(
+            authoritative_doorway, _final_gold_standard, query
+        )
     if _final_gold_standard is not None and bool(_final_gold_standard.get("forbids_doorway")):
         composition_context.pop("authoritative_doorway", None)
         composition_context.pop("authoritative_doorway_title", None)
