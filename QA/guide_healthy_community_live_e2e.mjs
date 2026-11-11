@@ -130,6 +130,10 @@ try {
     }
   });
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded" });
+  const resourceScriptDiagnostics = await page.evaluate(() => Array.from(performance.getEntriesByType("resource"))
+    .filter(entry => /\.js(?:\?|$)/.test(entry.name))
+    .map(entry => entry.name));
+  console.log(JSON.stringify({ stage: "loaded_javascript_resources", resources: resourceScriptDiagnostics }));
   // Wait for the external controller response and inspect the exact bytes the browser received.
   await page.waitForLoadState("load").catch(() => {});
   await Promise.all(controllerBodyReads);
