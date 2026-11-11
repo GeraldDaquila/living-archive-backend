@@ -6857,6 +6857,29 @@ def _established_general_knowledge_recovery(query):
             "response": "One meter equals 100 centimeters.",
         }
 
+    # Culture-and-perception questions ask about a stable, general social concept.
+    # This bounded orientation prevents provider or retrieval failure from
+    # turning a direct explanatory question into a generic refusal.
+    culture_perception_question = bool(
+        re.search(r"\bculture\b", normalized)
+        and re.search(r"\b(?:shape|shapes|influence|influences|affect|affects)\b", normalized)
+        and re.search(r"\b(?:notice|noticing|value|values|imagine|imagination|possible|possibility)\b", normalized)
+    )
+    if culture_perception_question:
+        return {
+            "fact_id": "culture_shapes_attention_value_and_imagination",
+            "response": (
+                "Culture gives people shared habits of interpretation: stories, symbols, expectations, and ways of deciding what matters. "
+                "Those habits influence what people notice, which differences feel important, and what they take for granted. "
+                "Because culture works partly in the background, two people can encounter the same situation and attend to different features of it.\n\n"
+                "Culture also shapes value by providing languages of praise, duty, success, belonging, and responsibility. "
+                "That does not mean every individual simply repeats their culture; people can question inherited assumptions, encounter other traditions, and change their own commitments. "
+                "But the cultural setting often supplies the starting patterns against which those choices are made.\n\n"
+                "Imagination is affected in a similar way. What a community has seen, named, practiced, or considered possible can expand or narrow the futures its members can picture. "
+                "Learning across cultures, hearing different stories, and noticing previously invisible assumptions can therefore widen what people are able to value and imagine."
+            ),
+        }
+
     return None
 
 
