@@ -5411,9 +5411,28 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # tests, so keep its classification self-contained rather than depending on
     # the later request-routing helper.
     _normalized_query = _normalize_query(query)
+    _conceptual_relationship_markers = (
+        "difference between",
+        "relationship between",
+        "how do",
+        "how does",
+        "why do",
+        "why does",
+        "influence",
+        "affect",
+        "interact",
+        "shape",
+        "transformation",
+        "temporary relief",
+        "meaning",
+        "value",
+        "culture",
+        "system",
+        "pattern",
+    )
     _final_provider = (
         "bounded_conceptual_relationship_recovery"
-        if re.search(r"\b(how|why|what)\b.*\b(shape|differ|relationship|interact|influence|affect|meaning|value|imagine|culture|system|pattern)\b", _normalized_query, re.I)
+        if any(marker in _normalized_query for marker in _conceptual_relationship_markers)
         else "deterministic_question_preserving_recovery"
     )
     return {
