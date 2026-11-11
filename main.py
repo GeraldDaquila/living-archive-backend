@@ -7406,6 +7406,33 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         if concept_doorway:
             authoritative_doorway = concept_doorway
             print("The Guide concept registry: applied reviewed canonical doorway independent of retrieval availability.")
+
+    # A bounded general-knowledge recovery can answer a conceptual question
+    # without establishing an Archive destination. Keep those authorities
+    # separate: when the exact recovery has no reviewed doorway of its own,
+    # a weak search candidate must not be attached merely because one query
+    # word overlaps a broad Archive page. This is especially important during
+    # retrieval outages, when answer quality can remain high while navigation
+    # evidence is absent.
+    _ai_role_distinction = bool(
+        re.search(r"\b(?:ai|artificial intelligence)\b", str(query or ""), re.I)
+        and re.search(r"\binterpreter\b", str(query or ""), re.I)
+        and re.search(r"\bauthority\b", str(query or ""), re.I)
+    )
+    if _ai_role_distinction:
+        _reviewed_recovery_doorway = (
+            _normalize_authoritative_recommendation(
+                general_knowledge_recovery.get("doorway")
+            )
+            if isinstance(general_knowledge_recovery, dict)
+            else None
+        )
+        if not _reviewed_recovery_doorway:
+            authoritative_doorway = None
+            print(
+                "The Guide conceptual recovery navigation boundary: "
+                "suppressed unreviewed doorway for AI role distinction."
+            )
     _cosmology_lived_recovery = _established_archive_cosmology_recovery(query)
     # Only explicitly matched stable facts may bypass Archive-attribute refusal.
     # All other unsupported attributes keep the established fail-closed boundary.
