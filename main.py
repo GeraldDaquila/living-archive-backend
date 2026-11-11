@@ -265,13 +265,16 @@ def _runtime_source_manifest_sha256(root=None):
 
 RUNTIME_SOURCE_SHA256 = _runtime_source_manifest_sha256()
 
-# Runtime/version integrity is a startup invariant, not external bookkeeping.
-if str(APP_VERSION) != "v489.311":
-    raise RuntimeError("USE version integrity failure: APP_VERSION drift.")
-if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-"):
-    raise RuntimeError("USE version integrity failure: deployment fingerprint/version mismatch.")
-if not str(CANONICAL_BUILD_ID).startswith(f"USE-BUILD-{APP_VERSION}-"):
-    raise RuntimeError("USE version integrity failure: canonical build/version mismatch.")
+# Runtime provenance integrity is a startup invariant. Release labels and
+# source revisions are deliberately separate identities.
+if not str(APP_VERSION).strip():
+    raise RuntimeError("USE version integrity failure: release version missing.")
+if not str(_DEPLOYED_SOURCE_COMMIT).strip():
+    raise RuntimeError("USE source provenance failure: source revision missing.")
+if not str(DEPLOYMENT_FINGERPRINT).startswith(f"USE-{APP_VERSION}-source-"):
+    raise RuntimeError("USE provenance integrity failure: deployment fingerprint mismatch.")
+if not str(CANONICAL_BUILD_ID).startswith("USE-BUILD-"):
+    raise RuntimeError("USE provenance integrity failure: canonical build identifier mismatch.")
 
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
