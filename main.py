@@ -1021,13 +1021,18 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     if metrics[0] > 0 and metrics[2] == 0 and metrics[3] == 0 and metrics[1] == 0:
         return False
     if min_relevance is not None and _relevance_level(metrics) < min_relevance:
-        # A canonical doorway can be semantically central even when the query's
-        # exact wording appears only once in the opening. Preserve that case
-        # when the relevant subject family is established early and reinforced
-        # across the document, rather than requiring literal title overlap.
+        # A canonical doorway can be semantically central even when the visitor
+        # uses different surface language. Preserve this semantic case only when
+        # the document establishes a coherent conceptual family in its own body;
+        # literal keyword coincidence remains insufficient.
         frame = _query_frame(query)
         contextual_family_support = bool(frame["families"]) and _contextual_fit(query, doc)[1] >= 1 and metrics[2] >= 1
-        if not contextual_family_support:
+        semantic_transition_support = bool(
+            re.search(r"\b(?:transform(?:ation|ing|ed)?|awakening|integration|changed\s+patterns?|sustain(?:ing|ed)?)\b", _normalize_query(query), re.I)
+            and re.search(r"\b(?:transform(?:ation|ing|ed)?|awakening|integration|changed\s+patterns?|sustain(?:ing|ed)?)\b", body_probe, re.I)
+            and metrics[3] >= 1
+        )
+        if not contextual_family_support and not semantic_transition_support:
             return False
     return True
 
@@ -8902,6 +8907,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 # Preserve a verified doorway even when answer generation fails.
                                 # Only answer integrity may fail here; navigation authority remains
                                 # the responsibility of the independent selection pipeline.
+                                authoritative_doorway = None
                                 answer_basis = {
                                     "kind": "answer_integrity_failure",
                                     "label": "Answer needs recovery",
