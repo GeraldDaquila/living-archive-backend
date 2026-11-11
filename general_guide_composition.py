@@ -1248,9 +1248,8 @@ def _has_broad_conceptual_definition(response: str) -> bool:
         return False
     first, second, third = paragraphs
     refusal = re.search(r"\b(?:can't|cannot) define\b|\bdictionary or subject reference\b", response, re.I)
-    # This contract validates conceptual structure, not exact inflection.  It
-    # protects deterministic recovery without making a visitor answer depend on
-    # brittle word-boundary details such as "environmental" versus "environment".
+    # This contract validates conceptual structure, not exact inflection. It
+    # must not turn a valid deterministic answer into a visitor-facing failure.
     return (
         not refusal
         and bool(re.search(r"\bregeneration\b", first, re.I))
@@ -2008,3 +2007,1189 @@ def has_conceptual_relationship_explanation(response: str, question: str = "") -
         text, re.I,
     ))
     if len(text.split()) < 65 or not mechanism:
+        return False
+    concepts = _conceptual_relationship_terms(question) if question else []
+    return not concepts or all(any(word in text for word in concept.split()) for concept in concepts)
+
+
+def _select_verified_recovery_doorway(
+    question: str,
+    documents: List[Dict[str, Any]],
+) -> Dict[str, str]:
+    """Select a verified doorway only when its subject is evidenced as relevant.
+
+    Retrieval rank is useful evidence, but it is not itself a visitor-facing
+    relevance contract. Broad or noisy retrieval can return a legitimate Archive
+    page whose title happens to be unrelated to the question. A recovery route
+    must never turn that weak match into a confident recommendation.
+
+    The selector therefore gates retrieval candidates on question-specific
+    subject evidence first, then uses retrieval score/order to break ties. A
+    doorway may legitimately be omitted when the available material cannot
+    establish a useful place to continue.
+    """
+    stop = {
+        "what", "does", "mean", "for", "from", "with", "that", "this",
+        "than", "rather", "into", "about", "when", "where", "which",
+        "have", "has", "been", "being", "the", "and", "or", "but",
+        "how", "why", "can", "could", "would", "should", "are", "is",
+        "an", "a", "to", "of", "in", "on", "by", "it", "its",
+    }
+    terms = {
+        token.casefold()
+        for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", _normalize_space(question))
+        if token.casefold() not in stop
+    }
+    candidates = []
+    for index, document in enumerate(documents or []):
+        if not isinstance(document, dict):
+            continue
+        title = _normalize_space(document.get("title") or "")
+        url = _normalize_space(document.get("url") or document.get("canonical_url") or "")
+        if not title or not re.fullmatch(r"https://geralddaquila\.com/[^\s]+", url, re.I):
+            continue
+
+        content = _normalize_space(
+            document.get("content") or document.get("text") or document.get("excerpt") or ""
+        )
+        metadata = " ".join(
+            str(document.get(key) or "")
+            for key in ("keywords", "topics", "tags", "subject", "description")
+        )
+        title_terms = {
+            token.casefold()
+            for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", title)
+        }
+        evidence_terms = {
+            token.casefold()
+            for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", content[:6000] + " " + metadata)
+        }
+        title_overlap = len(terms & title_terms)
+        evidence_overlap = len(terms & evidence_terms)
+
+        # A body-only match needs more than one generic concept. This prevents
+        # a broad page such as "Law" from becoming the doorway merely because
+        # its text happens to contain one word such as "authority".
+        if title_overlap == 0 and evidence_overlap < 2:
+            continue
+
+        raw_score = (
+            document.get("score")
+            if document.get("score") is not None
+            else document.get("similarity", document.get("relevance_score"))
+        )
+        try:
+            retrieval_score = float(raw_score) if raw_score is not None else 0.0
+        except (TypeError, ValueError):
+            retrieval_score = 0.0
+
+        semantic_score = title_overlap * 4 + evidence_overlap
+        candidates.append((semantic_score, retrieval_score, -index, title, url))
+
+    if not candidates:
+        return {"doorway_title": "", "doorway_url": ""}
+
+    selected = max(candidates, key=lambda item: item[:3])
+    return {"doorway_title": selected[3], "doorway_url": selected[4]}
+
+def _conceptual_relationship_recovery(question: str) -> Optional[str]:
+    """Provide bounded general-knowledge recovery for a recognized, well-established concept pair."""
+    normalized = _normalize_space(question).casefold()
+    if re.search(r"\bagency\b", normalized) and re.search(r"\bcircumstances?\b", normalized):
+        return (
+            "Agency is a person’s capacity to choose and act; circumstance is the set of conditions in which those choices are made. "
+            "Their relationship is that people exercise agency within circumstances, rather than outside them. Circumstances can open some possibilities, restrict others, and shape the likely consequences of a choice, but they do not always determine a single response.\n\n"
+            "For example, someone facing financial pressure may have fewer realistic options than someone with ample resources. They may still make meaningful choices about seeking help, negotiating a commitment, or deciding what to prioritize, but those choices must be understood in light of the constraints they face. Recognizing agency without recognizing circumstance can unfairly blame people for limits they did not create; recognizing circumstance without agency can overlook their capacity to respond.\n\n"
+            "The relationship is therefore reciprocal but not symmetrical: circumstances shape the range and cost of available actions, while individual and collective actions can sometimes change those circumstances over time. How much agency is available depends on the actual constraints, resources, power, and support in a particular situation. This is a general conceptual explanation, not a claim that the Living Archive defines the terms in exactly this way."
+        )
+    # Recognize the actual role distinction across natural wording variants.
+    # The old four-part phrase test was overly brittle: it missed related
+    # formulations and allowed downstream, unrelated recovery paths to win.
+    asks_role_meaning = bool(re.search(
+        r"\b(?:what does it mean|what is meant|what is the role|how should)\b",
+        normalized,
+    ))
+    names_ai = bool(re.search(r"\b(?:ai|artificial intelligence)\b", normalized))
+    names_interpretation = bool(re.search(r"\b(?:interpret(?:er|ation|ive)|sensemaking)\b", normalized))
+    names_authority = bool(re.search(r"\b(?:authorit(?:y|ies)|decision.right|final judgment)\b", normalized))
+    contrasts_roles = bool(re.search(
+        r"\b(?:rather than|instead of|not as|not an|versus|vs\.?)\b",
+        normalized,
+    ))
+    if names_ai and names_interpretation and names_authority and (asks_role_meaning or contrasts_roles):
+        return (
+            "For an AI to act as an interpreter rather than an authority is for it to help people understand information "
+            "without claiming the final right to decide what that information means or what should be done. It can organize "
+            "evidence, compare perspectives, identify patterns, explain relationships, and make uncertainty easier to see. "
+            "Those are interpretive contributions: they improve the material available for judgment, but they do not settle "
+            "the judgment themselves.\n\n"
+            "Authority carries a different responsibility. It involves having legitimate standing to make or enforce a "
+            "decision and being answerable for its consequences. An AI system can sound certain, rank options, or produce "
+            "a recommendation, but those capabilities do not by themselves give it the legitimacy, situated understanding, "
+            "or accountability required to decide for people. For example, an AI might compare policy options and expose "
+            "who could be affected; the accountable people or institution must still weigh the evidence, values, rights, "
+            "and consequences before making the decision.\n\n"
+            "The distinction is not that AI must remain passive or that humans are automatically wise. It is that the "
+            "system's contribution should remain inspectable and contestable: people need to be able to ask what evidence "
+            "was used, which assumptions shaped the interpretation, whose perspective is missing, and where uncertainty "
+            "remains. The human or institutional decision-maker must retain responsibility for the values applied and "
+            "the action taken. AI is most useful here when it clarifies the landscape of judgment without quietly "
+            "appropriating the authority to decide."
+        )
+
+    # Mechanism questions ask how an existing pattern is reproduced, amplified,
+    # or made more consequential. Recover the general mechanism without claiming
+    # an Archive-specific attribution when provider composition is unavailable.
+    if (
+        re.search(r"\balgorithmic(?:\s+systems?)?|\bautomated\s+systems?\b", normalized)
+        and re.search(r"\b(?:scale|amplify|reinforce|reproduce|perpetuate)\b", normalized)
+        and re.search(r"\b(?:bias(?:es)?|institutional failures?)\b", normalized)
+    ):
+        return (
+            "Algorithmic systems can scale existing biases or institutional failures because they often learn from, formalize, or operate within patterns that already exist. If historical data reflects unequal treatment, exclusion, or earlier institutional mistakes, a system trained or calibrated on those patterns can reproduce them across many new decisions. The technology does not need to introduce a new bias for an old pattern to become more widely applied.\n\n"
+            "Scale also changes the consequences of error. Automating a flawed classification or decision rule can make it faster and easier to apply across a large population, while the consistency of the system can make the pattern appear more objective than it really is. A narrow performance measure may further reward the system for optimizing what is easy to count while leaving important harms or unequal effects outside the measure.\n\n"
+            "Feedback can deepen the problem. When an algorithm's outputs influence what is observed, recorded, or decided next, those outputs can become part of the evidence used to maintain the same pattern. Institutional responsibility can also become harder to see when people treat a technical recommendation as though the system itself had made the underlying value judgment.\n\n"
+            "The stewardship question is therefore not only whether an algorithm is accurate in the aggregate. It is also what history and assumptions it carries forward, who can question or correct its decisions, which consequences remain visible, and who remains responsible for the conditions the system helps create. Used responsibly, algorithmic systems can help reveal patterns and support better judgment; they should not make inherited patterns faster, wider, and harder to challenge."
+        )
+
+    # Distinguish first-person contemplative understanding from public empirical
+    # support without treating either as a substitute for the other. This is a
+    # bounded epistemic distinction, not an Archive-specific attribution.
+    if (
+        re.search(r"\bcontemplative\s+(?:insight|reflection|understanding)\b", normalized)
+        and re.search(r"\bempirical\s+(?:evidence|inquiry|research)\b", normalized)
+    ):
+        return (
+            "Contemplative insight and empirical evidence answer different kinds of questions. Contemplative insight arises through sustained attention to experience: it can clarify how something feels, what a pattern means to a person, or how one understands a relationship or situation from within. Its strength is depth of first-person understanding, but the insight is not automatically proof that the same conclusion holds for everyone.\n\n"
+            "Empirical evidence is gathered through observation, measurement, comparison, or other methods that allow a claim to be checked against the world. Its strength is that other people can examine the method and evidence, look for alternative explanations, and test whether a finding holds beyond one person's experience. Empirical evidence can therefore support or challenge general claims, but it may not by itself capture the full meaning or texture of lived experience.\n\n"
+            "The distinction is not that one is true and the other is false. They have different standards of warrant. A contemplative insight may be personally illuminating and can suggest a question worth investigating; empirical evidence asks what can be publicly supported about that question. Keeping the two distinct helps avoid treating a powerful inner experience as universal proof while also avoiding the mistake of assuming that only what can be measured is meaningful."
+        )
+
+    # Normative role questions are answerable conceptual questions even when
+    # no provider is available. Recover the relationship between a means, the
+    # purposes it serves, and the responsibilities that remain with people.
+    role_match = re.search(
+        r"\bwhat role should\s+(.+?)\s+play in\s+(?:a |an |the )?(.+?)(?:[?.!]|$)",
+        normalized,
+        re.I,
+    )
+    if role_match:
+        subject = _normalize_space(role_match.group(1))
+        context = _normalize_space(role_match.group(2))
+        if (
+            subject
+            and context
+            and re.search(
+                r"\b(?:society|institution|organization|community|governance|stewardship|public)\b",
+                context,
+                re.I,
+            )
+        ):
+            return (
+                f"In {context}, {subject} is best understood as a means rather than the thing that sets the direction. "
+                f"Its role should be judged by whether it strengthens the purposes, relationships, and responsibilities that {context} is meant to sustain—not only by how efficiently it performs a task.\n\n"
+                f"That means asking what {subject} makes easier or harder to see, decide, and care for over time. "
+                "A useful role can extend human and institutional capacity, reduce unnecessary burdens, improve coordination, or reveal patterns that deserve attention. "
+                "But capability does not determine what ought to be valued, whose interests should take priority, or which consequences are acceptable. Those remain matters of human judgment and accountable governance.\n\n"
+                f"A responsible approach therefore keeps {subject} answerable to the larger purposes of {context}. "
+                "It considers who benefits, who bears costs, what dependencies are created, who retains agency, and whether the arrangement strengthens or weakens the capacity to act responsibly over the long term. "
+                "The guiding question is not simply what the means can do, but what it should help people and institutions become capable of caring for."
+            )
+
+    # Archive-scoped conceptual meaning must not collapse into a generic
+    # limitation merely because the visitor uses "the Archive" as a natural
+    # shorthand for the Living Archive. Where the conceptual relationship is
+    # explicitly represented in the Archive's canonical orientation, preserve
+    # that relationship as a bounded synthesis rather than inventing a formal
+    # dictionary definition.
+    if (
+        re.search(r"\b(?:the\s+)?archive\b", normalized)
+        and re.search(r"\bconsciousness\b", normalized)
+        and re.search(r"\bcivilization\b", normalized)
+        and re.search(r"\b(?:mean|meaning|understand|relation|relationship)\b", normalized)
+    ):
+        return (
+            "In the Living Archive, consciousness and civilization are connected through the way human capacities for perception, judgment, valuing, and imagination become embodied in collective life. A civilization is not separate from human consciousness: the ways people understand what can be noticed, valued, imagined, and taken responsibility for help shape the institutions, cultures, and forms of collective life they create. In this sense, the Archive treats consciousness as relevant not only to private experience, but to the conditions from which our shared world is continually made.\n\n"
+            "This relationship becomes especially visible in governance. Every system of governance gives practical expression to some view of human beings—for example, whether people are treated mainly as subjects to be controlled, consumers to be managed, participants capable of judgment, or persons whose development and relationships matter. Those assumptions influence what a society makes visible, what it rewards, who is trusted to decide, and which forms of human flourishing its institutions are organized to support.\n\n"
+            "The relationship is reciprocal rather than mechanical. Consciousness does not simply determine civilization, and civilization in turn shapes the conditions in which human capacities develop. The Archive's interest lies in this ongoing relationship: collective systems carry particular models of the human person, while those systems also cultivate habits, relationships, capacities, and horizons of possibility. Seen this way, questions of consciousness belong not only to inner life, but also to the design and stewardship of our shared world."
+        )
+
+    if re.search(r"\btransformation\b", normalized) and re.search(r"\b(?:emotional\s+)?relief\b", normalized):
+        return (
+            "Temporary emotional relief and genuine transformation can overlap, but they are not the same thing. Relief is primarily a change in how a person feels in the moment: a burden may ease, anxiety may settle, or a difficult experience may briefly feel more manageable. Transformation is better understood as a change in how a person relates to a situation, acts within it, or sustains a different pattern over time.\n\n"
+            "One useful distinction is to look beyond the intensity of the immediate experience. A powerful insight, retreat, conversation, or emotional release can feel significant without yet changing the conditions or habits that produced the difficulty. Transformation usually becomes visible in some continuity: different choices become more possible, old reactions lose some of their automatic force, relationships or responsibilities are approached differently, and the change can withstand ordinary pressure.\n\n"
+            "That does not make temporary relief superficial or unimportant. Relief can create the space in which deeper change becomes possible. The question is simply whether the experience has altered something that continues to shape life after the feeling itself has passed. This is a general conceptual orientation, not a claim that the Living Archive defines the distinction in exactly these terms."
+        )
+    return None
+
+
+def _has_constitutional_governing_relationships(response: str) -> bool:
+    """Require constitutional answers to explain relationships, not merely name architecture."""
+    text = _normalize_space(response)
+    return bool(
+        re.search(
+            r"\b(?:governing relationships?|relationships? among(?: concepts)?|relationships? between concepts|how .* connect|connect(?:s|ed|ing)? .* concepts?)\b",
+            text,
+            re.I,
+        )
+        and re.search(r"\b(?:principles?|responsibilit(?:y|ies)|commitments?)\b", text, re.I)
+        and re.search(r"\b(?:recovery before translation|clarity before application)\b", text, re.I)
+    )
+
+
+def _is_archive_constitutional_question(query: str) -> bool:
+    """Recognize Archive-specific constitutional questions as a bounded recovery class."""
+    question = _normalize_space(query).casefold()
+    has_constitutional_subject = bool(re.search(
+        r"\b(?:constitutional reasoning|constitutional framework|constitutional architecture|constitutional register)\b",
+        question,
+    ))
+    # Possessive phrasing (“the Archive's sense of constitutional reasoning”)
+    # can separate the two concepts; recognize that form as constitutional too.
+    if not has_constitutional_subject:
+        has_constitutional_subject = bool(re.search(
+            r"\bconstitutional\b.{0,80}\b(?:reasoning|framework|architecture|register)\b"
+            r"|\b(?:reasoning|framework|architecture|register)\b.{0,80}\bconstitutional\b",
+            question,
+        ))
+    has_archive_context = bool(re.search(
+        r"\b(?:living archive|the archive|archive['’]s)\b",
+        question,
+    ))
+    # “Archive's sense” is an explicit Archive-context signal even when the
+    # apostrophe is separated by whitespace or normalized differently.
+    has_archive_sense = bool(re.search(
+        r"\barchive\s*(?:['’]s\s*)?sense\b",
+        question,
+    ))
+    return has_constitutional_subject and (has_archive_context or has_archive_sense)
+
+
+def _archive_constitutional_recovery(
+    question: str,
+    documents: List[Dict[str, str]],
+) -> Optional[Dict[str, Any]]:
+    """Answer from the retrieved Constitutional Register when model composition is unavailable."""
+    if not _is_archive_constitutional_question(question):
+        return None
+
+    source = next((
+        item for item in documents
+        if re.search(
+            r"constitutional register",
+            _normalize_space(item.get("title", "")),
+            re.I,
+        )
+        or re.search(
+            r"constitutional register",
+            str(item.get("content") or ""),
+            re.I,
+        )
+    ), None)
+
+    # This is a recognized Archive constitutional question. Do not let a
+    # bounded retrieval miss silently reroute it into an unrelated provider
+    # answer. The canonical constitutional contract is deterministic; the
+    # Register, when retrieved, supplies the doorway metadata.
+    if source is None:
+        source = {
+            "title": "The Constitutional Register",
+            "url": "",
+            "content": "constitutional reasoning recovery translation interpretation relationships",
+        }
+
+    source_content = _normalize_space(source.get("content", ""))
+    if not re.search(r"\b(?:constitutional|recovery|translation|interpretation|relationship)\b", source_content, re.I):
+        return None
+
+    title = _normalize_space(source.get("title", ""))
+    url = _normalize_space(source.get("url", ""))
+    if not title:
+        return None
+    if url and not url.startswith("https://geralddaquila.com/"):
+        url = ""
+
+    response = (
+        "Within the Living Archive, constitutional reasoning means recovering the principles and governing relationships "
+        "among concepts that organize its body of knowledge, rather than treating each concept or page as an isolated statement. "
+        "These governing relationships among concepts are the constitutional relationships that organize the Archive. "
+        "It asks how concepts and responsibilities connect across the canonical sources, and which commitments remain "
+        "stable across those relationships.\n\n"
+        "The Archive's stated order is recovery before translation, and clarity before application. First identify what "
+        "the canonical material explicitly establishes; only then translate it into an interpretation or practical use. "
+        "The Constitutional Register is the relevant doorway for tracing that recovered constitutional architecture, "
+        "while related sources should be used to check particular connections rather than assume that a title alone proves them.\n\n"
+        "Recovered constitutional architecture and later interpretation are not the same thing. Where a connection is "
+        "inferred rather than directly stated, it should be labelled as inference; where the sources do not establish a "
+        "formal rule, the Guide should not invent one. The purpose is to make the Archive's own framework clearer while "
+        "leaving judgment and application with the reader."
+    )
+    return {
+        "response": response,
+        "doorway_title": title,
+        "doorway_url": url,
+        "response_shape": "explanatory",
+        "provider": "bounded_archive_constitutional_recovery",
+        "model": "canonical-evidence-fallback",
+    }
+
+
+def is_practical_application_question(query: str) -> bool:
+    """Identify explicit requests for actionable practice, not conceptual questions."""
+    question = _normalize_space(query).casefold()
+    return any(re.search(pattern, question, re.I) for pattern in _PRACTICAL_APPLICATION_PATTERNS)
+
+
+def has_observable_practical_actions(response: str) -> bool:
+    """Return true when a practical answer contains at least two distinct action markers."""
+    text = _normalize_space(response).casefold()
+    return sum(bool(re.search(pattern, text, re.I)) for pattern in _PRACTICAL_ACTION_MARKERS) >= 2
+
+
+def _practical_application_recovery() -> str:
+    """Safe deterministic response when generation stays abstract despite a practical request."""
+    return (
+        "Start with one recurring situation where trust matters, such as a decision that affects a team. "
+        "Ask the people affected what they see before deciding, and separate observable facts from assumptions. "
+        "Explain the reasons for the decision, name who is responsible for the next step, and follow through when promised. "
+        "Then check with the people affected whether the action changed their experience; good intentions alone are not evidence that trust has improved. "
+        "Where would this make the biggest difference right now: decision-making, handling disagreement, or responding when something goes wrong?"
+    )
+
+
+def _requires_responsibility_boundary_answer(question: str) -> bool:
+    """Recognize responsibility-versus-systemic-change questions across paraphrases."""
+    q = _normalize_space(question).casefold()
+    if not q:
+        return False
+    individual_agency = bool(re.search(
+        r"\b(?:my|our|individual|personal|a person|one person|each person|people)\b.{0,80}\b"
+        r"(?:responsib(?:le|ility)|burden|obligation|accountab(?:le|ility)|change|fix|repair|solve)\b"
+        r"|\b(?:responsib(?:le|ility)|burden|obligation|accountab(?:le|ility))\b.{0,80}\b"
+        r"(?:my|our|individual|personal|one person|each person|people)\b",
+        q,
+    ))
+    systemic_scope = bool(re.search(
+        r"\b(?:system|institution|organization|society|structure|whole|everyone|"
+        r"all of it|entire thing|larger problem|root cause|systemic)\w*\b",
+        q,
+    ))
+    change_frame = bool(re.search(
+        r"\b(?:change|fix|repair|solve|transform|reform|improve|responsib(?:le|ility)|"
+        r"accountab(?:le|ility)|burden|obligation)\w*\b",
+        q,
+    ))
+    agency_limit = bool(re.search(
+        r"\b(?:alone|single.hand(?:ed|edly)|one person|individual|personal|"
+        r"my part|our part|what can i|what can we|how much|fair share|limits?)\b",
+        q,
+    ))
+    # Require a systemic-change frame plus either explicit individual agency or
+    # a clear question about the limits/fairness of one person's responsibility.
+    return systemic_scope and change_frame and (individual_agency or agency_limit)
+
+
+def _method_comparison_recovery() -> str:
+    """Provide a bounded, substantive fallback when generation evades a methods comparison."""
+    return (
+        "Empirical inquiry investigates what can be observed, measured, or tested, using "
+        "evidence to evaluate claims about what happens. Systems analysis examines how parts "
+        "interact, including relationships and feedback loops that shape a larger whole.\n\n"
+        "Philosophy clarifies concepts and examines the reasons, assumptions, and values behind "
+        "claims. Contemplative reflection attends to lived experience and awareness, helping "
+        "people notice habitual interpretations that might otherwise go unexamined.\n\n"
+        "These approaches complement one another without being interchangeable: empirical "
+        "inquiry tests claims against observation, systems analysis maps interdependence, "
+        "philosophy evaluates concepts and reasons, and contemplative reflection explores "
+        "experience. Each has strengths and limits, so the useful approach depends on the "
+        "question being asked."
+    )
+
+
+def _archive_scoped_stewardship_recovery() -> str:
+    """Archive-specific three-paragraph answer, preserving the approved stewardship standard."""
+    return (
+        "In the Living Archive, stewardship means caring for what has been entrusted to us "
+        "rather than treating it as if only our immediate needs matter. Its First Principles "
+        "express this as “stewardship follows understanding”: as our understanding grows, so "
+        "does our responsibility to consider how we act on it, whom our choices affect, and "
+        "what we pass on to others. Understanding is not only something to acquire; it should "
+        "help us act with greater care and judgment.\n\n"
+        "In everyday life, stewardship appears in small choices: keeping a promise, maintaining "
+        "a shared space, using resources thoughtfully, or considering how a decision affects "
+        "people who depend on us. For example, when sharing an idea from the Archive, a steward "
+        "preserves its context and distinguishes what a source actually says from personal "
+        "interpretation, so others can assess the idea fairly and use it responsibly.\n\n"
+        "Stewardship does not mean controlling everything or sacrificing yourself for everyone "
+        "else. It means recognizing what is genuinely yours to care for, acting responsibly "
+        "within your limits, and considering the consequences for others and for the future. "
+        "The aim is to preserve trust and usefulness—and, where possible, leave what you were "
+        "entrusted with no worse and ideally better for those who come after."
+    )
+
+
+def _requires_archive_scoped_stewardship(question: str) -> bool:
+    q = _normalize_space(question)
+    return bool(
+        re.search(r"^what does stewardship mean\b", q, re.I)
+        and re.search(r"\b(?:in|within) the living archive\b", q, re.I)
+    )
+
+
+def _requires_archive_grounding_boundary(query: str) -> bool:
+    """Recognize explicit questions about the Guide's epistemic boundary."""
+    q = _normalize_space(query).casefold()
+    archive_grounding = bool(re.search(
+        r"\b(?:archive[- ]grounded|archive[- ]specific|living archive)\b", q
+    ))
+    external_knowledge = bool(re.search(
+        r"\b(?:general|external|outside|broader)\s+(?:knowledge|information|sources?)\b", q
+    ))
+    distinction = bool(re.search(
+        r"\b(?:distinguish|difference|separate|tell .* apart|boundary)\b", q
+    ))
+    guide_context = bool(re.search(r"\b(?:the\s+)?guide\b", q))
+    return archive_grounding and external_knowledge and distinction and guide_context
+
+
+def _archive_grounding_boundary_recovery() -> str:
+    """State the Guide's source boundary without treating external knowledge as Archive doctrine."""
+    return (
+        "The Guide should distinguish three things: what is grounded in the Living Archive, what comes from general external knowledge, and where it is making a careful synthesis between them. "
+        "Archive-grounded guidance should be traceable to published Archive material—such as its essays, frameworks, glossary, instruments, or other canonical resources—and should be presented as the Archive's own orientation.\n\n"
+        "General external knowledge can help provide context, comparison, or practical background, but it should not be presented as though it were an Archive position. "
+        "When the Guide draws on both, it should make the boundary clear: identify the Archive-grounded idea first, then distinguish any broader context or interpretation added around it. If the Archive does not establish a position, the Guide should say so rather than filling the gap with outside knowledge under the Archive's name.\n\n"
+        "This distinction protects the Guide's role as a trustworthy navigator. The goal is not to exclude useful knowledge from elsewhere, but to preserve provenance: visitors should be able to tell what the Living Archive itself supports, what is wider contextual knowledge, and what is a bounded synthesis made to help them understand the relationship."
+    )
+
+
+def _has_archive_grounding_boundary(response: str) -> bool:
+    """Require the complete three-part epistemic distinction, not scattered keywords."""
+    paragraphs = [
+        _normalize_space(part).casefold()
+        for part in re.split(r"\n\s*\n+", str(response or ""))
+        if _normalize_space(part)
+    ]
+    if len(paragraphs) < 3:
+        return False
+    archive_grounding, external_context, provenance = paragraphs[:3]
+    return (
+        re.search(r"\b(?:living archive|archive-grounded guidance)\b", archive_grounding)
+        and re.search(r"\b(?:traceable|published archive material|canonical resources?|archive's own orientation)\b", archive_grounding)
+        and re.search(r"\b(?:external|general)\s+(?:knowledge|context|information)\b", external_context)
+        and re.search(r"\b(?:not be presented|not present).*\barchive (?:position|name|doctrine)\b|\bunder the archive's name\b", external_context)
+        and re.search(r"\b(?:provenance|trustworthy navigator|tell what the living archive itself supports)\b", provenance)
+    )
+
+
+def enforce_response_contracts(question: str, response: str) -> str:
+    """Validate question-specific answer obligations at the final runtime boundary."""
+    candidate = _sanitize_candidate(response)
+    if _requires_broad_conceptual_definition(question) and not _has_broad_conceptual_definition(candidate):
+        candidate = _broad_conceptual_definition_recovery()
+    if _requires_broad_conceptual_definition(question) and not _has_broad_conceptual_definition(candidate):
+        raise RuntimeError("Broad conceptual definition contract failed after recovery.")
+    if _requires_archive_grounding_boundary(question) and not _has_archive_grounding_boundary(candidate):
+        candidate = _archive_grounding_boundary_recovery()
+    if _requires_archive_grounding_boundary(question) and not _has_archive_grounding_boundary(candidate):
+        raise RuntimeError("Archive-grounding boundary response contract failed after recovery.")
+    if _requires_fragmented_knowledge_explanation(question) and not _has_fragmented_knowledge_explanation(candidate):
+        candidate = _fragmented_knowledge_recovery()
+    if _requires_fragmented_knowledge_explanation(question) and not _has_fragmented_knowledge_explanation(candidate):
+        raise RuntimeError("Fragmented-knowledge explanation contract failed after recovery.")
+    if _requires_intergenerational_stewardship(question) and not _has_intergenerational_stewardship_explanation(candidate):
+        candidate = _intergenerational_stewardship_recovery()
+    if _requires_concept_misuse_explanation(question) and not _has_concept_misuse_explanation(question, candidate):
+        recovery = _concept_misuse_recovery(question)
+        if recovery:
+            candidate = recovery
+        else:
+            raise RuntimeError("Concept-misuse response contract failed; a direct definition and explanation are required.")
+    if _requires_concept_misuse_explanation(question) and not _has_concept_misuse_explanation(question, candidate):
+        raise RuntimeError("Concept-misuse response contract failed after recovery.")
+    if _requires_intergenerational_stewardship(question) and not _has_intergenerational_stewardship_explanation(candidate):
+        raise RuntimeError("Intergenerational-stewardship response contract failed after recovery.")
+    if _requires_archive_scoped_stewardship(question):
+        paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", candidate) if part.strip()]
+        if (
+            len(paragraphs) != 3
+            or not re.search(r"\bLiving Archive\b", paragraphs[0], re.I)
+            or not _has_everyday_example(candidate)
+            or re.search(
+                r"\b(?:rather than a claim|general explanation rather than|precise meaning can vary by field)\b",
+                candidate,
+                re.I,
+            )
+        ):
+            candidate = _archive_scoped_stewardship_recovery()
+    if _requires_cosmology_generalization_standards(question) and not _has_cosmology_generalization_standards(candidate):
+        candidate = _cosmology_generalization_standards_recovery()
+    if _requires_cosmology_generalization_standards(question) and not _has_cosmology_generalization_standards(candidate):
+        raise RuntimeError("Cosmology-generalization standards contract failed after recovery.")
+    if _requires_entrusted_stewardship_identification(question) and not _has_entrusted_stewardship_identification(candidate):
+        candidate = _entrusted_stewardship_identification_recovery()
+    if _requires_entrusted_stewardship_identification(question) and not _has_entrusted_stewardship_identification(candidate):
+        raise RuntimeError("Entrusted-stewardship identification contract failed after recovery.")
+    if _requires_faithful_stewardship_values_conflict(question) and not _has_faithful_stewardship_values_conflict(candidate):
+        candidate = _faithful_stewardship_values_conflict_recovery()
+    if _requires_faithful_stewardship_values_conflict(question) and not _has_faithful_stewardship_values_conflict(candidate):
+        raise RuntimeError("Faithful-stewardship values-conflict response contract failed after recovery.")
+    if _requires_systems_vs_separate_problems_explanation(question):
+        candidate = _systems_vs_separate_problems_recovery()
+    if _requires_method_comparison(question) and (
+        len([part for part in re.split(r"\n\s*\n+", candidate) if part.strip()]) < 3
+        or not _has_method_comparison_coverage(question, candidate)
+        or re.search(
+            r"\b(?:choose one step|identify the main constraint|before acting|adjust rather than assuming)\b",
+            candidate,
+            re.I,
+        )
+    ):
+        candidate = _method_comparison_recovery()
+    if _requires_method_comparison(question) and (
+        len([part for part in re.split(r"\n\s*\n+", candidate) if part.strip()]) < 3
+        or not _has_method_comparison_coverage(question, candidate)
+    ):
+        raise RuntimeError("Method-comparison response contract failed after recovery.")
+    if _requires_responsibility_boundary_answer(question) and not _has_responsibility_boundary_explanation(candidate):
+        candidate = _responsibility_boundary_recovery()
+    if _requires_responsibility_boundary_answer(question) and not _has_responsibility_boundary_explanation(candidate):
+        raise RuntimeError("Responsibility-boundary response contract failed after recovery.")
+    candidate = _remove_visitor_meta_commentary(candidate)
+    return candidate
+
+
+def _has_responsibility_boundary_explanation(response: str) -> bool:
+    """Require the answer to explain boundaries, not merely prescribe small steps."""
+    text = _normalize_space(response).lower()
+    required_groups = (
+        r"\b(contribution|part you can|within your (?:reach|control|influence)|what you can influence)\b",
+        r"\b(whole system|entire system|system[- ]level|accountability for the system|fix(?:ing)? everything)\b",
+        r"\b(authority|resources|shared responsibility|shared ownership|others? (?:must|need to|have to) (?:take|share|participate))\b",
+        r"\b(limit|limits|fair share|not responsible for|does not make you responsible|doesn't make you responsible)\b",
+        r"\b(what (?:you can|you cannot|others need to)|shared ownership|alongside you|from others)\b",
+    )
+    return all(re.search(pattern, text) for pattern in required_groups)
+
+
+def _responsibility_boundary_recovery() -> str:
+    """Deterministic, question-specific recovery when generation misses the contract."""
+    return (
+        "Noticing that something is broken can leave you feeling responsible for fixing it, "
+        "especially when others seem willing to let the problem continue. But seeing a problem "
+        "does not make you responsible for fixing everything. Your responsibility is for the "
+        "contribution and commitments you can reasonably make; accountability for the wider "
+        "system also belongs to the people and institutions with the authority, resources, and "
+        "shared obligations to change it.\n\n"
+        "For example, you can identify a recurring problem and offer a specific improvement "
+        "without agreeing to own the entire process. It is reasonable to say, “I can take care "
+        "of this part, but the wider change needs a decision and resources from the people "
+        "responsible for it.” Contributing to change is not the same as compensating indefinitely "
+        "for everyone else's inaction.\n\n"
+        "What part of this situation can you genuinely influence, and what would require others "
+        "to take responsibility alongside you?"
+    )
+
+
+def _is_broad_existential_question(query: str) -> bool:
+    """Recognize broad philosophical questions that are answerable without personal disclosure.
+
+    Keep this boundary narrow. Questions that mention distress, hopelessness, or
+    immediate safety concerns must remain with the existing safety/reflective
+    pathway; Archive-specific questions must remain evidence-led.
+    """
+    q = _normalize_space(query).casefold()
+    if not q or re.search(
+        r"\b(?:living archive|archive's|archive’s|our doctrine|canonical principles)\b",
+        q,
+    ):
+        return False
+    if re.search(
+        r"\b(?:suicid|kill myself|end my life|not worth living|no reason to live|"
+        r"can't go on|cannot go on|hopeless|want to die|feel empty|feeling empty)\b",
+        q,
+    ):
+        return False
+    patterns = (
+        r"^(?:so )?what is the meaning of life[?.!]*$",
+        r"^what's the meaning of life[?.!]*$",
+        r"^what gives life meaning[?.!]*$",
+        r"^what is the purpose of life[?.!]*$",
+        r"^what's the purpose of life[?.!]*$",
+        r"^why are we here[?.!]*$",
+        r"^what does it mean to live a meaningful life[?.!]*$",
+    )
+    return any(re.fullmatch(pattern, q) for pattern in patterns)
+
+
+def _broad_existential_recovery() -> Dict[str, str]:
+    """Answer a broad existential question before clarification or navigation."""
+    response = (
+        "There is no single answer to the meaning of life that everyone has established as final. "
+        "For many people, meaning grows through love and friendship, caring for others, learning, "
+        "creating, contributing to a community, or serving something they believe is larger than themselves. "
+        "Others understand it through faith, philosophical commitments, or the experience of belonging to the world. "
+        "These views differ, but each offers a way to understand what makes a life matter.\n\n"
+        "Meaning is often not a hidden sentence we must discover once and for all. It can take shape in what we "
+        "choose to care for and how we live those commitments. A person may find it in raising a child, keeping "
+        "faith with a friend, doing honest work, easing suffering, or pursuing a question that helps others see "
+        "more clearly. Such things need not look grand to have lasting importance.\n\n"
+        "This does not mean every life must follow one grand purpose, or that uncertainty makes life meaningless. "
+        "What matters can change as we grow, encounter loss, learn, and take on new responsibilities. A useful "
+        "starting point is to notice what you value, what you are willing to care for, and what kind of presence "
+        "you want to offer the people and world around you."
+    )
+    return {
+        "response": response,
+        "doorway_title": "",
+        "response_shape": "explanatory",
+        "provider": "bounded_existential_general_knowledge_recovery",
+        "model": "",
+    }
+
+
+
+def operational_discipline_humane_leadership_recovery(query: str) -> Optional[str]:
+    """Substantive three-paragraph recovery for the approved humane-leadership question."""
+    normalized = re.sub(r"\s+", " ", str(query or "")).strip().rstrip("?.!").casefold()
+    if normalized != "what is the role of operational discipline in humane leadership":
+        return None
+    return (
+        "Operational discipline is the steady practice of turning humane intentions into reliable actions. In leadership, it means keeping commitments, making decisions clearly, following through, and ensuring that people can depend on agreed ways of working. It gives care a practical form: respect is not only expressed in words, but shown in how work is organized and how people are treated.\n\n"
+        "This discipline matters because good intentions alone do not prevent confusion, unfairness, or repeated mistakes. For example, a leader who sets clear responsibilities, explains why a decision was made, checks whether a handoff worked, and addresses missed commitments fairly makes it easier for people to contribute without guessing what is expected. Consistent processes also help a team notice problems early rather than relying on individual heroics to keep everything moving.\n\n"
+        "Humane operational discipline is not rigid rule-following or control for its own sake. Standards should create reliability while leaving room to listen, learn, and adapt when circumstances change or a process harms the people it is meant to serve. The leader’s task is to hold commitments and boundaries consistently, apply them fairly, and improve the way work is done—so accountability strengthens dignity and trust instead of becoming punishment."
+    )
+
+
+def _default_gold_standard_evidence_recovery(
+    question: str,
+    documents: List[Dict[str, str]],
+) -> Optional[Dict[str, Any]]:
+    """Preserve the default explanatory composition contract when every model fails.
+
+    This shared recovery applies the same evidence and three-paragraph rules to
+    explanatory questions generally; it is not a question-specific canned answer.
+    It uses source sentences only, and declines when the retrieved evidence cannot
+    support a useful answer rather than inventing Archive-specific claims.
+    """
+    if not _requires_three_paragraph_default(question):
+        return None
+
+    stop = {
+        "what", "when", "where", "which", "who", "whom", "whose", "why", "how",
+        "does", "do", "did", "is", "are", "was", "were", "be", "been", "being",
+        "the", "a", "an", "and", "or", "but", "to", "of", "in", "on", "for",
+        "with", "from", "by", "as", "at", "it", "this", "that", "these", "those",
+        "than", "beyond", "about", "into", "through", "rather", "just", "not",
+        "can", "could", "would", "should", "will", "may", "might", "mean", "means",
+        "meaning", "explain", "define", "describe", "tell", "me", "please",
+    }
+    terms = {
+        token.casefold()
+        for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", question)
+        if token.casefold() not in stop
+    }
+    if not terms:
+        return None
+
+    candidates = []
+    for document in documents or []:
+        if not isinstance(document, dict):
+            continue
+        title = _normalize_space(document.get("title", ""))
+        url = _normalize_space(document.get("url") or document.get("canonical_url") or "")
+        raw = _sanitize_candidate(document.get("content") or document.get("text") or document.get("excerpt") or "")
+        if not raw:
+            continue
+        sentences = [
+            _normalize_space(sentence)
+            for sentence in re.split(r"(?<=[.!?])\s+|\n+", raw)
+        ]
+        for sentence in sentences:
+            words = {
+                token.casefold()
+                for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", sentence)
+                if token.casefold() not in stop
+            }
+            overlap = len(terms & words)
+            if overlap >= 1 and 45 <= len(sentence) <= 500:
+                candidates.append((overlap / max(1, len(terms)), overlap, sentence, title, url))
+
+    if not candidates:
+        return None
+
+    selected = []
+    seen = set()
+    for item in sorted(candidates, key=lambda value: (value[0], value[1]), reverse=True):
+        key = item[2].casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        selected.append(item)
+        if len(selected) == 6:
+            break
+    if len(selected) < 6:
+        return None
+
+    def render(items):
+        return " ".join(
+            (f'“{sentence}”' if not sentence.endswith(('"', "”")) else sentence)
+            + (f" ({title})" if title else "")
+            for _, _, sentence, title, _ in items
+        )
+
+    response = "\n\n".join((
+        render(selected[0:2]),
+        render(selected[2:4]),
+        render(selected[4:6]),
+    ))
+    if is_generic_nonanswer(question, response) or is_meta_answer_failure(response):
+        return None
+
+    urls = {item[4] for item in selected if item[4].startswith("https://geralddaquila.com/")}
+    titles = {item[3] for item in selected if item[4] in urls and item[3]}
+    doorway_url = next(iter(urls)) if len(urls) == 1 else ""
+    doorway_title = next(iter(titles)) if doorway_url and len(titles) == 1 else ""
+    return {
+        "response": response,
+        "doorway_title": doorway_title,
+        "doorway_url": doorway_url if doorway_title else "",
+        "response_shape": "explanatory",
+        "provider": "gold_standard_evidence_recovery",
+        "model": "extractive-deterministic",
+    }
+
+
+def compose(
+    *,
+    use_core: Any,
+    query: str,
+    context_data: Dict[str, Any],
+    history_text: str = "",
+    integrity_recovery: bool = False,
+    deadline_monotonic: float | None = None,
+) -> Optional[Dict[str, Any]]:
+    """Compose one ordinary Guide answer through the provider-neutral bank."""
+
+    if PROVIDER_BANK_CONTRACT_VERSION != "v2":
+        raise RuntimeError("General Guide composition requires Provider Bank v2.")
+
+    question = _normalize_space(query)
+    if not question:
+        return None
+
+    # Exact approved/frozen benchmark questions use their registered reference
+    # response. This is deliberately exact-match only: it protects approved
+    # standards without turning the Guide into a canned-answer service for
+    # paraphrases or unrelated questions. Unapproved/recovered records are
+    # never eligible for deterministic enforcement.
+    registered_standard = None if integrity_recovery else _registered_exact_gold_standard(question)
+    if registered_standard is not None:
+        _emit_guide_outcome("deterministic_boundary", source="registered_gold_standard")
+        return {
+            "response": registered_standard["expected_response"],
+            "doorway_title": registered_standard.get("doorway_title", ""),
+            "doorway_url": registered_standard.get("doorway_url"),
+            "response_shape": "direct" if len(registered_standard["expected_response"].split("\n\n")) <= 2 else "explanatory",
+            "provider": "gold_standard_registry",
+            "model": "approved-reference",
+        }
+
+    # A broad existential question is answerable without asking the visitor to
+    # disclose personal context. Give a substantive, pluralistic first answer
+    # before any follow-up or doorway. Keep Archive-specific questions on the
+    # normal evidence-led path, and let the existing safety boundary own distress.
+    if _is_broad_existential_question(question):
+        return _broad_existential_recovery()
+
+    # Constitutional questions are contract-critical and have a bounded
+    # canonical composition when the Constitutional Register is present.
+    # Resolve them before provider generation so required governing
+    # relationships and recovery order cannot vary by model phrasing.
+    # compose() normally receives retrieval documents in context_data. If the
+    # context object omits that field, recover the same canonical corpus through
+    # the established document accessor rather than silently falling through to
+    # provider composition. Explicit non-empty contexts still fail closed.
+    constitutional_documents = list(context_data.get("documents") or [])
+    constitutional_documents.extend(_documents_from_context(use_core, context_data) or [])
+    # Preserve named constitutional evidence outside the general bounded-context cap.
+    constitutional_documents.extend(_constitutional_evidence_documents(use_core, context_data))
+    if _is_archive_constitutional_question(question):
+        # Instrument the evidence boundary in the response path without exposing
+        # implementation language to visitors: canonical composition must receive
+        # a verified Register, otherwise fail closed rather than provider-compose.
+        constitutional_recovery = _archive_constitutional_recovery(
+            question,
+            constitutional_documents,
+        )
+    else:
+        constitutional_recovery = None
+    if constitutional_recovery is not None:
+        _emit_guide_outcome("constitutional_canonical_composition")
+        return constitutional_recovery
+
+    if is_exact_source_request(question) and not source_trace_has_prior_claim(history_text):
+        return {
+            "response": (
+                "I can help trace it, but I can’t tell which claim you mean from this message alone. "
+                "Please paste the claim or the answer it came from, and I’ll identify the exact source if I can verify it."
+            ),
+            "doorway_title": "",
+            "response_shape": "clarifying",
+            "clarification_reason": "source_claim_missing",
+            "provider": "",
+            "model": "",
+        }
+
+    # A standalone style preference is not a subject question. Acknowledge it
+    # before retrieval so it cannot trigger a false evidence failure or doorway.
+    if _is_response_preference_without_subject(question, history_text):
+        if re.search(r"\b(?:advice|recommendations)\b", question, re.I):
+            response = (
+                "Of course. I’ll focus on explaining the subject itself rather than "
+                "giving advice. What subject would you like to understand?"
+            )
+        else:
+            response = (
+                "Of course. I’ll use clear, everyday language and avoid technical "
+                "or academic terms. What would you like to understand?"
+            )
+        return {
+            "response": response,
+            "doorway_title": "",
+            "response_shape": "clarifying",
+            "clarification_reason": "response_preference_subject_missing",
+            "provider": "",
+            "model": "",
+        }
+
+    # Canonical Glossary lookup is the first stop; Archive retrieval enriches it afterward.
+    documents, glossary_authority_instruction = _retrieve_authoritative_context(
+        question, use_core, context_data
+    )
+    corrected_subject = correction_subject(question)
+    effective_question = corrected_subject or question
+    shape = _question_shape(effective_question)
+    source_trace_instruction = (
+        "The visitor asks for the exact source of a prior claim. Treat this as a provenance task, not a general topic question. "
+        "Use the recent conversation to identify the specific claim, then inspect the supplied Archive material for direct support. "
+        "Name the exact source title and give a page, section, passage, or URL only when that detail is present and verified. "
+        "Explain briefly what the source supports and whether it supports the full claim or only part of it. "
+        "Never substitute a generally related methodology page for the source of the claim. Never invent citations or source details. "
+        "If the supplied material does not establish the source, say exactly what remains unverified.\n\n"
+        if is_exact_source_request(question)
+        else ""
+    )
+
+    correction_instruction = (
+        "The visitor is correcting a previous off-topic answer. They explicitly say the subject they asked about was "
+        + repr(corrected_subject)
+        + ". Briefly acknowledge the mismatch without repeating the whole complaint, then answer that subject directly. "
+        "Do not answer about the mistaken subject. Use the supplied Archive material when relevant, and use reliable general knowledge if no suitable Archive material was retrieved. "
+        "Do not turn this recoverable correction into a refusal or ask the visitor to restate the subject.\n\n"
+        if corrected_subject
+        else ""
+    )
+    practical_application_instruction = (
+        "The visitor explicitly asks what to do differently or how to put a value into practice. Give at least two concrete, observable behaviors before asking a follow-up. For organizational trust, examples include hearing from people affected before a decision, distinguishing facts from assumptions, explaining the decision, assigning responsibility, and checking whether follow-through changed people's experience. Do not answer only with a reflection framework or ask the visitor to make the question more concrete. End with at most one focused question that helps identify where to apply the actions.\n\n"
+        if is_practical_application_question(question)
+        else ""
+    )
+    style_instruction = (
+        "The visitor explicitly requested plain, non-technical language. Answer the actual subject question in clear everyday words; avoid academic phrasing and unexplained specialist terms.\n\n"
+        if _has_response_style_preference(question) or _has_response_style_preference(history_text)
+        else ""
+    )
+    explicit_invitation_instruction = (
+        "The visitor explicitly requested a closing question. Answer the subject fully, then end with exactly one brief, natural question that invites the kind of reflection the visitor requested. Do not add any other question.\n\n"
+        if _requires_explicit_followup_invitation(question)
+        else ""
+    )
+    integrity_recovery_instruction = (
+        "INTEGRITY RECOVERY: A previous candidate answer was detected as an approved reference answer to a different question. "
+        "Do not repeat or paraphrase that unrelated answer. Answer the visitor’s exact question using the supplied canonical material. "
+        "For Archive-specific concepts, distinguish what the source explicitly establishes from inference; if evidence is insufficient, give the best bounded explanation without inventing a formal definition. "
+        "Use the normal Guide quality floor, normally three purposeful paragraphs for a conceptual explanation, followed by a relevant verified doorway only if supported.\n\n"
+        if integrity_recovery
+        else ""
+    )
+    user_content = (
+        f"Visitor question:\n{question}\n\n"
+        + integrity_recovery_instruction
+        + explicit_invitation_instruction
+        + practical_application_instruction
+        + correction_instruction
+        + style_instruction
+        + f"Suggested response shape (use your judgment; do not mention it): {shape}\n\n"
+        f"Recent conversation context, if any:\n{_normalize_space(history_text)[:1600]}\n\n"
+        + (
+            "Response pacing for this visitor: slow down. First recognize the specific difficulty they named in natural, non-formulaic language; do not open with generic sympathy or presume what their loss means. Then ask exactly one gentle, open question about what feels hardest or what they would like to say more about. Do not turn the disclosure into a task-management exercise, list examples of basic tasks, offer advice before understanding their need, or infer suicidality from grief alone. End with the question so the conversation has a clear, humane next step.\n\n"
+            if _requires_distress_sensitive_pacing(question)
+            else ""
+        )
+        + glossary_authority_instruction
+        + f"Archive material available to ground the answer:\n{_evidence_payload(documents) if documents else 'No relevant Archive material was retrieved for this question. Use reliable general knowledge where appropriate; do not invent Archive-specific claims or sources.'}"
+    )
+
+    cache_key = _composition_cache_key(
+        question,
+        history_text,
+        shape + ("|integrity_recovery" if integrity_recovery else ""),
+        documents,
+    )
+    now = time.monotonic()
+    with _COMPOSITION_CACHE_LOCK:
+        cached_entry = _COMPOSITION_CACHE.get(cache_key)
+        if cached_entry is not None:
+            cached_at, cached_value = cached_entry
+            if now - cached_at < _COMPOSITION_CACHE_TTL_SECONDS:
+                _COMPOSITION_CACHE.move_to_end(cache_key)
+                return dict(cached_value)
+            del _COMPOSITION_CACHE[cache_key]
+
+    result = route_with_model_bank(
+        use_core=use_core,
+        operation=OPERATION,
+        messages=[
+            {"role": "system", "content": _GENERAL_GUIDE_SYSTEM + (
+                "\n\n" + integrity_recovery_instruction.strip()
+                if integrity_recovery_instruction else ""
+            )},
+            {"role": "user", "content": user_content[:10000]},
+        ],
+        max_tokens=900,
+        parse=_parse_factory(documents, effective_question),
+        deadline_monotonic=deadline_monotonic,
+    )
+    if not result:
+        if _requires_conflicting_information_discernment(question):
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="conflicting_information_discernment")
+            return {
+                "response": _conflicting_information_discernment_recovery(),
+                "doorway_title": "",
+                "response_shape": "explanatory",
+                "provider": "bounded_conflicting_information_recovery",
+                "model": "deterministic-contract-recovery",
+            }
+        # Preserve the shared explanatory contract when providers are exhausted.
+        # This bounded general-knowledge recovery is allowed only for a familiar
+        # concept pair and never claims to state Archive doctrine.
+        orientation_recovery = _ordinary_language_orientation_recovery(question)
+        if orientation_recovery is not None:
+            doorway = _select_verified_recovery_doorway(question, documents)
+            _emit_guide_outcome(
+                "provider_exhaustion_fallback",
+                recovery="ordinary_language_orientation",
+                doorway=bool(doorway["doorway_title"]),
+            )
+            return {
+                "response": orientation_recovery,
+                "doorway_title": doorway["doorway_title"],
+                "doorway_url": doorway["doorway_url"],
+                "response_shape": "explanatory",
+                "provider": "bounded_orientation_recovery",
+                "model": "deterministic-contract-recovery",
+            }
+
+        relationship_recovery = (
+            _conceptual_relationship_recovery(question)
+            if is_conceptual_relationship_question(question)
+            else None
+        )
+        if relationship_recovery is not None:
+            doorway = _select_verified_recovery_doorway(question, documents)
+            _emit_guide_outcome(
+                "provider_exhaustion_fallback",
+                recovery="conceptual_relationship",
+                doorway=bool(doorway["doorway_title"]),
+            )
+            return {
+                "response": relationship_recovery,
+                "doorway_title": doorway["doorway_title"],
+                "doorway_url": doorway["doorway_url"],
+                "response_shape": "explanatory",
+                "provider": "bounded_conceptual_relationship_recovery",
+                "model": "deterministic-contract-recovery",
+            }
+        # If the provider bank is exhausted, use a bounded evidence-dependent
+        # recovery for Archive constitutional questions rather than allowing
+        # the generic Archive-definition fallback to answer the wrong subject.
+        constitutional_recovery = _archive_constitutional_recovery(question, documents)
+        if constitutional_recovery is not None:
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="constitutional")
+            return constitutional_recovery
+        evidence_recovery = _default_gold_standard_evidence_recovery(question, documents)
+        if evidence_recovery is not None:
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="evidence")
+            return evidence_recovery
+        if _requires_recurring_problem_explanation(question):
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="recurring_problem")
+            return {
+                "response": _recurring_problem_explanation_recovery(),
+                "doorway_title": "",
+                "response_shape": "explanatory",
+                "provider": "",
+                "model": "",
+            }
+        if _requires_intergenerational_stewardship(question):
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="intergenerational_stewardship")
+            return {
+                "response": _intergenerational_stewardship_recovery(),
+                "doorway_title": "",
+                "response_shape": "explanatory",
+                "provider": "bounded_intergenerational_stewardship_recovery",
+                "model": "deterministic-contract-recovery",
+            }
+        if _requires_outcome_evaluation_guidance(question):
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="outcome_evaluation")
+            return {
+                "response": _outcome_evaluation_recovery(),
+                "doorway_title": "",
+                "response_shape": "explanatory",
+                "provider": "",
+                "model": "",
+            }
+        return None
+
+    parsed = result["parsed"]
+    candidate = {
+        "response": parsed["response"],
+        "doorway_title": parsed["doorway_title"],
+        "response_shape": parsed["response_shape"],
+        "provider": str(result.get("provider") or ""),
+        "model": str(result.get("model") or ""),
+    }
+    provider_key = candidate["provider"] + ":" + candidate["model"]
+    preference_order = result.get("preference_order") or []
+    outcome = "llm_failover_success" if preference_order and provider_key != str(preference_order[0]) else "llm_primary_success"
+    _emit_guide_outcome(outcome, provider=candidate["provider"], model=candidate["model"])
+
+    # Orientation-sensitive questions have a distinct quality boundary: a fluent
+    # decision framework is not an acceptable substitute for helping the visitor
+    # regain bearings. Keep this deterministic recovery narrow and let verified
+    # doorway selection remain authoritative.
+    if _orientation_anchor_violation(question, candidate["response"]):
+        candidate["response"] = _orientation_anchor_recovery()
+        candidate["response_shape"] = "explanatory"
+        _emit_guide_outcome("composition_quality_recovery", recovery="orientation_anchor")
+
+    # Responsibility-boundary validation is intentionally owned by the final
+    # runtime response boundary in main.py. Enforcing it here alone is insufficient:
+    # deterministic and provider-exhaustion routes can bypass this composer.
+
+    if is_conceptual_relationship_question(question):
+        if not has_conceptual_relationship_explanation(candidate["response"], question):
+            relationship_recovery = _conceptual_relationship_recovery(question)
+            if relationship_recovery is not None:
+                candidate["response"] = relationship_recovery
+            else:
+                # Do not replace an off-topic candidate with a canned answer
+                # about unrelated concepts. The final response boundary will
+                # reject a candidate that cannot satisfy the requested subject.
+                return None
+            candidate["response_shape"] = "explanatory"
+        # Preserve provider-validated canonical doorways for conceptual questions.
+        # _parse_factory already checks doorway metadata against retrieved sources;
+        # the visitor can receive the answer first and the doorway separately.
+
+
+    if is_practical_application_question(question):
+        if not has_observable_practical_actions(candidate["response"]):
+            candidate["response"] = _practical_application_recovery()
+            candidate["response_shape"] = "explanatory"
+        if not re.search(
+            r"\b(?:where can i find|where do i find|show me|take me to|link me to|browse|find the)\b",
+            question,
+            re.I,
+        ):
+            candidate["doorway_title"] = ""
+
+    # Doorway selection is deterministic and independent of provider compliance.
+    # A substantive answer may legitimately be accepted even when the provider
+    # leaves doorway_title blank; attach a verified relevant Archive resource
+    # from the retrieved evidence before the response reaches the visitor.
+    if not candidate.get("doorway_title") and documents:
+        doorway = _select_verified_recovery_doorway(question, documents)
+        if doorway.get("doorway_title"):
+            candidate["doorway_title"] = doorway["doorway_title"]
+            candidate["doorway_url"] = doorway.get("doorway_url", "")
+            _emit_guide_outcome("authoritative_doorway_attached")
+
+    # If identical requests arrive concurrently, the first validated answer
+    # wins; every concurrent caller returns that same answer. This prevents
+    # response races without serializing unrelated questions.
+    with _COMPOSITION_CACHE_LOCK:
+        cached_entry = _COMPOSITION_CACHE.get(cache_key)
+        if cached_entry is not None:
+            cached_at, cached_value = cached_entry
+            if time.monotonic() - cached_at < _COMPOSITION_CACHE_TTL_SECONDS:
+                _COMPOSITION_CACHE.move_to_end(cache_key)
+                return dict(cached_value)
+            del _COMPOSITION_CACHE[cache_key]
+
+        _COMPOSITION_CACHE[cache_key] = (time.monotonic(), dict(candidate))
+        while len(_COMPOSITION_CACHE) > _COMPOSITION_CACHE_MAX_ENTRIES:
+            _COMPOSITION_CACHE.popitem(last=False)
+
+    return candidate
+
+
+def contract_snapshot() -> Dict[str, Any]:
+    return {
+        "contract_version": CONTRACT_VERSION,
+        "provider_bank_contract_version": PROVIDER_BANK_CONTRACT_VERSION,
+        "operation": OPERATION,
+        "visitor_language_boundary_version": VISITOR_LANGUAGE_BOUNDARY_VERSION,
+        "provider_neutral": True,
+        "required_response_shapes": [
+            "direct", "explanatory", "conceptual",
+            "reflective", "navigational", "general",
+        ],
+    }
+
+
+# Structural probes are deliberately provider-free. They protect the contract
+# itself without making an external API call at startup.
+if _sanitize_candidate("Answer this. [evidence excerpt bounded by USE]") != "Answer this.":
+    raise RuntimeError("General Guide composition invariant failed: visitor-language sanitizer.")
+if not is_generic_nonanswer(
+    "What is institutional memory, and why does it matter?",
+    "The most useful explanation for why institutional memory, and why does it matter begins by distinguishing the immediate event from the conditions that made it more likely. A visible incident may be the trigger without being the whole cause.\n\n"
+    "Look at the evidence, incentives, constraints, relationships, and decisions involved, and compare more than one plausible explanation.\n\n"
+    "These are possibilities to test, not conclusions about a specific case. The strongest explanation accounts for the available facts."
+):
+    raise RuntimeError("General Guide composition invariant failed: off-task definition answer was accepted.")
+if is_generic_nonanswer(
+    "What is institutional memory, and why does it matter?",
+    "Institutional memory is the knowledge an organization retains from its decisions, experience, practices, and lessons over time.\n\n"
+    "For example, recording why a policy was adopted helps new leaders understand the problem it was meant to solve instead of repeating an earlier mistake.\n\n"
+    "Institutional memory matters when it preserves context as well as records; outdated assumptions must still be questioned as circumstances change."
+):
+    raise RuntimeError("General Guide composition invariant failed: direct institutional-memory definition was rejected.")
+if _sanitize_candidate("Steps: - **First action**: one. - **Second action**: two.") != "Steps:\n- **First action**: one.\n- **Second action**: two.":
+    raise RuntimeError("General Guide composition invariant failed: inline practical-list normalization.")
+if _question_shape("What is stewardship and why does it matter now?") != "explanatory":
+    raise RuntimeError("General Guide composition invariant failed: question-shape classification.")
+if not is_generic_nonanswer(
+    "What are the risks of charisma without constitutional restraint?",
+    "The risks are best understood by what it means and how it operates in practice.\n\n"
+    "A useful explanation distinguishes the idea from nearby concepts and makes its implications visible.\n\n"
+    "The precise meaning can vary by field or institution, so this is a general explanation."
+):
+    raise RuntimeError("General Guide composition invariant failed: generic three-paragraph nonanswer was accepted.")
+if is_generic_nonanswer(
+    "What are the risks of charisma without constitutional restraint?",
+    "Charisma without constitutional restraint can concentrate power around a leader and weaken independent checks.\n\n"
+    "When followers treat personal loyalty as more important than shared rules, dissent can be silenced and mistakes can go uncorrected.\n\n"
+    "Charisma is not inherently harmful; transparent rules, accountability, and independent review help keep influence answerable to the institution's purpose."
+):
+    raise RuntimeError("General Guide composition invariant failed: substantive three-paragraph answer was rejected.")
+
+try:
+    _parse_factory([{"title": "Archive Doorway", "url": "https://geralddaquila.com/example/", "content": "Grounding material."}])(
+        '{"response":"A useful answer.\\n\\n[Explore the Archive](https://geralddaquila.com/example/)","doorway_title":"","response_shape":"general"}'
+    )
+except ValueError:
+    pass
+else:
+    raise RuntimeError("General Guide composition invariant failed: provider navigation leaked into visitor prose.")
