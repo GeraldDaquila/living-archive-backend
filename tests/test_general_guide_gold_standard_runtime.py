@@ -55,7 +55,7 @@ def test_registry_conflicts_are_rejected(monkeypatch, tmp_path):
     path.write_text(json.dumps(registry), encoding="utf-8")
     monkeypatch.setattr(standards, "_REGISTRY_PATH", path)
     standards_map = standards.load_approved_standards()
-    assert standards_map[standards.normalize_query("Same question?")]["expected_response"] == "Answer A"
+    assert standards_map[standards._normalize_question("Same question?")]["expected_response"] == "Answer A"
 
 
 def test_general_composition_returns_registered_answer_before_provider_call(monkeypatch):
