@@ -41,6 +41,15 @@ jobs:
           python - <<'PY'
           import json
           import os
+
+# Single canonical constitutional contract: the same required semantic
+# signals are used for both the response acceptance check and the diagnostic
+# emitted on failure, preventing phrase-level drift across workflow layers.
+CONSTITUTIONAL_RELATIONSHIP_SIGNALS = (
+    "governing relationships among concepts",
+    "relationships among concepts",
+    "relationships between concepts",
+)
           import re
           import time
           import urllib.error
