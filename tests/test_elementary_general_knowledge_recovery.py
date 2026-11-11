@@ -37,3 +37,19 @@ def test_bounded_fact_is_exempt_from_three_paragraph_presentation_recovery():
     assert main._established_general_knowledge_recovery(
         "How do I calculate the area of a triangle?"
     )["fact_id"] == "triangle_area_formula"
+
+
+def test_culture_perception_question_has_bounded_general_knowledge_recovery():
+    result = main._established_general_knowledge_recovery(
+        "How does culture shape what people can notice, value, and imagine?"
+    )
+    assert result is not None
+    assert result["fact_id"] == "culture_shapes_attention_value_and_imagination"
+    assert "shared habits of interpretation" in result["response"]
+    assert "futures its members can picture" in result["response"]
+
+
+def test_culture_recovery_does_not_match_unrelated_culture_mentions():
+    assert main._established_general_knowledge_recovery(
+        "Where can I find a history of culture?"
+    ) is None
