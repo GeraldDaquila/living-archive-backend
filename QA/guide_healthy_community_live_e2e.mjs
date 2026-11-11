@@ -50,7 +50,11 @@ const controllerResponses = [];
 const controllerBodyReads = [];
 const pageErrors = [];
 const pageConsole = [];
-page.on("pageerror", error => pageErrors.push(error.message));
+const pageErrorDetails = [];
+page.on("pageerror", error => {
+  pageErrors.push(error.message);
+  pageErrorDetails.push({ message: error.message, stack: error.stack || "", name: error.name || "" });
+});
 page.on("console", message => {
   if (message.type() === "error" || message.type() === "warning") {
     pageConsole.push({ type: message.type(), text: message.text() });
