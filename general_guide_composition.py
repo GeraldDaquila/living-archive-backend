@@ -1477,7 +1477,7 @@ def _requires_concrete_concept_explanation(query: str) -> bool:
         q,
         re.I,
     ))
-    archive_context = bool(re.search(r"\b(?:living archive|archive's own language|in the archive)\b", q, re.I))
+    archive_context = bool(re.search(r"\b(?:the\s+)?living archive\b|\bthe archive\b|\barchive['’]s own language\b|\bin the archive\b", q, re.I))
     abstract_terms = bool(re.search(
         r"\b(?:reciprocity|stewardship|sovereignty|integrity|interdependence|relationality|"
         r"canonical|fractal|steward|stewarding|belonging|mutuality|agency|coherence)\b",
@@ -1496,7 +1496,7 @@ def _requires_archive_scoped_meaning(query: str) -> bool:
         re.I,
     )) and bool(re.search(r"\b(?:mean|meaning|definition|understand|role|purpose)\b", q, re.I))
     archive_scope = bool(re.search(
-        r"\b(?:in|within|inside)\s+the\s+living\s+archive\b|\bthe living archive['’]s\b",
+        r"\b(?:in|within|inside)\s+(?:the\s+)?living\s+archive\b|\b(?:the\s+)?living archive['’]s\b|\bthe archive\b",
         q,
         re.I,
     ))
@@ -2075,6 +2075,24 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
                 "It considers who benefits, who bears costs, what dependencies are created, who retains agency, and whether the arrangement strengthens or weakens the capacity to act responsibly over the long term. "
                 "The guiding question is not simply what the means can do, but what it should help people and institutions become capable of caring for."
             )
+
+    # Archive-scoped conceptual meaning must not collapse into a generic
+    # limitation merely because the visitor uses "the Archive" as a natural
+    # shorthand for the Living Archive. Where the conceptual relationship is
+    # explicitly represented in the Archive's canonical orientation, preserve
+    # that relationship as a bounded synthesis rather than inventing a formal
+    # dictionary definition.
+    if (
+        re.search(r"\b(?:the\s+)?archive\b", normalized)
+        and re.search(r"\bconsciousness\b", normalized)
+        and re.search(r"\bcivilization\b", normalized)
+        and re.search(r"\b(?:mean|meaning|understand|relation|relationship)\b", normalized)
+    ):
+        return (
+            "In the Living Archive, consciousness is related to civilization through the way human capacities for perception, judgment, valuing, and imagination become embodied in collective life. Civilization is not treated as separate from human consciousness: the assumptions people and institutions hold about what human beings can notice, value, become, and take responsibility for help shape the forms of governance, culture, and social organization they create. This is an Archive orientation and synthesis, not a claim that the Archive supplies one universal dictionary definition of consciousness.\n\n"
+            "The relationship becomes clearer when we look at institutions. A governance system always gives practical expression to some view of human beings—for example, whether people are regarded mainly as subjects to be controlled, consumers to be managed, participants capable of judgment, or persons whose development and relationships matter. Those assumptions influence what a civilization makes visible, what it rewards, who is trusted to decide, and which forms of human flourishing it is organized to support.\n\n"
+            "The important distinction is that consciousness does not mechanically determine civilization, and civilization also shapes the conditions in which consciousness develops. The Archive's interest is in this reciprocal relationship: collective systems carry models of the human person, while those systems in turn cultivate particular capacities, habits, relationships, and horizons of possibility. That makes the question of consciousness relevant not only to private experience, but also to the design and stewardship of our shared world."
+        )
 
     if re.search(r"\btransformation\b", normalized) and re.search(r"\b(?:emotional\s+)?relief\b", normalized):
         return (
