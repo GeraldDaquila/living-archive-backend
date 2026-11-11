@@ -10932,7 +10932,16 @@ async def _use_request_boundary(scope, receive, send):
                 payload = None
 
             safe_payload = _guide_finalize_visitor_payload(payload, query)
-            if safe_payload is not payload and isinstance(safe_payload, dict):
+            # Response provenance is attached at the single outer boundary so
+            # every production acceptance result can be traced to its serving
+            # build without exposing implementation detail in the visitor UI.
+            if isinstance(safe_payload, dict):
+                safe_payload.setdefault("build_provenance", {
+                    "version": APP_VERSION,
+                    "deployment_fingerprint": DEPLOYMENT_FINGERPRINT,
+                    "canonical_build_id": CANONICAL_BUILD_ID,
+                })
+            if isinstance(safe_payload, dict):
                 encoded = json.dumps(
                     safe_payload, ensure_ascii=False, separators=(",", ":")
                 ).encode("utf-8")
