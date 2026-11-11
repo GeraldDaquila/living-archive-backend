@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "scope": "Historical records with preserved response text; reconstructed thematic records are not treated as answer evidence.",
+  "principles": [
+    "Evaluate whole-answer quality separately from component-level strengths.",
+    "Do not promote historical wording merely because a component is useful.",
+    "Do not infer missing answer quality from a question theme or historical label."
+  ],
+  "records": [
+    {
+      "benchmark_id": "general-guide-stewardship-gold-standard-2026-10-14",
+      "current_judgment": "reaffirmed_as_component_source_pending_full_contemporary_answer_review",
+      "harvest": [
+        "complete_answer_before_optional_navigation",
+        "define responsibility_with_limits",
+        "concrete_everyday_examples"
+      ],
+      "whole_response_caveat": "Exactly-three-paragraph and no-handoff constraints are scenario-specific, not universal."
+    },
+    {
+      "benchmark_id": "general-guide-reciprocity-gold-standard-2026-10-19",
+      "current_judgment": "harvestable",
+      "harvest": [
+        "define_general_concept_without_overclaiming_archive_authority",
+        "use_concrete_example",
+        "name_boundary_against_coercion_or_debt"
+      ],
+      "whole_response_caveat": "Archive-specific framing remains provisional when no canonical source is retrieved."
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-compound-2026-10",
+      "current_judgment": "historically_useful_duplicate_content",
+      "harvest": [
+        "same_core_stewardship_practices_as_preserved_reference"
+      ],
+      "whole_response_caveat": "Recovered historical record should not independently multiply the same lesson."
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-disagreement-protection-2026-10",
+      "current_judgment": "harvestable",
+      "harvest": [
+        "surface_underlying_values_before_personalizing_conflict",
+        "separate_facts_from_judgments",
+        "make_tradeoffs_and_unrepresented_parties_visible",
+        "treat_fair_process_and_review_as_part_of_responsible_decision"
+      ],
+      "whole_response_caveat": "Conflict reasoning must not become a generic template for every stewardship question."
+    },
+    {
+      "benchmark_id": "general-guide-practical-trust-application-2026-10-22",
+      "current_judgment": "reaffirmed_as_practical_response_pattern",
+      "harvest": [
+        "give_observable_actions_before_follow_up",
+        "separate_facts_from_assumptions",
+        "close_the_loop_by_checking_effects",
+        "avoid_unsolicited_resource_doorway_for_practical_how_to"
+      ],
+      "whole_response_caveat": "Focused follow-up is context-dependent and not required after every practical answer."
+    },
+    {
+      "benchmark_id": "general-guide-conceptual-accountability-trust-harm-repair-2026-10-22",
+      "current_judgment": "reaffirmed_as_mechanism_explanation_pattern",
+      "harvest": [
+        "explain_causal_mechanism_not_just_definitions",
+        "connect_responsibility_to_visible_action",
+        "treat_repair_as_consequences_plus_prevention",
+        "avoid_claiming_repair_erases_harm_or_guarantees_trust"
+      ],
+      "whole_response_caveat": "Relationship or organizational context should be established before applying this framework."
+    }
+  ],
+  "provenance_limited_records": {
+    "count": 14,
+    "rule": "Question themes may be retained as future calibration prompts, but no answer-level best practice is harvested until source responses are recovered or independently re-tested."
+  }
+}
