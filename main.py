@@ -6356,9 +6356,20 @@ def _broad_conceptual_doorway(query):
             title = str(item.get("title") or "").strip()
             url = str(item.get("url") or item.get("canonical_url") or "").strip()
             summary = str(item.get("summary") or item.get("text") or "").strip()
-            if not title or not url or not summary:
+            # The canonical territorial map is allowed to be title-only. Many
+            # published records intentionally carry no summary; rejecting them
+            # here silently empties navigation evidence even when discovery found
+            # a relevant canonical destination.
+            if not title or not url:
                 continue
-            evidence.append({"title": title, "url": url, "text": summary})
+            evidence.append({
+                "title": title,
+                "url": url,
+                "text": summary or title,
+                "resource_type": str(item.get("resource_type") or "").strip(),
+                "tier": str(item.get("tier") or "").strip(),
+                "access_class": str(item.get("access_class") or "").strip(),
+            })
 
         if not evidence:
             return None
