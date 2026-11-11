@@ -4972,9 +4972,22 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if _conceptual_recovery and _guide_composition.has_conceptual_relationship_explanation(
         _conceptual_recovery, query
     ):
+        # This deterministic prose recovery does not itself decide navigation.
+        # Carry any independently verified request-level doorway through the
+        # result contract so provider exhaustion cannot erase a valid Archive
+        # handoff selected before answer composition.
+        _recovery_doorway = _normalize_authoritative_recommendation(
+            context_data.get("authoritative_doorway")
+        ) if isinstance(context_data, dict) else None
         return {
             "response": _conceptual_recovery,
-            "doorway_title": "",
+            "doorway_title": (
+                str(_recovery_doorway.get("title") or "") if _recovery_doorway else ""
+            ),
+            "doorway_url": (
+                str(_recovery_doorway.get("url") or "") if _recovery_doorway else ""
+            ),
+            "recommendation": _recovery_doorway,
             "provider": "bounded_conceptual_relationship_recovery",
             "model": "",
         }
