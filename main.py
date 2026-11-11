@@ -6382,7 +6382,30 @@ def _broad_conceptual_doorway(query):
                 },
             )
         )
-        return doorway
+        if doorway is not None:
+            return doorway
+
+        # expand_context has already ranked this canonical territorial evidence
+        # for the visitor's query. Broad-concept navigation must not discard that
+        # ranking merely because the general doorway selector's task-specific
+        # filters were designed for full retrieved documents. Preserve the same
+        # relevance discipline with a direct lexical anchor before handing off.
+        query_terms = {
+            term.casefold()
+            for term in re.findall(r"[A-Za-z]{5,}", str(query or ""))
+            if term.casefold() not in {
+                "about", "beyond", "does", "environmental", "meaning",
+                "mean", "restoration", "what", "their", "there",
+            }
+        }
+        for item in evidence:
+            candidate_text = (
+                str(item.get("title") or "") + " " + str(item.get("text") or "")
+            ).casefold()
+            if any(re.search(r"\\b" + re.escape(term) + r"\\w*\\b", candidate_text)
+                   for term in query_terms):
+                return _normalize_authoritative_recommendation(item)
+        return None
     except Exception as exc:
         print(
             "The Guide broad conceptual doorway: "
