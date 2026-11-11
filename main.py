@@ -6051,7 +6051,7 @@ def _general_guide_authoritative_doorway(query, context_data):
             fallback_docs = _wordpress_search_canonical_candidates(query)
             if _is_conceptual_explanatory_request(query):
                 for _bridge_query in _canonical_conceptual_search_queries(query):
-                    _bridge_docs = _wordpress_search_canonical_candidates(\n                        _bridge_query, limit=10, preserve_query=True\n                    )
+                    _bridge_docs = _wordpress_search_canonical_candidates(_bridge_query, limit=10, preserve_query=True)
                     for _bridge_doc in _bridge_docs:
                         if isinstance(_bridge_doc, dict):
                             _bridge_doc["_conceptual_bridge_query"] = _bridge_query
