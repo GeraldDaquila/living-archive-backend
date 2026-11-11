@@ -1000,10 +1000,25 @@ def _conceptual_bridge_supported(query, doc):
     bridge_metrics = _subject_metrics(bridge_query, doc)
     if _relevance_level(bridge_metrics, allow_full_content=True) < 2:
         return False
-    original_terms = set(_subject_terms(query))
+    # Do not require literal repetition of the visitor's vocabulary here:
+    # the purpose of a conceptual bridge is to cross differences between the
+    # visitor's language and the Archive's language. Instead, require evidence
+    # across at least two conceptual dimensions.
+    conceptual_dimensions = (
+        ("culture", "cultural", "civilization", "civilisation", "society", "social"),
+        ("notice", "noticing", "attention", "perception", "perceive", "see", "seeing"),
+        ("value", "values", "valuing", "meaning", "meaningful", "significance"),
+        ("imagine", "imagining", "imagination", "possible", "possibility", "future"),
+    )
+    query_tokens = set(re.findall(r"[a-z0-9]+", normalized_query))
     body_tokens = set(re.findall(r"[a-z0-9]+", body.casefold()))
-    original_hits = sum(bool(_term_forms(term) & body_tokens) for term in original_terms)
-    return original_hits >= 2
+    matched_dimensions = 0
+    for dimension in conceptual_dimensions:
+        query_has_dimension = bool(query_tokens & set(dimension))
+        body_has_dimension = bool(body_tokens & set(dimension))
+        if query_has_dimension and body_has_dimension:
+            matched_dimensions += 1
+    return matched_dimensions >= 2
 
 
 def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
