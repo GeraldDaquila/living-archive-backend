@@ -1968,6 +1968,19 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "For example, someone facing financial pressure may have fewer realistic options than someone with ample resources. They may still make meaningful choices about seeking help, negotiating a commitment, or deciding what to prioritize, but those choices must be understood in light of the constraints they face. Recognizing agency without recognizing circumstance can unfairly blame people for limits they did not create; recognizing circumstance without agency can overlook their capacity to respond.\n\n"
             "The relationship is therefore reciprocal but not symmetrical: circumstances shape the range and cost of available actions, while individual and collective actions can sometimes change those circumstances over time. How much agency is available depends on the actual constraints, resources, power, and support in a particular situation. This is a general conceptual explanation, not a claim that the Living Archive defines the terms in exactly this way."
         )
+    # Distinguish first-person contemplative understanding from public empirical
+    # support without treating either as a substitute for the other. This is a
+    # bounded epistemic distinction, not an Archive-specific attribution.
+    if (
+        re.search(r"\bcontemplative\s+(?:insight|reflection|understanding)\b", normalized)
+        and re.search(r"\bempirical\s+(?:evidence|inquiry|research)\b", normalized)
+    ):
+        return (
+            "Contemplative insight and empirical evidence answer different kinds of questions. Contemplative insight arises through sustained attention to experience: it can clarify how something feels, what a pattern means to a person, or how one understands a relationship or situation from within. Its strength is depth of first-person understanding, but the insight is not automatically proof that the same conclusion holds for everyone.\n\n"
+            "Empirical evidence is gathered through observation, measurement, comparison, or other methods that allow a claim to be checked against the world. Its strength is that other people can examine the method and evidence, look for alternative explanations, and test whether a finding holds beyond one person's experience. Empirical evidence can therefore support or challenge general claims, but it may not by itself capture the full meaning or texture of lived experience.\n\n"
+            "The distinction is not that one is true and the other is false. They have different standards of warrant. A contemplative insight may be personally illuminating and can suggest a question worth investigating; empirical evidence asks what can be publicly supported about that question. Keeping the two distinct helps avoid treating a powerful inner experience as universal proof while also avoiding the mistake of assuming that only what can be measured is meaningful."
+        )
+
     if re.search(r"\btransformation\b", normalized) and re.search(r"\b(?:emotional\s+)?relief\b", normalized):
         return (
             "Temporary emotional relief and genuine transformation can overlap, but they are not the same thing. Relief is primarily a change in how a person feels in the moment: a burden may ease, anxiety may settle, or a difficult experience may briefly feel more manageable. Transformation is better understood as a change in how a person relates to a situation, acts within it, or sustains a different pattern over time.\n\n"
