@@ -829,12 +829,7 @@ _GENERIC_NONANSWER_PATTERNS = (
     r"\bcheck how the relevant people or institution define and apply the term\b",
     r"\bthe answer is best understood by looking at how the concept operates\b",
     r"\bwhat matters is not just defining the term but understanding its implications\b",
-    # Verification-abstention prose is a non-answer when a bounded recovery exists.
-    # Classify it structurally rather than relying on each response boundary to
-    # recognize one exact wording.
-    r"\bi can(?:not|'t) define .* reliably from the information available .* alone\b",
-    r"\bi don(?:not|'t) want to invent a definition or imply that a guess is established knowledge\b",
-    r"\bfor a general concept, a reliable dictionary or subject reference can establish the ordinary meaning\b",
+
 )
 
 
@@ -951,10 +946,36 @@ def _explanatory_template_mismatch(query: str, response: str) -> bool:
     return sum(marker in text for marker in planning_markers) >= 2
 
 
+def is_verification_abstention_for_known_concept(query: str, response: str) -> bool:
+    """Detect refusal-style fallback only when the question has a known conceptual recovery.
+
+    Unknown-term honesty is an intentional answer class and must not be erased.
+    The same wording becomes a failure only when the composition registry can
+    already supply a bounded orientation for the question.
+    """
+    text = _normalize_space(response).casefold()
+    if not _conceptual_relationship_recovery(query):
+        return False
+    return bool(
+        re.search(
+            r"\bi can(?:not|'t) define .* reliably from the information available .* alone\b",
+            text,
+            re.I,
+        )
+        and re.search(
+            r"\bi don(?:not|'t) want to invent a definition or imply that a guess is established knowledge\b",
+            text,
+            re.I,
+        )
+    )
+
+
 def is_generic_nonanswer(query: str, response: str) -> bool:
     """Reject generic composition filler and off-task openings even when formatted well."""
     text = _normalize_space(response).casefold()
     if not text:
+        return True
+    if is_verification_abstention_for_known_concept(query, response):
         return True
     if not _has_direct_definition_for_subject(query, response):
         return True
