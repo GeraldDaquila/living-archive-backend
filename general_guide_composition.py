@@ -2093,21 +2093,39 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "For example, someone facing financial pressure may have fewer realistic options than someone with ample resources. They may still make meaningful choices about seeking help, negotiating a commitment, or deciding what to prioritize, but those choices must be understood in light of the constraints they face. Recognizing agency without recognizing circumstance can unfairly blame people for limits they did not create; recognizing circumstance without agency can overlook their capacity to respond.\n\n"
             "The relationship is therefore reciprocal but not symmetrical: circumstances shape the range and cost of available actions, while individual and collective actions can sometimes change those circumstances over time. How much agency is available depends on the actual constraints, resources, power, and support in a particular situation. This is a general conceptual explanation, not a claim that the Living Archive defines the terms in exactly this way."
         )
-    # Role distinctions can be explained as ordinary conceptual orientation
-    # without claiming that a particular institution has formally defined them.
-    # Preserve the distinction between assistance in understanding and authority
-    # to settle judgment, especially when the subject is an AI system.
-    if (
-        re.search(r"\b(?:what does it mean|what is the difference|how is)\b", normalized)
-        and re.search(r"\bai\b|\bartificial intelligence\b", normalized)
-        and re.search(r"\binterpreter\b", normalized)
-        and re.search(r"\bauthority\b", normalized)
-    ):
+    # Recognize the actual role distinction across natural wording variants.
+    # The old four-part phrase test was overly brittle: it missed related
+    # formulations and allowed downstream, unrelated recovery paths to win.
+    asks_role_meaning = bool(re.search(
+        r"\\b(?:what does it mean|what is meant|what is the role|how should)\\b",
+        normalized,
+    ))
+    names_ai = bool(re.search(r"\\b(?:ai|artificial intelligence)\\b", normalized))
+    names_interpretation = bool(re.search(r"\\b(?:interpret(?:er|ation|ive)|sensemaking)\\b", normalized))
+    names_authority = bool(re.search(r"\\b(?:authorit(?:y|ies)|decision.right|final judgment)\\b", normalized))
+    contrasts_roles = bool(re.search(
+        r"\\b(?:rather than|instead of|not as|not an|versus|vs\\.?)\\b",
+        normalized,
+    ))
+    if names_ai and names_interpretation and names_authority and (asks_role_meaning or contrasts_roles):
         return (
-            "For an AI to function as an interpreter rather than an authority means that its role is to help people make sense of information without claiming the final right to decide what is true, valid, or should be done. An interpreter can organize material, identify patterns, explain alternatives, and make relationships easier to see. Those activities can inform judgment, but they do not settle judgment by themselves.\n\n"
-            "Authority is different because it carries responsibility for a decision or a standard. In a human or institutional setting, an authority may be authorized to make a determination, establish a rule, or be accountable for its consequences. An AI can produce a confident recommendation, but confidence or computational capability does not by itself give it legitimate authority.\n\n"
-            "Treating AI as an interpreter therefore keeps an important space open for questioning. People can ask what information the system used, what assumptions shaped its response, whose perspective may be missing, and whether its interpretation fits the situation. The AI can extend the capacity to understand, but the reasons for accepting or rejecting an interpretation remain open to examination.\n\n"
-            "The stewardship boundary is that human and institutional responsibility should remain visible. AI may support deliberation and help clarify possibilities, but people and accountable institutions remain responsible for the values they uphold, the decisions they make, and the consequences that follow. This is a general conceptual distinction, not a claim that every institution defines the roles in exactly the same way."
+            "For an AI to act as an interpreter rather than an authority is for it to help people understand information "
+            "without claiming the final right to decide what that information means or what should be done. It can organize "
+            "evidence, compare perspectives, identify patterns, explain relationships, and make uncertainty easier to see. "
+            "Those are interpretive contributions: they improve the material available for judgment, but they do not settle "
+            "the judgment themselves.\\n\\n"
+            "Authority carries a different responsibility. It involves having legitimate standing to make or enforce a "
+            "decision and being answerable for its consequences. An AI system can sound certain, rank options, or produce "
+            "a recommendation, but those capabilities do not by themselves give it the legitimacy, situated understanding, "
+            "or accountability required to decide for people. For example, an AI might compare policy options and expose "
+            "who could be affected; the accountable people or institution must still weigh the evidence, values, rights, "
+            "and consequences before making the decision.\\n\\n"
+            "The distinction is not that AI must remain passive or that humans are automatically wise. It is that the "
+            "system's contribution should remain inspectable and contestable: people need to be able to ask what evidence "
+            "was used, which assumptions shaped the interpretation, whose perspective is missing, and where uncertainty "
+            "remains. The human or institutional decision-maker must retain responsibility for the values applied and "
+            "the action taken. AI is most useful here when it clarifies the landscape of judgment without quietly "
+            "appropriating the authority to decide."
         )
 
     # Mechanism questions ask how an existing pattern is reproduced, amplified,
