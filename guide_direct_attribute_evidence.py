@@ -122,7 +122,7 @@ def archive_limitation_response(question=None):
 
 
 def _candidate_title_matches_question(question, candidate):
-    """Require a minimal subject overlap before an upstream result reaches visitors."""
+    """Require material subject overlap before an ordinary fallback reaches visitors."""
     if not isinstance(candidate, dict):
         return False
     title = str(candidate.get("title") or "").casefold()
@@ -143,16 +143,20 @@ def _candidate_title_matches_question(question, candidate):
 
 
 def select_authoritative_doorway(question, preselected, source_selector, context, *, resource_query=None, normalize=None):
-    """Use one relevance boundary for both selected and upstream doorway candidates.
+    """Preserve grounded ordinary navigation while preventing doorway bypasses.
 
-    A canonical selector may refine a doorway. When it finds nothing, an
-    upstream preselection can be retained only if its title independently
-    demonstrates a material subject connection to the visitor's question.
-    This preserves ordinary grounded navigation while preventing broad pages
-    from bypassing the relevance boundary.
+    Direct factual-property questions always require the authoritative selector:
+    a preselected page mentioning the subject cannot substitute for evidence of
+    the requested property. Ordinary inquiries retain a materially matching
+    preselection, preserving the established navigation contract. When no
+    grounded preselection exists, the canonical selector becomes the sole
+    authority; an unrelated preselection is never displayed.
     """
-    candidate = source_selector(resource_query or question, context)
-    if candidate is None and _candidate_title_matches_question(question, preselected):
+    if preselected and direct_attribute_phrase(question):
+        candidate = source_selector(resource_query or question, context)
+    elif _candidate_title_matches_question(question, preselected):
         candidate = preselected
+    else:
+        candidate = source_selector(resource_query or question, context)
     return normalize(candidate) if normalize else candidate
 
