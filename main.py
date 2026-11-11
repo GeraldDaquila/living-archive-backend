@@ -8626,8 +8626,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     composition_context.pop("authoritative_doorway_title", None)
                     composition_context["evidence_sufficiency_unavailable"] = True
                     print(
-                        "The Guide conceptual boundary: insufficient independent canonical "
-                        "support for grounded synthesis; returned the Archive-only limitation."
+                        "The Guide conceptual boundary: no question-matched canonical sentence and insufficient "
+                        "independent canonical support for grounded synthesis; returned the Archive-only limitation."
                     )
 
     # Conceptual evidence gates govern explanatory attribution, not a separately
