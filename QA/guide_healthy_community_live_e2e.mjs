@@ -111,6 +111,7 @@ try {
     if (response.url().includes("living-archive-guide-v489.318-edge-confirmation.js")) {
       try {
         const source = await response.text();
+        // Match the actual browser parse path: classic script parsing.
         new Function(source);
       } catch (error) {
         controllerSyntaxDiagnostics.push(String(error && error.stack || error));
