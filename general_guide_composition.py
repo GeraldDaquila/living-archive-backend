@@ -1901,6 +1901,7 @@ _CONCEPTUAL_RELATIONSHIP_PATTERNS = (
     r"\brelationship between .{0,80} and .{0,80}\b",
     r"\bdistinguish(?:es|ed|ing)? .{0,100} from .{0,100}\b",
     r"\bwhat role should .{0,100} play in (?:a |an )?.{0,100}\b",
+    r"\bhow (?:can|do|does|might|could) .{0,100} (?:scale|amplify|reinforce|reproduce|worsen|perpetuate) .{0,100}\b",
 )
 
 
@@ -1989,6 +1990,21 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "For example, someone facing financial pressure may have fewer realistic options than someone with ample resources. They may still make meaningful choices about seeking help, negotiating a commitment, or deciding what to prioritize, but those choices must be understood in light of the constraints they face. Recognizing agency without recognizing circumstance can unfairly blame people for limits they did not create; recognizing circumstance without agency can overlook their capacity to respond.\n\n"
             "The relationship is therefore reciprocal but not symmetrical: circumstances shape the range and cost of available actions, while individual and collective actions can sometimes change those circumstances over time. How much agency is available depends on the actual constraints, resources, power, and support in a particular situation. This is a general conceptual explanation, not a claim that the Living Archive defines the terms in exactly this way."
         )
+    # Mechanism questions ask how an existing pattern is reproduced, amplified,
+    # or made more consequential. Recover the general mechanism without claiming
+    # an Archive-specific attribution when provider composition is unavailable.
+    if (
+        re.search(r"\balgorithmic(?:\s+systems?)?|\bautomated\s+systems?\b", normalized)
+        and re.search(r"\b(?:scale|amplify|reinforce|reproduce|perpetuate)\b", normalized)
+        and re.search(r"\b(?:bias(?:es)?|institutional failures?)\b", normalized)
+    ):
+        return (
+            "Algorithmic systems can scale existing biases or institutional failures because they often learn from, formalize, or operate within patterns that already exist. If historical data reflects unequal treatment, exclusion, or earlier institutional mistakes, a system trained or calibrated on those patterns can reproduce them across many new decisions. The technology does not need to introduce a new bias for an old pattern to become more widely applied.\n\n"
+            "Scale also changes the consequences of error. Automating a flawed classification or decision rule can make it faster and easier to apply across a large population, while the consistency of the system can make the pattern appear more objective than it really is. A narrow performance measure may further reward the system for optimizing what is easy to count while leaving important harms or unequal effects outside the measure.\n\n"
+            "Feedback can deepen the problem. When an algorithm's outputs influence what is observed, recorded, or decided next, those outputs can become part of the evidence used to maintain the same pattern. Institutional responsibility can also become harder to see when people treat a technical recommendation as though the system itself had made the underlying value judgment.\n\n"
+            "The stewardship question is therefore not only whether an algorithm is accurate in the aggregate. It is also what history and assumptions it carries forward, who can question or correct its decisions, which consequences remain visible, and who remains responsible for the conditions the system helps create. Used responsibly, algorithmic systems can help reveal patterns and support better judgment; they should not make inherited patterns faster, wider, and harder to challenge."
+        )
+
     # Distinguish first-person contemplative understanding from public empirical
     # support without treating either as a substitute for the other. This is a
     # bounded epistemic distinction, not an Archive-specific attribution.
