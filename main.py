@@ -125,12 +125,11 @@ _DEPLOYED_SOURCE_COMMIT = (
 )
 # Stable release identity retained for canonical QA and human release tracing.
 DEPLOYMENT_FINGERPRINT = "USE-v489.311-source-derived"
-# Runtime source identity is separate and must be used for deployment/response correlation.
+# Runtime provenance is intentionally separate from the stable release identity.
+# The deployed source revision is the authoritative request-to-deployment key.
 RUNTIME_SOURCE_FINGERPRINT = f"USE-{APP_VERSION}-source-{_DEPLOYED_SOURCE_COMMIT[:12]}"
-# Canonical build ID remains a stable release-contract identity; runtime source
-# revision is carried separately for request-to-deployment correlation.
+# Canonical build ID remains a stable release-contract identity.
 CANONICAL_BUILD_ID = "USE-BUILD-v489.311-canonical"
-RUNTIME_BUILD_ID = f"USE-BUILD-source-{_DEPLOYED_SOURCE_COMMIT}"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -283,8 +282,6 @@ if not str(RUNTIME_SOURCE_FINGERPRINT).startswith(f"USE-{APP_VERSION}-source-"):
     raise RuntimeError("USE provenance integrity failure: runtime source fingerprint mismatch.")
 if not str(CANONICAL_BUILD_ID).startswith(f"USE-BUILD-{APP_VERSION}-"):
     raise RuntimeError("USE version integrity failure: canonical build/version mismatch.")
-if not str(RUNTIME_BUILD_ID).startswith("USE-BUILD-source-"):
-    raise RuntimeError("USE provenance integrity failure: runtime build identifier mismatch.")
 
 use_core.APP_VERSION = APP_VERSION
 use_core.DEPLOYMENT_FINGERPRINT = DEPLOYMENT_FINGERPRINT
@@ -11035,7 +11032,6 @@ async def _use_request_boundary(scope, receive, send):
                     "deployment_fingerprint": DEPLOYMENT_FINGERPRINT,
                     "runtime_source_fingerprint": RUNTIME_SOURCE_FINGERPRINT,
                     "canonical_build_id": CANONICAL_BUILD_ID,
-                    "runtime_build_id": RUNTIME_BUILD_ID,
                     "source_commit": _DEPLOYED_SOURCE_COMMIT,
                 })
             if isinstance(safe_payload, dict):
