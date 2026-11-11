@@ -977,6 +977,28 @@ def _topic_specific_candidate_fit(query, doc):
     return bool(query_groups & title_groups) or len(query_groups & early_groups) >= 2
 
 
+def _conceptual_bridge_supported(query, doc):
+    """Allow a bounded bridge-retrieved candidate to prove conceptual relevance.
+
+    A bridge never selects a doorway by itself. It must be explicitly attached
+    to the candidate, match that bridge strongly, and show multiple concepts
+    from the visitor's original inquiry in the resource body.
+    """
+    if not _is_conceptual_explanatory_request(query) or not isinstance(doc, dict):
+        return False
+    bridge_query = str(doc.get("_conceptual_bridge_query") or "").strip()
+    body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "")
+    if not bridge_query or not body:
+        return False
+    bridge_metrics = _subject_metrics(bridge_query, doc)
+    if _relevance_level(bridge_metrics, allow_full_content=True) < 2:
+        return False
+    original_terms = set(_subject_terms(query))
+    body_tokens = set(re.findall(r"[a-z0-9]+", body.casefold()))
+    original_hits = sum(bool(_term_forms(term) & body_tokens) for term in original_terms)
+    return original_hits >= 2
+
+
 def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     if not isinstance(doc, dict):
         return False
@@ -1002,7 +1024,10 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
         return False
     # Entity overlap cannot substitute for evidence of a requested attribute.
     # The attribute and any explicit condition must appear in this source body.
-    if not _direct_attribute_supported(query, doc):
+    # A bounded conceptual bridge may provide equivalent evidence when the
+    # Archive uses different surface language for the same conceptual territory.
+    bridge_supported = _conceptual_bridge_supported(query, doc)
+    if not _direct_attribute_supported(query, doc) and not bridge_supported:
         return False
     if not _uncertainty_resource_direct_fit(query, doc):
         return False
@@ -1032,7 +1057,7 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
             and re.search(r"\b(?:transform(?:ation|ing|ed)?|awakening|integration|changed\s+patterns?|sustain(?:ing|ed)?)\b", body_probe, re.I)
             and metrics[3] >= 1
         )
-        if not contextual_family_support and not semantic_transition_support:
+        if not contextual_family_support and not semantic_transition_support and not bridge_supported:
             return False
     return True
 
@@ -5993,9 +6018,11 @@ def _general_guide_authoritative_doorway(query, context_data):
             fallback_docs = _wordpress_search_canonical_candidates(query)
             if _is_conceptual_explanatory_request(query):
                 for _bridge_query in _canonical_conceptual_search_queries(query):
-                    fallback_docs.extend(
-                        _wordpress_search_canonical_candidates(_bridge_query, limit=10)
-                    )
+                    _bridge_docs = _wordpress_search_canonical_candidates(_bridge_query, limit=10)
+                    for _bridge_doc in _bridge_docs:
+                        if isinstance(_bridge_doc, dict):
+                            _bridge_doc["_conceptual_bridge_query"] = _bridge_query
+                    fallback_docs.extend(_bridge_docs)
             if comparative_subjects:
                 # Broaden discovery by each compared subject, then retain the
                 # same direct-fit gates below before any doorway is selected.
