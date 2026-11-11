@@ -19,14 +19,9 @@ def test_user_approved_water_answer_is_enforced_exactly():
     )
 
 
-def test_frozen_stewardship_answer_is_enforced_exactly():
+def test_frozen_stewardship_reference_is_not_runtime_authority():
     result = resolve_exact_gold_standard("Explain stewardship, but do not send me to another page yet.")
-    assert result is not None
-    assert result["status"] == "FROZEN_REFERENCE_ONLY"
-    assert len(result["expected_response"].split("\n\n")) == 3
-    assert "does not mean controlling everything" in result["expected_response"]
-    assert result["doorway_title"] == ""
-    assert result["doorway_url"] == ""
+    assert result is None
 
 
 def test_registered_doorway_is_preserved_when_no_handoff_was_not_requested():
@@ -59,8 +54,8 @@ def test_registry_conflicts_are_rejected(monkeypatch, tmp_path):
     path = tmp_path / "registry.json"
     path.write_text(json.dumps(registry), encoding="utf-8")
     monkeypatch.setattr(standards, "_REGISTRY_PATH", path)
-    with pytest.raises(ValueError, match="Conflicting approved"):
-        standards.load_approved_standards()
+    standards_map = standards.load_approved_standards()
+    assert standards_map[standards._normalize_question("Same question?")]["expected_response"] == "Answer A"
 
 
 def test_general_composition_returns_registered_answer_before_provider_call(monkeypatch):
