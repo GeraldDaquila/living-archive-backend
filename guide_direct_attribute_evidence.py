@@ -122,9 +122,20 @@ def archive_limitation_response(question=None):
 
 
 def select_authoritative_doorway(question, preselected, source_selector, context, *, resource_query=None, normalize=None):
-    """Do not let an earlier preselection bypass direct-attribute evidence checks."""
-    if direct_attribute_phrase(question):
-        candidate = source_selector(resource_query or question, context)
-    else:
-        candidate = preselected or source_selector(resource_query or question, context)
+    """Resolve every public doorway through the same question-specific authority.
+
+    Upstream retrieval preselection is useful context, but it is not a
+    visitor-facing relevance decision. Allowing a preselected result to bypass
+    the authoritative selector created a second, weaker doorway path: a broad
+    page could be displayed even after the selector's relevance gate would have
+    rejected it.
+
+    The selector is therefore the single authority for public doorway output.
+    A missing result means no doorway. Direct-attribute questions follow the
+    same boundary; their evidence requirements are enforced by the selector
+    and downstream direct-attribute gates rather than by preserving an earlier
+    preselection.
+    """
+    candidate = source_selector(resource_query or question, context)
     return normalize(candidate) if normalize else candidate
+
