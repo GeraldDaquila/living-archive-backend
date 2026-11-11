@@ -37,11 +37,17 @@ class SystemicRecoveryTerminalContractTests(unittest.TestCase):
             source.index("I couldn’t produce a reliable answer to that question just now."),
         )
 
-    def test_final_boundary_validates_recovery_and_preserves_existing_failure_for_unanswerable(self):
+    def test_registered_mechanism_recovery_has_shape_aware_quality_admission(self):
         source = MAIN
-        self.assertIn("not general_guide_composition.is_generic_nonanswer(query, _deterministic_text)", source)
-        self.assertIn("not general_guide_composition.is_meta_answer_failure(_deterministic_text)", source)
+        self.assertIn("_deterministic_registered_mechanism", source)
+        self.assertIn('== "bounded_conceptual_relationship_recovery"', source)
+        self.assertIn("is_conceptual_relationship_question(query)", source)
+        self.assertIn("is_meta_answer_failure(_deterministic_text)", source)
+
+    def test_final_boundary_preserves_general_knowledge_basis_and_terminal_guard(self):
+        source = MAIN
         self.assertIn('"kind": "general_knowledge"', source)
+        self.assertIn("answer-only recovery unavailable; returned explicit non-answer error state", source)
 
 
 if __name__ == "__main__":
