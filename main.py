@@ -9071,6 +9071,22 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if _glossary_answer_basis:
         answer_basis = _glossary_answer_basis
 
+    # Final doorway disposition trace: candidate selection is not treated as
+    # success until the authoritative record survives into the visitor payload.
+    _final_doorway_title = str((authoritative_doorway or {}).get("title") or "").strip()
+    _final_doorway_url = str((authoritative_doorway or {}).get("url") or "").strip()
+    _final_doorway_suppressed = bool(
+        _final_gold_standard is not None
+        and bool(_final_gold_standard.get("forbids_doorway"))
+    )
+    print(
+        "The Guide doorway disposition: "
+        f"request_id={request_id}, "
+        f"authoritative_title={_final_doorway_title or '<none>'}, "
+        f"recommendation_present={bool(_final_doorway_title and _final_doorway_url)}, "
+        f"gold_standard_suppressed={_final_doorway_suppressed}"
+    )
+
     payload = {
         "ok": True,
         "version": APP_VERSION,
