@@ -45,3 +45,24 @@ def test_unrelated_foolishness_does_not_trigger_relational_recovery():
     )
 
     assert result.get("provider") != "bounded_relational_uncertainty_recovery"
+
+
+def test_conceptual_recovery_preserves_verified_authoritative_doorway():
+    doorway = {
+        "title": "Relevant Archive Resource",
+        "url": "https://geralddaquila.com/relevant-resource/",
+    }
+    result = main._basic_inquiry_round1_deterministic_response(
+        "What is the difference between genuine transformation and temporary emotional relief?",
+        {},
+        {
+            "context_blocks": "",
+            "authoritative_doorway": doorway,
+        },
+        recommendation_available=True,
+    )
+
+    assert result["provider"] == "bounded_conceptual_relationship_recovery"
+    assert result["recommendation"] == doorway
+    assert result["doorway_title"] == doorway["title"]
+    assert result["doorway_url"] == doorway["url"]
