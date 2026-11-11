@@ -26,3 +26,22 @@ The request boundary states HRN is retired while relationship capability remains
 3. Trace relationship contribution imports before terminology cleanup.
 
 No runtime changes are made by this audit pass.
+
+
+## Pass 2 — Test and contract trace
+
+### Test discovery result
+No dedicated `tests/test_general_guide_gold_standards.py` exists at the expected path. The active Gold Star shadow tests explicitly constrain learning to `USER_APPROVED_GOLD_STANDARD` and exclude reconstructed records.
+
+### Registry contract finding
+The registry's learning contract already states: **Only explicitly approved standards are eligible for exact-answer runtime enforcement; candidates and recovered historical records remain evaluation-only unless separately approved.**
+
+This creates a governance inconsistency with the runtime resolver's inclusion of `FROZEN_REFERENCE_ONLY`.
+
+### Recommendation
+Treat removal of `FROZEN_REFERENCE_ONLY` from exact runtime authority as a **contract-alignment cleanup**, not a new learning feature. Before implementation, add a focused regression test that verifies:
+- current user-approved exact benchmarks remain eligible;
+- frozen historical references are not returned as runtime authority;
+- the normal Guide path remains available for those questions.
+
+No deletion is authorized yet; this finding advances the candidate to a testable cleanup proposal.
