@@ -5047,22 +5047,27 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # registered recovery. Mechanism questions are explanatory but need not fit
     # the older two-concept relationship validator; validate them with the shared
     # answer-quality boundary instead of silently dropping them here.
-    _systemic_mechanism_recovery = bool(
+    _registered_conceptual_recovery_valid = bool(
         _conceptual_recovery
-        and _guide_composition.is_conceptual_relationship_question(query)
         and not _guide_composition.is_generic_nonanswer(query, _conceptual_recovery)
         and not _guide_composition.is_meta_answer_failure(_conceptual_recovery)
     )
-    if _conceptual_recovery and (
+    _systemic_mechanism_recovery = bool(
+        _registered_conceptual_recovery_valid
+        and _guide_composition.is_conceptual_relationship_question(query)
+    )
+    # A registered recovery is already bounded by the composition module's
+    # question matcher. Do not require a second, narrower intent classifier at
+    # the API boundary: role distinctions such as "interpreter rather than
+    # authority" are valid conceptual orientation even when they are not
+    # recognized as a two-concept relationship.
+    if _registered_conceptual_recovery_valid and (
         _systemic_mechanism_recovery
         or _guide_composition.has_conceptual_relationship_explanation(
             _conceptual_recovery, query
         )
-        or (
-            _is_conceptual_explanatory_request(query)
-            and not _guide_composition.is_generic_nonanswer(query, _conceptual_recovery)
-            and not _guide_composition.is_meta_answer_failure(_conceptual_recovery)
-        )
+        or _is_conceptual_explanatory_request(query)
+        or bool(_guide_composition._conceptual_relationship_recovery(query))
     ):
         # This deterministic prose recovery does not itself decide navigation.
         # Carry any independently verified request-level doorway through the
