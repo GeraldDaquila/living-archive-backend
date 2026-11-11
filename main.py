@@ -7384,7 +7384,21 @@ def _basic_inquiry_has_internal_implementation_language(response):
     ))
 
 
+
+# Gold Star shadow observation is imported separately from composition and remains best-effort only.
+try:
+    from gold_star_lessons import shadow_observation as _gold_star_shadow_observation
+except Exception:
+    _gold_star_shadow_observation = None
+
 def _basic_inquiry_response(query, history=None, raw_body=None):
+    # Observation-only: returned metadata is discarded and cannot influence composition.
+    try:
+        if _gold_star_shadow_observation is not None:
+            _gold_star_shadow_observation(str(query or ""))
+    except Exception:
+        pass
+
     """Answer an ordinary Guide question through the protected USE core."""
     started = time.perf_counter()
     request_deadline = time.monotonic() + GUIDE_REQUEST_BUDGET_SECONDS
