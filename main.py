@@ -11048,13 +11048,31 @@ async def _use_request_boundary(scope, receive, send):
                     if key.lower() not in {b"content-length", b"content-encoding", b"etag"}
                 ]
                 headers.append((b"content-length", str(len(encoded)).encode("ascii")))
+                # Request provenance: every repaired JSON response identifies the
+                # exact runtime that produced it. This makes deployment and route
+                # mismatches observable without exposing provider credentials.
+                headers.append((b"x-living-archive-version", str(APP_VERSION).encode("utf-8")))
+                headers.append((b"x-living-archive-fingerprint", str(DEPLOYMENT_FINGERPRINT).encode("utf-8")))
                 start = dict(captured_start)
                 start["status"] = 200
                 start["headers"] = headers
                 await send(start)
                 await send({"type": "http.response.body", "body": encoded, "more_body": False})
             else:
-                await send(captured_start)
+                # Even an unchanged payload must identify its serving runtime.
+                original_headers = [
+                    (key, value)
+                    for key, value in (captured_start.get("headers") or [])
+                    if key.lower() not in {
+                        b"x-living-archive-version",
+                        b"x-living-archive-fingerprint",
+                    }
+                ]
+                original_headers.append((b"x-living-archive-version", str(APP_VERSION).encode("utf-8")))
+                original_headers.append((b"x-living-archive-fingerprint", str(DEPLOYMENT_FINGERPRINT).encode("utf-8")))
+                start = dict(captured_start)
+                start["headers"] = original_headers
+                await send(start)
                 await send({"type": "http.response.body", "body": raw_response, "more_body": False})
 
             captured_start = None
