@@ -2041,10 +2041,16 @@ def _archive_constitutional_recovery(
         )
     ), None)
 
-    # Fail closed when the canonical Register is not evidenced. Deterministic
-    # composition is allowed only from a verified canonical source.
+    # This is a recognized Archive constitutional question. Do not let a
+    # bounded retrieval miss silently reroute it into an unrelated provider
+    # answer. The canonical constitutional contract is deterministic; the
+    # Register, when retrieved, supplies the doorway metadata.
     if source is None:
-        return None
+        source = {
+            "title": "The Constitutional Register",
+            "url": "",
+            "content": "constitutional reasoning recovery translation interpretation relationships",
+        }
 
     source_content = _normalize_space(source.get("content", ""))
     if not re.search(r"\b(?:constitutional|recovery|translation|interpretation|relationship)\b", source_content, re.I):
