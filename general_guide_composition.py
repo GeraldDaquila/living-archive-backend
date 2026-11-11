@@ -2007,14 +2007,30 @@ def _select_verified_recovery_doorway(
     question: str,
     documents: List[Dict[str, Any]],
 ) -> Dict[str, str]:
-    """Preserve the strongest verified Archive destination from retrieval.
+    """Select a verified doorway only when its subject is evidenced as relevant.
 
-    Retrieval is the Guide's semantic relevance mechanism. Deterministic answer
-    recovery must not replace that mechanism with a second, weaker lexical test:
-    a relevant source can legitimately use different language from the visitor's
-    question. This selector therefore preserves one verified canonical destination
-    according to the retrieval order and any supplied relevance metadata.
+    Retrieval rank is useful evidence, but it is not itself a visitor-facing
+    relevance contract. Broad or noisy retrieval can return a legitimate Archive
+    page whose title happens to be unrelated to the question. A recovery route
+    must never turn that weak match into a confident recommendation.
+
+    The selector therefore gates retrieval candidates on question-specific
+    subject evidence first, then uses retrieval score/order to break ties. A
+    doorway may legitimately be omitted when the available material cannot
+    establish a useful place to continue.
     """
+    stop = {
+        "what", "does", "mean", "for", "from", "with", "that", "this",
+        "than", "rather", "into", "about", "when", "where", "which",
+        "have", "has", "been", "being", "the", "and", "or", "but",
+        "how", "why", "can", "could", "would", "should", "are", "is",
+        "an", "a", "to", "of", "in", "on", "by", "it", "its",
+    }
+    terms = {
+        token.casefold()
+        for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", _normalize_space(question))
+        if token.casefold() not in stop
+    }
     candidates = []
     for index, document in enumerate(documents or []):
         if not isinstance(document, dict):
@@ -2024,26 +2040,48 @@ def _select_verified_recovery_doorway(
         if not title or not re.fullmatch(r"https://geralddaquila\.com/[^\s]+", url, re.I):
             continue
 
-        # Prefer explicit retrieval relevance when available; otherwise preserve
-        # the retriever's ranked order. Never manufacture a destination outside
-        # the material already returned for this visitor question.
+        content = _normalize_space(
+            document.get("content") or document.get("text") or document.get("excerpt") or ""
+        )
+        metadata = " ".join(
+            str(document.get(key) or "")
+            for key in ("keywords", "topics", "tags", "subject", "description")
+        )
+        title_terms = {
+            token.casefold()
+            for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", title)
+        }
+        evidence_terms = {
+            token.casefold()
+            for token in re.findall(r"[A-Za-z][A-Za-z'-]{2,}", content[:6000] + " " + metadata)
+        }
+        title_overlap = len(terms & title_terms)
+        evidence_overlap = len(terms & evidence_terms)
+
+        # A body-only match needs more than one generic concept. This prevents
+        # a broad page such as "Law" from becoming the doorway merely because
+        # its text happens to contain one word such as "authority".
+        if title_overlap == 0 and evidence_overlap < 2:
+            continue
+
         raw_score = (
             document.get("score")
             if document.get("score") is not None
             else document.get("similarity", document.get("relevance_score"))
         )
         try:
-            score = float(raw_score) if raw_score is not None else None
+            retrieval_score = float(raw_score) if raw_score is not None else 0.0
         except (TypeError, ValueError):
-            score = None
-        candidates.append((score, -index, title, url))
+            retrieval_score = 0.0
+
+        semantic_score = title_overlap * 4 + evidence_overlap
+        candidates.append((semantic_score, retrieval_score, -index, title, url))
 
     if not candidates:
         return {"doorway_title": "", "doorway_url": ""}
 
-    scored = [item for item in candidates if item[0] is not None]
-    selected = max(scored, key=lambda item: (item[0], item[1])) if scored else candidates[0]
-    return {"doorway_title": selected[2], "doorway_url": selected[3]}
+    selected = max(candidates, key=lambda item: item[:3])
+    return {"doorway_title": selected[3], "doorway_url": selected[4]}
 
 def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     """Provide bounded general-knowledge recovery for a recognized, well-established concept pair."""
