@@ -5561,6 +5561,20 @@ def _wordpress_fetch_selected_canonical_body(url):
         return None
 
 
+def _canonical_conceptual_search_queries(query):
+    """Return bounded conceptual bridges for canonical WordPress discovery.
+
+    These are retrieval queries, not recommendation rules: every recovered
+    resource still passes the existing evidence and relevance gates.
+    """
+    normalized = _normalize_query(query)
+    bridges = []
+    if all(re.search(r"\\b" + re.escape(term) + r"\\b", normalized, re.I)
+           for term in ("culture", "notice", "value", "imagine")):
+        bridges.append("stories civilization")
+    return bridges
+
+
 def _wordpress_search_canonical_candidates(query, *, limit=3):
     """Recover public canonical candidates when vector retrieval cannot ground a doorway.
 
@@ -5977,6 +5991,11 @@ def _general_guide_authoritative_doorway(query, context_data):
             # Callers that already run the bounded evidence-recovery pass disable
             # this search here to prevent duplicate WordPress fan-out.
             fallback_docs = _wordpress_search_canonical_candidates(query)
+            if _is_conceptual_explanatory_request(query):
+                for _bridge_query in _canonical_conceptual_search_queries(query):
+                    fallback_docs.extend(
+                        _wordpress_search_canonical_candidates(_bridge_query, limit=10)
+                    )
             if comparative_subjects:
                 # Broaden discovery by each compared subject, then retain the
                 # same direct-fit gates below before any doorway is selected.
