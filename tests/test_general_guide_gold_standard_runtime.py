@@ -19,14 +19,9 @@ def test_user_approved_water_answer_is_enforced_exactly():
     )
 
 
-def test_frozen_stewardship_answer_is_enforced_exactly():
+def test_frozen_stewardship_reference_is_not_runtime_authority():
     result = resolve_exact_gold_standard("Explain stewardship, but do not send me to another page yet.")
-    assert result is not None
-    assert result["status"] == "FROZEN_REFERENCE_ONLY"
-    assert len(result["expected_response"].split("\n\n")) == 3
-    assert "does not mean controlling everything" in result["expected_response"]
-    assert result["doorway_title"] == ""
-    assert result["doorway_url"] == ""
+    assert result is None
 
 
 def test_registered_doorway_is_preserved_when_no_handoff_was_not_requested():
