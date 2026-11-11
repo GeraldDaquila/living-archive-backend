@@ -4910,7 +4910,10 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
             # mismatched doorway just because unrelated context was present.
             result["doorway_title"] = ""
             result["recommendation"] = None
-        if result.get("provider") != "bounded_foundation_provider_exhaustion_recovery":
+        if result.get("provider") not in {
+            "bounded_foundation_provider_exhaustion_recovery",
+            "bounded_conceptual_relationship_recovery",
+        }:
             result["provider"] = "bounded_provider_exhaustion_recovery"
 
     # Provider exhaustion is still part of the shared visitor-answer contract.
