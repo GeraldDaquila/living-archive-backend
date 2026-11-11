@@ -136,8 +136,10 @@ try {
   const inlineScriptDiagnostics = await page.evaluate(() => Array.from(document.scripts)
     .filter(s => !s.src && s.textContent && s.textContent.trim())
     .map((s, index) => {
+      const type = (s.type || "").trim().toLowerCase();
+      if (type && type !== "text/javascript" && type !== "application/javascript" && type !== "module") return null;
       try { new Function(s.textContent); return null; }
-      catch (error) { return { kind: "inline", index, message: String(error.message || error), source: s.textContent.slice(0, 500) }; }
+      catch (error) { return { kind: "inline", index, type, message: String(error.message || error), source: s.textContent.slice(0, 500) }; }
     }).filter(Boolean));
   pageScriptDiagnostics.push(...inlineScriptDiagnostics);
   console.log(JSON.stringify({ stage: "controller_script_diagnostic", controllerRequests, controllerResponses, pageScriptDiagnostics, pageErrorDetails, pageConsole }));
