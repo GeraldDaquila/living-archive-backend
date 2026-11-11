@@ -2376,12 +2376,21 @@ def _archive_grounding_boundary_recovery() -> str:
 
 
 def _has_archive_grounding_boundary(response: str) -> bool:
-    text = _normalize_space(response).casefold()
+    """Require the complete three-part epistemic distinction, not scattered keywords."""
+    paragraphs = [
+        _normalize_space(part).casefold()
+        for part in re.split(r"\n\s*\n+", str(response or ""))
+        if _normalize_space(part)
+    ]
+    if len(paragraphs) < 3:
+        return False
+    archive_grounding, external_context, provenance = paragraphs[:3]
     return (
-        re.search(r"\b(?:traceable|published archive material|canonical resources?|archive's own orientation)\b", text)
-        and re.search(r"\b(?:external|general)\s+(?:knowledge|context|information)\b", text)
-        and re.search(r"\b(?:not be presented|not present).*\barchive (?:position|name|doctrine)\b|\bunder the archive's name\b", text)
-        and re.search(r"\b(?:provenance|source boundary|tell what the living archive itself supports)\b", text)
+        re.search(r"\b(?:living archive|archive-grounded guidance)\b", archive_grounding)
+        and re.search(r"\b(?:traceable|published archive material|canonical resources?|archive's own orientation)\b", archive_grounding)
+        and re.search(r"\b(?:external|general)\s+(?:knowledge|context|information)\b", external_context)
+        and re.search(r"\b(?:not be presented|not present).*\barchive (?:position|name|doctrine)\b|\bunder the archive's name\b", external_context)
+        and re.search(r"\b(?:provenance|trustworthy navigator|tell what the living archive itself supports)\b", provenance)
     )
 
 
