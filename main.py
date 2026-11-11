@@ -7942,15 +7942,43 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         response = _sanitize_basic_inquiry_response(actionable_response)
 
 
-    # Final visitor-facing contract for conceptual relationship questions.
-    # This runs after composition/discovery paths so generic fallback language
-    # cannot replace the explanation requested by the visitor.
+    # Final visitor-facing boundary for registered conceptual recoveries.
+    # The registry is the authoritative matcher for bounded recoveries. A later
+    # response rewrite must not reintroduce a generic verification fallback just
+    # because the question does not satisfy the narrower relationship classifier.
+    _final_registered_conceptual_recovery = (
+        general_guide_composition._conceptual_relationship_recovery(query)
+    )
+    _final_registered_conceptual_recovery_valid = bool(
+        _final_registered_conceptual_recovery
+        and not general_guide_composition.is_generic_nonanswer(
+            query, _final_registered_conceptual_recovery
+        )
+        and not general_guide_composition.is_meta_answer_failure(
+            _final_registered_conceptual_recovery
+        )
+    )
+    if _final_registered_conceptual_recovery_valid:
+        _response_is_generic_failure = (
+            general_guide_composition.is_generic_nonanswer(query, response)
+            or general_guide_composition.is_meta_answer_failure(response)
+        )
+        _relationship_explanation_missing = (
+            general_guide_composition.is_conceptual_relationship_question(query)
+            and not general_guide_composition.has_conceptual_relationship_explanation(
+                response, query
+            )
+        )
+        if _response_is_generic_failure or _relationship_explanation_missing:
+            response = _sanitize_basic_inquiry_response(
+                _final_registered_conceptual_recovery
+            )
+            print(
+                "The Guide final registered-recovery boundary: restored bounded conceptual orientation."
+            )
+
+    # Preserve the existing relationship-specific doorway behavior.
     if general_guide_composition.is_conceptual_relationship_question(query):
-        if not general_guide_composition.has_conceptual_relationship_explanation(response, query):
-            conceptual_recovery = general_guide_composition._conceptual_relationship_recovery(query)
-            if conceptual_recovery:
-                response = _sanitize_basic_inquiry_response(conceptual_recovery)
-                print("The Guide final relationship-answer boundary: restored concept-to-concept explanation.")
         # A conceptual relationship question does not have to explicitly ask
         # for a link to benefit from a separately validated canonical doorway.
         # Preserve the selected doorway here; earlier relevance, evidence,
