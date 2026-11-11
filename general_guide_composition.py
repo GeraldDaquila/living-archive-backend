@@ -1248,7 +1248,16 @@ def _has_broad_conceptual_definition(response: str) -> bool:
         return False
     first, second, third = paragraphs
     refusal = re.search(r"\b(?:can't|cannot) define\b|\bdictionary or subject reference\b", response, re.I)
-    return not refusal and bool(re.search(r"\bregeneration\b", first, re.I)) and bool(re.search(r"\b(?:renew|restore|revitaliz|capacity|conditions?|life|relationship)\w*", first, re.I)) and bool(re.search(r"\b(?:environment|ecological|beyond)\b", second, re.I)) and bool(re.search(r"\b(?:social|economic|institution|culture|community|relationship|human)\w*", second, re.I)) and bool(re.search(r"\b(?:does not mean|more than|not simply|ongoing|conditions?|capacity|future)\b", third, re.I))
+    # This contract validates conceptual structure, not exact inflection. It
+    # must not turn a valid deterministic answer into a visitor-facing failure.
+    return (
+        not refusal
+        and bool(re.search(r"\bregeneration\b", first, re.I))
+        and bool(re.search(r"\b(?:renew|restore|revitaliz|capacity|conditions?|life|relationship)\w*", first, re.I))
+        and bool(re.search(r"\b(?:environment\w*|ecolog\w*|beyond)\b", second, re.I))
+        and bool(re.search(r"\b(?:social|economic|institution|culture|community|relationship|human)\w*", second, re.I))
+        and bool(re.search(r"\b(?:does not mean|more than|not simply|ongoing|conditions?|capacity|future)\b", third, re.I))
+    )
 
 
 def _broad_conceptual_definition_recovery() -> str:
