@@ -8811,9 +8811,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # boundary. This keeps the final visitor state honest if
                         # all answer authorities are exhausted.
                         authoritative_doorway = None
-                        _systemwide_recovery = _sanitize_basic_inquiry_response(
-                            _compose_provider_exhaustion_recovery(query)
-                        )
                         _systemwide_paragraphs = [
                             part.strip()
                             for part in re.split(r"\n\s*\n+", _systemwide_recovery)
