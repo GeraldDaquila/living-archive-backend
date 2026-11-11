@@ -31,6 +31,10 @@ class CultureDoorwayContractTests(unittest.TestCase):
             "culture_shapes_attention_value_and_imagination",
         )
         doorway = result.get("doorway")
+        self.assertIsInstance(doorway, dict)
+        self.assertEqual(set(doorway), {"title", "url"})
+        self.assertTrue(doorway["title"].strip())
+        self.assertTrue(doorway["url"].startswith("https://geralddaquila.com/"))
         self.assertEqual(doorway["title"], "Rules of Reasoning")
         self.assertEqual(
             doorway["url"],
