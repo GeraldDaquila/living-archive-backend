@@ -8840,7 +8840,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                             )
                         else:
                             _final_answer_authority_failed = True
-                            authoritative_doorway = None
                             # Answer authority and navigation authority are independent.
                             # An ordinary explanatory question must not become a visitor-facing
                             # non-answer merely because canonical retrieval, doorway selection, or
@@ -8895,6 +8894,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 }
                                 print("The Guide final payload boundary: answer-only recovery PASS; navigation decision preserved independently.")
                             else:
+                                authoritative_doorway = None
                                 response = (
                                     "I couldn’t produce a reliable answer to that question just now. "
                                     "Please try again shortly; I won’t present commentary about an answer as though it were the answer itself."
