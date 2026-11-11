@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple
 CONTRACT_VERSION = "v1"
 _TELEMETRY_LOG = logging.getLogger("use.gold_star.shadow")
 _REGISTRY_PATH = Path(__file__).resolve().parent / "docs" / "qa" / "gold_standard_registry.json"
+_TRANSFER_REVIEW_PATH = Path(__file__).resolve().parent / "docs" / "qa" / "gold_star_qualitative_transfer_review.json"
 _ALLOWED_STATUSES = frozenset({"USER_APPROVED_GOLD_STANDARD"})
 _STOP_WORDS = frozenset({
     "a","about","after","all","also","an","and","are","as","at","be","because",
@@ -33,7 +34,25 @@ def _tokens(value: Any) -> set[str]:
 def _normalized_phrase(value: Any) -> str:
     return " ".join(re.findall(r"[a-z0-9]+", str(value or "").casefold()))
 
+def _load_transfer_review() -> Dict[str, Dict[str, Any]]:
+    """Load qualitative transfer governance keyed by approved benchmark id."""
+    try:
+        entries = json.loads(_TRANSFER_REVIEW_PATH.read_text(encoding="utf-8")).get("entries", [])
+    except (OSError, ValueError, TypeError):
+        return {}
+    if not isinstance(entries, list):
+        return {}
+    review = {}
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        benchmark_id = str(entry.get("benchmark_id") or "").strip()
+        if benchmark_id:
+            review[benchmark_id] = entry
+    return review
+
 def _load_lessons() -> List[Dict[str, Any]]:
+    transfer_review = _load_transfer_review()
     try:
         records = json.loads(_REGISTRY_PATH.read_text(encoding="utf-8")).get("records", [])
     except (OSError, ValueError, TypeError):
@@ -57,6 +76,10 @@ def _load_lessons() -> List[Dict[str, Any]]:
             variants = []
         assertions = [str(x).strip() for x in (record.get("assertions") or [])
                       if isinstance(x, str) and str(x).strip()][:5]
+        review = transfer_review.get(benchmark_id, {})
+        shadow_candidate = review.get("activation") == "shadow_candidate"
+        qualifying_context = str(review.get("qualifying_context") or "")
+        transferable_discipline = str(review.get("transferable_discipline") or "")
         lessons.append({
             "id": benchmark_id,
             "query": query,
@@ -64,7 +87,10 @@ def _load_lessons() -> List[Dict[str, Any]]:
             "assertions": assertions,
             "terms": _tokens(query + " " + str(record.get("known_theme") or "")
                              + " " + " ".join(str(v) for v in variants if isinstance(v, str))),
-            "runtime_transfer": bool(record.get("runtime_transfer")),
+            # Cross-question eligibility is governed by the qualitative review.
+            "runtime_transfer": bool(record.get("runtime_transfer")) or shadow_candidate,
+            "qualifying_context": qualifying_context,
+            "transferable_discipline": transferable_discipline,
             "variants": [str(v).strip() for v in variants if isinstance(v, str) and str(v).strip()],
         })
         seen.add(benchmark_id)
@@ -91,16 +117,19 @@ def select_lesson(query: str) -> Optional[Dict[str, Any]]:
     ranked = []
     for x in candidates:
         variant_terms = set().union(*(_tokens(v) for v in x["variants"])) if x["variants"] else set()
-        exemplar_terms = _tokens(x["query"])
+        context_terms = _tokens(x.get("qualifying_context", "") + " " + x.get("transferable_discipline", ""))
+        exemplar_terms = _tokens(x["query"]) | context_terms
         shared_exemplar = query_terms & exemplar_terms
         shared_variant = query_terms & variant_terms
-        if len(shared_exemplar) < 1 or len(shared_variant) < 2:
+        shared_context = query_terms & context_terms
+        support = len(shared_variant) + len(shared_context)
+        if len(shared_exemplar) < 1 or support < 2:
             continue
-        coverage = len(shared_variant) / max(1, len(query_terms))
+        coverage = support / max(1, len(query_terms))
         if coverage < 0.34:
             continue
-        score = min(0.99, 0.45 + 0.1 * len(shared_exemplar) + 0.08 * len(shared_variant))
-        ranked.append((score, len(shared_variant), x["id"], x))
+        score = min(0.99, 0.45 + 0.1 * len(shared_exemplar) + 0.06 * support)
+        ranked.append((score, support, x["id"], x))
     if not ranked:
         return None
     ranked.sort(key=lambda item: (-item[0], -item[1], item[2]))
