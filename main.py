@@ -5626,7 +5626,7 @@ def _canonical_conceptual_search_queries(query):
     return bridges
 
 
-def _wordpress_search_canonical_candidates(query, *, limit=3):
+def _wordpress_search_canonical_candidates(query, *, limit=3, preserve_query=False):
     """Recover public canonical candidates when vector retrieval cannot ground a doorway.
 
     WordPress search is a bounded, provider-independent retrieval supplement, not
@@ -5640,12 +5640,19 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
     terms = sorted(set(_subject_terms(query)))
     if not terms:
         return []
+    # A verified conceptual bridge is already a deliberately constructed retrieval
+    # phrase. Preserve it at the WordPress boundary rather than reshaping it again.
+    if preserve_query:
+        search_text = re.sub(r"\s+", " ", str(query or "").strip())
+        if not search_text:
+            return []
+    else:
+        search_text = ""
     # For conceptual questions, search with the concept being examined plus
     # one strong context term. Purely length-based ranking can omit the central
     # concept (for example, "trust") in favour of longer context words, making
     # canonical search miss the very source the visitor needs.
-    search_text = ""
-    if _is_conceptual_explanatory_request(query):
+    if not search_text and _is_conceptual_explanatory_request(query):
         conceptual_match = re.match(
             r"^what\s+is\s+(?:the\s+)?(?:role|purpose|significance|importance|function|value|contribution|impact|nature|relationship)\s+of\s+(.+?)\s+(?:in|within|among|for|of|on)\s+(.+?)[?.!]*$",
             re.sub(r"\s+", " ", str(query or "").strip().casefold()),
@@ -6044,7 +6051,7 @@ def _general_guide_authoritative_doorway(query, context_data):
             fallback_docs = _wordpress_search_canonical_candidates(query)
             if _is_conceptual_explanatory_request(query):
                 for _bridge_query in _canonical_conceptual_search_queries(query):
-                    _bridge_docs = _wordpress_search_canonical_candidates(_bridge_query, limit=10)
+                    _bridge_docs = _wordpress_search_canonical_candidates(\n                        _bridge_query, limit=10, preserve_query=True\n                    )
                     for _bridge_doc in _bridge_docs:
                         if isinstance(_bridge_doc, dict):
                             _bridge_doc["_conceptual_bridge_query"] = _bridge_query
