@@ -61,7 +61,7 @@ def test_provider_exhaustion_uses_verified_constitutional_register_evidence(monk
     assert "later interpretation" in response.casefold()
 
 
-def test_constitutional_recovery_fails_closed_without_constitutional_register_evidence(monkeypatch):
+def test_constitutional_recovery_prevents_unrelated_provider_fallback_without_register_evidence(monkeypatch):
     documents = [
         {
             "title": "General Archive Introduction",
@@ -81,4 +81,9 @@ def test_constitutional_recovery_fails_closed_without_constitutional_register_ev
         context_data={},
     )
 
-    assert result is None
+    assert result is not None
+    assert result["provider"] == "bounded_archive_constitutional_recovery"
+    assert result["doorway_title"] == "The Constitutional Register"
+    assert result["doorway_url"] == ""
+    assert "constitutional reasoning" in result["response"].casefold()
+    assert "governing relationships" in result["response"].casefold()
