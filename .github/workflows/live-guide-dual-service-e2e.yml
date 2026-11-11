@@ -242,6 +242,15 @@ jobs:
                       f"status={status}, version={payload.get('version')}"
                   )
               response = str(payload.get("response") or "").strip()
+              # Preserve the exact live artifact for forensic diagnosis before
+              # applying semantic assertions. This prevents another cycle based
+              # only on an assertion label.
+              print(
+                  f"{name}: constitutional forensic artifact; "
+                  f"commit={payload.get('deployment_commit_sha')}; "
+                  f"response={response!r}",
+                  flush=True,
+              )
               paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
               if payload.get("processing") != "basic_inquiry":
                   raise SystemExit(
