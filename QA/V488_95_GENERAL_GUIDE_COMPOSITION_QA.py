@@ -310,7 +310,14 @@ def main():
             )
             assert_true(tolerant is not None, "optional doorway metadata still invalidates composition")
             assert_true(tolerant["response_shape"] == "explanatory", "tolerant composition shape drifted")
-            assert_true(tolerant["doorway_title"] == "", "unapproved doorway metadata was not neutralized")
+            assert_true(
+                tolerant["doorway_title"] == "Stewardship Today",
+                "authoritative verified doorway was not attached after provider metadata was neutralized",
+            )
+            assert_true(
+                tolerant["doorway_url"] == "https://geralddaquila.com/stewardship-today/",
+                "authoritative doorway URL was not preserved",
+            )
         finally:
             composition.route_with_model_bank = original_route
     finally:
