@@ -19,7 +19,7 @@ def main():
         normalize=lambda value: value,
     )
     assert calls == [QUESTION]
-    assert result is None, "A preselected page must not bypass relevance authority."
+    assert result is None, "An unrelated preselected page must not bypass relevance authority."
 
     def select_relevant(query, context):
         return {
@@ -35,6 +35,15 @@ def main():
         normalize=lambda value: value,
     )
     assert result["title"] == "AI, Interpretation and Human Judgment"
+
+    grounded = {"title": "Community care", "url": "https://geralddaquila.com/community-care/"}
+    assert select_authoritative_doorway(
+        "How can a community care for its members?",
+        grounded,
+        reject_unrelated,
+        {},
+        normalize=lambda value: value,
+    ) is grounded
 
     print("DOORWAY AUTHORITY BOUNDARY QA: PASS")
 
