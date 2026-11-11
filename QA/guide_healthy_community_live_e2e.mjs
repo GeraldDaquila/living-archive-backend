@@ -52,8 +52,42 @@ page.on("pageerror", error => {
 page.on("request", request => {
   if (request.method() === "POST" && request.url().includes("/api/query")) {
     let body = {};
-    try {
+    try { body = JSON.parse(request.postData() || "{}"); } catch {}
+    apiRequests.push({ url: request.url(), body, atMs: elapsed() });
+  }
+});
+page.on("response", response => {
+  if (!response.url().includes("/api/query")) return;
+  const record = { url: response.url(), status: response.status(), atMs: elapsed(), payload: null, bodyReadError: null };
+  apiResponses.push(record);
+  apiBodyReads.push(response.json().then(payload => { record.payload = payload; }).catch(error => { record.bodyReadError = error?.message || String(error); }));
+});
+page.on("requestfailed", request => {
+  if (request.url().includes("/api/query")) {
+    apiFailures.push({ url: request.url(), atMs: elapsed(), error: request.failure()?.errorText || "unknown" });
+  }
+});
+page.on("requestfinished", request => {
+  if (request.url().includes("/api/query")) {
+    apiFinished.push({ url: request.url(), atMs: elapsed() });
+  }
+});
+
+try {
   console.log(JSON.stringify({ stage: "live_e2e_start", url: GUIDE_URL }));
+  const controllerSyntaxDiagnostics = [];
+  page.on("response", async response => {
+    if (response.url().includes("living-archive-guide-v489.318-edge-confirmation.js")) {
+      try {
+        const source = await response.text();
+        // Match the actual browser parse path: classic script parsing.
+        new Function(source);
+        console.log(JSON.stringify({ stage: "controller_source_syntax_ok", url: response.url(), sourceBytes: source.length }));
+      } catch (error) {
+        controllerSyntaxDiagnostics.push(JSON.stringify({ message: String(error && error.message || error), stack: String(error && error.stack || ""), url: response.url(), sourceBytes: source ? source.length : null }));
+      }
+    }
+  });
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded" });
   await page.waitForLoadState("load").catch(() => {});
   const root = page.locator(ROOT);
@@ -261,9 +295,6 @@ page.on("request", request => {
   if (conceptualText.toLowerCase().includes("glossary")) {
     throw new Error("The conceptual question was visibly redirected to the Glossary.");
   }
-  // The live page has one unattributed pre-interaction SyntaxError outside the
-  // verified Guide execution boundaries. Record it, but do not fail a successful
-  // visitor-path acceptance unless a Guide script diagnostic or functional check failed.
   console.log(JSON.stringify({
     stage: "live_e2e_passed",
     apiOrigin: USE_API_ORIGIN,
@@ -271,6 +302,7 @@ page.on("request", request => {
     actualUseVersion: supportedResponse.payload.version,
     conceptualQuery,
     conceptualText,
+    rendered,
     rendered,
     elapsedMs: elapsed(),
     apiRequests,
