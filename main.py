@@ -7154,19 +7154,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     )
     if (
         not healthy_community_short_circuit
-        and (
-            _guide_requires_canonical_subject_supplement(
+        and _guide_requires_canonical_subject_supplement(
                 archive_evidence_unavailable,
                 discovery_subject,
                 _is_conceptual_explanatory_request(query),
-            )
-            # A conceptual answer without a navigation decision is precisely the
-            # meta-crosslink gap: run one bounded canonical recovery pass rather
-            # than answering from context and silently abandoning the Archive.
-            or (
-                _is_conceptual_explanatory_request(query)
-                and not discovery_subject
-                and not authoritative_doorway
             )
         )
         and not _conceptual_retrieval_doorway_ready
@@ -7340,10 +7331,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # against the recovered, gate-passing canonical documents.
                         evidence_doorway = _general_guide_authoritative_doorway(
                             query,
-                            {
-                                "generation_authority_protected_docs": recovered_docs,
-                                "_skip_doorway_search_recovery": True,
-                            },
+                            {"generation_authority_protected_docs": recovered_docs},
                         )
                         evidence_doorway = _normalize_authoritative_recommendation(
                             evidence_doorway
