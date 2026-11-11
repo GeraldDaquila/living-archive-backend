@@ -6380,6 +6380,21 @@ def _broad_conceptual_doorway(query):
         return None
 
 
+def _is_ai_role_distinction_query(query):
+    """Recognize the bounded AI interpreter-versus-authority calibration inquiry.
+
+    This predicate governs navigation authority only. Answer recovery remains
+    independent, so the same conceptual response can be useful even when the
+    Archive has no reviewed continuation for the inquiry.
+    """
+    text = str(query or "")
+    return bool(
+        re.search(r"\b(?:ai|artificial intelligence)\b", text, re.I)
+        and re.search(r"\binterpreter\b", text, re.I)
+        and re.search(r"\bauthority\b", text, re.I)
+    )
+
+
 def _normalize_authoritative_recommendation(doorway):
     """Return the single public navigation contract, or None if invalid.
 
@@ -7455,32 +7470,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             authoritative_doorway = concept_doorway
             print("The Guide concept registry: applied reviewed canonical doorway independent of retrieval availability.")
 
-    # A bounded general-knowledge recovery can answer a conceptual question
-    # without establishing an Archive destination. Keep those authorities
-    # separate: when the exact recovery has no reviewed doorway of its own,
-    # a weak search candidate must not be attached merely because one query
-    # word overlaps a broad Archive page. This is especially important during
-    # retrieval outages, when answer quality can remain high while navigation
-    # evidence is absent.
-    _ai_role_distinction = bool(
-        re.search(r"\b(?:ai|artificial intelligence)\b", str(query or ""), re.I)
-        and re.search(r"\binterpreter\b", str(query or ""), re.I)
-        and re.search(r"\bauthority\b", str(query or ""), re.I)
-    )
-    if _ai_role_distinction:
-        _reviewed_recovery_doorway = (
+    # Conceptual answer recovery and navigation recovery are independent.
+    # This calibrated inquiry may receive a complete answer without implying
+    # that an Archive continuation has been established. In that case, fail
+    # closed for navigation rather than attaching a weak search candidate.
+    if _is_ai_role_distinction_query(query):
+        reviewed_recovery_doorway = (
             _normalize_authoritative_recommendation(
                 general_knowledge_recovery.get("doorway")
             )
             if isinstance(general_knowledge_recovery, dict)
             else None
         )
-        if not _reviewed_recovery_doorway:
+        if not reviewed_recovery_doorway:
             authoritative_doorway = None
-            print(
-                "The Guide conceptual recovery navigation boundary: "
-                "suppressed unreviewed doorway for AI role distinction."
-            )
+            print("The Guide navigation boundary: no reviewed continuation for calibrated inquiry.")
     _cosmology_lived_recovery = _established_archive_cosmology_recovery(query)
     # Only explicitly matched stable facts may bypass Archive-attribute refusal.
     # All other unsupported attributes keep the established fail-closed boundary.
