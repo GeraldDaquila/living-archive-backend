@@ -8079,6 +8079,30 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     )
 
     _conceptual_inquiry = _is_conceptual_explanatory_request(query)
+
+    # A verified canonical doorway is evidence for navigation, but it may not
+    # carry enough lexical body text in the bounded composition set to satisfy
+    # sentence-level synthesis gates. Preserve a deterministic conceptual
+    # orientation state so that a later generic evidence failure cannot erase
+    # an already-validated, question-specific doorway and replace the visitor's
+    # answer with a boilerplate limitation.
+    _verified_concept_orientation = bool(
+        _conceptual_inquiry
+        and verified_navigation_available
+        and not direct_attribute_evidence_missing
+    )
+    _concept_orientation_fallback = None
+    if _verified_concept_orientation:
+        _doorway_title = str(
+            verified_navigation_doorway.get("title") or "related Archive material"
+        ).strip()
+        _concept_orientation_fallback = _sanitize_basic_inquiry_response(
+            "The Archive does not appear to provide a single formal definition for this exact relationship. "
+            "A useful Archive doorway is " + _doorway_title + ". "
+            "It offers a grounded way to explore one of the central ideas in your question, "
+            "without implying that the Archive has formally defined the relationship itself."
+        )
+
     if _conceptual_inquiry and general_knowledge_recovery is None:
         # This is a relationship question: retain the key concepts as
         # explicit requirements instead of letting their overlap make the
@@ -8651,17 +8675,30 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 else:
                     # There is not enough independent canonical support even for
                     # a bounded synthesis. Only here do we abstain.
-                    response = _archive_limitation_response(query)
-                    archive_evidence_unavailable = True
-                    authoritative_doorway = None
-                    composition_context.pop("authoritative_doorway", None)
-                    composition_context.pop("authoritative_doorway_title", None)
-                    composition_context["evidence_sufficiency_unavailable"] = True
-                    print(
-                        "The Guide conceptual boundary: no question-matched canonical "
-                        "sentences; returned the Archive-only limitation. "
-                        "Grounded synthesis was not used because independent canonical support was insufficient."
-                    )
+                    if _concept_orientation_fallback:
+                        response = _concept_orientation_fallback
+                        authoritative_doorway = verified_navigation_doorway
+                        archive_evidence_unavailable = False
+                        composition_context["authoritative_doorway"] = authoritative_doorway
+                        composition_context["authoritative_doorway_title"] = authoritative_doorway.get("title") or ""
+                        composition_context.pop("evidence_sufficiency_unavailable", None)
+                        composition_context["conceptual_subject_recovery"] = "verified_doorway_orientation"
+                        print(
+                            "The Guide conceptual boundary: no question-matched canonical "
+                            "sentences; preserved verified canonical doorway with bounded conceptual orientation."
+                        )
+                    else:
+                        response = _archive_limitation_response(query)
+                        archive_evidence_unavailable = True
+                        authoritative_doorway = None
+                        composition_context.pop("authoritative_doorway", None)
+                        composition_context.pop("authoritative_doorway_title", None)
+                        composition_context["evidence_sufficiency_unavailable"] = True
+                        print(
+                            "The Guide conceptual boundary: no question-matched canonical "
+                            "sentences; returned the Archive-only limitation. "
+                            "Grounded synthesis was not used because independent canonical support was insufficient."
+                        )
 
     # Conceptual evidence gates govern explanatory attribution, not a separately
     # selected canonical next step. Restore the request-level navigation decision
