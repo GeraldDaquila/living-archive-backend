@@ -1,0 +1,173 @@
+{
+  "status": "BATCH_AUDIT",
+  "purpose": "Inventory all existing approved Gold Stars for exact-benchmark coverage and staged transferability review.",
+  "generated_from_registry": "docs/qa/gold_standard_registry.json",
+  "totals": {
+    "registry_records": 61,
+    "approved_gold_standards": 23,
+    "runtime_transfer_active": 3
+  },
+  "classifications": [
+    {
+      "benchmark_id": "general-guide-human-development-significance-2026-10-24",
+      "query": "What is the significance of human development?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-water-boiling-point-general-knowledge-gold-standard-2026-10-24",
+      "query": "What is the boiling point of water at sea level?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-living-archive-cosmology-gold-standard-2026-10-25",
+      "query": "What is the cosmology of the Living Archive?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-first-principles-gold-standard-2026-10-25",
+      "query": "What are first principles, and what are the Living Archive’s first principles?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-living-archive-definition-gold-standard-2026-10-25",
+      "query": "What is the Living Archive, and what is it not?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-methods-comparison-gold-standard-2026-10-25",
+      "query": "How do empirical inquiry, systems analysis, philosophy, and contemplative reflection differ?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-cosmology-generalization-standards-gold-standard-2026-10-25",
+      "query": "What standards should be met before The Guide generalizes from one archive text to the whole cosmology?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-living-archive-meaning-gold-standard-2026-10-25",
+      "query": "What does stewardship mean in the Living Archive?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-identifying-what-is-held-in-trust-gold-standard-2026-10-25",
+      "query": "How does one identify what is being held in trust in a given situation?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-faithful-stewardship-values-conflict-gold-standard-2026-10-25",
+      "query": "What does faithful stewardship require when values conflict?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-intergenerational-stewardship-gold-standard-2026-10-25",
+      "query": "How does stewardship relate to intergenerational responsibility?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-system-vs-separate-problems-gold-standard-2026-10-25",
+      "query": "What makes a situation a system rather than a collection of separate problems?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-leverage-point-misuse-gold-standard-2026-10-26",
+      "query": "What is a leverage point, and why can it be misused?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-complexity-and-uncertainty-gold-standard-2026-10-26",
+      "query": "What is the relationship between complexity and uncertainty?",
+      "current_role": "shadow_transfer_active",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26",
+      "query": "How does fragmented knowledge impede wise action?",
+      "current_role": "shadow_transfer_active",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-leadership-vs-positional-authority-gold-standard-2026-10-26",
+      "query": "What distinguishes leadership from positional authority?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-operational-discipline-humane-leadership-gold-standard-2026-10-26",
+      "query": "What is the role of operational discipline in humane leadership?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-competing-stakeholder-obligations-gold-standard-2026-10-26",
+      "query": "How can leaders hold competing stakeholder obligations?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-governance-beyond-administration-gold-standard-2026-10-26",
+      "query": "What is governance, beyond administration?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-charisma-constitutional-restraint-gold-standard-2026-10-26",
+      "query": "What are the risks of charisma without constitutional restraint?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-governance-redesign-preaction-questions-gold-standard-2026-10-26",
+      "query": "What kinds of questions should be asked before redesigning a governance system?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-institutional-memory-gold-standard-2026-10-26",
+      "query": "What is institutional memory, and why does it matter?",
+      "current_role": "exact_benchmark",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    },
+    {
+      "benchmark_id": "general-guide-conflicting-information-discernment-gold-star-2026-11-07",
+      "query": "I feel overwhelmed by conflicting information and opinions. How can I regain my bearings and know what is real enough to act on?",
+      "current_role": "shadow_transfer_active",
+      "transferability_review": "pending_batch_review",
+      "note": "Approval as a Gold Standard does not by itself authorize cross-question transfer."
+    }
+  ]
+}
