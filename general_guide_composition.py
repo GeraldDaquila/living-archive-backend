@@ -2002,20 +2002,36 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "The distinction is not that one is true and the other is false. They have different standards of warrant. A contemplative insight may be personally illuminating and can suggest a question worth investigating; empirical evidence asks what can be publicly supported about that question. Keeping the two distinct helps avoid treating a powerful inner experience as universal proof while also avoiding the mistake of assuming that only what can be measured is meaningful."
         )
 
-    # Answer a familiar stewardship-and-technology role question as a bounded
-    # normative orientation when ordinary provider composition is unavailable.
-    # This does not attribute the formulation to a specific Archive source.
-    if (
-        re.search(r"\bwhat role should\b", normalized)
-        and re.search(r"\btechnology\b", normalized)
-        and re.search(r"\bstewardship(?:-centered| centered)?\b", normalized)
-        and re.search(r"\bsociety\b", normalized)
-    ):
-        return (
-            "In a stewardship-centered society, technology should be a means rather than the thing that sets the direction. Its role is to extend human and institutional capacity while remaining answerable to the purposes, relationships, and responsibilities it affects. The question is not simply whether a technology is powerful or efficient, but what kind of human and social conditions its use makes easier or harder to sustain.\n\n"
-            "That means technology should help people see and respond to consequences without quietly transferring judgment or responsibility to a system. It can widen access to knowledge, reduce unnecessary burdens, support coordination, and reveal patterns that would otherwise be difficult to notice. But those capabilities do not determine what ought to be valued, whose interests should take priority, or which risks are acceptable. Those remain matters of human judgment and accountable governance.\n\n"
-            "A stewardship-centered approach therefore asks technology to serve long-term responsibility rather than short-term optimization alone. Good design includes attention to who bears the costs, who retains agency, what dependencies are created, and whether the system strengthens the capacity of people and institutions to care for what has been entrusted to them. Technology is most valuable when it enlarges responsible action without obscuring the human responsibility for deciding what that action is for."
-        )
+    # Normative role questions are answerable conceptual questions even when
+    # no provider is available. Recover the relationship between a means, the
+    # purposes it serves, and the responsibilities that remain with people.
+    role_match = re.search(
+        r"\bwhat role should\s+(.+?)\s+play in\s+(?:a |an |the )?(.+?)(?:[?.!]|$)",
+        normalized,
+        re.I,
+    )
+    if role_match:
+        subject = _normalize_space(role_match.group(1))
+        context = _normalize_space(role_match.group(2))
+        if (
+            subject
+            and context
+            and re.search(
+                r"\b(?:society|institution|organization|community|governance|stewardship|public)\b",
+                context,
+                re.I,
+            )
+        ):
+            return (
+                f"In {context}, {subject} is best understood as a means rather than the thing that sets the direction. "
+                f"Its role should be judged by whether it strengthens the purposes, relationships, and responsibilities that {context} is meant to sustain—not only by how efficiently it performs a task.\n\n"
+                f"That means asking what {subject} makes easier or harder to see, decide, and care for over time. "
+                "A useful role can extend human and institutional capacity, reduce unnecessary burdens, improve coordination, or reveal patterns that deserve attention. "
+                "But capability does not determine what ought to be valued, whose interests should take priority, or which consequences are acceptable. Those remain matters of human judgment and accountable governance.\n\n"
+                f"A responsible approach therefore keeps {subject} answerable to the larger purposes of {context}. "
+                "It considers who benefits, who bears costs, what dependencies are created, who retains agency, and whether the arrangement strengthens or weakens the capacity to act responsibly over the long term. "
+                "The guiding question is not simply what the means can do, but what it should help people and institutions become capable of caring for."
+            )
 
     if re.search(r"\btransformation\b", normalized) and re.search(r"\b(?:emotional\s+)?relief\b", normalized):
         return (
