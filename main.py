@@ -8793,6 +8793,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # final non-answer boundary must clear it if every answer
                         # authority fails.
                         _final_answer_authority_failed = False
+                        # The shared Gold Standard recovery itself is answer-only.
+                        # Clear any prior navigation before entering this final
+                        # authority sequence; a successful independent recovery
+                        # may later establish no new doorway.
+                        authoritative_doorway = None
                         _systemwide_recovery = _sanitize_basic_inquiry_response(
                             _compose_provider_exhaustion_recovery(query)
                         )
