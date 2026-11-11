@@ -1912,18 +1912,28 @@ def is_conceptual_relationship_question(query: str) -> bool:
 
 
 def _conceptual_relationship_terms(query: str) -> List[str]:
-    """Extract the two concepts from a plain 'relationship between X and Y' question."""
-    match = re.search(r"\brelationship between\s+(.+?)\s+and\s+(.+?)(?:[?.!]|$)", _normalize_space(query), re.I)
+    """Extract conceptual subjects across equivalent relationship-question forms."""
+    question = _normalize_space(query)
+    patterns = (
+        r"\brelationship between\s+(.+?)\s+and\s+(.+?)(?:[?.!]|$)",
+        r"\bwhat does\s+(.+?)\s+have to do with\s+(.+?)(?:[?.!]|$)",
+        r"\b(?:what(?:'s| is) the connection between)\s+(.+?)\s+and\s+(.+?)(?:[?.!]|$)",
+        r"\bwhy does\s+(.+?)\s+matter (?:for|to)\s+(.+?)(?:[?.!]|$)",
+    )
+    match = None
+    for pattern in patterns:
+        match = re.search(pattern, question, re.I)
+        if match:
+            break
     if not match:
         return []
-    stop = {"the", "a", "an", "how", "what", "why", "does", "do", "is", "are", "mean", "means"}
+    stop = {"the", "a", "an", "how", "what", "why", "does", "do", "is", "are", "mean", "means", "have", "to", "with", "for"}
     concepts = []
     for raw in match.groups():
         words = [w.casefold() for w in re.findall(r"[A-Za-z][A-Za-z'-]*", raw) if w.casefold() not in stop]
         if words:
             concepts.append(" ".join(words))
     return concepts if len(concepts) == 2 else []
-
 
 def has_conceptual_relationship_explanation(response: str, question: str = "") -> bool:
     """Check for a substantive mechanism and, when known, the concepts asked about."""
