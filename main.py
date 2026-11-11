@@ -4680,6 +4680,34 @@ def _guide_finalize_visitor_payload(payload, query):
     if not isinstance(payload, dict):
         return payload
     response_text = str(payload.get("response") or "")
+    # Broad conceptual definitions are answer obligations, not retrieval-dependent
+    # navigation requests. Legacy deterministic recovery can run outside the
+    # ordinary composer, so enforce this contract at the one boundary every
+    # public payload must cross.
+    if general_guide_composition._requires_broad_conceptual_definition(query):
+        contracted = general_guide_composition.enforce_response_contracts(
+            query, response_text
+        )
+        rendered = _sanitize_basic_inquiry_response(contracted)
+        if not general_guide_composition._has_broad_conceptual_definition(rendered):
+            rendered = _sanitize_basic_inquiry_response(
+                general_guide_composition._broad_conceptual_definition_recovery()
+            )
+        if not general_guide_composition._has_broad_conceptual_definition(rendered):
+            raise RuntimeError(
+                "Final visitor boundary failed to preserve broad conceptual definition."
+            )
+        safe = dict(payload)
+        safe["response"] = rendered
+        safe["recommendation"] = None
+        safe["processing"] = "final_visitor_boundary_broad_concept_contract"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        print(
+            "The Guide final visitor boundary: restored broad conceptual definition contract."
+        )
+        return safe
+
 
     # Absolute last-mile recovery contract. The outer ASGI boundary is the only
     # layer guaranteed to see every JSON response emitted by /api/query.
