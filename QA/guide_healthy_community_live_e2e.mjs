@@ -51,6 +51,7 @@ const controllerBodyReads = [];
 const pageErrors = [];
 const pageConsole = [];
 const pageErrorDetails = [];
+const pageScriptDiagnostics = [];
 page.on("pageerror", error => {
   pageErrors.push(error.message);
   pageErrorDetails.push({ message: error.message, stack: error.stack || "", name: error.name || "" });
@@ -77,6 +78,9 @@ page.on("response", response => {
     const record = { url: response.url(), status: response.status(), atMs: elapsed(), timeoutMs: null, bodyReadError: null };
     controllerResponses.push(record);
     controllerBodyReads.push(response.text().then(source => {
+      try { new Function(source); } catch (error) {
+        pageScriptDiagnostics.push({ kind: "external", url: response.url(), message: String(error.message || error), sourceBytes: source.length });
+      }
       const match = source.match(/USE_TRANSPORT_TIMEOUT_MS\s*=\s*(\d+)/);
       record.timeoutMs = match ? Number(match[1]) : "constant_not_found";
       record.sourceBytes = source.length;
@@ -129,7 +133,17 @@ try {
   // Wait for the external controller response and inspect the exact bytes the browser received.
   await page.waitForLoadState("load").catch(() => {});
   await Promise.all(controllerBodyReads);
-  console.log(JSON.stringify({ stage: "controller_script_diagnostic", controllerRequests, controllerResponses }));
+  const inlineScriptDiagnostics = await page.evaluate(() => Array.from(document.scripts)
+    .filter(s => !s.src && s.textContent && s.textContent.trim())
+    .map((s, index) => {
+      try { new Function(s.textContent); return null; }
+      catch (error) { return { kind: "inline", index, message: String(error.message || error), source: s.textContent.slice(0, 500) }; }
+    }).filter(Boolean));
+  pageScriptDiagnostics.push(...inlineScriptDiagnostics);
+  console.log(JSON.stringify({ stage: "controller_script_diagnostic", controllerRequests, controllerResponses, pageScriptDiagnostics, pageErrorDetails, pageConsole }));
+  if (pageScriptDiagnostics.length) {
+    throw new Error("Page script syntax diagnostics: " + JSON.stringify(pageScriptDiagnostics));
+  }
   if (pageErrors.length) {
     throw new Error("Browser page errors before interaction: " + pageErrors.join(" | ") + " | controller syntax: " + controllerSyntaxDiagnostics.join(" | "));
   }
