@@ -261,7 +261,22 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         r"^(?:the\s+)?(?:living\s+)?archive(?:$|[,.!?]|\s+(?:and\s+what\s+is\s+it\s+not|itself|as\s+a\s+whole|ecosystem|purpose|mission)\b)",
         subject.casefold(),
     )
-    if archive_subject and re.search(r"\b(?:what is|what are|define|what does)\b", lower):
+    # Provider-independent conceptual orientations are part of the visitor
+    # contract. A temporary provider-bank outage must not turn a familiar
+    # explanatory distinction into a disclaimer about unavailable resources.
+    ai_interpreter_authority = bool(
+        re.search(r"\bai\b", lower)
+        and re.search(r"\binterpreter\b", lower)
+        and re.search(r"\bauthority\b", lower)
+    )
+    if ai_interpreter_authority:
+        answer = (
+            "An AI acts as an interpreter rather than an authority when it helps make information, patterns, and possible meanings clearer without claiming the right to make the final judgment. "
+            "It can summarize evidence, compare perspectives, identify connections, and surface questions that may otherwise be missed. Those capabilities can support human understanding, but they do not by themselves establish what ought to be valued or decided.\n\n"
+            "The distinction matters because an answer can sound confident without carrying the responsibility that gives a judgment its legitimacy. People and institutions remain responsible for checking important claims, considering context and consequences, and deciding which values should guide action. An AI may inform that process, but it cannot assume accountability for the people affected by a decision.\n\n"
+            "A useful way to work with AI, then, is to ask it to make the landscape clearer rather than to hand over the map. Treat its responses as contributions to inquiry: examine the evidence behind them, notice what perspectives may be absent, and keep uncertainty visible where it remains. The goal is not to make human judgment unnecessary, but to help people exercise it with greater clarity and care."
+        )
+    elif archive_subject and re.search(r"\b(?:what is|what are|define|what does)\b", lower):
         # Constitutional-sensemaking orientation: explain the Archive's purpose,
         # distinguish it from a generic answer engine, and keep evidence,
         # interpretation, uncertainty, and human responsibility visible.
