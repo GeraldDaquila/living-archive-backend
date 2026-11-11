@@ -113,9 +113,18 @@ else:
         "publisher_required=True",
         flush=True,
     )
-APP_VERSION = "v489.311"
-DEPLOYMENT_FINGERPRINT = "USE-v489.311-bounded-pinecone-retrieval-budget"
-CANONICAL_BUILD_ID = "USE-BUILD-v489.311-bounded-pinecone-retrieval-budget"
+# Runtime provenance must identify the source actually serving requests.
+# Human release labels may remain stable across commits, but acceptance and
+# forensics must never mistake a label for the deployed source revision.
+APP_VERSION = os.getenv("USE_RELEASE_VERSION", "v489.311")
+_DEPLOYED_SOURCE_COMMIT = (
+    os.getenv("RENDER_GIT_COMMIT")
+    or os.getenv("GIT_COMMIT")
+    or os.getenv("SOURCE_COMMIT")
+    or "source-commit-unavailable"
+)
+DEPLOYMENT_FINGERPRINT = f"USE-{APP_VERSION}-source-{_DEPLOYED_SOURCE_COMMIT[:12]}"
+CANONICAL_BUILD_ID = f"USE-BUILD-{_DEPLOYED_SOURCE_COMMIT}"
 
 # v488.64 systemwide safety continuity contract marker.
 # This marker is intentionally adjacent to the production identity so CI can
@@ -10945,6 +10954,7 @@ async def _use_request_boundary(scope, receive, send):
                     "version": APP_VERSION,
                     "deployment_fingerprint": DEPLOYMENT_FINGERPRINT,
                     "canonical_build_id": CANONICAL_BUILD_ID,
+                    "source_commit": _DEPLOYED_SOURCE_COMMIT,
                 })
             if isinstance(safe_payload, dict):
                 encoded = json.dumps(
