@@ -1817,7 +1817,12 @@
         "source_status": "USER_APPROVED_GOLD_STANDARD",
         "evidence_boundary": "Screenshot establishes a cross-question failure: the displayed answer addressed a different question. The replacement response is an authored canonical benchmark and must be verified against live visitor behavior."
       },
-      "freeze_policy": "Do not alter expected_response without explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Do not alter expected_response without explicit user authorization and a separately documented benchmark-version change.",
+      "runtime_transfer": true,
+      "related_question_variants": [
+        "How are complexity and uncertainty different, and how do they interact?",
+        "When should we distinguish a complex situation from an uncertain one?"
+      ]
     },
     {
       "benchmark_id": "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26",
@@ -1846,7 +1851,12 @@
         "approval_basis": "The live visitor-facing response was assessed as meeting expectations and passing the Gold Standard hurdle; the user explicitly requested registry inclusion.",
         "evidence_boundary": "Screenshot confirms the displayed response, three-paragraph structure, and visible doorway title. It does not independently verify canonical source traceability, destination URL, or backend runtime identity."
       },
-      "freeze_policy": "Preserve expected_response verbatim. Do not change wording or doorway title without explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Preserve expected_response verbatim. Do not change wording or doorway title without explicit user authorization and a separately documented benchmark-version change.",
+      "runtime_transfer": true,
+      "related_question_variants": [
+        "How can an organization act wisely when knowledge is scattered across different people?",
+        "What helps reconnect siloed information without pretending everyone must agree?"
+      ]
     },
     {
       "benchmark_id": "general-guide-leadership-vs-positional-authority-gold-standard-2026-10-26",
@@ -2065,7 +2075,12 @@
         "rating_out_of_10": 8.8,
         "evidence_boundary": "The screenshot establishes the visitor-facing response shown and the user's approval of this exemplar. The continuation doorway title is visible, but its destination URL has not been independently verified; therefore the registry records no URL."
       },
-      "freeze_policy": "Approved Gold Star exemplar. Do not silently rewrite the expected response or alter its approval status. Any wording change requires a separately versioned benchmark and explicit user approval. Evaluate close paraphrases behaviorally; exact runtime replay is reserved for this exact normalized query."
+      "freeze_policy": "Approved Gold Star exemplar. Do not silently rewrite the expected response or alter its approval status. Any wording change requires a separately versioned benchmark and explicit user approval. Evaluate close paraphrases behaviorally; exact runtime replay is reserved for this exact normalized query.",
+      "runtime_transfer": true,
+      "related_question_variants": [
+        "How should I decide what information is reliable enough to act on when credible sources disagree?",
+        "What can I do when competing claims make it difficult to know what to believe?"
+      ]
     },
     {
       "benchmark_id": "general-guide-developmental-language-gold-star-2026-11-09",
