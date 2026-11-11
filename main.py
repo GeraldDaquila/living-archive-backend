@@ -5446,7 +5446,12 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     )
     return {
         "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
-        "doorway_title": _final_doorway_title,
+        "doorway_title": title if recommendation_available else "",
+        "doorway_url": (
+            _final_recommendation.get("url") or ""
+            if recommendation_available and isinstance(_final_recommendation, dict)
+            else ""
+        ),
         "recommendation": _final_recommendation,
         "provider": _final_provider,
         "model": "",
