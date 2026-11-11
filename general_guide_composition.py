@@ -15,6 +15,7 @@ from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
 from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard
+from gold_star_lessons import shadow_observation as _gold_star_shadow_observation
 
 from provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
@@ -2765,6 +2766,13 @@ def _default_gold_standard_evidence_recovery(
 
 
 def compose(
+
+    # Shadow-only observation: measure whether an approved Gold Star lesson is
+    # relevant without changing the visitor answer. Promotion into composition
+    # remains gated by held-out evaluation and explicit review.
+    _gold_star_id, _gold_star_score = _gold_star_shadow_observation(question)
+    if _gold_star_id:
+        _emit_guide_outcome("gold_star_shadow_match", benchmark=_gold_star_id, score=_gold_star_score)
     *,
     use_core: Any,
     query: str,
