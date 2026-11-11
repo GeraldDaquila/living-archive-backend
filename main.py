@@ -5043,8 +5043,19 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # conceptual recovery that the composition layer already recognizes.
     # Keep the legacy recovery identity stable for downstream observability.
     _conceptual_recovery = _guide_composition._conceptual_relationship_recovery(query)
+    # The shared composer and the last-resort API path must agree on the same
+    # registered recovery. Mechanism questions are explanatory but need not fit
+    # the older two-concept relationship validator; validate them with the shared
+    # answer-quality boundary instead of silently dropping them here.
+    _systemic_mechanism_recovery = bool(
+        _conceptual_recovery
+        and _guide_composition.is_conceptual_relationship_question(query)
+        and not _guide_composition.is_generic_nonanswer(query, _conceptual_recovery)
+        and not _guide_composition.is_meta_answer_failure(_conceptual_recovery)
+    )
     if _conceptual_recovery and (
-        _guide_composition.has_conceptual_relationship_explanation(
+        _systemic_mechanism_recovery
+        or _guide_composition.has_conceptual_relationship_explanation(
             _conceptual_recovery, query
         )
         or (
@@ -9180,6 +9191,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 and not general_guide_composition.is_meta_answer_failure(_answer_only_text)
                                 and not general_guide_composition.is_generic_nonanswer(query, _answer_only_text)
                             )
+                            # A protected deterministic recovery is an
+                            # independent answer path, not another LLM retry.
+                            # If the recovery registry can answer this exact
+                            # question, use it before emitting the terminal
+                            # integrity failure; still apply the same quality gates.
+                            _deterministic_recovery = _basic_inquiry_round1_deterministic_response(
+                                query, interpretation, composition_context,
+                                recommendation_available=bool(authoritative_doorway),
+                            )
+                            _deterministic_text = _sanitize_basic_inquiry_response(
+                                str((_deterministic_recovery or {}).get("response") or "").strip()
+                            )
+                            _deterministic_valid = bool(
+                                _deterministic_text
+                                and len([p for p in re.split(r"\n\s*\n+", _deterministic_text) if p.strip()]) >= 3
+                                and not general_guide_composition.is_meta_answer_failure(_deterministic_text)
+                                and not general_guide_composition.is_generic_nonanswer(query, _deterministic_text)
+                            )
                             if _answer_only_valid:
                                 response = _answer_only_text
                                 answer_basis = {
@@ -9188,6 +9217,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                     "explanation": "Answer-only recovery succeeded independently of Archive navigation; no Archive source attribution is implied.",
                                 }
                                 print("The Guide final payload boundary: answer-only recovery PASS; navigation decision preserved independently.")
+                            elif _deterministic_valid:
+                                response = _deterministic_text
+                                answer_basis = {
+                                    "kind": "general_knowledge",
+                                    "label": "General knowledge",
+                                    "explanation": "A registered bounded recovery answered the question; no Archive attribution is implied.",
+                                }
+                                _recovery_doorway = _deterministic_recovery.get("recommendation")
+                                if _recovery_doorway:
+                                    authoritative_doorway = _recovery_doorway
+                                print(
+                                    "The Guide final payload boundary: deterministic registered recovery PASS; "
+                                    f"provider={_deterministic_recovery.get('provider') or 'registered_recovery'}."
+                                )
                             else:
                                 authoritative_doorway = None
                                 response = (
