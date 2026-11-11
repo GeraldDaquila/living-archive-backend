@@ -121,10 +121,42 @@ def archive_limitation_response(question=None):
     )
 
 
+def _candidate_title_matches_question(question, candidate):
+    """Require material subject overlap before an ordinary fallback reaches visitors."""
+    if not isinstance(candidate, dict):
+        return False
+    title = str(candidate.get("title") or "").casefold()
+    if not title:
+        return False
+    stop = {
+        "what", "does", "mean", "for", "than", "rather", "with", "that",
+        "this", "have", "from", "into", "your", "their", "about", "should",
+        "would", "could", "people", "information", "final", "right", "can",
+        "how", "the", "and", "are", "its", "it", "an", "a", "to", "of",
+    }
+    question_terms = {
+        token.casefold() for token in re.findall(r"[a-z0-9]+", str(question or ""))
+        if len(token) >= 4 and token.casefold() not in stop
+    }
+    title_terms = set(re.findall(r"[a-z0-9]+", title))
+    return bool(question_terms & title_terms)
+
+
 def select_authoritative_doorway(question, preselected, source_selector, context, *, resource_query=None, normalize=None):
-    """Do not let an earlier preselection bypass direct-attribute evidence checks."""
-    if direct_attribute_phrase(question):
+    """Preserve grounded ordinary navigation while preventing doorway bypasses.
+
+    Direct factual-property questions always require the authoritative selector:
+    a preselected page mentioning the subject cannot substitute for evidence of
+    the requested property. Ordinary inquiries retain a materially matching
+    preselection, preserving the established navigation contract. When no
+    grounded preselection exists, the canonical selector becomes the sole
+    authority; an unrelated preselection is never displayed.
+    """
+    if preselected and direct_attribute_phrase(question):
         candidate = source_selector(resource_query or question, context)
+    elif _candidate_title_matches_question(question, preselected):
+        candidate = preselected
     else:
-        candidate = preselected or source_selector(resource_query or question, context)
+        candidate = source_selector(resource_query or question, context)
     return normalize(candidate) if normalize else candidate
+
