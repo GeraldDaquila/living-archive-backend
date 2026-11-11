@@ -8,10 +8,12 @@ from __future__ import annotations
 
 import json
 import re
+import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 CONTRACT_VERSION = "v1"
+_TELEMETRY_LOG = logging.getLogger("use.gold_star.shadow")
 _REGISTRY_PATH = Path(__file__).resolve().parent / "docs" / "qa" / "gold_standard_registry.json"
 _ALLOWED_STATUSES = frozenset({"USER_APPROVED_GOLD_STANDARD"})
 _STOP_WORDS = frozenset({
@@ -108,8 +110,25 @@ def select_lesson(query: str) -> Optional[Dict[str, Any]]:
             "known_theme": x["known_theme"], "assertions": x["assertions"]}
 
 def shadow_observation(query: str) -> Tuple[Optional[str], Optional[float]]:
-    """Return minimal non-content metadata for shadow evaluation and telemetry."""
+    """Return minimal non-content metadata and emit a structured shadow event.
+
+    Query text and Gold Star answer content are deliberately excluded from
+    telemetry. This function remains observation-only and cannot affect
+    visitor-facing composition.
+    """
     selected = select_lesson(query)
     if not selected:
+        message = "gold_star_shadow match=abstain"
+        print(message, flush=True)
+        _TELEMETRY_LOG.info(message)
         return None, None
-    return selected["benchmark_id"], float(selected["score"])
+    benchmark_id = str(selected["benchmark_id"])
+    score = float(selected["score"])
+    match_kind = "exact" if bool(selected.get("exact")) else "cross_question"
+    message = (
+        f"gold_star_shadow match=matched benchmark_id={benchmark_id} "
+        f"score={score:.3f} kind={match_kind}"
+    )
+    print(message, flush=True)
+    _TELEMETRY_LOG.info(message)
+    return benchmark_id, score
