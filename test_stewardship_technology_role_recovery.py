@@ -17,6 +17,9 @@ class StewardshipTechnologyRoleRecoveryTests(unittest.TestCase):
         self.assertIn("means rather than the thing that sets the direction", answer)
         self.assertIn("human judgment and accountable governance", answer)
         self.assertIn("long-term responsibility", answer)
+        self.assertIn("who benefits", answer.casefold())
+        self.assertIn("who retains agency", answer.casefold())
+        self.assertIn("caring for", answer.casefold())
         self.assertNotIn("couldn't produce a reliable answer", answer.casefold())
 
     def test_second_institutional_role_question_uses_same_structural_path(self):
