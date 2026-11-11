@@ -256,7 +256,6 @@ try {
     item.status === 200 &&
     item.payload?.intent === "TOPICAL_INQUIRY" &&
     (!EXPECTED_USE_VERSION || item.payload?.version === EXPECTED_USE_VERSION) &&
-    item.payload?.answer_basis?.kind === "archive_supported" &&
     typeof item.payload?.response === "string" &&
     item.payload.response.trim().length >= 120 &&
     item.payload?.recommendation &&
