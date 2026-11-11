@@ -5909,10 +5909,12 @@ def _general_guide_authoritative_doorway(query, context_data):
             ]
 
         primary = _canonical_primary_from_docs(evidence_docs, query, profile)
-        if not primary:
+        if not primary and not bool(context_data.get("_skip_doorway_search_recovery")):
             # Retrieval and doorway selection are separate. If the retrieved
             # candidate pool lacks a direct subject match, recover public
             # canonical candidates and subject them to the same relevance gate.
+            # Callers that already run the bounded evidence-recovery pass disable
+            # this search here to prevent duplicate WordPress fan-out.
             fallback_docs = _wordpress_search_canonical_candidates(query)
             if comparative_subjects:
                 # Broaden discovery by each compared subject, then retain the
@@ -7068,11 +7070,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             _trust_community_stewardship_canonical_recommendation(query, context_data)
         )
     else:
+        _doorway_context = dict(context_data)
+        if _is_conceptual_explanatory_request(query):
+            _doorway_context["_skip_doorway_search_recovery"] = True
         authoritative_doorway = _select_direct_attribute_doorway(
             query,
             context_data.get("recommendation_canonical_primary"),
             _general_guide_authoritative_doorway,
-            context_data,
+            _doorway_context,
             resource_query=resource_query,
             normalize=_normalize_authoritative_recommendation,
         )
@@ -7144,10 +7149,20 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     )
     if (
         not healthy_community_short_circuit
-        and _guide_requires_canonical_subject_supplement(
-            archive_evidence_unavailable,
-            discovery_subject,
-            _is_conceptual_explanatory_request(query),
+        and (
+            _guide_requires_canonical_subject_supplement(
+                archive_evidence_unavailable,
+                discovery_subject,
+                _is_conceptual_explanatory_request(query),
+            )
+            # A conceptual answer without a navigation decision is precisely the
+            # meta-crosslink gap: run one bounded canonical recovery pass rather
+            # than answering from context and silently abandoning the Archive.
+            or (
+                _is_conceptual_explanatory_request(query)
+                and not discovery_subject
+                and not authoritative_doorway
+            )
         )
         and not _conceptual_retrieval_doorway_ready
     ):
@@ -7320,7 +7335,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # against the recovered, gate-passing canonical documents.
                         evidence_doorway = _general_guide_authoritative_doorway(
                             query,
-                            {"generation_authority_protected_docs": recovered_docs},
+                            {
+                                "generation_authority_protected_docs": recovered_docs,
+                                "_skip_doorway_search_recovery": True,
+                            },
                         )
                         evidence_doorway = _normalize_authoritative_recommendation(
                             evidence_doorway
@@ -7364,6 +7382,44 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     )
         except Exception as exc:
             print(f"The Guide evidence recovery failed safely: exception={type(exc).__name__}.")
+
+    # Bounded conceptual recovery: when a conceptual explanatory answer has no
+    # doorway and the ordinary supplement gate did not run, perform one canonical
+    # recovery pass. This preserves the established supplement boundary above.
+    if (
+        not healthy_community_short_circuit
+        and _is_conceptual_explanatory_request(query)
+        and not discovery_subject
+        and not authoritative_doorway
+        and not recovered_docs
+    ):
+        try:
+            recovered_docs = _wordpress_search_canonical_candidates(
+                resource_query,
+                limit=_guide_subject_supplement_limit(False, True),
+            )
+            recovered_docs, _frame_boundary_active = use_core._frame_neutral_generation_documents(
+                recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+            )
+            if recovered_docs:
+                recovered_docs, _question_unavailable = use_core._v208_question_evidence_fit_gate(
+                    recovered_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+                )
+                if not _question_unavailable and recovered_docs:
+                    evidence_doorway = _normalize_authoritative_recommendation(
+                        _general_guide_authoritative_doorway(
+                            query,
+                            {
+                                "generation_authority_protected_docs": recovered_docs,
+                                "_skip_doorway_search_recovery": True,
+                            },
+                        )
+                    )
+                    if evidence_doorway:
+                        authoritative_doorway = evidence_doorway
+                        composition_context["authoritative_doorway"] = evidence_doorway
+        except Exception as exc:
+            print(f"The Guide conceptual doorway recovery failed safely: exception={type(exc).__name__}.")
 
     # Recovery may establish a qualifying doorway after the initial selection.
     # Recompute this state from the current authoritative source instead of
