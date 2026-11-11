@@ -100,3 +100,25 @@ def test_gold_standard_explicit_no_handoff_suppresses_every_doorway():
     assert main._apply_registered_gold_standard_doorway(
         independently_verified, standard
     ) is None
+
+
+def test_general_personal_transformation_question_rejects_geographically_scoped_system_resource():
+    query = "How can a user distinguish genuine transformation from temporary emotional relief?"
+    profile = {"risk": False, "action": "explanatory"}
+    decoy = {
+        "title": "Philippine Renewal Framework",
+        "url": "https://geralddaquila.com/philippine-renewal-framework/",
+        "text": "A framework for renewal of Philippine institutions, public systems, governance, and civic life.",
+    }
+    assert not main._eligible_outward_doc(query, decoy, profile)
+
+
+def test_general_personal_transformation_question_can_select_direct_transformation_resource():
+    query = "How can a user distinguish genuine transformation from temporary emotional relief?"
+    profile = {"risk": False, "action": "explanatory"}
+    direct = {
+        "title": "Transformation and Continuity",
+        "url": "https://geralddaquila.com/transformation-and-continuity/",
+        "text": "Transformation becomes visible over time through continuity, changed patterns, different choices, and a changed relationship to experience.",
+    }
+    assert main._eligible_outward_doc(query, direct, profile)
