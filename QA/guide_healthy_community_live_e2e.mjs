@@ -50,9 +50,6 @@ page.on("pageerror", error => {
   pageErrors.push(error.message);
 });
 page.on("request", request => {
-  if (request.url().includes("living-archive-guide-") && request.url().endsWith(".js?ver=5")) {
-    controllerRequests.push({ url: request.url(), atMs: elapsed() });
-  }
   if (request.method() === "POST" && request.url().includes("/api/query")) {
     let body = {};
     try {
@@ -189,7 +186,7 @@ page.on("request", request => {
     const visibleText = await answer.innerText().catch(() => "");
     throw new Error(
       "Conceptual trust/stewardship response did not render in the active Woody instance. " +
-      JSON.stringify({ visibleText, conceptualDiagnostics, pageConsole, pageErrors, waitError: error.message })
+      JSON.stringify({ visibleText, conceptualDiagnostics, pageErrors, waitError: error.message })
     );
   }
   const conceptualText = await answer.innerText();
