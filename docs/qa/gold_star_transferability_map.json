@@ -1,0 +1,230 @@
+{
+  "version": "1.0",
+  "purpose": "Batch map of approved Gold Standards into governed reusable reasoning families. This map is observational and does not authorize visitor-facing reuse.",
+  "families": {
+    "orientation_continuity": {
+      "description": "orient the visitor through context, relationships, and continuity"
+    },
+    "exact_benchmark_only": {
+      "description": "preserve as an approved calibration reference"
+    },
+    "governance_accountability": {
+      "description": "make authority, affected parties, trade-offs, scrutiny, and correction visible"
+    },
+    "epistemic_discernment": {
+      "description": "separate evidence, inference, uncertainty, and action thresholds"
+    },
+    "distinction_integration": {
+      "description": "clarify distinctions before integrating related perspectives"
+    }
+  },
+  "entries": [
+    {
+      "benchmark_id": "general-guide-human-development-significance-2026-10-24",
+      "question": "What is the significance of human development?",
+      "family": "orientation_continuity",
+      "structural_lesson": "orient the visitor through context, relationships, and continuity",
+      "role": "review_before_transfer",
+      "transferability_status": "review_before_transfer",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-water-boiling-point-general-knowledge-gold-standard-2026-10-24",
+      "question": "What is the boiling point of water at sea level?",
+      "family": "exact_benchmark_only",
+      "structural_lesson": "preserve as an approved calibration reference",
+      "role": "exact_benchmark",
+      "transferability_status": "exact_benchmark",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-living-archive-cosmology-gold-standard-2026-10-25",
+      "question": "What is the cosmology of the Living Archive?",
+      "family": "governance_accountability",
+      "structural_lesson": "make authority, affected parties, trade-offs, scrutiny, and correction visible",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-first-principles-gold-standard-2026-10-25",
+      "question": "What are first principles, and what are the Living Archive’s first principles?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-living-archive-definition-gold-standard-2026-10-25",
+      "question": "What is the Living Archive, and what is it not?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-methods-comparison-gold-standard-2026-10-25",
+      "question": "How do empirical inquiry, systems analysis, philosophy, and contemplative reflection differ?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-cosmology-generalization-standards-gold-standard-2026-10-25",
+      "question": "What standards should be met before The Guide generalizes from one archive text to the whole cosmology?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-living-archive-meaning-gold-standard-2026-10-25",
+      "question": "What does stewardship mean in the Living Archive?",
+      "family": "distinction_integration",
+      "structural_lesson": "clarify distinctions before integrating related perspectives",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-identifying-what-is-held-in-trust-gold-standard-2026-10-25",
+      "question": "How does one identify what is being held in trust in a given situation?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-faithful-stewardship-values-conflict-gold-standard-2026-10-25",
+      "question": "What does faithful stewardship require when values conflict?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-intergenerational-stewardship-gold-standard-2026-10-25",
+      "question": "How does stewardship relate to intergenerational responsibility?",
+      "family": "governance_accountability",
+      "structural_lesson": "make authority, affected parties, trade-offs, scrutiny, and correction visible",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-system-vs-separate-problems-gold-standard-2026-10-25",
+      "question": "What makes a situation a system rather than a collection of separate problems?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-leverage-point-misuse-gold-standard-2026-10-26",
+      "question": "What is a leverage point, and why can it be misused?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-complexity-and-uncertainty-gold-standard-2026-10-26",
+      "question": "What is the relationship between complexity and uncertainty?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "shadow_active",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26",
+      "question": "How does fragmented knowledge impede wise action?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "shadow_active",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-leadership-vs-positional-authority-gold-standard-2026-10-26",
+      "question": "What distinguishes leadership from positional authority?",
+      "family": "governance_accountability",
+      "structural_lesson": "make authority, affected parties, trade-offs, scrutiny, and correction visible",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-operational-discipline-humane-leadership-gold-standard-2026-10-26",
+      "question": "What is the role of operational discipline in humane leadership?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-competing-stakeholder-obligations-gold-standard-2026-10-26",
+      "question": "How can leaders hold competing stakeholder obligations?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-governance-beyond-administration-gold-standard-2026-10-26",
+      "question": "What is governance, beyond administration?",
+      "family": "governance_accountability",
+      "structural_lesson": "make authority, affected parties, trade-offs, scrutiny, and correction visible",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-charisma-constitutional-restraint-gold-standard-2026-10-26",
+      "question": "What are the risks of charisma without constitutional restraint?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-governance-redesign-preaction-questions-gold-standard-2026-10-26",
+      "question": "What kinds of questions should be asked before redesigning a governance system?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-institutional-memory-gold-standard-2026-10-26",
+      "question": "What is institutional memory, and why does it matter?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "general-guide-conflicting-information-discernment-gold-star-2026-11-07",
+      "question": "I feel overwhelmed by conflicting information and opinions. How can I regain my bearings and know what is real enough to act on?",
+      "family": "epistemic_discernment",
+      "structural_lesson": "separate evidence, inference, uncertainty, and action thresholds",
+      "role": "cross_question_candidate",
+      "transferability_status": "shadow_active",
+      "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    }
+  ]
+}
