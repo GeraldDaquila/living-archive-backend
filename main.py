@@ -4992,8 +4992,15 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # conceptual recovery that the composition layer already recognizes.
     # Keep the legacy recovery identity stable for downstream observability.
     _conceptual_recovery = _guide_composition._conceptual_relationship_recovery(query)
-    if _conceptual_recovery and _guide_composition.has_conceptual_relationship_explanation(
-        _conceptual_recovery, query
+    if _conceptual_recovery and (
+        _guide_composition.has_conceptual_relationship_explanation(
+            _conceptual_recovery, query
+        )
+        or (
+            _is_conceptual_explanatory_request(query)
+            and not _guide_composition.is_generic_nonanswer(query, _conceptual_recovery)
+            and not _guide_composition.is_meta_answer_failure(_conceptual_recovery)
+        )
     ):
         # This deterministic prose recovery does not itself decide navigation.
         # Carry any independently verified request-level doorway through the
@@ -8797,9 +8804,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # authority fails.
                         _final_answer_authority_failed = False
                         # The shared Gold Standard recovery itself is answer-only.
-                        # Clear any prior navigation before entering this final
-                        # authority sequence; a successful independent recovery
-                        # may later establish no new doorway.
+                        _systemwide_recovery = _sanitize_basic_inquiry_response(
+                            _compose_provider_exhaustion_recovery(query)
+                        )
+                        # Clear any prior navigation inside the final authority
+                        # boundary. This keeps the final visitor state honest if
+                        # all answer authorities are exhausted.
                         authoritative_doorway = None
                         _systemwide_recovery = _sanitize_basic_inquiry_response(
                             _compose_provider_exhaustion_recovery(query)
