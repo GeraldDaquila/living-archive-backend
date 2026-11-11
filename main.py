@@ -9203,11 +9203,29 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                             _deterministic_text = _sanitize_basic_inquiry_response(
                                 str((_deterministic_recovery or {}).get("response") or "").strip()
                             )
-                            _deterministic_valid = bool(
+                            _deterministic_registered_mechanism = bool(
+                                isinstance(_deterministic_recovery, dict)
+                                and _deterministic_recovery.get("provider") == "bounded_conceptual_relationship_recovery"
+                                and general_guide_composition.is_conceptual_relationship_question(query)
+                            )
+                            _deterministic_quality_valid = bool(
                                 _deterministic_text
-                                and len([p for p in re.split(r"\n\s*\n+", _deterministic_text) if p.strip()]) >= 3
+                                and not general_guide_composition.is_meta_answer_failure(_deterministic_text)
+                                and not general_guide_composition._basic_answer_integrity_failure(query, _deterministic_text)
+                            ) if hasattr(general_guide_composition, "_basic_answer_integrity_failure") else bool(
+                                _deterministic_text
                                 and not general_guide_composition.is_meta_answer_failure(_deterministic_text)
                                 and not general_guide_composition.is_generic_nonanswer(query, _deterministic_text)
+                            )
+                            _deterministic_valid = bool(
+                                _deterministic_quality_valid
+                                and (
+                                    _deterministic_registered_mechanism
+                                    or (
+                                        len([p for p in re.split(r"\n\s*\n+", _deterministic_text) if p.strip()]) >= 3
+                                        and not general_guide_composition.is_generic_nonanswer(query, _deterministic_text)
+                                    )
+                                )
                             )
                             if _answer_only_valid:
                                 response = _answer_only_text
