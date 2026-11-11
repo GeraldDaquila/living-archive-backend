@@ -106,13 +106,24 @@ page.on("requestfinished", request => {
 
 try {
   console.log(JSON.stringify({ stage: "live_e2e_start", url: GUIDE_URL }));
+  const controllerSyntaxDiagnostics = [];
+  page.on("response", async response => {
+    if (response.url().includes("living-archive-guide-v489.318-edge-confirmation.js")) {
+      try {
+        const source = await response.text();
+        new Function(source);
+      } catch (error) {
+        controllerSyntaxDiagnostics.push(String(error && error.stack || error));
+      }
+    }
+  });
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded" });
   // Wait for the external controller response and inspect the exact bytes the browser received.
   await page.waitForLoadState("load").catch(() => {});
   await Promise.all(controllerBodyReads);
   console.log(JSON.stringify({ stage: "controller_script_diagnostic", controllerRequests, controllerResponses }));
   if (pageErrors.length) {
-    throw new Error("Browser page errors before interaction: " + pageErrors.join(" | "));
+    throw new Error("Browser page errors before interaction: " + pageErrors.join(" | ") + " | controller syntax: " + controllerSyntaxDiagnostics.join(" | "));
   }
   const root = page.locator(ROOT);
   await root.waitFor({ state: "attached" });
