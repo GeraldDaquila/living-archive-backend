@@ -10296,6 +10296,46 @@ async def _use_request_boundary(scope, receive, send):
                 "visitor_boundary_version": APP_VERSION,
             })
 
+    # Answerable broad conceptual definitions are an answer boundary, not a
+    # retrieval dependency. A provider, retrieval, or doorway failure must never
+    # turn a stable conceptual question into a visitor-facing service failure.
+    # This runs after safety and before ordinary routing; it never manufactures
+    # a doorway.
+    if general_guide_composition._requires_broad_conceptual_definition(query):
+        request_id = "broad-concept-" + hashlib.sha1(
+            (query + "|" + _history_text(history)).encode("utf-8")
+        ).hexdigest()[:16]
+        response = general_guide_composition._broad_conceptual_definition_recovery()
+        if not general_guide_composition._has_broad_conceptual_definition(response):
+            raise RuntimeError(
+                "Broad conceptual definition boundary failed its substantive response contract."
+            )
+        print(
+            "The Guide broad conceptual boundary: answered before ordinary "
+            "routing, retrieval, or provider composition."
+        )
+        return await _use_send_json(send, {
+            "ok": True,
+            "version": APP_VERSION,
+            "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "source_sha256": RUNTIME_SOURCE_SHA256,
+            "request_id": request_id,
+            "query": query,
+            "intent": "BROAD_CONCEPTUAL_DEFINITION",
+            "response": response,
+            "recommendation": None,
+            "answer_basis": {
+                "kind": "general_knowledge",
+                "label": "General knowledge",
+                "explanation": "A stable conceptual definition was answered without depending on retrieval or provider availability.",
+            },
+            "processing": "broad_conceptual_definition_boundary",
+            "route_source": "guide_broad_conceptual_boundary",
+            "visitor_boundary_version": APP_VERSION,
+            "bypasses_retrieval": True,
+            "bypasses_provider_composition": True,
+        })
+
     # Explicit Formation preparation is a native boundary and must outrank the
     # generic orientation/Navigator matcher. This runs after the sitewide safety
     # boundary but before any general navigation handoff or Basic Inquiry.
