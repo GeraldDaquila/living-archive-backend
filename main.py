@@ -5937,7 +5937,12 @@ def _general_guide_authoritative_doorway(query, context_data):
 
             # Recovery is a candidate source, not authority: reapply every
             # subject-specific gate after it has contributed candidates.
-            if comparative_subjects:
+            # Conceptual relationship questions intentionally permit a doorway
+            # that illuminates one side of the relationship. Do not reintroduce
+            # the comparative two-concept gate during bounded recovery: doing so
+            # would undo the relationship exception above and reject semantically
+            # relevant canonical resources expressed in Archive vocabulary.
+            if comparative_subjects and not relationship_query:
                 evidence_docs = [item for item in evidence_docs if _comparative_candidate_has_direct_fit(query, item)]
             evidence_docs = [
                 item for item in evidence_docs
