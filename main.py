@@ -7132,8 +7132,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         )
     else:
         _doorway_context = dict(context_data)
-        if _is_conceptual_explanatory_request(query):
-            _doorway_context["_skip_doorway_search_recovery"] = True
+        # Conceptual answers and conceptual navigation are deliberately
+        # independent. The answer path may use bounded recovery, but doorway
+        # selection must still be allowed to perform its bounded canonical
+        # discovery pass when retrieved evidence contains no qualifying resource.
+        # Otherwise a successful answer can unnecessarily strand the visitor
+        # even when a strong Archive doorway exists.
         authoritative_doorway = _select_direct_attribute_doorway(
             query,
             context_data.get("recommendation_canonical_primary"),
