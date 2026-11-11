@@ -5435,9 +5435,13 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         if any(marker in _normalized_query for marker in _conceptual_relationship_markers)
         else "deterministic_question_preserving_recovery"
     )
+    _final_recommendation = _normalize_authoritative_recommendation(
+        context_data.get("authoritative_doorway")
+    ) if isinstance(context_data, dict) else None
     return {
         "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
         "doorway_title": title if recommendation_available else "",
+        "recommendation": _final_recommendation,
         "provider": _final_provider,
         "model": "",
     }
