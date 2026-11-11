@@ -121,21 +121,38 @@ def archive_limitation_response(question=None):
     )
 
 
+def _candidate_title_matches_question(question, candidate):
+    """Require a minimal subject overlap before an upstream result reaches visitors."""
+    if not isinstance(candidate, dict):
+        return False
+    title = str(candidate.get("title") or "").casefold()
+    if not title:
+        return False
+    stop = {
+        "what", "does", "mean", "for", "than", "rather", "with", "that",
+        "this", "have", "from", "into", "your", "their", "about", "should",
+        "would", "could", "people", "information", "final", "right", "can",
+        "how", "the", "and", "are", "its", "it", "an", "a", "to", "of",
+    }
+    question_terms = {
+        token.casefold() for token in re.findall(r"[a-z0-9]+", str(question or ""))
+        if len(token) >= 4 and token.casefold() not in stop
+    }
+    title_terms = set(re.findall(r"[a-z0-9]+", title))
+    return bool(question_terms & title_terms)
+
+
 def select_authoritative_doorway(question, preselected, source_selector, context, *, resource_query=None, normalize=None):
-    """Resolve every public doorway through the same question-specific authority.
+    """Use one relevance boundary for both selected and upstream doorway candidates.
 
-    Upstream retrieval preselection is useful context, but it is not a
-    visitor-facing relevance decision. Allowing a preselected result to bypass
-    the authoritative selector created a second, weaker doorway path: a broad
-    page could be displayed even after the selector's relevance gate would have
-    rejected it.
-
-    The selector is therefore the single authority for public doorway output.
-    A missing result means no doorway. Direct-attribute questions follow the
-    same boundary; their evidence requirements are enforced by the selector
-    and downstream direct-attribute gates rather than by preserving an earlier
-    preselection.
+    A canonical selector may refine a doorway. When it finds nothing, an
+    upstream preselection can be retained only if its title independently
+    demonstrates a material subject connection to the visitor's question.
+    This preserves ordinary grounded navigation while preventing broad pages
+    from bypassing the relevance boundary.
     """
     candidate = source_selector(resource_query or question, context)
+    if candidate is None and _candidate_title_matches_question(question, preselected):
+        candidate = preselected
     return normalize(candidate) if normalize else candidate
 
