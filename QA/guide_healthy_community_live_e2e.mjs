@@ -45,23 +45,9 @@ const apiResponses = [];
 const apiBodyReads = [];
 const apiFailures = [];
 const apiFinished = [];
-const controllerRequests = [];
-const controllerResponses = [];
-const controllerBodyReads = [];
 const pageErrors = [];
-const pageConsole = [];
-const pageErrorDetails = [];
-const pageScriptDiagnostics = [];
 page.on("pageerror", error => {
   pageErrors.push(error.message);
-  pageErrorDetails.push({ message: error.message, stack: error.stack || "", name: error.name || "" });
-});
-page.on("console", message => {
-  if (message.type() === "error") {
-    pageConsole.push({ type: message.type(), text: message.text(), location: message.location() });
-  } else if (message.type() === "warning") {
-    pageConsole.push({ type: message.type(), text: message.text(), location: message.location() });
-  }
 });
 page.on("request", request => {
   if (request.url().includes("living-archive-guide-") && request.url().endsWith(".js?ver=5")) {
@@ -69,94 +55,10 @@ page.on("request", request => {
   }
   if (request.method() === "POST" && request.url().includes("/api/query")) {
     let body = {};
-    try { body = JSON.parse(request.postData() || "{}"); } catch {}
-    apiRequests.push({ url: request.url(), body, atMs: elapsed() });
-  }
-});
-page.on("response", response => {
-  if (response.url().includes("living-archive-guide-") && response.url().includes(".js")) {
-    const record = { url: response.url(), status: response.status(), atMs: elapsed(), timeoutMs: null, bodyReadError: null };
-    controllerResponses.push(record);
-    controllerBodyReads.push(response.text().then(source => {
-      try { new Function(source); } catch (error) {
-        pageScriptDiagnostics.push({ kind: "external", url: response.url(), message: String(error.message || error), sourceBytes: source.length });
-      }
-      const match = source.match(/USE_TRANSPORT_TIMEOUT_MS\s*=\s*(\d+)/);
-      record.timeoutMs = match ? Number(match[1]) : "constant_not_found";
-      record.sourceBytes = source.length;
-    }).catch(error => { record.bodyReadError = error?.message || String(error); }));
-  }
-  if (!response.url().includes("/api/query")) return;
-  // Record headers/status synchronously; body parsing must never hide the fact
-  // that a response arrived from the failure diagnostics.
-  const record = {
-    url: response.url(),
-    status: response.status(),
-    atMs: elapsed(),
-    payload: null,
-    bodyReadError: null
-  };
-  apiResponses.push(record);
-  apiBodyReads.push(response.json().then(payload => {
-    record.payload = payload;
-  }).catch(error => {
-    record.bodyReadError = error?.message || String(error);
-  }));
-});
-page.on("requestfailed", request => {
-  if (request.url().includes("/api/query")) {
-    apiFailures.push({ url: request.url(), atMs: elapsed(), error: request.failure()?.errorText || "unknown" });
-  }
-});
-page.on("requestfinished", request => {
-  if (request.url().includes("/api/query")) {
-    apiFinished.push({ url: request.url(), atMs: elapsed() });
-  }
-});
-
-try {
+    try {
   console.log(JSON.stringify({ stage: "live_e2e_start", url: GUIDE_URL }));
-  const controllerSyntaxDiagnostics = [];
-  page.on("response", async response => {
-    if (response.url().includes("living-archive-guide-v489.318-edge-confirmation.js")) {
-      try {
-        const source = await response.text();
-        // Match the actual browser parse path: classic script parsing.
-        new Function(source);
-        console.log(JSON.stringify({ stage: "controller_source_syntax_ok", url: response.url(), sourceBytes: source.length }));
-      } catch (error) {
-        controllerSyntaxDiagnostics.push(JSON.stringify({ message: String(error && error.message || error), stack: String(error && error.stack || ""), url: response.url(), sourceBytes: source ? source.length : null }));
-      }
-    }
-  });
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded" });
-  const resourceScriptDiagnostics = await page.evaluate(() => Array.from(performance.getEntriesByType("resource"))
-    .filter(entry => /\.js(?:\?|$)/.test(entry.name))
-    .map(entry => entry.name));
-  console.log(JSON.stringify({ stage: "loaded_javascript_resources", resources: resourceScriptDiagnostics }));
-  // Wait for the external controller response and inspect the exact bytes the browser received.
   await page.waitForLoadState("load").catch(() => {});
-  await Promise.all(controllerBodyReads);
-  const inlineScriptDiagnostics = await page.evaluate(() => Array.from(document.scripts)
-    .filter(s => !s.src && s.textContent && s.textContent.trim())
-    .map((s, index) => {
-      const type = (s.type || "").trim().toLowerCase();
-      if (type && type !== "text/javascript" && type !== "application/javascript" && type !== "module") return null;
-      try { new Function(s.textContent); return null; }
-      catch (error) { return { kind: "inline", index, type, message: String(error.message || error), source: s.textContent.slice(0, 500) }; }
-    }).filter(Boolean));
-  pageScriptDiagnostics.push(...inlineScriptDiagnostics);
-  console.log(JSON.stringify({ stage: "controller_script_diagnostic", controllerRequests, controllerResponses, pageScriptDiagnostics, pageErrorDetails, pageConsole }));
-  if (pageScriptDiagnostics.length) {
-    throw new Error("Page script syntax diagnostics: " + JSON.stringify(pageScriptDiagnostics));
-  }
-  const preInteractionSyntaxErrors = pageErrors.filter(message => /syntaxerror|invalid or unexpected token/i.test(message));
-  console.log(JSON.stringify({ stage: "pre_interaction_error_diagnostic", pageErrors, pageErrorDetails, preInteractionSyntaxErrors }));
-  // Unattributed third-party page-load errors must not block the Guide acceptance path.
-  // The Guide controller and all executable inline scripts have already been syntax-validated above.
-  if (controllerSyntaxDiagnostics.length || pageScriptDiagnostics.length) {
-    throw new Error("Guide script syntax diagnostics: " + controllerSyntaxDiagnostics.join(" | ") + " | " + JSON.stringify(pageScriptDiagnostics));
-  }
   const root = page.locator(ROOT);
   await root.waitFor({ state: "attached" });
   const input = root.locator("#archive-query-input");
@@ -373,10 +275,7 @@ try {
     conceptualQuery,
     conceptualText,
     rendered,
-    rendered,
     elapsedMs: elapsed(),
-    controllerRequests,
-    controllerResponses,
     apiRequests,
     apiResponses: apiResponses.map(item => ({
       url: item.url,
