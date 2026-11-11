@@ -7,7 +7,7 @@ QUESTION = "What does it mean for an AI to be an interpreter rather than an auth
 def main():
     answer = composition._conceptual_relationship_recovery(QUESTION)
     assert answer, "The exact visitor question must be recognized."
-    assert len([p for p in answer.split("\\n\\n") if p.strip()]) == 3
+    assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
     for term in ("interpreter", "authority", "judgment", "accountability", "uncertainty"):
         assert term.casefold() in answer.casefold(), f"Missing substantive distinction: {term}"
     assert not composition.is_generic_nonanswer(QUESTION, answer)
