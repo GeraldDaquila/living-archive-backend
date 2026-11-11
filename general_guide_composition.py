@@ -1900,6 +1900,7 @@ _CONCEPTUAL_RELATIONSHIP_PATTERNS = (
     r"\bhow .{0,70} and .{0,70} (?:relate to|connect with|reinforce|shape) (?:one another|each other)\b",
     r"\brelationship between .{0,80} and .{0,80}\b",
     r"\bdistinguish(?:es|ed|ing)? .{0,100} from .{0,100}\b",
+    r"\bwhat role should .{0,100} play in (?:a |an )?.{0,100}\b",
 )
 
 
@@ -1999,6 +2000,21 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "Contemplative insight and empirical evidence answer different kinds of questions. Contemplative insight arises through sustained attention to experience: it can clarify how something feels, what a pattern means to a person, or how one understands a relationship or situation from within. Its strength is depth of first-person understanding, but the insight is not automatically proof that the same conclusion holds for everyone.\n\n"
             "Empirical evidence is gathered through observation, measurement, comparison, or other methods that allow a claim to be checked against the world. Its strength is that other people can examine the method and evidence, look for alternative explanations, and test whether a finding holds beyond one person's experience. Empirical evidence can therefore support or challenge general claims, but it may not by itself capture the full meaning or texture of lived experience.\n\n"
             "The distinction is not that one is true and the other is false. They have different standards of warrant. A contemplative insight may be personally illuminating and can suggest a question worth investigating; empirical evidence asks what can be publicly supported about that question. Keeping the two distinct helps avoid treating a powerful inner experience as universal proof while also avoiding the mistake of assuming that only what can be measured is meaningful."
+        )
+
+    # Answer a familiar stewardship-and-technology role question as a bounded
+    # normative orientation when ordinary provider composition is unavailable.
+    # This does not attribute the formulation to a specific Archive source.
+    if (
+        re.search(r"\bwhat role should\b", normalized)
+        and re.search(r"\btechnology\b", normalized)
+        and re.search(r"\bstewardship(?:-centered| centered)?\b", normalized)
+        and re.search(r"\bsociety\b", normalized)
+    ):
+        return (
+            "In a stewardship-centered society, technology should be a means rather than the thing that sets the direction. Its role is to extend human and institutional capacity while remaining answerable to the purposes, relationships, and responsibilities it affects. The question is not simply whether a technology is powerful or efficient, but what kind of human and social conditions its use makes easier or harder to sustain.\n\n"
+            "That means technology should help people see and respond to consequences without quietly transferring judgment or responsibility to a system. It can widen access to knowledge, reduce unnecessary burdens, support coordination, and reveal patterns that would otherwise be difficult to notice. But those capabilities do not determine what ought to be valued, whose interests should take priority, or which risks are acceptable. Those remain matters of human judgment and accountable governance.\n\n"
+            "A stewardship-centered approach therefore asks technology to serve long-term responsibility rather than short-term optimization alone. Good design includes attention to who bears the costs, who retains agency, what dependencies are created, and whether the system strengthens the capacity of people and institutions to care for what has been entrusted to them. Technology is most valuable when it enlarges responsible action without obscuring the human responsibility for deciding what that action is for."
         )
 
     if re.search(r"\btransformation\b", normalized) and re.search(r"\b(?:emotional\s+)?relief\b", normalized):
