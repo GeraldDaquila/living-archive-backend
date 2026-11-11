@@ -77,9 +77,9 @@ CONSTITUTIONAL_RELATIONSHIP_SIGNALS = (
           }
 
           def post_query(base_url, query, timeout=90):
-              expected_commit = os.environ.get("GITHUB_SHA", "").strip()
+              expected_commit = (os.environ.get("EXPECTED_RUNTIME_SHA") or os.environ.get("GITHUB_SHA") or "").strip()
               last_result = (0, {})
-              for attempt in range(1, 9):
+              for attempt in range(1, 31):
                   request = urllib.request.Request(
                       base_url + "/api/query",
                       data=json.dumps({"query": query}).encode("utf-8"),
@@ -107,9 +107,15 @@ CONSTITUTIONAL_RELATIONSHIP_SIGNALS = (
                   print(
                       f"Retrying {query!r}: response came from stale deployment "
                       f"{payload.get('deployment_commit_sha')!r}, expected {expected_commit!r} "
-                      f"(attempt {attempt}/8)."
+                      f"(attempt {attempt}/30)."
                   )
                   time.sleep(2)
+              # Never let a stale response enter a semantic contract check.
+              if expected_commit and last_result[1].get("deployment_commit_sha") != expected_commit:
+                  raise SystemExit(
+                      f"deployment did not stabilize on expected runtime {expected_commit!r}; "
+                      f"last observed {last_result[1].get('deployment_commit_sha')!r}"
+                  )
               return last_result
 
           clarification_query = "Can you compare two ways of understanding this problem?"
