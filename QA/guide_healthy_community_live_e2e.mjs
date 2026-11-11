@@ -113,8 +113,9 @@ try {
         const source = await response.text();
         // Match the actual browser parse path: classic script parsing.
         new Function(source);
+        console.log(JSON.stringify({ stage: "controller_source_syntax_ok", url: response.url(), sourceBytes: source.length }));
       } catch (error) {
-        controllerSyntaxDiagnostics.push(String(error && error.stack || error));
+        controllerSyntaxDiagnostics.push(JSON.stringify({ message: String(error && error.message || error), stack: String(error && error.stack || ""), url: response.url(), sourceBytes: source ? source.length : null }));
       }
     }
   });
