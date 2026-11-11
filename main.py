@@ -8538,18 +8538,97 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                     response = _archive_limitation_response(query)
                     archive_evidence_unavailable = True
             else:
-                # No sufficiently matched source sentence: do not manufacture an
-                # Archive-specific cosmology or use an unrelated doorway as proof.
-                response = _archive_limitation_response(query)
-                archive_evidence_unavailable = True
-                authoritative_doorway = None
-                composition_context.pop("authoritative_doorway", None)
-                composition_context.pop("authoritative_doorway_title", None)
-                composition_context["evidence_sufficiency_unavailable"] = True
-                print(
-                    "The Guide conceptual boundary: no question-matched canonical "
-                    "sentences; returned the Archive-only limitation."
-                )
+                # Grounded synthesis is a distinct state between a direct answer
+                # and bounded abstention. A relationship question may be supported
+                # across several vetted canonical bodies even when no single
+                # sentence contains every substantive query term. Preserve the
+                # evidence boundary: each term still needs its own canonical
+                # support, and the resulting prose is explicitly framed as an
+                # interpretive orientation rather than a formal Archive definition.
+                _bridge_terms = sorted(_generic_original_query_terms)
+                _bridge_sentences = []
+                _bridge_docs = []
+                for _bridge_term in _bridge_terms:
+                    _best_bridge = None
+                    for _bridge_item in _conceptual_vetted_docs:
+                        _bridge_doc = _bridge_item["doc"]
+                        _bridge_body = _bridge_item["body"]
+                        _bridge_url = str(
+                            _bridge_doc.get("url") or _bridge_doc.get("canonical_url") or ""
+                        ).strip()
+                        if not _bridge_body or not re.match(
+                            r"^https://geralddaquila\\.com/\\S+$", _bridge_url, re.I
+                        ):
+                            continue
+                        for _bridge_sentence in re.split(r"(?<=[.!?])\\s+", _bridge_body):
+                            _bridge_sentence = re.sub(r"\\s+", " ", _bridge_sentence).strip()
+                            if len(_bridge_sentence) < 45 or len(_bridge_sentence) > 600:
+                                continue
+                            if re.search(
+                                r"\\b" + re.escape(_bridge_term) + r"\\b",
+                                _normalize_query(_bridge_sentence),
+                            ):
+                                _candidate = {
+                                    "sentence": _bridge_sentence,
+                                    "doc": _bridge_doc,
+                                    "url": _bridge_url,
+                                }
+                                if _best_bridge is None or len(_candidate["sentence"]) < len(_best_bridge["sentence"]):
+                                    _best_bridge = _candidate
+                    if _best_bridge is not None:
+                        _bridge_sentences.append(_best_bridge["sentence"])
+                        _bridge_docs.append(_best_bridge["doc"])
+
+                _bridge_unique = []
+                _bridge_seen = set()
+                for _sentence in _bridge_sentences:
+                    _key = _normalize_query(_sentence)
+                    if _key not in _bridge_seen:
+                        _bridge_seen.add(_key)
+                        _bridge_unique.append(_sentence)
+
+                # Two independently grounded concepts are enough for a cautious
+                # bridge. One concept alone remains insufficient and falls through
+                # to the existing Archive-only limitation.
+                if len(_bridge_unique) >= min(2, len(_bridge_terms)) and _bridge_docs:
+                    _bridge_doorway = (
+                        verified_navigation_doorway
+                        if verified_navigation_available
+                        else _normalize_authoritative_recommendation({
+                            "title": _bridge_docs[0].get("title"),
+                            "url": _bridge_docs[0].get("url") or _bridge_docs[0].get("canonical_url"),
+                        })
+                    )
+                    response = _sanitize_basic_inquiry_response(
+                        "The Archive does not appear to offer a single formal definition for this exact question, "
+                        "but its related material supports a useful interpretive orientation. "
+                        + " ".join(_bridge_unique[:3])
+                        + " Taken together, these passages provide a grounded synthesis rather than a formal Archive definition."
+                    )
+                    authoritative_doorway = _bridge_doorway
+                    if authoritative_doorway:
+                        composition_context["authoritative_doorway"] = authoritative_doorway
+                        composition_context["authoritative_doorway_title"] = authoritative_doorway.get("title") or ""
+                    archive_evidence_unavailable = False
+                    composition_context.pop("evidence_sufficiency_unavailable", None)
+                    composition_context["conceptual_subject_recovery"] = "grounded_cross_source_synthesis"
+                    print(
+                        "The Guide conceptual boundary: used grounded cross-source synthesis; "
+                        f"terms_supported={len(_bridge_unique)}; doorway={'verified' if authoritative_doorway else 'unavailable'}."
+                    )
+                else:
+                    # There is not enough independent canonical support even for
+                    # a bounded synthesis. Only here do we abstain.
+                    response = _archive_limitation_response(query)
+                    archive_evidence_unavailable = True
+                    authoritative_doorway = None
+                    composition_context.pop("authoritative_doorway", None)
+                    composition_context.pop("authoritative_doorway_title", None)
+                    composition_context["evidence_sufficiency_unavailable"] = True
+                    print(
+                        "The Guide conceptual boundary: insufficient independent canonical "
+                        "support for grounded synthesis; returned the Archive-only limitation."
+                    )
 
     # Conceptual evidence gates govern explanatory attribution, not a separately
     # selected canonical next step. Restore the request-level navigation decision
