@@ -4730,13 +4730,25 @@ def _guide_finalize_visitor_payload(payload, query):
         )
         if contracted != response_text:
             safe = dict(payload)
-            safe["response"] = _sanitize_basic_inquiry_response(contracted)
+            rendered = _sanitize_basic_inquiry_response(contracted)
+            # Validate the exact text that will cross the public boundary. A
+            # composition-level pass is insufficient if sanitization or another
+            # transformation has altered paragraph completeness.
+            if not general_guide_composition._has_archive_grounding_boundary(rendered):
+                rendered = _sanitize_basic_inquiry_response(
+                    general_guide_composition._archive_grounding_boundary_recovery()
+                )
+            if not general_guide_composition._has_archive_grounding_boundary(rendered):
+                raise RuntimeError(
+                    "Final visitor boundary failed to preserve complete Archive-grounding distinction."
+                )
+            safe["response"] = rendered
             safe["recommendation"] = None
             safe["processing"] = "final_visitor_boundary_archive_grounding_contract"
             safe["route_source"] = "guide_final_visitor_boundary"
             safe["visitor_boundary_version"] = APP_VERSION
             print(
-                "The Guide final visitor boundary: restored Archive-grounding distinction contract."
+                "The Guide final visitor boundary: restored complete Archive-grounding distinction contract."
             )
             return safe
 
