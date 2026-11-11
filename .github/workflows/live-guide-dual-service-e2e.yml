@@ -647,6 +647,4 @@ jobs:
               )
 
           print("USE2-Mirror Catalogue handoff parity check deferred until its monthly allocation resets.")
-          PY           import json
-           import os
-
+          PY
