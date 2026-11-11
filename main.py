@@ -5407,10 +5407,15 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             if recommendation_available
             else "I could not identify a sufficiently relevant Archive resource to recommend here."
         )
+    _final_provider = (
+        "bounded_conceptual_relationship_recovery"
+        if _is_conceptual_explanatory_request(query)
+        else "deterministic_question_preserving_recovery"
+    )
     return {
         "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
         "doorway_title": title if recommendation_available else "",
-        "provider": "deterministic_question_preserving_recovery",
+        "provider": _final_provider,
         "model": "",
     }
 
@@ -8811,6 +8816,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # boundary. This keeps the final visitor state honest if
                         # all answer authorities are exhausted.
                         authoritative_doorway = None
+                        # If every recovery below also fails, the visitor-facing
+                        # boundary explicitly returns: I couldn’t produce a reliable answer to that question just now.
                         _systemwide_paragraphs = [
                             part.strip()
                             for part in re.split(r"\n\s*\n+", _systemwide_recovery)
