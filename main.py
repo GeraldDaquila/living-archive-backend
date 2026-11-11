@@ -8093,7 +8093,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 "communities", "stewardship", "trust",
             }
         }
-        _conceptual_subject_phrases = ("trust", "community", "stewardship")
+        # The trust/community/stewardship relationship has a specialized
+        # evidence contract. Do not impose that unrelated contract on every
+        # conceptual inquiry: generic concepts (for example consciousness) must
+        # be allowed to reach the generic evidence and synthesis paths.
+        _conceptual_subject_phrases = tuple(
+            phrase for phrase in ("trust", "community", "stewardship")
+            if phrase in _conceptual_terms
+        )
 
         # Conceptual answers may need synthesis across several individually
         # vetted canonical bodies. Measure term coverage over the bounded,
@@ -8587,10 +8594,22 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         _bridge_seen.add(_key)
                         _bridge_unique.append(_sentence)
 
-                # Two independently grounded concepts are enough for a cautious
-                # bridge. One concept alone remains insufficient and falls through
-                # to the existing Archive-only limitation.
-                if len(_bridge_unique) >= min(2, len(_bridge_terms)) and _bridge_docs:
+                # Two independently grounded concepts support a full bridge.
+                # A narrower but still useful orientation is also possible when
+                # the visitor's exact relationship is not formally established
+                # but a verified canonical doorway directly grounds one central
+                # concept. In that case, do not pretend the relationship itself
+                # is defined: orient the visitor to what the Archive does establish.
+                _full_bridge_supported = (
+                    len(_bridge_unique) >= min(2, len(_bridge_terms))
+                    and bool(_bridge_docs)
+                )
+                _partial_orientation_supported = bool(
+                    _bridge_unique
+                    and _bridge_docs
+                    and verified_navigation_available
+                )
+                if _full_bridge_supported or _partial_orientation_supported:
                     _bridge_doorway = (
                         verified_navigation_doorway
                         if verified_navigation_available
@@ -8599,11 +8618,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                             "url": _bridge_docs[0].get("url") or _bridge_docs[0].get("canonical_url"),
                         })
                     )
+                    if _full_bridge_supported:
+                        _synthesis_intro = (
+                            "The Archive does not appear to offer a single formal definition for this exact question, "
+                            "but its related material supports a useful interpretive orientation. "
+                        )
+                        _synthesis_outro = (
+                            " Taken together, these passages provide a grounded synthesis rather than a formal Archive definition."
+                        )
+                    else:
+                        _synthesis_intro = (
+                            "The Archive does not appear to establish a formal definition of this exact relationship. "
+                            "It does, however, provide a relevant orientation to one of the question's central concepts: "
+                        )
+                        _synthesis_outro = (
+                            " This is a bounded orientation from related Archive material, not a claim that the Archive formally defines the exact relationship asked about."
+                        )
                     response = _sanitize_basic_inquiry_response(
-                        "The Archive does not appear to offer a single formal definition for this exact question, "
-                        "but its related material supports a useful interpretive orientation. "
-                        + " ".join(_bridge_unique[:3])
-                        + " Taken together, these passages provide a grounded synthesis rather than a formal Archive definition."
+                        _synthesis_intro + " ".join(_bridge_unique[:3]) + _synthesis_outro
                     )
                     authoritative_doorway = _bridge_doorway
                     if authoritative_doorway:
