@@ -15,9 +15,11 @@ class ConceptualEvidenceDistinctionTests(unittest.TestCase):
         )
         self.assertIsInstance(answer, str)
         self.assertGreaterEqual(len(answer.split()), 90)
+        self.assertNotIn("couldn't produce a reliable answer", answer.casefold())
         self.assertIn("first-person", answer)
         self.assertIn("observation", answer)
         self.assertIn("different standards of warrant", answer)
+        self.assertIn("not that one is true and the other is false", answer.casefold())
 
     def test_unrelated_concept_pairs_remain_unregistered(self):
         self.assertIsNone(
