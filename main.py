@@ -4699,7 +4699,12 @@ def _guide_finalize_visitor_payload(payload, query):
             )
         safe = dict(payload)
         safe["response"] = rendered
-        safe["recommendation"] = None
+        # Answer recovery and navigation are independent concerns. Preserve an
+        # already-earned canonical recommendation; only the answer itself is
+        # replaced at this final conceptual contract boundary.
+        safe["recommendation"] = _normalize_authoritative_recommendation(
+            safe.get("recommendation")
+        )
         safe["processing"] = "final_visitor_boundary_broad_concept_contract"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
