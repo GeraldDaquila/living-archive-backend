@@ -984,7 +984,14 @@ def _conceptual_bridge_supported(query, doc):
     to the candidate, match that bridge strongly, and show multiple concepts
     from the visitor's original inquiry in the resource body.
     """
-    if not _is_conceptual_explanatory_request(query) or not isinstance(doc, dict):
+    # Keep this helper independent of later routing helpers: this selection
+    # layer is imported directly by several deterministic test boundaries.
+    normalized_query = _normalize_query(query)
+    conceptual_markers = (
+        "how does", "how do", "why does", "why do", "what shapes",
+        "notice", "value", "imagine", "culture", "meaning",
+    )
+    if not any(marker in normalized_query for marker in conceptual_markers) or not isinstance(doc, dict):
         return False
     bridge_query = str(doc.get("_conceptual_bridge_query") or "").strip()
     body = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "")
