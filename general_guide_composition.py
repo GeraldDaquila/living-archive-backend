@@ -1243,22 +1243,26 @@ def _requires_broad_conceptual_definition(query: str) -> bool:
 
 
 def _has_broad_conceptual_definition(response: str) -> bool:
+    """Validate the stable conceptual answer without coupling meaning to paragraph position.
+
+    This is a structural contract for the deterministic recovery itself.  It checks
+    that the answer is substantive and bounded, but deliberately does not require
+    individual concepts to appear in a particular paragraph or exact inflection.
+    """
     paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
     if len(paragraphs) != 3:
         return False
-    first, second, third = paragraphs
-    refusal = re.search(r"\b(?:can't|cannot) define\b|\bdictionary or subject reference\b", response, re.I)
-    # This contract validates conceptual structure, not exact inflection. It
-    # must not turn a valid deterministic answer into a visitor-facing failure.
+    text = _normalize_space(response)
+    refusal = re.search(r"\b(?:can't|cannot) define\b|\bdictionary or subject reference\b", text, re.I)
     return (
         not refusal
-        and bool(re.search(r"\bregeneration\b", first, re.I))
-        and bool(re.search(r"\b(?:renew|restore|revitaliz|capacity|conditions?|life|relationship)\w*", first, re.I))
-        and bool(re.search(r"\b(?:environment\w*|ecolog\w*|beyond)\b", second, re.I))
-        and bool(re.search(r"\b(?:social|economic|institution|culture|community|relationship|human)\w*", second, re.I))
-        and bool(re.search(r"\b(?:does not mean|more than|not simply|ongoing|conditions?|capacity|future)\b", third, re.I))
+        and len(text) >= 350
+        and bool(re.search(r"\bregeneration\b", text, re.I))
+        and bool(re.search(r"\b(?:environment\w*|ecolog\w*)\b", text, re.I))
+        and bool(re.search(r"\b(?:renew\w*|restore\w*|revitaliz\w*|capacity|conditions?|flourish\w*)\b", text, re.I))
+        and bool(re.search(r"\b(?:communit\w*|institution\w*|econom\w*|culture\w*|human)\b", text, re.I))
+        and bool(re.search(r"\b(?:does not mean|not simply|ongoing|limits?|future)\b", text, re.I))
     )
-
 
 def _broad_conceptual_definition_recovery() -> str:
     return (
