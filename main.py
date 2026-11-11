@@ -8841,17 +8841,73 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 f"{bool(authoritative_doorway)}."
                             )
                         else:
-                            response = (
-                                "I couldn’t produce a reliable answer to that question just now. "
-                                "Please try again shortly; I won’t present commentary about an answer as though it were the answer itself."
+                            # Answer authority and navigation authority are independent.
+                            # An ordinary explanatory question must not become a visitor-facing
+                            # non-answer merely because canonical retrieval, doorway selection, or
+                            # the first deterministic recovery produced nothing usable. Make one
+                            # final provider-neutral composition attempt with navigation removed
+                            # from the context. This prevents a failed handoff from contaminating
+                            # answer generation while preserving all specialist and integrity gates.
+                            _answer_only_context = dict(composition_context)
+                            _answer_only_context.pop("authoritative_doorway", None)
+                            _answer_only_context.pop("canonical_link_context", None)
+                            _answer_only_context["_answer_only_recovery"] = True
+                            _answer_only_retry = None
+                            if (
+                                reasoning_mode != "deterministic_only"
+                                and _guide_can_attempt_composition_repair(
+                                    request_deadline, already_attempted=False
+                                )
+                            ):
+                                try:
+                                    _answer_only_retry = general_guide_composition.compose(
+                                        use_core=use_core,
+                                        query=query,
+                                        context_data=_answer_only_context,
+                                        history_text=_history_text(history),
+                                        integrity_recovery=True,
+                                        deadline_monotonic=request_deadline,
+                                    )
+                                except Exception as exc:
+                                    print(
+                                        "The Guide answer-only recovery failed safely: "
+                                        f"{type(exc).__name__}."
+                                    )
+                            _answer_only_text = _sanitize_basic_inquiry_response(
+                                str((_answer_only_retry or {}).get("response") or "").strip()
                             )
-                            authoritative_doorway = None
-                            answer_basis = {
-                                "kind": "answer_integrity_failure",
-                                "label": "Answer needs recovery",
-                                "explanation": "Neither the primary composition path nor the bounded three-paragraph recovery produced a substantive answer.",
-                            }
-                            print("The Guide final payload boundary: substantive recovery unavailable; returned explicit non-answer error state.")
+                            _answer_only_paragraphs = [
+                                part.strip()
+                                for part in re.split(r"\n\s*\n+", _answer_only_text)
+                                if part.strip()
+                            ]
+                            _answer_only_valid = bool(
+                                len(_answer_only_paragraphs) >= 3
+                                and not general_guide_composition.is_meta_answer_failure(_answer_only_text)
+                                and not general_guide_composition.is_generic_nonanswer(query, _answer_only_text)
+                            )
+                            if _answer_only_valid:
+                                response = _answer_only_text
+                                answer_basis = {
+                                    "kind": "general_knowledge",
+                                    "label": "General knowledge",
+                                    "explanation": "Answer-only recovery succeeded independently of Archive navigation; no Archive source attribution is implied.",
+                                }
+                                print("The Guide final payload boundary: answer-only recovery PASS; navigation decision preserved independently.")
+                            else:
+                                response = (
+                                    "I couldn’t produce a reliable answer to that question just now. "
+                                    "Please try again shortly; I won’t present commentary about an answer as though it were the answer itself."
+                                )
+                                # Preserve a verified doorway even when answer generation fails.
+                                # Only answer integrity may fail here; navigation authority remains
+                                # the responsibility of the independent selection pipeline.
+                                answer_basis = {
+                                    "kind": "answer_integrity_failure",
+                                    "label": "Answer needs recovery",
+                                    "explanation": "Neither the primary composition path nor the independent answer-only recovery produced a substantive answer.",
+                                }
+                                print("The Guide final payload boundary: answer-only recovery unavailable; returned explicit non-answer error state.")
     if (
         general_guide_composition._requires_intergenerational_stewardship(query)
         and not general_guide_composition._has_intergenerational_stewardship_explanation(response)
