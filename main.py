@@ -6332,7 +6332,7 @@ def _general_guide_authoritative_doorway(query, context_data):
         return None
 
 
-def _broad_conceptual_doorway(query):
+def _broad_conceptual_doorway(query, conceptual_answer=""):
     """Select a canonical doorway independently of broad-concept answer composition.
 
     Broad conceptual answers intentionally bypass ordinary retrieval so that a
@@ -6343,8 +6343,13 @@ def _broad_conceptual_doorway(query):
     fail-closed for navigation.
     """
     try:
+        # Territorial discovery is concept-grounded, not merely literal-query
+        # grounded. Broad questions often use vocabulary that does not appear in
+        # canonical titles, while the validated answer names the Archive concepts
+        # that actually frame the visitor's next step.
+        discovery_text = str(conceptual_answer or query or "")
         crosslinks = archive_crosslink.expand_context(
-            str(query or ""),
+            discovery_text,
             [],
             getattr(use_core, "index", None),
             use_core,
@@ -10463,7 +10468,7 @@ async def _use_request_boundary(scope, receive, send):
             )
         # Answer reliability and navigation are separate boundaries. The stable
         # answer never waits on this best-effort canonical doorway lookup.
-        recommendation = _broad_conceptual_doorway(query)
+        recommendation = _broad_conceptual_doorway(query, response)
         print(
             "The Guide broad conceptual boundary: answered before ordinary "
             "routing, retrieval, or provider composition."
