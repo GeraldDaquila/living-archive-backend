@@ -4987,6 +4987,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # general-knowledge recovery contract. This hook is intentionally shared
     # rather than query-specific: provider exhaustion must not bypass a valid
     # conceptual recovery that the composition layer already recognizes.
+    # Keep the legacy recovery identity stable for downstream observability.
     _conceptual_recovery = _guide_composition._conceptual_relationship_recovery(query)
     if _conceptual_recovery and _guide_composition.has_conceptual_relationship_explanation(
         _conceptual_recovery, query
@@ -8787,6 +8788,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # the evidence-grounded retry both fail, use the shared deterministic
                         # composer rather than a one-off apology template. Only accept a
                         # substantive three-paragraph answer; never imply Archive sourcing.
+                        # The shared Gold Standard recovery is answer-only. A
+                        # verified doorway is independent navigation, but the
+                        # final non-answer boundary must clear it if every answer
+                        # authority fails.
+                        _final_answer_authority_failed = False
                         _systemwide_recovery = _sanitize_basic_inquiry_response(
                             _compose_provider_exhaustion_recovery(query)
                         )
@@ -8833,6 +8839,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 f"{bool(authoritative_doorway)}."
                             )
                         else:
+                            _final_answer_authority_failed = True
+                            authoritative_doorway = None
                             # Answer authority and navigation authority are independent.
                             # An ordinary explanatory question must not become a visitor-facing
                             # non-answer merely because canonical retrieval, doorway selection, or
