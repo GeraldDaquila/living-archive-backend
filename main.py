@@ -1027,13 +1027,17 @@ def _eligible_outward_doc(query, doc, profile, *, min_relevance=2):
     url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
     if not title or not re.match(r"^https://\S+$", url, re.I):
         return False
-    if not _topic_specific_candidate_fit(query, doc):
+    # A bounded conceptual bridge is evaluated before literal topic-fit gates.
+    # Otherwise a candidate recovered precisely because the Archive uses
+    # different surface language can be rejected before its bridge evidence is
+    # allowed to establish conceptual relevance.
+    bridge_supported = _conceptual_bridge_supported(query, doc)
+    if not _topic_specific_candidate_fit(query, doc) and not bridge_supported:
         return False
     # Entity overlap cannot substitute for evidence of a requested attribute.
     # The attribute and any explicit condition must appear in this source body.
     # A bounded conceptual bridge may provide equivalent evidence when the
     # Archive uses different surface language for the same conceptual territory.
-    bridge_supported = _conceptual_bridge_supported(query, doc)
     if not _direct_attribute_supported(query, doc) and not bridge_supported:
         return False
     if not _uncertainty_resource_direct_fit(query, doc):
