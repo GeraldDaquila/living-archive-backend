@@ -2473,9 +2473,16 @@ def compose(
     # canonical composition when the Constitutional Register is present.
     # Resolve them before provider generation so required governing
     # relationships and recovery order cannot vary by model phrasing.
+    # compose() normally receives retrieval documents in context_data. If the
+    # context object omits that field, recover the same canonical corpus through
+    # the established document accessor rather than silently falling through to
+    # provider composition. Explicit non-empty contexts still fail closed.
+    constitutional_documents = list(context_data.get("documents") or [])
+    if not constitutional_documents and not context_data.get("documents"):
+        constitutional_documents = list(_documents_from_context(use_core, context_data) or [])
     constitutional_recovery = _archive_constitutional_recovery(
         question,
-        list(context_data.get("documents") or []),
+        constitutional_documents,
     )
     if constitutional_recovery is not None:
         _emit_guide_outcome("constitutional_canonical_composition")
