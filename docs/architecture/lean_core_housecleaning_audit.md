@@ -54,3 +54,12 @@ Safety is explicitly standalone, deterministic, and HRN-independent. It is activ
 ## Governance rule
 
 No artifact is deleted merely because it is old. No artifact is retained merely because it might someday be useful. Git history preserves implementation history; the active codebase should preserve only present capability, necessary quality controls, and deliberate institutional memory.
+
+
+## Pass 5 — Gold Star transfer governance coverage
+
+Direct comparison confirms full current coverage: all 23 `USER_APPROVED_GOLD_STANDARD` registry records have exactly one qualitative transfer-review entry, with no missing or extra benchmark IDs. All 23 current entries are presently classified as `shadow_candidate`.
+
+A bidirectional regression contract has been added: the approved registry cohort and qualitative-review cohort must remain identical. Existing coverage continues to verify that reviewed shadow candidates are loaded as runtime-transfer lessons. This closes the one-way governance gap identified during the audit.
+
+**Consolidation decision:** defer retirement of the transferability map. It still provides an independent QA classification layer; removal should be considered only after an explicit redesign demonstrates that its coverage value is fully preserved elsewhere.
