@@ -103,6 +103,23 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         self.assertNotIn("A useful explanation should establish", answer)
         self.assertNotIn("What detail or context would make this question", answer)
 
+    def test_public_predictive_system_gets_constitutional_and_human_recovery(self):
+        question = (
+            "A government proposes a highly efficient predictive system for public services. "
+            "What constitutional and human questions must precede adoption?"
+        )
+        answer = compose_recovery(question)
+        paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
+        self.assertEqual(len(paragraphs), 3)
+        self.assertIn("what public authority is being exercised", answer)
+        self.assertIn("rights or protections must not be weakened", answer)
+        self.assertIn("what the system cannot see", answer)
+        self.assertIn("challenge errors", answer)
+        self.assertIn("public power remains constitutional", answer)
+        self.assertNotIn("I couldn't verify a reliable answer", answer)
+        self.assertNotIn("What detail or context", answer)
+
+
     def test_archive_civilizational_transition_meaning_is_answered_during_retrieval_outage(self):
         question = "What does the Archive mean by civilizational transition?"
         answer = compose_recovery(question)
