@@ -5284,6 +5284,39 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # knowledge even when the Archive contains no directly establishing body.
     # Do not collapse a valid conceptual explanation into an abstention merely
     # because provenance is unavailable.
+    # Bounded systems-mechanism recovery. When a visitor asks why growth
+    # becomes destructive after exceeding ecological or social limits, answer
+    # the causal question directly rather than falling through to a generic
+    # inquiry template. This uses general systems reasoning only; mirror
+    # metadata may orient navigation but is not treated as source evidence.
+    _growth_limits_question = bool(
+        re.search(r"\bwhy\b", q)
+        and re.search(r"\bgrowth\b", q)
+        and re.search(r"\b(?:destructive|harmful|damaging)\b", q)
+        and re.search(r"\b(?:ecological|social)\b", q)
+        and re.search(r"\blimits?\b", q)
+    )
+    if _growth_limits_question:
+        _growth_limits_response = (
+            "Growth can become destructive when the scale of expansion outruns the capacities that make it sustainable. "
+            "Ecological systems have limits to how quickly resources can regenerate and how much waste or disruption they can absorb. "
+            "Social systems also have limits: trust, legitimacy, fairness, infrastructure, and institutions can all be strained when change moves faster than people and communities can adapt.\n\n"
+            "For a time, those pressures can be hidden or displaced. Costs may be shifted onto ecosystems, workers, communities, or the future, allowing growth to continue while the underlying conditions weaken. "
+            "The damage becomes visible when accumulated strain exceeds the system's ability to repair, adapt, or hold together.\n\n"
+            "The issue, then, is not growth by itself. The question is whether growth remains connected to the conditions that sustain the wider system on which it depends."
+        )
+        _recovery_doorway = _normalize_authoritative_recommendation(
+            context_data.get("authoritative_doorway")
+        ) if isinstance(context_data, dict) else None
+        return {
+            "response": _growth_limits_response,
+            "doorway_title": str(_recovery_doorway.get("title") or "") if _recovery_doorway else "",
+            "doorway_url": str(_recovery_doorway.get("url") or "") if _recovery_doorway else "",
+            "recommendation": _recovery_doorway,
+            "provider": "bounded_systems_mechanism_recovery",
+            "model": "",
+        }
+
     _developmental_hierarchy = bool(
         re.search(r"\bdevelopmental\s+language\b", q)
         and re.search(r"\b(?:hierarchical|dismissive)\b", q)
