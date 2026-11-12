@@ -4876,11 +4876,64 @@ def _is_generic_decision_template(response_text):
     return sum(marker in text for marker in markers) >= 2
 
 
+def _is_decision_or_action_inquiry(query):
+    """Return True only when the visitor is actually asking for deliberation or action guidance."""
+    q = _normalize_query(query)
+    if not q:
+        return False
+    decision_signals = (
+        r"\b(?:what should (?:i|we|the organization)|how should (?:i|we|the organization)|which option|which choice|what decision|should we choose|how do (?:i|we) decide|compare (?:the )?options|next step|what action)\b",
+    )
+    return any(re.search(pattern, q, re.I) for pattern in decision_signals)
+
+
+def _is_explanatory_inquiry(query):
+    """Recognize inquiries whose governing task is intelligibility rather than choice."""
+    q = _normalize_query(query)
+    if not q:
+        return False
+    explanation_signals = (
+        r"\b(?:explain|explanation|understand|why|how does|how do|what causes|what is happening|make sense of|preserve intelligibility|without offering)\b",
+        r"\b(?:simple explanation|monocausal|multi[- ]?causal|systems?|breakdown|collapse|decline|complexity)\b",
+    )
+    return sum(bool(re.search(pattern, q, re.I)) for pattern in explanation_signals) >= 1
+
+
+def _systems_intelligibility_recovery(query):
+    """Minimum orientation when decision coaching contaminates an explanatory inquiry."""
+    return (
+        "A simple explanation does not have to mean a single cause. Social breakdown is often better understood as a condition that emerges when several pressures begin reinforcing one another: institutions lose capacity or legitimacy, relationships and shared norms weaken, material pressures rise, and the ability to correct problems declines. No one factor has to explain everything for the pattern to become intelligible.\n\n"
+        "The useful question is therefore not “What is the one cause?” but “Which conditions are interacting, and how are they changing one another?” A loss of trust can weaken institutions; weaker institutions can make problems harder to address; unresolved problems can deepen frustration and further erode trust. Looking for these reinforcing relationships preserves simplicity without pretending that complexity has a single source.\n\n"
+        "That also leaves room for differences in place and time. The same pressures do not produce the same outcomes everywhere, and a systems account should make those differences visible rather than forcing every case into one story. The aim is not to explain everything at once, but to identify the relationships that make the larger pattern easier to see."
+    )
+
+
 def _guide_finalize_visitor_payload(payload, query):
     """Apply shared visitor-facing quality and contamination boundaries to every route."""
     if not isinstance(payload, dict):
         return payload
     response_text = str(payload.get("response") or "")
+    # Generic decision coaching is a restricted response mode, not a universal
+    # fallback. A fluent decision template is still a failure when the visitor
+    # asked for explanation or intelligibility rather than deliberation.
+    if (
+        _is_generic_decision_template(response_text)
+        and _is_explanatory_inquiry(query)
+        and not _is_decision_or_action_inquiry(query)
+    ):
+        safe = dict(payload)
+        safe["response"] = _systems_intelligibility_recovery(query)
+        safe["recommendation"] = _normalize_authoritative_recommendation(
+            safe.get("recommendation")
+        )
+        safe["processing"] = "final_visitor_boundary_explanatory_mode_protection"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        print(
+            "The Guide final visitor boundary: blocked generic decision coaching for explanatory inquiry."
+        )
+        return safe
+
     # Reasoning-family protection: a reflective inquiry about decline must not
     # emerge from any route as generic decision coaching. This is enforced at
     # the one boundary every visitor payload crosses, rather than relying on a
