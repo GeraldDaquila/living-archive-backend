@@ -183,3 +183,32 @@ def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
     contribution = {"benchmark_id": str(selected.get("benchmark_id") or ""), "reasoning_family": str(selected.get("reasoning_family") or ""), "discipline": discipline, "abstention_boundary": str(selected.get("abstention_boundary") or ""), "score": float(selected.get("score") or 0.0), "exact": bool(selected.get("exact"))}
     print(f"gold_star_quality active benchmark_id={contribution['benchmark_id']} score={contribution['score']:.3f}", flush=True)
     return contribution
+
+
+def deterministic_fallback_contribution(query: str) -> Optional[Dict[str, Any]]:
+    """Return a bounded Gold Star-informed fallback when generative providers fail.
+
+    This does not reuse exemplar answers or claims. It turns only the reviewed
+    transferable discipline into a transparent orientation for the visitor's
+    current question, and abstains when no structurally relevant lesson exists.
+    """
+    contribution = active_quality_contribution(query)
+    if not contribution:
+        return None
+    discipline = str(contribution.get("discipline") or "").strip()
+    boundary = str(contribution.get("abstention_boundary") or "").strip()
+    if not discipline:
+        return None
+    response = (
+        "A useful way to approach this question is to " + discipline[:1].lower() + discipline[1:]
+    )
+    if boundary:
+        response += " A sound answer should also respect this boundary: " + boundary
+    response += (
+        " This does not substitute a prewritten answer for your question; it is a "
+        "bounded guide to the reasoning that is most likely to keep the answer clear and responsible."
+    )
+    return {
+        **contribution,
+        "response": response,
+    }
