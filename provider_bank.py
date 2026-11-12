@@ -2731,7 +2731,7 @@ def _hrn_workers_fast_candidate(pool):
 # provider-capability endpoint executes its local bank directly.
 ACTIVE_ACTIVE_CONTRACT_VERSION = "v1"
 PRIMARY_COUNTERPART_URL = "https://living-archive-backend-mirror.onrender.com/api/active-active-guide-capability"
-SECONDARY_COUNTERPART_URL = "https://living-archive-backend.onrender.com/api/provider-capability"
+SECONDARY_COUNTERPART_URL = "https://living-archive-backend.onrender.com/api/active-active-guide-capability"
 ACTIVE_ACTIVE_PRIMARY_LOCAL_PERCENT = 70
 ACTIVE_ACTIVE_TIMEOUT_SECONDS = 6.0
 # The counterpart executes one bounded Guide composition locally. The peer
@@ -2876,7 +2876,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     if not pool:
         # Local capacity may be empty while the independent counterpart still has
         # viable providers. One bounded remote attempt precedes deterministic recovery.
-        if operation == "general_guide_composition" and not delegated:
+        if operation == "general_guide_composition" and not delegated and _active_active_role() == "primary":
             remote = _active_active_delegate(messages, max_tokens, parse, operation, schema, deadline_monotonic)
             if remote:
                 return remote
@@ -3561,7 +3561,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # A local bank can be healthy enough to receive the request yet still exhaust
     # its bounded candidate budget. Give independently configured counterpart
     # capacity one bounded opportunity before deterministic recovery.
-    if operation == "general_guide_composition" and not delegated:
+    if operation == "general_guide_composition" and not delegated and _active_active_role() == "primary":
         remote = _active_active_delegate(messages, max_tokens, parse, operation, schema, deadline_monotonic)
         if remote:
             return remote
