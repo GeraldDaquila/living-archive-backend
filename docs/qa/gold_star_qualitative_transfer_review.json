@@ -227,6 +227,15 @@
       "qualifying_context": "Complex institutional decisions spanning operations, governance, human development, ethics, stewardship, or AI-assisted judgment.",
       "abstention_boundary": "Do not use this frame to make the decision for responsible authorities or reduce a simple practical question to an institutional analysis.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-reflective-decline-without-romanticizing-gold-star-2026-11-13",
+      "question": "How should the Guide discuss decline without romanticizing it?",
+      "reasoning_family": "reflective_decline_without_romanticization",
+      "transferable_discipline": "Refuse nostalgia and automatic progress as competing shortcuts; make gains and losses visible across more than one dimension, then open a path from recognition toward responsibility without forcing a verdict.",
+      "qualifying_context": "Reflective questions about decline, loss, historical change, social erosion, nostalgia, or how to acknowledge what has disappeared without idealizing the past.",
+      "abstention_boundary": "Do not label ordinary change as decline, romanticize a past that cannot be supported, or substitute a general decline frame for evidence about a particular historical case.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
