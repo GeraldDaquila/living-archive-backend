@@ -1433,7 +1433,9 @@
         "transferable_discipline": "Begin with a direct human answer, then widen from individual capacity to shared conditions.",
         "abstention_boundary": "Do not impose this frame on narrow factual or technical questions.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "humane orientation",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-water-boiling-point-failure-control-2026-10-24",
@@ -1502,7 +1504,9 @@
         "transferable_discipline": "Answer established self-contained facts directly and briefly; do not force Archive framing.",
         "abstention_boundary": "Abstain from uncertain, contested, or source-dependent claims.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "direct factual answer",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-living-archive-cosmology-gold-standard-2026-10-25",
@@ -1541,7 +1545,9 @@
         "transferable_discipline": "Explain the framework while distinguishing a source or example from claims about the whole worldview.",
         "abstention_boundary": "Do not generalize a local source into a whole corpus.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "scope and worldview",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-first-principles-gold-standard-2026-10-25",
@@ -1585,7 +1591,9 @@
         "transferable_discipline": "Define the general concept before presenting the specific source-grounded framework.",
         "abstention_boundary": "Do not present source commitments as universal doctrine.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "concept then source",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-living-archive-definition-gold-standard-2026-10-25",
@@ -1624,7 +1632,9 @@
         "transferable_discipline": "Define what something is and is not, including boundaries around certainty and responsibility.",
         "abstention_boundary": "Do not turn every definition into a manifesto.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "identity and epistemic boundary",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-methods-comparison-gold-standard-2026-10-25",
@@ -1659,7 +1669,9 @@
         "transferable_discipline": "Define related approaches, preserve their differences, then explain how they complement one another.",
         "abstention_boundary": "Do not collapse distinct methods into a single generic process.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "distinction before synthesis",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-cosmology-generalization-standards-gold-standard-2026-10-25",
@@ -1696,7 +1708,9 @@
         "transferable_discipline": "Separate direct claims from inference; require corroboration and calibrate conclusions to evidence.",
         "abstention_boundary": "Do not apply as boilerplate to ordinary conceptual questions.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "evidence scope and generalization",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-stewardship-living-archive-meaning-gold-standard-2026-10-25",
@@ -1735,7 +1749,9 @@
         "transferable_discipline": "Connect understanding to responsibility while distinguishing care from control or unlimited self-sacrifice.",
         "abstention_boundary": "Do not infer obligations beyond the person's authority or limits.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "stewardship with boundaries",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-identifying-what-is-held-in-trust-gold-standard-2026-10-25",
@@ -1772,7 +1788,9 @@
         "transferable_discipline": "Identify what is entrusted, who is affected, what duties apply, and where authority ends.",
         "abstention_boundary": "Do not assume every relationship creates unlimited responsibility.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "entrustment and obligation",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-faithful-stewardship-values-conflict-gold-standard-2026-10-25",
@@ -1809,7 +1827,9 @@
         "transferable_discipline": "Name genuine conflicts, weigh obligations and effects, protect less powerful parties, and keep decisions accountable.",
         "abstention_boundary": "Do not pretend every conflict has a cost-free resolution.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "tradeoff discernment",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-intergenerational-stewardship-gold-standard-2026-10-25",
@@ -1848,7 +1868,9 @@
         "transferable_discipline": "Extend responsibility across time by considering inheritance, future effects, and what is passed on.",
         "abstention_boundary": "Do not speculate about distant futures without relevant evidence.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "intergenerational consequences",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-system-vs-separate-problems-gold-standard-2026-10-25",
@@ -1885,7 +1907,9 @@
         "transferable_discipline": "Look for relationships, feedback, dependencies, and recurring conditions rather than isolated symptoms.",
         "abstention_boundary": "Do not label every collection of problems a system without evidence of interaction.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "systems relationships",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-leverage-point-misuse-gold-standard-2026-10-26",
@@ -1921,7 +1945,11 @@
         "transferable_discipline": "Examine leverage together with unintended effects, power, accountability, and correction.",
         "abstention_boundary": "Do not assume every intervention is a leverage point.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "powerful intervention with safeguards",
+      "runtime_transfer": true,
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+      "doorway_note": "No continuation doorway was visible in the screenshot-approved exemplar; no doorway is inferred or invented."
     },
     {
       "benchmark_id": "general-guide-complexity-and-uncertainty-gold-standard-2026-10-26",
@@ -1962,7 +1990,8 @@
         "transferable_discipline": "Distinguish interconnectedness from lack of knowledge and explain how they can interact.",
         "abstention_boundary": "Do not substitute a distinction for practical relevance.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "distinction under complexity"
     },
     {
       "benchmark_id": "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26",
@@ -2006,7 +2035,8 @@
         "transferable_discipline": "Bring partial knowledge into relationship while preserving disagreement and uncertainty.",
         "abstention_boundary": "Do not force consensus or claim integration eliminates uncertainty.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "integration without false consensus"
     },
     {
       "benchmark_id": "general-guide-leadership-vs-positional-authority-gold-standard-2026-10-26",
@@ -2042,7 +2072,9 @@
         "transferable_discipline": "Distinguish formal authority from demonstrated conduct, judgment, and earned trust.",
         "abstention_boundary": "Do not generalize one role distinction to unrelated concepts.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "role vs practice",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-operational-discipline-humane-leadership-gold-standard-2026-10-26",
@@ -2081,7 +2113,9 @@
         "transferable_discipline": "Translate humane intentions into dependable practice while distinguishing discipline from rigidity or control.",
         "abstention_boundary": "Do not treat process discipline as a substitute for judgment.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "humane reliability",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-competing-stakeholder-obligations-gold-standard-2026-10-26",
@@ -2118,7 +2152,9 @@
         "transferable_discipline": "Make obligations, rights, burdens, power asymmetries, trade-offs, and review visible.",
         "abstention_boundary": "Do not imply equal consideration always means equal outcomes.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "stakeholder tradeoffs",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-governance-beyond-administration-gold-standard-2026-10-26",
@@ -2155,7 +2191,9 @@
         "transferable_discipline": "Distinguish underlying authority and decision structures from day-to-day execution.",
         "abstention_boundary": "Do not use this distinction where operational detail is the actual question.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "governance architecture",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-charisma-constitutional-restraint-gold-standard-2026-10-26",
@@ -2192,7 +2230,9 @@
         "transferable_discipline": "Pair influence with scrutiny, dissent, independent review, and correctability.",
         "abstention_boundary": "Do not presume misconduct solely from strong influence.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "power with checks",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-governance-redesign-preaction-questions-gold-standard-2026-10-26",
@@ -2228,7 +2268,9 @@
         "transferable_discipline": "Before redesign, clarify purpose, evidence, power effects, safeguards, alternatives, and correction.",
         "abstention_boundary": "Do not turn this into a generic checklist for unrelated change.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "preaction governance inquiry",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-institutional-memory-gold-standard-2026-10-26",
@@ -2263,7 +2305,9 @@
         "transferable_discipline": "Preserve not only records but reasons, conditions, and uncertainty so successors can exercise judgment.",
         "abstention_boundary": "Do not assume retaining information alone creates institutional memory.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "continuity with context",
+      "runtime_transfer": true
     },
     {
       "benchmark_id": "general-guide-conflicting-information-discernment-gold-star-2026-11-07",
@@ -2310,7 +2354,8 @@
         "transferable_discipline": "Separate verified information, inference, assumptions, and unresolved claims; match action thresholds to stakes and reversibility.",
         "abstention_boundary": "Do not demand impossible certainty or reduce every issue to source counting.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
-      }
+      },
+      "known_theme": "epistemic discernment"
     },
     {
       "benchmark_id": "general-guide-developmental-language-gold-star-2026-11-09",
@@ -2457,7 +2502,7 @@
       "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
     }
   ],
-  "last_reconciliation_note": "Canonical additive ledger; approved Gold Stars are appended as immutable records and reconciled with qualitative transfer governance.",
+  "last_reconciliation_note": "Canonical additive ledger integrity normalization: approved Gold Stars use explicit known_theme and runtime_transfer fields derived from existing capability metadata; intentional absence of a doorway is explicitly represented without altering frozen response content.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -2576,5 +2621,11 @@
     "addition_rule": "A new Gold Star is an addition to the existing canonical ledger, never the start of a parallel registry. Approval records must preserve provenance, rating when assigned, and an explicit approval record.",
     "reconciliation_rule": "If an approved candidate was temporarily recorded outside this ledger, reconcile it into this registry before counting it as a new Gold Star. Do not maintain competing totals.",
     "runtime_rule": "Runtime QA and production systems may consume or mirror approved lessons, but they do not define the authoritative count."
+  },
+  "integrity_audit": {
+    "last_audit_date": "2026-11-13",
+    "approved_gold_star_count": 26,
+    "registry_record_count": 64,
+    "review_reconciliation": "26 approved Gold Stars matched to 26 qualitative transfer reviews; no duplicate benchmark IDs detected."
   }
 }
