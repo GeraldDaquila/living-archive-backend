@@ -385,6 +385,7 @@ def test_recommendation_boundary_preserves_preselected_canonical_primary(monkeyp
         lambda _query, _context: {"title": direct["title"], "url": direct["url"]},
     )
 
+    monkeypatch.setattr(main, "_PINECONE_RETRIEVAL_BYPASS", False)
     for query in queries:
         result = main._recommendation_first_fetch(query)
         selected = main._parse_context_documents(result["canonical_link_context"])
