@@ -1304,9 +1304,16 @@ _original_fetch_canonical_context = use_core.fetch_canonical_context
 # Pinecone monthly allocation may be unavailable. During that condition, visitor
 # requests must not spend quota retrying a known-open circuit: use the published
 # canonical territorial mirror for discovery/navigation instead.
-_PINECONE_RETRIEVAL_BYPASS = str(
-    os.getenv("USE_PINECONE_RETRIEVAL_BYPASS", "true")
-).strip().casefold() in {"1", "true", "yes", "on"}
+from datetime import datetime, timezone
+
+# Temporary quota protection. The bypass expires automatically when Pinecone's
+# monthly allocation is expected to reset on 2026-12-01.
+_PINECONE_BYPASS_UNTIL_UTC = datetime(2026, 12, 1, 0, 0, tzinfo=timezone.utc)
+_PINECONE_RETRIEVAL_BYPASS = (
+    datetime.now(timezone.utc) < _PINECONE_BYPASS_UNTIL_UTC
+    and str(os.getenv("USE_PINECONE_RETRIEVAL_BYPASS", "true")).strip().casefold()
+    in {"1", "true", "yes", "on"}
+)
 
 
 def _mirror_registry_context(query_str):
@@ -1377,6 +1384,8 @@ def _recommendation_first_fetch(query_str):
             f"mirror_registry_assets_selected={data.get('mirror_registry_count', 0)}"
         )
     else:
+        if datetime.now(timezone.utc) >= _PINECONE_BYPASS_UNTIL_UTC:
+            print("The Guide retrieval boundary: pinecone_bypass_expired=true; pinecone_resume_eligible=true")
         data = _original_fetch_canonical_context(query_str)
     if not isinstance(data, dict) or profile.get("risk"):
         return data
