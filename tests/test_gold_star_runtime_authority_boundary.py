@@ -12,3 +12,18 @@ def test_current_user_approved_gold_standard_remains_runtime_eligible():
 def test_frozen_reference_has_no_runtime_answer_authority():
     record=next(r for r in _records() if r["status"]=="FROZEN_REFERENCE_ONLY" and r.get("expected_response"))
     assert resolve_exact_gold_standard(record["query"]) is None
+
+
+from gold_star_lessons import deterministic_fallback_contribution
+
+def test_gold_star_quality_memory_can_supply_bounded_deterministic_fallback():
+    contribution = deterministic_fallback_contribution(
+        "How can an institution preserve organizational learning and continuity?"
+    )
+    assert contribution is not None
+    assert contribution["response"]
+    assert "prewritten answer" in contribution["response"]
+    assert contribution["benchmark_id"]
+
+def test_gold_star_fallback_abstains_without_structural_match():
+    assert deterministic_fallback_contribution("zxqv blorfing unrelated tokens") is None
