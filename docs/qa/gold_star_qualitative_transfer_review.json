@@ -209,15 +209,6 @@
       "qualifying_context": "Questions about conflicting information, trust, uncertainty, and acting under incomplete knowledge.",
       "abstention_boundary": "Do not demand impossible certainty or reduce every issue to source counting.",
       "activation": "active_quality_contributor"
-    },
-    {
-      "benchmark_id": "general-guide-decline-without-romanticizing-gold-star-2026-11-12",
-      "question": "How can we discuss decline without romanticizing it?",
-      "reasoning_family": "honest_decline_without_nostalgia",
-      "transferable_discipline": "Distinguish genuine loss from nostalgia, and distinguish measurable improvement from the disappearance of forms of continuity, belonging, skill, or trust; make unequal experience and historical exclusions visible.",
-      "qualifying_context": "Questions about decline, loss, nostalgia, social change, historical comparison, and progress narratives.",
-      "abstention_boundary": "Do not idealize the past, assume all change is decline, or use progress as a reason to dismiss genuine loss.",
-      "activation": "active_quality_contributor"
     }
   ]
 }
