@@ -8693,15 +8693,27 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         and not direct_attribute_evidence_missing
     )
     _concept_orientation_fallback = None
+    _archive_voice_meaning_final = bool(re.search(
+        r"^(?:what does|what do)\s+(?:the\s+|this\s+)?(?:living\s+)?archive\s+mean\s+by\s+",
+        str(query or "").strip(), re.I
+    ))
     if _verified_concept_orientation:
         _doorway_title = str(
             verified_navigation_doorway.get("title") or "related Archive material"
         ).strip()
         _concept_orientation_fallback = _sanitize_basic_inquiry_response(
-            "The Archive does not appear to provide a single formal definition for this exact relationship. "
-            "A useful Archive doorway is " + _doorway_title + ". "
-            "It offers a grounded way to explore one of the central ideas in your question, "
-            "without implying that the Archive has formally defined the relationship itself."
+            (
+                "In the Archive's usage, this is best approached as an orientation rather than a single dictionary definition. "
+                + _doorway_title
+                + " provides a relevant starting point for understanding the pattern of change the Archive is exploring."
+            )
+            if _archive_voice_meaning_final
+            else (
+                "The Archive does not appear to provide a single formal definition for this exact relationship. "
+                "A useful Archive doorway is " + _doorway_title + ". "
+                "It offers a grounded way to explore one of the central ideas in your question, "
+                "without implying that the Archive has formally defined the relationship itself."
+            )
         )
 
     if _conceptual_inquiry and general_knowledge_recovery is None:
@@ -9327,14 +9339,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 "general conceptual answer without Archive attribution or doorway."
                             )
                         else:
-                            response = _archive_limitation_response(query)
-                            archive_evidence_unavailable = True
-                            composition_context["evidence_sufficiency_unavailable"] = True
-                            print(
-                                "The Guide conceptual boundary: no question-matched canonical "
-                                "sentences and no substantive general answer to preserve; "
-                                "returned the Archive-only limitation."
-                            )
+                            if _archive_voice_meaning_final and verified_navigation_available:
+                                response = _concept_orientation_fallback
+                                authoritative_doorway = verified_navigation_doorway
+                                archive_evidence_unavailable = False
+                                composition_context["authoritative_doorway"] = authoritative_doorway
+                                composition_context["authoritative_doorway_title"] = authoritative_doorway.get("title") or ""
+                                composition_context.pop("evidence_sufficiency_unavailable", None)
+                                composition_context["conceptual_subject_recovery"] = "institutional_meaning_verified_doorway"
+                                print("The Guide conceptual boundary: preserved verified doorway orientation for Archive-voice meaning request.")
+                            else:
+                                response = _archive_limitation_response(query)
+                                archive_evidence_unavailable = True
+                                composition_context["evidence_sufficiency_unavailable"] = True
+                                print(
+                                    "The Guide conceptual boundary: no question-matched canonical "
+                                    "sentences and no substantive general answer to preserve; "
+                                    "returned the Archive-only limitation."
+                                )
 
     # Conceptual evidence gates govern explanatory attribution, not a separately
     # selected canonical next step. Restore the request-level navigation decision
