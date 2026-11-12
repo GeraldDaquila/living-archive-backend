@@ -2333,6 +2333,51 @@
         "evidence_boundary": "This record preserves the approved calibration lesson and runtime transfer, not a verbatim visitor response fixture."
       },
       "freeze_policy": "Preserve the calibration lesson and runtime transfer; do not represent this record as an exact response fixture until one is independently registered."
+    },
+    {
+      "benchmark_id": "general-guide-decline-without-romanticizing-gold-star-2026-11-12",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How can we discuss decline without romanticizing it?",
+      "expected_response": "We can discuss decline without romanticizing it by beginning with what has actually been lost, damaged, or made more difficult—and for whom. Decline is not made more truthful by treating the past as uniformly better, but neither is it understood by dismissing grief, memory, or the disappearance of things that genuinely mattered.\n\nIt helps to distinguish several questions that are often collapsed together: what has changed, what has been lost, what has improved, and who has experienced each of those changes differently. A society or institution can become more efficient in one respect while losing forms of continuity, belonging, skill, or trust that are harder to measure. The past also contained exclusions and failures that nostalgia can conceal.\n\nThe aim is neither nostalgia nor automatic faith in progress, but a more honest account of change. Ask what is worth preserving, what needs to be relinquished, what should be repaired, and whose experience is missing from the story we tell about decline.",
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "rating_out_of_10": 9.2,
+      "assertions": [
+        "User explicitly requested structural repair and Gold Star elevation after reviewing the production visitor response on 2026-11-12.",
+        "Does not misclassify a reflective question about decline as a generic action-planning request.",
+        "Exactly three cohesive paragraphs: establish the loss without nostalgia, distinguish change/loss/improvement and unequal experience, then orient toward an honest account of what to preserve, relinquish, repair, and re-examine.",
+        "Acknowledges genuine loss, grief, memory, and continuity without idealizing the past.",
+        "Makes exclusions and failures of the past visible so critique of decline does not become nostalgia.",
+        "Rejects both nostalgia and automatic faith in progress.",
+        "Answer remains complete without a forced doorway."
+      ],
+      "provenance": {
+        "source_path": "deterministic_answer_recovery.py",
+        "source_ref": "main",
+        "source_location": "decline/romanticization reflective recovery branch",
+        "production_evidence": "User-provided screenshot of the actual production Guide response showing generic action-planning fallback.",
+        "approval_record": "Explicit user instruction: 'fix structurally to gold star' following review of the production visitor response on 2026-11-12.",
+        "evidence_boundary": "The screenshot establishes the failure mode. The proposed Gold Star response is a governed structural replacement and requires validation before production promotion."
+      },
+      "freeze_policy": "Approved Gold Star exemplar. Do not silently rewrite the expected response or alter its approval status. Any wording change requires a separately versioned benchmark and explicit user approval.",
+      "runtime_transfer": true,
+      "related_question_variants": [
+        "How can we think about social decline without nostalgia?",
+        "How do we acknowledge what has been lost without pretending the past was better?"
+      ],
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "honest_decline_without_nostalgia",
+        "transferable_discipline": "Distinguish genuine loss from nostalgia, and distinguish measurable improvement from the disappearance of forms of continuity, belonging, skill, or trust; make unequal experience and historical exclusions visible.",
+        "abstention_boundary": "Do not idealize the past, assume all change is decline, or use progress as a reason to dismiss genuine loss.",
+        "intake_note": "Capability metadata governs transferable response discipline and does not establish a universal theory of historical decline."
+      }
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control. New approved record added on October 26, 2026: the screenshot-approved governance-beyond-administration response is registered as USER_APPROVED_GOLD_STANDARD with exact three-paragraph wording and a separately verified live doorway URL.",
