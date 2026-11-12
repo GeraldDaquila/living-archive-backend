@@ -499,7 +499,11 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "A responsible decision does not require certainty, but it does require clear reasons, proportionate attention to risk, and willingness to correct course. "
             "If a choice is reversible, a limited trial may be wiser than treating it as permanent; if it creates lasting harm, use a more demanding standard of care."
         )
-    elif re.search(r"\b(?:discuss|understand|talk about|speak about)\b", lower) and re.search(r"\bdecline\b", lower) and re.search(r"\b(?:romanticiz|nostalgia|nostalgic)\b", lower):
+    elif (
+        re.search(r"\b(?:discuss|understand|talk about|speak about|frame|describe)\b", lower)
+        and re.search(r"\bdeclin\w*\b", lower)
+        and re.search(r"\b(?:romanticiz\w*|nostalg\w*)\b", lower)
+    ):
         # Reflective questions about decline are not generic action-planning
         # requests. Keep loss, historical memory, and change in view, then
         # offer one evidence-backed Archive doorway when the local canonical

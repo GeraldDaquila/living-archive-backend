@@ -179,3 +179,21 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_decline_romanticization_reflective_route_handles_natural_variants():
+    from deterministic_answer_recovery import compose_recovery
+
+    variants = [
+        "How should the Guide discuss decline without romanticizing it?",
+        "How can we discuss social decline without romanticising the past?",
+        "How do we understand decline without becoming nostalgic?",
+    ]
+    for question in variants:
+        answer = compose_recovery(question)
+        lowered = answer.casefold()
+        assert "lost golden age" in lowered
+        assert "nostalgia" in lowered
+        assert "what changed" in lowered
+        assert "what changed that i haven’t been able to name?" in lowered
+        assert not answer.startswith("For a question like")
