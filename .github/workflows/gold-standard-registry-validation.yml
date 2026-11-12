@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "docs/qa/gold_standard_registry.json"
+      - "docs/qa/GOLD_STANDARD_REGISTRY.md"
       - "scripts/qa/report_gold_standard_registry.py"
       - "scripts/qa/capture_live_guide_gold_standard_candidate.py"
       - "tests/test_gold_standard_registry.py"
@@ -18,6 +19,7 @@ on:
     branches: [main]
     paths:
       - "docs/qa/gold_standard_registry.json"
+      - "docs/qa/GOLD_STANDARD_REGISTRY.md"
       - "scripts/qa/report_gold_standard_registry.py"
       - "scripts/qa/capture_live_guide_gold_standard_candidate.py"
       - "tests/test_gold_standard_registry.py"
