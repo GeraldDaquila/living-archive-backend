@@ -1420,7 +1420,15 @@ def _recommendation_first_fetch(query_str):
     # against literal-ranking blind spots: it consults the persisted canonical
     # snapshot, not a live enumeration of the Pinecone corpus. Existing topical
     # evidence still passes the normal relevance and authority gates below.
-    if not docs or profile.get("action") in {"recommendation", "navigation"}:
+    # During the temporary Pinecone egress bypass, the persisted Meta-Net /
+    # meta-crosslink registry is the retrieval substrate. Do not let a small
+    # non-empty orientation seed suppress the same registry's broader canonical
+    # relationship expansion; that creates an artificial four-document ceiling.
+    if (
+        not docs
+        or profile.get("action") in {"recommendation", "navigation"}
+        or _PINECONE_RETRIEVAL_BYPASS
+    ):
         try:
             recovery_token_count = len(
                 re.findall(
@@ -1473,8 +1481,9 @@ def _recommendation_first_fetch(query_str):
                             if existing_block_text else extra_block_text
                         )
                     print(
-                        "The Guide full-corpus meta-crosslink: "
-                        f"added={len(additions)}, seed={len(existing_urls)}"
+                        "The Guide canonical Meta-Net expansion: "
+                        f"added={len(additions)}, seed={len(existing_urls)}; "
+                        f"pinecone_bypassed={_PINECONE_RETRIEVAL_BYPASS}"
                     )
         except Exception as exc:
             print(f"The Guide full-corpus meta-crosslink failed safely: {type(exc).__name__}")
