@@ -867,6 +867,20 @@ def select_crosslinks(
     query_tokens = _tokens(query)
     if not query_tokens:
         return []
+
+    # Institutional meaning questions often contain the exact Archive concept
+    # after a long framing prefix ("What does the Archive mean by …?").
+    # Rank the concept itself as a query variant so the territorial map is not
+    # penalized for unrelated framing words.
+    concept_match = re.match(
+        r"^\s*(?:what does|what do)\s+(?:the\s+|this\s+)?(?:living\s+)?archive\s+mean\s+by\s+(.+?)\s*[?!.]*\s*$",
+        query or "",
+        re.I,
+    )
+    if concept_match:
+        concept_tokens = _tokens(concept_match.group(1))
+        if concept_tokens:
+            query_tokens = concept_tokens
     existing_urls = {
         _normalize_url(doc.get("url") or doc.get("canonical_url"))
         for doc in seed_documents or []
