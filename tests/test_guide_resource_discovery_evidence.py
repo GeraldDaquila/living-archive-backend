@@ -1,3 +1,4 @@
+from pathlib import Path
 """
 Resource discovery QA for The Guide.
 
