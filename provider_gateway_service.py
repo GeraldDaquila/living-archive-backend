@@ -29,7 +29,6 @@ ALLOWED_OPERATIONS = frozenset({
     "stewardship_pathway",
     "fsd_report_composition",
     "safety_conversation",
-    "general_guide_composition",
 })
 
 def _shared_secret() -> str:
