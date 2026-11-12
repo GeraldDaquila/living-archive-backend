@@ -88,7 +88,8 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
 
     def test_ethical_tradeoff_does_not_trigger_for_ordinary_practical_question(self):
         answer = compose_recovery("How can a team coordinate a project rollout?")
-        self.assertIn("clarifying the outcome", answer)
+        self.assertIn("What outcome is the organisation trying to achieve", answer)
+        self.assertNotIn("A practical way to approach", answer)
         self.assertIn("who will be affected", answer)
         self.assertEqual(len([p for p in answer.split("\n\n") if p.strip()]), 3)
         self.assertNotIn("least power", answer)
