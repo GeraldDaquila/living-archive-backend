@@ -3169,8 +3169,19 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 configured_timeout, deadline_monotonic,
                 now=time.monotonic() if deadline_monotonic is not None else None,
             ) or 0.0
-            # Admit a fallback only when its full bounded call can fit inside both
-            # the operation window and the shared visitor-request deadline.
+            # Adaptive Guide timeouts are budget-aware: reserve enough of the
+            # arbitration window for at least one independent candidate.
+            if operation == "general_guide_composition":
+                candidates_left = max(1, len(attempt_pool) - attempt_index)
+                remaining_window = max(0.0, fast_failure_window - elapsed)
+                reserved_fallback_seconds = min(
+                    GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS,
+                    remaining_window,
+                ) if candidates_left else 0.0
+                candidate_timeout = min(
+                    candidate_timeout,
+                    max(0.0, remaining_window - reserved_fallback_seconds),
+                )
             if candidate_timeout <= 0.0 or elapsed + candidate_timeout > fast_failure_window:
                 print(
                     "USE provider bank fast-failure fallback: "
