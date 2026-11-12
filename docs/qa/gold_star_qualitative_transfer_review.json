@@ -209,6 +209,24 @@
       "qualifying_context": "Questions about conflicting information, trust, uncertainty, and acting under incomplete knowledge.",
       "abstention_boundary": "Do not demand impossible certainty or reduce every issue to source counting.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-civilizational-transition-archive-meaning-gold-star-2026-11-13",
+      "question": "What does the Archive mean by civilizational transition?",
+      "reasoning_family": "transition_under_uncertainty",
+      "transferable_discipline": "Distinguish strain and transition from predictions of collapse or progress; orient action around changing conditions, what is worth carrying forward, and responsibility under uncertainty.",
+      "qualifying_context": "Questions about civilizational, institutional, or social transition under uncertainty.",
+      "abstention_boundary": "Do not turn a transition frame into a claim that every disruption is civilizational or that history has a predetermined destination.",
+      "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13",
+      "question": "A company wants to use AI to reduce staffing costs. How should The Guide analyze this through operations, governance, human development, ethics, and stewardship?",
+      "reasoning_family": "integrated_institutional_judgment",
+      "transferable_discipline": "Make the decision visible by integrating purpose, authority, consequences, affected knowledge, real options, and revisability before prescribing action.",
+      "qualifying_context": "Complex institutional decisions spanning operations, governance, human development, ethics, stewardship, or AI-assisted judgment.",
+      "abstention_boundary": "Do not use this frame to make the decision for responsible authorities or reduce a simple practical question to an institutional analysis.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
