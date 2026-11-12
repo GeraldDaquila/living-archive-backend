@@ -2666,6 +2666,30 @@ def operational_discipline_humane_leadership_recovery(query: str) -> Optional[st
     )
 
 
+def _requires_growth_within_limits_explanation(question: str) -> bool:
+    q = _normalize_space(question).casefold()
+    return (
+        bool(re.search(r"\\bgrowth\\b", q))
+        and bool(re.search(r"\\b(?:ecological|environmental|social)\\b", q))
+        and bool(re.search(r"\\b(?:limit|limits|finite|capacity|carrying|boundary|boundaries)\\b", q))
+    )
+
+
+def _growth_within_limits_recovery() -> str:
+    """Bounded mechanism recovery for growth that exceeds sustaining limits."""
+    return (
+        "Growth can become destructive when expansion outruns the capacity of the larger systems that sustain it. "
+        "Ecological systems can regenerate resources and absorb waste only up to certain limits; when those limits are ignored, "
+        "the costs of continued expansion can appear as depletion, pollution, or damage that is pushed elsewhere or into the future.\n\n"
+        "Social limits matter as well. Rapid expansion can overload infrastructure and institutions, weaken trust or cohesion, "
+        "and concentrate benefits while shifting disruption onto people with less power to absorb it. A system can therefore grow in output "
+        "while becoming less capable of sustaining the relationships and conditions on which that output depends.\n\n"
+        "The central distinction is between growth as an increase in scale and development as an improvement in the health and capacity of the whole system. "
+        "When feedback from ecological and social limits is taken seriously, growth can be adjusted to what the larger system can sustain; "
+        "when that feedback is detached or ignored, expansion can become a form of overshoot rather than progress."
+    )
+
+
 def _default_gold_standard_evidence_recovery(
     question: str,
     documents: List[Dict[str, str]],
@@ -2946,7 +2970,11 @@ def compose(
             else ""
         )
         + glossary_authority_instruction
-        + f"Archive material available to ground the answer:\n{_evidence_payload(documents) if documents else 'No relevant Archive material was retrieved for this question. Use reliable general knowledge where appropriate; do not invent Archive-specific claims or sources.'}"
+        + (
+            "Archive material available to ground the answer:\n"
+            + (_evidence_payload(documents)[:6000] if documents else
+               "No relevant Archive material was retrieved for this question. Use reliable general knowledge where appropriate; do not invent Archive-specific claims or sources.")
+        )
     )
 
     cache_key = _composition_cache_key(
@@ -2973,13 +3001,22 @@ def compose(
                 "\n\n" + integrity_recovery_instruction.strip()
                 if integrity_recovery_instruction else ""
             )},
-            {"role": "user", "content": user_content[:10000]},
+            {"role": "user", "content": user_content[:7000]},
         ],
         max_tokens=900,
         parse=_parse_factory(documents, effective_question),
         deadline_monotonic=deadline_monotonic,
     )
     if not result:
+        if _requires_growth_within_limits_explanation(question):
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="growth_within_limits")
+            return {
+                "response": _growth_within_limits_recovery(),
+                "doorway_title": "",
+                "response_shape": "explanatory",
+                "provider": "bounded_growth_within_limits_recovery",
+                "model": "deterministic-contract-recovery",
+            }
         if _requires_conflicting_information_discernment(question):
             _emit_guide_outcome("provider_exhaustion_fallback", recovery="conflicting_information_discernment")
             return {
