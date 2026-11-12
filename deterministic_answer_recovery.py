@@ -259,6 +259,33 @@ def _historical_cultural_recovery():
     )
 
 
+def _is_public_predictive_system_question(question):
+    """Recognize consequential public-sector predictive systems before generic fallback."""
+    q = _clean(question).casefold()
+    public_system = bool(re.search(
+        r"\b(?:government|public services?|public sector|state|municipal|city government|agency)\b",
+        q,
+    ))
+    predictive_system = bool(re.search(
+        r"\b(?:predictive system|predictive model|algorithmic system|automated decision|ai system|automated system)\b",
+        q,
+    ))
+    constitutional_human = bool(re.search(
+        r"\b(?:constitutional|rights?|due process|human questions?|human consequences?|dignity|adoption|precede)\b",
+        q,
+    ))
+    return public_system and predictive_system and constitutional_human
+
+
+def _public_predictive_system_recovery():
+    """Keep constitutional legitimacy and human consequences ahead of efficiency."""
+    return (
+        "Before asking how efficiently a predictive system can deliver public services, ask what public authority is being exercised and on what constitutional basis. What decisions will the system influence, who remains accountable for them, and which rights or protections must not be weakened in the name of accuracy or speed? A system can be technically effective and still be inappropriate if its purpose, authority, or limits have not been made clear.\n\n"
+        "The next question is what the system cannot see. Predictive tools work from records of the past, but public records can reflect unequal access, earlier exclusions, and institutional assumptions. People affected by the system should be able to understand decisions that materially affect them, challenge errors, and reach a responsible human authority rather than being trapped inside an automated conclusion. The people most likely to bear the consequences should not be treated merely as data sources after the design is complete.\n\n"
+        "Only then is efficiency the right question to ask. Compare the proposed system with realistic alternatives and ask what is gained, what new risks are created, and how those risks will be detected and corrected. Public adoption should remain reversible where possible, subject to independent review, and accountable to the people whose rights and lives are affected. The aim is not to reject prediction, but to ensure that public power remains constitutional, intelligible, and answerable as technology changes."
+    )
+
+
 def compose_recovery(question, *, underlying_question="", desired_movement=""):
     """Offer a useful bounded response without inventing facts or sources."""
     q = _clean(question)
@@ -292,7 +319,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         and re.search(r"\binterpreter\b", lower)
         and re.search(r"\bauthority\b", lower)
     )
-    if civilizational_transition:
+    if _is_public_predictive_system_question(q):
+        answer = _public_predictive_system_recovery()
+    elif civilizational_transition:
         answer = (
             "In the Living Archive, civilizational transition refers to a period in which the systems that organize collective life are changing together, rather than a single government, technology, or economic arrangement simply being replaced. "
             "Ecological conditions, governance, economic relationships, information systems, and cultural coherence can all come under pressure at the same time. "
