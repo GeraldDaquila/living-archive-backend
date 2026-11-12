@@ -4899,6 +4899,41 @@ def _is_explanatory_inquiry(query):
     return sum(bool(re.search(pattern, q, re.I)) for pattern in explanation_signals) >= 1
 
 
+def _is_contextual_synthesis_inquiry(query):
+    """Recognize comparison/synthesis questions that remain answerable without source invention."""
+    q = _normalize_query(query)
+    if not q:
+        return False
+    return bool(re.search(
+        r"\b(?:two|multiple|several)\s+(?:archive\s+)?texts?\b.*\b(?:different|competing|contrasting)\b.*\b(?:values?|emphases?|principles?)\b"
+        r"|\b(?:identify|understand|hold)\b.{0,100}\b(?:tension|difference|trade-?off)\b"
+        r"|\b(?:contextual|context-sensitive)\s+synthesis\b",
+        q,
+        re.I,
+    ))
+
+
+def _is_archive_verification_nonanswer(response):
+    """Detect refusal about unavailable material when the visitor asked for a method of synthesis."""
+    text = _normalize_query(response)
+    return bool(re.search(
+        r"\b(?:could(?: not|n't) verify a reliable answer from the material available|"
+        r"could not identify a sufficiently relevant archive resource)\b",
+        text,
+        re.I,
+    ))
+
+
+def _contextual_synthesis_recovery():
+    """Provide a bounded method without pretending to know unseen source content."""
+    return (
+        "Different emphases do not necessarily mean that two texts are making incompatible claims. "
+        "The first step is to identify the value each text is trying to protect, the condition or problem it is responding to, and what may be lost if that value is treated as the only one that matters. The tension becomes clearer when the values are compared as different concerns rather than as positions that must immediately defeat one another.\n\n"
+        "From there, context can do some of the synthesizing. Ask where each value has greater weight, what conditions make its emphasis necessary, and what risks appear when it is applied without the counterweight offered by the other text. A contextual synthesis does not erase the difference; it explains why both concerns may matter while refusing to treat either as universally sufficient.\n\n"
+        "The goal is therefore not to force agreement between the texts, but to make the relationship between their values more intelligible: what each preserves, what each can overlook, and how the surrounding circumstances change the balance between them. That leaves the tension visible while turning it into a more useful question of judgment."
+    )
+
+
 def _systems_intelligibility_recovery(query):
     """Minimum orientation when decision coaching contaminates an explanatory inquiry."""
     return (
@@ -4913,6 +4948,26 @@ def _guide_finalize_visitor_payload(payload, query):
     if not isinstance(payload, dict):
         return payload
     response_text = str(payload.get("response") or "")
+    # Comparative and contextual synthesis questions remain answerable even when
+    # the exact source texts are not available. The Guide may explain a method
+    # of reasoning without inventing what unseen texts say.
+    if (
+        _is_contextual_synthesis_inquiry(query)
+        and _is_archive_verification_nonanswer(response_text)
+    ):
+        safe = dict(payload)
+        safe["response"] = _contextual_synthesis_recovery()
+        safe["recommendation"] = _normalize_authoritative_recommendation(
+            safe.get("recommendation")
+        )
+        safe["processing"] = "final_visitor_boundary_contextual_synthesis_protection"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        print(
+            "The Guide final visitor boundary: restored contextual synthesis orientation."
+        )
+        return safe
+
     # Generic decision coaching is a restricted response mode, not a universal
     # fallback. A fluent decision template is still a failure when the visitor
     # asked for explanation or intelligibility rather than deliberation.
