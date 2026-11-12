@@ -1917,17 +1917,31 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                         "Archive-scoped meaning answer is circular meta-definition, not a substantive definition"
                     )
                 opening = paragraphs[0]
-                if not re.search(r"\bhuman development\b", opening, re.I) or not re.search(
-                    r"\b(?:is|means|refers to|describes|involves)\b",
-                    opening,
-                    re.I,
-                ):
+                # Concept-specific evidence must come from the visitor's question,
+                # not from a previous calibration subject.  Requiring every
+                # Archive-scoped definition to mention "human development" caused
+                # otherwise valid answers about other concepts to be rejected,
+                # exhausting providers and exposing an unrelated fallback.
+                subject_match = re.search(
+                    r"(?i)^what\s+does\s+(?:the\s+|this\s+)?(?:living\s+)?archive\s+mean\s+by\s+(.+?)\??$",
+                    _normalize_space(query),
+                )
+                subject = _normalize_space(subject_match.group(1)) if subject_match else ""
+                subject_terms = [
+                    token for token in re.findall(r"[a-zA-Z]{4,}", subject.casefold())
+                    if token not in {"what", "does", "mean", "archive", "living"}
+                ]
+                if not re.search(r"\b(?:is|means|refers to|describes|involves)\b", opening, re.I):
                     raise ValueError(
-                        "Archive-scoped meaning answer must define the actual concept in its opening paragraph"
+                        "Archive-scoped meaning answer must define the requested concept in its opening paragraph"
                     )
-                if not re.search(r"\b(?:Living Archive|Archive)\b", paragraphs[0], re.I):
+                if subject_terms and not any(re.search(r"\b" + re.escape(token) + r"\b", opening, re.I) for token in subject_terms):
+                    raise ValueError(
+                        "Archive-scoped meaning answer must name the requested concept in its opening paragraph"
+                    )
+                if not re.search(r"\b(?:Living Archive|Archive)\b", opening, re.I):
                     raise ValueError("Archive-scoped meaning answer must answer in the named institutional context")
-                if not re.search(r"\b(?:capacities|judgment|relationships|agency|flourishing|development)\b", paragraphs[0], re.I):
+                if not re.search(r"\b(?:pattern|change|transition|conditions|relationships|institutions|capacities|judgment|agency|development|systems?)\b", opening, re.I):
                     raise ValueError(
                         "Archive-scoped meaning answer must give substantive conceptual content in the opening paragraph"
                     )
