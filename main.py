@@ -5297,11 +5297,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     )
     if _systems_scale_question:
         _systems_scale_response = (
-            "Local action can contribute to systemic ecological transformation when it is understood as part of a wider pattern rather than as an isolated intervention. "
-            "Changes in a community, institution, or place can reveal what is possible, build relationships and capacities, and influence the conditions in which larger systems operate.\n\n"
-            "The connection works in both directions. Local action becomes more consequential when it is linked to wider networks, institutions, policies, and shared learning; systemic change becomes more durable when it can take root in the practices and relationships of particular places. "
-            "The question is therefore not whether local or systemic action matters more, but how action at different scales can reinforce one another.\n\n"
-            "A useful next step is to explore the Archive territory identified for this question, where the Guide can help connect local agency, systems thinking, and ecological transformation without pretending that one resource exhausts the subject."
+            "Local action connects to systemic ecological transformation when it changes more than one isolated outcome: it can alter relationships, reveal a feedback loop, or establish a practice that others can learn from and carry into wider institutions. A community project may therefore matter not only for what it accomplishes locally, but for the conditions and possibilities it makes visible beyond its original place.\n\n"
+            "The connection also works in the other direction. Wider policies, institutions, and networks can give local efforts the support and reach they need, while systemic change becomes more durable when it takes root in the everyday practices and relationships of particular places. The central question is not whether change should begin locally or systemically, but how action at one scale can strengthen the conditions for change at another.\n\n"
+            "One useful way to continue is to ask which relationship, feedback loop, or condition in the local setting could connect this action to a wider pattern of ecological change."
         )
         _recovery_doorway = _normalize_authoritative_recommendation(
             context_data.get("authoritative_doorway")
