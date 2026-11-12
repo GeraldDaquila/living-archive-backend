@@ -102,6 +102,23 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         self.assertNotIn("A useful explanation should establish", answer)
         self.assertNotIn("What detail or context would make this question", answer)
 
+    def test_archive_civilizational_transition_meaning_is_answered_during_retrieval_outage(self):
+        question = "What does the Archive mean by civilizational transition?"
+        answer = compose_recovery(question)
+        paragraphs = [part.strip() for part in answer.split("\\n\\n") if part.strip()]
+        self.assertEqual(len(paragraphs), 3)
+        self.assertIn("systems that organize collective life are changing together", answer)
+        self.assertIn("not as a guaranteed collapse", answer)
+        self.assertIn("accountable and adaptive governance", answer)
+        self.assertIn("not as a perfect model", answer)
+        self.assertNotIn("I couldn't verify a reliable answer", answer)
+        self.assertNotIn("the Archive officially defines", answer.casefold())
+
+    def test_archive_civilizational_transition_recovery_does_not_capture_unrelated_questions(self):
+        answer = compose_recovery("How can a city manage a transition between software systems?")
+        self.assertNotIn("In the Living Archive, civilizational transition", answer)
+        self.assertIn("practical way to approach", answer)
+
     def test_institutional_orientation_answers_what_it_is_and_is_not(self):
         answer = compose_recovery("What is the Living Archive, and what is it not?")
         paragraphs = [part for part in answer.split("\n\n") if part.strip()]
