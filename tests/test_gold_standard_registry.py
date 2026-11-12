@@ -110,7 +110,8 @@ def test_user_approved_conflicting_information_gold_star_is_registered_exactly()
     assert "independently verified" in record["expected_response"]
     assert "independent sources" in record["expected_response"]
     assert "serious or irreversible consequences" in record["expected_response"]
-    assert record["expected_doorway"]["title"] == "When You Don’t Know What to Believe Anymore"
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
     assert record["expected_doorway"]["url"] is None
     assert "Explicit user instruction" in record["provenance"]["approval_record"]
 
@@ -425,7 +426,8 @@ def test_leadership_vs_positional_authority_gold_standard_is_registered():
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["query"] == "What distinguishes leadership from positional authority?"
     assert len(record["expected_response"].split(chr(10) * 2)) == 3
-    assert record["expected_doorway"]["title"] == "Why Power Changes People"
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
     assert record["expected_doorway"]["url"] is None
     assert "not establish leadership" in record["expected_response"]
     assert "does not independently establish the destination URL" in record["provenance"]["evidence_boundary"]
@@ -455,7 +457,8 @@ def test_fragmented_knowledge_gold_standard_preserves_approved_response():
     assert record["query"] == "How does fragmented knowledge impede wise action?"
     assert record["expected_response"] == expected
     assert len(expected.split(chr(10) * 2)) == 3
-    assert record["expected_doorway"]["title"] == "Knowledge Stewardship in the AI Era: From Information to Wisdom"
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
     assert record["expected_doorway"]["url"] is None
     assert record["provenance"]["review_rating"] == "9.2/10"
     assert "does not independently verify" in record["provenance"]["evidence_boundary"]
