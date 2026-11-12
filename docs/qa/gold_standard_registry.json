@@ -1,6 +1,6 @@
 {
   "registry_id": "living-archive-gold-standard-registry",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "registry_status": "RECOVERY_IN_PROGRESS",
   "authority": "Version-controlled Git source; QA execution must pin a registry commit and report application/runtime identity.",
   "records": [
@@ -1423,7 +1423,17 @@
         "source_ref": "qa/register-human-development-gold-standard",
         "evidence_boundary": "Expected response transcribed from the user-provided live screenshot. Canonical URL independently verified against the published Archive page. Approval is for this observed response and doorway behavior, not a claim that the general explanation is a verbatim canonical doctrine."
       },
-      "freeze_policy": "Preserve approved expected_response and canonical doorway. Change only through an explicit user-authorized benchmark-version update with provenance."
+      "freeze_policy": "Preserve approved expected_response and canonical doorway. Change only through an explicit user-authorized benchmark-version update with provenance.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "humane_orientation",
+        "transferable_discipline": "Begin with a direct human answer, then widen from individual capacity to shared conditions.",
+        "abstention_boundary": "Do not impose this frame on narrow factual or technical questions.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-water-boiling-point-failure-control-2026-10-24",
@@ -1482,7 +1492,17 @@
         "evidence_boundary": "Expected response and disclosure transcribed from the user-provided live screenshot. This standard approves the observed response behavior and transparent Guide-purpose disclosure; it does not claim the science answer is sourced from or canonical doctrine of the Living Archive.",
         "expanded_how_results_are_found_disclosure": "The Guide considers your question alongside the Living Archive’s ideas, themes, and pathways to help you find where to begin. From there, you can explore the Archive for yourself."
       },
-      "freeze_policy": "Preserve the approved response, absence of an unrelated doorway, and provenance boundary. Changes require explicit user authorization and a documented benchmark-version update."
+      "freeze_policy": "Preserve the approved response, absence of an unrelated doorway, and provenance boundary. Changes require explicit user authorization and a documented benchmark-version update.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "direct_factual_answer",
+        "transferable_discipline": "Answer established self-contained facts directly and briefly; do not force Archive framing.",
+        "abstention_boundary": "Abstain from uncertain, contested, or source-dependent claims.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-living-archive-cosmology-gold-standard-2026-10-25",
@@ -1511,7 +1531,17 @@
         "user_approval": "User explicitly approved promotion to gold standard on 2026-10-25 after reviewing the live visitor-facing screenshot.",
         "visitor_e2e_evidence": "Screenshot supplied by user on 2026-10-25 shows the exact query submitted and the three-paragraph answer rendered in the Guide UI, with the expected source doorway and Start another question control."
       },
-      "freeze_policy": "Exact-match only. Do not generalize this response to other cosmology questions; broader questions continue through normal evidence-grounded composition."
+      "freeze_policy": "Exact-match only. Do not generalize this response to other cosmology questions; broader questions continue through normal evidence-grounded composition.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "scope_and_worldview",
+        "transferable_discipline": "Explain the framework while distinguishing a source or example from claims about the whole worldview.",
+        "abstention_boundary": "Do not generalize a local source into a whole corpus.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-first-principles-gold-standard-2026-10-25",
@@ -1545,7 +1575,17 @@
       },
       "freeze_policy": "Exact-match only. Do not generalize this response to other questions; broader questions continue through normal evidence-grounded composition.",
       "rating_out_of_10": 9.3,
-      "approval_state": "Explicitly approved by user as a gold standard after review of the live visitor-facing screenshot on 2026-10-25; assessment 9.3/10, meets expectations."
+      "approval_state": "Explicitly approved by user as a gold standard after review of the live visitor-facing screenshot on 2026-10-25; assessment 9.3/10, meets expectations.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "concept_then_source",
+        "transferable_discipline": "Define the general concept before presenting the specific source-grounded framework.",
+        "abstention_boundary": "Do not present source commitments as universal doctrine.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-living-archive-definition-gold-standard-2026-10-25",
@@ -1574,7 +1614,17 @@
         "review_rating": "9.2/10",
         "approval_basis": "User explicitly requested entry as another gold standard on 2026-10-25."
       },
-      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "identity_and_epistemic_boundary",
+        "transferable_discipline": "Define what something is and is not, including boundaries around certainty and responsibility.",
+        "abstention_boundary": "Do not turn every definition into a manifesto.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-methods-comparison-gold-standard-2026-10-25",
@@ -1599,7 +1649,17 @@
         "source_status": "USER_APPROVED_GOLD_STANDARD",
         "evidence_boundary": "Screenshot confirms visible response and three-paragraph presentation. It does not alone establish live backend provenance or destination URL."
       },
-      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "distinction_before_synthesis",
+        "transferable_discipline": "Define related approaches, preserve their differences, then explain how they complement one another.",
+        "abstention_boundary": "Do not collapse distinct methods into a single generic process.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-cosmology-generalization-standards-gold-standard-2026-10-25",
@@ -1626,7 +1686,17 @@
         "source_status": "USER_APPROVED_GOLD_STANDARD",
         "evidence_boundary": "Screenshot confirms the displayed response and presentation; it does not by itself prove generalization across held-out queries."
       },
-      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "evidence_scope_and_generalization",
+        "transferable_discipline": "Separate direct claims from inference; require corroboration and calibrate conclusions to evidence.",
+        "abstention_boundary": "Do not apply as boilerplate to ordinary conceptual questions.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-stewardship-living-archive-meaning-gold-standard-2026-10-25",
@@ -1655,7 +1725,17 @@
         "approval_basis": "User explicitly requested addition to the Gold Standard registry after reviewing the visitor-facing screenshot on 2026-10-25.",
         "evidence_boundary": "Screenshot confirms the displayed answer, three-paragraph structure, and visible doorway title. It does not independently verify canonical source traceability, destination URL, or backend runtime identity."
       },
-      "freeze_policy": "Preserve expected_response verbatim. Do not change wording or doorway title without explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Preserve expected_response verbatim. Do not change wording or doorway title without explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "stewardship_with_boundaries",
+        "transferable_discipline": "Connect understanding to responsibility while distinguishing care from control or unlimited self-sacrifice.",
+        "abstention_boundary": "Do not infer obligations beyond the person's authority or limits.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-identifying-what-is-held-in-trust-gold-standard-2026-10-25",
@@ -1682,7 +1762,17 @@
         "source_status": "USER_APPROVED_GOLD_STANDARD",
         "evidence_boundary": "Screenshot confirms the displayed response and presentation; it does not prove the doorway destination or generalization across held-out queries."
       },
-      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "entrustment_and_obligation",
+        "transferable_discipline": "Identify what is entrusted, who is affected, what duties apply, and where authority ends.",
+        "abstention_boundary": "Do not assume every relationship creates unlimited responsibility.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-faithful-stewardship-values-conflict-gold-standard-2026-10-25",
@@ -1709,7 +1799,17 @@
         "source_status": "USER_APPROVED_GOLD_STANDARD",
         "evidence_boundary": "Screenshot confirms displayed answer and presentation, but does not establish corpus-grounding for every claim or validate the suggested destination."
       },
-      "freeze_policy": "Do not alter expected_response without explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Do not alter expected_response without explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "tradeoff_discernment",
+        "transferable_discipline": "Name genuine conflicts, weigh obligations and effects, protect less powerful parties, and keep decisions accountable.",
+        "abstention_boundary": "Do not pretend every conflict has a cost-free resolution.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-intergenerational-stewardship-gold-standard-2026-10-25",
@@ -1738,7 +1838,17 @@
         "approval_basis": "After reviewing the live visitor-facing response and receiving a Pass assessment, the user explicitly requested that this response be added to the Gold Standard Registry.",
         "evidence_boundary": "Screenshot confirms the displayed response, three-paragraph structure, and visible doorway title. It does not independently verify canonical source traceability, destination URL, or backend runtime identity."
       },
-      "freeze_policy": "Preserve expected_response verbatim. Do not change wording or doorway title without explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Preserve expected_response verbatim. Do not change wording or doorway title without explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "intergenerational_consequences",
+        "transferable_discipline": "Extend responsibility across time by considering inheritance, future effects, and what is passed on.",
+        "abstention_boundary": "Do not speculate about distant futures without relevant evidence.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-system-vs-separate-problems-gold-standard-2026-10-25",
@@ -1765,7 +1875,17 @@
         "source_status": "USER_APPROVED_GOLD_STANDARD",
         "evidence_boundary": "Screenshot confirms displayed answer and presentation. Suggested doorway destination remains unverified; URL intentionally unset."
       },
-      "freeze_policy": "Do not alter expected_response without explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Do not alter expected_response without explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "systems_relationships",
+        "transferable_discipline": "Look for relationships, feedback, dependencies, and recurring conditions rather than isolated symptoms.",
+        "abstention_boundary": "Do not label every collection of problems a system without evidence of interaction.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-leverage-point-misuse-gold-standard-2026-10-26",
@@ -1791,7 +1911,17 @@
         "approval_basis": "The visitor-facing response was assessed as meeting expectations and passing the Gold Standard hurdle; the user explicitly requested registry inclusion.",
         "evidence_boundary": "Screenshot confirms the displayed response and three-paragraph presentation. It does not independently verify canonical source traceability or every backend runtime path."
       },
-      "freeze_policy": "Preserve expected_response verbatim. Do not change wording without explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Preserve expected_response verbatim. Do not change wording without explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "powerful_intervention_with_safeguards",
+        "transferable_discipline": "Examine leverage together with unintended effects, power, accountability, and correction.",
+        "abstention_boundary": "Do not assume every intervention is a leverage point.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-complexity-and-uncertainty-gold-standard-2026-10-26",
@@ -1822,7 +1952,17 @@
       "related_question_variants": [
         "How are complexity and uncertainty different, and how do they interact?",
         "When should we distinguish a complex situation from an uncertain one?"
-      ]
+      ],
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "distinction_under_complexity",
+        "transferable_discipline": "Distinguish interconnectedness from lack of knowledge and explain how they can interact.",
+        "abstention_boundary": "Do not substitute a distinction for practical relevance.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26",
@@ -1856,7 +1996,17 @@
       "related_question_variants": [
         "How can an organization act wisely when knowledge is scattered across different people?",
         "What helps reconnect siloed information without pretending everyone must agree?"
-      ]
+      ],
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "integration_without_false_consensus",
+        "transferable_discipline": "Bring partial knowledge into relationship while preserving disagreement and uncertainty.",
+        "abstention_boundary": "Do not force consensus or claim integration eliminates uncertainty.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-leadership-vs-positional-authority-gold-standard-2026-10-26",
@@ -1882,7 +2032,17 @@
         "evidence_boundary": "The screenshot establishes the displayed answer and doorway title. It does not independently establish the destination URL or prove the doorway's full content relevance.",
         "review_rating": "Accepted for registry; no numeric rating assigned in this entry."
       },
-      "freeze_policy": "Do not change expected_response or doorway title without a separately documented, user-authorized benchmark-version change."
+      "freeze_policy": "Do not change expected_response or doorway title without a separately documented, user-authorized benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "role_vs_practice",
+        "transferable_discipline": "Distinguish formal authority from demonstrated conduct, judgment, and earned trust.",
+        "abstention_boundary": "Do not generalize one role distinction to unrelated concepts.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-operational-discipline-humane-leadership-gold-standard-2026-10-26",
@@ -1911,7 +2071,17 @@
         "approval_basis": "The user reviewed the live visitor response, rated it as meeting expectations, and explicitly requested registry inclusion.",
         "evidence_boundary": "Screenshot confirms the exact displayed three-paragraph answer and the visible doorway title. It does not independently verify the destination URL, canonical content relevance, or all backend runtime paths."
       },
-      "freeze_policy": "Preserve expected_response verbatim. Do not change wording without explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Preserve expected_response verbatim. Do not change wording without explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "humane_reliability",
+        "transferable_discipline": "Translate humane intentions into dependable practice while distinguishing discipline from rigidity or control.",
+        "abstention_boundary": "Do not treat process discipline as a substitute for judgment.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-competing-stakeholder-obligations-gold-standard-2026-10-26",
@@ -1938,7 +2108,17 @@
         "approval_record": "User explicitly requested addition to the Gold Standard registry on 2026-10-26 after assessment; assessed 8.8/10 and meets expectations.",
         "evidence_boundary": "Screenshot confirms the displayed answer, three-paragraph composition, and doorway title. The doorway URL and backend runtime identity were not independently established by this screenshot."
       },
-      "freeze_policy": "Preserve the approved response verbatim. Changes require explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Preserve the approved response verbatim. Changes require explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "stakeholder_tradeoffs",
+        "transferable_discipline": "Make obligations, rights, burdens, power asymmetries, trade-offs, and review visible.",
+        "abstention_boundary": "Do not imply equal consideration always means equal outcomes.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-governance-beyond-administration-gold-standard-2026-10-26",
@@ -1965,7 +2145,17 @@
         "approval_basis": "User reviewed the displayed response, was told it substantially met expectations and the three-paragraph Gold Standard, and then explicitly requested registry inclusion.",
         "evidence_boundary": "Screenshot confirms the displayed answer, three-paragraph presentation, and doorway title. The live API response separately returned the same doorway title with the URL recorded here; the screenshot alone does not establish backend runtime identity."
       },
-      "freeze_policy": "Preserve expected_response verbatim. Do not change wording without explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Preserve expected_response verbatim. Do not change wording without explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "governance_architecture",
+        "transferable_discipline": "Distinguish underlying authority and decision structures from day-to-day execution.",
+        "abstention_boundary": "Do not use this distinction where operational detail is the actual question.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-charisma-constitutional-restraint-gold-standard-2026-10-26",
@@ -1992,7 +2182,17 @@
         "source_status": "USER_APPROVED_GOLD_STANDARD",
         "evidence_boundary": "The screenshot establishes the visitor-facing response shown to the user and the user's explicit request to enter it into the registry. It does not independently verify the doorway URL."
       },
-      "freeze_policy": "Preserve this approved response. Change expected_response only with explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Preserve this approved response. Change expected_response only with explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "power_with_checks",
+        "transferable_discipline": "Pair influence with scrutiny, dissent, independent review, and correctability.",
+        "abstention_boundary": "Do not presume misconduct solely from strong influence.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-governance-redesign-preaction-questions-gold-standard-2026-10-26",
@@ -2018,7 +2218,17 @@
         "source_status": "USER_APPROVED_GOLD_STANDARD",
         "evidence_boundary": "Screenshot establishes the response shown to the user and the explicit request to register it. It does not independently verify the doorway URL."
       },
-      "freeze_policy": "Preserve approved response. Change expected_response only with explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Preserve approved response. Change expected_response only with explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "preaction_governance_inquiry",
+        "transferable_discipline": "Before redesign, clarify purpose, evidence, power effects, safeguards, alternatives, and correction.",
+        "abstention_boundary": "Do not turn this into a generic checklist for unrelated change.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-institutional-memory-gold-standard-2026-10-26",
@@ -2043,7 +2253,17 @@
         "source_ref": "conversation 2026-10-26",
         "evidence_boundary": "User explicitly requested addition to the gold-standard registry after reviewing the live visitor-facing screenshot. Screenshot verifies rendered answer and doorway visually, but does not independently establish backend commit or end-to-end transport behavior."
       },
-      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change."
+      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "continuity_with_context",
+        "transferable_discipline": "Preserve not only records but reasons, conditions, and uncertainty so successors can exercise judgment.",
+        "abstention_boundary": "Do not assume retaining information alone creates institutional memory.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-conflicting-information-discernment-gold-star-2026-11-07",
@@ -2080,7 +2300,17 @@
       "related_question_variants": [
         "How should I decide what information is reliable enough to act on when credible sources disagree?",
         "What can I do when competing claims make it difficult to know what to believe?"
-      ]
+      ],
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "epistemic_discernment",
+        "transferable_discipline": "Separate verified information, inference, assumptions, and unresolved claims; match action thresholds to stakes and reversibility.",
+        "abstention_boundary": "Do not demand impossible certainty or reduce every issue to source counting.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      }
     },
     {
       "benchmark_id": "general-guide-developmental-language-gold-star-2026-11-09",
