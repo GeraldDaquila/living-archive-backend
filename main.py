@@ -9144,17 +9144,52 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                             "sentences; preserved verified canonical doorway with bounded conceptual orientation."
                         )
                     else:
-                        response = _archive_limitation_response(query)
-                        archive_evidence_unavailable = True
+                        # Archive evidence and answerability are separate boundaries.
+                        # A retrieval shortfall must not overwrite a substantive,
+                        # non-Archive-attributed conceptual answer that has already
+                        # passed the General Guide composition contract. Preserve
+                        # that answer while clearing the doorway, so visitors receive
+                        # useful general orientation without mistaking it for Archive
+                        # doctrine. Only abstain when there is no substantive answer
+                        # to preserve.
+                        _preserved_general_answer = _sanitize_basic_inquiry_response(
+                            str(response or "")
+                        )
+                        _looks_like_limitation = bool(
+                            re.search(
+                                r"\\b(?:haven['’]t found enough support|couldn't verify|could not identify|available material.*(?:not|no)\\b)",
+                                _preserved_general_answer,
+                                re.I,
+                            )
+                        )
+                        _substantive_general_answer = (
+                            len(_preserved_general_answer) >= 180
+                            and not _looks_like_limitation
+                            and not general_guide_composition.is_generic_nonanswer(
+                                query, _preserved_general_answer
+                            )
+                        )
                         authoritative_doorway = None
                         composition_context.pop("authoritative_doorway", None)
                         composition_context.pop("authoritative_doorway_title", None)
-                        composition_context["evidence_sufficiency_unavailable"] = True
-                        print(
-                            "The Guide conceptual boundary: no question-matched canonical "
-                            "sentences; returned the Archive-only limitation. "
-                            "Grounded synthesis was not used because independent canonical support was insufficient."
-                        )
+                        if _substantive_general_answer:
+                            response = _preserved_general_answer
+                            archive_evidence_unavailable = False
+                            composition_context.pop("evidence_sufficiency_unavailable", None)
+                            composition_context["answer_basis"] = "general_conceptual_orientation"
+                            print(
+                                "The Guide conceptual boundary: preserved a substantive "
+                                "general conceptual answer without Archive attribution or doorway."
+                            )
+                        else:
+                            response = _archive_limitation_response(query)
+                            archive_evidence_unavailable = True
+                            composition_context["evidence_sufficiency_unavailable"] = True
+                            print(
+                                "The Guide conceptual boundary: no question-matched canonical "
+                                "sentences and no substantive general answer to preserve; "
+                                "returned the Archive-only limitation."
+                            )
 
     # Conceptual evidence gates govern explanatory attribution, not a separately
     # selected canonical next step. Restore the request-level navigation decision
