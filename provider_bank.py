@@ -97,15 +97,25 @@ GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS = 15.0
 GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES = 3
 # Keep the primary and fallback transport ceilings distinct: a quick primary
 # timeout can still admit three more candidates within the 15-second window.
-GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS = 3.0
-GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS = 4.0
-GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
+# General Guide adaptive timeout experiment:
+# 4 seconds is a soft observation threshold, not an automatic cancellation point.
+# Each provider/model receives an evidence-informed hard ceiling, bounded at 8s.
+GENERAL_GUIDE_SOFT_LATENCY_THRESHOLD_SECONDS = 4.0
+GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS = 5.0
+GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS = 8.0
+GENERAL_GUIDE_DEFAULT_LOW_LATENCY_TIMEOUT_SECONDS = 5.0
+GENERAL_GUIDE_DEFAULT_STANDARD_TIMEOUT_SECONDS = 7.0
+GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS = GENERAL_GUIDE_DEFAULT_STANDARD_TIMEOUT_SECONDS
 FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS = 12.0
 
 
 # Lightweight, process-local operational aggregates for the shared capacity layer.
 _CAPACITY_METRICS_LOCK = threading.Lock()
 _CAPACITY_METRICS = {"attempts": 0, "llm_successes": 0, "exhaustions": 0, "inflight": 0}
+
+# Process-local latency evidence guides future hard ceilings without retaining visitor data.
+_PROVIDER_LATENCY_LOCK = threading.Lock()
+_PROVIDER_LATENCY_EWMA = {}
 
 def _capacity_begin_request():
     with _CAPACITY_METRICS_LOCK:
@@ -2680,11 +2690,20 @@ def _quota_guarded_call(use_core, item, messages, max_tokens, schema=None, timeo
         return result
     finally:
         elapsed = time.perf_counter() - started
+        if outcome == "ok":
+            with _PROVIDER_LATENCY_LOCK:
+                previous = _PROVIDER_LATENCY_EWMA.get((provider, model))
+                _PROVIDER_LATENCY_EWMA[(provider, model)] = (
+                    elapsed if previous is None else (0.7 * float(previous)) + (0.3 * elapsed)
+                )
+        soft_threshold = GENERAL_GUIDE_SOFT_LATENCY_THRESHOLD_SECONDS
+        soft_state = "soft_threshold_exceeded" if elapsed >= soft_threshold else "within_soft_threshold"
         print(
             "USE provider inference timing: "
             f"provider={provider}, model={model}, outcome={outcome}, "
             f"elapsed_seconds={elapsed:.3f}, "
-            f"timeout_seconds={float(timeout_override) if timeout_override is not None else 0:.1f}"
+            f"timeout_seconds={float(timeout_override) if timeout_override is not None else 0:.1f}, "
+            f"latency_observation={soft_state}, soft_threshold_seconds={soft_threshold:.1f}"
         )
         reservation.release()
 
@@ -2700,8 +2719,13 @@ def _route_result(result):
     return result
 
 
-def _provider_call_timeout(operation, item=None):
-    """Return a bounded transport timeout, with a narrow proven-Gemma allowance."""
+def _provider_call_timeout(operation, item=None, attempt_index=1):
+    """Return an evidence-informed bounded transport timeout.
+
+    General Guide uses a 4-second soft threshold for observation only. The hard
+    ceiling adapts to successful provider/model latency evidence and remains
+    bounded between 5 and 8 seconds.
+    """
     provider = str((item or {}).get("provider") or "")
     model = str((item or {}).get("model") or "")
     if (
@@ -2713,7 +2737,23 @@ def _provider_call_timeout(operation, item=None):
     if operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:
         return HRN_PROVIDER_CALL_TIMEOUT_SECONDS
     if operation == "general_guide_composition":
-        return GENERAL_GUIDE_PROVIDER_CALL_TIMEOUT_SECONDS
+        capabilities = MODEL_CAPABILITIES.get((provider, model), frozenset())
+        baseline = (
+            GENERAL_GUIDE_DEFAULT_LOW_LATENCY_TIMEOUT_SECONDS
+            if "low_latency" in capabilities
+            else GENERAL_GUIDE_DEFAULT_STANDARD_TIMEOUT_SECONDS
+        )
+        with _PROVIDER_LATENCY_LOCK:
+            ewma = _PROVIDER_LATENCY_EWMA.get((provider, model))
+        if ewma is not None:
+            baseline = max(
+                GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS,
+                min(GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS, (float(ewma) * 1.5) + 1.0),
+            )
+        return max(
+            GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS,
+            min(GENERAL_GUIDE_MAX_CALL_TIMEOUT_SECONDS, baseline),
+        )
     if operation == "fsd_report_composition":
         return FSD_REPORT_PROVIDER_CALL_TIMEOUT_SECONDS
     return None
@@ -3124,19 +3164,24 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                 if operation == "fsd_report_composition"
                 else GENERAL_GUIDE_FAST_FAILURE_WINDOW_SECONDS
             )
-            configured_timeout = _provider_call_timeout(operation, item)
-            if operation == "general_guide_composition":
-                configured_timeout = (
-                    GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS
-                    if attempt_index > 1
-                    else GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
-                )
+            configured_timeout = _provider_call_timeout(operation, item, attempt_index=attempt_index)
             candidate_timeout = _bounded_request_provider_timeout(
                 configured_timeout, deadline_monotonic,
                 now=time.monotonic() if deadline_monotonic is not None else None,
             ) or 0.0
-            # Admit a fallback only when its full bounded call can fit inside both
-            # the operation window and the shared visitor-request deadline.
+            # Adaptive Guide timeouts are budget-aware: reserve enough of the
+            # arbitration window for at least one independent candidate.
+            if operation == "general_guide_composition":
+                candidates_left = max(1, len(attempt_pool) - attempt_index)
+                remaining_window = max(0.0, fast_failure_window - elapsed)
+                reserved_fallback_seconds = min(
+                    GENERAL_GUIDE_MIN_CALL_TIMEOUT_SECONDS,
+                    remaining_window,
+                ) if candidates_left else 0.0
+                candidate_timeout = min(
+                    candidate_timeout,
+                    max(0.0, remaining_window - reserved_fallback_seconds),
+                )
             if candidate_timeout <= 0.0 or elapsed + candidate_timeout > fast_failure_window:
                 print(
                     "USE provider bank fast-failure fallback: "
@@ -3184,13 +3229,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             continue
         attempt_started = time.monotonic() if operation in {"hrn_perception", "general_guide_composition", "fsd_report_composition"} else None
         try:
-            configured_timeout = _provider_call_timeout(operation, item)
-            if operation == "general_guide_composition":
-                configured_timeout = (
-                    GENERAL_GUIDE_FALLBACK_CALL_TIMEOUT_SECONDS
-                    if attempt_index > 1
-                    else GENERAL_GUIDE_PRIMARY_CALL_TIMEOUT_SECONDS
-                )
+            configured_timeout = _provider_call_timeout(operation, item, attempt_index=attempt_index)
             attempt_timeout = _bounded_request_provider_timeout(
                 configured_timeout, deadline_monotonic,
                 now=time.monotonic() if deadline_monotonic is not None else None,
