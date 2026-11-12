@@ -2333,6 +2333,51 @@
         "evidence_boundary": "This record preserves the approved calibration lesson and runtime transfer, not a verbatim visitor response fixture."
       },
       "freeze_policy": "Preserve the calibration lesson and runtime transfer; do not represent this record as an exact response fixture until one is independently registered."
+    },
+    {
+      "benchmark_id": "general-guide-growth-limits-systems-mechanism-gold-star-2026-11-12",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "Why can growth become destructive when detached from ecological and social limits?",
+      "expected_response": "Growth can become destructive when the scale of expansion outruns the capacities that make it sustainable. Ecological systems have limits to how quickly resources can regenerate and how much waste or disruption they can absorb. Social systems also have limits: trust, legitimacy, fairness, infrastructure, and institutions can all be strained when change moves faster than people and communities can adapt.\n\nFor a time, those pressures can be hidden or displaced. Costs may be shifted onto ecosystems, workers, communities, or the future, allowing growth to continue while the underlying conditions weaken. The damage becomes visible when accumulated strain exceeds the system's ability to repair, adapt, or hold together.\n\nThe issue, then, is not growth by itself. The question is whether growth remains connected to the conditions that sustain the wider system on which it depends.",
+      "expected_doorway": {
+        "title": "ARC III: Growth doesn't break systems. It reveals the limits of the structure holding them.",
+        "url": null
+      },
+      "rating_out_of_10": 9,
+      "assertions": [
+        "User explicitly approved elevation to Gold Star on 2026-11-12 after reviewing the actual production visitor response.",
+        "Answers the causal mechanism directly before offering any continuation doorway.",
+        "Explains ecological and social capacity limits, including regeneration, absorption, trust, legitimacy, fairness, infrastructure, and institutional adaptation.",
+        "Explains how costs can be displaced onto ecosystems, workers, communities, or the future before accumulated strain becomes visible.",
+        "Exactly three substantive paragraphs; the answer remains complete without the doorway.",
+        "Preserve the approved response wording as the exact-query benchmark. Paraphrases are evaluated against behavioral criteria rather than forced exact-match output."
+      ],
+      "provenance": {
+        "source_path": "main.py",
+        "source_ref": "44a84eae389e6bf869ced7d515a64bc9a8535f15",
+        "source_location": "_basic_inquiry_provider_exhaustion_response bounded_systems_mechanism_recovery",
+        "approval_record": "Explicit user instruction: 'elevate to gold star' following review of the actual production visitor screenshot on 2026-11-12.",
+        "production_evidence": "User-provided screenshot of the actual production Guide response after post-merge validation of the deterministic systems-mechanism recovery.",
+        "rating_out_of_10": 9,
+        "evidence_boundary": "The screenshot establishes the visitor-facing response shown and the user's approval of this exemplar. The continuation doorway title is visible, but its destination URL has not been independently verified; therefore the registry records no URL."
+      },
+      "freeze_policy": "Approved Gold Star exemplar. Do not silently rewrite the expected response or alter its approval status. Any wording change requires a separately versioned benchmark and explicit user approval. Evaluate close paraphrases behaviorally; exact runtime replay is reserved for this exact normalized query.",
+      "runtime_transfer": true,
+      "related_question_variants": [
+        "Why does growth become harmful when it exceeds the ecological and social systems that support it?",
+        "How can expansion continue for a time while weakening the conditions that make it sustainable?"
+      ],
+      "gold_star_capabilities": {
+        "generation_class": "deterministic_bounded_recovery",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "systems_capacity_and_displaced_costs",
+        "transferable_discipline": "Explain the mechanism by tracing expansion against regenerative and social capacity, displaced costs, accumulated strain, and the conditions required for sustainable continuity.",
+        "abstention_boundary": "Do not treat territorial metadata or doorway text as source evidence; do not generalize this bounded mechanism beyond questions where the causal structure is materially similar.",
+        "intake_note": "This exemplar was observed as a production response from a validated bounded deterministic recovery. Capability metadata records its deterministic class so future retrieval and fallback routing can classify it correctly."
+      }
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control. New approved record added on October 26, 2026: the screenshot-approved governance-beyond-administration response is registered as USER_APPROVED_GOLD_STANDARD with exact three-paragraph wording and a separately verified live doorway URL.",
