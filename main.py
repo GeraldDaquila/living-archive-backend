@@ -1552,14 +1552,24 @@ def _recommendation_first_fetch(query_str):
                     }]
                     break
 
-    if authoritative and selected_doorway:
-        # Carry the exact validated primary across the retrieval/composition seam
-        # for every ordinary query, including conceptual questions that should not
-        # have their evidence context narrowed.
-        data["recommendation_canonical_primary"] = {
-            "title": selected_doorway["title"],
-            "url": selected_doorway["url"],
-        }
+    if selected_doorway:
+        # A canonical doorway and source-body evidence are different contracts.
+        # Meta-Net may verify that a retrieved canonical asset is the correct
+        # place to continue even when the persisted navigation snapshot does not
+        # carry enough body text to support explanatory composition. Preserve the
+        # doorway if its URL is present in the retrieved canonical context; do not
+        # require a text-bearing document merely to keep completed navigation work.
+        target_url = str(selected_doorway.get("url") or "").rstrip("/").casefold()
+        retrieved_match = any(
+            str(item.get("url") or item.get("canonical_url") or "").rstrip("/").casefold() == target_url
+            and str(item.get("title") or "").strip()
+            for item in docs
+        )
+        if authoritative or retrieved_match:
+            data["recommendation_canonical_primary"] = {
+                "title": selected_doorway["title"],
+                "url": selected_doorway["url"],
+            }
 
     # Preserve the complete evidence pool for non-navigation questions. Their
     # composition may need multiple sources, but the canonical primary remains
