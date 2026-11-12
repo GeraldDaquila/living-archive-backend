@@ -270,6 +270,7 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     civilizational_transition = bool(
         re.search(r"\bcivilizational\s+transition\b", lower)
         and re.search(r"\b(?:what does|what is|define|explain|meaning)\b", lower)
+        and re.search(r"\barchive\b", lower)
     )
     if civilizational_transition:
         answer = (
