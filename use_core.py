@@ -671,7 +671,7 @@ app.add_middleware(
 DEPLOYMENT_FINGERPRINT = "USE-v333-visitor-centered-sensemaking-construction"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
-CANONICAL_BUILD_ID = "USE-BUILD-v333-visitor-centered-sensemaking-construction"
+CANONICAL_BUILD_ID = "USE-BUILD-v489.311-canonical"
 CANONICAL_BUILD_PAYLOAD_SHA256 = "c80675c5bc420bddb5ff4e9d6884c678265f12e753fb892e2086804354f96a6d"
 # === END CANONICAL BUILD IDENTITY ===
 
