@@ -117,7 +117,21 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
     def test_archive_civilizational_transition_recovery_does_not_capture_unrelated_questions(self):
         answer = compose_recovery("How can a city manage a transition between software systems?")
         self.assertNotIn("In the Living Archive, civilizational transition", answer)
-        self.assertIn("practical way to approach", answer)
+        self.assertIn("first task is to make the decision visible", answer)
+
+    def test_complex_institutional_approach_uses_integrated_prose_not_generic_action_template(self):
+        question = (
+            "A company wants to use AI to reduce staffing costs. How should The Guide analyze this through "
+            "operations, governance, human development, ethics, and stewardship?"
+        )
+        answer = compose_recovery(question)
+        paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
+        self.assertEqual(len(paragraphs), 3)
+        self.assertIn("operations, governance, human development, ethics, and stewardship", answer)
+        self.assertIn("compare the real options", answer)
+        self.assertIn("AI may inform that work", answer)
+        self.assertNotIn("jumping immediately to a generic action plan", answer)
+        self.assertNotIn("A practical way to approach", answer)
 
     def test_institutional_orientation_answers_what_it_is_and_is_not(self):
         answer = compose_recovery("What is the Living Archive, and what is it not?")
