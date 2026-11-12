@@ -283,7 +283,7 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "The Philippines is used in one Archive case study as a revealing example of these pressures appearing in concentrated form, not as a perfect model or a uniquely destined society. "
             "This is a bounded synthesis of the Archive's published treatment, not a claim that every society follows one predetermined path."
         )
-    elif ai_interpreter_authority = bool(
+    ai_interpreter_authority = bool(
         re.search(r"\bai\b", lower)
         and re.search(r"\binterpreter\b", lower)
         and re.search(r"\bauthority\b", lower)
