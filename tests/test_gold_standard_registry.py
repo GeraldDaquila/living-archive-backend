@@ -557,3 +557,21 @@ def test_capability_metadata_does_not_guess_original_generation_mode():
     assert "LLM" not in approved["gold_star_capabilities"]["generation_class"]
     assert "deterministic" not in approved["gold_star_capabilities"]["generation_class"]
     assert "does not infer" in approved["gold_star_capabilities"]["intake_note"]
+
+
+def test_growth_limits_systems_mechanism_gold_star_is_registered_exactly():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-growth-limits-systems-mechanism-gold-star-2026-11-12"
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["rating_out_of_10"] == 9.0
+    assert record["query"] == "Why can growth become destructive when detached from ecological and social limits?"
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
+    assert "scale of expansion outruns the capacities" in record["expected_response"]
+    assert "pressures can be hidden or displaced" in record["expected_response"]
+    assert record["expected_doorway"]["title"] == "ARC III: Growth doesn't break systems. It reveals the limits of the structure holding them."
+    assert record["gold_star_capabilities"]["generation_class"] == "deterministic_bounded_recovery"
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is True
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
