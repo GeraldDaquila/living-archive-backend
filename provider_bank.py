@@ -263,7 +263,7 @@ OPERATION_TOKEN_FLOORS = {
 # provider-neutral JSON-object contract because its own protected validator
 # owns the semantic envelope. This prevents constrained decoding from starving
 # a long conversational composition before a valid object is emitted.
-OPERATION_SCHEMAS = {"hrn_relational_recovery":{"name":"hrn_relational_recovery","strict":False,"schema":{"type":"object","properties":{"response":{"type":"string"},"question":{"type":"string"},"rest":{"type":"boolean"},"use_resource":{"type":"boolean"},"resource_intro":{"type":"string"}},"required":["response","question","rest","use_resource","resource_intro"],"additionalProperties":True}},"hrn_question_recovery":{"name":"hrn_question_recovery","strict":False,"schema":{"type":"object","properties":{"question":{"type":"string"}},"required":["question"],"additionalProperties":False}}}
+OPERATION_SCHEMAS = {"hrn_relational_recovery":{"name":"hrn_relational_recovery","strict":False,"schema":{"type":"object","properties":{"response":{"type":"string"},"question":{"type":"string"},"rest":{"type":"boolean"},"use_resource":{"type":"boolean"},"resource_intro":{"type":"string"}},"required":["response","question","rest","use_resource","resource_intro"],"additionalProperties":True}},"hrn_question_recovery":{"name":"hrn_question_recovery","strict":False,"schema":{"type":"object","properties":{"question":{"type":"string"}},"required":["question"],"additionalProperties":False}},"general_guide_composition_recovery":{"name":"general_guide_composition_recovery","strict":False,"schema":{"type":"object","properties":{"response":{"type":"string"}},"required":["response"],"additionalProperties":True}}}
 
 OPERATION_REQUIREMENTS = {
     "hrn_relational": frozenset({"json_object", "long_context", "composition", "relational_analysis"}),
@@ -3344,6 +3344,13 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         "Do not tell the visitor what to do, suggest reallocating or renegotiating, infer hidden motives, or introduce new facts. "
                         "Do not repeat the rejected phrase. Preserve the original question and all valid flags. "
                     )
+                elif operation == "general_guide_composition":
+                    correction_prompt = (
+                        "Your preceding Guide composition failed a response contract: "
+                        + str(contract_error)[:240]
+                        + ". Preserve the useful semantic substance of the answer and correct only the defect that prevents it from being accepted. "
+                        "Do not restart the analysis, add unsupported claims, or replace a useful answer with generic prose. "
+                    )
                 else:
                     correction_prompt = (
                         "Your preceding output failed the operation response contract: "
@@ -3357,6 +3364,13 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
                         + "Do not regenerate or include the response field. "
                         + "The question must be one natural, non-prescriptive sentence grounded in a concrete detail in the structured movement brief. "
                         + "Do not invent facts, add advice, or repeat the rejected question."
+                    )
+                elif operation == "general_guide_composition":
+                    correction_content = (
+                        correction_prompt
+                        + "Return one valid JSON object containing a non-empty 'response' field. "
+                        + "Keep the answer direct, grounded in the visitor's question, and preserve useful reasoning from the preceding output wherever possible. "
+                        + "Do not add commentary about the repair or invent facts."
                     )
                 else:
                     correction_content = (
