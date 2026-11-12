@@ -593,3 +593,24 @@ Both records are separate candidates and must not be counted as user-approved fr
 - **Evidence boundary:** Screenshot confirms the displayed answer, three-paragraph composition, and doorway title. It does not independently verify the canonical doorway URL or backend runtime identity.
 - **Freeze policy:** Preserve the approved response verbatim. Changes require explicit user authorization and a documented benchmark-version update.
 
+
+
+## Gold Star intake capability classification (schema 1.1)
+
+Every new record that is promoted to `USER_APPROVED_GOLD_STANDARD` must carry a
+`gold_star_capabilities` object. This classifies **runtime roles**, not the
+historical mechanism that happened to produce the original answer.
+
+Required fields:
+
+- `generation_class`: normally `runtime_agnostic_curated_exemplar` unless original generation provenance is independently established.
+- `exact_answer_authority`: whether the frozen approved answer may govern its exact normalized question.
+- `active_quality_contributor`: whether its reviewed structural discipline may guide composition for a different, structurally relevant question.
+- `deterministic_fallback_eligible`: whether that discipline may participate in bounded provider-outage recovery.
+- `reasoning_family`, `transferable_discipline`, and `abstention_boundary`: the retrieval semantics and limits.
+
+The Guide must not guess “LLM” versus “deterministic” from an answer's wording.
+A single approved Gold Star may legitimately serve multiple runtime roles:
+exact-answer authority, active composition guidance, and deterministic fallback
+quality memory. All cross-question uses remain structural; answer text, factual
+claims, examples, citations, and doorways do not transfer.

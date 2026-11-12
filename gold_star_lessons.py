@@ -78,7 +78,8 @@ def _load_lessons() -> List[Dict[str, Any]]:
         assertions = [str(x).strip() for x in (record.get("assertions") or [])
                       if isinstance(x, str) and str(x).strip()][:5]
         review = transfer_review.get(benchmark_id, {})
-        active_candidate = review.get("activation") in {"active_quality_contributor", "shadow_candidate"}
+        capabilities = record.get("gold_star_capabilities") or {}
+        active_candidate = bool(capabilities.get("active_quality_contributor")) or review.get("activation") in {"active_quality_contributor", "shadow_candidate"}
         qualifying_context = str(review.get("qualifying_context") or "")
         transferable_discipline = str(review.get("transferable_discipline") or "")
         lessons.append({
@@ -90,6 +91,7 @@ def _load_lessons() -> List[Dict[str, Any]]:
                              + " " + " ".join(str(v) for v in variants if isinstance(v, str))),
             # Cross-question eligibility is governed by the qualitative review.
             "runtime_transfer": bool(record.get("runtime_transfer")) or active_candidate,
+            "deterministic_fallback_eligible": bool(capabilities.get("deterministic_fallback_eligible")) or active_candidate,
             "reasoning_family": str(review.get("reasoning_family") or "").strip(),
             "abstention_boundary": str(review.get("abstention_boundary") or "").strip(),
             "qualifying_context": qualifying_context,

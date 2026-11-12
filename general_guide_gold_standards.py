@@ -42,6 +42,9 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
     for record in records:
         if not isinstance(record, dict) or record.get("status") not in _ELIGIBLE_STATUSES:
             continue
+        capabilities = record.get("gold_star_capabilities") or {}
+        if capabilities and not bool(capabilities.get("exact_answer_authority")):
+            continue
         question = _normalize_question(record.get("query"))
         answer = str(record.get("expected_response") or "").strip()
         if not question or not answer:
