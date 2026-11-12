@@ -94,6 +94,11 @@ def compose_definition_significance(subject):
             "example": "Neighbors may take turns checking on an older resident or helping with errands; one person might give more during a difficult week and receive help later.",
             "significance": "Reciprocity does not require immediate or equal repayment. It should not be used to demand access, obedience, or repayment from someone who cannot freely offer it."
         },
+        "techno-utopian thinking": {
+            "definition": "the belief that technological progress will, by itself or almost inevitably, solve major human and social problems",
+            "example": "A city might introduce an advanced digital platform and assume that better software will automatically make public services fairer, even though access, institutional incentives, unequal power, and accountability remain unchanged.",
+            "significance": "Its danger is not optimism about technology itself, but treating technology as a substitute for judgment, institutions, relationships, and democratic choice. That can hide who controls the technology, who bears its costs, which problems are actually political or social, and what happens when a technically efficient system produces unfair or harmful outcomes."
+        },
         "institutional trust": {
             "definition": "the confidence that an institution will act competently, fairly, and consistently enough for people to rely on it",
             "example": "People are more able to rely on a public service when it explains decisions, handles similar cases consistently, corrects mistakes, and provides a meaningful way to appeal.",
@@ -587,6 +592,14 @@ if not all(term in _historical_cultural_answer.casefold() for term in _historica
     raise RuntimeError("Historical-cultural Gold Standard contract failed: explanatory depth or nuance missing.")
 if "choose one step small enough to test" in _historical_cultural_answer:
     raise RuntimeError("Historical-cultural Gold Standard contract failed: practical template leaked.")
+_techno_utopian_question = "What is the danger of techno-utopian thinking?"
+_techno_utopian_answer = compose_recovery(_techno_utopian_question)
+for _required in ("technological progress", "power", "institutions", "costs"):
+    if _required not in _techno_utopian_answer.casefold():
+        raise RuntimeError("Techno-utopian recovery contract failed: missing structural risk analysis.")
+if _techno_utopian_answer.startswith("I can't define "):
+    raise RuntimeError("Techno-utopian recovery contract failed: ordinary concept incorrectly treated as unknowable.")
+
 _archive_framework_question = "What does human development mean in the Archive’s framework?"
 _archive_framework_answer = compose_recovery(_archive_framework_question)
 _archive_framework_paragraphs = [part.strip() for part in _archive_framework_answer.split("\n\n") if part.strip()]
