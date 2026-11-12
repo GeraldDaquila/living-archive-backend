@@ -3024,10 +3024,17 @@ def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
         normalized,
         re.I,
     ))
+    # Accept the site's natural institutional references ("the Archive",
+    # "this Archive", or "the Living Archive"), including the common form
+    # "What does the Archive mean by …?" These are requests for institutional
+    # usage, never bare dictionary lookups.
     archive_scoped_meaning = bool(
-        re.search(r"\b(?:in|within|inside)\s+the\s+living\s+archive\b", normalized, re.I)
+        (
+            re.search(r"\b(?:in|within|inside)\s+(?:the\s+|this\s+)?(?:living\s+)?archive\b", normalized, re.I)
+            or re.search(r"^(?:what does|what do)\s+(?:the\s+|this\s+)?(?:living\s+)?archive\s+mean\s+by\b", normalized, re.I)
+        )
         and re.search(
-            r"^(?:what does|what is|what's|what is the meaning of|meaning of|explain)\b",
+            r"^(?:what does|what do|what is|what's|what is the meaning of|meaning of|explain)\b",
             normalized,
             re.I,
         )
@@ -3131,6 +3138,12 @@ if _is_bounded_glossary_request(
     glossary_term=_normalize_glossary_term("What does stewardship mean in the Living Archive?"),
 ) is not False:
     raise RuntimeError("USE institutional-scope invariant failed: Archive-specific meaning question was misrouted to Glossary")
+
+if _is_bounded_glossary_request(
+    "What does the Archive mean by civilizational transition?",
+    glossary_term=_normalize_glossary_term("What does the Archive mean by civilizational transition?"),
+) is not False:
+    raise RuntimeError("USE institutional-scope invariant failed: Archive-voice meaning question was misrouted to Glossary")
 
 if _is_bounded_glossary_request(
     "What is the meaning of emptiness?",
