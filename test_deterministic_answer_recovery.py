@@ -90,7 +90,7 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         answer = compose_recovery("How can a team coordinate a project rollout?")
         self.assertIn("What outcome is the organisation trying to achieve", answer)
         self.assertNotIn("A practical way to approach", answer)
-        self.assertIn("who will be affected", answer)
+        self.assertIn("who will live with the consequences", answer)
         self.assertEqual(len([p for p in answer.split("\n\n") if p.strip()]), 3)
         self.assertNotIn("least power", answer)
 
