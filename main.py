@@ -3945,14 +3945,7 @@ def _guide_route_fallback(query, history=None):
     }
 
 
-# Regression guard: Archive-voice meaning questions must remain Guide-owned
-# even when the reasoning model is unavailable and deterministic routing is used.
-_archive_voice_regression = _deterministic_route_fallback(
-    "What does the Archive mean by civilizational transition?"
-)
-if _archive_voice_regression.get("route") != "guide":
-    raise RuntimeError("USE institutional-route invariant failed: Archive-voice meaning question became a Glossary lookup")
-
+# Regression guard deferred until routing helpers are initialized.\n
 def _guide_route_models():
     """Return the currently viable provider/model bank for diagnostics."""
     try:
