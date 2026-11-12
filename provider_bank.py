@@ -2730,7 +2730,7 @@ def _hrn_workers_fast_candidate(pool):
 # deterministic recovery. The remote service never recursively delegates: the
 # provider-capability endpoint executes its local bank directly.
 ACTIVE_ACTIVE_CONTRACT_VERSION = "v1"
-PRIMARY_COUNTERPART_URL = "https://living-archive-backend-mirror.onrender.com/api/provider-capability"
+PRIMARY_COUNTERPART_URL = "https://living-archive-backend-mirror.onrender.com/api/active-active-guide-capability"
 SECONDARY_COUNTERPART_URL = "https://living-archive-backend.onrender.com/api/provider-capability"
 ACTIVE_ACTIVE_PRIMARY_LOCAL_PERCENT = 70
 ACTIVE_ACTIVE_TIMEOUT_SECONDS = 4.0
