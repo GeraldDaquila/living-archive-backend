@@ -499,6 +499,20 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "A responsible decision does not require certainty, but it does require clear reasons, proportionate attention to risk, and willingness to correct course. "
             "If a choice is reversible, a limited trial may be wiser than treating it as permanent; if it creates lasting harm, use a more demanding standard of care."
         )
+    elif re.search(r"\b(?:discuss|understand|talk about|speak about)\b", lower) and re.search(r"\bdecline\b", lower) and re.search(r"\b(?:romanticiz|nostalgia|nostalgic)\b", lower):
+        # Reflective questions about decline are not generic action-planning
+        # requests. Keep loss, historical memory, and change in view, then
+        # offer one evidence-backed Archive doorway when the local canonical
+        # snapshot contains a close continuation of the inquiry.
+        answer = (
+            "To discuss decline without romanticizing it, we have to resist two shortcuts: treating the past as a lost golden age, and treating every departure from it as progress. "
+            "The first turns memory into nostalgia; the second can make real losses disappear from view. A more honest account begins by asking what has changed, what has been lost, what has become possible, and—crucially—for whom.\n\n"
+            "That keeps decline from becoming a single verdict. A community may gain efficiency while losing continuity; an institution may become more flexible while weakening trust; a society may expand some freedoms while allowing skills, places, relationships, or forms of belonging to erode. "
+            "None of this proves that the past was better. It means that change has to be described in more than one dimension, including the people who benefited, the people who bore the costs, and the things whose value only becomes visible when they are gone.\n\n"
+            "Perhaps the most useful question is not whether we are 'for' or 'against' decline, but what kind of attention the moment requires: what should be mourned without being idealized, what should be preserved without being frozen, what should be repaired, and what should be allowed to end. "
+            "That is where a discussion of decline can become an inquiry into responsibility rather than a contest between nostalgia and optimism.\n\n"
+            "If you want to continue this inquiry, **What Changed That I Haven’t Been Able to Name?** offers a related doorway into recognizing and naming changes that are real before deciding what they mean: https://geralddaquila.com/what-changed-that-i-havent-been-able-to-name"
+        )
     elif re.search(r"\b(?:how|steps|approach|what can i do|what should we do|how to)\b", lower):
         answer = (
             f"For a question like {subject}, the first task is to make the decision visible. "

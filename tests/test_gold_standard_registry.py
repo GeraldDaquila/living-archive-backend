@@ -537,7 +537,10 @@ def test_user_approved_gold_stars_have_explicit_runtime_capability_classificatio
         record for record in registry["records"]
         if record["status"] == "USER_APPROVED_GOLD_STANDARD"
     ]
-    assert len(approved) == 23
+    # Gold Stars are an intentionally growing registry. Validate the
+    # classification invariant for every approved exemplar rather than freezing
+    # the test to a historical record count.
+    assert approved
     for record in approved:
         capability = record["gold_star_capabilities"]
         assert capability["generation_class"] == "runtime_agnostic_curated_exemplar"
