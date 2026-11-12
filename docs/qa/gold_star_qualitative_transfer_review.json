@@ -209,6 +209,15 @@
       "qualifying_context": "Questions about conflicting information, trust, uncertainty, and acting under incomplete knowledge.",
       "abstention_boundary": "Do not demand impossible certainty or reduce every issue to source counting.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-techno-utopian-thinking-gold-star-2026-11-12",
+      "question": "What is the danger of techno-utopian thinking?",
+      "reasoning_family": "technology_with_governance",
+      "transferable_discipline": "Treat technology as part of a wider system of power, institutions, relationships, accountability, and human judgment rather than as an autonomous substitute for them.",
+      "qualifying_context": "Questions about technology, AI, innovation, governance, and claims that technical progress alone will solve human or institutional problems.",
+      "abstention_boundary": "Do not convert this discipline into blanket anti-technology rhetoric or assume technology is irrelevant to genuine progress.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
