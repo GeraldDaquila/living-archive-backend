@@ -168,7 +168,7 @@ def test_default_composition_evidence_recovery_does_not_invent_when_retrieval_is
 
 def test_main_final_payload_boundary_reapplies_exact_standard_after_rewrites():
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
-    resolver_call = '_final_gold_standard = _resolve_exact_guide_gold_standard(query)'
+    resolver_call = '_final_gold_standard = _final_exact_gold_standard_authority(query)'
     payload_marker = '    payload = {\n        "ok": True,\n        "version": APP_VERSION,'
     assert resolver_call in main_source
     assert payload_marker in main_source
