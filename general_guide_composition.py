@@ -954,6 +954,51 @@ def _explanatory_template_mismatch(query: str, response: str) -> bool:
     return sum(marker in text for marker in planning_markers) >= 2
 
 
+def _is_archive_voice_meaning_question(query: str) -> bool:
+    """Recognize requests for the Living Archive's own usage of a concept."""
+    q = _normalize_space(query)
+    return bool(
+        re.search(
+            r"^(?:what does|what do)\s+(?:the\s+|this\s+)?(?:living\s+)?archive\s+mean\s+by\b",
+            q,
+            re.I,
+        )
+        or (
+            re.search(r"\b(?:in|within|inside)\s+(?:the\s+|this\s+)?(?:living\s+)?archive\b", q, re.I)
+            and re.search(r"\b(?:mean|means|meaning|understand)\b", q, re.I)
+        )
+    )
+
+
+def _is_archive_voice_abstention(query: str, response: str) -> bool:
+    """Reject fluent refusal prose that evades an Archive-owned meaning question.
+
+    The answer may state a genuine evidence limitation, but it cannot use that
+    limitation as the answer while a relevant Archive doorway has already been
+    selected. Mark the candidate invalid so the provider/retrieval path retries
+    with grounded composition rather than accepting a polished non-answer.
+    """
+    if not _is_archive_voice_meaning_question(query):
+        return False
+    text = _normalize_space(response).casefold()
+    refusal = bool(re.search(
+        r"\bi can(?:not|'t) define\b.{0,220}\b(?:reliably|from the information available|alone)\b",
+        text,
+        re.I,
+    ))
+    verification = bool(re.search(
+        r"\bi don(?:not|'t) want to invent a definition\b|\bguess is established knowledge\b",
+        text,
+        re.I,
+    ))
+    deflection = bool(re.search(
+        r"\bmeaning.{0,80}depend on the field or institution\b|\breliable dictionary or subject reference\b|\bgoverning text is the authority\b",
+        text,
+        re.I,
+    ))
+    return refusal and (verification or deflection)
+
+
 def is_verification_abstention_for_known_concept(query: str, response: str) -> bool:
     """Detect refusal-style fallback only when the question has a known conceptual recovery.
 
@@ -984,6 +1029,11 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
     if not text:
         return True
     if is_verification_abstention_for_known_concept(query, response):
+        return True
+    # Archive-owned meaning questions are answer obligations. A fluent
+    # verification disclaimer is not a successful answer and must trigger the
+    # existing retry/recovery machinery before it reaches the visitor.
+    if _is_archive_voice_abstention(query, response):
         return True
     if not _has_direct_definition_for_subject(query, response):
         return True
