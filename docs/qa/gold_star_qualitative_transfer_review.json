@@ -1,7 +1,7 @@
 {
   "version": "2.0",
   "method": "Qualitative review of approved Gold Star assertions and responses. Families describe transferable reasoning disciplines, not reusable answer text.",
-  "governance": "All activation remains shadow-only. Exact approved answers remain calibration benchmarks. No visitor-facing composition is authorized by this map.",
+  "governance": "Approved entries may actively contribute transferable structural discipline to visitor-facing composition. Exact approved answers remain separately governed benchmarks. No answer text, factual claims, examples, citations, or doorways may transfer across questions.",
   "entries": [
     {
       "benchmark_id": "general-guide-human-development-significance-2026-10-24",
@@ -10,7 +10,7 @@
       "transferable_discipline": "Begin with a direct human answer, then widen from individual capacity to shared conditions.",
       "qualifying_context": "Broad questions about human flourishing, development, relationships, and social conditions.",
       "abstention_boundary": "Do not impose this frame on narrow factual or technical questions.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-water-boiling-point-general-knowledge-gold-standard-2026-10-24",
@@ -19,7 +19,7 @@
       "transferable_discipline": "Answer established self-contained facts directly and briefly; do not force Archive framing.",
       "qualifying_context": "Stable general-knowledge questions.",
       "abstention_boundary": "Abstain from uncertain, contested, or source-dependent claims.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-living-archive-cosmology-gold-standard-2026-10-25",
@@ -28,7 +28,7 @@
       "transferable_discipline": "Explain the framework while distinguishing a source or example from claims about the whole worldview.",
       "qualifying_context": "Questions about worldview, cosmology, and scope of a body of work.",
       "abstention_boundary": "Do not generalize a local source into a whole corpus.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-first-principles-gold-standard-2026-10-25",
@@ -37,7 +37,7 @@
       "transferable_discipline": "Define the general concept before presenting the specific source-grounded framework.",
       "qualifying_context": "Questions combining a general concept with an Archive-specific meaning.",
       "abstention_boundary": "Do not present source commitments as universal doctrine.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-living-archive-definition-gold-standard-2026-10-25",
@@ -46,7 +46,7 @@
       "transferable_discipline": "Define what something is and is not, including boundaries around certainty and responsibility.",
       "qualifying_context": "Questions about identity, purpose, role, or institutional boundaries.",
       "abstention_boundary": "Do not turn every definition into a manifesto.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-methods-comparison-gold-standard-2026-10-25",
@@ -55,7 +55,7 @@
       "transferable_discipline": "Define related approaches, preserve their differences, then explain how they complement one another.",
       "qualifying_context": "Comparative questions involving methods, disciplines, or perspectives.",
       "abstention_boundary": "Do not collapse distinct methods into a single generic process.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-cosmology-generalization-standards-gold-standard-2026-10-25",
@@ -64,7 +64,7 @@
       "transferable_discipline": "Separate direct claims from inference; require corroboration and calibrate conclusions to evidence.",
       "qualifying_context": "Questions requiring synthesis across sources or claims about a whole corpus.",
       "abstention_boundary": "Do not apply as boilerplate to ordinary conceptual questions.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-stewardship-living-archive-meaning-gold-standard-2026-10-25",
@@ -73,7 +73,7 @@
       "transferable_discipline": "Connect understanding to responsibility while distinguishing care from control or unlimited self-sacrifice.",
       "qualifying_context": "Questions about stewardship, responsibility, entrusted roles, and consequences.",
       "abstention_boundary": "Do not infer obligations beyond the person's authority or limits.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-identifying-what-is-held-in-trust-gold-standard-2026-10-25",
@@ -82,7 +82,7 @@
       "transferable_discipline": "Identify what is entrusted, who is affected, what duties apply, and where authority ends.",
       "qualifying_context": "Questions about trust, responsibility, custody, or fiduciary-like care.",
       "abstention_boundary": "Do not assume every relationship creates unlimited responsibility.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-faithful-stewardship-values-conflict-gold-standard-2026-10-25",
@@ -91,7 +91,7 @@
       "transferable_discipline": "Name genuine conflicts, weigh obligations and effects, protect less powerful parties, and keep decisions accountable.",
       "qualifying_context": "Questions involving conflicting values or duties.",
       "abstention_boundary": "Do not pretend every conflict has a cost-free resolution.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-intergenerational-stewardship-gold-standard-2026-10-25",
@@ -100,7 +100,7 @@
       "transferable_discipline": "Extend responsibility across time by considering inheritance, future effects, and what is passed on.",
       "qualifying_context": "Questions involving long-term stewardship and future generations.",
       "abstention_boundary": "Do not speculate about distant futures without relevant evidence.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-system-vs-separate-problems-gold-standard-2026-10-25",
@@ -109,7 +109,7 @@
       "transferable_discipline": "Look for relationships, feedback, dependencies, and recurring conditions rather than isolated symptoms.",
       "qualifying_context": "Questions about whether a situation is systemic or interconnected.",
       "abstention_boundary": "Do not label every collection of problems a system without evidence of interaction.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-leverage-point-misuse-gold-standard-2026-10-26",
@@ -118,7 +118,7 @@
       "transferable_discipline": "Examine leverage together with unintended effects, power, accountability, and correction.",
       "qualifying_context": "Questions about interventions with disproportionate influence.",
       "abstention_boundary": "Do not assume every intervention is a leverage point.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-complexity-and-uncertainty-gold-standard-2026-10-26",
@@ -127,7 +127,7 @@
       "transferable_discipline": "Distinguish interconnectedness from lack of knowledge and explain how they can interact.",
       "qualifying_context": "Questions comparing complexity, uncertainty, ambiguity, or related concepts.",
       "abstention_boundary": "Do not substitute a distinction for practical relevance.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26",
@@ -136,7 +136,7 @@
       "transferable_discipline": "Bring partial knowledge into relationship while preserving disagreement and uncertainty.",
       "qualifying_context": "Questions about fragmented information, coordination, or whole-picture understanding.",
       "abstention_boundary": "Do not force consensus or claim integration eliminates uncertainty.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-leadership-vs-positional-authority-gold-standard-2026-10-26",
@@ -145,7 +145,7 @@
       "transferable_discipline": "Distinguish formal authority from demonstrated conduct, judgment, and earned trust.",
       "qualifying_context": "Questions contrasting roles, titles, authority, and leadership.",
       "abstention_boundary": "Do not generalize one role distinction to unrelated concepts.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-operational-discipline-humane-leadership-gold-standard-2026-10-26",
@@ -154,7 +154,7 @@
       "transferable_discipline": "Translate humane intentions into dependable practice while distinguishing discipline from rigidity or control.",
       "qualifying_context": "Questions about leadership, reliability, accountability, or humane operations.",
       "abstention_boundary": "Do not treat process discipline as a substitute for judgment.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-competing-stakeholder-obligations-gold-standard-2026-10-26",
@@ -163,7 +163,7 @@
       "transferable_discipline": "Make obligations, rights, burdens, power asymmetries, trade-offs, and review visible.",
       "qualifying_context": "Questions involving competing stakeholders or obligations.",
       "abstention_boundary": "Do not imply equal consideration always means equal outcomes.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-governance-beyond-administration-gold-standard-2026-10-26",
@@ -172,7 +172,7 @@
       "transferable_discipline": "Distinguish underlying authority and decision structures from day-to-day execution.",
       "qualifying_context": "Questions about governance, administration, institutional design, and authority.",
       "abstention_boundary": "Do not use this distinction where operational detail is the actual question.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-charisma-constitutional-restraint-gold-standard-2026-10-26",
@@ -181,7 +181,7 @@
       "transferable_discipline": "Pair influence with scrutiny, dissent, independent review, and correctability.",
       "qualifying_context": "Questions about concentrated influence or safeguards against abuse.",
       "abstention_boundary": "Do not presume misconduct solely from strong influence.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-governance-redesign-preaction-questions-gold-standard-2026-10-26",
@@ -190,7 +190,7 @@
       "transferable_discipline": "Before redesign, clarify purpose, evidence, power effects, safeguards, alternatives, and correction.",
       "qualifying_context": "Questions about institutional or governance redesign.",
       "abstention_boundary": "Do not turn this into a generic checklist for unrelated change.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-institutional-memory-gold-standard-2026-10-26",
@@ -199,7 +199,7 @@
       "transferable_discipline": "Preserve not only records but reasons, conditions, and uncertainty so successors can exercise judgment.",
       "qualifying_context": "Questions about organizational learning, continuity, and memory.",
       "abstention_boundary": "Do not assume retaining information alone creates institutional memory.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     },
     {
       "benchmark_id": "general-guide-conflicting-information-discernment-gold-star-2026-11-07",
@@ -208,7 +208,7 @@
       "transferable_discipline": "Separate verified information, inference, assumptions, and unresolved claims; match action thresholds to stakes and reversibility.",
       "qualifying_context": "Questions about conflicting information, trust, uncertainty, and acting under incomplete knowledge.",
       "abstention_boundary": "Do not demand impossible certainty or reduce every issue to source counting.",
-      "activation": "shadow_candidate"
+      "activation": "active_quality_contributor"
     }
   ]
 }
