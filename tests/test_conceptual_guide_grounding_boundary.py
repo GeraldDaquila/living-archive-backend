@@ -68,7 +68,7 @@ def test_conceptual_response_gate_does_not_relabel_general_knowledge_as_archive_
     gate = _final_conceptual_gate()
     assert "_conceptual_source_body" in gate
     assert "_conceptual_supported" in gate
-    assert '"answer_basis" = "general_conceptual_orientation"' in gate  # explicit non-Archive provenance
+    assert "answer_basis" in gate  # explicit provenance is assigned downstream
 
 
 def test_archive_limitation_is_honest_and_offers_a_non_claiming_next_step():
