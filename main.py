@@ -8258,8 +8258,17 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 )
                 llm_output = str(deterministic_result.get("response") or "")
         except Exception as exc:
-            print(f"The Guide General Composition failed safely in auto mode: {type(exc).__name__}; using conservative deterministic recovery.")
-            print(f"The Guide Final Pathway: mode=auto, pathway=deterministic_recovery, provider=none, model=none, reason=composition_exception:{type(exc).__name__}")
+            # Preserve the exception detail for operators. A class name alone
+            # turns repeated composition failures into guesswork and hides the
+            # exact missing contract key from forensic diagnosis.
+            print(
+                "The Guide General Composition failed safely in auto mode: "
+                f"{type(exc).__name__}: {str(exc)!r}; using conservative deterministic recovery."
+            )
+            print(
+                "The Guide Final Pathway: mode=auto, pathway=deterministic_recovery, "
+                f"provider=none, model=none, reason=composition_exception:{type(exc).__name__}:{str(exc)!r}"
+            )
             try:
                 deterministic_result = _basic_inquiry_provider_exhaustion_response(
                     query, {}, composition_context,
