@@ -15,7 +15,7 @@ from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
 from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard
-from gold_star_lessons import shadow_observation as _gold_star_shadow_observation
+from gold_star_lessons import (shadow_observation as _gold_star_shadow_observation, active_quality_contribution as _gold_star_active_quality_contribution)
 
 from provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
@@ -2784,18 +2784,7 @@ def compose(
     if not question:
         return None
 
-    # Shadow-only observation: measure whether an approved Gold Star lesson is
-    # relevant without changing the visitor answer. Promotion into composition
-    # remains gated by held-out evaluation and explicit review.
-    _gold_star_id, _gold_star_score = _gold_star_shadow_observation(question)
-    if _gold_star_id:
-        _emit_guide_outcome(
-            "gold_star_shadow_match",
-            benchmark=_gold_star_id,
-            score=_gold_star_score,
-        )
-
-    # Exact approved/frozen benchmark questions use their registered reference
+    # Gold Star quality memory: an approved analogue may contribute reviewed structural discipline to a new answer without transferring content.\n    gold_star_quality = _gold_star_active_quality_contribution(question)\n    if gold_star_quality:\n        _emit_guide_outcome("gold_star_quality_active", benchmark=gold_star_quality.get("benchmark_id"), score=gold_star_quality.get("score"))\n\n    # Exact approved/frozen benchmark questions use their registered reference
     # response. This is deliberately exact-match only: it protects approved
     # standards without turning the Guide into a canned-answer service for
     # paraphrases or unrelated questions. Unapproved/recovered records are
@@ -2922,6 +2911,7 @@ def compose(
         if _requires_explicit_followup_invitation(question)
         else ""
     )
+    gold_star_quality_instruction = (("GOLD STAR QUALITY GUIDANCE: A rigorously approved exemplar is structurally relevant. Use this transferable discipline to improve the clarity, reasoning, and shape of this original answer: " + str(gold_star_quality.get("discipline") or "") + " " + ("Respect this boundary: " + str(gold_star_quality.get("abstention_boundary") or "") if gold_star_quality.get("abstention_boundary") else "") + " Do not copy, quote, paraphrase, or transfer the exemplar's answer, factual claims, examples, citations, or doorway. The visitor's question and supplied evidence remain authoritative.\n\n") if gold_star_quality else "")
     integrity_recovery_instruction = (
         "INTEGRITY RECOVERY: A previous candidate answer was detected as an approved reference answer to a different question. "
         "Do not repeat or paraphrase that unrelated answer. Answer the visitor’s exact question using the supplied canonical material. "
@@ -2933,6 +2923,7 @@ def compose(
     user_content = (
         f"Visitor question:\n{question}\n\n"
         + integrity_recovery_instruction
+        + gold_star_quality_instruction
         + explicit_invitation_instruction
         + practical_application_instruction
         + correction_instruction
@@ -2951,7 +2942,7 @@ def compose(
     cache_key = _composition_cache_key(
         question,
         history_text,
-        shape + ("|integrity_recovery" if integrity_recovery else ""),
+        shape + ("|integrity_recovery" if integrity_recovery else "") + ("|gold_star:" + str(gold_star_quality.get("benchmark_id")) if gold_star_quality else ""),
         documents,
     )
     now = time.monotonic()
