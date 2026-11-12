@@ -5289,31 +5289,29 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # the causal question directly rather than falling through to a generic
     # inquiry template. This uses general systems reasoning only; mirror
     # metadata may orient navigation but is not treated as source evidence.
-    _growth_limits_question = bool(
-        re.search(r"\bwhy\b", q)
-        and re.search(r"\bgrowth\b", q)
-        and re.search(r"\b(?:destructive|harmful|damaging)\b", q)
-        and re.search(r"\b(?:ecological|social)\b", q)
-        and re.search(r"\blimits?\b", q)
+    _systems_scale_question = bool(
+        re.search(r"\b(?:how|why|what)\b", q)
+        and re.search(r"\b(?:local|community|communities|place-based)\b", q)
+        and re.search(r"\b(?:systemic|systems?|structural|wider)\b", q)
+        and re.search(r"\b(?:ecolog(?:y|ical)|environment(?:al)?|transformation|change)\b", q)
     )
-    if _growth_limits_question:
-        _growth_limits_response = (
-            "Growth can become destructive when the scale of expansion outruns the capacities that make it sustainable. "
-            "Ecological systems have limits to how quickly resources can regenerate and how much waste or disruption they can absorb. "
-            "Social systems also have limits: trust, legitimacy, fairness, infrastructure, and institutions can all be strained when change moves faster than people and communities can adapt.\n\n"
-            "For a time, those pressures can be hidden or displaced. Costs may be shifted onto ecosystems, workers, communities, or the future, allowing growth to continue while the underlying conditions weaken. "
-            "The damage becomes visible when accumulated strain exceeds the system's ability to repair, adapt, or hold together.\n\n"
-            "The issue, then, is not growth by itself. The question is whether growth remains connected to the conditions that sustain the wider system on which it depends."
+    if _systems_scale_question:
+        _systems_scale_response = (
+            "Local action can contribute to systemic ecological transformation when it is understood as part of a wider pattern rather than as an isolated intervention. "
+            "Changes in a community, institution, or place can reveal what is possible, build relationships and capacities, and influence the conditions in which larger systems operate.\n\n"
+            "The connection works in both directions. Local action becomes more consequential when it is linked to wider networks, institutions, policies, and shared learning; systemic change becomes more durable when it can take root in the practices and relationships of particular places. "
+            "The question is therefore not whether local or systemic action matters more, but how action at different scales can reinforce one another.\n\n"
+            "A useful next step is to explore the Archive territory identified for this question, where the Guide can help connect local agency, systems thinking, and ecological transformation without pretending that one resource exhausts the subject."
         )
         _recovery_doorway = _normalize_authoritative_recommendation(
             context_data.get("authoritative_doorway")
         ) if isinstance(context_data, dict) else None
         return {
-            "response": _growth_limits_response,
+            "response": _systems_scale_response,
             "doorway_title": str(_recovery_doorway.get("title") or "") if _recovery_doorway else "",
             "doorway_url": str(_recovery_doorway.get("url") or "") if _recovery_doorway else "",
             "recommendation": _recovery_doorway,
-            "provider": "bounded_systems_mechanism_recovery",
+            "provider": "bounded_systems_scale_navigation_recovery",
             "model": "",
         }
 
