@@ -1330,11 +1330,27 @@ def _mirror_registry_context(query_str):
             docs.append({"title": title, "url": url, "text": summary or title,
                          "mirror_registry": True})
     context = _serialize_context_documents(docs)
+    # Mirror records are bounded orientation metadata. Passing them into the
+    # composition envelope lets the Guide use discovered territory without
+    # representing a title or summary as full source-body evidence.
+    orientation_blocks = []
+    for doc in docs:
+        title = str(doc.get("title") or "").strip()
+        summary = str(doc.get("text") or "").strip()
+        if title:
+            orientation_blocks.append(
+                f"[Canonical territorial orientation — metadata only]\n"
+                f"Title: {title}\n"
+                f"Summary: {summary}\n"
+                "Use this to orient an original response; do not attribute "
+                "unsupported details to the Archive."
+            )
     return {
         "canonical_link_context": context,
-        "context_blocks": "",
+        "context_blocks": "\n\n".join(orientation_blocks),
         "mirror_registry_active": True,
         "mirror_registry_count": len(docs),
+        "mirror_orientation_metadata_only": True,
     }
 
 
