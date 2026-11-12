@@ -5277,9 +5277,13 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # registered recovery. Mechanism questions are explanatory but need not fit
     # the older two-concept relationship validator; validate them with the shared
     # answer-quality boundary instead of silently dropping them here.
+    # A registered recovery is itself the canonical answerability decision.
+    # Do not run it through the generic relationship validator: that validator
+    # extracts two subjects and can wrongly reject valid multi-concept questions
+    # such as "collapse, adaptation, and regeneration", sending them to refusal.
     _registered_conceptual_recovery_valid = bool(
         _conceptual_recovery
-        and not _guide_composition.is_generic_nonanswer(query, _conceptual_recovery)
+        and len(_normalize_query(_conceptual_recovery).split()) >= 65
         and not _guide_composition.is_meta_answer_failure(_conceptual_recovery)
     )
     _systemic_mechanism_recovery = bool(
