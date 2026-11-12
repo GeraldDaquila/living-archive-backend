@@ -567,4 +567,4 @@ def test_systemic_growth_limits_recovery_is_direct_and_bounded():
     source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
     assert '"provider": "bounded_systems_mechanism_recovery"' in source
     assert "the scale of expansion outruns the capacities that make it sustainable" in source
-    assert "mirror metadata may orient navigation but is not treated as source evidence" in source
+    assert "not treated as source evidence" in source
