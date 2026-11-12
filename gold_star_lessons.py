@@ -182,6 +182,6 @@ def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
     discipline = str(selected.get("transferable_discipline") or "").strip()
     if not discipline:
         return None
-    contribution = {"benchmark_id": str(selected.get("benchmark_id") or ""), "reasoning_family": str(selected.get("reasoning_family") or ""), "discipline": discipline, "abstention_boundary": str(selected.get("abstention_boundary") or ""), "score": float(selected.get("score") or 0.0), "exact": bool(selected.get("exact"))}
+    contribution = {"benchmark_id": str(selected.get("benchmark_id") or ""), "reasoning_family": str(selected.get("reasoning_family") or ""), "discipline": discipline, "abstention_boundary": str(selected.get("abstention_boundary") or ""), "score": float(selected.get("score") or 0.0), "exact": bool(selected.get("exact")), "authority_mode": "structural_guidance_only"}
     print(f"gold_star_quality active benchmark_id={contribution['benchmark_id']} score={contribution['score']:.3f}", flush=True)
     return contribution
