@@ -2816,10 +2816,23 @@ def _active_active_delegate(messages, max_tokens, parse, operation, schema, dead
     if not isinstance(result, dict):
         print("USE active-active delegation: outcome=invalid_result, reason=result_not_object")
         return None
-    # The local provider gateway may already return a parsed Guide object.
-    # The caller's parse function expects transport text, so accept a structured
-    # counterpart result directly and only invoke parse when normalization is needed.
-    parsed = result
+    # Never let the counterpart's generic gateway parser define the caller's
+    # semantic contract. Re-validate the transported object with the exact parse
+    # function supplied by the local operation. If the peer payload does not meet
+    # the Guide composition contract, reject delegation and allow the normal local
+    # provider lane to continue instead of returning a malformed "success".
+    try:
+        parsed = parse(json.dumps(result, ensure_ascii=False))
+    except Exception as exc:
+        print(
+            "USE active-active delegation: outcome=invalid_result"
+            + ", reason=caller_contract_validation_failed"
+            + ", exception=" + type(exc).__name__
+        )
+        return None
+    if not isinstance(parsed, dict):
+        print("USE active-active delegation: outcome=invalid_result, reason=caller_contract_not_object")
+        return None
     print("USE active-active delegation: outcome=success, role=" + _active_active_role())
     return {
         "parsed": parsed,
