@@ -22,7 +22,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.36"
+CONTRACT_VERSION = "v1.37"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
@@ -71,7 +71,7 @@ def _composition_cache_key(
     material = json.dumps({
         "contract": CONTRACT_VERSION,
         "boundary": VISITOR_LANGUAGE_BOUNDARY_VERSION,
-        "system": _GENERAL_GUIDE_SYSTEM,
+        "system": _GENERAL_GUIDE_SYSTEM_COMPACT,
         "question": _normalize_space(question),
         "history": _normalize_space(history_text)[:1600],
         "shape": _normalize_space(shape),
