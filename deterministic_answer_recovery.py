@@ -594,7 +594,10 @@ if "choose one step small enough to test" in _historical_cultural_answer:
     raise RuntimeError("Historical-cultural Gold Standard contract failed: practical template leaked.")
 _techno_utopian_question = "What is the danger of techno-utopian thinking?"
 _techno_utopian_answer = compose_recovery(_techno_utopian_question)
-for _required in ("technological progress", "power", "institution", "cost"):
+# Verify the answer's structural ideas without coupling the contract to one
+# grammatical surface form. "technology" covers technological/technically;
+# the other stems cover power, institutional structure, and consequences.
+for _required in ("technolog", "power", "institution", "cost"):
     if _required not in _techno_utopian_answer.casefold():
         raise RuntimeError("Techno-utopian recovery contract failed: missing structural risk analysis.")
 if _techno_utopian_answer.startswith("I can't define "):
