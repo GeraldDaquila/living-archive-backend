@@ -896,6 +896,29 @@ def select_crosslinks(
         if score >= 3.0:
             ranked.append((score, asset))
     ranked.sort(key=lambda item: (-item[0], str(item[1].get("title") or "")))
+
+    # When the visitor asks for an Archive meaning, preserve an exact canonical
+    # concept-title match as the leading territorial doorway. The snapshot may
+    # legitimately contain title-only records, so discovery must not discard an
+    # exact concept simply because no source-body summary is stored here.
+    normalized_concept = " ".join(query_tokens)
+    if normalized_concept:
+        exact_matches = [
+            asset for asset in snapshot.get("assets", [])
+            if isinstance(asset, dict)
+            and asset.get("url")
+            and asset.get("url") not in existing_urls
+            and normalized_concept in " ".join(_tokens(str(asset.get("title") or "")))
+        ]
+        if exact_matches:
+            exact_matches.sort(key=lambda item: str(item.get("title") or ""))
+            exact = exact_matches[0]
+            ranked = [
+                item for item in ranked
+                if str(item[1].get("url") or "") != str(exact.get("url") or "")
+            ]
+            ranked.insert(0, (max(10.0, ranked[0][0] + 0.01 if ranked else 10.0), exact))
+
     return [asset for _, asset in ranked[:max(0, min(int(limit), 8))]]
 
 
