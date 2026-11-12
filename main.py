@@ -9157,7 +9157,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         )
                         _looks_like_limitation = bool(
                             re.search(
-                                r"\\b(?:haven['’]t found enough support|couldn't verify|could not identify|available material.*(?:not|no)\\b)",
+                                r"\b(?:haven['’]t found enough support|couldn't verify|could not identify|available material.*(?:not|no)\b)",
                                 _preserved_general_answer,
                                 re.I,
                             )
