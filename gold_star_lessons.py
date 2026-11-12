@@ -35,6 +35,107 @@ def _tokens(value: Any) -> set[str]:
 def _normalized_phrase(value: Any) -> str:
     return " ".join(re.findall(r"[a-z0-9]+", str(value or "").casefold()))
 
+class GoldStarRegistryIntegrityError(RuntimeError):
+    """Raised when the canonical Gold Star ledger violates a hard invariant."""
+
+
+def validate_registry_integrity(
+    records: List[Dict[str, Any]],
+    review_entries: List[Dict[str, Any]],
+) -> None:
+    """Enforce the canonical accounting contract before Gold Stars become active.
+
+    This validator is deliberately fail-closed: an inconsistent approved ledger
+    must not silently degrade into partial or ambiguous runtime quality guidance.
+    """
+    approved = [
+        r for r in records
+        if isinstance(r, dict)
+        and r.get("subsystem") == "general-purpose-guide"
+        and r.get("status") in _ALLOWED_STATUSES
+    ]
+    ids = [str(r.get("benchmark_id") or "").strip() for r in approved]
+    if not all(ids):
+        raise GoldStarRegistryIntegrityError(
+            "Approved Gold Star is missing benchmark_id."
+        )
+    if len(ids) != len(set(ids)):
+        raise GoldStarRegistryIntegrityError(
+            "Duplicate approved Gold Star benchmark_id detected."
+        )
+
+    review_ids: List[str] = []
+    for entry in review_entries:
+        if not isinstance(entry, dict):
+            raise GoldStarRegistryIntegrityError(
+                "Qualitative transfer review contains a non-object entry."
+            )
+        benchmark_id = str(entry.get("benchmark_id") or "").strip()
+        if not benchmark_id:
+            raise GoldStarRegistryIntegrityError(
+                "Qualitative transfer review is missing benchmark_id."
+            )
+        review_ids.append(benchmark_id)
+        for field in (
+            "reasoning_family",
+            "transferable_discipline",
+            "abstention_boundary",
+            "activation",
+        ):
+            if not str(entry.get(field) or "").strip():
+                raise GoldStarRegistryIntegrityError(
+                    f"Transfer review {benchmark_id} is missing {field}."
+                )
+    if len(review_ids) != len(set(review_ids)):
+        raise GoldStarRegistryIntegrityError(
+            "Duplicate qualitative transfer review benchmark_id detected."
+        )
+    if set(ids) != set(review_ids):
+        missing = sorted(set(ids) - set(review_ids))
+        orphaned = sorted(set(review_ids) - set(ids))
+        raise GoldStarRegistryIntegrityError(
+            f"Gold Star/review reconciliation failed: "
+            f"missing_reviews={missing}; orphan_reviews={orphaned}."
+        )
+
+    for record in approved:
+        benchmark_id = str(record["benchmark_id"]).strip()
+        if not str(record.get("query") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} is missing query."
+            )
+        if not str(record.get("expected_response") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} is missing expected_response."
+            )
+        if not str(record.get("known_theme") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} is missing known_theme."
+            )
+        if not isinstance(record.get("runtime_transfer"), bool):
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} must explicitly declare runtime_transfer."
+            )
+        if not str(record.get("freeze_policy") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} is missing freeze_policy."
+            )
+        if "expected_doorway" not in record:
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} is missing explicit expected_doorway state."
+            )
+        doorway = record.get("expected_doorway")
+        if doorway is None:
+            if str(record.get("doorway_status") or "").strip() != "INTENTIONALLY_NONE_APPROVED":
+                raise GoldStarRegistryIntegrityError(
+                    f"Approved Gold Star {benchmark_id} has no doorway without explicit approval state."
+                )
+        elif not isinstance(doorway, dict) or not str(doorway.get("title") or "").strip() or not str(doorway.get("url") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} has an incomplete expected_doorway."
+            )
+
+
 def _load_transfer_review() -> Dict[str, Dict[str, Any]]:
     """Load qualitative transfer governance keyed by approved benchmark id."""
     try:
@@ -53,13 +154,25 @@ def _load_transfer_review() -> Dict[str, Dict[str, Any]]:
     return review
 
 def _load_lessons() -> List[Dict[str, Any]]:
-    transfer_review = _load_transfer_review()
     try:
-        records = json.loads(_REGISTRY_PATH.read_text(encoding="utf-8")).get("records", [])
-    except (OSError, ValueError, TypeError):
-        return []
-    if not isinstance(records, list):
-        return []
+        registry_payload = json.loads(_REGISTRY_PATH.read_text(encoding="utf-8"))
+        review_payload = json.loads(_TRANSFER_REVIEW_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError) as exc:
+        raise GoldStarRegistryIntegrityError(
+            "Canonical Gold Star registry or qualitative review cannot be read."
+        ) from exc
+    records = registry_payload.get("records", [])
+    review_entries = review_payload.get("entries", [])
+    if not isinstance(records, list) or not isinstance(review_entries, list):
+        raise GoldStarRegistryIntegrityError(
+            "Canonical Gold Star registry or qualitative review has an invalid top-level schema."
+        )
+    validate_registry_integrity(records, review_entries)
+    transfer_review = {
+        str(entry.get("benchmark_id") or "").strip(): entry
+        for entry in review_entries
+        if isinstance(entry, dict) and str(entry.get("benchmark_id") or "").strip()
+    }
     lessons, seen = [], set()
     for record in records:
         if not isinstance(record, dict):
