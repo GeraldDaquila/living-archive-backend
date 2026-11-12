@@ -8017,6 +8017,60 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         except Exception as exc:
             print(f"The Guide evidence recovery failed safely: exception={type(exc).__name__}.")
 
+    # Institutional meaning recovery is a separate navigation responsibility.
+    # If the visitor explicitly asks what the Archive means by a concept, do one
+    # title/topic recovery before any provider or deterministic fallback can
+    # collapse the request into "no relevant resource."  The resulting doorway
+    # remains independent from answer-evidence sufficiency: a composition failure
+    # must never erase a verified navigation result.
+    _archive_voice_meaning_request = bool(
+        re.search(
+            r"^(?:what does|what do)\s+(?:the\s+|this\s+)?(?:living\s+)?archive\s+mean\s+by\s+",
+            str(query or "").strip(),
+            re.I,
+        )
+    )
+    if (
+        _archive_voice_meaning_request
+        and not authoritative_doorway
+        and not healthy_community_short_circuit
+    ):
+        try:
+            _institutional_docs = _wordpress_search_canonical_candidates(
+                query,
+                limit=max(6, _guide_subject_supplement_limit(False, True)),
+            )
+            if not _institutional_docs:
+                _institutional_docs = _wordpress_search_canonical_candidates(
+                    resource_query,
+                    limit=max(6, _guide_subject_supplement_limit(False, True)),
+                )
+            if _institutional_docs:
+                _institutional_doorway = _normalize_authoritative_recommendation(
+                    _general_guide_authoritative_doorway(
+                        query,
+                        {
+                            "generation_authority_protected_docs": _institutional_docs,
+                            "_skip_doorway_search_recovery": True,
+                        },
+                    )
+                )
+                if _institutional_doorway:
+                    authoritative_doorway = _institutional_doorway
+                    composition_context["authoritative_doorway"] = _institutional_doorway
+                    composition_context["authoritative_doorway_title"] = (
+                        _institutional_doorway.get("title") or ""
+                    )
+                    print(
+                        "The Guide institutional meaning recovery: preserved canonical "
+                        f"doorway={_institutional_doorway.get('title')!r}."
+                    )
+        except Exception as exc:
+            print(
+                "The Guide institutional meaning recovery failed safely: "
+                f"exception={type(exc).__name__}."
+            )
+
     # Bounded conceptual recovery: when a conceptual explanatory answer has no
     # doorway and the ordinary supplement gate did not run, perform one canonical
     # recovery pass. This preserves the established supplement boundary above.
@@ -8078,14 +8132,22 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         )
 
     if archive_evidence_unavailable:
+        # Synthesis evidence and navigation evidence have different lifecycles.
+        # Keep a verified authoritative doorway in the request context so later
+        # fallback/recovery cannot contradict a resource already found.
+        _preserved_doorway = authoritative_doorway
         for key in (
             "context_blocks",
             "canonical_link_context",
             "generation_authority_protected_docs",
             "question_authority_protected_docs",
-            "authoritative_doorway",
         ):
             composition_context.pop(key, None)
+        if _preserved_doorway:
+            composition_context["authoritative_doorway"] = _preserved_doorway
+            composition_context["authoritative_doorway_title"] = (
+                _preserved_doorway.get("title") or ""
+            )
         # Navigation and answer synthesis have separate evidence contracts.
         # Insufficient synthesis evidence must not erase an independently
         # selected, relevant canonical doorway. The doorway is returned as a
