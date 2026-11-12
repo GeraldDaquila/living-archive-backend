@@ -2446,5 +2446,13 @@
       "Add evidence-linked lesson candidates and a shadow-mode report without changing visitor-facing behavior.",
       "Review reliability, privacy controls, and measured generalization before any adaptation is promoted."
     ]
+  },
+  "canonical_storage": {
+    "authority": "docs/qa/gold_standard_registry.json on the living-archive-backend main branch is the sole authoritative, additive Gold Star ledger.",
+    "human_readable_companion": "docs/qa/GOLD_STANDARD_REGISTRY.md",
+    "accounting_rule": "Every user-approved Gold Star must be recorded here before it is reported as part of the ecosystem total. External repositories, QA artifacts, screenshots, chat records, fixtures, and runtime services may hold evidence or mirrors but are never independent ledgers.",
+    "addition_rule": "A new Gold Star is an addition to the existing canonical ledger, never the start of a parallel registry. Approval records must preserve provenance, rating when assigned, and an explicit approval record.",
+    "reconciliation_rule": "If an approved candidate was temporarily recorded outside this ledger, reconcile it into this registry before counting it as a new Gold Star. Do not maintain competing totals.",
+    "runtime_rule": "Runtime QA and production systems may consume or mirror approved lessons, but they do not define the authoritative count."
   }
 }
