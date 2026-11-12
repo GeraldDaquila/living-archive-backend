@@ -1,8 +1,9 @@
 """Governed structural lessons derived from explicitly approved Gold Stars.
 
-This is a shadow-mode quality layer. It selects transferable response structure
-without changing visitor-facing composition. Registry answers, claims, examples,
-citations, and doorways are never returned as lesson content.
+Approved Gold Stars may actively contribute transferable response discipline to
+new answers. Registry answers, factual claims, examples, citations, and doorways
+are never transferred across questions; only reviewed structural guidance may
+enter composition. Exact approved questions retain their separate answer authority.
 """
 from __future__ import annotations
 
@@ -77,7 +78,7 @@ def _load_lessons() -> List[Dict[str, Any]]:
         assertions = [str(x).strip() for x in (record.get("assertions") or [])
                       if isinstance(x, str) and str(x).strip()][:5]
         review = transfer_review.get(benchmark_id, {})
-        shadow_candidate = review.get("activation") == "shadow_candidate"
+        active_candidate = review.get("activation") in {"active_quality_contributor", "shadow_candidate"}
         qualifying_context = str(review.get("qualifying_context") or "")
         transferable_discipline = str(review.get("transferable_discipline") or "")
         lessons.append({
@@ -88,7 +89,9 @@ def _load_lessons() -> List[Dict[str, Any]]:
             "terms": _tokens(query + " " + str(record.get("known_theme") or "")
                              + " " + " ".join(str(v) for v in variants if isinstance(v, str))),
             # Cross-question eligibility is governed by the qualitative review.
-            "runtime_transfer": bool(record.get("runtime_transfer")) or shadow_candidate,
+            "runtime_transfer": bool(record.get("runtime_transfer")) or active_candidate,
+            "reasoning_family": str(review.get("reasoning_family") or "").strip(),
+            "abstention_boundary": str(review.get("abstention_boundary") or "").strip(),
             "qualifying_context": qualifying_context,
             "transferable_discipline": transferable_discipline,
             "variants": [str(v).strip() for v in variants if isinstance(v, str) and str(v).strip()],
@@ -109,7 +112,10 @@ def select_lesson(query: str) -> Optional[Dict[str, Any]]:
         return {"benchmark_id": x["id"], "score": 1.0, "exact": True,
                 "runtime_transfer": bool(x["runtime_transfer"]),
                 "query": x["query"], "known_theme": x["known_theme"],
-                "assertions": x["assertions"]}
+                "assertions": x["assertions"],
+                "reasoning_family": x.get("reasoning_family", ""),
+                "transferable_discipline": x.get("transferable_discipline", ""),
+                "abstention_boundary": x.get("abstention_boundary", "")}
     candidates = [x for x in _LESSONS if x["runtime_transfer"]]
     query_terms = _tokens(query)
     if len(query_terms) < 2:
@@ -136,7 +142,10 @@ def select_lesson(query: str) -> Optional[Dict[str, Any]]:
     score, _, _, x = ranked[0]
     return {"benchmark_id": x["id"], "score": round(score, 3), "exact": False,
             "runtime_transfer": True, "query": x["query"],
-            "known_theme": x["known_theme"], "assertions": x["assertions"]}
+            "known_theme": x["known_theme"], "assertions": x["assertions"],
+            "reasoning_family": x.get("reasoning_family", ""),
+            "transferable_discipline": x.get("transferable_discipline", ""),
+            "abstention_boundary": x.get("abstention_boundary", "")}
 
 def shadow_observation(query: str) -> Tuple[Optional[str], Optional[float]]:
     """Return minimal non-content metadata and emit a structured shadow event.
@@ -161,3 +170,16 @@ def shadow_observation(query: str) -> Tuple[Optional[str], Optional[float]]:
     print(message, flush=True)
     _TELEMETRY_LOG.info(message)
     return benchmark_id, score
+
+
+def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
+    """Return bounded structural guidance for real-time composition."""
+    selected = select_lesson(query)
+    if not selected or not selected.get("runtime_transfer"):
+        return None
+    discipline = str(selected.get("transferable_discipline") or "").strip()
+    if not discipline:
+        return None
+    contribution = {"benchmark_id": str(selected.get("benchmark_id") or ""), "reasoning_family": str(selected.get("reasoning_family") or ""), "discipline": discipline, "abstention_boundary": str(selected.get("abstention_boundary") or ""), "score": float(selected.get("score") or 0.0), "exact": bool(selected.get("exact"))}
+    print(f"gold_star_quality active benchmark_id={contribution['benchmark_id']} score={contribution['score']:.3f}", flush=True)
+    return contribution
