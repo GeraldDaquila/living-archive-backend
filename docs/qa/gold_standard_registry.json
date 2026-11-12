@@ -2070,10 +2070,7 @@
       "subsystem": "general-purpose-guide",
       "query": "What is the role of operational discipline in humane leadership?",
       "expected_response": "Operational discipline is the steady practice of turning humane intentions into reliable actions. In leadership, it means keeping commitments, making decisions clearly, following through, and ensuring that people can depend on agreed ways of working. It gives care a practical form: respect is not only expressed in words, but shown in how work is organized and how people are treated.\n\nThis discipline matters because good intentions alone do not prevent confusion, unfairness, or repeated mistakes. For example, a leader who sets clear responsibilities, explains why a decision was made, checks whether a handoff worked, and addresses missed commitments fairly makes it easier for people to contribute without guessing what is expected. Consistent processes also help a team notice problems early rather than relying on individual heroics to keep everything moving.\n\nHumane operational discipline is not rigid rule-following or control for its own sake. Standards should create reliability while leaving room to listen, learn, and adapt when circumstances change or a process harms the people it is meant to serve. The leader’s task is to hold commitments and boundaries consistently, apply them fairly, and improve the way work is done—so accountability strengthens dignity and trust instead of becoming punishment.",
-      "expected_doorway": {
-        "title": "From Awakening to Stewardship",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Exactly three substantive, connected paragraphs, preserving the screenshot-approved answer verbatim.",
         "Directly explains operational discipline in humane leadership rather than describing what an answer should contain.",
@@ -2105,7 +2102,7 @@
       "known_theme": "humane reliability",
       "runtime_transfer": true,
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Visible doorway label is preserved in assertions/provenance, but no complete canonical title-and-URL doorway pair is inferred or invented."
     },
     {
       "benchmark_id": "general-guide-competing-stakeholder-obligations-gold-standard-2026-10-26",
@@ -2301,10 +2298,7 @@
       "subsystem": "general-purpose-guide",
       "query": "I feel overwhelmed by conflicting information and opinions. How can I regain my bearings and know what is real enough to act on?",
       "expected_response": "When you face conflicting information and opinions, the problem is not simply a lack of information or a need for more information. It is that you need a reliable way to judge what deserves trust and what is established well enough to act on. Regaining your bearings starts by separating the strength of a claim from the confidence or volume with which someone presents it.\n\nMake three distinctions: what is directly known or independently verified; what is an interpretation or inference drawn from those facts; and what remains an assumption or an unresolved claim. Look at where each claim comes from, whether independent sources support it, and whether the evidence actually supports the conclusion being drawn. Ask what new evidence would change your view rather than collecting more opinions that repeat the same assertion.\n\nYou do not need absolute certainty before every action. The evidence threshold should fit the stakes: a small, reversible decision can sometimes proceed on the best-supported account available, while a decision with serious or irreversible consequences calls for stronger independent support and more care. State what you know, what remains uncertain, and what would make you pause or revise course; then act only as far as that evidence reasonably allows.",
-      "expected_doorway": {
-        "title": "When You Don’t Know What to Believe Anymore",
-        "url": null
-      },
+      "expected_doorway": null,
       "rating_out_of_10": 8.8,
       "assertions": [
         "User explicitly approved elevation to Gold Star on 2026-11-07 after reviewing the actual production visitor response.",
@@ -2343,7 +2337,7 @@
       },
       "known_theme": "epistemic discernment",
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Visible doorway label is preserved in assertions/provenance, but no complete canonical title-and-URL doorway pair is inferred or invented."
     },
     {
       "benchmark_id": "general-guide-developmental-language-gold-star-2026-11-09",
