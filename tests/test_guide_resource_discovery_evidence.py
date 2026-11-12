@@ -560,3 +560,10 @@ def test_mirror_registry_context_enters_composition_as_metadata_orientation():
     assert '"mirror_orientation_metadata_only": True' in source
     assert 'context_blocks": "\\n\\n".join(orientation_blocks)' in source
     assert "Use this to orient an original response; do not attribute" in source
+
+
+def test_systemic_growth_limits_recovery_is_direct_and_bounded():
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    assert '"provider": "bounded_systems_mechanism_recovery"' in source
+    assert "the scale of expansion outruns the capacities that make it sustainable" in source
+    assert "mirror metadata may orient navigation but is not treated as source evidence" in source
