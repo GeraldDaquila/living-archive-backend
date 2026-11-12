@@ -554,7 +554,8 @@ def test_registered_title_anchor_can_be_direct_when_body_supports_requested_aspe
 
 
 def test_mirror_registry_context_enters_composition_as_metadata_orientation():
-    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    from pathlib import Path
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
     assert "Canonical territorial orientation — metadata only" in source
     assert '"mirror_orientation_metadata_only": True' in source
     assert 'context_blocks": "\\n\\n".join(orientation_blocks)' in source
