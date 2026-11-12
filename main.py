@@ -3900,6 +3900,31 @@ def _guide_route_fallback(query, history=None):
             "source": "deterministic-fallback",
         }
 
+    # Institutional Archive-voice questions are answer obligations.  This
+    # deterministic fallback runs before later specialist handoff guards, so it
+    # must not classify "What does the Archive mean by …?" as a generic Glossary
+    # lookup merely because it contains definition language.
+    archive_voice_meaning = bool(
+        re.search(
+            r"^(?:what does|what do)\s+(?:the\s+|this\s+)?(?:living\s+)?archive\s+mean\s+by\b",
+            q,
+            re.I,
+        )
+        or (
+            re.search(r"\b(?:in|within|inside)\s+(?:the\s+|this\s+)?(?:living\s+)?archive\b", q, re.I)
+            and re.search(r"\b(?:mean|means|meaning|role|purpose|significance|understand)\b", q, re.I)
+        )
+    )
+    if archive_voice_meaning:
+        return {
+            "route": "guide",
+            "mode": "direct",
+            "confidence": 0.90,
+            "reason": "Archive-voice institutional meaning question",
+            "alternatives": ["guide"],
+            "source": "deterministic-institutional-scope",
+        }
+
     if re.search(r"\b(?:define|definition|what is|what does .* mean|meaning of)\b", q, re.I):
         return {
             "route": "glossary",
@@ -3919,6 +3944,14 @@ def _guide_route_fallback(query, history=None):
         "source": "deterministic-fallback",
     }
 
+
+# Regression guard: Archive-voice meaning questions must remain Guide-owned
+# even when the reasoning model is unavailable and deterministic routing is used.
+_archive_voice_regression = _deterministic_route_fallback(
+    "What does the Archive mean by civilizational transition?"
+)
+if _archive_voice_regression.get("route") != "guide":
+    raise RuntimeError("USE institutional-route invariant failed: Archive-voice meaning question became a Glossary lookup")
 
 def _guide_route_models():
     """Return the currently viable provider/model bank for diagnostics."""
