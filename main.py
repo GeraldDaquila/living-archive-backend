@@ -296,8 +296,8 @@ if PROVIDER_GATEWAY_CONTRACT_VERSION != "v1":
 
 if PROVIDER_BANK_CONTRACT_VERSION != "v2":
     raise RuntimeError("USE provider bank contract integrity failure: unsupported provider bank contract.")
-if GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION != "v1.35":
-    raise RuntimeError("USE General Guide composition contract integrity failure: unsupported contract.")
+if not isinstance(GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION, str) or not GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION.startswith("v1."):
+    raise RuntimeError("USE General Guide composition contract integrity failure: invalid contract version.")
 if GUIDE_NODE_REGISTRY_VERSION != "v2":
     raise RuntimeError("USE Guide Node Registry contract integrity failure: unsupported registry version.")
 if BOUNDARY_RESILIENCE_CONTRACT_VERSION != "v1":
