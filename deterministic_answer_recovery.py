@@ -107,7 +107,17 @@ def compose_definition_significance(subject):
 
     }
     normalized_subject = re.sub(r"\s+", " ", subject).strip().casefold()
-    entry = definition_bank.get(normalized_subject)
+    # Questions often frame a familiar concept through its consequence
+    # ("the danger of X", "the risk of X") rather than naming X bare.
+    # Recover the underlying concept before treating it as unfamiliar.
+    conceptual_subject = re.sub(
+        r"^(?:the\s+)?(?:danger|risk|problem|downside|benefit|value|importance)\s+of\s+",
+        "",
+        normalized_subject,
+    ).strip()
+    entry = definition_bank.get(normalized_subject) or definition_bank.get(conceptual_subject)
+    if entry and conceptual_subject != normalized_subject:
+        display_subject = conceptual_subject[:1].upper() + conceptual_subject[1:]
     if entry:
         example = str(entry["example"]).strip()
         significance = str(entry["significance"]).strip()
