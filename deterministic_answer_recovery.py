@@ -268,8 +268,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     # recovery answers the concept directly during provider/retrieval outages,
     # while keeping its interpretation bounded and explicitly non-doctrinal.
     civilizational_transition = bool(
-        re.search(r"\\bcivilizational\\s+transition\\b", lower)
-        and re.search(r"\\b(?:what does|what is|define|explain|meaning)\\b", lower)
+        re.search(r"\bcivilizational\s+transition\b", lower)
+        and re.search(r"\b(?:what does|what is|define|explain|meaning)\b", lower)
     )
     if civilizational_transition:
         answer = (
