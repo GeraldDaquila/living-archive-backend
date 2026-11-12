@@ -5747,6 +5747,20 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         )
         closing = "The identified Archive resource remains a relevant place to continue while that grounded answer path is recovered."
     else:
+        # Terminal boundary invariant: a recognized conceptual relationship must
+        # never be rendered as an evidence-refusal merely because retrieval is
+        # empty. Re-check the canonical composer here, immediately before the
+        # only generic refusal text in this helper.
+        _terminal_conceptual_recovery = _guide_composition._conceptual_relationship_recovery(query)
+        if _terminal_conceptual_recovery and not _guide_composition.is_meta_answer_failure(_terminal_conceptual_recovery):
+            return {
+                "response": _terminal_conceptual_recovery,
+                "doorway_title": "",
+                "doorway_url": "",
+                "recommendation": None,
+                "provider": "terminal_conceptual_relationship_recovery",
+                "model": "",
+            }
         opening = f"Your question asks: {question.rstrip('?')}." if question else "The question is worth answering directly."
         explanation = "I couldn't verify a reliable answer from the material available in this request, so I won't present a guess as fact."
         closing = (
