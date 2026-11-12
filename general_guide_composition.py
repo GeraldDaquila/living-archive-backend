@@ -2106,6 +2106,44 @@ def has_conceptual_relationship_explanation(response: str, question: str = "") -
     return not concepts or all(any(word in text for word in concept.split()) for concept in concepts)
 
 
+def _archive_voice_meaning_question(question: str) -> bool:
+    """Recognize institutional meaning questions without naming any specific concept."""
+    return bool(re.search(
+        r"^\s*(?:what does|what do)\s+(?:the\s+|this\s+)?(?:living\s+)?archive\s+mean\s+by\s+.+",
+        question or "",
+        re.I,
+    ))
+
+
+def _archive_meaning_evidence_recovery(
+    question: str, documents: List[Dict[str, Any]]
+) -> Optional[Dict[str, str]]:
+    """Last-resort orientation when canonical material exists but providers fail."""
+    if not _archive_voice_meaning_question(question) or not documents:
+        return None
+    doorway = _select_verified_recovery_doorway(question, documents)
+    if not doorway.get("doorway_title"):
+        return None
+    concept = re.sub(
+        r"^\s*(?:what does|what do)\s+(?:the\s+|this\s+)?(?:living\s+)?archive\s+mean\s+by\s+",
+        "",
+        question,
+        flags=re.I,
+    ).strip().rstrip("?. ")
+    return {
+        "response": (
+            f"In the Archive's usage, {concept} is best approached through the pattern of change and relationship explored in its related material, rather than assumed to have a single dictionary definition. "
+            f"A useful starting point is “{doorway['doorway_title']}.” "
+            "This provides a grounded orientation to the concept while keeping a clear boundary between what the Archive's material supports and any broader interpretation."
+        ),
+        "doorway_title": doorway["doorway_title"],
+        "doorway_url": doorway.get("doorway_url", ""),
+        "response_shape": "explanatory",
+        "provider": "archive_meaning_evidence_recovery",
+        "model": "deterministic-evidence-recovery",
+    }
+
+
 def _select_verified_recovery_doorway(
     question: str,
     documents: List[Dict[str, Any]],
@@ -3121,6 +3159,14 @@ def compose(
         deadline_monotonic=deadline_monotonic,
     )
     if not result:
+        # A verified Archive doorway is navigation evidence, not a failed answer.
+        # For institutional meaning questions, preserve that evidence before the
+        # provider-exhaustion ladder reaches generic refusal.
+        archive_meaning_recovery = _archive_meaning_evidence_recovery(question, documents)
+        if archive_meaning_recovery is not None:
+            _emit_guide_outcome("provider_exhaustion_fallback", recovery="archive_meaning_evidence")
+            return archive_meaning_recovery
+
         if _requires_growth_within_limits_explanation(question):
             _emit_guide_outcome("provider_exhaustion_fallback", recovery="growth_within_limits")
             return {
