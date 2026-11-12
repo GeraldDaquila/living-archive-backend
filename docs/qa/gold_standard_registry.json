@@ -2480,6 +2480,43 @@
         "approval_date": "2026-11-13"
       },
       "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
+    },
+    {
+      "benchmark_id": "general-guide-systems-intelligibility-without-monocausal-reduction-gold-star-2026-11-13",
+      "subsystem": "general-purpose-guide",
+      "query": "A user wants a simple explanation for societal breakdown. How should the Guide preserve intelligibility without offering monocausal stories?",
+      "expected_response": "A simple explanation does not have to mean a single cause. Social breakdown is often easier to understand when several pressures begin reinforcing one another: institutions lose capacity or legitimacy, relationships and shared norms weaken, material pressures rise, and the ability to correct problems declines. No one factor has to explain everything for the pattern to become intelligible.\n\nThe useful question is therefore not “What is the one cause?” but “Which conditions are interacting, and how are they changing one another?” A loss of trust can weaken institutions; weaker institutions can make problems harder to address; unresolved problems can deepen frustration and further erode trust. But the point is not to hold every cause in view. It is to notice which relationships are doing the most work: what is weakening, what is reinforcing that weakness, and where the pattern might still be interrupted.\n\nThat leaves room for differences in place and time. The same pressures do not produce the same outcomes everywhere, and a systems account should make those differences visible rather than forcing every case into one story. The aim is not to explain everything at once, but to identify the relationships that make the larger pattern easier to see—and to leave the visitor with a better question about what is happening within it.",
+      "expected_doorway": {
+        "title": "A Simple Story About Separation, Sharing, and the Way We Built the World",
+        "url": "https://geralddaquila.com/a-simple-story-about-separation-sharing-and-the-way-we-built-the-world"
+      },
+      "assertions": [
+        "Answers an explanatory question without converting it into decision coaching.",
+        "Refuses the false choice between simplicity and monocausal explanation.",
+        "Uses reinforcing relationships to make complexity intelligible.",
+        "Gives the visitor a usable way of seeing: what is weakening, what reinforces the weakness, and where the pattern may be interrupted.",
+        "Preserves differences across place and time without abandoning intelligibility.",
+        "Includes one relevant doorway that continues the inquiry."
+      ],
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "known_theme": "systems intelligibility, societal breakdown, and multi-causal explanation without monocausal reduction",
+      "gold_star_capabilities": {
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "reasoning_family": "systems_intelligibility_without_monocausal_reduction",
+        "transferable_discipline": "Refuse the false choice between simplicity and single-cause explanation; identify the interacting relationships that make a pattern intelligible, then leave the visitor with a usable way of seeing what is weakening, what reinforces it, and where the pattern may be interrupted.",
+        "abstention_boundary": "Do not claim a specific cause of societal breakdown without evidence, flatten distinct contexts into one story, or convert an explanatory inquiry into decision coaching."
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_ref": "live visitor-path result following structural restriction of generic decision coaching, elevated by explicit user approval",
+        "source_pr": "direct canonical ledger addition",
+        "verification_context": "live production behavioral validation of explanatory reasoning family",
+        "approval_date": "2026-11-13"
+      },
+      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
     }
   ],
   "last_reconciliation_note": "Canonical additive ledger integrity normalization: approved Gold Stars use explicit known_theme and runtime_transfer fields; doorway state is explicit. Legacy incomplete doorway metadata is represented as non-authoritative rather than silently inferred.",
