@@ -4971,6 +4971,52 @@ def _guide_finalize_visitor_payload(payload, query):
         )
         return safe
 
+    # Terminal invariant for recoveries registered outside the composition
+    # registry. A valid deterministic recovery must not be lost merely because
+    # an exhausted provider/retrieval path reaches this outer boundary first.
+    if _outer_response_failure:
+        try:
+            from deterministic_answer_recovery import (
+                compose_recovery as _terminal_compose_recovery,
+                has_registered_recovery as _terminal_has_registered_recovery,
+            )
+            _terminal_registered = bool(_terminal_has_registered_recovery(query))
+            _terminal_recovery = (
+                _sanitize_basic_inquiry_response(_terminal_compose_recovery(query))
+                if _terminal_registered
+                else ""
+            )
+        except Exception as exc:
+            print(
+                "The Guide outer deterministic recovery check failed safely: "
+                f"{type(exc).__name__}."
+            )
+            _terminal_registered = False
+            _terminal_recovery = ""
+
+        _terminal_recovery_valid = bool(
+            _terminal_registered
+            and _terminal_recovery
+            and not general_guide_composition.is_generic_nonanswer(
+                query, _terminal_recovery
+            )
+            and not general_guide_composition.is_meta_answer_failure(
+                _terminal_recovery
+            )
+        )
+        if _terminal_recovery_valid:
+            safe = dict(payload)
+            safe["response"] = _terminal_recovery
+            safe["recommendation"] = None
+            safe["processing"] = "outer_visitor_boundary_deterministic_registered_recovery"
+            safe["route_source"] = "guide_outer_visitor_boundary"
+            safe["visitor_boundary_version"] = APP_VERSION
+            print(
+                "The Guide outer visitor boundary: restored registered deterministic orientation."
+            )
+            return safe
+
+
     # The composition contract is authoritative for explicit epistemic-boundary
     # questions too. Earlier recovery rules only recognized conceptual and
     # meta-answer failures, allowing a fluent but off-topic legacy answer to
