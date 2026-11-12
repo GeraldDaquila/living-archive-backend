@@ -2733,7 +2733,12 @@ ACTIVE_ACTIVE_CONTRACT_VERSION = "v1"
 PRIMARY_COUNTERPART_URL = "https://living-archive-backend-mirror.onrender.com/api/active-active-guide-capability"
 SECONDARY_COUNTERPART_URL = "https://living-archive-backend.onrender.com/api/provider-capability"
 ACTIVE_ACTIVE_PRIMARY_LOCAL_PERCENT = 70
-ACTIVE_ACTIVE_TIMEOUT_SECONDS = 4.0
+ACTIVE_ACTIVE_TIMEOUT_SECONDS = 6.0
+# The counterpart executes one bounded Guide composition locally. The peer
+# transport budget must exceed the remote model budget plus Render/JSON overhead;
+# otherwise the caller disconnects from healthy work and collapses the intended
+# 70/30 lane back onto primary.
+ACTIVE_ACTIVE_TELEMETRY_VERSION = "v2"
 
 
 def _active_active_role():
@@ -2789,11 +2794,20 @@ def _active_active_delegate(messages, max_tokens, parse, operation, schema, dead
         "X-Living-Archive-Provider-Key": secret,
         "User-Agent": "Living-Archive-Active-Active/1.0",
     }, method="POST")
+    print(
+        "USE active-active delegation: event=attempt"
+        + ", role=" + _active_active_role()
+        + ", timeout_seconds=" + str(round(float(timeout), 3))
+    )
     try:
         with urlopen(request, timeout=max(0.5, float(timeout))) as response:
             body = json.loads(response.read().decode("utf-8"))
     except Exception as exc:
-        print("USE active-active delegation: outcome=failed, exception=" + type(exc).__name__)
+        print(
+            "USE active-active delegation: outcome=failed"
+            + ", role=" + _active_active_role()
+            + ", exception=" + type(exc).__name__
+        )
         return None
     if not isinstance(body, dict) or not bool(body.get("ok")):
         print("USE active-active delegation: outcome=no_result")
@@ -2821,11 +2835,20 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     # its assigned share through the authenticated capability boundary; if that lane
     # is unavailable the primary continues locally rather than failing the visitor.
     delegated = False
-    if _active_active_primary_assignment(messages, operation):
+    assigned_to_counterpart = _active_active_primary_assignment(messages, operation)
+    if operation == "general_guide_composition" and _active_active_role() == "primary":
+        print(
+            "USE active-active allocation: assigned_server="
+            + ("secondary" if assigned_to_counterpart else "primary")
+            + ", split=70/30"
+        )
+    if assigned_to_counterpart:
         delegated = True
         remote = _active_active_delegate(messages, max_tokens, parse, operation, schema, deadline_monotonic)
         if remote:
+            print("USE active-active allocation: completed_server=secondary")
             return remote
+        print("USE active-active allocation: completed_server=primary, reason=counterpart_unavailable")
 
     # Capacity publication is advisory telemetry only and runs off the visitor path.
     refresh_server_capacity_state()
