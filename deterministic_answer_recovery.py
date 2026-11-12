@@ -272,6 +272,11 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         and re.search(r"\b(?:what does|what is|define|explain|meaning)\b", lower)
         and re.search(r"\barchive\b", lower)
     )
+    ai_interpreter_authority = bool(
+        re.search(r"\bai\b", lower)
+        and re.search(r"\binterpreter\b", lower)
+        and re.search(r"\bauthority\b", lower)
+    )
     if civilizational_transition:
         answer = (
             "In the Living Archive, civilizational transition refers to a period in which the systems that organize collective life are changing together, rather than a single government, technology, or economic arrangement simply being replaced. "
@@ -284,12 +289,7 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "The Philippines is used in one Archive case study as a revealing example of these pressures appearing in concentrated form, not as a perfect model or a uniquely destined society. "
             "This is a bounded synthesis of the Archive's published treatment, not a claim that every society follows one predetermined path."
         )
-    ai_interpreter_authority = bool(
-        re.search(r"\bai\b", lower)
-        and re.search(r"\binterpreter\b", lower)
-        and re.search(r"\bauthority\b", lower)
-    )
-    if ai_interpreter_authority:
+    elif ai_interpreter_authority:
         answer = (
             "An AI acts as an interpreter rather than an authority when it helps make information, patterns, and possible meanings clearer without claiming the right to make the final judgment. "
             "It can summarize evidence, compare perspectives, identify connections, and surface questions that may otherwise be missed. Those capabilities can support human understanding, but they do not by themselves establish what ought to be valued or decided.\n\n"
