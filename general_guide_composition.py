@@ -2784,7 +2784,17 @@ def compose(
     if not question:
         return None
 
-    # Gold Star quality memory: an approved analogue may contribute reviewed structural discipline to a new answer without transferring content.\n    gold_star_quality = _gold_star_active_quality_contribution(question)\n    if gold_star_quality:\n        _emit_guide_outcome("gold_star_quality_active", benchmark=gold_star_quality.get("benchmark_id"), score=gold_star_quality.get("score"))\n\n    # Exact approved/frozen benchmark questions use their registered reference
+    # Gold Star quality memory: an approved analogue may contribute reviewed
+    # structural discipline to a new answer without transferring content.
+    gold_star_quality = _gold_star_active_quality_contribution(question)
+    if gold_star_quality:
+        _emit_guide_outcome(
+            "gold_star_quality_active",
+            benchmark=gold_star_quality.get("benchmark_id"),
+            score=gold_star_quality.get("score"),
+        )
+
+    # Exact approved/frozen benchmark questions use their registered reference
     # response. This is deliberately exact-match only: it protects approved
     # standards without turning the Guide into a canned-answer service for
     # paraphrases or unrelated questions. Unapproved/recovered records are
