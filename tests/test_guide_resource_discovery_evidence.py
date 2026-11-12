@@ -559,4 +559,4 @@ def test_mirror_registry_context_enters_composition_as_metadata_orientation():
     assert "Canonical territorial orientation — metadata only" in source
     assert '"mirror_orientation_metadata_only": True' in source
     assert 'context_blocks": "\\n\\n".join(orientation_blocks)' in source
-    assert "unsupported Archive attribution" in source
+    assert "Use this to orient an original response; do not attribute" in source
