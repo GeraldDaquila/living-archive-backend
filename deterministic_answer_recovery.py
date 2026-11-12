@@ -501,15 +501,15 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         )
     elif re.search(r"\b(?:how|steps|approach|what can i do|what should we do|how to)\b", lower):
         answer = (
-            f"A practical way to approach {subject} is to begin by clarifying the outcome and the responsibilities involved. "
-            "Identify what is known, which constraints or obligations matter, and who will be affected by the available choices. "
-            "This makes the real decision clearer than jumping immediately to a generic action plan.\n\n"
-            "Next, compare a small number of realistic options against the purpose you are trying to serve. Consider likely "
-            "benefits, foreseeable harms, who carries the costs, and what evidence would change the choice. Where other people "
-            "are affected, include their knowledge and concerns rather than treating them as an afterthought.\n\n"
-            "Finally, act on the best-supported option, explain the reasoning and limits, and review the consequences. "
-            "A useful approach should improve understanding and accountability, not promise certainty or shift responsibility "
-            "onto people who lack the authority to resolve the problem."
+            f"For a question like {subject}, the first task is to make the decision visible. "
+            "What is the organisation trying to achieve, what responsibilities does it carry, and who will live with the consequences? "
+            "Those questions bring operations, governance, human development, ethics, and stewardship into the same frame without pretending they are separate problems.\n\n"
+            "From there, compare the real options rather than assuming that the proposed course is the only one. "
+            "Look at what each option makes possible, what it may damage, who bears the costs, and what evidence would justify changing direction. "
+            "The knowledge of people affected by the decision belongs in that assessment, especially where they will carry consequences they did not choose.\n\n"
+            "The point is not to make the decision for the organisation, but to make the grounds for acting clearer. "
+            "Choose deliberately, make the reasoning and limits visible, and remain accountable for what follows. "
+            "AI may inform that work, but it cannot take responsibility for a decision away from the people who have the authority to make it."
         )
     elif re.search(r"\b(?:what is|what are|define|definition|meaning of|what does .* mean)\b", lower):
         answer = compose_definition_significance(subject)
