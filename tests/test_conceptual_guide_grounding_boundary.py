@@ -68,7 +68,7 @@ def test_conceptual_response_gate_does_not_relabel_general_knowledge_as_archive_
     gate = _final_conceptual_gate()
     assert "_conceptual_source_body" in gate
     assert "_conceptual_supported" in gate
-    assert "answer_basis" not in gate  # provenance remains assigned downstream
+    assert '"answer_basis" = "general_conceptual_orientation"' in gate  # explicit non-Archive provenance
 
 
 def test_archive_limitation_is_honest_and_offers_a_non_claiming_next_step():
@@ -165,7 +165,8 @@ def test_conceptual_grounding_allows_bounded_synthesis_across_vetted_canonical_b
 def test_conceptual_grounding_failure_diagnostic_reports_question_matched_recovery_state():
     gate = _final_conceptual_gate()
     assert "The Guide conceptual boundary: no question-matched canonical " in gate
-    assert "sentences; returned the Archive-only limitation." in gate
+    assert "sentences and no substantive general answer to preserve;" in gate
+    assert "returned the Archive-only limitation." in gate
     assert "evidence_sufficiency_unavailable" in gate
 
 
