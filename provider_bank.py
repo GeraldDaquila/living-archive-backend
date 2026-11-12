@@ -2721,7 +2721,111 @@ def _hrn_workers_fast_candidate(pool):
     ), None)
 
 
+
+
+# Active-active server contract: the Guide is not a single-server provider bank.
+# Primary workload is deterministically split 70/30 between local capacity and
+# USE2-Mirror. Either side may use the other as one bounded resilience lane before
+# deterministic recovery. The remote service never recursively delegates: the
+# provider-capability endpoint executes its local bank directly.
+ACTIVE_ACTIVE_CONTRACT_VERSION = "v1"
+PRIMARY_COUNTERPART_URL = "https://living-archive-backend-mirror.onrender.com/api/provider-capability"
+SECONDARY_COUNTERPART_URL = "https://living-archive-backend.onrender.com/api/provider-capability"
+ACTIVE_ACTIVE_PRIMARY_LOCAL_PERCENT = 70
+ACTIVE_ACTIVE_TIMEOUT_SECONDS = 4.0
+
+
+def _active_active_role():
+    role = str(os.getenv("USE_SERVER_ROLE") or "primary").strip().casefold()
+    return role if role in {"primary", "secondary"} else "primary"
+
+
+def _active_active_counterpart_url():
+    configured = str(os.getenv("USE_COUNTERPART_PROVIDER_URL") or "").strip()
+    if configured:
+        return configured.rstrip("/")
+    return PRIMARY_COUNTERPART_URL if _active_active_role() == "primary" else SECONDARY_COUNTERPART_URL
+
+
+def _active_active_secret():
+    return str(os.getenv("USE_PROVIDER_BANK_SHARED_SECRET") or "").strip()
+
+
+def _active_active_primary_assignment(messages, operation):
+    if _active_active_role() != "primary" or operation != "general_guide_composition":
+        return False
+    material = "\\n".join(
+        str(item.get("content") or "")[:16000]
+        for item in (messages or []) if isinstance(item, dict)
+    )
+    if not material:
+        return False
+    bucket = int(hashlib.sha256(material.encode("utf-8")).hexdigest()[:8], 16) % 100
+    return bucket >= ACTIVE_ACTIVE_PRIMARY_LOCAL_PERCENT
+
+
+def _active_active_delegate(messages, max_tokens, parse, operation, schema, deadline_monotonic):
+    url = _active_active_counterpart_url()
+    secret = _active_active_secret()
+    if not url or not secret:
+        return None
+    remaining = None
+    if deadline_monotonic is not None:
+        remaining = _request_remaining_seconds(deadline_monotonic, now=time.monotonic())
+        if remaining < 1.0:
+            return None
+    timeout = min(ACTIVE_ACTIVE_TIMEOUT_SECONDS, remaining) if remaining is not None else ACTIVE_ACTIVE_TIMEOUT_SECONDS
+    payload = json.dumps({
+        "contract_version": "v1",
+        "operation": operation,
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "schema": schema if isinstance(schema, dict) else None,
+    }, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    request = Request(url, data=payload, headers={
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "X-Living-Archive-Provider-Key": secret,
+        "User-Agent": "Living-Archive-Active-Active/1.0",
+    }, method="POST")
+    try:
+        with urlopen(request, timeout=max(0.5, float(timeout))) as response:
+            body = json.loads(response.read().decode("utf-8"))
+    except Exception as exc:
+        print("USE active-active delegation: outcome=failed, exception=" + type(exc).__name__)
+        return None
+    if not isinstance(body, dict) or not bool(body.get("ok")):
+        print("USE active-active delegation: outcome=no_result")
+        return None
+    result = body.get("result")
+    if not isinstance(result, dict):
+        return None
+    try:
+        parsed = parse(json.dumps(result, ensure_ascii=False))
+    except Exception:
+        print("USE active-active delegation: outcome=invalid_result")
+        return None
+    print("USE active-active delegation: outcome=success, role=" + _active_active_role())
+    return {
+        "parsed": parsed,
+        "provider": "counterpart:" + str(body.get("provider") or "unknown"),
+        "model": str(body.get("model") or ""),
+        "preference_order": list(body.get("preference_order") or []),
+        "server": "counterpart",
+    }
+
+
 def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=None, deadline_monotonic=None):
+    # Hard-wired 70/30 workload split for Guide composition. The secondary receives
+    # its assigned share through the authenticated capability boundary; if that lane
+    # is unavailable the primary continues locally rather than failing the visitor.
+    delegated = False
+    if _active_active_primary_assignment(messages, operation):
+        delegated = True
+        remote = _active_active_delegate(messages, max_tokens, parse, operation, schema, deadline_monotonic)
+        if remote:
+            return remote
+
     # Capacity publication is advisory telemetry only and runs off the visitor path.
     refresh_server_capacity_state()
     capacity_started = False
@@ -2746,7 +2850,19 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         return None
     pool = select(use_core, operation=operation, schema=effective_schema)
     if not pool:
-        return None
+        # Local capacity may be empty while the independent counterpart still has
+        # viable providers. One bounded remote attempt precedes deterministic recovery.
+        if operation == "general_guide_composition" and not delegated:
+            remote = _active_active_delegate(messages, max_tokens, parse, operation, schema, deadline_monotonic)
+            if remote:
+                return remote
+        # The local bank has exhausted its bounded attempt budget. Before releasing
+    # deterministic recovery, use the counterpart's independently configured bank once.
+    if operation == "general_guide_composition" and not delegated:
+        remote = _active_active_delegate(messages, max_tokens, parse, operation, schema, deadline_monotonic)
+        if remote:
+            return remote
+    return None
     if operation in {"hrn_perception", "hrn_relational"} and len(pool) > 1:
         # Live E2E showed that exhausted Groq quotas and slow 70B/large NVIDIA
         # candidates can consume the shared HRN turn budget before a recently
