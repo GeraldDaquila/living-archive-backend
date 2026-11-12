@@ -652,7 +652,7 @@ Output only <visitor_answer>, concise and finished. Use exact canonical titles; 
 # APP & INFRASTRUCTURE
 # =====================================================================
 
-APP_VERSION = "v333"
+APP_VERSION = "v489.311"
 
 app = FastAPI(title=f"Find Your Way (USE) Navigation Engine {APP_VERSION}")
 
@@ -668,11 +668,11 @@ app.add_middleware(
 # as well as through CORSMiddleware. This protects the browser-facing
 # contract from application-level failures and keeps OPTIONS/preflight
 # deterministic.
-DEPLOYMENT_FINGERPRINT = "USE-v333-visitor-centered-sensemaking-construction"
+DEPLOYMENT_FINGERPRINT = "USE-v489.311-source-derived"
 
 # === CANONICAL BUILD IDENTITY (excluded from payload hash) ===
 CANONICAL_BUILD_ID = "USE-BUILD-v489.311-canonical"
-CANONICAL_BUILD_PAYLOAD_SHA256 = "c80675c5bc420bddb5ff4e9d6884c678265f12e753fb892e2086804354f96a6d"
+CANONICAL_BUILD_PAYLOAD_SHA256 = "81fd15e66c957ed6c82514fdc0fa8f173dd6f645679eae0c58f7e44bbefa758a"
 # === END CANONICAL BUILD IDENTITY ===
 
 def _canonical_source_payload(source: str) -> str:
@@ -14384,8 +14384,6 @@ def _v333_response_construction_instruction(user_query: str) -> str:
 def _v333_response_construction_self_audit() -> None:
     """Static self-audit for the v333 visitor-centered construction layer."""
     source = Path(__file__).read_text(encoding="utf-8")
-    if 'APP_VERSION = ' not in source or 'v333' not in source:
-        raise RuntimeError("v333 self-audit failure: version identity missing.")
     if '_v333_response_construction_instruction' not in source:
         raise RuntimeError("v333 self-audit failure: construction instruction missing.")
     if '_v333_response_construction_instruction(user_query)' not in source:
