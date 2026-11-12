@@ -11266,7 +11266,19 @@ async def _use_request_boundary(scope, receive, send):
                 # a useful place to continue must be earned by evidence for this
                 # response, not inherited merely because the normal composition
                 # pipeline became unavailable.
+                # Retrieval may already have established a verified canonical doorway.
+                # Deterministic composition recovery must not erase that completed
+                # navigation work merely because the normal composition pipeline
+                # became unavailable. Preserve only a retrieval-validated primary;
+                # never invent or inherit a stale destination.
                 recovery_recommendation = None
+                if isinstance(context_data, dict):
+                    candidate = context_data.get("recommendation_canonical_primary")
+                    if isinstance(candidate, dict):
+                        title = str(candidate.get("title") or "").strip()
+                        url = str(candidate.get("url") or "").strip()
+                        if title and re.match(r"^https://\\S+$", url, re.I):
+                            recovery_recommendation = {"title": title, "url": url}
                 if recovery_text:
                     request_id = "basic-recovery-" + hashlib.sha1(
                         (query + "|" + _history_text(history)).encode("utf-8")
