@@ -1301,6 +1301,41 @@ _base._unified_visitor_construction = _unified_visitor_construction
 
 _original_fetch_canonical_context = use_core.fetch_canonical_context
 
+# Pinecone monthly allocation may be unavailable. During that condition, visitor
+# requests must not spend quota retrying a known-open circuit: use the published
+# canonical territorial mirror for discovery/navigation instead.
+_PINECONE_RETRIEVAL_BYPASS = str(
+    os.getenv("USE_PINECONE_RETRIEVAL_BYPASS", "true")
+).strip().casefold() in {"1", "true", "yes", "on"}
+
+
+def _mirror_registry_context(query_str):
+    crosslinks = archive_crosslink.expand_context(
+        str(query_str or ""), [], None, use_core
+    )
+    docs = []
+    for item in crosslinks or []:
+        title = str(item.get("title") or "").strip()
+        url = str(item.get("url") or "").strip()
+        summary = str(item.get("summary") or "").strip()
+        if title and url:
+            # Mirror records are navigation evidence, not full source bodies.
+            docs.append({"title": title, "url": url, "text": summary or title,
+                         "mirror_registry": True})
+    context = _serialize_context_documents(docs)
+    return {
+        "canonical_link_context": context,
+        "context_blocks": "",
+        "mirror_registry_active": True,
+        "mirror_registry_count": len(docs),
+    }
+
+
+def _final_exact_gold_standard_authority(query):
+    """The sole gateway through which frozen Gold Star answer text may enter."""
+    return _resolve_exact_guide_gold_standard(query)
+
+
 
 def _serialize_context_documents(docs):
     blocks = []
@@ -1334,8 +1369,15 @@ def _sanitize_outward_context(query, docs, profile):
 
 
 def _recommendation_first_fetch(query_str):
-    data = _original_fetch_canonical_context(query_str)
     profile = _base._inquiry_profile(query_str)
+    if _PINECONE_RETRIEVAL_BYPASS and not profile.get("risk"):
+        data = _mirror_registry_context(query_str)
+        print(
+            "The Guide retrieval boundary: pinecone_bypassed=true; "
+            f"mirror_registry_assets_selected={data.get('mirror_registry_count', 0)}"
+        )
+    else:
+        data = _original_fetch_canonical_context(query_str)
     if not isinstance(data, dict) or profile.get("risk"):
         return data
 
@@ -9173,7 +9215,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Exact approved/frozen gold standards are enforced at the final visitor boundary,
     # after all recovery, discovery, sanitization, and answer-contract rewrites.
     # This is deliberately exact-match only; similar questions retain the normal path.
-    _final_gold_standard = _resolve_exact_guide_gold_standard(query)
+    _final_gold_standard = _final_exact_gold_standard_authority(query)
     if _final_gold_standard is not None:
         response = _final_gold_standard["expected_response"]
         _gold_title = str(_final_gold_standard.get("doorway_title") or "").strip()
