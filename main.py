@@ -5666,6 +5666,16 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
 
     underlying = str(interpretation.get("underlying_question") or "").strip()
     movement = str(interpretation.get("desired_movement") or "").strip()
+    # Structural preservation rule: a verified navigation result must remain
+    # available to answer recovery. Do not let a relevant Archive doorway and an
+    # empty retrieval excerpt collapse into the same generic "no information"
+    # state. The title itself is not evidence for a definition, so request a
+    # grounded composition rather than inventing an Archive meaning downstream.
+    archive_specific_definition = bool(
+        recommendation_available
+        and re.search(r"\b(?:archive|living archive)\b", question, re.I)
+        and re.search(r"\b(?:what does|what do|what is|what are|mean|means|meaning)\b", question, re.I)
+    )
     if content:
         explanation = f"The Archive material available here offers this starting point: “{content[:360].rstrip()}”"
         opening = f"The question is asking about {underlying.rstrip('.')}." if underlying else f"Your question asks: {question.rstrip('?')}."
@@ -5686,6 +5696,13 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "These meanings overlap, but they are not interchangeable. Are you thinking about "
             "the feeling of emptiness in everyday life, or the deeper philosophical or Buddhist idea?"
         )
+    elif archive_specific_definition:
+        opening = f"Your question asks what the Archive means by {question.rstrip('?').split(' by ', 1)[-1]}."
+        explanation = (
+            "A relevant Archive resource was identified, but its source text was not carried into this recovery context. "
+            "Rather than infer a definition from the title alone, the answer path should preserve that retrieval result and seek grounded composition before falling back."
+        )
+        closing = "The identified Archive resource remains a relevant place to continue while that grounded answer path is recovered."
     else:
         opening = f"Your question asks: {question.rstrip('?')}." if question else "The question is worth answering directly."
         explanation = "I couldn't verify a reliable answer from the material available in this request, so I won't present a guess as fact."
