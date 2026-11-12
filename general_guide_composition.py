@@ -15,7 +15,7 @@ from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
 from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard
-from gold_star_lessons import (shadow_observation as _gold_star_shadow_observation, active_quality_contribution as _gold_star_active_quality_contribution)
+from gold_star_lessons import (\n    shadow_observation as _gold_star_shadow_observation,\n    active_quality_contribution as _gold_star_active_quality_contribution,\n    deterministic_fallback_contribution as _gold_star_deterministic_fallback,\n)
 
 from provider_bank import (
     CONTRACT_VERSION as PROVIDER_BANK_CONTRACT_VERSION,
@@ -3066,6 +3066,26 @@ def compose(
                 "response_shape": "explanatory",
                 "provider": "",
                 "model": "",
+            }
+
+        # Final bounded resilience layer: when no narrower deterministic recovery
+        # applies, a structurally relevant approved Gold Star may still preserve
+        # a reviewed reasoning discipline. It contributes no exemplar content.
+        gold_star_fallback = _gold_star_deterministic_fallback(question)
+        if gold_star_fallback is not None:
+            doorway = _select_verified_recovery_doorway(question, documents)
+            _emit_guide_outcome(
+                "provider_exhaustion_fallback",
+                recovery="gold_star_quality_memory",
+                benchmark=gold_star_fallback.get("benchmark_id"),
+            )
+            return {
+                "response": gold_star_fallback["response"],
+                "doorway_title": doorway.get("doorway_title", ""),
+                "doorway_url": doorway.get("doorway_url", ""),
+                "response_shape": "explanatory",
+                "provider": "gold_star_quality_memory",
+                "model": "deterministic-quality-recovery",
             }
         return None
 
