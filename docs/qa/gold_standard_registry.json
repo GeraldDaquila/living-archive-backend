@@ -2413,9 +2413,51 @@
         "approval_date": "2026-11-13"
       },
       "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
+    },
+    {
+      "benchmark_id": "general-guide-reflective-decline-without-romanticizing-gold-star-2026-11-13",
+      "subsystem": "general-purpose-guide",
+      "query": "How should the Guide discuss decline without romanticizing it?",
+      "expected_response": "To discuss decline without romanticizing it, begin by refusing two shortcuts: treating the past as a lost golden age, and treating every departure from it as progress. The first turns memory into nostalgia; the second can make real losses disappear from view. A more honest account asks what has changed, what has been lost, what has become possible—and for whom.\n\nThat changes the quality of the question. Decline is rarely a single verdict. A community may gain efficiency while losing continuity; an institution may become more flexible while weakening trust; a society may expand some freedoms while allowing skills, places, relationships, or forms of belonging to erode. The task is not to decide whether the past was better, but to describe change in more than one dimension, including who benefited, who bore the costs, and what becomes visible only when it is gone.\n\nThe deeper work begins there: to mourn what deserves mourning without idealizing it, preserve what remains worth carrying forward without trying to freeze it, repair what can be repaired, and allow some things to end. That is where reflection on decline becomes more than a contest between nostalgia and optimism. It becomes an inquiry into what has changed, what still matters, and what responsibility the present now carries.",
+      "expected_doorway": {
+        "title": "What Changed That I Haven’t Been Able to Name?",
+        "url": "https://geralddaquila.com/what-changed-that-i-havent-been-able-to-name"
+      },
+      "assertions": [
+        "Exactly three substantive paragraphs.",
+        "Refuses both nostalgia and automatic progress as shortcuts.",
+        "Makes losses, gains, beneficiaries, and costs visible without treating decline as a single verdict.",
+        "Moves from recognition to a usable orientation: mourn, preserve, repair, and allow some things to end.",
+        "Ends by opening responsibility in the present rather than prescribing a verdict about the past.",
+        "Includes one meaningful doorway that continues the inquiry."
+      ],
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "known_theme": "reflective decline, loss, change, and responsibility without nostalgia",
+      "related_question_variants": [
+        "How can we talk about decline without turning the past into a golden age?",
+        "How should the Archive understand social decline without assuming that change is either progress or collapse?",
+        "How do we make sense of what has been lost without idealizing what came before?"
+      ],
+      "gold_star_capabilities": {
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "reasoning_family": "reflective_decline_without_romanticization",
+        "transferable_discipline": "Refuse nostalgia and automatic progress as competing shortcuts; make gains, losses, beneficiaries, costs, and what becomes visible through loss visible before opening responsibility in the present.",
+        "abstention_boundary": "Do not treat every change as decline, prescribe nostalgia, or use this frame to make a historical verdict where the evidence is insufficient."
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_ref": "live visitor-path result structurally repaired and then elevated by explicit user approval",
+        "source_pr": "direct canonical ledger addition",
+        "verification_context": "live production validation following final visitor-boundary repair",
+        "approval_date": "2026-11-13"
+      },
+      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
     }
   ],
-  "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control. New approved record added on October 26, 2026: the screenshot-approved governance-beyond-administration response is registered as USER_APPROVED_GOLD_STANDARD with exact three-paragraph wording and a separately verified live doorway URL.",
+  "last_reconciliation_note": "Canonical additive ledger; approved Gold Stars are appended as immutable records and reconciled with qualitative transfer governance.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
