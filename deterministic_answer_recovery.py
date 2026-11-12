@@ -97,7 +97,7 @@ def compose_definition_significance(subject):
         "techno-utopian thinking": {
             "definition": "the belief that technological progress will, by itself or almost inevitably, solve major human and social problems",
             "example": "A city might introduce an advanced digital platform and assume that better software will automatically make public services fairer, even though access, institutional incentives, unequal power, and accountability remain unchanged.",
-            "significance": "Its danger is not optimism about technology itself, but treating technology as a substitute for judgment, institutions, relationships, and democratic choice. That can hide who controls the technology, who bears its costs, which problems are actually political or social, and what happens when a technically efficient system produces unfair or harmful outcomes."
+            "significance": "Its danger is not optimism about technology itself, but treating technology as a substitute for judgment, institutions, relationships, and democratic choice. That can hide who controls the technology, who bears its costs, which problems are actually political or social, and what happens when a technically efficient system produces unfair or harmful outcomes. A useful question is: what human judgment or institutional responsibility are we assuming the technology can replace?"
         },
         "institutional trust": {
             "definition": "the confidence that an institution will act competently, fairly, and consistently enough for people to rely on it",
