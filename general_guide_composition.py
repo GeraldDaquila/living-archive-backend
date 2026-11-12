@@ -3182,11 +3182,19 @@ def compose(
             }
         return None
 
-    parsed = result["parsed"]
+    # Provider-bank adapters may return the parsed candidate either under
+    # "parsed" or directly as the result payload. Normalize that contract here
+    # so a successful model answer cannot be converted into a KeyError/refusal.
+    parsed = result.get("parsed") if isinstance(result, dict) else None
+    if not isinstance(parsed, dict):
+        parsed = result if isinstance(result, dict) else {}
+    response = parsed.get("response")
+    if not response:
+        raise ValueError("general composition provider result missing response")
     candidate = {
-        "response": parsed["response"],
-        "doorway_title": parsed["doorway_title"],
-        "response_shape": parsed["response_shape"],
+        "response": response,
+        "doorway_title": parsed.get("doorway_title", ""),
+        "response_shape": parsed.get("response_shape", "explanatory"),
         "provider": str(result.get("provider") or ""),
         "model": str(result.get("model") or ""),
     }
