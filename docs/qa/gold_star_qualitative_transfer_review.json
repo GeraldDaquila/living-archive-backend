@@ -236,6 +236,15 @@
       "qualifying_context": "Reflective questions about decline, loss, historical change, social erosion, nostalgia, or how to acknowledge what has disappeared without idealizing the past.",
       "abstention_boundary": "Do not label ordinary change as decline, romanticize a past that cannot be supported, or substitute a general decline frame for evidence about a particular historical case.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-systems-intelligibility-without-monocausal-reduction-gold-star-2026-11-13",
+      "question": "A user wants a simple explanation for societal breakdown. How should the Guide preserve intelligibility without offering monocausal stories?",
+      "reasoning_family": "systems_intelligibility_without_monocausal_reduction",
+      "transferable_discipline": "Refuse the false choice between simplicity and single-cause explanation; identify the interacting relationships that make a pattern intelligible, then leave the visitor with a usable way of seeing what is weakening, what reinforces it, and where the pattern may be interrupted.",
+      "qualifying_context": "Questions asking for a clear explanation of complex social, institutional, or systemic conditions while resisting monocausal stories.",
+      "abstention_boundary": "Do not claim a specific cause of societal breakdown without evidence, flatten distinct contexts into one story, or convert an explanatory inquiry into decision coaching.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
