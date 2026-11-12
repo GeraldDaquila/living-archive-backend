@@ -702,8 +702,19 @@ def _is_movement_brief_input_failure(operation, reason):
     )
 
 
-def _record_quality_rejection(provider, model, operation, reason):
-    """Penalize provider output, not malformed upstream grounding input."""
+def _contract_rejection_class(contract_reason):
+    """Return a stable class for provider contract failures."""
+    return (
+        "json_or_parse" if re.search(r"invalid JSON|non-object", str(contract_reason or ""), re.I)
+        else "visitor_surface" if re.search(r"visitor-surface|prescriptive|action-guidance|internal implementation", str(contract_reason or ""), re.I)
+        else "grounding_or_provenance" if re.search(r"ground|doorway|source|evidence|URL", str(contract_reason or ""), re.I)
+        else "response_shape" if re.search(r"short|long|paragraph|sentence|question", str(contract_reason or ""), re.I)
+        else "other_contract"
+    )
+
+
+def _record_quality_rejection(provider, model, operation, reason, rejection_class=None):
+    """Penalize substantive provider quality failures, not repairable envelopes."""
     if _is_movement_brief_input_failure(operation, reason):
         print(
             "USE provider quality bypass: "
@@ -711,6 +722,19 @@ def _record_quality_rejection(provider, model, operation, reason):
             "reason=upstream_movement_brief_input_failure"
         )
         return
+
+    rejection_class = rejection_class or _contract_rejection_class(reason)
+    # Parsing and response-shape defects are observable contract failures, but
+    # they are not by themselves evidence that the model is unsuitable for the
+    # operation. Preserve strict visitor validation without cooling a usable lane.
+    if rejection_class in {"json_or_parse", "response_shape"}:
+        print(
+            "USE provider quality observe: "
+            f"operation={operation}, provider={provider}, model={model}, "
+            f"rejection_class={rejection_class}, action=no_quality_cooldown"
+        )
+        return
+
     state = _quality_state(operation, provider, model, create=True)
     now = time.time()
     last_quality_failure = float(state.get("last_quality_failure", 0) or 0)
@@ -719,15 +743,9 @@ def _record_quality_rejection(provider, model, operation, reason):
         state["quality_failures"] = 0
     state["quality_failures"] = int(state.get("quality_failures", 0) or 0) + 1
     state["last_quality_failure"] = now
-    state["quality_error"] = (
-        "upstream_movement_brief_input_failure"
-        if _is_movement_brief_input_failure(operation, reason)
-        else "contract_rejection"
-    )
-    # A visitor-facing contract rejection is already decisive evidence that this
-    # operation/model pairing is unsuitable. Cool it down on the first rejection
-    # so each new visitor turn does not repeatedly spend its bounded fallback slot
-    # on the same known-bad voice. A later successful, validated result clears it.
+    state["quality_error"] = "contract_rejection"
+    # Grounding and visitor-surface failures remain decisive. Unknown contract
+    # failures are conservatively cooled until explicitly classified.
     if state["quality_failures"] >= 1:
         state["quality_cooldown_until"] = max(
             float(state.get("quality_cooldown_until", 0) or 0),
@@ -3505,18 +3523,16 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             # Preserve transport health, but learn from repeated visitor-contract
             # failures so poor outputs lose priority and can be cooled down.
             contract_reason = str(exc)
-            _record_quality_rejection(provider, model, operation, contract_reason)
+            # Classify before quality attribution so repairable envelope failures
+            # remain visible without unnecessarily cooling capable providers.
+            rejection_class = _contract_rejection_class(contract_reason)
+            _record_quality_rejection(
+                provider, model, operation, contract_reason, rejection_class
+            )
             last_error = "contract_rejection"
             # Emit a bounded, stable rejection class as well as the validator
             # reason. This separates parse, surface, grounding, and shape defects
             # without logging visitor prompts or generated response bodies.
-            rejection_class = (
-                "json_or_parse" if re.search(r"invalid JSON|non-object", contract_reason, re.I)
-                else "visitor_surface" if re.search(r"visitor-surface|prescriptive|action-guidance|internal implementation", contract_reason, re.I)
-                else "grounding_or_provenance" if re.search(r"ground|doorway|source|evidence|URL", contract_reason, re.I)
-                else "response_shape" if re.search(r"short|long|paragraph|sentence|question", contract_reason, re.I)
-                else "other_contract"
-            )
             print(
                 "USE provider composition contract rejection: "
                 + "operation=" + operation
