@@ -1,5 +1,6 @@
 """Provider-neutral model bank for USE."""
 import base64, hashlib, json, mimetypes, os, re, threading, urllib.error, urllib.parse, urllib.request
+from urllib.request import Request, urlopen
 from collections import OrderedDict
 import time
 
@@ -2856,13 +2857,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
             remote = _active_active_delegate(messages, max_tokens, parse, operation, schema, deadline_monotonic)
             if remote:
                 return remote
-        # The local bank has exhausted its bounded attempt budget. Before releasing
-    # deterministic recovery, use the counterpart's independently configured bank once.
-    if operation == "general_guide_composition" and not delegated:
-        remote = _active_active_delegate(messages, max_tokens, parse, operation, schema, deadline_monotonic)
-        if remote:
-            return remote
-    return None
+        return None
     if operation in {"hrn_perception", "hrn_relational"} and len(pool) > 1:
         # Live E2E showed that exhausted Groq quotas and slow 70B/large NVIDIA
         # candidates can consume the shared HRN turn budget before a recently
@@ -3540,6 +3535,13 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     print("USE model bank exhausted viable candidates: " + str(last_error)[:240])
     _capacity_end_request(exhausted=True)
     capacity_finished = True
+    # A local bank can be healthy enough to receive the request yet still exhaust
+    # its bounded candidate budget. Give independently configured counterpart
+    # capacity one bounded opportunity before deterministic recovery.
+    if operation == "general_guide_composition" and not delegated:
+        remote = _active_active_delegate(messages, max_tokens, parse, operation, schema, deadline_monotonic)
+        if remote:
+            return remote
     return _route_result(None)
 
 _capacity_publish_lock = threading.Lock()
