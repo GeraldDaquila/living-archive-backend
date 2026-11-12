@@ -74,3 +74,17 @@ def test_guide_provider_budget_allows_real_inference_before_failing_closed():
         * (1 + constants["GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES"])
     )
     assert constants["GENERAL_GUIDE_FAST_FALLBACK_MAX_CANDIDATES"] <= 2
+
+
+def test_main_has_one_frozen_gold_star_answer_gateway():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    assert "def _final_exact_gold_standard_authority(query):" in source
+    assert source.count("_resolve_exact_guide_gold_standard(") == 1
+    assert "_final_gold_standard = _final_exact_gold_standard_authority(query)" in source
+
+def test_pinecone_bypass_uses_published_mirror_not_live_index():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    assert "_PINECONE_RETRIEVAL_BYPASS" in source
+    assert "data = _mirror_registry_context(query_str)" in source
+    assert "archive_crosslink.expand_context(" in source
+    assert "str(query_str or \"\") , [], None, use_core" not in source
