@@ -11517,6 +11517,57 @@ async def _provider_capability_route(request: Request):
         })
 
 
+@app.post("/api/active-active-guide-capability")
+async def _active_active_guide_capability_route(request: Request):
+    """Authenticated peer-only Guide composition lane.
+
+    This is intentionally separate from the general Provider Gateway: ordinary
+    specialist callers cannot expose or invoke the internal Guide composition
+    operation. Only the paired USE server, authenticated by the shared secret,
+    may ask this runtime to use its local provider bank.
+    """
+    try:
+        authorize_provider_gateway(request.headers.get("X-Living-Archive-Provider-Key"))
+        body = await request.json()
+        if not isinstance(body, dict):
+            raise ValueError("Active-active Guide payload must be an object.")
+        if str(body.get("contract_version") or "").strip() != "v1":
+            return JSONResponse(status_code=400, content={"ok": False, "error": "unsupported_active_active_contract"})
+        if str(body.get("operation") or "").strip().casefold() != "general_guide_composition":
+            return JSONResponse(status_code=400, content={"ok": False, "error": "unsupported_active_active_operation"})
+        messages = body.get("messages")
+        if not isinstance(messages, list) or not messages or len(messages) > 16:
+            return JSONResponse(status_code=400, content={"ok": False, "error": "invalid_active_active_messages"})
+        normalized = []
+        for item in messages:
+            if not isinstance(item, dict):
+                return JSONResponse(status_code=400, content={"ok": False, "error": "invalid_active_active_message"})
+            role = str(item.get("role") or "").strip().casefold()
+            content = item.get("content")
+            if role not in {"system", "user", "assistant"} or not isinstance(content, str) or not content.strip():
+                return JSONResponse(status_code=400, content={"ok": False, "error": "invalid_active_active_message"})
+            normalized.append({"role": role, "content": content[:16000]})
+        max_tokens = max(128, min(3000, int(body.get("max_tokens") or 600)))
+        schema = body.get("schema") if isinstance(body.get("schema"), dict) else None
+        result = execute_provider_gateway(
+            operation="general_guide_composition",
+            messages=normalized,
+            max_tokens=max_tokens,
+            use_core=use_core,
+            schema=schema,
+        )
+        return JSONResponse(status_code=200 if result.get("ok") else 503, content=result)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        print("USE active-active Guide capability failure: exception=" + type(exc).__name__)
+        return JSONResponse(status_code=503, content={
+            "ok": False,
+            "contract_version": "v1",
+            "error": "active_active_guide_capability_failure",
+        })
+
+
 FORMATION_ENTRANCE_CONTRACT_VERSION = "v1"
 FORMATION_ENTRANCE_SOURCE = "steward-entrance"
 
