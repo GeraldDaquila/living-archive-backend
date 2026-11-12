@@ -22,7 +22,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.33"
+CONTRACT_VERSION = "v1.34"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
@@ -2109,6 +2109,23 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "For example, someone facing financial pressure may have fewer realistic options than someone with ample resources. They may still make meaningful choices about seeking help, negotiating a commitment, or deciding what to prioritize, but those choices must be understood in light of the constraints they face. Recognizing agency without recognizing circumstance can unfairly blame people for limits they did not create; recognizing circumstance without agency can overlook their capacity to respond.\n\n"
             "The relationship is therefore reciprocal but not symmetrical: circumstances shape the range and cost of available actions, while individual and collective actions can sometimes change those circumstances over time. How much agency is available depends on the actual constraints, resources, power, and support in a particular situation. This is a general conceptual explanation, not a claim that the Living Archive defines the terms in exactly this way."
         )
+    # Systems-transition questions can name several phases of change rather than
+    # a single concept. These questions remain answerable even when the Archive
+    # has no one source defining the complete sequence. Recover the relationship
+    # at the level of the processes themselves, without attributing the model to
+    # the Archive.
+    if (
+        re.search(r"\\bcollapse\\b", normalized)
+        and re.search(r"\\badaptation\\b", normalized)
+        and re.search(r"\\bregeneration\\b", normalized)
+        and re.search(r"\\b(?:relationship|relate|connected|connection|between)\\b", normalized)
+    ):
+        return (
+            "Collapse, adaptation, and regeneration can be understood as different responses or phases within a changing system. Collapse occurs when an existing way of organizing life can no longer maintain its essential functions; adaptation is the effort to adjust to new conditions; regeneration goes further by rebuilding the capacities and relationships that allow a system to become viable again. They can occur in sequence, but they are not a fixed three-step formula.\n\n"
+            "Adaptation can sometimes prevent or soften collapse by changing how a system uses resources, responds to pressure, or organizes itself. But adaptation can also preserve a system that remains fundamentally damaged. Regeneration asks a deeper question: not simply how to keep going, but what conditions need to be restored or renewed so that people, communities, and ecosystems can sustain themselves over time.\n\n"
+            "The relationship therefore depends on what is changing and at what scale. A collapse may create pressures that force adaptation; adaptation may create the conditions for regeneration; and regenerative capacities can make future collapse less likely or less destructive. The useful distinction is between surviving disruption, adjusting to it, and renewing the underlying conditions from which a more resilient form of life can emerge."
+        )
+
     # Recognize the actual role distinction across natural wording variants.
     # The old four-part phrase test was overly brittle: it missed related
     # formulations and allowed downstream, unrelated recovery paths to win.
