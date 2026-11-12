@@ -22,7 +22,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.38"
+CONTRACT_VERSION = "v1.39"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
@@ -2194,9 +2194,9 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
         and re.search(r"\b(?:relationship|relate|connected|connection|between)\b", normalized)
     ):
         return (
-            "Collapse, adaptation, and regeneration can be understood as different responses or phases within a changing system. Collapse occurs when an existing way of organizing life can no longer maintain its essential functions; adaptation is the effort to adjust to new conditions; regeneration goes further by rebuilding the capacities and relationships that allow a system to become viable again. They can occur in sequence, but they are not a fixed three-step formula.\n\n"
-            "Adaptation can sometimes prevent or soften collapse by changing how a system uses resources, responds to pressure, or organizes itself. But adaptation can also preserve a system that remains fundamentally damaged. Regeneration asks a deeper question: not simply how to keep going, but what conditions need to be restored or renewed so that people, communities, and ecosystems can sustain themselves over time.\n\n"
-            "The relationship therefore depends on what is changing and at what scale. A collapse may create pressures that force adaptation; adaptation may create the conditions for regeneration; and regenerative capacities can make future collapse less likely or less destructive. The useful distinction is between surviving disruption, adjusting to it, and renewing the underlying conditions from which a more resilient form of life can emerge."
+            "The relationship can be understood as a movement between disruption, adjustment, and renewal. Collapse disrupts arrangements that can no longer sustain their essential functions; adaptation changes how a system responds to the new conditions; regeneration renews the capacities and relationships from which lasting viability can emerge. These processes can interact or occur in sequence, but they are not a fixed three-step formula.\n\n"
+            "Adaptation is not automatically regeneration. A system can adjust its use of resources, reorganize itself, or absorb pressure and still preserve conditions that remain fundamentally damaged. Regeneration asks the deeper question: what must be restored, renewed, or newly created so that people, communities, and ecosystems can sustain themselves over time? Adaptation may soften or prevent collapse, while regenerative work can turn a period of disruption into an opening for a more viable form of life.\n\n"
+            "Their relationship therefore depends on what is changing and at what scale. Collapse can expose the limits of an existing arrangement and create pressure for adaptation; adaptation can create the space in which regeneration becomes possible; and regenerative capacities can make future disruption less destructive. The essential distinction is between surviving disruption, adjusting to changed conditions, and renewing the underlying conditions from which resilience can grow."
         )
 
     # Recognize the actual role distinction across natural wording variants.
