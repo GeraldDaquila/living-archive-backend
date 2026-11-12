@@ -594,7 +594,7 @@ if "choose one step small enough to test" in _historical_cultural_answer:
     raise RuntimeError("Historical-cultural Gold Standard contract failed: practical template leaked.")
 _techno_utopian_question = "What is the danger of techno-utopian thinking?"
 _techno_utopian_answer = compose_recovery(_techno_utopian_question)
-for _required in ("technological progress", "power", "institutions", "costs"):
+for _required in ("technological progress", "power", "institution", "cost"):
     if _required not in _techno_utopian_answer.casefold():
         raise RuntimeError("Techno-utopian recovery contract failed: missing structural risk analysis.")
 if _techno_utopian_answer.startswith("I can't define "):
