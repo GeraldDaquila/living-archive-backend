@@ -36,6 +36,29 @@ def _registry():
     return json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
 
 
+def test_canonical_storage_policy_is_hardcoded_and_approved_count_is_not_split():
+    registry = _registry()
+    policy = registry.get("canonical_storage")
+    assert policy
+    assert policy["authority"] == (
+        "docs/qa/gold_standard_registry.json on the living-archive-backend main branch "
+        "is the sole authoritative, additive Gold Star ledger."
+    )
+    assert "parallel registry" in policy["addition_rule"]
+    assert "competing totals" in policy["reconciliation_rule"]
+    assert "authoritative count" in policy["runtime_rule"]
+
+    approved = [
+        record for record in registry["records"]
+        if record["status"] in {
+            "USER_APPROVED_GOLD_STANDARD",
+            "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE",
+        }
+    ]
+    assert approved
+    assert len({record["benchmark_id"] for record in approved}) == len(approved)
+
+
 def test_registry_has_unique_ids_and_provenance_for_every_record():
     registry = _registry()
     assert registry["registry_id"] == "living-archive-gold-standard-registry"
