@@ -105,7 +105,7 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
     def test_archive_civilizational_transition_meaning_is_answered_during_retrieval_outage(self):
         question = "What does the Archive mean by civilizational transition?"
         answer = compose_recovery(question)
-        paragraphs = [part.strip() for part in answer.split("\\n\\n") if part.strip()]
+        paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
         self.assertEqual(len(paragraphs), 3)
         self.assertIn("systems that organize collective life are changing together", answer)
         self.assertIn("not as a guaranteed collapse", answer)
