@@ -1471,10 +1471,7 @@
       "subsystem": "general-purpose-guide",
       "query": "What is the boiling point of water at sea level?",
       "expected_response": "At sea level, water boils at 100°C (212°F) under standard atmospheric pressure. As altitude increases and air pressure decreases, water boils at a lower temperature.\n\nThe key point is that boiling depends on pressure, not just temperature.",
-      "expected_doorway": {
-        "title": null,
-        "url": null
-      },
+      "expected_doorway": null,
       "rating_out_of_10": 9,
       "assertions": [
         "Answer the established general-knowledge question directly: water boils at 100°C (212°F) at sea level under standard atmospheric pressure.",
@@ -1506,7 +1503,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "direct factual answer",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-living-archive-cosmology-gold-standard-2026-10-25",
@@ -1601,10 +1600,7 @@
       "subsystem": "general-purpose-guide",
       "query": "What is the Living Archive, and what is it not?",
       "expected_response": "The Living Archive is a public knowledge commons and an orientation ecosystem for understanding human life through connected ideas, relationships, and systems. It brings perspectives from different domains into conversation so people can see patterns, examine how parts affect one another, and explore what may support human flourishing. Its purpose is not simply to store information, but to help people find their bearings within a wider body of thought and inquiry.\n\nIt is not a chatbot that treats every question as a request for a quick, self-contained answer, a collection of unrelated pages, or an authority that claims final certainty. The Archive invites disciplined inquiry: established claims should be distinguishable from interpretation and inference; uncertainty should be acknowledged rather than hidden; and no framework should relieve people of the responsibility to think, judge, and act with care.\n\nThe Guide serves this purpose through constitutional sensemaking. It helps a person locate a question within the Archive's wider relationships, identify useful canonical resources, and understand how the pieces may fit together without pretending that every connection is proven or every question settled. In practice, a question about a relationship, institution, or community can open onto wider patterns of responsibility, power, history, and care. The aim is not to decide for the visitor, but to make the landscape clearer so that further inquiry and human judgment can be better grounded.",
-      "expected_doorway": {
-        "title": null,
-        "url": null
-      },
+      "expected_doorway": null,
       "rating_out_of_10": 9.2,
       "approval_state": "USER_APPROVED",
       "assertions": [
@@ -1634,7 +1630,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "identity and epistemic boundary",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-methods-comparison-gold-standard-2026-10-25",
@@ -1642,10 +1640,7 @@
       "subsystem": "general-purpose-guide",
       "query": "How do empirical inquiry, systems analysis, philosophy, and contemplative reflection differ?",
       "expected_response": "Empirical inquiry investigates what can be observed, measured, or tested, using evidence to evaluate claims about what happens. Systems analysis examines how parts interact, including relationships and feedback loops that shape a larger whole.\n\nPhilosophy clarifies concepts and examines the reasons, assumptions, and values behind claims. Contemplative reflection attends to lived experience and awareness, helping people notice habitual interpretations that might otherwise go unexamined.\n\nThese approaches complement one another without being interchangeable: empirical inquiry tests claims against observation, systems analysis maps interdependence, philosophy evaluates concepts and reasons, and contemplative reflection explores experience. Each has strengths and limits, so the useful approach depends on the question being asked.",
-      "expected_doorway": {
-        "title": "The Question Beneath the Questions",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Answer directly compares all four named approaches.",
         "Exactly three connected paragraphs: definitions, distinctions, and synthesis.",
@@ -1671,7 +1666,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "distinction before synthesis",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-cosmology-generalization-standards-gold-standard-2026-10-25",
@@ -1679,10 +1676,7 @@
       "subsystem": "general-purpose-guide",
       "query": "What standards should be met before The Guide generalizes from one archive text to the whole cosmology?",
       "expected_response": "The Guide should not generalize from one Archive text to the whole cosmology merely because an idea sounds consistent or important. First, interpret the passage in its full context: identify what it explicitly says, what question it addresses, and any limits or qualifications. Record the exact source and distinguish the text’s own claims from the Guide’s interpretation or inference. A single passage can establish what that passage says; by itself, it cannot establish that the same principle governs the entire cosmology.\n\nBefore making a broader claim, seek corroboration across relevant and meaningfully independent Archive texts, follow explicit cross-references, and test the proposed reading against passages that qualify, complicate, or contradict it. Check whether the sources use the same terms in the same sense and whether a local statement is being mistaken for a universal rule. The reasoning should be traceable: a reviewer must be able to see which passages support each part of the generalization, what evidence cuts against it, and why the broader conclusion follows.\n\nFinally, state the conclusion at the level the evidence warrants. Label direct textual statements, cross-text synthesis, and tentative interpretation distinctly; preserve exceptions and unresolved tensions instead of smoothing them away. If evidence comes from only one text, say that the claim is text-specific or a hypothesis for further testing—not an established account of the whole cosmology. A corpus-wide generalization is justified only when its scope, corroboration, counterevidence, and reasoning have been checked and remain open to revision.",
-      "expected_doorway": {
-        "title": "",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Exactly three substantive paragraphs in the approved visitor-facing response.",
         "Explains contextual reading, scope, and the difference between direct source claims and inference.",
@@ -1710,16 +1704,15 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "evidence scope and generalization",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-stewardship-living-archive-meaning-gold-standard-2026-10-25",
       "query": "What does stewardship mean in the Living Archive?",
       "expected_response": "In the Living Archive, stewardship means caring for what has been entrusted to us rather than treating it as if only our immediate needs matter. Its First Principles express this as ‘stewardship follows understanding’: as our understanding grows, so does our responsibility to consider how we act on it, whom our choices affect, and what we pass on to others. Understanding is not only something to acquire; it should help us act with greater care and judgment.\n\nIn everyday life, stewardship appears in small choices: keeping a promise, maintaining a shared space, using resources thoughtfully, or considering how a decision affects people who depend on us. For example, when sharing an idea from the Archive, a steward preserves its context and distinguishes what a source actually says from personal interpretation, so others can assess the idea fairly and use it responsibly.\n\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means recognizing what is genuinely yours to care for, acting responsibly within your limits, and considering the consequences for others and for the future. The aim is to preserve trust and usefulness—and, where possible, leave what you were entrusted with no worse and ideally better for those who come after.",
-      "expected_doorway": {
-        "title": "Choosing Stewardship Before Resentment",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Exactly three substantive paragraphs in the approved visitor-facing response.",
         "Answers the Archive-specific meaning question directly; do not hand off to the Glossary.",
@@ -1751,7 +1744,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "stewardship with boundaries",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-identifying-what-is-held-in-trust-gold-standard-2026-10-25",
@@ -1759,10 +1754,7 @@
       "subsystem": "general-purpose-guide",
       "query": "How does one identify what is being held in trust in a given situation?",
       "expected_response": "To identify what is being held in trust, look for what has been placed in someone's care, authority, or keeping without becoming theirs to use only for personal advantage. It may be a responsibility, a relationship, a resource, a promise, knowledge, a role, or a shared place. Ask what was entrusted, explicitly or implicitly, and what would be lost or damaged if it were neglected or misused. The answer is not always an object; sometimes what is entrusted is another person's confidence, a duty, or the ability to make a decision responsibly.\n\nNext, identify who or what depends on that care and what obligations follow. Consider the people affected, the purpose for which the thing was entrusted, the promises or rules that govern it, and any limits on the holder's authority. For example, a manager may be entrusted with a team's time and information: the duty is not to treat them as personal property, but to use them fairly, protect confidentiality, and explain decisions that affect the team. Different situations create different duties, so the context and the voices of those affected matter.\n\nFinally, test the interpretation by asking what responsible care would preserve, what misuse or neglect would look like, and where the holder's authority ends. Something is held in trust when care is owed beyond mere ownership or convenience: there is a purpose, a relationship of reliance, and an obligation to act with regard for those affected. Be explicit about what is known, what is inferred, and what remains unclear rather than assuming every responsibility is unlimited or belongs to one person alone.",
-      "expected_doorway": {
-        "title": "Simulation No. 10 — The Trust Exchange",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Exactly three substantive paragraphs following identification, obligations, and contextual testing.",
         "Identifies what may be entrusted, including responsibility, relationship, resource, promise, knowledge, role, or shared place.",
@@ -1790,7 +1782,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "entrustment and obligation",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-faithful-stewardship-values-conflict-gold-standard-2026-10-25",
@@ -1798,10 +1792,7 @@
       "subsystem": "general-purpose-guide",
       "query": "What does faithful stewardship require when values conflict?",
       "expected_response": "Faithful stewardship when values conflict begins by naming what is actually in tension, rather than treating one value as automatically decisive. Clarify what has been entrusted, which commitments or duties are relevant, what each value protects, and what the situation's context makes possible or impossible. Separate what is known from assumptions, and distinguish a genuine conflict between obligations from a conflict between a principle and personal preference.\n\nNext, consider who is affected and what each possible choice would protect, risk, or harm. Give particular attention to people who bear the consequences but have less power to shape the decision. Look for options that honor more than one value, and identify any duties that cannot responsibly be traded away, such as honesty, keeping faith with an explicit commitment, or preventing avoidable harm. Where no option preserves everything, explain why one obligation must take priority in this case instead of disguising the trade-off as a perfect solution.\n\nA faithful decision should be proportionate to the evidence, transparent about its reasoning, and accountable to those affected. State which values guided the choice, what costs or limits remain, and what new information would lead you to reconsider it. Stewardship is not simply defending a preferred value; it is caring for what has been entrusted while acknowledging competing responsibilities, avoiding self-serving exceptions, and remaining willing to repair harm if the decision proves mistaken.",
-      "expected_doorway": {
-        "title": "The Stewardship Landscape",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Exactly three substantive paragraphs: identify the tension, weigh obligations and effects, then explain accountability and revision.",
         "Distinguishes conflicts between obligations from conflict between a principle and personal preference.",
@@ -1829,7 +1820,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "tradeoff discernment",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-intergenerational-stewardship-gold-standard-2026-10-25",
@@ -1837,10 +1830,7 @@
       "subsystem": "general-purpose-guide",
       "query": "How does stewardship relate to intergenerational responsibility?",
       "expected_response": "Stewardship connects to intergenerational responsibility because the way we care for something now shapes what remains possible for people who come after us. In the Living Archive's constitutional framing, stewardship is more than managing what we have inherited; it is participating responsibly in an enduring order, with attention to reciprocity, cultivation, and the quality of what is passed on. Responsibility therefore reaches beyond immediate performance to the relationships, knowledge, capabilities, and institutions that future generations will have to rely on.\n\nFor example, an institution may meet today's targets while allowing trust to erode, losing practical knowledge, or leaving the next group without the skills and resources to continue the work. A stewardship approach looks at both today's results and what those results leave behind: whether people can learn, participate, maintain what matters, and carry responsibility forward. The point is not simply to preserve an institution unchanged, but to leave people with sounder conditions for responsible action.\n\nIntergenerational responsibility does not mean predicting every future need or making one generation answer for everything. It means taking reasonable care with the consequences within our influence, listening to those affected, and strengthening the conditions others will inherit rather than passing avoidable costs along. Stewardship is this patient care: neither control over the future nor self-sacrifice without limits; it is accountable care for what has been entrusted to us and for the possibilities our choices help create.",
-      "expected_doorway": {
-        "title": "Regenerative Governance Principles",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Exactly three substantive paragraphs before the optional continuation doorway.",
         "Answers the relationship between stewardship and intergenerational responsibility directly in the opening paragraph.",
@@ -1870,7 +1860,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "intergenerational consequences",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-system-vs-separate-problems-gold-standard-2026-10-25",
@@ -1878,10 +1870,7 @@
       "subsystem": "general-purpose-guide",
       "query": "What makes a situation a system rather than a collection of separate problems?",
       "expected_response": "A situation is a system when its parts are connected in ways that shape one another, so the overall situation cannot be fully understood as a collection of separate problems. The parts may be people, roles, rules, resources, routines, or environmental conditions. What matters is not simply that several problems appear together, but that relationships among them influence what happens: a change in one part can alter the conditions faced by others and change the situation as a whole.\n\nLook for patterns of interaction, dependencies, and feedback. For example, delays in one team may increase pressure on another team, which then rushes work and creates errors that send work back to the first team. Each issue can look like a separate problem when viewed alone, but their interaction forms a reinforcing loop. A system may also contain balancing feedback, bottlenecks, shared incentives, or rules that repeatedly produce the same outcomes even when individuals try to solve the immediate symptoms.\n\nThe practical test is whether understanding the connections explains more than a list of isolated issues would. Ask what depends on what, which effects return to influence their causes, and what conditions keep the pattern going. Not every cluster of problems is one system; the relationships must be evidenced rather than assumed. A diagnostic tool such as FSD can be offered afterward if you want to map a specific real-world pattern, but it should not replace the answer to the conceptual question.",
-      "expected_doorway": {
-        "title": "Leadership Beyond Control: The Rise of Coherence-Based Governance",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Exactly three substantive paragraphs, preserving the observed approved presentation.",
         "Answers the conceptual question before mentioning or offering FSD.",
@@ -1909,7 +1898,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "systems relationships",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-leverage-point-misuse-gold-standard-2026-10-26",
@@ -1957,10 +1948,7 @@
       "subsystem": "general-purpose-guide",
       "query": "What is the relationship between complexity and uncertainty?",
       "expected_response": "Complexity and uncertainty are related, but they are not the same. Complexity arises when many parts of a situation interact, influence one another, and produce effects that are difficult to understand by examining each part alone. Uncertainty is the limit of what we can confidently know about the situation, how it will develop, or what a particular action will cause. A situation can be complex because its relationships are interdependent, uncertain because important information is missing, or both.\n\nComplexity often increases uncertainty because interactions and feedback can produce unexpected outcomes. A small change may travel through a network of relationships, trigger further changes, and make the eventual result difficult to predict. Yet uncertainty can also exist in a simple situation—for example, when one crucial fact is unknown—and a complex situation can become more understandable when its patterns, history, and relationships are well evidenced. More information helps, but it does not always remove uncertainty when the system itself keeps changing.\n\nThe practical distinction is to ask two questions: what makes this situation hard to understand—the way its parts interact, or what we do not yet know? Then respond accordingly. Map dependencies and feedback when complexity is central; identify assumptions, gather relevant evidence, and keep multiple plausible outcomes in view when uncertainty remains. When both are present, avoid false precision: make decisions proportionate to the evidence, watch how the situation responds, and revise your understanding as new information emerges.",
-      "expected_doorway": {
-        "title": "",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Exactly three substantive paragraphs.",
         "Clearly distinguishes complexity (interacting parts and relationships) from uncertainty (limits of knowledge and prediction).",
@@ -1991,7 +1979,9 @@
         "abstention_boundary": "Do not substitute a distinction for practical relevance.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
-      "known_theme": "distinction under complexity"
+      "known_theme": "distinction under complexity",
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26",
@@ -1999,10 +1989,7 @@
       "subsystem": "general-purpose-guide",
       "query": "How does fragmented knowledge impede wise action?",
       "expected_response": "Fragmented knowledge impedes wise action when useful facts, experience, and perspectives remain separated, so no one can see enough of the situation to judge what a decision may set in motion. A piece of information can be accurate on its own yet misleading when stripped of its context or its relationship to other parts of the problem. Wisdom depends not only on having information, but on understanding how the pieces bear on one another.\n\nFor example, one team may know why a process is failing, another may understand how a proposed fix affects people, and a third may hold the history of earlier attempts. If those insights never meet, a decision can solve the visible symptom while recreating the original problem somewhere else. Bringing the knowledge together helps reveal dependencies, trade-offs, and consequences that no single fragment could show.\n\nIntegration does not mean forcing every view into one story or pretending uncertainty disappears. It means comparing sources, listening to people who hold different parts of the picture, and making clear what is known, what is inferred, and what remains missing. Wise action becomes more likely when decisions reflect the whole available picture, stay open to correction, and account for the people who will live with the consequences.",
-      "expected_doorway": {
-        "title": "Knowledge Stewardship in the AI Era: From Information to Wisdom",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Exactly three substantive paragraphs, preserving the approved visitor-facing response.",
         "Directly explains how separated facts, experience, and perspectives can mislead when their context and relationships are missing.",
@@ -2036,7 +2023,9 @@
         "abstention_boundary": "Do not force consensus or claim integration eliminates uncertainty.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
-      "known_theme": "integration without false consensus"
+      "known_theme": "integration without false consensus",
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-leadership-vs-positional-authority-gold-standard-2026-10-26",
@@ -2044,10 +2033,7 @@
       "subsystem": "general-purpose-guide",
       "query": "What distinguishes leadership from positional authority?",
       "expected_response": "Positional authority comes from a formal role: it gives someone recognized power or responsibility to make decisions, assign work, or direct others. Leadership is demonstrated in how a person exercises judgment, influences collective action, and earns trust. A title can grant authority, but it does not automatically make the person’s decisions wise or their influence worthy of confidence.\n\nThe difference becomes clear in practice. A manager may have the right to issue an instruction, while a colleague without a senior title may show leadership by listening to concerns, clarifying a shared purpose, and helping the group choose a responsible course. Someone with formal authority can also lead well when they explain decisions, act fairly, accept accountability, and make room for others’ knowledge.\n\nIn short, positional authority answers, “What power or responsibility comes with this role?” Leadership asks, “How does this person guide collective action, and what makes that guidance worth following?” The two can reinforce each other, but authority alone does not establish leadership; the distinction lies in how responsibility is exercised and what that conduct makes possible for others.",
-      "expected_doorway": {
-        "title": "Why Power Changes People",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Substantive answer precedes any optional doorway.",
         "Exactly three purposeful paragraphs: distinction, practical illustration, and synthesis.",
@@ -2074,7 +2060,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "role vs practice",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-operational-discipline-humane-leadership-gold-standard-2026-10-26",
@@ -2082,10 +2070,7 @@
       "subsystem": "general-purpose-guide",
       "query": "What is the role of operational discipline in humane leadership?",
       "expected_response": "Operational discipline is the steady practice of turning humane intentions into reliable actions. In leadership, it means keeping commitments, making decisions clearly, following through, and ensuring that people can depend on agreed ways of working. It gives care a practical form: respect is not only expressed in words, but shown in how work is organized and how people are treated.\n\nThis discipline matters because good intentions alone do not prevent confusion, unfairness, or repeated mistakes. For example, a leader who sets clear responsibilities, explains why a decision was made, checks whether a handoff worked, and addresses missed commitments fairly makes it easier for people to contribute without guessing what is expected. Consistent processes also help a team notice problems early rather than relying on individual heroics to keep everything moving.\n\nHumane operational discipline is not rigid rule-following or control for its own sake. Standards should create reliability while leaving room to listen, learn, and adapt when circumstances change or a process harms the people it is meant to serve. The leader’s task is to hold commitments and boundaries consistently, apply them fairly, and improve the way work is done—so accountability strengthens dignity and trust instead of becoming punishment.",
-      "expected_doorway": {
-        "title": "From Awakening to Stewardship",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Exactly three substantive, connected paragraphs, preserving the screenshot-approved answer verbatim.",
         "Directly explains operational discipline in humane leadership rather than describing what an answer should contain.",
@@ -2115,7 +2100,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "humane reliability",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-competing-stakeholder-obligations-gold-standard-2026-10-26",
@@ -2123,10 +2110,7 @@
       "subsystem": "general-purpose-guide",
       "query": "How can leaders hold competing stakeholder obligations?",
       "expected_response": "Leaders can hold competing stakeholder obligations by treating them as responsibilities to weigh openly, not as a contest in which one group must automatically win. Start by naming each obligation, the people who depend on it, and the legitimate interests or rights at stake. Separate commitments that must be honored from preferences that can be negotiated, and make any real conflict explicit rather than promising everyone everything.\n\nThen compare the consequences of realistic options: who benefits, who carries the cost, what harm may be irreversible, and whether people affected have had a meaningful chance to be heard. Apply consistent criteria such as duty, fairness, evidence, proportionality, and long-term effects. Where one obligation must take priority, explain why that criterion applies and look for ways to reduce or repair the burden placed on others.\n\nNo decision will always satisfy every stakeholder, and equal consideration does not mean identical outcomes. Responsible leadership means giving each obligation a fair hearing, being transparent about trade-offs, refusing to shift costs onto people with less power merely because they are easier to ignore, and revisiting the decision when evidence or circumstances change. Trust grows when people can see both the reasoning and the accountability behind a difficult choice.",
-      "expected_doorway": {
-        "title": "The Sovereign Leader: How to Practice Stewardship When Systems Fail",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Answer directly in exactly three substantive paragraphs before the optional doorway.",
         "Frame competing obligations as responsibilities to weigh, not a contest with an automatic winner.",
@@ -2154,7 +2138,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "stakeholder tradeoffs",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-governance-beyond-administration-gold-standard-2026-10-26",
@@ -2201,10 +2187,7 @@
       "subsystem": "general-purpose-guide",
       "query": "What are the risks of charisma without constitutional restraint?",
       "expected_response": "The risk of charisma without constitutional restraint is that influence or capacity can operate without the checks that keep it answerable to a shared purpose. When people or institutions rely on charisma, its appeal or immediate effectiveness can make it seem self-justifying. Without constitutional restraint, those affected may have no dependable way to question decisions, limit excess, or correct harm.\n\nIn practice, the danger is a shift from serving a common purpose to protecting the person, group, or mechanism that holds the influence. Decisions may become harder to challenge, dissent may be treated as disloyalty, and mistakes can persist because the same influence that drives action also weakens independent scrutiny. The problem is not necessarily charisma itself; it is the absence of a reliable way to test how it is used and who bears its consequences.\n\nThe safeguard is to make authority and consequences visible, distribute decision-making where appropriate, protect principled dissent, and establish review that does not depend on the goodwill of the person exercising influence. Those safeguards let charisma contribute its benefits while keeping its use accountable to constitutional restraint. They also give the community a practical way to correct course when the effects depart from the shared purpose.",
-      "expected_doorway": {
-        "title": "The Constitutional Architecture of the Stewardship Institute",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "User explicitly approved this live visitor-facing response for Gold Standard registry inclusion.",
         "Exactly three substantive paragraphs.",
@@ -2232,7 +2215,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "power with checks",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-governance-redesign-preaction-questions-gold-standard-2026-10-26",
@@ -2240,10 +2225,7 @@
       "subsystem": "general-purpose-guide",
       "query": "What kinds of questions should be asked before redesigning a governance system?",
       "expected_response": "Before redesigning a governance system, ask what problem actually needs solving, who is affected, and what purpose the change is meant to serve. What evidence shows the current arrangement is failing, and which parts are working well enough to preserve? These questions prevent a redesign from starting with a preferred solution before the need and intended outcome are clear.\n\nNext, ask how authority and responsibilities are distributed, whose knowledge is missing, and who may gain or lose power under the proposed change. Which rights, obligations, or safeguards must not be weakened? What realistic alternatives exist, what could each option cost, and how would people affected challenge assumptions or raise concerns without penalty? These questions expose consequences that may be invisible to the people designing the change.\n\nFinally, ask how success will be judged, who will review the decision independently, and what would trigger correction or reversal if the change causes harm. Set observable criteria, make reasons transparent, involve affected people before decisions are locked in, and schedule a review after implementation. The goal is not to eliminate uncertainty; it is to make the change understandable, contestable, and correctable rather than relying on confidence or good intentions alone.",
-      "expected_doorway": {
-        "title": "Digital Codex Editions, References & Programs",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "User explicitly requested inclusion of the visitor-facing response in the Gold Standard registry.",
         "Exactly three substantive paragraphs, each with a distinct function: purpose/evidence; authority/affected perspectives/alternatives; success/review/correction.",
@@ -2270,7 +2252,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "preaction governance inquiry",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-institutional-memory-gold-standard-2026-10-26",
@@ -2278,10 +2262,7 @@
       "subsystem": "general-purpose-guide",
       "query": "What is institutional memory, and why does it matter?",
       "expected_response": "Institutional memory is the knowledge an organization retains from its decisions, experience, practices, and lessons over time. Its meaning is practical: it describes knowledge, responsibilities, or ways of working that affect what people can understand and do.\n\nFor example, when a team records why a policy was adopted and what happened after it changed, new staff can understand the original problem instead of repeating an earlier mistake or treating an old decision as unexplained tradition.\n\nInstitutional memory matters because it supports continuity and learning when people leave or leadership changes. Records without context can mislead, so preserving the reasons, uncertainty, and conditions behind decisions helps successors judge what still applies and what needs to change.",
-      "expected_doorway": {
-        "title": "Institutional Cornerstones",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Answer begins with a direct, accessible definition of institutional memory.",
         "Exactly three cohesive paragraphs: definition, concrete example, and significance.",
@@ -2307,7 +2288,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "continuity with context",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-conflicting-information-discernment-gold-star-2026-11-07",
@@ -2315,10 +2298,7 @@
       "subsystem": "general-purpose-guide",
       "query": "I feel overwhelmed by conflicting information and opinions. How can I regain my bearings and know what is real enough to act on?",
       "expected_response": "When you face conflicting information and opinions, the problem is not simply a lack of information or a need for more information. It is that you need a reliable way to judge what deserves trust and what is established well enough to act on. Regaining your bearings starts by separating the strength of a claim from the confidence or volume with which someone presents it.\n\nMake three distinctions: what is directly known or independently verified; what is an interpretation or inference drawn from those facts; and what remains an assumption or an unresolved claim. Look at where each claim comes from, whether independent sources support it, and whether the evidence actually supports the conclusion being drawn. Ask what new evidence would change your view rather than collecting more opinions that repeat the same assertion.\n\nYou do not need absolute certainty before every action. The evidence threshold should fit the stakes: a small, reversible decision can sometimes proceed on the best-supported account available, while a decision with serious or irreversible consequences calls for stronger independent support and more care. State what you know, what remains uncertain, and what would make you pause or revise course; then act only as far as that evidence reasonably allows.",
-      "expected_doorway": {
-        "title": "When You Don’t Know What to Believe Anymore",
-        "url": null
-      },
+      "expected_doorway": null,
       "rating_out_of_10": 8.8,
       "assertions": [
         "User explicitly approved elevation to Gold Star on 2026-11-07 after reviewing the actual production visitor response.",
@@ -2355,7 +2335,9 @@
         "abstention_boundary": "Do not demand impossible certainty or reduce every issue to source counting.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
-      "known_theme": "epistemic discernment"
+      "known_theme": "epistemic discernment",
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-developmental-language-gold-star-2026-11-09",
@@ -2384,10 +2366,7 @@
       "subsystem": "general-purpose-guide",
       "query": "What does the Archive mean by civilizational transition?",
       "expected_response": "In the Archive, civilizational transition is best understood as an unsettled passage in which inherited ways of organizing life no longer fully meet changing conditions, while a new pattern has not yet become clear or stable. It is not simply a prediction of collapse, nor a promise that change will automatically bring progress. The question is how people and institutions respond when familiar assumptions, arrangements, and sources of meaning are under strain.\\n\\nThe Philippines can illuminate this condition without being treated as a universal model. Its history and present circumstances bring different layers of social, institutional, cultural, and economic change into close contact. That makes it possible to see how people live between inherited patterns and emerging possibilities, while remaining attentive to differences among communities and circumstances.\\n\\nWhat matters in such a transition is not certainty about where history is going, but the capacity to notice changing conditions, preserve what remains worth carrying forward, and take responsibility for choices made in uncertainty. The Archive's concern is therefore with orientation and stewardship during a passage whose outcome cannot simply be assumed.",
-      "expected_doorway": {
-        "title": "Living Between Worlds: The Psychology of Civilizational Transition",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Exactly three substantive paragraphs.",
         "Answers the Archive-specific meaning question directly.",
@@ -2417,17 +2396,16 @@
         "verification_context": "live visitor-path verification",
         "approval_date": "2026-11-13"
       },
-      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
+      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13",
       "subsystem": "general-purpose-guide",
       "query": "A company wants to use AI to reduce staffing costs. How should The Guide analyze this through operations, governance, human development, ethics, and stewardship?",
       "expected_response": "For a question like this, the first task is to make the decision visible. What outcome is the organisation trying to achieve, what responsibilities does it carry, and who will live with the consequences? Those questions bring operations, governance, human development, ethics, and stewardship into the same frame without pretending they are separate problems.\\n\\nFrom there, compare the real options rather than assuming that the proposed course is the only one. Look at what each option makes possible, what it may damage, who bears the costs, and what evidence would justify changing direction. The knowledge of people affected by the decision belongs in that assessment, especially where they will carry consequences they did not choose.\\n\\nThe point is not to make the decision for the organisation, but to make the grounds for acting clearer. Choose deliberately, make the reasoning and limits visible, and remain accountable for what follows. AI may inform that work, but it cannot take responsibility for a decision away from the people who have the authority to make it.",
-      "expected_doorway": {
-        "title": "AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Exactly three substantive paragraphs.",
         "Integrates operations, governance, human development, ethics, and stewardship into one decision frame.",
@@ -2457,7 +2435,9 @@
         "verification_context": "live visitor-path verification",
         "approval_date": "2026-11-13"
       },
-      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
+      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
     },
     {
       "benchmark_id": "general-guide-reflective-decline-without-romanticizing-gold-star-2026-11-13",
@@ -2502,7 +2482,7 @@
       "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
     }
   ],
-  "last_reconciliation_note": "Canonical additive ledger integrity normalization: approved Gold Stars use explicit known_theme and runtime_transfer fields derived from existing capability metadata; intentional absence of a doorway is explicitly represented without altering frozen response content.",
+  "last_reconciliation_note": "Canonical additive ledger integrity normalization: approved Gold Stars use explicit known_theme and runtime_transfer fields; doorway state is explicit. Legacy incomplete doorway metadata is represented as non-authoritative rather than silently inferred.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
