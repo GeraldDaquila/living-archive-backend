@@ -563,8 +563,9 @@ def test_mirror_registry_context_enters_composition_as_metadata_orientation():
     assert "Use this to orient an original response; do not attribute" in source
 
 
-def test_systemic_growth_limits_recovery_is_direct_and_bounded():
+def test_cross_scale_ecological_navigation_recovery_is_direct_and_bounded():
     source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
-    assert '"provider": "bounded_systems_mechanism_recovery"' in source
-    assert "the scale of expansion outruns the capacities that make it sustainable" in source
+    assert '"provider": "bounded_systems_scale_navigation_recovery"' in source
+    assert "Local action can contribute to systemic ecological transformation" in source
+    assert "action at different scales can reinforce one another" in source
     assert "not treated as source evidence" in source
