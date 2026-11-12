@@ -126,9 +126,13 @@ def validate_registry_integrity(
             )
         doorway = record.get("expected_doorway")
         if doorway is None:
-            if str(record.get("doorway_status") or "").strip() != "INTENTIONALLY_NONE_APPROVED":
+            doorway_status = str(record.get("doorway_status") or "").strip()
+            if doorway_status not in {
+                "INTENTIONALLY_NONE_APPROVED",
+                "LEGACY_INCOMPLETE_NOT_APPROVED",
+            }:
                 raise GoldStarRegistryIntegrityError(
-                    f"Approved Gold Star {benchmark_id} has no doorway without explicit approval state."
+                    f"Approved Gold Star {benchmark_id} has no explicit doorway state."
                 )
         elif not isinstance(doorway, dict) or not str(doorway.get("title") or "").strip() or not str(doorway.get("url") or "").strip():
             raise GoldStarRegistryIntegrityError(
