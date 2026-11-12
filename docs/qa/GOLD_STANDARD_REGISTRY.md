@@ -4,6 +4,21 @@
 **Authority:** Git-tracked source of truth. Render QA should execute a pinned registry revision and publish reports, not serve as the sole authority.  
 **Rule:** A question is not an approved gold standard merely because it was tested once. Preserve exact approved text when available; otherwise mark it NEEDS_SOURCE_RECOVERY. Never reconstruct missing approved wording from memory.
 
+## Canonical Gold Star Ledger — hard rule
+
+**There is one authoritative, additive ledger: `docs/qa/gold_standard_registry.json` on the `main` branch of `living-archive-backend`.**
+
+The companion `docs/qa/GOLD_STANDARD_REGISTRY.md` explains the registry to humans. Neither a separate repository, a QA server, a runtime service, a screenshot archive, nor a chat record may become a second Gold Star ledger.
+
+Before announcing or counting a newly approved Gold Star:
+
+1. Record the approval in the canonical JSON registry with provenance and approval evidence.
+2. Preserve the existing ledger; add to it rather than restarting numbering or creating a parallel list.
+3. Reconcile any temporary external record into the canonical registry before it affects the ecosystem total.
+4. Report the total from the canonical registry only.
+
+This rule is intentionally structural: **an exemplar may have many mirrors, but only one ledger.**
+
 ## Operating rules
 - Apply the repository-wide [System-Wide Orientation and Structural Fix Standard](SYSTEM_WIDE_ORIENTATION_AND_STRUCTURAL_FIX_STANDARD.md) to structural fixes across every specialist and visitor-facing surface.
 - Keep this registry version-controlled in the living-archive-backend repository.
