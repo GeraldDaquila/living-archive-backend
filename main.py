@@ -4813,11 +4813,92 @@ def _guide_relational_template_mismatch(query, response_text):
     return any(marker in text for marker in generic_markers)
 
 
+def _is_reflective_decline_inquiry(query):
+    """Recognize decline inquiries whose governing task is interpretation, not action planning.
+
+    This classification is intentionally semantic and survives wording changes:
+    the visitor is asking how to hold loss, change, memory, or historical
+    transition without collapsing into nostalgia or progress worship.
+    """
+    q = _normalize_query(query)
+    if not q or not re.search(r"\bdeclin(?:e|es|ing|ed)\b", q, re.I):
+        return False
+    reflective = re.search(
+        r"\b(?:discuss|understand|talk about|speak about|think about|make sense of|interpret|describe|see)\b",
+        q, re.I,
+    )
+    anti_romantic = re.search(
+        r"\b(?:romanticiz(?:e|ing|ed|ation)|nostalgia|nostalgic|idealiz(?:e|ing|ed|ation)|golden age)\b",
+        q, re.I,
+    )
+    return bool(reflective and anti_romantic)
+
+
+def _reflective_decline_recovery():
+    """Protected orientation for reflective decline questions.
+
+    Kept as a final-boundary recovery because route selection and provider
+    composition are advisory; neither may silently convert an interpretive
+    inquiry into generic decision coaching.
+    """
+    return (
+        "To discuss decline without romanticizing it, resist two shortcuts: "
+        "treating the past as a lost golden age, and treating every departure "
+        "from it as progress. The first turns memory into nostalgia; the second "
+        "can make real losses disappear from view. A more honest account asks "
+        "what has changed, what has been lost, what has become possible, and—for whom.\n\n"
+        "That keeps decline from becoming a single verdict. A community may gain "
+        "efficiency while losing continuity; an institution may become more "
+        "flexible while weakening trust; a society may expand some freedoms while "
+        "allowing skills, places, relationships, or forms of belonging to erode. "
+        "None of this proves that the past was better. It means that change has "
+        "to be described in more than one dimension, including who benefited, "
+        "who bore the costs, and what becomes visible only when it is gone.\n\n"
+        "The deeper question, then, is not whether we are for or against decline. "
+        "It is what the moment asks us to notice: what should be mourned without "
+        "being idealized, preserved without being frozen, repaired where possible, "
+        "and allowed to end. That is where reflection on decline becomes an inquiry "
+        "into responsibility rather than a contest between nostalgia and optimism."
+    )
+
+
+def _is_generic_decision_template(response_text):
+    text = _normalize_query(response_text)
+    if not text:
+        return False
+    markers = (
+        "first task is to make the decision visible",
+        "compare the real options",
+        "choose deliberately",
+        "outcome is the organisation trying to achieve",
+        "what responsibilities does it carry",
+    )
+    return sum(marker in text for marker in markers) >= 2
+
+
 def _guide_finalize_visitor_payload(payload, query):
     """Apply shared visitor-facing quality and contamination boundaries to every route."""
     if not isinstance(payload, dict):
         return payload
     response_text = str(payload.get("response") or "")
+    # Reasoning-family protection: a reflective inquiry about decline must not
+    # emerge from any route as generic decision coaching. This is enforced at
+    # the one boundary every visitor payload crosses, rather than relying on a
+    # particular provider, retrieval state, or inner fallback.
+    if _is_reflective_decline_inquiry(query) and _is_generic_decision_template(response_text):
+        safe = dict(payload)
+        safe["response"] = _reflective_decline_recovery()
+        safe["recommendation"] = {
+            "title": "What Changed That I Haven’t Been Able to Name?",
+            "url": "https://geralddaquila.com/what-changed-that-i-havent-been-able-to-name",
+        }
+        safe["processing"] = "final_visitor_boundary_reflective_decline_orientation"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        print(
+            "The Guide final visitor boundary: restored reflective decline orientation."
+        )
+        return safe
     # Broad conceptual definitions are answer obligations, not retrieval-dependent
     # navigation requests. Legacy deterministic recovery can run outside the
     # ordinary composer, so enforce this contract at the one boundary every
