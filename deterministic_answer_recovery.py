@@ -499,6 +499,16 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "A responsible decision does not require certainty, but it does require clear reasons, proportionate attention to risk, and willingness to correct course. "
             "If a choice is reversible, a limited trial may be wiser than treating it as permanent; if it creates lasting harm, use a more demanding standard of care."
         )
+    elif re.search(r"\b(?:discuss|understand|talk about|speak about)\b", lower) and re.search(r"\bdecline\b", lower) and re.search(r"\b(?:romanticiz|nostalgia|nostalgic)\b", lower):
+        answer = (
+            "We can discuss decline without romanticizing it by beginning with what has actually been lost, damaged, or made more difficult—and for whom. "
+            "Decline is not made more truthful by treating the past as uniformly better, but neither is it understood by dismissing grief, memory, or the disappearance of things that genuinely mattered.\n\n"
+            "It helps to distinguish several questions that are often collapsed together: what has changed, what has been lost, what has improved, and who has experienced each of those changes differently. "
+            "A society or institution can become more efficient in one respect while losing forms of continuity, belonging, skill, or trust that are harder to measure. "
+            "The past also contained exclusions and failures that nostalgia can conceal.\n\n"
+            "The aim is neither nostalgia nor automatic faith in progress, but a more honest account of change. "
+            "Ask what is worth preserving, what needs to be relinquished, what should be repaired, and whose experience is missing from the story we tell about decline."
+        )
     elif re.search(r"\b(?:how|steps|approach|what can i do|what should we do|how to)\b", lower):
         answer = (
             f"A practical way to approach {subject} is to begin by clarifying the outcome and the responsibilities involved. "
