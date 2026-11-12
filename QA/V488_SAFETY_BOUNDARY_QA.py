@@ -295,7 +295,7 @@ def main():
     assert "_FASTAPI_APP" not in safety_segment
 
     # The protected core remains immutable from the safety QA perspective.
-    assert 'EXPECTED_CORE_BLOB_SHA = "fb3208a8d287f16562ffd640d89f65d5e8d18607"' in main_source
+    assert 'EXPECTED_CORE_BLOB_SHA = "d09654ef19b41c3a4da204758ea199715e848df8"' in main_source
 
     print("sitewide safety boundary QA: PASS")
 

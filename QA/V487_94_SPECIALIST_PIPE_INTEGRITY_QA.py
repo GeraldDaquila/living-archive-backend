@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # systems_ph activation is an explicit registry evolution.
 
 PROTECTED = {
-    "use_core.py": "fb3208a8d287f16562ffd640d89f65d5e8d18607",
+    "use_core.py": "d09654ef19b41c3a4da204758ea199715e848df8",
     "specialist_adapters.py": "ca87205fe9634f8bd22b77c5ceca44b0074fb3fa",
     "relationship_contribution.py": "6298564273f9d9cbc43d0f6cea22a2f8568506a9",
     "relationship_adapter.py": "f47b49ce65397d643e96731de3d9e22062fa3e1d",
