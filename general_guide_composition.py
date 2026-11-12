@@ -2812,10 +2812,17 @@ def compose(
     # structural discipline to a new answer without transferring content.
     gold_star_quality = _gold_star_active_quality_contribution(question)
     if gold_star_quality:
+        # Cross-question Gold Star participation is structural guidance only.
+        # A lesson object is intentionally incapable of carrying approved answer
+        # text or deterministic answer authority; that authority is resolved
+        # separately by the exact normalized-question registry below.
+        if gold_star_quality.get("authority_mode") != "structural_guidance_only":
+            raise RuntimeError("Gold Star quality contribution crossed the answer-authority boundary.")
         _emit_guide_outcome(
             "gold_star_quality_active",
             benchmark=gold_star_quality.get("benchmark_id"),
             score=gold_star_quality.get("score"),
+            authority=gold_star_quality.get("authority_mode"),
         )
 
     # Exact approved/frozen benchmark questions use their registered reference
