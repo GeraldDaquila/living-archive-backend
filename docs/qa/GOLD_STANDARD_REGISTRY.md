@@ -629,3 +629,12 @@ A single approved Gold Star may legitimately serve multiple runtime roles:
 exact-answer authority, active composition guidance, and deterministic fallback
 quality memory. All cross-question uses remain structural; answer text, factual
 claims, examples, citations, and doorways do not transfer.
+
+## 2026-11-13 reconciliations
+
+The following user-approved Gold Stars were reconciled from temporary external evidence into the sole canonical ledger and are now eligible for governed exact-answer authority and structural quality contribution:
+
+- `general-guide-civilizational-transition-archive-meaning-gold-star-2026-11-13`
+- `general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13`
+
+These entries preserve their live-production provenance and qualitative transfer boundaries; the external record is evidence only and not a competing ledger.

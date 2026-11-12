@@ -2333,6 +2333,86 @@
         "evidence_boundary": "This record preserves the approved calibration lesson and runtime transfer, not a verbatim visitor response fixture."
       },
       "freeze_policy": "Preserve the calibration lesson and runtime transfer; do not represent this record as an exact response fixture until one is independently registered."
+    },
+    {
+      "benchmark_id": "general-guide-civilizational-transition-archive-meaning-gold-star-2026-11-13",
+      "subsystem": "general-purpose-guide",
+      "query": "What does the Archive mean by civilizational transition?",
+      "expected_response": "In the Archive, civilizational transition is best understood as an unsettled passage in which inherited ways of organizing life no longer fully meet changing conditions, while a new pattern has not yet become clear or stable. It is not simply a prediction of collapse, nor a promise that change will automatically bring progress. The question is how people and institutions respond when familiar assumptions, arrangements, and sources of meaning are under strain.\\n\\nThe Philippines can illuminate this condition without being treated as a universal model. Its history and present circumstances bring different layers of social, institutional, cultural, and economic change into close contact. That makes it possible to see how people live between inherited patterns and emerging possibilities, while remaining attentive to differences among communities and circumstances.\\n\\nWhat matters in such a transition is not certainty about where history is going, but the capacity to notice changing conditions, preserve what remains worth carrying forward, and take responsibility for choices made in uncertainty. The Archive's concern is therefore with orientation and stewardship during a passage whose outcome cannot simply be assumed.",
+      "expected_doorway": {
+        "title": "Living Between Worlds: The Psychology of Civilizational Transition",
+        "url": null
+      },
+      "assertions": [
+        "Exactly three substantive paragraphs.",
+        "Answers the Archive-specific meaning question directly.",
+        "Does not frame transition as inevitable collapse or guaranteed progress.",
+        "Treats the Philippines as an illuminating case rather than a universal model.",
+        "Ends with orientation and stewardship under uncertainty."
+      ],
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "known_theme": "civilizational transition and stewardship under uncertainty",
+      "related_question_variants": [
+        "What does civilizational transition mean in the Living Archive?",
+        "How does the Archive understand a society living between old patterns and an uncertain future?"
+      ],
+      "gold_star_capabilities": {
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "reasoning_family": "transition_under_uncertainty",
+        "transferable_discipline": "Distinguish transition from predictions of inevitable collapse or guaranteed progress; orient responsible action under uncertainty.",
+        "abstention_boundary": "Do not treat every disruption as civilizational or imply a predetermined historical destination."
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_ref": "temporary evidence record: GeraldDaquila/gold-standard-exemplars/GOLD_STAR_REGISTRY.md; reconciled into canonical ledger",
+        "source_pr": "PR #1240",
+        "verification_context": "live visitor-path verification",
+        "approval_date": "2026-11-13"
+      },
+      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
+    },
+    {
+      "benchmark_id": "general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13",
+      "subsystem": "general-purpose-guide",
+      "query": "A company wants to use AI to reduce staffing costs. How should The Guide analyze this through operations, governance, human development, ethics, and stewardship?",
+      "expected_response": "For a question like this, the first task is to make the decision visible. What outcome is the organisation trying to achieve, what responsibilities does it carry, and who will live with the consequences? Those questions bring operations, governance, human development, ethics, and stewardship into the same frame without pretending they are separate problems.\\n\\nFrom there, compare the real options rather than assuming that the proposed course is the only one. Look at what each option makes possible, what it may damage, who bears the costs, and what evidence would justify changing direction. The knowledge of people affected by the decision belongs in that assessment, especially where they will carry consequences they did not choose.\\n\\nThe point is not to make the decision for the organisation, but to make the grounds for acting clearer. Choose deliberately, make the reasoning and limits visible, and remain accountable for what follows. AI may inform that work, but it cannot take responsibility for a decision away from the people who have the authority to make it.",
+      "expected_doorway": {
+        "title": "AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever",
+        "url": null
+      },
+      "assertions": [
+        "Exactly three substantive paragraphs.",
+        "Integrates operations, governance, human development, ethics, and stewardship into one decision frame.",
+        "Clarifies purpose, responsibility, and consequences before prescription.",
+        "Compares real options, harms, costs, affected knowledge, and revisability.",
+        "Preserves accountable human authority while allowing AI to inform judgment."
+      ],
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "known_theme": "integrated institutional judgment and accountable human authority",
+      "related_question_variants": [
+        "How should an institution assess AI adoption when it affects jobs, governance, and human consequences?",
+        "How can a complex organisational decision be examined without fragmenting it into separate domains?"
+      ],
+      "gold_star_capabilities": {
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "reasoning_family": "integrated_institutional_judgment",
+        "transferable_discipline": "Integrate purpose, authority, consequences, affected knowledge, real options, and revisability before prescription.",
+        "abstention_boundary": "Do not make decisions for responsible authorities or impose institutional analysis on ordinary practical questions."
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_ref": "temporary evidence record: GeraldDaquila/gold-standard-exemplars/GOLD_STAR_REGISTRY.md; reconciled into canonical ledger",
+        "source_pr": "PR #1240",
+        "verification_context": "live visitor-path verification",
+        "approval_date": "2026-11-13"
+      },
+      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control. New approved record added on October 26, 2026: the screenshot-approved governance-beyond-administration response is registered as USER_APPROVED_GOLD_STANDARD with exact three-paragraph wording and a separately verified live doorway URL.",
