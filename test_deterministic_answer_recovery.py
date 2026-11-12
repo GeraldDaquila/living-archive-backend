@@ -102,6 +102,12 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         self.assertNotIn("Your question asks for a clear account", answer)
         self.assertNotIn("A useful explanation should establish", answer)
         self.assertNotIn("What detail or context would make this question", answer)
+    def test_registered_recovery_predicate_is_narrow(self):
+        from deterministic_answer_recovery import has_registered_recovery
+        self.assertTrue(has_registered_recovery(
+            "A government proposes a predictive system for public services. What constitutional questions must precede adoption?"
+        ))
+        self.assertFalse(has_registered_recovery("How can a city manage a transition between software systems?"))
 
     def test_public_predictive_system_gets_constitutional_and_human_recovery(self):
         question = (
