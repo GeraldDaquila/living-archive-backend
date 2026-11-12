@@ -22,7 +22,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.37"
+CONTRACT_VERSION = "v1.38"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
@@ -2188,10 +2188,10 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     # at the level of the processes themselves, without attributing the model to
     # the Archive.
     if (
-        re.search(r"\\bcollapse\\b", normalized)
-        and re.search(r"\\badaptation\\b", normalized)
-        and re.search(r"\\bregeneration\\b", normalized)
-        and re.search(r"\\b(?:relationship|relate|connected|connection|between)\\b", normalized)
+        re.search(r"\bcollapse\b", normalized)
+        and re.search(r"\badaptation\b", normalized)
+        and re.search(r"\bregeneration\b", normalized)
+        and re.search(r"\b(?:relationship|relate|connected|connection|between)\b", normalized)
     ):
         return (
             "Collapse, adaptation, and regeneration can be understood as different responses or phases within a changing system. Collapse occurs when an existing way of organizing life can no longer maintain its essential functions; adaptation is the effort to adjust to new conditions; regeneration goes further by rebuilding the capacities and relationships that allow a system to become viable again. They can occur in sequence, but they are not a fixed three-step formula.\n\n"
