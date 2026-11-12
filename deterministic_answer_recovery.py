@@ -264,7 +264,26 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     # Provider-independent conceptual orientations are part of the visitor
     # contract. A temporary provider-bank outage must not turn a familiar
     # explanatory distinction into a disclaimer about unavailable resources.
-    ai_interpreter_authority = bool(
+    # Civilizational transition is a registered Archive concept family. This
+    # recovery answers the concept directly during provider/retrieval outages,
+    # while keeping its interpretation bounded and explicitly non-doctrinal.
+    civilizational_transition = bool(
+        re.search(r"\\bcivilizational\\s+transition\\b", lower)
+        and re.search(r"\\b(?:what does|what is|define|explain|meaning)\\b", lower)
+    )
+    if civilizational_transition:
+        answer = (
+            "In the Living Archive, civilizational transition refers to a period in which the systems that organize collective life are changing together, rather than a single government, technology, or economic arrangement simply being replaced. "
+            "Ecological conditions, governance, economic relationships, information systems, and cultural coherence can all come under pressure at the same time. "
+            "The transition is therefore both structural and human: established institutions and assumptions may lose their ability to organize shared life, while new practices and forms of coordination are still emerging.\\n\\n"
+            "The Archive treats this neither as a guaranteed collapse nor as an inevitable leap into a better civilization. "
+            "It is an unsettled passage in which older arrangements may continue to function unevenly, new possibilities appear, and communities experience uncertainty, fragmentation, adaptation, and resilience together. "
+            "The central question is not simply what is ending, but which capacities, relationships, and institutions can help people respond responsibly as conditions change.\\n\\n"
+            "A developmental or regenerative direction would be judged by what it makes possible in practice: more resilient communities, accountable and adaptive governance, ecological stewardship, relational coherence, and the capacity to learn across generations. "
+            "The Philippines is used in one Archive case study as a revealing example of these pressures appearing in concentrated form, not as a perfect model or a uniquely destined society. "
+            "This is a bounded synthesis of the Archive's published treatment, not a claim that every society follows one predetermined path."
+        )
+    elif ai_interpreter_authority = bool(
         re.search(r"\bai\b", lower)
         and re.search(r"\binterpreter\b", lower)
         and re.search(r"\bauthority\b", lower)
