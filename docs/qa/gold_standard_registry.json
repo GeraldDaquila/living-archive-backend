@@ -2333,6 +2333,52 @@
         "evidence_boundary": "This record preserves the approved calibration lesson and runtime transfer, not a verbatim visitor response fixture."
       },
       "freeze_policy": "Preserve the calibration lesson and runtime transfer; do not represent this record as an exact response fixture until one is independently registered."
+    },
+    {
+      "benchmark_id": "general-guide-techno-utopian-thinking-gold-star-2026-11-12",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the danger of techno-utopian thinking?",
+      "expected_response": "Techno-utopian thinking is the belief that technological progress will, by itself or almost inevitably, solve major human and social problems.\n\nFor example, a city might introduce an advanced digital platform and assume that better software will automatically make public services fairer, even though access, institutional incentives, unequal power, and accountability remain unchanged.\n\nTechno-utopian thinking matters because its danger is not optimism about technology itself, but treating technology as a substitute for judgment, institutions, relationships, and democratic choice. That can hide who controls the technology, who bears its costs, which problems are actually political or social, and what happens when a technically efficient system produces unfair or harmful outcomes. A useful question is: what human judgment or institutional responsibility are we assuming the technology can replace?",
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "rating_out_of_10": 9,
+      "assertions": [
+        "User explicitly approved elevation to Gold Star on 2026-11-12 after reviewing the actual production visitor response.",
+        "Answer directly defines techno-utopian thinking without treating an ordinary concept as unknowable when retrieval is constrained.",
+        "Exactly three cohesive paragraphs: definition, concrete example, and structural significance.",
+        "Distinguishes optimism about technology from technological substitution for human judgment, institutions, relationships, and democratic choice.",
+        "Makes power, accountability, unequal consequences, and institutional responsibility visible.",
+        "Ends with one concise orienting question that invites structural reflection without forcing a doorway or handoff.",
+        "Answer remains complete and useful without an Archive doorway."
+      ],
+      "provenance": {
+        "source_path": "deterministic_answer_recovery.py",
+        "source_ref": "main",
+        "source_location": "compose_definition_significance definition_bank['techno-utopian thinking']",
+        "production_evidence": "User-provided screenshot of the actual production Guide response following the familiar-concept recovery deployment.",
+        "approval_record": "Explicit user instruction: 'elevate to gold star with your additional refinement' following review of the production visitor response on 2026-11-12.",
+        "rating_out_of_10": 9,
+        "evidence_boundary": "The screenshot verifies the visitor-facing response shown. The Gold Star preserves the approved benchmark with the explicitly authorized orienting refinement; no Archive doorway is asserted because none was rendered or needed for answer completeness."
+      },
+      "freeze_policy": "Approved Gold Star exemplar. Do not silently rewrite the expected response or alter its approval status. Any wording change requires a separately versioned benchmark and explicit user approval.",
+      "runtime_transfer": true,
+      "related_question_variants": [
+        "What are the risks of believing technology will solve social problems by itself?",
+        "When does optimism about technology become a form of technological utopianism?"
+      ],
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "technology_with_governance",
+        "transferable_discipline": "Treat technology as part of a wider system of power, institutions, relationships, accountability, and human judgment rather than as an autonomous substitute for them.",
+        "abstention_boundary": "Do not treat skepticism about techno-utopianism as a rejection of technology or assume every technical innovation produces the same social effects.",
+        "intake_note": "Capability metadata governs transferable response discipline. It does not convert the exemplar into a claim of Living Archive-specific doctrine."
+      }
     }
   ],
   "last_reconciliation_note": "October 23: user reviewed the DOCX script covering original Gold Standards #1–#14 and confirmed the records are correct as far as recalled. Reconstruction candidates #1–#3 and #5–#14 are marked USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT; user confirmation is from recollection and does not establish verbatim historical live output. #4 is marked as a user-confirmed Navigator handoff record. Historical exactness/live replay flags remain false for reconstructed answers. Preserve the distinction between recalled/approved reconstruction and verbatim historical capture. New approved record added on October 25, 2026: the live boiling-point general-knowledge answer and expanded 'How results are found' disclosure are registered as USER_APPROVED_GOLD_STANDARD, while the separate historical refusal remains preserved as a negative regression control. New approved record added on October 26, 2026: the screenshot-approved governance-beyond-administration response is registered as USER_APPROVED_GOLD_STANDARD with exact three-paragraph wording and a separately verified live doorway URL.",
