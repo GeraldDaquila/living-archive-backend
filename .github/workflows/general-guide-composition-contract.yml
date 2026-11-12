@@ -34,6 +34,8 @@ on:
       - "tests/test_visitor_meta_commentary_boundary.py"
       - "tests/test_shared_definition_exhaustion_recovery.py"
       - "tests/test_provider_exhaustion_regex_contract.py"
+      - "tests/test_guide_resource_discovery_evidence.py"
+      - ".github/workflows/guide-resource-discovery-evidence.yml"
   push:
     branches: [main]
     paths:
