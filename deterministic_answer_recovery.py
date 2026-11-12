@@ -502,7 +502,7 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     elif re.search(r"\b(?:how|steps|approach|what can i do|what should we do|how to)\b", lower):
         answer = (
             f"For a question like {subject}, the first task is to make the decision visible. "
-            "What is the organisation trying to achieve, what responsibilities does it carry, and who will live with the consequences? "
+            "What outcome is the organisation trying to achieve, what responsibilities does it carry, and who will live with the consequences? "
             "Those questions bring operations, governance, human development, ethics, and stewardship into the same frame without pretending they are separate problems.\n\n"
             "From there, compare the real options rather than assuming that the proposed course is the only one. "
             "Look at what each option makes possible, what it may damage, who bears the costs, and what evidence would justify changing direction. "
