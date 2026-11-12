@@ -39,7 +39,7 @@ def _registry():
 def test_registry_has_unique_ids_and_provenance_for_every_record():
     registry = _registry()
     assert registry["registry_id"] == "living-archive-gold-standard-registry"
-    assert registry["schema_version"] == "1.0.0"
+    assert registry["schema_version"] == "1.1.0"
     records = registry["records"]
     ids = [record["benchmark_id"] for record in records]
     assert len(ids) == len(set(ids))
@@ -529,3 +529,31 @@ def test_fragmented_knowledge_gold_standard_is_runtime_resolvable_and_three_para
     assert 'snapshot.get("contract_version") != "v1.32"' in main_source
     assert "Apply the default paragraph contract at the final visitor boundary too" in main_source
     assert "used three-paragraph fail-honest recovery" in main_source
+
+
+def test_user_approved_gold_stars_have_explicit_runtime_capability_classification():
+    registry = _registry()
+    approved = [
+        record for record in registry["records"]
+        if record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    ]
+    assert len(approved) == 23
+    for record in approved:
+        capability = record["gold_star_capabilities"]
+        assert capability["generation_class"] == "runtime_agnostic_curated_exemplar"
+        assert capability["exact_answer_authority"] is True
+        assert capability["active_quality_contributor"] is True
+        assert capability["deterministic_fallback_eligible"] is True
+        assert capability["reasoning_family"]
+        assert capability["transferable_discipline"]
+        assert capability["abstention_boundary"]
+
+def test_capability_metadata_does_not_guess_original_generation_mode():
+    registry = _registry()
+    approved = next(
+        record for record in registry["records"]
+        if record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    )
+    assert "LLM" not in approved["gold_star_capabilities"]["generation_class"]
+    assert "deterministic" not in approved["gold_star_capabilities"]["generation_class"]
+    assert "does not infer" in approved["gold_star_capabilities"]["intake_note"]
