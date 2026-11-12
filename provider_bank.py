@@ -2814,12 +2814,12 @@ def _active_active_delegate(messages, max_tokens, parse, operation, schema, dead
         return None
     result = body.get("result")
     if not isinstance(result, dict):
+        print("USE active-active delegation: outcome=invalid_result, reason=result_not_object")
         return None
-    try:
-        parsed = parse(json.dumps(result, ensure_ascii=False))
-    except Exception:
-        print("USE active-active delegation: outcome=invalid_result")
-        return None
+    # The local provider gateway may already return a parsed Guide object.
+    # The caller's parse function expects transport text, so accept a structured
+    # counterpart result directly and only invoke parse when normalization is needed.
+    parsed = result
     print("USE active-active delegation: outcome=success, role=" + _active_active_role())
     return {
         "parsed": parsed,
