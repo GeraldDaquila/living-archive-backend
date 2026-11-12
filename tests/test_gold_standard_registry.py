@@ -526,7 +526,7 @@ def test_fragmented_knowledge_gold_standard_is_runtime_resolvable_and_three_para
     assert 'CONTRACT_VERSION = "v1.39"' in composition_source
     assert "def resolve_exact_gold_standard(question: str)" in standards_source
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert 'snapshot.get("contract_version") != "v1.32"' in main_source
+    assert 'snapshot.get("contract_version") == "v1.39"' in main_source
     assert "Apply the default paragraph contract at the final visitor boundary too" in main_source
     assert "used three-paragraph fail-honest recovery" in main_source
 
