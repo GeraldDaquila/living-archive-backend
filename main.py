@@ -10356,6 +10356,50 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if _glossary_answer_basis:
         answer_basis = _glossary_answer_basis
 
+    # Response provenance metrics: content-free operational accounting for the
+    # quality-first provider architecture. These fields distinguish an intentional
+    # deterministic answer from an LLM opportunity that fell through to recovery.
+    _provider_name = ""
+    _model_name = ""
+    _llm_invoked = bool(composition_result)
+    if composition_result:
+        _provider_name = str(composition_result.get("provider") or "")
+        _model_name = str(composition_result.get("model") or "")
+    elif deterministic_result:
+        _provider_name = str(deterministic_result.get("provider") or "")
+        _model_name = str(deterministic_result.get("model") or "")
+
+    _deterministic_by_design = bool(
+        deterministic_result
+        and (
+            reasoning_mode == "deterministic_only"
+            or healthy_community_short_circuit
+            or trust_stewardship_short_circuit
+            or _is_practical_stewardship_question(query)
+            or general_knowledge_recovery is not None
+        )
+    )
+    if _llm_invoked and _provider_name:
+        _response_provenance = "llm"
+        _quality_adjusted_llm_eligible = True
+    elif _deterministic_by_design:
+        _response_provenance = "deterministic_by_design"
+        _quality_adjusted_llm_eligible = False
+    elif deterministic_result:
+        _response_provenance = "deterministic_recovery"
+        _quality_adjusted_llm_eligible = True
+    else:
+        _response_provenance = "unresolved"
+        _quality_adjusted_llm_eligible = True
+
+    print(
+        "USE RESPONSE METRIC: "
+        f"request_id={request_id}, provenance={_response_provenance}, "
+        f"llm_eligible={str(_quality_adjusted_llm_eligible).lower()}, "
+        f"llm_invoked={str(_llm_invoked).lower()}, "
+        f"provider={_provider_name or 'none'}, model={_model_name or 'none'}"
+    )
+
     payload = {
         "ok": True,
         "version": APP_VERSION,
@@ -10369,6 +10413,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # inferred from prose and never dependent on provider metadata.
         "recommendation": authoritative_doorway,
         "answer_basis": answer_basis,
+        "response_provenance": {
+            "class": _response_provenance,
+            "provider": _provider_name or None,
+            "model": _model_name or None,
+            "quality_adjusted_llm_eligible": _quality_adjusted_llm_eligible,
+            "llm_invoked": _llm_invoked,
+        },
         "processing": "basic_inquiry",
         "route_source": "guide_basic_inquiry",
         "visitor_boundary_version": APP_VERSION,
