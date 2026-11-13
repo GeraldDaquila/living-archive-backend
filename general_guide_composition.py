@@ -3346,6 +3346,25 @@ def compose(
         parse=_parse_factory(documents, effective_question),
         deadline_monotonic=deadline_monotonic,
     )
+    # A provider may technically return a parsed response while still producing
+    # the generic verification refusal. For explicitly bounded conceptual
+    # questions, that is not a successful synthesis and must enter the recovery
+    # ladder rather than bypass it.
+    if result and _requires_systems_map_false_confidence_explanation(question):
+        candidate_payload = result.get("parsed") if isinstance(result, dict) else None
+        if not isinstance(candidate_payload, dict):
+            candidate_payload = result if isinstance(result, dict) else {}
+        candidate_text = str(candidate_payload.get("response") or "").casefold()
+        if (
+            "couldn't verify a reliable answer" in candidate_text
+            or "could not identify a sufficiently relevant archive resource" in candidate_text
+        ):
+            _emit_guide_outcome(
+                "provider_refusal_rejected",
+                recovery="systems_map_false_confidence",
+            )
+            result = None
+
     if result:
         # Record the live interpretive balance separately from answer quality.
         # This is observability, not a ranking: a provider answer is not assumed
