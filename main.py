@@ -6039,6 +6039,28 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         )
         return {"response": response, "doorway_title": "", "provider": "bounded_general_knowledge_recovery", "model": ""}
 
+    # Calibrated conceptual comparison: answer the visitor's actual distinction
+    # directly when retrieval is temporarily limited. This is general orientation,
+    # not an Archive attribution, and navigation remains separately governed.
+    if (
+        "stewardship" in q
+        and re.search(r"\b(?:difference|different|distinguish|distinction|versus|vs)\b", q)
+        and re.search(r"\b(?:ownership|control|management|benevolence)\b", q)
+    ):
+        response = (
+            "Stewardship differs from ownership because ownership begins with a claim of possession or rights, while stewardship begins with a responsibility of care. "
+            "A steward may have authority over something without treating it as existing solely for personal use or benefit.\n\n"
+            "It differs from control because control focuses on directing outcomes. Stewardship may require decisions and boundaries, but its question is broader: what conditions must be protected or cultivated so that people, institutions, resources, or relationships can remain healthy over time?\n\n"
+            "It differs from management because management is primarily concerned with organizing and coordinating work toward defined goals. Stewardship includes management when needed, but also asks whether the goals themselves, and the way they are pursued, honor the wider trust involved.\n\n"
+            "And it differs from benevolence because benevolence can mean doing good from a position of choice. Stewardship is less about generosity alone than about faithful care for something whose well-being matters beyond the steward's immediate interests. In that sense, stewardship joins authority with accountability, care with limits, and present decisions with their consequences for others and the future."
+        )
+        return {
+            "response": response,
+            "doorway_title": "",
+            "provider": "calibrated_stewardship_comparison_recovery",
+            "model": "",
+        }
+
     if "stewardship" in q and "responsibility" in q and re.search(r"\b(?:difference|different|distinguish|distinction|versus|vs)\b", q):
         response = (
             "Responsibility is about what you are answerable for: a task, a promise, a role, or the consequences of a decision. "
