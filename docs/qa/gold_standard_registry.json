@@ -2928,6 +2928,43 @@
       },
       "known_theme": "humane performance, organizational dignity, responsible relationships, standards and accountability",
       "runtime_transfer": true
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-stewardship-leadership-decline-crisis",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What does stewardship ask of a leader during decline or crisis?",
+      "expected_response": "Stewardship asks a leader to hold responsibility for the whole condition, not simply to preserve appearances or protect a position. During decline or crisis, that begins with seeing clearly what is changing: what is being lost, who is carrying the consequences, which responsibilities remain non-negotiable, and where uncertainty is still real. A steward does not need to promise control over everything, but should resist both denial and the temptation to make certainty look stronger than it is.\n\nThe next task is to protect the conditions from which recovery remains possible. That can mean preserving trust, keeping truthful information available, listening to people closest to the consequences, and distinguishing what must be defended now from what can be changed or relinquished. Difficult decisions may still be necessary, but stewardship asks that their costs be made visible and that those with less power are not treated as expendable simply to preserve short-term stability.\n\nFinally, a steward keeps the future in view without abandoning the present. The question is not only how to survive the crisis, but what capacities, relationships, and responsibilities should remain intact so that renewal is possible afterward. Good stewardship therefore combines accountability with adaptability: act, learn from what the conditions reveal, correct course when necessary, and leave the people and institution more capable of carrying responsibility together.",
+      "expected_doorway": {
+        "title": "How Do I Become More Trustworthy?",
+        "url": "https://geralddaquila.com/how-do-i-become-more-trustworthy/"
+      },
+      "doorway_status": "REQUIRED_CANONICAL_CONTINUATION",
+      "rating_out_of_10": 8.8,
+      "approval_state": "Explicitly elevated by user to Gold Star on 2026-11-14 after live verification and structural doorway repair.",
+      "assertions": [
+        "See the whole condition rather than merely preserve appearances or position.",
+        "Protect the conditions from which recovery and renewal remain possible.",
+        "Make difficult costs visible and do not treat those with less power as expendable.",
+        "Combine accountability with adaptability and shared responsibility."
+      ],
+      "provenance": {
+        "source_date": "2026-11-14",
+        "source": "Live Guide response verified after unfamiliar-question abstention repair.",
+        "evidence_boundary": "User-approved live exemplar; exact response and canonical continuation retained as acceptance reference."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "live_user_approved_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "stewardship_leadership_under_pressure",
+        "transferable_discipline": "During decline or crisis, hold responsibility for the whole condition: see clearly, protect the conditions for recovery, make costs visible, preserve trust and truthful information, and combine accountability with adaptability toward renewal.",
+        "abstention_boundary": "Transfer the discipline, not the exact prose or doorway. Apply to genuine leadership questions under decline, crisis, breakdown, or consequential loss; do not turn every leadership question into crisis framing or use the doorway as a generic recommendation."
+      },
+      "known_theme": "stewardship, leadership, decline, crisis, responsibility, trust, recovery, renewal, accountability",
+      "runtime_transfer": true
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
