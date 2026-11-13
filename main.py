@@ -5221,6 +5221,28 @@ def _guide_finalize_visitor_payload(payload, query):
             "The Guide final visitor boundary: restored reflective decline orientation."
         )
         return safe
+    # Systems maps are instruments of inquiry, not Archive-only factual claims.
+    # This final visitor boundary closes legacy paths that can otherwise replace
+    # a substantive conceptual answer with a verification disclaimer.
+    if (
+        general_guide_composition._requires_systems_map_false_confidence_explanation(query)
+        and _is_archive_verification_nonanswer(response_text)
+    ):
+        safe = dict(payload)
+        safe["response"] = _sanitize_basic_inquiry_response(
+            general_guide_composition._systems_map_false_confidence_recovery()
+        )
+        safe["recommendation"] = _normalize_authoritative_recommendation(
+            safe.get("recommendation")
+        )
+        safe["processing"] = "final_visitor_boundary_systems_map_inquiry"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        print(
+            "The Guide final visitor boundary: restored systems-map inquiry recovery."
+        )
+        return safe
+
     # Broad conceptual definitions are answer obligations, not retrieval-dependent
     # navigation requests. Legacy deterministic recovery can run outside the
     # ordinary composer, so enforce this contract at the one boundary every
