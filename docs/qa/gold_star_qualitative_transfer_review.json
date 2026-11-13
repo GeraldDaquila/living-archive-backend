@@ -281,6 +281,15 @@
       "qualifying_context": "modes of knowing, dialogue, differentiated knowledge, judgment, and responsible action",
       "abstention_boundary": "Do not collapse distinct forms of knowing into a single hierarchy, pretend every perspective must agree, treat disagreement as automatically resolvable, or let one mode claim total authority over questions outside its reach.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-archive-claim-synthesis-boundary-gold-star-2026-11-13",
+      "question": "How should The Guide separate direct Archive claims from its own synthesis?",
+      "reasoning_family": "archive_claim_synthesis_orientation_boundary",
+      "transferable_discipline": "Keep source claims traceable, name synthesis as synthesis, and separate orientation from evidence; hold different Archive voices in relationship without flattening them into a single authority.",
+      "qualifying_context": "Archive provenance, source attribution, Guide synthesis, orientation, and epistemic boundaries",
+      "abstention_boundary": "Do not attribute the Guide's inferences to a source, let synthesis borrow the authority of direct evidence, present orientation as canonical fact, invent a doorway, or use a self-referential link merely to fill the navigation slot.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
