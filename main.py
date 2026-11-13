@@ -6044,7 +6044,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # not an Archive attribution, and navigation remains separately governed.
     if (
         "stewardship" in q
-        and re.search(r"\b(?:difference|different|distinguish|distinction|versus|vs)\b", q)
+        and re.search(r"\b(?:differ|difference|different|distinguish|distinction|versus|vs)\b", q)
         and re.search(r"\b(?:ownership|control|management|benevolence)\b", q)
     ):
         response = (
