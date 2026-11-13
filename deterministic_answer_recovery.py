@@ -327,7 +327,11 @@ def _archive_purpose_recovery():
 
 def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
-    return bool(\n        _is_public_predictive_system_question(question)\n        or _is_archive_purpose_question(question)\n        or _is_modes_of_knowing_dialogue_question(question)\n    )
+    return bool(
+        _is_public_predictive_system_question(question)
+        or _is_archive_purpose_question(question)
+        or _is_modes_of_knowing_dialogue_question(question)
+    )
 
 
 def _public_predictive_system_recovery():
