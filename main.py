@@ -1291,9 +1291,31 @@ def _unified_visitor_construction(query, retrieved_docs, canonical_docs):
     if action == "foundation":
         return _base._foundation_teacherly_answer(query), "foundation"
     if action == "conceptual":
-        answer = _base._build_factual_answer(query, docs)
-        if answer:
-            return answer, "conceptual"
+        # Territorial Meta-Net records are navigation orientation, not source
+        # evidence. They may legitimately preserve a doorway elsewhere in the
+        # response contract, but they must never be handed to factual composition
+        # where a metadata marker can be echoed as if it answered the question.
+        evidence_docs = []
+        for doc in docs:
+            text = str(
+                doc.get("text") or doc.get("content") or doc.get("excerpt") or ""
+            ).strip()
+            metadata_only = (
+                text.startswith("Navigation destination:")
+                or "[Canonical territorial orientation — metadata only]" in text
+                or "Metadata only; do not treat this record as factual source evidence." in text
+            )
+            if not metadata_only:
+                evidence_docs.append(doc)
+        if evidence_docs:
+            answer = _base._build_factual_answer(query, evidence_docs)
+            if answer:
+                return answer, "conceptual"
+        # A conceptual question can still receive a bounded teaching response
+        # when retrieval supplies navigation territory but no source-body evidence.
+        # This is preferable to either parroting metadata or issuing a false
+        # evidence refusal; the territorial doorway remains separately governed.
+        return _base._foundation_teacherly_answer(query), "foundation"
     return "", "core"
 
 
