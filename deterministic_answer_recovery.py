@@ -834,15 +834,16 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         # non-substantive answer during provider exhaustion.
         answer = compose_definition_significance(subject)
     elif (significance_question := re.match(
-        r"(?i)^why (?:does|do)\s+(.+?)(?:\s+matter)(?:\s+(?:when|where|in|for|to)\s+(.+?))?[?.!]*$",
+        r"(?i)^why\s+(?:does|do)\s+(?P<subject>.+?)\s+matter(?:\s+(?:when|where|in|for|to)\s+(?P<context>.+?))?[?.!]*$",
         re.sub(r"\s+", " ", q).strip(),
     )):
+        # Parse the grammatical boundary explicitly: the visitor's concept ends
+        # before the predicate "matter". This preserves qualified concepts and
+        # prevents the generic causal branch from receiving "X matter when Y".
         significance_subject = re.sub(
-            r"^(?:a|an|the)\s+", "", significance_question.group(1), flags=re.I
+            r"^(?:a|an|the)\s+", "", significance_question.group("subject"), flags=re.I
         )
-        # Preserve qualifiers: "clear handoff" is a distinct concept, not merely
-        # a handoff. Removing them produced malformed generic recovery prose.
-        significance_context = significance_question.group(2) or ""
+        significance_context = significance_question.group("context") or ""
         answer = _significance_recovery(significance_subject, significance_context)
     elif re.search(r"\b(?:why|what causes|reason for)\b", lower):
         answer = (
