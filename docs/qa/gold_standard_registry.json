@@ -2881,7 +2881,7 @@
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
-    "status": "SPECIFIED_NOT_YET_IMPLEMENTED",
+    "status": "IMPLEMENTED_ACTIVE_QUALITY_MEMORY",
     "purpose": "Use approved gold standards as a floor for continual improvement of The Guide, extracting reusable lessons that improve answers to unseen questions while remaining grounded in the Living Archive corpus and cosmology.",
     "governing_principles": [
       "Gold standards are immutable, exact-question acceptance references unless the user explicitly authorizes a versioned change.",
@@ -2981,13 +2981,16 @@
         "production_mutation": "only through the authorized promotion gate"
       }
     ],
-    "current_capability_boundary": "The current exact-match registry enforces approved answers for matching questions. This contract documents the target learning architecture; it does not claim that lesson extraction, persistent learning memory, shadow evaluation, or adaptive promotion is already implemented.",
+    "current_capability_boundary": "Implemented active quality-memory module: approved Gold Stars are loaded from this canonical registry; exact questions retain deterministic answer authority; reviewed transferable disciplines and abstention boundaries can contribute bounded structural guidance to unseen questions. Shadow observation is active for diagnostic matching. The module is deliberately non-autonomous: it does not self-promote generated answers or silently mutate production behavior.",
     "initial_implementation_order": [
       "Version the lesson schema and evaluation rubric.",
       "Build offline evaluation over approved standards, negative controls, and held-out questions.",
       "Add evidence-linked lesson candidates and a shadow-mode report without changing visitor-facing behavior.",
       "Review reliability, privacy controls, and measured generalization before any adaptation is promoted."
-    ]
+    ],
+    "runtime_integration_note": "Runtime composition must invoke active_quality_contribution() for eligible unseen questions before composition and pass only structural guidance—not exemplar answer text, factual claims, examples, citations, or doorways—into the response process. Exact-match enforcement remains separate.",
+    "registry_authority": "SOLE_CANONICAL_SOURCE",
+    "last_reconciled": "2026-11-13"
   },
   "canonical_storage": {
     "authority": "docs/qa/gold_standard_registry.json on the living-archive-backend main branch is the sole authoritative, additive Gold Star ledger.",
