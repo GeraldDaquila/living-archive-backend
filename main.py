@@ -5478,6 +5478,13 @@ def _guide_finalize_visitor_payload(payload, query):
                     )
                 except Exception:
                     _preserved = None
+            # Deterministic recovery can legitimately occur with no retrieval
+            # documents. In that case, use the same canonical Guide Node
+            # authority rather than allowing a repaired answer to become an
+            # Archive dead end.
+            if not _preserved:
+                _preserved = _select_guide_node_fallback_doorway(query)
+            _preserved = _normalize_authoritative_recommendation(_preserved)
             safe["recommendation"] = _preserved
             safe["processing"] = "outer_visitor_boundary_deterministic_registered_recovery"
             safe["route_source"] = "guide_outer_visitor_boundary"
