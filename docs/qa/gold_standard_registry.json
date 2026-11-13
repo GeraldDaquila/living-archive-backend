@@ -2965,6 +2965,44 @@
       },
       "known_theme": "stewardship, leadership, decline, crisis, responsibility, trust, recovery, renewal, accountability",
       "runtime_transfer": true
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-organizational-culture-ethical-behavior",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How does organizational culture shape ethical behavior?",
+      "expected_response": "Organizational culture shapes ethical behavior by teaching people—often more powerfully than formal policies—what is actually safe, rewarded, tolerated, and expected. People learn from the choices leaders make, the behavior colleagues excuse or challenge, whose judgment carries authority, and what happens when someone raises a concern.\n\nThe gap between stated values and operating norms is often where culture becomes ethically consequential. An organization may have a strong code of conduct, but if speed is rewarded at any cost, difficult questions are treated as disloyal, or small breaches are routinely overlooked, those repeated signals can gradually redefine what feels normal. The reverse is also true: accountability, openness, and the protection of principled dissent become part of culture when people repeatedly see them practiced rather than merely promised.\n\nCulture is therefore not a single cause of ethical behavior, and it does not remove individual responsibility. It is one of the conditions that shapes judgment over time. The useful question is which signals, incentives, relationships, and consequences are reinforcing a pattern—and whether they make ethical action easier or harder when it matters.",
+      "expected_doorway": {
+        "title": null,
+        "url": null
+      },
+      "doorway_status": "OPTIONAL_NO_FIXED_CANONICAL_DOORWAY",
+      "rating_out_of_10": 9,
+      "approval_state": "Explicitly elevated by user to Gold Star on 2026-11-14 after structural abstention repair and Gold Star refinement.",
+      "assertions": [
+        "Answer the question directly in the opening sentence.",
+        "Distinguish stated values from operating norms.",
+        "Explain ethical influence through observable signals, incentives, authority, tolerated behavior, and consequences.",
+        "Preserve individual responsibility while recognizing systemic conditions.",
+        "Do not imply that culture is a single deterministic cause of ethical behavior."
+      ],
+      "provenance": {
+        "source_date": "2026-11-14",
+        "source": "Live Guide response following structural abstention repair and subject-sensitive Gold Star refinement.",
+        "evidence_boundary": "User-approved exemplar; exact response retained as canonical acceptance reference."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "live_user_approved_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "organizational_culture_ethical_operating_norms",
+        "transferable_discipline": "Make ethical culture concrete by distinguishing stated values from operating norms and tracing how repeated signals, incentives, authority, tolerated behavior, and consequences shape what people experience as normal, safe, rewarded, or difficult.",
+        "abstention_boundary": "Transfer the discipline, not the exact prose. Do not treat culture as a single deterministic cause, excuse individual responsibility, infer misconduct from culture alone, or attach an unrelated doorway merely to fill a navigation slot."
+      },
+      "known_theme": "organizational culture, ethics, operating norms, incentives, leadership signals, accountability, principled dissent",
+      "runtime_transfer": true
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
