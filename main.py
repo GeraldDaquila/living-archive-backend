@@ -5140,6 +5140,7 @@ def _guide_finalize_visitor_payload(payload, query):
             from deterministic_answer_recovery import (
                 compose_recovery as _terminal_compose_recovery,
                 has_registered_recovery as _terminal_has_registered_recovery,
+                registered_recovery_recommendation as _terminal_recovery_recommendation,
             )
             _terminal_registered = bool(_terminal_has_registered_recovery(query))
             _terminal_recovery = (
@@ -5168,7 +5169,7 @@ def _guide_finalize_visitor_payload(payload, query):
         if _terminal_recovery_valid:
             safe = dict(payload)
             safe["response"] = _terminal_recovery
-            safe["recommendation"] = None
+            safe["recommendation"] = _terminal_recovery_recommendation(query)
             safe["processing"] = "outer_visitor_boundary_deterministic_registered_recovery"
             safe["route_source"] = "guide_outer_visitor_boundary"
             safe["visitor_boundary_version"] = APP_VERSION

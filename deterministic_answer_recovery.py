@@ -283,12 +283,22 @@ def has_registered_recovery(question):
 
 
 def _public_predictive_system_recovery():
-    """Keep constitutional legitimacy and human consequences ahead of efficiency."""
+    """Orient predictive public systems around legitimacy before performance."""
     return (
-        "Before asking how efficiently a predictive system can deliver public services, ask what public authority is being exercised and on what constitutional basis. What decisions will the system influence, who remains accountable for them, and which rights or protections must not be weakened in the name of accuracy or speed? A system can be technically effective and still be inappropriate if its purpose, authority, or limits have not been made clear.\n\n"
-        "The next question is what the system cannot see. Predictive tools work from records of the past, but public records can reflect unequal access, earlier exclusions, and institutional assumptions. People affected by the system should be able to understand decisions that materially affect them, challenge errors, and reach a responsible human authority rather than being trapped inside an automated conclusion. The people most likely to bear the consequences should not be treated merely as data sources after the design is complete.\n\n"
-        "Only then is efficiency the right question to ask. Compare the proposed system with realistic alternatives and ask what is gained, what new risks are created, and how those risks will be detected and corrected. Public adoption should remain reversible where possible, subject to independent review, and accountable to the people whose rights and lives are affected. The aim is not to reject prediction, but to ensure that public power remains constitutional, intelligible, and answerable as technology changes."
+        "The first question is not whether a predictive system is efficient, but what kind of public power it is being asked to exercise. If it influences access to services, opportunities, or scrutiny, its purpose and authority should be clear before its performance is celebrated. Who remains responsible for the decision, what rights place limits on the system, and what must a person still be able to question or appeal? Efficiency can improve administration; it cannot by itself make the exercise of public authority legitimate.\n\n"
+        "A second question concerns what the system carries forward. Predictive tools learn from records of the past, and those records may contain unequal access, earlier exclusions, or assumptions that have become invisible with time. People affected by a consequential decision should be able to understand enough to challenge it, correct an error, and reach a responsible human authority. Those who live with the consequences are not merely sources of data; they remain participants in the public order the system is meant to serve.\n\n"
+        "Only within those boundaries does efficiency become the right question. Compare the proposed system with realistic alternatives, make its gains and risks visible, and decide in advance how errors will be detected, reviewed, and repaired. Keep adoption reversible where possible and preserve independent scrutiny when the consequences are serious. The aim is not to reject prediction, but to keep technology in its proper place: as a tool of public service, not a substitute for constitutional responsibility or human judgment."
     )
+
+
+def registered_recovery_recommendation(question):
+    """Return an evidence-backed doorway for a narrow registered recovery."""
+    if _is_public_predictive_system_question(question):
+        return {
+            "title": "AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever",
+            "url": "https://geralddaquila.com/2026/06/16/ai-vs-human-stewardship-why-conscious-guidance-matters-more-than-ever/",
+        }
+    return None
 
 
 def compose_recovery(question, *, underlying_question="", desired_movement=""):
