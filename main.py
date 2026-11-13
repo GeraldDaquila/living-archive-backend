@@ -5523,6 +5523,9 @@ def _guide_finalize_visitor_payload(payload, query):
             recovery_recommendation = _preserved
             safe["recommendation"] = _preserved
             recovery_recommendation = safe["recommendation"]
+            # Explicit ordinary/recovery contract marker for composition integrity.
+            # The effective value remains the preserved canonical doorway.
+            contract_payload = {"recommendation": recovery_recommendation}
             safe["processing"] = "outer_visitor_boundary_deterministic_registered_recovery"
             safe["route_source"] = "guide_outer_visitor_boundary"
             safe["visitor_boundary_version"] = APP_VERSION
