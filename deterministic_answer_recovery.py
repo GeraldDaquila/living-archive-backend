@@ -468,6 +468,9 @@ def registered_recovery_recommendation(question):
             "url": "https://geralddaquila.com/unraveling-stress-how-the-system-responds-and-why-it-loops/",
         }
     if _is_systems_explanation_vs_simplistic_connection_question(question):
+        # The Guide is both an interpreter and an entry door into the Archive.
+        # A strong systems answer should therefore always carry one canonical
+        # continuation, rather than leaving the visitor at a conceptual endpoint.
         return {
             "title": "Unraveling Stress: How the System Responds and Why It Loops",
             "url": "https://geralddaquila.com/unraveling-stress-how-the-system-responds-and-why-it-loops/",
