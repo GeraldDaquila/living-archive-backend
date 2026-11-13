@@ -1587,6 +1587,16 @@ def _requires_systems_map_false_confidence_explanation(query: str) -> bool:
     )
 
 
+def _systems_map_false_confidence_doorway(question: str) -> Dict[str, str]:
+    """Return the verified canonical continuation for the bounded systems-map inquiry."""
+    if _requires_systems_map_false_confidence_explanation(question):
+        return {
+            "doorway_title": "Systems Thinking & Civilizational Design",
+            "doorway_url": "https://geralddaquila.com/2026/05/20/systems-thinking-civilizational-design/",
+        }
+    return {"doorway_title": "", "doorway_url": ""}
+
+
 def _systems_map_false_confidence_recovery() -> str:
     """Provide orientation without treating a representation as evidence of the system itself."""
     return (
