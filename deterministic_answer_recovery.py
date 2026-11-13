@@ -470,16 +470,28 @@ def _is_general_explanatory_question(question):
 
 
 def _general_explanatory_recovery(question):
-    """Provide a bounded explanation when ordinary inquiry has no exact retrieval match."""
+    """Provide subject-sensitive, bounded explanations when ordinary inquiry has no exact retrieval match."""
+    q = _clean(question).casefold()
+
+    # High-value conceptual families receive a direct answer before the broader
+    # systems lens. This prevents the general recovery from sounding like a
+    # template with the visitor's subject inserted into it.
+    if "organizational culture" in q and ("ethical" in q or "ethic" in q):
+        return (
+            "Organizational culture shapes ethical behavior by teaching people—often more powerfully than formal policies—what is actually safe, rewarded, tolerated, and expected. "
+            "People learn from the choices leaders make, the behavior colleagues excuse or challenge, whose judgment carries authority, and what happens when someone raises a concern.\n\n"
+            "The gap between stated values and operating norms is often where culture becomes ethically consequential. An organization may have a strong code of conduct, but if speed is rewarded at any cost, difficult questions are treated as disloyal, or small breaches are routinely overlooked, those repeated signals can gradually redefine what feels normal. The reverse is also true: accountability, openness, and the protection of principled dissent become part of culture when people repeatedly see them practiced rather than merely promised.\n\n"
+            "Culture is therefore not a single cause of ethical behavior, and it does not remove individual responsibility. It is one of the conditions that shapes judgment over time. The useful question is which signals, incentives, relationships, and consequences are reinforcing a pattern—and whether they make ethical action easier or harder when it matters."
+        )
+
     subject = _subject(question)
     return (
-        f"A useful way to understand {subject} is to look at the conditions through which influence is exercised, rather than assuming a single direct cause. "
-        "People and institutions are shaped by repeated signals, incentives, relationships, constraints, and the consequences attached to different choices. "
-        "Those conditions can make some actions feel normal, rewarded, risky, or difficult even when formal rules say something different.\n\n"
-        "The important question is therefore what mechanisms are actually operating: what people observe others doing, what behavior is rewarded or tolerated, whose judgment carries authority, and what happens when concerns are raised. "
-        "A pattern becomes more consequential when these signals reinforce one another over time and make correction harder or easier.\n\n"
+        f"A useful starting point is to ask how {subject} works through particular conditions rather than assuming a single direct cause. "
+        "Repeated signals, incentives, relationships, constraints, and consequences can make some choices feel normal, rewarded, risky, or difficult even when formal rules say something different.\n\n"
+        "The next question is what mechanisms are actually operating: what people observe others doing, what behavior is rewarded or tolerated, whose judgment carries authority, and what happens when concerns are raised. "
+        "Patterns become more consequential when these conditions reinforce one another over time and make correction harder or easier.\n\n"
         "This is a starting explanation rather than a claim about a specific case. "
-        "The strongest account identifies the particular relationships and evidence that matter, distinguishes influence from proof of causation, and remains open to other conditions that may change the outcome."
+        "A stronger account identifies the relationships and evidence that matter, distinguishes influence from proof of causation, and remains open to other conditions that may change the outcome."
     )
 
 
