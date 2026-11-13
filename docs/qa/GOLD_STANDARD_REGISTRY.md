@@ -638,3 +638,16 @@ The following user-approved Gold Stars were reconciled from temporary external e
 - `general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13`
 
 These entries preserve their live-production provenance and qualitative transfer boundaries; the external record is evidence only and not a competing ledger.
+
+### Gold Star #27 — Archive Claim / Guide Synthesis Boundary (2026-11-13)
+
+**Query:** How should The Guide separate direct Archive claims from its own synthesis?
+
+**Status:** USER_APPROVED_GOLD_STANDARD
+
+**Gold Star discipline:** Keep direct source claims traceable; name cross-resource synthesis as the Guide's synthesis; and keep orientation visibly separate from evidence. The Guide may hold different Archive voices in relationship without flattening them into one authoritative conclusion.
+
+**Doorway rule:** A continuation must be evidence-backed and non-self-referential. Never invent a title or URL merely to satisfy a navigation invariant.
+
+**Live validation:** Approved from the rendered production result following structural provenance-boundary repair and canonical doorway recovery. The live result continued to **A Practical Guide to Waiting**.
+
