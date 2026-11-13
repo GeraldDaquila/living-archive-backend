@@ -5584,12 +5584,18 @@ def _guide_finalize_visitor_payload(payload, query):
     ):
         return payload
 
-    # If executable/template text escaped into the answer, bypass the same
-    # composition path and use the dedicated safe recovery for the visitor's query.
+    # If executable/template text escaped into the answer, restore a registered
+    # canonical conceptual recovery before using the generic safe fallback.
+    # Contamination is a transport failure, not evidence that the visitor's
+    # question has no canonical answer.
     if _basic_inquiry_has_source_dump(response_text):
-        response = _sanitize_basic_inquiry_response(
-            _basic_inquiry_source_dump_recovery(query)
-        )
+        _registered = general_guide_composition._conceptual_relationship_recovery(query)
+        if _registered and not general_guide_composition.is_generic_nonanswer(query, _registered):
+            response = _sanitize_basic_inquiry_response(_registered)
+        else:
+            response = _sanitize_basic_inquiry_response(
+                _basic_inquiry_source_dump_recovery(query)
+            )
         recovered = {}
     else:
         recovered = _basic_inquiry_round1_deterministic_response(
