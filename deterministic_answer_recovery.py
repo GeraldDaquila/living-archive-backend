@@ -406,6 +406,24 @@ def _commons_care_recovery():
     )
 
 
+def _is_stewardship_leadership_crisis_question(question):
+    """Recognize stewardship questions about leadership under decline or crisis."""
+    q = _clean(question).casefold()
+    stewardship = bool(re.search(r"\b(?:stewardship|steward)\b", q))
+    leadership = bool(re.search(r"\b(?:leader|leadership)\b", q))
+    pressure = bool(re.search(r"\b(?:decline|crisis|breakdown|collapse|emergency|loss|deterioration)\b", q))
+    return stewardship and leadership and pressure
+
+
+def _stewardship_leadership_crisis_recovery():
+    """Orient leadership in decline around responsibility, truthfulness, and renewal."""
+    return (
+        "Stewardship asks a leader to hold responsibility for the whole condition, not simply to preserve appearances or protect a position. During decline or crisis, that begins with seeing clearly what is changing: what is being lost, who is carrying the consequences, which responsibilities remain non-negotiable, and where uncertainty is still real. A steward does not need to promise control over everything, but should resist both denial and the temptation to make certainty look stronger than it is.\n\n"
+        "The next task is to protect the conditions from which recovery remains possible. That can mean preserving trust, keeping truthful information available, listening to people closest to the consequences, and distinguishing what must be defended now from what can be changed or relinquished. Difficult decisions may still be necessary, but stewardship asks that their costs be made visible and that those with less power are not treated as expendable simply to preserve short-term stability.\n\n"
+        "Finally, a steward keeps the future in view without abandoning the present. The question is not only how to survive the crisis, but what capacities, relationships, and responsibilities should remain intact so that renewal is possible afterward. Good stewardship therefore combines accountability with adaptability: act, learn from what the conditions reveal, correct course when necessary, and leave the people and institution more capable of carrying responsibility together."
+    )
+
+
 def _is_humane_performance_question(question):
     """Recognize organizational-performance questions that explicitly protect human dignity."""
     q = _clean(question).casefold()
@@ -435,6 +453,12 @@ if not _is_humane_performance_question(_humane_performance_probe):
     raise RuntimeError("Humane-performance recovery invariant failed")
 
 
+
+
+
+_stewardship_leadership_crisis_probe = "What does stewardship ask of a leader during decline or crisis?"
+if not _is_stewardship_leadership_crisis_question(_stewardship_leadership_crisis_probe):
+    raise RuntimeError("Stewardship leadership crisis recovery invariant failed")
 
 def _is_general_explanatory_question(question):
     """Recognize ordinary causal/explanatory questions that must remain answerable without retrieval."""
@@ -483,6 +507,7 @@ def has_registered_recovery(question):
         or _is_feedback_loops_institutions_question(question)
         or _is_systems_explanation_vs_simplistic_connection_question(question)
         or _is_humane_performance_question(question)
+        or _is_stewardship_leadership_crisis_question(question)
         or _is_general_explanatory_question(question)
         or _is_modes_of_knowing_dialogue_question(question)
         or is_stewardship_failure_repair_question(question)
@@ -595,6 +620,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = _systems_explanation_vs_simplistic_connection_recovery()
     elif _is_humane_performance_question(q):
         answer = _humane_performance_recovery()
+    elif _is_stewardship_leadership_crisis_question(q):
+        answer = _stewardship_leadership_crisis_recovery()
     elif _is_general_explanatory_question(q):
         answer = _general_explanatory_recovery(q)
     elif civilizational_transition:
