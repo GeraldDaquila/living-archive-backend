@@ -2473,7 +2473,7 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
         )) >= 2
     )
     if stewardship_terms and re.search(
-        r"\b(?:differ|difference|compare|versus|vs\.?|rather than|distinguish)\b",
+        r"\\b(?:differ|difference|compare|versus|vs\\.?|rather than|distinguish)\\b",
         normalized,
     ):
         return (
