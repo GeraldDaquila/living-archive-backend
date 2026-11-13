@@ -4962,6 +4962,31 @@ def _systems_intelligibility_recovery(query):
     )
 
 
+def _doorway_docs_from_recovery(recovered_context):
+    """Normalize the canonical retrieval shapes used by the active mirror."""
+    if not isinstance(recovered_context, dict):
+        return []
+    text_parts = []
+    for key in ("canonical_link_context", "context_blocks", "context", "retrieval_context"):
+        value = recovered_context.get(key)
+        if value:
+            text_parts.append(str(value))
+    for text_part in text_parts:
+        docs = _parse_context_documents(text_part)
+        if docs:
+            return docs
+    # Some mirror adapters return already-structured documents rather than
+    # formatted context. Preserve those records instead of silently treating
+    # a successful retrieval as an empty result.
+    for key in ("documents", "canonical_documents", "results", "sources", "assets"):
+        value = recovered_context.get(key)
+        if isinstance(value, list):
+            docs = [item for item in value if isinstance(item, dict)]
+            if docs:
+                return docs
+    return []
+
+
 def _boundary_canonical_doorway(payload, query):
     """Preserve or recover one evidence-backed doorway for boundary-composed answers.
 
@@ -5004,12 +5029,7 @@ def _boundary_canonical_doorway(payload, query):
                 # boundary supplies the canonical territorial mirror used by normal
                 # visitor requests and is therefore the authoritative doorway source.
                 recovered_context = use_core.fetch_canonical_context(recovery_query)
-                recovered_text = str(
-                    recovered_context.get("canonical_link_context")
-                    or recovered_context.get("context_blocks")
-                    or ""
-                ) if isinstance(recovered_context, dict) else ""
-                candidate_docs = _parse_context_documents(recovered_text) if recovered_text else []
+                candidate_docs = _doorway_docs_from_recovery(recovered_context)
                 if candidate_docs:
                     docs = candidate_docs
                     break
