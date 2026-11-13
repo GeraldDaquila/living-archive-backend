@@ -26,6 +26,8 @@ class OuterBoundaryRegisteredRecoveryTests(unittest.TestCase):
     def test_exact_public_predictive_failure_cannot_reach_generic_refusal(self):
         self.assertIn("_terminal_has_registered_recovery(query)", MAIN)
         self.assertIn("compose_recovery as _terminal_compose_recovery", MAIN)
+        self.assertIn("registered_recovery_recommendation as _terminal_recovery_recommendation", MAIN)
+        self.assertIn('safe["recommendation"] = _terminal_recovery_recommendation(query)', MAIN)
 
 if __name__ == "__main__":
     unittest.main()
