@@ -277,6 +277,31 @@ def _is_public_predictive_system_question(question):
     return public_system and predictive_system and constitutional_human
 
 
+def _is_modes_of_knowing_dialogue_question(question):
+    """Recognize questions about holding distinct forms of knowledge in relation."""
+    q = _clean(question).casefold()
+    modes = bool(re.search(
+        r"\b(?:modes?|forms?|ways?|kinds?)\s+of\s+knowing\b|\bways?\s+of\s+knowing\b",
+        q,
+    ))
+    dialogue = bool(re.search(
+        r"\b(?:dialogue|in relation|together|alongside|confus(?:e|ed|ing)|collapse|flatten)\b",
+        q,
+    ))
+    return modes and dialogue
+
+
+def _modes_of_knowing_dialogue_recovery():
+    """Preserve distinctions before moving to an application or decision process."""
+    return (
+        "Different modes of knowing do not need to be made identical in order to be held in dialogue. The first task is to ask what each mode can illuminate, what kind of claim it can support, and what remains outside its reach. Evidence, lived experience, professional judgment, historical understanding, and moral concern may all matter to the same question, but they do not answer it in the same way. Keeping those differences visible prevents one form of knowing from being mistaken for the whole.
+\n"
+        "Dialogue begins when the forms of knowledge are allowed to question and inform one another without being forced into a single vocabulary or hierarchy. Ask where they converge, where they reveal a tension, and whether an apparent conflict comes from different evidence, different experiences, or different values. The aim is not to make every perspective agree, but to understand what each contributes and what would be lost if one were excluded.
+\n"
+        "Only then should the conversation move toward a decision or collective action. Compare the available options, make consequences visible, and include the knowledge of people who will live with those consequences. A responsible judgment remains accountable for the choice it makes, but it does not pretend that one mode of knowing has cancelled the others. The point is to create a clearer field for judgment: differentiated knowledge held in relation, with both its contributions and its limits still visible."
+    )
+
+
 def _is_archive_purpose_question(question):
     """Recognize the narrow question of what problem the Living Archive exists to address."""
     q = _clean(question).casefold()
@@ -297,7 +322,7 @@ def _archive_purpose_recovery():
 
 def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
-    return bool(_is_public_predictive_system_question(question) or _is_archive_purpose_question(question))
+    return bool(\n        _is_public_predictive_system_question(question)\n        or _is_archive_purpose_question(question)\n        or _is_modes_of_knowing_dialogue_question(question)\n    )
 
 
 def _public_predictive_system_recovery():
@@ -315,6 +340,11 @@ def registered_recovery_recommendation(question):
         return {
             "title": "AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever",
             "url": "https://geralddaquila.com/2026/06/16/ai-vs-human-stewardship-why-conscious-guidance-matters-more-than-ever/",
+        }
+    if _is_modes_of_knowing_dialogue_question(question):
+        return {
+            "title": "Being in the Driver's Seat (Without Pretending You Control the Road)",
+            "url": "https://geralddaquila.com/being-in-the-drivers-seat-without-pretending-you-control-the-road/",
         }
     if _is_archive_purpose_question(question):
         # Foundational purpose questions have a canonical continuation. This
@@ -360,7 +390,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         and re.search(r"\binterpreter\b", lower)
         and re.search(r"\bauthority\b", lower)
     )
-    if _is_public_predictive_system_question(q):
+    if _is_modes_of_knowing_dialogue_question(q):
+        answer = _modes_of_knowing_dialogue_recovery()
+    elif _is_public_predictive_system_question(q):
         answer = _public_predictive_system_recovery()
     elif _is_archive_purpose_question(q):
         answer = _archive_purpose_recovery()
