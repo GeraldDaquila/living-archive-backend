@@ -236,3 +236,15 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_modes_of_knowing_dialogue_recovery_preserves_distinctions():
+    from deterministic_answer_recovery import compose_recovery, has_registered_recovery, registered_recovery_recommendation
+    q = "How should these modes of knowing be placed in dialogue without being confused with one another?"
+    answer = compose_recovery(q)
+    assert has_registered_recovery(q)
+    assert "do not need to be made identical" in answer
+    assert "what each mode can illuminate" in answer
+    assert answer.index("Different modes of knowing") < answer.index("Only then should the conversation move toward a decision")
+    doorway = registered_recovery_recommendation(q)
+    assert doorway["title"] == "Being in the Driver's Seat (Without Pretending You Control the Road)"
