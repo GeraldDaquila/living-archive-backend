@@ -4912,9 +4912,9 @@ def _is_archive_claim_boundary_inquiry(query):
 def _archive_claim_boundary_recovery():
     """Explain provenance without pretending that synthesis is itself a direct source claim."""
     return (
-        "The Guide should keep three layers distinct. A direct Archive claim is something a particular text actually says or clearly supports, and it should be attributed to that source. A synthesis is different: it draws a relationship, pattern, or implication across more than one Archive resource and should be presented as the Guide's synthesis rather than as the statement of any single text.\n\n"
-        "The third layer is orientation. The Guide may frame a question, identify a tension, or suggest a way of looking without presenting that framing as evidence from the Archive. Keeping these layers visible lets a visitor see what is being reported, what is being inferred, and what is being offered as a way to continue thinking.\n\n"
-        "The practical discipline is simple: stay close to the source when making a claim about what the Archive says; name synthesis when the Guide is connecting materials; and do not let either source evidence or synthesis borrow the authority of the other. That distinction protects both the integrity of the Archive and the usefulness of the Guide."
+        "The Guide should keep three layers distinct. A direct Archive claim is something a particular text actually says or clearly supports, and it should remain traceable to that source. A synthesis is different: it draws a relationship, pattern, or implication across more than one Archive resource. It can be useful precisely because it connects materials, but it should be presented as the Guide's synthesis rather than as the statement of any single text.\n\n"
+        "A third layer is orientation. The Guide may frame a question, identify a tension, or suggest a way of looking without presenting that framing as evidence from the Archive. This matters especially in a Living Archive: its purpose is not to flatten different voices into one authoritative conclusion, but to hold ideas in relationship without losing where they came from. Keeping the layers visible lets a visitor see what is being reported, what is being inferred, and what is being offered as a way to continue thinking.\n\n"
+        "The practical discipline is therefore simple: stay close to the source when saying what the Archive says; name synthesis when the Guide is connecting materials; and keep orientation visibly separate from both. Then the Guide can add intelligibility without borrowing authority it has not earned. The distinction protects the integrity of the Archive while preserving the freedom to notice relationships that no single text, on its own, could show."
     )
 
 
@@ -5028,7 +5028,12 @@ def _guide_finalize_visitor_payload(payload, query):
     if _is_archive_claim_boundary_inquiry(query):
         safe = dict(payload)
         safe["response"] = _archive_claim_boundary_recovery()
-        safe["recommendation"] = _boundary_canonical_doorway(safe, query)
+        # Do not let an upstream generic doorway survive merely because it was
+        # selected before this reasoning family was recognized. Provenance
+        # questions need a doorway selected for this inquiry, or none at all.
+        doorway_payload = dict(safe)
+        doorway_payload["recommendation"] = None
+        safe["recommendation"] = _boundary_canonical_doorway(doorway_payload, query)
         safe["processing"] = "final_visitor_boundary_archive_claim_provenance"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
