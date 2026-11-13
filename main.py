@@ -10752,6 +10752,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Response provenance metrics: content-free operational accounting for the
     # quality-first provider architecture. These fields distinguish an intentional
     # deterministic answer from an LLM opportunity that fell through to recovery.
+    # Auto composition can succeed without ever entering a deterministic branch;
+    # establish the sentinel explicitly so provenance accounting cannot raise an
+    # UnboundLocalError at the final visitor boundary.
+    if "deterministic_result" not in locals():
+        deterministic_result = None
     _provider_name = ""
     _model_name = ""
     _llm_invoked = bool(composition_result)
