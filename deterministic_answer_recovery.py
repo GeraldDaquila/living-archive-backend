@@ -834,7 +834,7 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         # non-substantive answer during provider exhaustion.
         answer = compose_definition_significance(subject)
     elif (significance_question := re.match(
-        r"(?i)^why (?:does|do)\s+(.+?)\s+matter(?:\s+(?:when|where|in|for|to)\s+(.+?))?[?.!]*$",
+        r"(?i)^why (?:does|do)\s+(.+?)(?:\s+matter)(?:\s+(?:when|where|in|for|to)\s+(.+?))?[?.!]*$",
         re.sub(r"\s+", " ", q).strip(),
     )):
         significance_subject = re.sub(
