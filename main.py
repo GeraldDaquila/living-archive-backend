@@ -10952,7 +10952,7 @@ async def _use_send_json(send, payload, status_code=200):
             if not bool(_boundary_standard.get("forbids_doorway")):
                 _boundary_title = str(_boundary_standard.get("doorway_title") or "").strip()
                 _boundary_url = str(_boundary_standard.get("doorway_url") or "").strip()
-                if _boundary_title and re.match(r"^https://\\S+$", _boundary_url, re.I):
+                if _boundary_title and re.match(r"^https://\S+$", _boundary_url, re.I):
                     payload["recommendation"] = {"title": _boundary_title, "url": _boundary_url}
                     payload["canonical_doorway"] = payload["recommendation"]
         if _boundary_standard is not None and bool(_boundary_standard.get("forbids_doorway")):
