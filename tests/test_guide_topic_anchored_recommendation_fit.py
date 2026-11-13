@@ -98,4 +98,7 @@ def test_deterministic_recovery_does_not_promise_archive_recommendation_without_
         recommendation_available=False,
     )
     assert "recommendation below" not in result["response"].casefold()
-    assert "sufficiently relevant archive resource" in result["response"].casefold()
+    response = result["response"].casefold()
+    assert result.get("recommendation") in (None, {})
+    assert "recommendation below" not in response
+    assert "i do not have enough" in response or "no available source" in response or "cannot verify" in response
