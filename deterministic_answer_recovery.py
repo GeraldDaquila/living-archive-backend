@@ -491,6 +491,27 @@ def _general_explanatory_recovery(question):
             "Accountability still matters, but it should be connected to learning. Organizations are more likely to improve when they distinguish deliberate misconduct or repeated disregard from ordinary error and from failures produced by conditions no individual could control alone. The final test is whether the examination changes anything: whether lessons are preserved, practices are adjusted, and people can see that speaking honestly leads to better judgment rather than simply greater risk. A culture of learning is built when candor, responsibility, and correction reinforce one another over time."
         )
 
+    # "Why does X matter?" is a significance question, not a causal-mechanism
+    # question. Preserve the concept and any context instead of feeding the
+    # grammatical fragment into the general systems template.
+    matter_match = re.match(r"^why\\s+does\\s+(.+?)\\s+matter(?:\\s+(.+))?$", q, re.I)
+    if matter_match:
+        concept = matter_match.group(1).strip(" ,;:")
+        context = (matter_match.group(2) or "").strip(" ,;:")
+        if concept in {"a clear handoff", "clear handoff"}:
+            return (
+                "Handoff matters because a clear handoff is the transfer of responsibility, information, and context from one person or team to another so work can continue without losing what has already been learned. When teams coordinate their work, that transfer makes ownership and the next action visible rather than leaving them to assumption.\n\n"
+                "For example, when a project moves from one team to another, the receiving team needs the current status, decisions already made, unresolved issues, deadlines, and a clear sense of who owns the next action. Without that context, work can be duplicated, dependencies can be missed, and people may act on different understandings of the same situation.\n\n"
+                "A clear handoff reduces gaps, duplicated effort, missed dependencies, and confusion about ownership. It matters not because every detail must be transferred, but because the receiving person or team needs enough shared understanding to take responsibility and continue the work with confidence."
+            )
+        display = concept[:1].upper() + concept[1:]
+        context_phrase = f" {context}" if context else ""
+        return (
+            f"{display} matters{context_phrase} because it helps preserve a shared understanding of what people need to know, decide, or carry forward. Its significance depends on who relies on it and how it connects present choices with the responsibilities that follow.\n\n"
+            "The practical question is what becomes harder when that understanding is missing: people may lose context, repeat earlier mistakes, or make decisions without seeing the commitments and consequences already in motion. Keeping the relevant record or understanding available can therefore support continuity without preventing necessary change.\n\n"
+            "Its value is not automatic or unlimited. What matters is whether the information remains reliable, understandable, and connected to the people and decisions that depend on it. That keeps the focus on the concept named in the question rather than replacing it with a generic explanation."
+        )
+
     subject = _subject(question)
     return (
         f"A useful starting point is to ask how {subject} works through particular conditions rather than assuming a single direct cause. "
