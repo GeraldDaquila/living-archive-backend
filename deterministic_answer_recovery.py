@@ -157,6 +157,21 @@ def _significance_recovery(subject, context=""):
     if not known.startswith("I can't define "):
         return known
 
+    # Preserve the canonical handoff meaning even when the visitor uses a
+    # qualified form such as "clear handoff".
+    if normalized.endswith("handoff") or normalized.endswith("handoffs"):
+        return (
+            "A clear handoff matters because a handoff is a transfer of responsibility, information, or work from one person or group to another. "
+            "When that transfer is clear, people can coordinate their work without guessing who is responsible for what.
+
+"
+            "In practice, clarity reduces dropped tasks, duplicated effort, and delays. It also makes it easier to identify where a problem occurred and what needs attention.
+
+"
+            "The deeper point is that a handoff is not just a change of ownership. It is a moment when continuity depends on shared understanding. "
+            "A reliable handoff helps the work continue even as responsibility moves."
+        )
+
     display_subject = subject[:1].upper() + subject[1:]
     context = _clean(context).strip(" ,;:")
     context_phrase = f" in {context}" if context else ""
