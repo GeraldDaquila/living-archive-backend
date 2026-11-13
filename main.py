@@ -6526,7 +6526,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "That is a starting orientation rather than a substitute for evidence or context."
         )
         closing = (
-            "The Archive resource below may offer one place to continue the inquiry."
+            "If you would like to explore this further, the Archive resource below may offer a useful next step."
             if recommendation_available
             else (
                 "I do not have a sufficiently relevant Archive resource to recommend for that specific question. "
