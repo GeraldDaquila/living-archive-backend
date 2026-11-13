@@ -6047,12 +6047,17 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         and re.search(r"\b(?:differ|difference|different|distinguish|distinction|versus|vs)\b", q)
         and re.search(r"\b(?:ownership|control|management|benevolence)\b", q)
     ):
+        # Gold-standard conceptual comparison: establish the governing
+        # distinction first, then show how the four neighboring ideas can be
+        # present within stewardship without being identical to it.
         response = (
-            "Stewardship differs from ownership because ownership begins with a claim of possession or rights, while stewardship begins with a responsibility of care. "
-            "A steward may have authority over something without treating it as existing solely for personal use or benefit.\n\n"
-            "It differs from control because control focuses on directing outcomes. Stewardship may require decisions and boundaries, but its question is broader: what conditions must be protected or cultivated so that people, institutions, resources, or relationships can remain healthy over time?\n\n"
-            "It differs from management because management is primarily concerned with organizing and coordinating work toward defined goals. Stewardship includes management when needed, but also asks whether the goals themselves, and the way they are pursued, honor the wider trust involved.\n\n"
-            "And it differs from benevolence because benevolence can mean doing good from a position of choice. Stewardship is less about generosity alone than about faithful care for something whose well-being matters beyond the steward's immediate interests. In that sense, stewardship joins authority with accountability, care with limits, and present decisions with their consequences for others and the future."
+            "At its center, stewardship is not a claim to possess, a technique for directing, a method of organizing, or simply a willingness to do good. "
+            "It is a way of holding authority in trust: using what is in your care responsibly while remaining accountable to the people, purposes, and future affected by your choices.\n\n"
+            "Ownership asks, in part, what is mine and what rights come with it. Stewardship begins somewhere different: even where authority or ownership is real, it asks what is owed to the thing itself and to those affected by its use.\n\n"
+            "Control is concerned with directing outcomes. Stewardship may require decisions, boundaries, and intervention, but it also asks what must be protected or cultivated so that people, relationships, institutions, or resources can remain healthy over time.\n\n"
+            "Management organizes work toward defined goals. Stewardship can include management, but it reaches one question further: are the goals, the means, and the consequences worthy of the trust being exercised?\n\n"
+            "Benevolence is the desire to do good. Stewardship includes care, but care is not merely optional generosity; it carries responsibility and accountability. A steward may sometimes have to set limits, preserve what cannot be immediately used, or make decisions that serve a longer horizon.\n\n"
+            "The distinction, then, is not that stewardship excludes ownership, control, management, or benevolence. It can involve all four. What makes it stewardship is the larger discipline that holds them together: authority exercised as a trust, care bounded by responsibility, and present choices made with regard for consequences beyond one's immediate interests."
         )
         return {
             "response": response,
