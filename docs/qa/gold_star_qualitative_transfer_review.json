@@ -272,6 +272,15 @@
       "qualifying_context": "Living Archive purpose, fragmentation, orientation, judgment, and stewardship",
       "abstention_boundary": "Do not invent a total doctrine for the Archive, reduce fragmentation to a single cause, claim that the Archive can resolve every question, or replace orientation with prescriptive advice.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-modes-of-knowing-dialogue-gold-star-2026-11-13",
+      "question": "How should these modes of knowing be placed in dialogue without being confused with one another?",
+      "reasoning_family": "differentiated_modes_of_knowing_dialogue",
+      "transferable_discipline": "Preserve the differences between forms of knowing; let them inform and challenge one another without forced equivalence; only then move toward accountable judgment while keeping contributions and limits visible.",
+      "qualifying_context": "modes of knowing, dialogue, differentiated knowledge, judgment, and responsible action",
+      "abstention_boundary": "Do not collapse distinct forms of knowing into a single hierarchy, pretend every perspective must agree, treat disagreement as automatically resolvable, or let one mode claim total authority over questions outside its reach.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
