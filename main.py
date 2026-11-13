@@ -10253,6 +10253,19 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "Intergenerational-stewardship Gold Standard failed at the final visitor payload boundary."
         )
 
+    # Final authority boundary: foundational registered recoveries own their
+    # canonical doorway. Apply this after all composition and Gold Star routing
+    # so no downstream recommendation can replace the recovery's continuation.
+    try:
+        from deterministic_answer_recovery import (
+            _is_archive_purpose_question as _final_archive_purpose_question,
+            registered_recovery_recommendation as _final_recovery_recommendation,
+        )
+        if _final_archive_purpose_question(query):
+            authoritative_doorway = _final_recovery_recommendation(query)
+    except Exception:
+        pass
+
     # Final authority boundary: only an explicit no-handoff instruction may
     # suppress an independently verified doorway at the final visitor boundary.
     authoritative_doorway = _enforce_registered_gold_standard_doorway(
