@@ -10617,6 +10617,29 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         composition_context.pop("authoritative_doorway", None)
         composition_context.pop("authoritative_doorway_title", None)
 
+    # Reassert the already-validated composition doorway after generic Gold
+    # Standard enforcement. This calibrated inquiry has no explicit no-doorway
+    # instruction, and a late generic enforcement pass must not erase a
+    # navigation contract that composition already established.
+    if (
+        general_guide_composition._requires_systems_map_false_confidence_explanation(query)
+        and not authoritative_doorway
+        and not (
+            _final_gold_standard is not None
+            and bool(_final_gold_standard.get("forbids_doorway"))
+        )
+        and isinstance(composition_result, dict)
+    ):
+        _post_enforcement_doorway = _normalize_authoritative_recommendation({
+            "title": composition_result.get("doorway_title"),
+            "url": composition_result.get("doorway_url"),
+        })
+        if _post_enforcement_doorway:
+            authoritative_doorway = _post_enforcement_doorway
+            composition_context["authoritative_doorway"] = authoritative_doorway
+            composition_context["authoritative_doorway_title"] = authoritative_doorway["title"]
+            print("The Guide final authority: reasserted verified systems-map doorway.")
+
     # Make the canonical source visible in the answer itself, not only in hidden metadata.
     response, _glossary_answer_basis = general_guide_composition.apply_glossary_source_attribution(
         response, context_data
