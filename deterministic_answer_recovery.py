@@ -494,7 +494,7 @@ def _general_explanatory_recovery(question):
     # "Why does X matter?" is a significance question, not a causal-mechanism
     # question. Preserve the concept and any context instead of feeding the
     # grammatical fragment into the general systems template.
-    matter_match = re.match(r"^why\\s+does\\s+(.+?)\\s+matter(?:\\s+(.+))?$", q, re.I)
+    matter_match = re.match(r"^why\s+does\s+(.+?)\s+matter(?:\s+(.+))?$", q, re.I)
     if matter_match:
         concept = matter_match.group(1).strip(" ,;:")
         context = (matter_match.group(2) or "").strip(" ,;:")
