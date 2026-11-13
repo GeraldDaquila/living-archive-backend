@@ -2838,6 +2838,43 @@
       },
       "freeze_policy": "Frozen approved response is an immutable reference artifact; future changes require a new approval record rather than silent mutation.",
       "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH"
+    },
+    {
+      "benchmark_id": "gs-2026-11-13-04-migrated-canonical-ledger",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "When is a systems map useful, and when can it create false confidence?",
+      "expected_response": "A systems map is useful when it helps make relationships visible that would otherwise remain scattered or implicit. It can clarify dependencies, feedback, delays, bottlenecks, and points where an action may produce consequences elsewhere. Its value is not that it gives a complete picture, but that it makes assumptions about how a situation is connected explicit enough to examine, question, and revise.\n\nA map can create false confidence when its lines and labels are mistaken for proof. Every map selects what to include, what to leave out, and how to describe relationships; uncertain links can look as solid as well-supported ones. A neat diagram may therefore conceal missing evidence, alternative explanations, changing conditions, or perspectives that were never represented. The more complex the situation, the more important it is to distinguish a useful hypothesis about the system from a verified account of it.\n\nThe practical discipline is to treat a systems map as an instrument for inquiry rather than a final answer. Ask which relationships are evidenced, which are inferred, whose experience or knowledge is absent, and what observations would require the map to change. Used this way, a map can improve judgment by revealing questions worth testing. Used as a substitute for evidence or ongoing attention to reality, it can make uncertainty look settled and give confidence greater precision than the situation deserves.",
+      "expected_doorway": {
+        "title": "**Systems Thinking & Civilizational Design**  ",
+        "url": "https://geralddaquila.com/2026/05/20/systems-thinking-civilizational-design/"
+      },
+      "rating_out_of_10": 9.3,
+      "approval_state": "Explicitly elevated by user to Gold Star; migrated from a temporary parallel registry created during same-day reconciliation and normalized into the sole canonical ledger.",
+      "assertions": [
+        "Answer the visitor's question directly before presenting an optional relevant doorway.",
+        "Preserve the exemplar as an exact acceptance reference while transferring only its documented discipline to unseen questions.",
+        "Keep the doorway conceptually relevant and independently testable."
+      ],
+      "provenance": {
+        "source_date": "2026-11-13",
+        "source": "Temporary gold-standard-exemplars repository; migrated into the canonical ledger under the sole-ledger rule.",
+        "source_ref": "GS-2026-11-13-04",
+        "evidence_boundary": "Migrated record. Temporary registry is evidence-only and no longer an authoritative ledger."
+      },
+      "freeze_policy": "Preserve approved expected_response and canonical doorway. Change only through an explicit user-authorized benchmark-version update with provenance.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "normalized_migrated_gold_star",
+        "transferable_discipline": "**A systems map is a provisional representation for making relationships examinable—not a proof that the represented relationships are complete, causal, or settled.**",
+        "abstention_boundary": "Transfer the epistemic discipline, not the exact answer or doorway. Apply it to questions about models, maps, frameworks, diagrams, and system representations when the visitor asks about their usefulness or limits. Do not attach this systems-thinking doorway to unrelated questions merely because they mention complexity, confidence, or change.",
+        "intake_note": "Migrated from a temporary parallel registry into the canonical ledger; normalized without creating a competing authority."
+      },
+      "known_theme": "migrated gold star",
+      "runtime_transfer": true
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
@@ -2958,7 +2995,9 @@
     "accounting_rule": "Every user-approved Gold Star must be recorded here before it is reported as part of the ecosystem total. External repositories, QA artifacts, screenshots, chat records, fixtures, and runtime services may hold evidence or mirrors but are never independent ledgers.",
     "addition_rule": "A new Gold Star is an addition to the existing canonical ledger, never the start of a parallel registry. Approval records must preserve provenance, rating when assigned, and an explicit approval record.",
     "reconciliation_rule": "If an approved candidate was temporarily recorded outside this ledger, reconcile it into this registry before counting it as a new Gold Star. Do not maintain competing totals.",
-    "runtime_rule": "Runtime QA and production systems may consume or mirror approved lessons, but they do not define the authoritative count."
+    "runtime_rule": "Runtime QA and production systems may consume or mirror approved lessons, but they do not define the authoritative count.",
+    "consolidation_guardrail": "Before creating, importing, or reporting any Gold Star registry, agents and maintainers must read docs/qa/gold_standard_registry.json on main. No new directory, repository, or independent ledger may be created without explicit user authorization and a documented migration plan.",
+    "reconciliation_protocol": "Any temporary mirror or evidence store must be marked non-authoritative, reconciled into this ledger, and excluded from ecosystem counts before it is used operationally."
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-13",
