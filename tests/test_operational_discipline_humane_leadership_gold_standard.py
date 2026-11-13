@@ -20,7 +20,7 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
             "general-guide-operational-discipline-humane-leadership-gold-standard-2026-10-26",
         )
         self.assertEqual(record["status"], "USER_APPROVED_GOLD_STANDARD")
-        self.assertEqual(record["doorway_title"], "From Awakening to Stewardship")
+        self.assertEqual(record["doorway_title"], "")
         self.assertEqual(record["doorway_url"], "")
         self.assertEqual(
             resolve_exact_gold_standard(QUESTION.rstrip("?"))["benchmark_id"],
@@ -53,7 +53,7 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
         }
         standard = resolve_exact_gold_standard(QUESTION)
         self.assertIsNotNone(standard)
-        self.assertEqual(standard["doorway_title"], "From Awakening to Stewardship")
+        self.assertEqual(standard["doorway_title"], "")
         self.assertFalse(standard["forbids_doorway"])
         self.assertEqual(
             main._enforce_registered_gold_standard_doorway(selected_doorway, standard),
