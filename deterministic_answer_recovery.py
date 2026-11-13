@@ -187,6 +187,26 @@ def _is_hindsight_accountability(question):
     return (retrospective_frame and accountability_frame) or implicit_frame
 
 
+def is_stewardship_failure_repair_question(question):
+    """Recognize open inquiries about repair after a failure of stewardship."""
+    q = _clean(question).casefold()
+    repair_frame = bool(re.search(r"\b(?:repair|restore|restoration|make amends|rebuild|recover)\b", q))
+    stewardship_frame = bool(re.search(r"\b(?:stewardship|steward|responsib(?:ility|le care)|entrusted)\b", q))
+    failure_frame = bool(re.search(r"\b(?:failure|failed|breakdown|breach|harm|mistake)\b", q))
+    open_process = bool(re.search(r"\b(?:what does|how does|how should|what might)\b.{0,120}\b(?:look like|begin|work)\b", q))
+    return repair_frame and stewardship_frame and failure_frame and open_process
+
+
+def _stewardship_failure_repair_response():
+    """Bounded stewardship-oriented recovery without inventing a specific case."""
+    return (
+        "Repair after a stewardship failure begins by making the failure visible rather than treating it as something to explain away. "
+        "That means acknowledging what was entrusted, what responsibility was not met, and who or what was affected. Repair is not complete when an apology has been made or a procedure has been corrected; those may be part of the work, but they do not by themselves restore what was damaged.\n\n"
+        "The next task is to understand the failure in relation. Ask what conditions, decisions, relationships, or assumptions made it possible, and listen to the people who carried its consequences. Some harms can be corrected directly; others involve trust, opportunity, safety, dignity, or relationships that may take longer to rebuild. A responsible response distinguishes learning from excuse-making: understanding the conditions behind a failure should make future responsibility clearer, not make responsibility disappear.\n\n"
+        "Repair therefore joins accountability with renewal. Clarify what must be changed, who remains responsible for following through, how affected people can question or challenge the response, and what would show that the conditions producing the failure are actually changing. The aim is not to return mechanically to the situation that existed before, but to restore what can be restored while building a more trustworthy way of carrying the responsibility forward."
+    )
+
+
 def is_harm_repair_question(question):
     """Identify a repair-adequacy question raised by people who experienced harm."""
     q = _clean(question).casefold()
@@ -468,6 +488,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = _historical_cultural_recovery()
     elif is_harm_repair_question(q):
         answer = _harm_repair_response()
+    elif is_stewardship_failure_repair_question(q):
+        answer = _stewardship_failure_repair_response()
     elif _is_hindsight_accountability(q):
         answer = (
             "Genuine accountability asks whether the group made a reasonable decision with the information, "
