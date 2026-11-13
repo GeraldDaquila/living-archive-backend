@@ -10589,6 +10589,25 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             f"({type(exc).__name__})."
         )
 
+    # The systems-map calibration recovery may replace a non-answer late in the
+    # request while preserving a doorway selected by General Composition. Carry
+    # that already-validated composition pair into the final payload authority;
+    # do not rerun provider selection or invent navigation here.
+    if (
+        general_guide_composition._requires_systems_map_false_confidence_explanation(query)
+        and not authoritative_doorway
+        and isinstance(composition_result, dict)
+    ):
+        _systems_map_composed_doorway = _normalize_authoritative_recommendation({
+            "title": composition_result.get("doorway_title"),
+            "url": composition_result.get("doorway_url"),
+        })
+        if _systems_map_composed_doorway:
+            authoritative_doorway = _systems_map_composed_doorway
+            composition_context["authoritative_doorway"] = authoritative_doorway
+            composition_context["authoritative_doorway_title"] = authoritative_doorway["title"]
+            print("The Guide final payload boundary: preserved composed systems-map doorway.")
+
     # Final authority boundary: only an explicit no-handoff instruction may
     # suppress an independently verified doorway at the final visitor boundary.
     authoritative_doorway = _enforce_registered_gold_standard_doorway(
