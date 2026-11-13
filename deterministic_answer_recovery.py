@@ -197,6 +197,14 @@ def is_stewardship_failure_repair_question(question):
     return repair_frame and stewardship_frame and failure_frame and open_process
 
 
+# Regression invariant: this open stewardship inquiry must remain recoverable
+# without live vector retrieval or an LLM.
+if not is_stewardship_failure_repair_question(
+    "What does repair look like after a stewardship failure?"
+):
+    raise RuntimeError("Stewardship-failure repair recovery invariant failed")
+
+
 def _stewardship_failure_repair_response():
     """Bounded stewardship-oriented recovery without inventing a specific case."""
     return (
