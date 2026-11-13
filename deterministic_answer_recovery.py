@@ -359,6 +359,7 @@ def has_registered_recovery(question):
         _is_public_predictive_system_question(question)
         or _is_archive_purpose_question(question)
         or _is_modes_of_knowing_dialogue_question(question)
+        or is_stewardship_failure_repair_question(question)
     )
 
 
