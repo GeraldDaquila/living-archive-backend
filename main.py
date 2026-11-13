@@ -4986,15 +4986,11 @@ def _boundary_canonical_doorway(payload, query):
         url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
         if title and url.startswith("https://") and not any(ch.isspace() for ch in url):
             return {"title": title, "url": url}
-    # Boundary-composed answers are not allowed to erase navigation merely
-    # because retrieval returned no parseable document for an otherwise valid
-    # synthesis inquiry. The canonical Guide itself is an evidence-backed,
-    # stable continuation when no more specific canonical asset can be selected.
-    if _is_contextual_synthesis_inquiry(query):
-        return {
-            "title": "The Guide",
-            "url": "https://geralddaquila.com/the-guide/",
-        }
+    # Do not manufacture a self-referential doorway merely to satisfy a
+    # navigation invariant. A doorway must take the visitor somewhere beyond
+    # the current Guide experience. If no specific evidence-backed canonical
+    # resource is available, leave the recommendation empty and allow the
+    # upstream navigation layer to supply a genuinely distinct destination.
     return None
 
 
