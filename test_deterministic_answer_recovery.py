@@ -108,6 +108,19 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
             "A government proposes a predictive system for public services. What constitutional questions must precede adoption?"
         ))
         self.assertFalse(has_registered_recovery("How can a city manage a transition between software systems?"))
+    def test_public_predictive_system_has_evidence_backed_doorway(self):
+        from deterministic_answer_recovery import registered_recovery_recommendation
+        doorway = registered_recovery_recommendation(
+            "A government proposes a highly efficient predictive system for public services. What constitutional and human questions must precede adoption?"
+        )
+        self.assertEqual(
+            doorway["title"],
+            "AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever",
+        )
+        self.assertEqual(
+            doorway["url"],
+            "https://geralddaquila.com/2026/06/16/ai-vs-human-stewardship-why-conscious-guidance-matters-more-than-ever/",
+        )
 
     def test_public_predictive_system_gets_constitutional_and_human_recovery(self):
         question = (
