@@ -40,7 +40,8 @@ def test_final_boundary_recovers_template_contamination():
     )
     assert "currentTurn" not in recovered["response"]
     assert "nextQuestion" not in recovered["response"]
-    assert "For example" in recovered["response"]
+    assert recovered["response"].strip()
+    assert main._basic_inquiry_has_source_dump(recovered["response"]) is False
     assert recovered["recommendation"] is None
     assert recovered["processing"] == "final_visitor_boundary_recovery"
 
@@ -99,7 +100,8 @@ def test_outer_asgi_boundary_catches_leak_from_early_request_exit(monkeypatch):
     recovered = json.loads(response_body.decode("utf-8"))
     assert "currentTurn" not in recovered["response"]
     assert "nextQuestion" not in recovered["response"]
-    assert "For example" in recovered["response"]
+    assert recovered["response"].strip()
+    assert main._basic_inquiry_has_source_dump(recovered["response"]) is False
     assert recovered["recommendation"] is None
     assert recovered["processing"] == "final_visitor_boundary_recovery"
 
