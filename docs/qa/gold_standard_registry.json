@@ -3042,8 +3042,11 @@
       "subsystem": "general-purpose-guide",
       "query": "How does governance differ from leadership and management?",
       "expected_response": "Governance, leadership, and management do different work, even though they often overlap. Governance concerns the framework within which collective authority is exercised: who has the right to decide, what responsibilities and safeguards apply, how accountability works, and how the institution remains oriented over time. Leadership concerns direction, judgment, and the capacity to help people move together; management coordinates people, resources, and work so that intentions become reliable action. A healthy institution needs all three, but confusing them can make operational efficiency look like legitimate authority or personal influence substitute for accountable decision-making.\n\nThe distinction becomes clearer when conditions change. Governance asks whether the mechanisms themselves remain sound: what authority is operating, whose judgment carries weight, what behaviour is rewarded or tolerated, and how concerns can be raised and corrected. Leadership helps people interpret the situation and act amid uncertainty. Management turns decisions into coordinated work. These roles can reinforce one another, but none can permanently do the work of the others.\n\nThat is why governance is more than a formal structure on paper. Repeated signals, incentives, relationships, constraints, and consequences shape what an institution actually becomes over time, sometimes regardless of what its rules say. Looking at governance therefore means examining both the formal arrangements and the patterns they produce, while remaining open to evidence that the conditions—and the distinction between the three roles—may need to be reconsidered.",
-      "expected_doorway": null,
-      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+      "expected_doorway": {
+        "title": "Archetypes in Governance: Why Societies Recreate Familiar Leadership Patterns",
+        "url": "https://geralddaquila.com/2026/06/15/archetypes-in-governance-why-societies-recreate-familiar-leadership-patterns"
+      },
+      "doorway_status": "REQUIRED_CANONICAL_CONTINUATION",
       "rating_out_of_10": 9.3,
       "approval_state": "User explicitly requested structural elevation to Gold Star on 2026-11-14 after review of the live response and identified relevance gap.",
       "assertions": [

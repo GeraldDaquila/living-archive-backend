@@ -10935,6 +10935,26 @@ async def _use_send_json(send, payload, status_code=200):
     if isinstance(payload, dict):
         _boundary_query = str(payload.get("query") or "").strip()
         _boundary_standard = _resolve_exact_guide_gold_standard(_boundary_query)
+        # Absolute exact-authority boundary: no route may return a stale or
+        # generic answer when the visitor's normalized question has an approved
+        # Gold Star reference. This duplicates the composition-level guard
+        # intentionally because some response paths bypass that composer.
+        if _boundary_standard is not None:
+            _boundary_answer = str(_boundary_standard.get("expected_response") or "").strip()
+            if _boundary_answer:
+                for _answer_key in ("response", "answer"):
+                    if _answer_key in payload:
+                        payload[_answer_key] = _boundary_answer
+                # Most /api/query payloads use response; set it when a bypass
+                # route omitted the key so the public contract remains uniform.
+                if "response" not in payload and "answer" not in payload:
+                    payload["response"] = _boundary_answer
+            if not bool(_boundary_standard.get("forbids_doorway")):
+                _boundary_title = str(_boundary_standard.get("doorway_title") or "").strip()
+                _boundary_url = str(_boundary_standard.get("doorway_url") or "").strip()
+                if _boundary_title and re.match(r"^https://\\S+$", _boundary_url, re.I):
+                    payload["recommendation"] = {"title": _boundary_title, "url": _boundary_url}
+                    payload["canonical_doorway"] = payload["recommendation"]
         if _boundary_standard is not None and bool(_boundary_standard.get("forbids_doorway")):
             payload["recommendation"] = None
         elif not isinstance(payload.get("recommendation"), dict) and _boundary_query:
