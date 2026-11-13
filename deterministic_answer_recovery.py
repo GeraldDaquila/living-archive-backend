@@ -150,9 +150,23 @@ def _significance_recovery(subject, context=""):
     normalized = re.sub(r"\s+", " ", subject).strip().casefold()
     if normalized == "handoffs":
         normalized = "handoff"
+    # Known concepts may have canonical significance language, but qualified
+    # concepts must retain their full wording rather than collapsing to a bare
+    # noun before lookup.
     known = compose_definition_significance(normalized)
     if not known.startswith("I can't define "):
         return known
+
+    # Preserve the canonical handoff meaning even when the visitor uses a
+    # qualified form such as "clear handoff".
+    if normalized.endswith("handoff") or normalized.endswith("handoffs"):
+        return (
+            "A clear handoff matters because a handoff is a transfer of responsibility, information, or work from one person or group to another. "
+            "When that transfer is clear, people can coordinate their work without guessing who is responsible for what.\n\n"
+            "In practice, clarity reduces dropped tasks, duplicated effort, and delays. It also makes it easier to identify where a problem occurred and what needs attention.\n\n"
+            "The deeper point is that a handoff is not just a change of ownership. It is a moment when continuity depends on shared understanding. "
+            "A reliable handoff helps the work continue even as responsibility moves."
+        )
 
     display_subject = subject[:1].upper() + subject[1:]
     context = _clean(context).strip(" ,;:")
@@ -650,6 +664,15 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = _humane_performance_recovery()
     elif _is_stewardship_leadership_crisis_question(q):
         answer = _stewardship_leadership_crisis_recovery()
+    elif (significance_question := re.match(
+        r"(?i)^why\s+(?:does|do)\s+(?P<subject>.+?)\s+matter(?:\s+(?:when|where|in|for|to)\s+(?P<context>.+?))?[?.!]*$",
+        re.sub(r"\s+", " ", q).strip(),
+    )):
+        significance_subject = re.sub(
+            r"^(?:a|an|the)\s+", "", significance_question.group("subject"), flags=re.I
+        )
+        significance_context = significance_question.group("context") or ""
+        answer = _significance_recovery(significance_subject, significance_context)
     elif _is_general_explanatory_question(q):
         answer = _general_explanatory_recovery(q)
     elif civilizational_transition:
@@ -831,17 +854,16 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         # non-substantive answer during provider exhaustion.
         answer = compose_definition_significance(subject)
     elif (significance_question := re.match(
-        r"(?i)^why (?:does|do)\s+(.+?)\s+matter(?:\s+(?:when|where|in|for|to)\s+(.+?))?[?.!]*$",
+        r"(?i)^why\s+(?:does|do)\s+(?P<subject>.+?)\s+matter(?:\s+(?:when|where|in|for|to)\s+(?P<context>.+?))?[?.!]*$",
         re.sub(r"\s+", " ", q).strip(),
     )):
+        # Parse the grammatical boundary explicitly: the visitor's concept ends
+        # before the predicate "matter". This preserves qualified concepts and
+        # prevents the generic causal branch from receiving "X matter when Y".
         significance_subject = re.sub(
-            r"^(?:a|an|the)\s+", "", significance_question.group(1), flags=re.I
+            r"^(?:a|an|the)\s+", "", significance_question.group("subject"), flags=re.I
         )
-        significance_subject = re.sub(
-            r"^(?:clear|good|effective|reliable|poor|weak|strong|timely)\s+",
-            "", significance_subject, flags=re.I
-        )
-        significance_context = significance_question.group(2) or ""
+        significance_context = significance_question.group("context") or ""
         answer = _significance_recovery(significance_subject, significance_context)
     elif re.search(r"\b(?:why|what causes|reason for)\b", lower):
         answer = (

@@ -34,9 +34,9 @@ def test_shared_composition_question_intent_fidelity_policy():
 
 
 def test_composition_contract_remains_provider_neutral():
-    assert guide.CONTRACT_VERSION == "v1.39"
+    assert guide.CONTRACT_VERSION == "v1.40"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.39"
+    assert snapshot["contract_version"] == "v1.40"
     assert snapshot["provider_neutral"] is True
 
 
@@ -90,8 +90,8 @@ def test_conceptual_relationships_require_three_paragraph_default():
     import json
     import pytest
     compressed = json.dumps({"response":"Agency means making choices. Responsibility means caring about others.","doorway_title":"","response_shape":"conceptual"})
-    with pytest.raises(ValueError):
-        parse(compressed)
+    parsed = parse(compressed)
+    assert parsed["quality_lane"] == "provider_hard_integrity"
     complete = json.dumps({"response": "\n\n".join([
         "Personal agency and responsibility to others are interdependent aspects of the same moral life. Agency is the capacity to make choices and act on them; responsibility is recognizing that those choices affect other people. Genuine agency does not require ignoring the relationships in which our choices take effect.",
         "The tension appears when agency is treated as independence from consequences. For example, a manager who restructures a team is exercising real choice, but that decision also changes employees’ working conditions, security, and morale. Responsible leadership considers the people affected and explains the decision fairly.",
@@ -120,8 +120,8 @@ def test_conceptual_relationships_require_three_paragraph_default():
     assert "does not mean" in compact_parsed
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.39"
-    assert guide.contract_snapshot()["contract_version"] == "v1.39"
+    assert guide.CONTRACT_VERSION == "v1.40"
+    assert guide.contract_snapshot()["contract_version"] == "v1.40"
 
 
 def test_incomplete_comparison_question_clarifies_before_retrieval():
@@ -155,8 +155,8 @@ def test_ordinary_explanatory_question_is_not_interrupted():
 
 
 def test_composition_contract_version_advances_for_clarification_boundary():
-    assert guide.CONTRACT_VERSION == "v1.39"
-    assert guide.contract_snapshot()["contract_version"] == "v1.39"
+    assert guide.CONTRACT_VERSION == "v1.40"
+    assert guide.contract_snapshot()["contract_version"] == "v1.40"
 
 
 def test_plain_stewardship_explanation_rejects_unsolicited_spectrum_list():
@@ -174,8 +174,8 @@ A useful way to think about stewardship is as a spectrum:
 
 Each level expands responsibility."""
     raw = json.dumps({"response": response, "doorway_title": "", "response_shape": "explanatory"})
-    with pytest.raises(ValueError, match="unsolicited list"):
-        parse(raw)
+    parsed = parse(raw)
+    assert parsed["quality_lane"] == "provider_hard_integrity"
 
 
 def test_plain_stewardship_explanation_accepts_everyday_example_and_clear_limits():
@@ -217,8 +217,8 @@ def test_explicit_closing_question_request_is_detected_and_enforced():
         "doorway_title": "",
         "response_shape": "explanatory",
     })
-    with pytest.raises(ValueError, match="requires a closing question"):
-        parse(missing_question)
+    parsed_missing = parse(missing_question)
+    assert parsed_missing["quality_lane"] == "provider_hard_integrity"
 
     valid_invitation = json.dumps({
         "response": "Stewardship means caring for what others rely on, including shared spaces and resources.\n\nIn everyday life, keeping a promise or maintaining what others rely on can protect trust over time.\n\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means acting within your limits and caring for what is yours to care for. What is one thing in your everyday life that you feel responsible for caring for?",
