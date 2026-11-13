@@ -2794,6 +2794,50 @@
       },
       "freeze_policy": "Frozen approved response is an immutable reference artifact; future changes require a new approval record rather than silent mutation.",
       "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH"
+    },
+    {
+      "benchmark_id": "general-guide-delegated-judgment-moral-limits-gold-star-2026-11-13",
+      "subsystem": "general-purpose-guide",
+      "query": "What are the moral limits of delegating judgment to systems or institutions?",
+      "expected_response": "Delegating judgment to a system or institution is not morally neutral simply because the delegation is useful. A system can carry out rules, coordinate information, or make recurring decisions more consistently, but delegation becomes morally limited when it obscures a judgment that still requires someone to answer for what is being valued, who may be harmed, and whether the rule itself remains justified.\n\nThe central boundary is therefore not that institutions should never exercise judgment. Collective life often requires institutions to make decisions that no individual could manage alone. The problem begins when delegation turns responsibility into disappearance: when no one can explain the reasons for a decision, challenge the assumptions behind it, or take responsibility for correcting harm. Efficiency or formal procedure cannot by themselves supply legitimacy.\n\nA responsible arrangement keeps the chain of judgment visible. It should make clear what has been delegated, what reasons and values govern the system, who can question or revise its decisions, and where accountability ultimately remains. The more a delegated judgment can seriously affect people's rights, opportunities, relationships, or capacity to participate, the stronger those safeguards need to be. Delegation can extend human and institutional capacity; it should not become a way of making moral responsibility harder to locate.",
+      "expected_doorway": null,
+      "assertions": [
+        "Answers the moral limits of delegation directly.",
+        "Distinguishes legitimate institutional delegation from responsibility disappearing.",
+        "Rejects efficiency and procedure as sufficient sources of legitimacy.",
+        "Makes reasons, values, contestability, correction, and ultimate accountability visible.",
+        "Scales safeguards to consequences for rights, opportunities, relationships, and participation.",
+        "Does not narrow the question to AI.",
+        "Does not approve the rendered Philippine systems doorway as part of the exemplar because it is contextually too specific for this general inquiry."
+      ],
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "known_theme": "delegated judgment, institutions, moral responsibility, accountability, and legitimacy",
+      "related_question_variants": [
+        "When does delegating a decision become an abdication of responsibility?",
+        "Who remains morally accountable when an institution makes a judgment?",
+        "What safeguards should exist when systems make consequential decisions?"
+      ],
+      "gold_star_capabilities": {
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "generation_class": "deterministic_delegated_judgment_moral_limits_exemplar",
+        "reasoning_family": "delegation_accountability_and_moral_responsibility",
+        "transferable_discipline": "Distinguish legitimate delegation from disappearance of responsibility; test whether reasons, values, contestability, correction, and ultimate accountability remain visible; scale safeguards to the seriousness of consequences.",
+        "abstention_boundary": "Do not treat delegation as inherently illegitimate, reduce the question narrowly to AI, confuse efficiency or formal procedure with legitimacy, or imply that institutional decision-making eliminates human moral responsibility.",
+        "primary_response_source": "deterministic fallback via conceptual relationship recovery",
+        "llm_origin": false
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_ref": "live visitor-path calibration result following delegated-judgment structural recovery, elevated by explicit user approval",
+        "source_commit": "41247c69e4c758e17eff84d5525530bbb2f85214",
+        "verification_context": "rendered production validation of exact response; doorway evaluated separately and excluded from approved exemplar",
+        "approval_date": "2026-11-13",
+        "approval_record": "Explicit user instruction: elevate to gold star."
+      },
+      "freeze_policy": "Frozen approved response is an immutable reference artifact; future changes require a new approval record rather than silent mutation.",
+      "doorway_status": "NOT_APPROVED_CONTEXTUALLY_TOO_SPECIFIC"
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
