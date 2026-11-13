@@ -5589,13 +5589,13 @@ def _guide_finalize_visitor_payload(payload, query):
     # Contamination is a transport failure, not evidence that the visitor's
     # question has no canonical answer.
     if _basic_inquiry_has_source_dump(response_text):
-        _registered = general_guide_composition._conceptual_relationship_recovery(query)
-        if _registered and not general_guide_composition.is_generic_nonanswer(query, _registered):
-            response = _sanitize_basic_inquiry_response(_registered)
-        else:
-            response = _sanitize_basic_inquiry_response(
-                _basic_inquiry_source_dump_recovery(query)
-            )
+        # The dedicated source-dump recovery is canonical for transport
+        # contamination because it preserves the explanatory example expected at
+        # this boundary. Do not substitute a shorter orientation merely because
+        # another conceptual helper also recognizes the query.
+        response = _sanitize_basic_inquiry_response(
+            _basic_inquiry_source_dump_recovery(query)
+        )
         recovered = {}
     else:
         recovered = _basic_inquiry_round1_deterministic_response(
