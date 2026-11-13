@@ -8,6 +8,8 @@ on:
       - 'docs/qa/gold_star_qualitative_transfer_review.json'
       - 'gold_star_lessons.py'
       - 'scripts/validate_gold_star_registry.py'
+      - 'scripts/validate_doorway_recovery_contract.py'
+      - 'main.py'
   push:
     branches: [main]
     paths:
@@ -21,5 +23,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Compile production entrypoint
+        run: python -m py_compile main.py
       - name: Validate canonical Gold Star registry
         run: python scripts/validate_gold_star_registry.py
+      - name: Validate deterministic recovery doorway contract
+        run: python scripts/validate_doorway_recovery_contract.py
