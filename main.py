@@ -5280,6 +5280,21 @@ def _guide_finalize_visitor_payload(payload, query):
                 if _selected.get("doorway_title") and _selected.get("doorway_url")
                 else None
             )
+            # A recovery answer is also an Archive doorway. Retrieval may be
+            # empty precisely when deterministic recovery is needed, so use the
+            # canonical fallback registry rather than leaving the visitor at a
+            # navigational dead end.
+            if not _existing_doorway:
+                try:
+                    _fallback_doorway = general_guide_composition._fallback_doorway_for_query(query)
+                    _existing_doorway = _normalize_authoritative_recommendation(
+                        {
+                            "title": _fallback_doorway.get("doorway_title"),
+                            "url": _fallback_doorway.get("doorway_url"),
+                        }
+                    ) if isinstance(_fallback_doorway, dict) else None
+                except Exception:
+                    _existing_doorway = None
         safe["recommendation"] = _existing_doorway
         safe["processing"] = "final_visitor_boundary_systems_map_inquiry"
         safe["route_source"] = "guide_final_visitor_boundary"
