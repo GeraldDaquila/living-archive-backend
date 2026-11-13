@@ -2612,6 +2612,53 @@
         "provenance_verified_date": "2026-11-13"
       },
       "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
+    },
+    {
+      "benchmark_id": "general-guide-living-archive-purpose-orientation-gold-star-2026-11-13",
+      "subsystem": "general-purpose-guide",
+      "query": "What problem does the Archive exist to address?",
+      "expected_response": "The Living Archive exists in response to a problem of fragmentation: knowledge can be abundant while understanding remains scattered. Information is often separated from the larger conditions that give it meaning, and people can accumulate facts, opinions, and expertise without gaining a clearer sense of how the pieces relate or what responsibility follows from seeing them together. The problem is not simply a lack of information; it is the difficulty of finding orientation within an abundance of it.\n\nThe Archive therefore tries to make relationships visible across questions that are too often treated in isolation—between people and institutions, knowledge and judgment, history and the present, individual experience and larger systems. Its purpose is not to supply one final explanation or tell visitors what to think. It is to create a place where ideas, patterns, and perspectives can be held in relation so that a question becomes more intelligible before a conclusion is rushed.\n\nWhat the Archive ultimately addresses is the gap between having more knowledge and knowing how to live, decide, and act responsibly with it. Orientation matters when certainty is unavailable and no single discipline can see the whole of a problem. The Archive's contribution is therefore to help people notice the relationships that matter, preserve questions that should not be simplified away, and recover the possibility of more conscious judgment and stewardship.",
+      "expected_doorway": {
+        "title": "When Knowledge Is Everywhere",
+        "url": "https://geralddaquila.com/when-knowledge-is-everywhere/"
+      },
+      "assertions": [
+        "Exactly three substantive paragraphs.",
+        "Answers the Archive's foundational purpose directly and without a generic retrieval failure.",
+        "Distinguishes abundant information from orientation and understanding.",
+        "Explains fragmentation through relationships rather than a single total cause.",
+        "Preserves the Archive's constitutional restraint: it does not supply one final explanation or tell visitors what to think.",
+        "Moves from knowledge toward responsible judgment and stewardship.",
+        "Includes the canonical doorway that continues the exact inquiry."
+      ],
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "known_theme": "Living Archive purpose, fragmentation, orientation, judgment, and stewardship",
+      "related_question_variants": [
+        "Why does the Living Archive exist?",
+        "What is the Living Archive for?",
+        "What problem is the Archive trying to solve?"
+      ],
+      "gold_star_capabilities": {
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "generation_class": "deterministic_curated_recovery_exemplar",
+        "reasoning_family": "archive_purpose_orientation_from_fragmentation",
+        "transferable_discipline": "Distinguish information abundance from orientation; make the relationships that give knowledge meaning visible without claiming one final explanation, then orient the visitor toward more conscious judgment and stewardship.",
+        "abstention_boundary": "Do not invent a total doctrine for the Archive, reduce fragmentation to a single cause, claim that the Archive can resolve every question, or replace orientation with prescriptive advice.",
+        "primary_response_source": "deterministic fallback via _archive_purpose_recovery()",
+        "llm_origin": false
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_ref": "live visitor-path result following terminal purpose recovery and canonical doorway enforcement, elevated by explicit user approval",
+        "source_pr": "direct canonical ledger addition",
+        "verification_context": "live production validation of exact foundational answer and canonical doorway",
+        "approval_date": "2026-11-13",
+        "primary_response_provenance": "The approved response is served by the deterministic _archive_purpose_recovery() path when the narrow foundational purpose question is detected and upstream retrieval/provider failure would otherwise produce a generic non-answer.",
+        "provenance_verified_date": "2026-11-13"
+      },
+      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
