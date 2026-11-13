@@ -1296,10 +1296,9 @@ function installSafetyFollowupController() {
 
 function renderAuthoritativeRecommendation(data) {
   /*
-   * Navigation is an independent presentation layer. Never edit or regenerate
-   * the completed answer in order to append a doorway. API recommendations
-   * retain priority; the bounded public crosslink snapshot supplies a missing
-   * doorway only when the current answer itself has no valid one.
+   * Keep the most recent valid canonical doorway across ordinary follow-up
+   * turns. The API may correctly omit a new recommendation for a conversational
+   * continuation; that must not erase the visitor's existing working link.
    */
   var responseText = document.getElementById('archive-response-text');
   var container = document.getElementById('archive-recommendation');
@@ -1335,30 +1334,13 @@ function renderAuthoritativeRecommendation(data) {
     title = guideLastRecommendation.title;
     url = guideLastRecommendation.url;
   } else {
-    var registered = selectGuideRegistryDoorway(data && data.query, data && data.response);
-    if (registered) {
-      title = registered.title;
-      url = registered.url;
-      guideLastRecommendation = { title: title, url: url };
-      console.info('The Guide supplied a registry-backed doorway independently of answer composition.', {
-        title: title,
-        registry: 'archive-crosslink-snapshot-v2',
-        pinecone: 'not-used',
-        build: USE_FRONTEND_BUILD
-      });
-    } else {
-      console.info('The Guide omitted a doorway because the canonical registry did not establish a sufficiently relevant destination.', {
-        build: USE_FRONTEND_BUILD
-      });
-      if (container) {
-        container.innerHTML = '';
-        container.style.display = 'none';
-      }
-      return;
-    }
+    console.warn('The Guide recommendation was not rendered because no valid canonical recommendation is available.', {
+      hasRecommendation: !!recommendation,
+      hasTitle: !!title,
+      hasUrl: !!url
+    });
+    return;
   }
-
-  if (!/^https:\/\/geralddaquila\.com\/\S+$/i.test(url)) return;
 
   if (container) {
     container.innerHTML = '';
@@ -1376,7 +1358,7 @@ function renderAuthoritativeRecommendation(data) {
 
   var label = document.createElement('p');
   label.className = 'archive-recommendation-label';
-  label.textContent = 'Explore a related part of the Living Archive:';
+  label.textContent = 'A useful place to continue:';
 
   var link = document.createElement('a');
   link.className = 'archive-recommendation-link';
@@ -1389,109 +1371,16 @@ function renderAuthoritativeRecommendation(data) {
 
   if (responseText) {
     responseText.appendChild(block);
-    console.info('The Guide recommendation rendered after the frozen answer with a verified canonical URL.', {
+    console.info('The Guide recommendation rendered with canonical URL.', {
       title: title,
       url: url,
-      retained_from_prior_turn: !validCurrentRecommendation && !!recommendation,
+      retained_from_prior_turn: !validCurrentRecommendation,
       build: USE_FRONTEND_BUILD
     });
   } else if (container) {
     container.appendChild(block);
     container.style.display = 'block';
   }
-}
-
-/*
- * Local, read-only use of the shipped meta-crosslink snapshot.
- * This intentionally uses the same 2,026 canonical WordPress records already
- * bundled with USE. No browser request is made to Pinecone or to a new service.
- */
-var GUIDE_CROSSLINK_SNAPSHOT_URL =
-  'https://raw.githubusercontent.com/GeraldDaquila/living-archive-backend/main/archive_crosslink_snapshot.json';
-var guideCrosslinkSnapshotPromise = null;
-
-function guideCrosslinkTokens(value) {
-  var stop = {
-    about:1, after:1, again:1, also:1, among:1, and:1, are:1, around:1,
-    because:1, been:1, before:1, being:1, between:1, both:1, but:1, can:1,
-    could:1, does:1, from:1, have:1, into:1, just:1, more:1, most:1, not:1,
-    only:1, other:1, over:1, same:1, should:1, some:1, such:1, than:1,
-    that:1, their:1, them:1, then:1, there:1, these:1, they:1, this:1,
-    those:1, through:1, under:1, very:1, what:1, when:1, where:1,
-    which:1, while:1, with:1, would:1, your:1, you:1, the:1, for:1,
-    was:1, were:1, will:1, how:1, why:1, who:1, did:1, its:1, our:1,
-    out:1, his:1, her:1, she:1, him:1, has:1
-  };
-  var words = String(value || '').toLowerCase().match(/[a-z0-9][a-z0-9'-]{1,}/g) || [];
-  var result = [];
-  words.forEach(function (word) {
-    word = word.replace(/^['-]+|['-]+$/g, '');
-    if (word.length > 2 && !stop[word] && result.indexOf(word) === -1) result.push(word);
-  });
-  return result;
-}
-
-function loadGuideCrosslinkSnapshot() {
-  if (guideCrosslinkSnapshotPromise) return guideCrosslinkSnapshotPromise;
-  guideCrosslinkSnapshotPromise = window.fetch(GUIDE_CROSSLINK_SNAPSHOT_URL, {
-    method: 'GET',
-    credentials: 'omit',
-    cache: 'force-cache'
-  }).then(function (response) {
-    if (!response.ok) throw new Error('Registry unavailable');
-    return response.json();
-  }).then(function (snapshot) {
-    if (!snapshot || snapshot.contract !== 'archive-crosslink-inventory-v2' ||
-        snapshot.source !== 'wordpress-canonical-registry' ||
-        snapshot.crosslink_ready !== true || !Array.isArray(snapshot.assets) ||
-        !snapshot.assets.length || snapshot.assets.length > 5000) {
-      throw new Error('Registry contract rejected');
-    }
-    return snapshot;
-  }).catch(function (error) {
-    guideCrosslinkSnapshotPromise = null;
-    console.warn('The Guide meta-crosslink registry was unavailable; answer remains unaffected.', error);
-    return null;
-  });
-  return guideCrosslinkSnapshotPromise;
-}
-
-function selectGuideRegistryDoorway(question, response) {
-  var query = String(question || '').trim();
-  if (!query) return Promise.resolve(null);
-  return loadGuideCrosslinkSnapshot().then(function (snapshot) {
-    if (!snapshot) return null;
-    var queryTokens = guideCrosslinkTokens(query);
-    var concept = query.match(/^\s*(?:how should|how does|how do|what does|what do)\s+(.+?)\s*[?!.]*\s*$/i);
-    if (concept) {
-      var conceptTokens = guideCrosslinkTokens(concept[1]);
-      if (conceptTokens.length >= 2) queryTokens = conceptTokens;
-    }
-    if (!queryTokens.length) return null;
-    var candidates = [];
-    snapshot.assets.forEach(function (asset) {
-      if (!asset || typeof asset.title !== 'string' || typeof asset.url !== 'string') return;
-      if (asset.tier && String(asset.tier).toLowerCase() !== 'public') return;
-      if (asset.access_class && String(asset.access_class).toLowerCase() !== 'public') return;
-      if (!/^https:\/\/geralddaquila\.com\/\S+$/i.test(asset.url)) return;
-      var titleTokens = guideCrosslinkTokens(asset.title);
-      var summaryTokens = guideCrosslinkTokens(asset.summary || '');
-      var sampleTokens = guideCrosslinkTokens(asset.sample || '');
-      var titleOverlap = queryTokens.filter(function (token) { return titleTokens.indexOf(token) !== -1; }).length;
-      var summaryOverlap = queryTokens.filter(function (token) { return summaryTokens.indexOf(token) !== -1; }).length;
-      var sampleOverlap = queryTokens.filter(function (token) { return sampleTokens.indexOf(token) !== -1; }).length;
-      var allOverlap = titleOverlap + summaryOverlap + sampleOverlap;
-      if (allOverlap < 1) return;
-      var score = titleOverlap * 4 + summaryOverlap * 1.7 + sampleOverlap * 0.7;
-      if (queryTokens.length >= 2 && queryTokens.every(function (token) {
-        return titleTokens.indexOf(token) !== -1 || summaryTokens.indexOf(token) !== -1 || sampleTokens.indexOf(token) !== -1;
-      })) score += 2;
-      if (score >= 3) candidates.push({ title: asset.title, url: asset.url, score: score });
-    });
-    candidates.sort(function (a,b) { return b.score - a.score || a.title.localeCompare(b.title); });
-    if (!candidates.length) return null;
-    return { title: candidates[0].title.replace(/^[\s\p{Extended_Pictographic}\u{2600}-\u{27BF}]+/u, '').trim(), url: candidates[0].url };
-  });
 }
 
 function configureResponseControl(
