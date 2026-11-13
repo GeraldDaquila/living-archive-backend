@@ -353,6 +353,15 @@
       "qualifying_context": "questions about organizational culture, ethical behavior, leadership signals, incentives, accountability, tolerated conduct, and the gap between formal values and lived norms",
       "abstention_boundary": "Do not treat culture as a single deterministic cause, excuse individual responsibility, infer misconduct from culture alone, or attach an unrelated doorway merely to fill a navigation slot.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-organizational-learning-from-failure",
+      "question": "How do organizations create conditions for learning from failure?",
+      "reasoning_family": "organizational_learning_failure_candor_accountability",
+      "transferable_discipline": "Create conditions in which candor, responsibility, examination of contributing conditions, and visible correction reinforce one another; do not confuse learning with the absence of accountability or accountability with reflexive blame.",
+      "qualifying_context": "organizational learning, failure, mistakes, error reporting, accountability, blame, psychological safety, correction, institutional improvement",
+      "abstention_boundary": "Do not assume every failure is blameless, excuse deliberate misconduct, or treat psychological safety as immunity from responsibility.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
