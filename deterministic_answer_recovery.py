@@ -476,6 +476,19 @@ def _general_explanatory_recovery(question):
     # High-value conceptual families receive a direct answer before the broader
     # systems lens. This prevents the general recovery from sounding like a
     # template with the visitor's subject inserted into it.
+    #
+    # Power-and-accountability questions are ordinary answerable conceptual
+    # inquiries. They must not collapse into an Archive-evidence disclaimer
+    # merely because retrieval does not return an exact canonical passage.
+    if re.search(r"^\s*what\s+happens\s+(?:when|if)\b", q) and re.search(r"\bpower\b", q) and re.search(r"\baccountab(?:ility|le)\b", q) and re.search(
+        r"\b(?:concentrat(?:ed|ion)|unchecked|without|lack(?:ing)?|unaccountable)\b", q
+    ):
+        return (
+            "When power is concentrated without meaningful accountability, decisions can become insulated from correction. "
+            "The people exercising authority may receive less candid information, face fewer consequences for mistakes, and gain greater ability to define which questions are legitimate. Over time, this can make errors harder to detect and make dissent increasingly costly, even when the people involved believe they are acting for a good purpose.\n\n"
+            "The problem is not simply that a powerful individual might behave badly. Concentrated power can change the surrounding system: subordinates may learn to protect themselves rather than speak honestly, information may be filtered before it reaches decision-makers, and institutions may weaken the very safeguards that could reveal a problem. The result can be a self-reinforcing pattern in which power becomes less exposed to the consequences of its own decisions.\n\n"
+            "Accountability is therefore more than punishment after something goes wrong. It includes independent scrutiny, clear limits on authority, meaningful ways to question decisions, and real capacity to correct course. Those safeguards do not guarantee good judgment, but they help keep power connected to evidence, responsibility, and the people who live with its consequences."
+        )
     if "organizational culture" in q and ("ethical" in q or "ethic" in q):
         return (
             "Organizational culture shapes ethical behavior by teaching people—often more powerfully than formal policies—what is actually safe, rewarded, tolerated, and expected. "
@@ -507,6 +520,12 @@ def _general_explanatory_recovery(question):
 _general_explanatory_probe = "How does organizational culture shape ethical behavior?"
 if not _is_general_explanatory_question(_general_explanatory_probe):
     raise RuntimeError("General explanatory recovery invariant failed")
+_power_accountability_probe = "What happens when power is concentrated without accountability?"
+_power_accountability_recovery = _general_explanatory_recovery(_power_accountability_probe)
+if "decisions can become insulated from correction" not in _power_accountability_recovery:
+    raise RuntimeError("Power-accountability explanatory recovery invariant failed")
+if len(_power_accountability_recovery) < 500:
+    raise RuntimeError("Power-accountability recovery produced an insufficient conceptual answer")
 
 def _archive_purpose_recovery():
     """Explain the Archive's orientation problem without claiming a single total cause."""
@@ -650,6 +669,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = _humane_performance_recovery()
     elif _is_stewardship_leadership_crisis_question(q):
         answer = _stewardship_leadership_crisis_recovery()
+    elif re.search(r"^\s*what\s+happens\s+(?:when|if)\b", q, re.I) and re.search(r"\bpower\b", lower) and re.search(r"\baccountab(?:ility|le)\b", lower) and re.search(r"\b(?:concentrat(?:ed|ion)|unchecked|without|lack(?:ing)?|unaccountable)\b", lower):
+        answer = _general_explanatory_recovery(q)
     elif _is_general_explanatory_question(q):
         answer = _general_explanatory_recovery(q)
     elif civilizational_transition:
