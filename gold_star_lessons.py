@@ -138,6 +138,7 @@ def validate_registry_integrity(
             if doorway_status not in {
                 "INTENTIONALLY_NONE_APPROVED",
                 "LEGACY_INCOMPLETE_NOT_APPROVED",
+                "NOT_APPROVED_CONCEPTUAL_MISMATCH",
             }:
                 raise GoldStarRegistryIntegrityError(
                     f"Approved Gold Star {benchmark_id} has no explicit doorway state."
