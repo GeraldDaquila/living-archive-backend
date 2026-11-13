@@ -362,6 +362,15 @@
       "qualifying_context": "organizational learning, failure, mistakes, error reporting, accountability, blame, psychological safety, correction, institutional improvement",
       "abstention_boundary": "Do not assume every failure is blameless, excuse deliberate misconduct, or treat psychological safety as immunity from responsibility.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-governance-leadership-management-distinction",
+      "question": "How does governance differ from leadership and management?",
+      "reasoning_family": "governance_leadership_management_distinction",
+      "transferable_discipline": "Answer the explicit conceptual distinction first, then deepen it through authority, accountability, operational coordination, institutional conditions, and correction.",
+      "qualifying_context": "governance, leadership, management, authority, accountability, institutional conditions",
+      "abstention_boundary": "Do not flatten governance into administration, treat leadership as a substitute for legitimate authority, or use a generic systems lens before answering the visitor's actual distinction.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
