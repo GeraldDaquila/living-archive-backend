@@ -5394,7 +5394,20 @@ def _guide_finalize_visitor_payload(payload, query):
         or general_guide_composition.is_meta_answer_failure(response_text)
         or _outer_legacy_abstention
     )
-    if _outer_registered_recovery_valid and _outer_response_failure:
+    # Preserve a clean, substantive payload. The outer boundary is a recovery
+    # guard, not a second composer: heuristic nonanswer classifiers must not
+    # overwrite an otherwise valid visitor response merely because its query
+    # also has a registered deterministic recovery.
+    _outer_clean_substantive_payload = bool(
+        str(response_text or "").strip()
+        and not _basic_inquiry_has_internal_annotation(response_text)
+        and not _basic_inquiry_has_source_dump(response_text)
+        and not _outer_legacy_abstention
+    )
+    _outer_recovery_required = bool(
+        _outer_response_failure and not _outer_clean_substantive_payload
+    )
+    if _outer_registered_recovery_valid and _outer_recovery_required:
         safe = dict(payload)
         safe["response"] = _sanitize_basic_inquiry_response(
             _outer_registered_recovery
@@ -5426,7 +5439,7 @@ def _guide_finalize_visitor_payload(payload, query):
     # Terminal invariant for recoveries registered outside the composition
     # registry. A valid deterministic recovery must not be lost merely because
     # an exhausted provider/retrieval path reaches this outer boundary first.
-    if _outer_response_failure:
+    if _outer_recovery_required:
         try:
             from deterministic_answer_recovery import (
                 compose_recovery as _terminal_compose_recovery,
