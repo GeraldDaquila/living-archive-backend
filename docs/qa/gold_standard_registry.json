@@ -2893,6 +2893,41 @@
       "freeze_policy": "immutable_user_approved_gold_standard",
       "expected_doorway": null,
       "doorway_status": "INTENTIONALLY_NONE_APPROVED"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-humane-performance-not-instrumental-treatment",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How can an organization pursue performance without treating people as instruments?",
+      "expected_response": "An organization can pursue performance without treating people as instruments by defining performance as a result achieved through responsible relationships, not merely as an output extracted from human beings. The practical discipline is to ask two questions together: what must the organization accomplish, and what conditions must remain intact for the people involved to retain dignity, judgment, voice, and the ability to flourish? A target that can only be met by making people disposable, silencing their experience, or treating them as interchangeable inputs has hidden costs that a narrow performance measure is failing to see.\n\nIn practice, this changes how decisions are made. Suppose a team can improve short-term output by intensifying workloads. The organization should examine not only the immediate gain, but whether the change erodes health, learning, trust, or the capacity to exercise judgment. Those consequences are not sentimental additions to performance; they affect whether the institution can sustain good work and correct itself when conditions change. People should therefore be participants in understanding the work and its consequences, not merely objects of management.\n\nThe tension does not disappear, and humane treatment does not mean abandoning standards or accountability. It means making the means of achieving performance part of what is judged. Clear expectations, fair authority, protected dissent, and opportunities for correction help an organization pursue demanding goals without confusing efficiency with permission to use people however it wishes. The deeper test is whether success leaves the institution and the people within it more capable of responsible work together.",
+      "expected_doorway": {
+        "title": "How To Be in Uncertainty (Without Fixing It)",
+        "url": "https://geralddaquila.com/"
+      },
+      "rating_out_of_10": 8.7,
+      "approval_state": "Explicitly elevated by user to Gold Star on 2026-11-14 following live two-server verification.",
+      "assertions": [
+        "Answer the institutional tension directly before offering continuation.",
+        "Treat the means of achieving performance as part of what is judged.",
+        "Preserve demanding standards and accountability while protecting dignity, judgment, voice, and responsible participation."
+      ],
+      "provenance": {
+        "source_date": "2026-11-14",
+        "source": "Live Guide response verified after structural abstention repair.",
+        "evidence_boundary": "User-approved live exemplar; exact response retained as acceptance reference."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "live_user_approved_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "humane_performance_responsible_relationships",
+        "transferable_discipline": "Pursue demanding institutional outcomes while judging the means as part of performance: protect human dignity, judgment, voice, participation, and the conditions for sustained responsible work.",
+        "abstention_boundary": "Transfer the discipline, not the exact prose or doorway. Apply only to genuine tensions between organizational performance and the treatment of people; do not dilute accountability or attach this doorway to unrelated management questions."
+      },
+      "known_theme": "humane performance, organizational dignity, responsible relationships, standards and accountability",
+      "runtime_transfer": true
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
