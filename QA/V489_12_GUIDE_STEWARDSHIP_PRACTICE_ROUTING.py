@@ -50,3 +50,15 @@ def test_funding_priority_query_is_not_reclassified_as_practical_stewardship():
         re.search(r"\b(?:practice|practise|everyday|daily|decisions?|responsibilities|community|communities)\b", normalized, re.I)
         and re.search(r"\bstewardship\b", normalized, re.I)
     )
+
+
+def test_conceptual_trust_role_question_is_not_misclassified_as_practical():
+    query = "What is the role of trust in community stewardship?"
+    assert use_main._is_conceptual_explanatory_request(query)
+    assert not use_main._is_practical_stewardship_question(query)
+
+
+def test_genuine_practical_stewardship_question_keeps_practical_classification():
+    query = "How do I practice stewardship in everyday community decisions?"
+    assert not use_main._is_conceptual_explanatory_request(query)
+    assert use_main._is_practical_stewardship_question(query)
