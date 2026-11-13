@@ -10498,6 +10498,27 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     except Exception:
         pass
 
+    # Final cross-scale navigation authority: this question family has a
+    # verified canonical continuation and may pass through several late answer
+    # recoveries. Enforce the title/URL pair at the last visitor boundary so a
+    # cache hit or downstream prose recovery cannot silently discard navigation
+    # that was already authorized by the composition contract.
+    try:
+        _cross_scale_doorway = general_guide_composition._cross_scale_canonical_doorway(query)
+        if _cross_scale_doorway.get("doorway_title") and _cross_scale_doorway.get("doorway_url"):
+            authoritative_doorway = {
+                "title": _cross_scale_doorway["doorway_title"],
+                "url": _cross_scale_doorway["doorway_url"],
+            }
+            composition_context["authoritative_doorway"] = authoritative_doorway
+            composition_context["authoritative_doorway_title"] = authoritative_doorway["title"]
+            print("The Guide final payload boundary: enforced verified cross-scale canonical doorway.")
+    except Exception as exc:
+        print(
+            "The Guide final payload boundary: cross-scale doorway check failed safely "
+            f"({type(exc).__name__})."
+        )
+
     # Final authority boundary: only an explicit no-handoff instruction may
     # suppress an independently verified doorway at the final visitor boundary.
     authoritative_doorway = _enforce_registered_gold_standard_doorway(
