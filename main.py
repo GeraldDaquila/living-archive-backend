@@ -4899,6 +4899,25 @@ def _is_explanatory_inquiry(query):
     return sum(bool(re.search(pattern, q, re.I)) for pattern in explanation_signals) >= 1
 
 
+def _is_archive_claim_boundary_inquiry(query):
+    """Recognize questions about the epistemic boundary between Archive evidence and Guide synthesis."""
+    q = _normalize_query(query)
+    if not q:
+        return False
+    archive_markers = r"\b(?:archive|archive claims?|archive texts?|source claims?|direct claims?)\b"
+    boundary_markers = r"\b(?:separate|distinguish|difference|boundary|own synthesis|guide synthesis|interpretation|attribute|attribution|what (?:the )?guide (?:adds|synthesizes))\b"
+    return bool(re.search(archive_markers, q, re.I) and re.search(boundary_markers, q, re.I))
+
+
+def _archive_claim_boundary_recovery():
+    """Explain provenance without pretending that synthesis is itself a direct source claim."""
+    return (
+        "The Guide should keep three layers distinct. A direct Archive claim is something a particular text actually says or clearly supports, and it should be attributed to that source. A synthesis is different: it draws a relationship, pattern, or implication across more than one Archive resource and should be presented as the Guide's synthesis rather than as the statement of any single text.\n\n"
+        "The third layer is orientation. The Guide may frame a question, identify a tension, or suggest a way of looking without presenting that framing as evidence from the Archive. Keeping these layers visible lets a visitor see what is being reported, what is being inferred, and what is being offered as a way to continue thinking.\n\n"
+        "The practical discipline is simple: stay close to the source when making a claim about what the Archive says; name synthesis when the Guide is connecting materials; and do not let either source evidence or synthesis borrow the authority of the other. That distinction protects both the integrity of the Archive and the usefulness of the Guide."
+    )
+
+
 def _is_contextual_synthesis_inquiry(query):
     """Recognize comparison/synthesis questions that remain answerable without source invention."""
     q = _normalize_query(query)
@@ -5003,6 +5022,21 @@ def _guide_finalize_visitor_payload(payload, query):
     if not isinstance(payload, dict):
         return payload
     response_text = str(payload.get("response") or "")
+    # Epistemic provenance questions are not decision problems. They require a
+    # clear distinction between direct Archive evidence, cross-Archive synthesis,
+    # and the Guide's own orienting frame.
+    if _is_archive_claim_boundary_inquiry(query):
+        safe = dict(payload)
+        safe["response"] = _archive_claim_boundary_recovery()
+        safe["recommendation"] = _boundary_canonical_doorway(safe, query)
+        safe["processing"] = "final_visitor_boundary_archive_claim_provenance"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        print(
+            "The Guide final visitor boundary: restored Archive claim and synthesis distinction."
+        )
+        return safe
+
     # Comparative and contextual synthesis questions remain answerable even when
     # the exact source texts are not available. The Guide may explain a method
     # of reasoning without inventing what unseen texts say.
