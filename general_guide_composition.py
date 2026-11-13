@@ -2444,6 +2444,30 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "The relationship is reciprocal rather than mechanical. Consciousness does not simply determine civilization, and civilization in turn shapes the conditions in which human capacities develop. The Archive's interest lies in this ongoing relationship: collective systems carry particular models of the human person, while those systems also cultivate habits, relationships, capacities, and horizons of possibility. Seen this way, questions of consciousness belong not only to inner life, but also to the design and stewardship of our shared world."
         )
 
+    # Stewardship is often asked about through contrasts with adjacent modes of
+    # responsibility. The distinction is conceptual and answerable without
+    # pretending that a single Archive text supplies a dictionary definition.
+    # Recover the relationship between authority, responsibility, purpose, and
+    # care rather than collapsing the terms into synonyms.
+    stewardship_terms = (
+        re.search(r"\bstewardship\b", normalized)
+        and sum(bool(re.search(pattern, normalized)) for pattern in (
+            r"\bownership\b",
+            r"\bcontrol\b",
+            r"\bmanagement\b",
+            r"\bbenevolence\b",
+        )) >= 2
+    )
+    if stewardship_terms and re.search(
+        r"\b(?:differ|difference|compare|versus|vs\.?|rather than|distinguish)\b",
+        normalized,
+    ):
+        return (
+            "Stewardship differs from ownership, control, management, and benevolence because its central question is not simply who possesses power or how efficiently something is administered, but how a responsibility is held in relation to something that matters beyond the holder's immediate interests. A steward may have authority, but that authority is understood as accountable to the people, purposes, relationships, and future conditions entrusted to their care.\n\n"
+            "Ownership establishes a claim of possession and the rights that accompany it. Control emphasizes the ability to direct outcomes. Management organizes people and resources toward defined objectives. Benevolence adds a willingness to do good for others. Each can be valuable, and stewardship may involve all four, but none of them by itself captures the same orientation. A person can own without caring for the wider consequences, control without being accountable for what is diminished, manage efficiently while pursuing too narrow a purpose, or act benevolently while leaving the underlying relationship of responsibility unchanged.\n\n"
+            "Stewardship therefore asks a further set of questions: What has been entrusted? What purposes and relationships must be sustained? Who bears the consequences of present decisions? What must remain viable for those who come after us? Its distinctive discipline is to exercise whatever authority one has without treating that authority as self-justifying. The measure is not simply whether the steward gets results, but whether the use of power helps preserve and renew the conditions for responsible life over time."
+        )
+
     if re.search(r"\btransformation\b", normalized) and re.search(r"\b(?:emotional\s+)?relief\b", normalized):
         return (
             "Temporary emotional relief and genuine transformation can overlap, but they are not the same thing. Relief is primarily a change in how a person feels in the moment: a burden may ease, anxiety may settle, or a difficult experience may briefly feel more manageable. Transformation is better understood as a change in how a person relates to a situation, acts within it, or sustains a different pattern over time.\n\n"
