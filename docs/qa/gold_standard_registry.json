@@ -3035,6 +3035,41 @@
       },
       "known_theme": "organizational learning, failure, mistakes, candor, accountability, blame, correction, institutional memory",
       "runtime_transfer": true
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-governance-leadership-management-distinction",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How does governance differ from leadership and management?",
+      "expected_response": "Governance, leadership, and management do different work, even though they often overlap. Governance concerns the framework within which collective authority is exercised: who has the right to decide, what responsibilities and safeguards apply, how accountability works, and how the institution remains oriented over time. Leadership concerns direction, judgment, and the capacity to help people move together; management coordinates people, resources, and work so that intentions become reliable action. A healthy institution needs all three, but confusing them can make operational efficiency look like legitimate authority or personal influence substitute for accountable decision-making.\n\nThe distinction becomes clearer when conditions change. Governance asks whether the mechanisms themselves remain sound: what authority is operating, whose judgment carries weight, what behaviour is rewarded or tolerated, and how concerns can be raised and corrected. Leadership helps people interpret the situation and act amid uncertainty. Management turns decisions into coordinated work. These roles can reinforce one another, but none can permanently do the work of the others.\n\nThat is why governance is more than a formal structure on paper. Repeated signals, incentives, relationships, constraints, and consequences shape what an institution actually becomes over time, sometimes regardless of what its rules say. Looking at governance therefore means examining both the formal arrangements and the patterns they produce, while remaining open to evidence that the conditions—and the distinction between the three roles—may need to be reconsidered.",
+      "expected_doorway": null,
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+      "rating_out_of_10": 9.3,
+      "approval_state": "User explicitly requested structural elevation to Gold Star on 2026-11-14 after review of the live response and identified relevance gap.",
+      "assertions": [
+        "Directly distinguishes governance, leadership, and management before expanding into systems analysis.",
+        "Governance covers authority, accountability, safeguards, and institutional orientation.",
+        "Leadership covers direction, judgment, and collective movement.",
+        "Management covers coordination of people, resources, and work.",
+        "Preserves the deeper systems lens by examining mechanisms, incentives, relationships, constraints, consequences, and correction.",
+        "Avoids allowing operational efficiency or personal influence to substitute for legitimate authority and accountable decision-making."
+      ],
+      "provenance": {
+        "source": "Live Guide response reviewed by user on 2026-11-14; structurally revised into an exact-question Gold Star benchmark.",
+        "evidence_boundary": "Canonical benchmark preserves the improved direct distinction and transferable reasoning discipline."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "governance_leadership_management_distinction",
+        "transferable_discipline": "Answer the explicit conceptual distinction first, then deepen it through authority, accountability, operational coordination, institutional conditions, and correction.",
+        "abstention_boundary": "Do not flatten governance into administration, treat leadership as a substitute for legitimate authority, or use a generic systems lens before answering the visitor's actual distinction."
+      },
+      "known_theme": "governance, leadership, management, authority, accountability, institutional conditions",
+      "runtime_transfer": true
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
