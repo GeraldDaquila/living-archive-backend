@@ -669,6 +669,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = _humane_performance_recovery()
     elif _is_stewardship_leadership_crisis_question(q):
         answer = _stewardship_leadership_crisis_recovery()
+    elif re.search(r"^\s*what\s+happens\s+(?:when|if)\b", q, re.I) and re.search(r"\bpower\b", lower) and re.search(r"\baccountab(?:ility|le)\b", lower) and re.search(r"\b(?:concentrat(?:ed|ion)|unchecked|without|lack(?:ing)?|unaccountable)\b", lower):
+        answer = _general_explanatory_recovery(q)
     elif _is_general_explanatory_question(q):
         answer = _general_explanatory_recovery(q)
     elif civilizational_transition:
