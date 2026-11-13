@@ -229,6 +229,29 @@ def _guide_node_prompt_context():
     ], ensure_ascii=False, separators=(",", ":"))
 
 
+def _select_guide_node_fallback_doorway(query):
+    """Select a verified canonical Guide Node when recovery has no retrieval docs."""
+    normalized = str(query or "").casefold()
+    terms = set(re.findall(r"[a-z]{4,}", normalized))
+    best = None
+    best_score = 0
+    for node in _guide_node_registry_snapshot():
+        if not isinstance(node, dict):
+            continue
+        title = str(node.get("title") or "").strip()
+        url = str(node.get("url") or node.get("canonical_url") or node.get("permalink") or "").strip()
+        if not title or not re.fullmatch(r"https://geralddaquila\.com/[^\s]+", url, re.I):
+            continue
+        haystack = " ".join([
+            title,
+            str(node.get("purpose") or ""),
+            " ".join(node.get("semantic_hints") or []),
+        ]).casefold()
+        score = sum(1 for term in terms if term in haystack)
+        if score > best_score:
+            best, best_score = {"title": title, "url": url}, score
+    return best if best_score else None
+
 def _guide_node_by_id(node_id):
     target = str(node_id or "").strip()
     if not target:
@@ -5286,12 +5309,9 @@ def _guide_finalize_visitor_payload(payload, query):
             # navigational dead end.
             if not _existing_doorway:
                 try:
-                    _fallback_doorway = general_guide_composition._fallback_doorway_for_query(query)
+                    _fallback_doorway = _select_guide_node_fallback_doorway(query)
                     _existing_doorway = _normalize_authoritative_recommendation(
-                        {
-                            "title": _fallback_doorway.get("doorway_title"),
-                            "url": _fallback_doorway.get("doorway_url"),
-                        }
+                        _fallback_doorway
                     ) if isinstance(_fallback_doorway, dict) else None
                 except Exception:
                     _existing_doorway = None
