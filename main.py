@@ -5166,6 +5166,20 @@ def _guide_finalize_visitor_payload(payload, query):
     if not isinstance(payload, dict):
         return payload
     response_text = str(payload.get("response") or "")
+    # Transport/template contamination has precedence over semantic recovery.
+    # Remove executable fragments before any outer contract can reinterpret the
+    # contaminated text as an ordinary deterministic-answer failure.
+    if _basic_inquiry_has_source_dump(response_text):
+        safe = dict(payload)
+        safe["response"] = _sanitize_basic_inquiry_response(
+            _basic_inquiry_source_dump_recovery(query)
+        )
+        safe["recommendation"] = None
+        safe["processing"] = "final_visitor_boundary_recovery"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        print("The Guide final visitor boundary: restored canonical template-contamination recovery.")
+        return safe
     # Epistemic provenance questions are not decision problems. They require a
     # clear distinction between direct Archive evidence, cross-Archive synthesis,
     # and the Guide's own orienting frame.
