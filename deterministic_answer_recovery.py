@@ -435,6 +435,36 @@ if not _is_humane_performance_question(_humane_performance_probe):
     raise RuntimeError("Humane-performance recovery invariant failed")
 
 
+
+def _is_general_explanatory_question(question):
+    """Recognize ordinary causal/explanatory questions that must remain answerable without retrieval."""
+    q = _clean(question).casefold()
+    return bool(re.search(
+        r"^\s*(?:how\s+(?:does|do)|why\s+(?:does|do)|what\s+(?:causes?|shapes?|influences?|affects?))\b",
+        q,
+    ))
+
+
+def _general_explanatory_recovery(question):
+    """Provide a bounded explanation when ordinary inquiry has no exact retrieval match."""
+    subject = _subject(question)
+    return (
+        f"A useful way to understand {subject} is to look at the conditions through which influence is exercised, rather than assuming a single direct cause. "
+        "People and institutions are shaped by repeated signals, incentives, relationships, constraints, and the consequences attached to different choices. "
+        "Those conditions can make some actions feel normal, rewarded, risky, or difficult even when formal rules say something different.\n\n"
+        "The important question is therefore what mechanisms are actually operating: what people observe others doing, what behavior is rewarded or tolerated, whose judgment carries authority, and what happens when concerns are raised. "
+        "A pattern becomes more consequential when these signals reinforce one another over time and make correction harder or easier.\n\n"
+        "This is a starting explanation rather than a claim about a specific case. "
+        "The strongest account identifies the particular relationships and evidence that matter, distinguishes influence from proof of causation, and remains open to other conditions that may change the outcome."
+    )
+
+
+
+# Regression invariant: ordinary explanatory questions must not collapse into Archive-verification abstention.
+_general_explanatory_probe = "How does organizational culture shape ethical behavior?"
+if not _is_general_explanatory_question(_general_explanatory_probe):
+    raise RuntimeError("General explanatory recovery invariant failed")
+
 def _archive_purpose_recovery():
     """Explain the Archive's orientation problem without claiming a single total cause."""
     return (
@@ -453,6 +483,7 @@ def has_registered_recovery(question):
         or _is_feedback_loops_institutions_question(question)
         or _is_systems_explanation_vs_simplistic_connection_question(question)
         or _is_humane_performance_question(question)
+        or _is_general_explanatory_question(question)
         or _is_modes_of_knowing_dialogue_question(question)
         or is_stewardship_failure_repair_question(question)
     )
@@ -564,6 +595,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = _systems_explanation_vs_simplistic_connection_recovery()
     elif _is_humane_performance_question(q):
         answer = _humane_performance_recovery()
+    elif _is_general_explanatory_question(q):
+        answer = _general_explanatory_recovery(q)
     elif civilizational_transition:
         answer = (
             "In the Living Archive, civilizational transition refers to a period in which the systems that organize collective life are changing together, rather than a single government, technology, or economic arrangement simply being replaced. "
