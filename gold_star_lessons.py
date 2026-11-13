@@ -90,9 +90,17 @@ def validate_registry_integrity(
         raise GoldStarRegistryIntegrityError(
             "Duplicate qualitative transfer review benchmark_id detected."
         )
-    if set(ids) != set(review_ids):
-        missing = sorted(set(ids) - set(review_ids))
-        orphaned = sorted(set(review_ids) - set(ids))
+    # Only explicitly approved, runtime-active Gold Stars participate in the
+    # qualitative transfer contract. Historical registry records remain auditable
+    # without requiring a transfer review for every legacy benchmark.
+    approved_ids = {
+        str(record.get("benchmark_id") or "").strip()
+        for record in approved
+        if bool(record.get("runtime_transfer"))
+    }
+    if approved_ids != set(review_ids):
+        missing = sorted(approved_ids - set(review_ids))
+        orphaned = sorted(set(review_ids) - approved_ids)
         raise GoldStarRegistryIntegrityError(
             f"Gold Star/review reconciliation failed: "
             f"missing_reviews={missing}; orphan_reviews={orphaned}."
