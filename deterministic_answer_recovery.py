@@ -346,7 +346,7 @@ def _is_archive_purpose_question(question):
 
 def _is_commons_care_question(question):
     """Recognize open inquiries about stewardship of shared conditions and goods."""
-    q = _normalize(question)
+    q = _clean(question).casefold()
     return bool(re.search(
         r"\b(?:care for|caring for|stewardship of|protect|sustain)\s+(?:the\s+)?commons\b"
         r"|\b(?:care for the commons|common good|shared conditions)\b",
