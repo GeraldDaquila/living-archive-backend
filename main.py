@@ -6508,7 +6508,10 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         closing = (
             "The Archive resource below may offer one place to continue the inquiry."
             if recommendation_available
-            else "If you add context about the situation, people involved, or decision at stake, the question can be examined more specifically."
+            else (
+                "I do not have a sufficiently relevant Archive resource to recommend for that specific question. "
+                "If you add context about the situation, people involved, or decision at stake, the question can be examined more specifically."
+            )
         )
     # This low-level deterministic helper is imported in isolation by recovery
     # tests, so keep its classification self-contained rather than depending on
