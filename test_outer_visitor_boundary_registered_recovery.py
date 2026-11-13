@@ -18,5 +18,14 @@ class OuterBoundaryRegisteredRecoveryTests(unittest.TestCase):
         self.assertIn('safe["recommendation"] = None', MAIN)
         self.assertIn('route_source"] = "guide_outer_visitor_boundary"', MAIN)
 
+    def test_outer_boundary_checks_deterministic_registered_recoveries(self):
+        self.assertIn("has_registered_recovery as _terminal_has_registered_recovery", MAIN)
+        self.assertIn("outer_visitor_boundary_deterministic_registered_recovery", MAIN)
+        self.assertIn("restored registered deterministic orientation", MAIN)
+
+    def test_exact_public_predictive_failure_cannot_reach_generic_refusal(self):
+        self.assertIn("_terminal_has_registered_recovery(query)", MAIN)
+        self.assertIn("compose_recovery as _terminal_compose_recovery", MAIN)
+
 if __name__ == "__main__":
     unittest.main()

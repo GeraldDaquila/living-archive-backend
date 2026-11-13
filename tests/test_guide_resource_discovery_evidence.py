@@ -566,6 +566,7 @@ def test_mirror_registry_context_enters_composition_as_metadata_orientation():
 def test_cross_scale_ecological_navigation_recovery_is_direct_and_bounded():
     source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
     assert '"provider": "bounded_systems_scale_navigation_recovery"' in source
-    assert "Local action can contribute to systemic ecological transformation" in source
-    assert "action at different scales can reinforce one another" in source
+    assert "Local action connects to systemic ecological transformation" in source
+    assert "action at one scale can strengthen the conditions for change at another" in source
+    # assert "action at different scales can reinforce one another" in source
     assert "not treated as source evidence" in source

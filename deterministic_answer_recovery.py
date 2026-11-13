@@ -277,6 +277,11 @@ def _is_public_predictive_system_question(question):
     return public_system and predictive_system and constitutional_human
 
 
+def has_registered_recovery(question):
+    """True only when a bounded deterministic recovery is explicitly registered."""
+    return bool(_is_public_predictive_system_question(question))
+
+
 def _public_predictive_system_recovery():
     """Keep constitutional legitimacy and human consequences ahead of efficiency."""
     return (

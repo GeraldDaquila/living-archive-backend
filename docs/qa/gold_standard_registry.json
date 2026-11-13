@@ -2102,7 +2102,7 @@
       "known_theme": "humane reliability",
       "runtime_transfer": true,
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Visible doorway label is preserved in assertions/provenance, but no complete canonical title-and-URL doorway pair is inferred or invented."
     },
     {
       "benchmark_id": "general-guide-competing-stakeholder-obligations-gold-standard-2026-10-26",
@@ -2337,7 +2337,7 @@
       },
       "known_theme": "epistemic discernment",
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Visible doorway label is preserved in assertions/provenance, but no complete canonical title-and-URL doorway pair is inferred or invented."
     },
     {
       "benchmark_id": "general-guide-developmental-language-gold-star-2026-11-09",

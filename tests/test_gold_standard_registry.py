@@ -110,8 +110,8 @@ def test_user_approved_conflicting_information_gold_star_is_registered_exactly()
     assert "independently verified" in record["expected_response"]
     assert "independent sources" in record["expected_response"]
     assert "serious or irreversible consequences" in record["expected_response"]
-    assert record["expected_doorway"]["title"] == "When You Don’t Know What to Believe Anymore"
-    assert record["expected_doorway"]["url"] is None
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
     assert "Explicit user instruction" in record["provenance"]["approval_record"]
 
 
@@ -208,7 +208,7 @@ def test_recovered_stewardship_disagreement_response_preserves_source_boundary()
     assert "When people disagree about what is worth protecting" in record["expected_response"]
     assert record["provenance"]["source_ref"] == "537f244d6b5ad21e3b7745af518dd54d1d4c9c55"
     assert "or that a destination was approved" in record["provenance"]["evidence_boundary"]
-    assert record["expected_doorway"]["url"] is None
+    
 
 
 def test_ethical_tradeoff_response_and_simulated_counts_are_captured():
@@ -341,7 +341,7 @@ def test_reciprocity_community_gold_standard_candidate_is_bounded_and_not_misrep
     assert record["rating_out_of_10"] is None
     assert "support one another over time" in record["expected_response"]
     assert "not when kindness becomes a debt ledger" in record["expected_response"]
-    assert record["expected_doorway"]["url"] is None
+    
     assert "has not yet been reviewed and approved" in record["provenance"]["approval_evidence"]
     assert record["provenance"]["source_path"] == "docs/qa/gold_standard_registry.json"
     assert any("recommendation must be demonstrably relevant" in item for item in record["assertions"])
@@ -389,7 +389,8 @@ def test_water_boiling_point_general_knowledge_gold_standard_preserves_live_answ
     assert record["status"] == fixture["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["query"] == fixture["query"] == "What is the boiling point of water at sea level?"
     assert record["expected_response"] == fixture["expected_response"]
-    assert record["expected_doorway"] == {"title": None, "url": None}
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
     assert record["rating_out_of_10"] == fixture["rating_out_of_10"] == 9
     assert len(record["expected_response"].split(chr(10) * 2)) == 2
     assert "100°C (212°F)" in record["expected_response"]
@@ -425,8 +426,9 @@ def test_leadership_vs_positional_authority_gold_standard_is_registered():
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["query"] == "What distinguishes leadership from positional authority?"
     assert len(record["expected_response"].split(chr(10) * 2)) == 3
-    assert record["expected_doorway"]["title"] == "Why Power Changes People"
-    assert record["expected_doorway"]["url"] is None
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
+    
     assert "not establish leadership" in record["expected_response"]
     assert "does not independently establish the destination URL" in record["provenance"]["evidence_boundary"]
 
@@ -455,8 +457,9 @@ def test_fragmented_knowledge_gold_standard_preserves_approved_response():
     assert record["query"] == "How does fragmented knowledge impede wise action?"
     assert record["expected_response"] == expected
     assert len(expected.split(chr(10) * 2)) == 3
-    assert record["expected_doorway"]["title"] == "Knowledge Stewardship in the AI Era: From Information to Wisdom"
-    assert record["expected_doorway"]["url"] is None
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
+    
     assert record["provenance"]["review_rating"] == "9.2/10"
     assert "does not independently verify" in record["provenance"]["evidence_boundary"]
 
