@@ -5273,9 +5273,23 @@ def _guide_finalize_visitor_payload(payload, query):
             _outer_registered_recovery
         )
     )
+    # Treat the legacy "unable to verify / no relevant Archive resource" template
+    # as a response failure explicitly. Some legacy paths phrase this as a fluent
+    # disclaimer that can evade the generic-nonanswer classifier, which previously
+    # allowed registered deterministic recoveries to be skipped at the final boundary.
+    _outer_legacy_abstention = bool(
+        re.search(
+            r"(?:could(?: not|n't) verify a reliable answer from the material available|"
+            r"won't present a guess as fact|"
+            r"could not identify a sufficiently relevant Archive resource)",
+            str(response_text or ""),
+            re.I,
+        )
+    )
     _outer_response_failure = bool(
         general_guide_composition.is_generic_nonanswer(query, response_text)
         or general_guide_composition.is_meta_answer_failure(response_text)
+        or _outer_legacy_abstention
     )
     if _outer_registered_recovery_valid and _outer_response_failure:
         safe = dict(payload)
