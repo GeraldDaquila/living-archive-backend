@@ -521,9 +521,10 @@ _general_explanatory_probe = "How does organizational culture shape ethical beha
 if not _is_general_explanatory_question(_general_explanatory_probe):
     raise RuntimeError("General explanatory recovery invariant failed")
 _power_accountability_probe = "What happens when power is concentrated without accountability?"
-if not _is_general_explanatory_question(_power_accountability_probe):
+_power_accountability_recovery = _general_explanatory_recovery(_power_accountability_probe)
+if "decisions can become insulated from correction" not in _power_accountability_recovery:
     raise RuntimeError("Power-accountability explanatory recovery invariant failed")
-if len(_general_explanatory_recovery(_power_accountability_probe)) < 500:
+if len(_power_accountability_recovery) < 500:
     raise RuntimeError("Power-accountability recovery produced an insufficient conceptual answer")
 
 def _archive_purpose_recovery():
