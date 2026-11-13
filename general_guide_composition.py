@@ -3367,7 +3367,13 @@ def compose(
             else None
         )
         if relationship_recovery is not None:
-            doorway = _select_verified_recovery_doorway(question, documents)
+            # Registered cross-scale relationships have their own verified
+            # canonical continuation. Resolve that contract here, at the point
+            # where the deterministic recovery is constructed, rather than
+            # relying on a later generic attachment pass to reconstruct it.
+            doorway = _cross_scale_canonical_doorway(question)
+            if not doorway.get("doorway_title"):
+                doorway = _select_verified_recovery_doorway(question, documents)
             _emit_guide_outcome(
                 "provider_exhaustion_fallback",
                 recovery="conceptual_relationship",
