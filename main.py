@@ -10876,9 +10876,38 @@ async def _use_send_json(send, payload, status_code=200):
     # not "suppress every relevant resource." Only explicit no-handoff standards
     # override the shared answer-then-doorway contract.
     if isinstance(payload, dict):
-        _boundary_standard = _resolve_exact_guide_gold_standard(payload.get("query") or "")
+        _boundary_query = str(payload.get("query") or "").strip()
+        _boundary_standard = _resolve_exact_guide_gold_standard(_boundary_query)
         if _boundary_standard is not None and bool(_boundary_standard.get("forbids_doorway")):
             payload["recommendation"] = None
+        elif not isinstance(payload.get("recommendation"), dict) and _boundary_query:
+            # Absolute last-mile navigation contract: a registered deterministic
+            # recovery owns its canonical doorway. Earlier answer paths may return
+            # before composition-level navigation code, so resolve the contract
+            # here at the single JSON exit shared by every /api/query response.
+            try:
+                from deterministic_answer_recovery import (
+                    registered_recovery_recommendation as _boundary_registered_recovery_recommendation,
+                )
+                _boundary_registered_doorway = _boundary_registered_recovery_recommendation(
+                    _boundary_query
+                )
+                if isinstance(_boundary_registered_doorway, dict):
+                    _boundary_title = str(
+                        _boundary_registered_doorway.get("title") or ""
+                    ).strip()
+                    _boundary_url = str(
+                        _boundary_registered_doorway.get("url") or ""
+                    ).strip()
+                    if _boundary_title and re.match(r"^https://\S+$", _boundary_url, re.I):
+                        payload["recommendation"] = {
+                            "title": _boundary_title,
+                            "url": _boundary_url,
+                        }
+                        payload["canonical_doorway"] = payload["recommendation"]
+            except Exception:
+                # Navigation must never turn a valid answer into a service error.
+                pass
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     await send({"type": "http.response.start", "status": status_code,
                 "headers": [(b"content-type", b"application/json; charset=utf-8"),
@@ -12864,6 +12893,18 @@ if any(_is_fsd_request(item) for item in _fsd_nonroute_probes):
 # Single authoritative request boundary; all non-specialist requests fall through once.
 if STREAM_CONTRACT_VERSION != "SSE-VALIDATED-v1" or STREAM_TRANSPORT_VERSION != "0.1.1":
     raise RuntimeError("USE streaming transport contract integrity failure.")
+
+# Last-mile registered recovery doorway regression probe: this exact question
+# must resolve a canonical continuation independently of which answer path exits.
+try:
+    from deterministic_answer_recovery import registered_recovery_recommendation as _last_mile_doorway_probe
+    _last_mile_probe = _last_mile_doorway_probe(
+        "What does stewardship ask of a leader during decline or crisis?"
+    )
+    if not isinstance(_last_mile_probe, dict) or not _last_mile_probe.get("title") or not _last_mile_probe.get("url"):
+        raise RuntimeError("USE registered recovery last-mile doorway invariant failed")
+except ImportError:
+    pass
 
 async def _guide_outer_visitor_response_boundary(scope, receive, send):
     """Enforce visitor-response sanitation around every /api/query exit path.
