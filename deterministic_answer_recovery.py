@@ -484,6 +484,13 @@ def _general_explanatory_recovery(question):
             "Culture is therefore not a single cause of ethical behavior, and it does not remove individual responsibility. It is one of the conditions that shapes judgment over time. The useful question is which signals, incentives, relationships, and consequences are reinforcing a pattern—and whether they make ethical action easier or harder when it matters."
         )
 
+    if ("learning from failure" in q or "learn from failure" in q or "learning from mistakes" in q or "learn from mistakes" in q) and ("organization" in q or "organisation" in q or "institution" in q or "team" in q):
+        return (
+            "Organizations create conditions for learning from failure when people can surface mistakes and problems without automatically being silenced or punished, while still taking responsibility for what happened and changing the conditions that contributed to it. Learning does not require treating every failure as blameless; it requires making honest examination more useful than concealment.\n\n"
+            "That begins with what happens after something goes wrong. Leaders and colleagues signal whether the first response is to protect appearances and find someone to blame, or to establish the facts, hear from people closest to the work, and ask what the failure reveals about decisions, incentives, information, relationships, or constraints. When people believe that raising a concern will reliably make their situation worse, small problems tend to remain hidden until they become harder to correct.\n\n"
+            "Accountability still matters, but it should be connected to learning. Organizations are more likely to improve when they distinguish deliberate misconduct or repeated disregard from ordinary error and from failures produced by conditions no individual could control alone. The final test is whether the examination changes anything: whether lessons are preserved, practices are adjusted, and people can see that speaking honestly leads to better judgment rather than simply greater risk. A culture of learning is built when candor, responsibility, and correction reinforce one another over time."
+        )
+
     subject = _subject(question)
     return (
         f"A useful starting point is to ask how {subject} works through particular conditions rather than assuming a single direct cause. "
