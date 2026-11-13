@@ -194,13 +194,15 @@ def main():
         == "First paragraph.\n\nSecond paragraph.",
         "composition sanitizer collapsed meaningful paragraph structure",
     )
-    try:
-        composition._parse_factory([], "What is the relationship between personal agency and responsibility to others?")(
-            '{"response":"Agency means making choices. Responsibility means caring about others.","doorway_title":"","response_shape":"conceptual"}'
-        )
-        raise AssertionError("compressed conceptual relationship answer was accepted")
-    except ValueError:
-        pass
+    compressed_conceptual = composition._parse_factory(
+        [], "What is the relationship between personal agency and responsibility to others?"
+    )(
+        '{"response":"Agency means making choices. Responsibility means caring about others.","doorway_title":"","response_shape":"conceptual"}'
+    )
+    assert_true(
+        compressed_conceptual.get("quality_lane") == "provider_hard_integrity",
+        "compressed conceptual answer did not enter the canonical soft-contract lane",
+    )
 
     try:
         composition._parse_factory([
