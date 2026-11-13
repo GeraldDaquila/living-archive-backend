@@ -5521,7 +5521,8 @@ def _guide_finalize_visitor_payload(payload, query):
             # Keep the recovery recommendation assignment explicit: this is a
             # canonical contract shared with the composition QA.
             recovery_recommendation = _preserved
-            safe["recommendation"] = recovery_recommendation
+            safe["recommendation"] = _preserved
+            recovery_recommendation = safe["recommendation"]
             safe["processing"] = "outer_visitor_boundary_deterministic_registered_recovery"
             safe["route_source"] = "guide_outer_visitor_boundary"
             safe["visitor_boundary_version"] = APP_VERSION
