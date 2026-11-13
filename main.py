@@ -1365,7 +1365,22 @@ def _serialize_context_documents(docs):
     for doc in docs or []:
         title = str(doc.get("title") or "").strip()
         url = str(doc.get("url") or doc.get("canonical_url") or "").strip()
-        text = str(doc.get("text") or doc.get("content") or doc.get("excerpt") or "").strip()
+        text = str(
+            doc.get("text")
+            or doc.get("content")
+            or doc.get("excerpt")
+            or doc.get("summary")
+            or ""
+        ).strip()
+        # The v2 territorial map is navigation metadata, not a substitute corpus.
+        # Preserve a selected destination even when WordPress supplies no summary,
+        # but make its non-evidentiary status explicit so downstream composition
+        # can use the doorway without mistaking a title for source-body evidence.
+        if not text and str(doc.get("crosslink_mode") or "") == "territorial_navigation" and title:
+            text = (
+                f"Navigation destination: {title}. Metadata only; "
+                "do not treat this record as factual source evidence."
+            )
         if not title or not re.match(r"^https://\S+$", url, re.I) or not text:
             continue
         blocks.append(f"Title: {title}\nURL: {url}\nContent: {text}")
