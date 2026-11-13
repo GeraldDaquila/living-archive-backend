@@ -1796,7 +1796,7 @@ def _outcome_evaluation_recovery() -> str:
 
 def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
     titles = {item["title"] for item in documents}
-    def _parse(raw: str) -> Dict[str, Any]:
+    def _parse_strict(raw: str) -> Dict[str, Any]:
         try:
             parsed = json.loads(str(raw or "").strip())
         except json.JSONDecodeError as exc:
@@ -2029,6 +2029,56 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
             "doorway_title": title,
             "response_shape": shape,
         }
+
+
+    def _parse(raw: str) -> Dict[str, Any]:
+        """Two-lane admission: hard visitor safety first, editorial contracts advisory.
+
+        A capable provider should not be discarded solely because a heuristic
+        Gold-Standard detector prefers a particular paragraph count, example,
+        or phrase. Strict parsing remains the preferred lane, but a strict
+        contract miss may cross the provider boundary through a hard-integrity
+        lane. The final visitor boundary still owns source attribution,
+        canonical navigation, and any question family with a non-negotiable
+        evidence/safety requirement.
+        """
+        try:
+            return _parse_strict(raw)
+        except ValueError as strict_exc:
+            try:
+                parsed = json.loads(str(raw or "").strip())
+                if not isinstance(parsed, dict):
+                    raise ValueError("provider response was not an object")
+                response = _sanitize_candidate(parsed.get("response"))
+                if not response or len(response) < 40 or len(response) > 7000:
+                    raise ValueError("provider response failed basic visitor bounds")
+                # These are hard boundaries, not editorial preferences.
+                if _INTERNAL_SYSTEM_NAME.search(response) or _INTERNAL_LANGUAGE.search(response):
+                    raise ValueError("provider response exposed internal implementation language")
+                if re.search(r"\]\((https?://[^)\s]+)\)", response, flags=re.I) or re.search(r"\bhttps?://\S+", response, flags=re.I):
+                    raise ValueError("provider response embedded navigation URLs in visitor prose")
+                shape = _normalize_space(parsed.get("response_shape") or "").casefold()
+                if shape not in {"direct", "explanatory", "conceptual", "reflective", "navigational", "general"}:
+                    shape = "general"
+                title = _normalize_space(parsed.get("doorway_title") or "")
+                if title and title not in titles:
+                    title = ""
+                _emit_guide_outcome(
+                    "provider_soft_contract_bypass",
+                    reason=str(strict_exc)[:120],
+                )
+                return {
+                    "response": response,
+                    "doorway_title": title,
+                    "response_shape": shape,
+                    "quality_lane": "provider_hard_integrity",
+                }
+            except Exception as hard_exc:
+                _emit_guide_outcome(
+                    "provider_hard_rejection",
+                    reason=str(hard_exc)[:120],
+                )
+                raise strict_exc
 
     return _parse
 
