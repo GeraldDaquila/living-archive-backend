@@ -2837,7 +2837,7 @@
         "approval_record": "Explicit user instruction: elevate to gold star."
       },
       "freeze_policy": "Frozen approved response is an immutable reference artifact; future changes require a new approval record rather than silent mutation.",
-      "doorway_status": "NOT_APPROVED_CONTEXTUALLY_TOO_SPECIFIC"
+      "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH"
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
