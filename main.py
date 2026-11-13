@@ -10156,12 +10156,19 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # Conceptual questions must fail closed when no relevant Archive body
         # establishes the explanation. Keep this provenance rule scoped to the
         # conceptual grounding boundary; unrelated practical/topical inquiry
-        # contracts retain their established answer-basis semantics.
+        # contracts retain their established answer-basis semantics. The visitor
+        # boundary must also say explicitly that there is no sufficiently relevant
+        # Archive resource to recommend, rather than implying a doorway exists.
         answer_basis = {
             "kind": "archive_evidence_unavailable",
             "label": "Archive evidence not found",
             "explanation": "The available Archive material did not establish the requested answer.",
         }
+        if not authoritative_doorway and not response_text.casefold().count("sufficiently relevant archive resource"):
+            response_text = (
+                response_text.rstrip()
+                + "\n\nI do not have a sufficiently relevant Archive resource to recommend for that specific question."
+            )
     elif authoritative_doorway and not archive_evidence_unavailable:
         answer_basis = {
             "kind": "archive_supported",
