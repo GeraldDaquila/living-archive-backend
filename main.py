@@ -6482,7 +6482,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         closing = (
             "The Archive resource below may offer one place to continue the inquiry."
             if recommendation_available
-            else "If you add context about the situation, people involved, or decision at stake, the question can be examined more specifically."
+            else "I do not have a sufficiently relevant Archive resource to recommend for this question yet. If you add context about the situation, people involved, or decision at stake, the question can be examined more specifically."
         )
     # This low-level deterministic helper is imported in isolation by recovery
     # tests, so keep its classification self-contained rather than depending on
@@ -8893,6 +8893,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         reasoning_mode = "deterministic_only"
 
     composition_result = None
+    # Every composition path below may inspect this after the provider attempt.
+    # Initialize it once so a successful non-deterministic path cannot trigger
+    # an UnboundLocalError at the request boundary.
+    deterministic_result = None
     # This narrow practical-question class has a bounded, provider-independent
     # answer. Do not send it through the general composition envelope: that
     # envelope can exceed provider token budgets before the fallback is reached.
@@ -10952,7 +10956,7 @@ async def _use_send_json(send, payload, status_code=200):
             if not bool(_boundary_standard.get("forbids_doorway")):
                 _boundary_title = str(_boundary_standard.get("doorway_title") or "").strip()
                 _boundary_url = str(_boundary_standard.get("doorway_url") or "").strip()
-                if _boundary_title and re.match(r"^https://\\S+$", _boundary_url, re.I):
+                if _boundary_title and _boundary_url:
                     payload["recommendation"] = {"title": _boundary_title, "url": _boundary_url}
                     payload["canonical_doorway"] = payload["recommendation"]
         if _boundary_standard is not None and bool(_boundary_standard.get("forbids_doorway")):
