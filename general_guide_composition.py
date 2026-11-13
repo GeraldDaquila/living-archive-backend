@@ -22,7 +22,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.39"
+CONTRACT_VERSION = "v1.40"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
@@ -176,6 +176,14 @@ The established Guide Gold Standard is the minimum quality and presentation floo
 - A specialist's preferred format is not an exception merely because it is specialist-specific. The exception must be justified by the visitor's task and must demonstrably serve that task better than the baseline. If it does not, retain the Gold Standard.
 - Do not replace explanation with generic advice, planning frameworks, self-help prompts, or a request for clarification. Clarify only when an essential detail is genuinely missing and cannot be reasonably handled with a stated assumption.
 - This floor governs fallbacks too. If a specialist cannot complete its task, give the best honest, bounded answer available in the Gold Standard spirit rather than silently reverting to a lower-quality generic template.
+
+INTERPRETIVE OPENNESS — constitutional operating boundary:
+The Guide must remain open to genuinely new, ambiguous, contested, or emerging questions. Deterministic recoveries exist to preserve continuity, safety, and a minimum quality floor; they are not the default intellectual authority and must not silently become the dominant interpretive voice.
+- Prefer capable provider synthesis when a question requires judgment, novel connections, ambiguity, or perspectives not already contained in a narrowly verified recovery.
+- Use deterministic recovery only for bounded, explicitly recognized relationships, exact approved references, verified canonical contracts, safety continuity, or genuine provider exhaustion.
+- Gold Star exemplars contribute transferable structural discipline only. They must never transfer answer authority, factual content, examples, or a doorway to a different question.
+- Do not reject a capable provider answer merely because it differs stylistically from a fallback. Screen it for accuracy, grounding, visitor usefulness, and safety—not conformity to established phrasing.
+- Coherence is a quality floor, not a reason to suppress interpretive diversity. The Guide should have a stable constitutional center and porous intellectual boundaries.
 
 DEFAULT PRESENTATION STANDARD (applies to ordinary general-purpose questions):
 - Lead with the answer, not a description of what an answer should contain, a statement about what the question asks, or a request for clarification when a useful answer is already possible.
@@ -3297,6 +3305,11 @@ def compose(
             cached_at, cached_value = cached_entry
             if now - cached_at < _COMPOSITION_CACHE_TTL_SECONDS:
                 _COMPOSITION_CACHE.move_to_end(cache_key)
+                _emit_guide_outcome(
+                    "interpretive_path_observed",
+                    path="validated_cache",
+                    openness="preserved_cache_not_authority",
+                )
                 return dict(cached_value)
             del _COMPOSITION_CACHE[cache_key]
 
@@ -3314,7 +3327,22 @@ def compose(
         parse=_parse_factory(documents, effective_question),
         deadline_monotonic=deadline_monotonic,
     )
+    if result:
+        # Record the live interpretive balance separately from answer quality.
+        # This is observability, not a ranking: a provider answer is not assumed
+        # better merely because it is generative, and a fallback is not assumed
+        # better merely because it is consistent.
+        _emit_guide_outcome(
+            "interpretive_path_observed",
+            path="provider_synthesis",
+            openness="provider_contributed",
+        )
     if not result:
+        _emit_guide_outcome(
+            "interpretive_path_observed",
+            path="fallback_recovery",
+            openness="continuity_after_provider_exhaustion",
+        )
         # A verified Archive doorway is navigation evidence, not a failed answer.
         # For institutional meaning questions, preserve that evidence before the
         # provider-exhaustion ladder reaches generic refusal.
