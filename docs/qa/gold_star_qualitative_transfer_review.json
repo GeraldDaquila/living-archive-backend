@@ -290,6 +290,15 @@
       "qualifying_context": "Archive provenance, source attribution, Guide synthesis, orientation, and epistemic boundaries",
       "abstention_boundary": "Do not attribute the Guide's inferences to a source, let synthesis borrow the authority of direct evidence, present orientation as canonical fact, invent a doorway, or use a self-referential link merely to fill the navigation slot.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-open-question-orientation-gold-star-2026-11-13",
+      "question": "How should the Guide respond when a user seeks a final answer to an inherently open question?",
+      "reasoning_family": "open_question_orientation_without_false_closure",
+      "transferable_discipline": "Acknowledge genuine openness before answering; make uncertainty intelligible by distinguishing evidence, interpretation, values, and judgment; orient possibilities without manufacturing certainty; separate necessary judgment from proof that an open inquiry has been settled.",
+      "qualifying_context": "open questions, uncertainty, orientation, judgment, and the limits of closure",
+      "abstention_boundary": "Do not manufacture closure because a visitor requests a final answer, prematurely translate an open inquiry into a decision problem, romanticize vagueness, or treat a necessary decision as proof that the underlying question is settled.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
