@@ -2332,6 +2332,20 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "Their relationship therefore depends on what is changing and at what scale. Collapse can expose the limits of an existing arrangement and create pressure for adaptation; adaptation can create the space in which regeneration becomes possible; and regenerative capacities can make future disruption less destructive. The essential distinction is between surviving disruption, adjusting to changed conditions, and renewing the underlying conditions from which resilience can grow."
         )
 
+    # Recognize moral limits on delegating judgment before narrower AI-role
+    # patterns or generic conceptual fallbacks can redirect the question.
+    names_delegation = bool(re.search(r"\b(?:delegat(?:e|ing|ion)|hand(?:ing)?\s+over|transfer(?:ring)?\s+judgment)\b", normalized))
+    names_judgment = bool(re.search(r"\b(?:judgment|decision(?:-?making)?|discretion)\b", normalized))
+    names_collective_actor = bool(re.search(r"\b(?:systems?|institutions?|organizations?|structures?)\b", normalized))
+    asks_moral_limit = bool(re.search(r"\b(?:moral|ethical|normative)\s+(?:limits?|boundar(?:y|ies))\b", normalized))
+    if names_delegation and names_judgment and names_collective_actor and asks_moral_limit:
+        return (
+            "Delegating judgment to a system or institution is not morally neutral simply because the delegation is useful. "
+            "A system can carry out rules, coordinate information, or make recurring decisions more consistently, but delegation becomes morally limited when it obscures a judgment that still requires someone to answer for what is being valued, who may be harmed, and whether the rule itself remains justified.\n\n"
+            "The central boundary is therefore not that institutions should never exercise judgment. Collective life often requires institutions to make decisions that no individual could manage alone. The problem begins when delegation turns responsibility into disappearance: when no one can explain the reasons for a decision, challenge the assumptions behind it, or take responsibility for correcting harm. Efficiency or formal procedure cannot by themselves supply legitimacy.\n\n"
+            "A responsible arrangement keeps the chain of judgment visible. It should make clear what has been delegated, what reasons and values govern the system, who can question or revise its decisions, and where accountability ultimately remains. The more a delegated judgment can seriously affect people's rights, opportunities, relationships, or capacity to participate, the stronger those safeguards need to be. Delegation can extend human and institutional capacity; it should not become a way of making moral responsibility harder to locate."
+        )
+
     # Recognize the actual role distinction across natural wording variants.
     # The old four-part phrase test was overly brittle: it missed related
     # formulations and allowed downstream, unrelated recovery paths to win.
