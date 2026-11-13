@@ -294,11 +294,16 @@ def _is_modes_of_knowing_dialogue_question(question):
 def _modes_of_knowing_dialogue_recovery():
     """Preserve distinctions before moving to an application or decision process."""
     return (
-        "Different modes of knowing do not need to be made identical in order to be held in dialogue. The first task is to ask what each mode can illuminate, what kind of claim it can support, and what remains outside its reach. Evidence, lived experience, professional judgment, historical understanding, and moral concern may all matter to the same question, but they do not answer it in the same way. Keeping those differences visible prevents one form of knowing from being mistaken for the whole.
-\n"
-        "Dialogue begins when the forms of knowledge are allowed to question and inform one another without being forced into a single vocabulary or hierarchy. Ask where they converge, where they reveal a tension, and whether an apparent conflict comes from different evidence, different experiences, or different values. The aim is not to make every perspective agree, but to understand what each contributes and what would be lost if one were excluded.
-\n"
-        "Only then should the conversation move toward a decision or collective action. Compare the available options, make consequences visible, and include the knowledge of people who will live with those consequences. A responsible judgment remains accountable for the choice it makes, but it does not pretend that one mode of knowing has cancelled the others. The point is to create a clearer field for judgment: differentiated knowledge held in relation, with both its contributions and its limits still visible."
+        "Different modes of knowing do not need to be made identical in order to be held in dialogue. "
+        "The first task is to ask what each mode can illuminate, what kind of claim it can support, and what remains outside its reach. "
+        "Evidence, lived experience, professional judgment, historical understanding, and moral concern may all matter to the same question, but they do not answer it in the same way. "
+        "Keeping those differences visible prevents one form of knowing from being mistaken for the whole.\n\n"
+        "Dialogue begins when the forms of knowledge are allowed to question and inform one another without being forced into a single vocabulary or hierarchy. "
+        "Ask where they converge, where they reveal a tension, and whether an apparent conflict comes from different evidence, different experiences, or different values. "
+        "The aim is not to make every perspective agree, but to understand what each contributes and what would be lost if one were excluded.\n\n"
+        "Only then should the conversation move toward a decision or collective action. Compare the available options, make consequences visible, and include the knowledge of people who will live with those consequences. "
+        "A responsible judgment remains accountable for the choice it makes, but it does not pretend that one mode of knowing has cancelled the others. "
+        "The point is to create a clearer field for judgment: differentiated knowledge held in relation, with both its contributions and its limits still visible."
     )
 
 
