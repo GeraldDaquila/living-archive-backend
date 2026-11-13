@@ -281,7 +281,7 @@ def _is_archive_purpose_question(question):
     """Recognize the narrow question of what problem the Living Archive exists to address."""
     q = _clean(question).casefold()
     return bool(re.search(
-        r"\\b(?:what problem does (?:the )?(?:living )?archive exist to address|why does (?:the )?(?:living )?archive exist|what is (?:the )?(?:living )?archive for)\\b",
+        r"\\b(?:what problem does (?:the )?(?:living )?archive exist(?:s)? to address|why does (?:the )?(?:living )?archive exist(?:s)?|what is (?:the )?(?:living )?archive for)\\b",
         q,
     ))
 
