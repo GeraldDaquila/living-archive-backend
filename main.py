@@ -4943,6 +4943,37 @@ def _systems_intelligibility_recovery(query):
     )
 
 
+def _boundary_canonical_doorway(payload, query):
+    """Preserve or recover one evidence-backed doorway for boundary-composed answers.
+
+    A reasoning recovery must not erase navigation already established upstream.
+    When no doorway was selected, this helper may select only from the canonical
+    context already attached to the visitor payload; it never invents a link or
+    searches beyond the request evidence.
+    """
+    existing = _normalize_authoritative_recommendation(
+        payload.get("recommendation") if isinstance(payload, dict) else None
+    )
+    if existing:
+        return existing
+    if not isinstance(payload, dict):
+        return None
+    context = str(
+        payload.get("canonical_link_context")
+        or payload.get("context_blocks")
+        or ""
+    )
+    docs = _parse_context_documents(context) if context else []
+    profile = _base._inquiry_profile(query)
+    primary = _canonical_primary_from_docs(docs, query, profile)
+    if primary:
+        title = str(primary.get("title") or "").strip()
+        url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
+        if title and re.match(r"^https://\\S+$", url, re.I):
+            return {"title": title, "url": url}
+    return None
+
+
 def _guide_finalize_visitor_payload(payload, query):
     """Apply shared visitor-facing quality and contamination boundaries to every route."""
     if not isinstance(payload, dict):
@@ -4957,9 +4988,7 @@ def _guide_finalize_visitor_payload(payload, query):
     ):
         safe = dict(payload)
         safe["response"] = _contextual_synthesis_recovery()
-        safe["recommendation"] = _normalize_authoritative_recommendation(
-            safe.get("recommendation")
-        )
+        safe["recommendation"] = _boundary_canonical_doorway(safe, query)
         safe["processing"] = "final_visitor_boundary_contextual_synthesis_protection"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
