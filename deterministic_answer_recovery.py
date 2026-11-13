@@ -344,6 +344,25 @@ def _is_archive_purpose_question(question):
     ))
 
 
+def _is_commons_care_question(question):
+    """Recognize open inquiries about stewardship of shared conditions and goods."""
+    q = _normalize(question)
+    return bool(re.search(
+        r"\b(?:care for|caring for|stewardship of|protect|sustain)\s+(?:the\s+)?commons\b"
+        r"|\b(?:care for the commons|common good|shared conditions)\b",
+        q,
+    ))
+
+
+def _commons_care_recovery():
+    """Orient care for the commons without inventing a formal Archive doctrine."""
+    return (
+        "In the Living Archive, care for the commons can be understood as stewardship of the conditions people share and depend upon, rather than ownership or control by any one person or institution. The commons includes more than a particular resource: it also raises questions about the relationships, institutions, knowledge, and ecological conditions that make shared life possible. Care begins by asking what is genuinely held in common, who is affected by its condition, and whose responsibilities have become invisible.\n\n"
+        "This does not mean that everyone carries the same duty or that collective care erases individual accountability. Responsibilities differ with power, proximity, knowledge, and the consequences of one's choices. A stewardship approach therefore keeps both the shared condition and the chain of responsibility visible: who benefits, who bears the costs, who can participate in decisions, and who remains answerable when the common ground is damaged or neglected.\n\n"
+        "The Archive's broader orientation is to hold these questions in relation. Caring for the commons means looking beyond short-term use toward whether the conditions of shared life are being renewed or depleted, and whether people and institutions are becoming more capable of carrying responsibility together. The aim is not simply to preserve what exists, but to sustain the relationships and capacities through which a more trustworthy shared future can be cared for."
+    )
+
+
 def _archive_purpose_recovery():
     """Explain the Archive's orientation problem without claiming a single total cause."""
     return (
@@ -358,6 +377,7 @@ def has_registered_recovery(question):
     return bool(
         _is_public_predictive_system_question(question)
         or _is_archive_purpose_question(question)
+        or _is_commons_care_question(question)
         or _is_modes_of_knowing_dialogue_question(question)
         or is_stewardship_failure_repair_question(question)
     )
@@ -391,6 +411,11 @@ def registered_recovery_recommendation(question):
         return {
             "title": "When Knowledge Is Everywhere",
             "url": "https://geralddaquila.com/when-knowledge-is-everywhere/",
+        }
+    if _is_commons_care_question(question):
+        return {
+            "title": "How Do I Become More Trustworthy?",
+            "url": "https://geralddaquila.com/how-do-i-become-more-trustworthy/",
         }
     if is_stewardship_failure_repair_question(question):
         # Repair after a stewardship failure naturally continues into the
@@ -443,6 +468,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = _public_predictive_system_recovery()
     elif _is_archive_purpose_question(q):
         answer = _archive_purpose_recovery()
+    elif _is_commons_care_question(q):
+        answer = _commons_care_recovery()
     elif civilizational_transition:
         answer = (
             "In the Living Archive, civilizational transition refers to a period in which the systems that organize collective life are changing together, rather than a single government, technology, or economic arrangement simply being replaced. "
