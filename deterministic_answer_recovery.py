@@ -344,6 +344,26 @@ def _is_archive_purpose_question(question):
     ))
 
 
+def _is_systems_explanation_vs_simplistic_connection_question(question):
+    """Recognize inquiries distinguishing systems explanation from vague connectedness."""
+    q = _clean(question).casefold()
+    has_systems = bool(re.search(r"\bsystems?\s+explanation\b|\bsystemic\s+explanation\b", q))
+    has_simplistic_connection = (
+        "everything is connected" in q
+        or bool(re.search(r"\bsimplistic\b.*\bconnected\b|\bconnected\b.*\bsimplistic\b", q))
+    )
+    return has_systems and has_simplistic_connection
+
+
+def _systems_explanation_vs_simplistic_connection_recovery():
+    """Clarify what makes a systems explanation explanatory rather than merely associative."""
+    return (
+        "A systems explanation is not established simply by saying that everything is connected. Connection is a starting observation; explanation begins when the relationships that matter can be identified and their consequences made intelligible. Ask what is influencing what, through which mechanisms, over what period of time, and with what evidence.\n\n"
+        "The Guide should therefore distinguish a meaningful relationship from a decorative one. A systems explanation identifies patterns of interaction: feedback, incentives, constraints, delays, dependencies, or changes in one condition that alter another. It should also show boundaries and limits. Not every factor is equally important, and not every apparent connection is causal. A useful explanation makes clear what can reasonably be inferred and what remains uncertain.\n\n"
+        "Most importantly, systems thinking should sharpen judgment rather than dissolve everything into complexity. The question is not whether everything is connected, but which relationships are consequential enough to change how a person or institution understands a condition and acts within it. The Guide's task is to make those relationships visible while keeping responsibility, evidence, and the limits of explanation in view."
+    )
+
+
 def _is_feedback_loops_institutions_question(question):
     """Recognize systems inquiries about feedback loops shaping institutions."""
     q = _clean(question).casefold()
@@ -394,6 +414,7 @@ def has_registered_recovery(question):
         or _is_archive_purpose_question(question)
         or _is_commons_care_question(question)
         or _is_feedback_loops_institutions_question(question)
+        or _is_systems_explanation_vs_simplistic_connection_question(question)
         or _is_modes_of_knowing_dialogue_question(question)
         or is_stewardship_failure_repair_question(question)
     )
@@ -434,6 +455,11 @@ def registered_recovery_recommendation(question):
             "url": "https://geralddaquila.com/how-do-i-become-more-trustworthy/",
         }
     if _is_feedback_loops_institutions_question(question):
+        return {
+            "title": "Unraveling Stress: How the System Responds and Why It Loops",
+            "url": "https://geralddaquila.com/unraveling-stress-how-the-system-responds-and-why-it-loops/",
+        }
+    if _is_systems_explanation_vs_simplistic_connection_question(question):
         return {
             "title": "Unraveling Stress: How the System Responds and Why It Loops",
             "url": "https://geralddaquila.com/unraveling-stress-how-the-system-responds-and-why-it-loops/",
@@ -493,6 +519,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = _commons_care_recovery()
     elif _is_feedback_loops_institutions_question(q):
         answer = _feedback_loops_institutions_recovery()
+    elif _is_systems_explanation_vs_simplistic_connection_question(q):
+        answer = _systems_explanation_vs_simplistic_connection_recovery()
     elif civilizational_transition:
         answer = (
             "In the Living Archive, civilizational transition refers to a period in which the systems that organize collective life are changing together, rather than a single government, technology, or economic arrangement simply being replaced. "
