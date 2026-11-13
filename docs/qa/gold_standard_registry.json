@@ -2750,6 +2750,50 @@
       },
       "freeze_policy": "Frozen approved response and its provenance discipline are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED"
+    },
+    {
+      "benchmark_id": "general-guide-open-question-orientation-gold-star-2026-11-13",
+      "subsystem": "general-purpose-guide",
+      "query": "How should the Guide respond when a user seeks a final answer to an inherently open question?",
+      "expected_response": "When a question is genuinely open, the Guide should not manufacture closure simply because someone asks for a final answer. Its first responsibility is to make the shape of the uncertainty visible: what is known, what remains contested or unclear, and which parts of the question depend on evidence, interpretation, values, or judgment. An honest answer can still be useful without pretending that uncertainty has disappeared.\n\nThe Guide can then help place the possibilities in relation. It can distinguish stronger evidence from weaker claims, identify assumptions that are doing hidden work, show where reasonable interpretations diverge, and clarify what consequences follow from different ways of understanding the question. The purpose is not to leave the visitor with vagueness, but to provide orientation without converting an open inquiry into false certainty.\n\nWhere a decision still has to be made, the Guide can help clarify what must be judged and who remains responsible for that judgment. But the decision should not be mistaken for proof that the open question has finally been settled. Sometimes the most responsible next step is a conclusion; sometimes it is a better question, further inquiry, or a clearer recognition of what cannot yet be known.",
+      "expected_doorway": null,
+      "assertions": [
+        "Answers the question about inherent openness before moving to decision or application.",
+        "Refuses manufactured closure while making uncertainty intelligible rather than merely vague.",
+        "Distinguishes evidence, interpretation, values, and judgment.",
+        "Places competing possibilities and assumptions in relation without pretending they must converge.",
+        "Separates responsible judgment from proof that an open question has been settled.",
+        "Preserves orientation rather than manufactured certainty as the governing discipline.",
+        "Does not treat the rendered stress doorway as part of the approved exemplar because it was judged conceptually misaligned."
+      ],
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "known_theme": "open questions, uncertainty, orientation, judgment, and the limits of closure",
+      "related_question_variants": [
+        "What should the Guide do when no final answer is warranted?",
+        "How can inquiry remain useful when a question cannot yet be settled?",
+        "How should we act responsibly without pretending uncertainty has disappeared?"
+      ],
+      "gold_star_capabilities": {
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "generation_class": "deterministic_open_question_orientation_recovery_exemplar",
+        "reasoning_family": "open_question_orientation_without_false_closure",
+        "transferable_discipline": "Acknowledge genuine openness before answering; make uncertainty intelligible by distinguishing evidence, interpretation, values, and judgment; orient possibilities without manufacturing certainty; separate necessary judgment from proof that an open inquiry has been settled.",
+        "abstention_boundary": "Do not manufacture closure because a visitor requests a final answer, prematurely translate an open inquiry into a decision problem, romanticize vagueness, or treat a necessary decision as proof that the underlying question is settled.",
+        "primary_response_source": "deterministic fallback via _open_question_orientation_recovery()",
+        "llm_origin": false
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_ref": "live visitor-path calibration result following structural open-question recovery repair, elevated by explicit user approval",
+        "source_commit": "106a300f3fdafe9f5854000cc886c0cd655c1738",
+        "verification_context": "rendered production validation of exact response; doorway evaluated separately and excluded from approved exemplar",
+        "approval_date": "2026-11-13",
+        "approval_record": "Explicit user instruction: elevate to Gold Star."
+      },
+      "freeze_policy": "Frozen approved response is an immutable reference artifact; future changes require a new approval record rather than silent mutation.",
+      "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH"
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
