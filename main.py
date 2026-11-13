@@ -5364,9 +5364,22 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["response"] = _sanitize_basic_inquiry_response(
             _outer_registered_recovery
         )
-        # A stale or generic fallback doorway is navigation commentary about a
-        # failed answer, not an authority over the recovered orientation.
-        safe["recommendation"] = None
+        # Recovery of the answer must not silently erase a relevant doorway.
+        # Preserve an already-verified recommendation; if none survives, ask the
+        # same verified doorway selector used by the composition layer.
+        _preserved = _normalize_authoritative_recommendation(safe.get("recommendation"))
+        if not _preserved:
+            try:
+                _docs = safe.get("documents") or safe.get("retrieved_documents") or safe.get("sources") or []
+                _selected = general_guide_composition._select_verified_recovery_doorway(query, _docs)
+                _preserved = (
+                    {"title": _selected["doorway_title"], "url": _selected["doorway_url"]}
+                    if _selected.get("doorway_title") and _selected.get("doorway_url")
+                    else None
+                )
+            except Exception:
+                _preserved = None
+        safe["recommendation"] = _preserved
         safe["processing"] = "outer_visitor_boundary_registered_recovery"
         safe["route_source"] = "guide_outer_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
@@ -5412,7 +5425,25 @@ def _guide_finalize_visitor_payload(payload, query):
         if _terminal_recovery_valid:
             safe = dict(payload)
             safe["response"] = _terminal_recovery
-            safe["recommendation"] = _terminal_recovery_recommendation(query)
+            # A registered family may have a pinned canonical doorway. When it
+            # does not, retain or recover a verified contextual continuation
+            # instead of allowing answer repair to create a navigational dead end.
+            _pinned = _terminal_recovery_recommendation(query)
+            _preserved = _pinned or _normalize_authoritative_recommendation(
+                safe.get("recommendation")
+            )
+            if not _preserved:
+                try:
+                    _docs = safe.get("documents") or safe.get("retrieved_documents") or safe.get("sources") or []
+                    _selected = general_guide_composition._select_verified_recovery_doorway(query, _docs)
+                    _preserved = (
+                        {"title": _selected["doorway_title"], "url": _selected["doorway_url"]}
+                        if _selected.get("doorway_title") and _selected.get("doorway_url")
+                        else None
+                    )
+                except Exception:
+                    _preserved = None
+            safe["recommendation"] = _preserved
             safe["processing"] = "outer_visitor_boundary_deterministic_registered_recovery"
             safe["route_source"] = "guide_outer_visitor_boundary"
             safe["visitor_boundary_version"] = APP_VERSION
