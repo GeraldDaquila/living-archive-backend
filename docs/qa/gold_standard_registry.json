@@ -2886,7 +2886,8 @@
       "transferable_lesson": "For cross-scale inquiries, make the relationship between scales visible, preserve both structure and agency, and avoid treating either local action or wider patterns as a complete explanation on its own.",
       "transfer_boundary": "Transfer the discipline, not the exact prose or doorway. Apply only to questions genuinely involving relationships across scales. Do not authorize a systems doorway merely because a question mentions society, institutions, or change.",
       "canonical_doorway": "Systems Thinking & Civilizational Design",
-      "provenance": "Migrated from GeraldDaquila/gold-standard-exemplars GS-2026-11-13-03; original implementation lineage 68a1bcc32d29f623320c1b196d7db29c41c4b82b; reconciled 2026-11-13."
+      "provenance": "Migrated from GeraldDaquila/gold-standard-exemplars GS-2026-11-13-03; original implementation lineage 68a1bcc32d29f623320c1b196d7db29c41c4b82b; reconciled 2026-11-13.",
+      "subsystem": "general-purpose-guide"
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
