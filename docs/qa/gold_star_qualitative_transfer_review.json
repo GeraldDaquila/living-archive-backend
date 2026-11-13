@@ -317,6 +317,15 @@
       "qualifying_context": "systems maps, models, frameworks, diagrams, representations, usefulness, limits, evidence, inference, uncertainty, and false confidence",
       "abstention_boundary": "Transfer the epistemic discipline, not the exact answer or doorway. Do not imply that a representation is complete, causal, verified, or settled merely because it is coherent; do not attach the systems-thinking doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-13-03-cross-scale-orientation-canonical-continuation",
+      "question": "How do local actions connect to civilizational patterns without reducing one to the other?",
+      "reasoning_family": "cross_scale_structure_agency",
+      "transferable_discipline": "For cross-scale inquiries, make the relationship between scales visible, preserve both structure and agency, and avoid treating either local action or wider patterns as a complete explanation on its own.",
+      "qualifying_context": "questions about relationships between local action and wider social, institutional, or civilizational patterns; cross-scale structure and agency",
+      "abstention_boundary": "Transfer the discipline, not the exact prose or doorway. Do not treat either scale as a complete explanation and do not attach a systems doorway unless it genuinely extends the inquiry.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
