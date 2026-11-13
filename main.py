@@ -6292,6 +6292,30 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         # never be rendered as an evidence-refusal merely because retrieval is
         # empty. Re-check the canonical composer here, immediately before the
         # only generic refusal text in this helper.
+        # First honor every canonical deterministic recovery at the point where
+        # the legacy abstention is actually constructed. This is deliberately
+        # independent of later ASGI boundaries and conceptual classifiers.
+        try:
+            from deterministic_answer_recovery import (
+                compose_recovery as _direct_compose_recovery,
+                has_registered_recovery as _direct_has_registered_recovery,
+                registered_recovery_recommendation as _direct_recovery_recommendation,
+            )
+            if _direct_has_registered_recovery(query):
+                _direct_recovery = _direct_compose_recovery(query)
+                if _direct_recovery:
+                    _direct_doorway = _direct_recovery_recommendation(query) or {}
+                    return {
+                        "response": _direct_recovery,
+                        "doorway_title": _direct_doorway.get("title", ""),
+                        "doorway_url": _direct_doorway.get("url", ""),
+                        "recommendation": _direct_doorway or None,
+                        "provider": "terminal_registered_recovery",
+                        "model": "",
+                    }
+        except Exception as _direct_recovery_exc:
+            print("The Guide terminal registered recovery check failed safely: "
+                  f"{type(_direct_recovery_exc).__name__}.")
         _terminal_conceptual_recovery = _guide_composition._conceptual_relationship_recovery(query)
         if _terminal_conceptual_recovery and not _guide_composition.is_meta_answer_failure(_terminal_conceptual_recovery):
             return {
