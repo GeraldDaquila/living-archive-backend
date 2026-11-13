@@ -4964,12 +4964,27 @@ def _boundary_canonical_doorway(payload, query):
         or ""
     )
     docs = _parse_context_documents(context) if context else []
+    # Final-boundary recoveries can receive a deliberately slim visitor payload
+    # after retrieval context has been consumed upstream. In that case, perform
+    # one bounded canonical lookup rather than silently losing the doorway.
+    if not docs:
+        try:
+            recovered_context = _original_fetch_canonical_context(query)
+            recovered_text = str(
+                recovered_context.get("canonical_link_context")
+                or recovered_context.get("context_blocks")
+                or ""
+            ) if isinstance(recovered_context, dict) else ""
+            docs = _parse_context_documents(recovered_text) if recovered_text else []
+        except Exception as exc:
+            print(f"The Guide doorway recovery: canonical context unavailable: {exc}")
+            docs = []
     profile = _base._inquiry_profile(query)
     primary = _canonical_primary_from_docs(docs, query, profile)
     if primary:
         title = str(primary.get("title") or "").strip()
         url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
-        if title and re.match(r"^https://\\S+$", url, re.I):
+        if title and url.startswith("https://") and not any(ch.isspace() for ch in url):
             return {"title": title, "url": url}
     return None
 
