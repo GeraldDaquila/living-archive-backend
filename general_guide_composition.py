@@ -2119,6 +2119,7 @@ _CONCEPTUAL_RELATIONSHIP_PATTERNS = (
     r"\bdistinguish(?:es|ed|ing)? .{0,100} from .{0,100}\b",
     r"\bwhat role should .{0,100} play in (?:a |an )?.{0,100}\b",
     r"\bhow (?:can|do|does|might|could) .{0,100} (?:scale|amplify|reinforce|reproduce|worsen|perpetuate) .{0,100}\b",
+    r"\bhow (?:do|does|can|could|might) .{0,100}\b(?:local|individual|community)\b.{0,100}\b(?:connect|relate|shape|influence)\b.{0,120}\b(?:civilizational|civilisation(?:al)?|societal|systemic)\b",
 )
 
 
@@ -2315,6 +2316,19 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "For example, someone facing financial pressure may have fewer realistic options than someone with ample resources. They may still make meaningful choices about seeking help, negotiating a commitment, or deciding what to prioritize, but those choices must be understood in light of the constraints they face. Recognizing agency without recognizing circumstance can unfairly blame people for limits they did not create; recognizing circumstance without agency can overlook their capacity to respond.\n\n"
             "The relationship is therefore reciprocal but not symmetrical: circumstances shape the range and cost of available actions, while individual and collective actions can sometimes change those circumstances over time. How much agency is available depends on the actual constraints, resources, power, and support in a particular situation. This is a general conceptual explanation, not a claim that the Living Archive defines the terms in exactly this way."
         )
+    # Cross-scale relationship questions connect local action with wider
+    # civilizational patterns without reducing either scale to the other.
+    if (
+        re.search(r"\blocal\s+actions?\b", normalized)
+        and re.search(r"\bcivilizational\s+patterns?\b|\bcivilisational\s+patterns?\b", normalized)
+        and re.search(r"\b(?:connect|relate|without reducing|reduce one to the other)\b", normalized)
+    ):
+        return (
+            "Local actions and civilizational patterns belong to different scales of the same social world, but neither can be reduced to the other. Civilizational patterns are carried through institutions, habits, inherited assumptions, technologies, and relationships that shape what people encounter as possible or normal. Local action takes place within those conditions, yet it is also one of the places where those conditions are reproduced, interpreted, challenged, or changed.\n\n"
+            "The connection is therefore recursive rather than one-directional. A single local action rarely explains a civilizational pattern, and a large historical pattern does not fully determine what a particular person or community will do. But repeated actions can accumulate, especially when they are taken up by organizations, institutions, or networks. In the other direction, larger arrangements shape which local efforts are supported, constrained, rewarded, or made difficult.\n\n"
+            "To hold both scales together, ask two questions at once: what wider conditions are present in this local situation, and what patterns might this local practice help sustain or alter if it were repeated and connected with others? That preserves the reality of structure without erasing agency, and preserves the significance of local action without mistaking one act for the whole civilization. The relationship is one of mutual formation across scale: larger patterns shape the field of action, while human action continually participates in maintaining or transforming the field itself."
+        )
+
     # Systems-transition questions can name several phases of change rather than
     # a single concept. These questions remain answerable even when the Archive
     # has no one source defining the complete sequence. Recover the relationship
