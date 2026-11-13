@@ -2063,10 +2063,16 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                 title = _normalize_space(parsed.get("doorway_title") or "")
                 if title and title not in titles:
                     title = ""
-                _emit_guide_outcome(
-                    "provider_soft_contract_bypass",
-                    reason=str(strict_exc)[:120],
-                )
+                # Telemetry is deliberately optional: this composition module is
+                # also imported by lightweight test paths where the Guide outcome
+                # emitter is not bound. Admission must never depend on observability.
+                try:
+                    _emit_guide_outcome(
+                        "provider_soft_contract_bypass",
+                        reason=str(strict_exc)[:120],
+                    )
+                except NameError:
+                    pass
                 return {
                     "response": response,
                     "doorway_title": title,
@@ -2074,10 +2080,13 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                     "quality_lane": "provider_hard_integrity",
                 }
             except Exception as hard_exc:
-                _emit_guide_outcome(
-                    "provider_hard_rejection",
-                    reason=str(hard_exc)[:120],
-                )
+                try:
+                    _emit_guide_outcome(
+                        "provider_hard_rejection",
+                        reason=str(hard_exc)[:120],
+                    )
+                except NameError:
+                    pass
                 raise strict_exc
 
     return _parse
