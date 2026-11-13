@@ -6394,12 +6394,27 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                 "provider": "terminal_conceptual_relationship_recovery",
                 "model": "",
             }
-        opening = f"Your question asks: {question.rstrip('?')}." if question else "The question is worth answering directly."
-        explanation = "I couldn't verify a reliable answer from the material available in this request, so I won't present a guess as fact."
+        # Last-resort visitor boundary: lack of retrieval evidence must not be
+        # presented as though the visitor has done something wrong by asking an
+        # unfamiliar question. Preserve the distinction between grounded Archive
+        # claims and a bounded conceptual orientation, but offer a useful middle
+        # ground instead of a sterile verification refusal.
+        opening = (
+            f"The question raises a real issue: {question.rstrip('?')}."
+            if question else
+            "The question raises a real issue that deserves a useful starting point."
+        )
+        explanation = (
+            "I do not have enough grounded material here to give a specific Archive-based answer, "
+            "but the question can still be approached by making its central tension visible: "
+            "what is at stake, who or what is affected, what responsibilities are involved, "
+            "and what would change if the situation were understood differently. "
+            "That is a starting orientation rather than a substitute for evidence or context."
+        )
         closing = (
-            "If you would like to explore this further, the Archive resource below may offer a useful next step."
+            "The Archive resource below may offer one place to continue the inquiry."
             if recommendation_available
-            else "I could not identify a sufficiently relevant Archive resource to recommend here."
+            else "If you add context about the situation, people involved, or decision at stake, the question can be examined more specifically."
         )
     # This low-level deterministic helper is imported in isolation by recovery
     # tests, so keep its classification self-contained rather than depending on
