@@ -335,6 +335,15 @@
       "qualifying_context": "organizational performance, management, productivity, human dignity, instrumental treatment, workloads, accountability, participation, trust, judgment",
       "abstention_boundary": "Transfer the discipline, not the exact answer or doorway. Apply only to genuine tensions between organizational performance and the treatment of people; do not imply that humane treatment requires abandoning standards or accountability.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-stewardship-leadership-decline-crisis",
+      "question": "What does stewardship ask of a leader during decline or crisis?",
+      "reasoning_family": "stewardship_leadership_under_pressure",
+      "transferable_discipline": "During decline or crisis, hold responsibility for the whole condition: see clearly, protect the conditions for recovery, make costs visible, preserve trust and truthful information, and combine accountability with adaptability toward renewal.",
+      "qualifying_context": "stewardship, steward, leadership, leader, decline, crisis, breakdown, collapse, emergency, loss, deterioration, trust, recovery, renewal",
+      "abstention_boundary": "Transfer the discipline, not the exact answer or doorway. Apply only to genuine leadership questions under consequential pressure; do not imply that stewardship guarantees control or eliminates difficult decisions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
