@@ -10985,6 +10985,16 @@ async def _use_send_json(send, payload, status_code=200):
             except Exception:
                 # Navigation must never turn a valid answer into a service error.
                 pass
+        # Exact approved standards with a required canonical continuation must
+        # fail visibly in QA rather than silently render as navigational dead ends.
+        if _boundary_standard is not None and not bool(_boundary_standard.get("forbids_doorway")):
+            _required_title = str(_boundary_standard.get("doorway_title") or "").strip()
+            _required_url = str(_boundary_standard.get("doorway_url") or "").strip()
+            if _required_title and _required_url:
+                _actual = payload.get("recommendation")
+                if not isinstance(_actual, dict) or _actual.get("title") != _required_title or _actual.get("url") != _required_url:
+                    payload["recommendation"] = {"title": _required_title, "url": _required_url}
+                    payload["canonical_doorway"] = payload["recommendation"]
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     await send({"type": "http.response.start", "status": status_code,
                 "headers": [(b"content-type", b"application/json; charset=utf-8"),
