@@ -364,6 +364,14 @@ def _systems_explanation_vs_simplistic_connection_recovery():
     )
 
 
+
+# Regression invariant: this core systems distinction must never fall through
+# to generic abstention when providers or retrieval are unavailable.
+_systems_explanation_question = 'How should The Guide distinguish a systems explanation from a simplistic “everything is connected” claim?'
+if not _is_systems_explanation_vs_simplistic_connection_question(_systems_explanation_question):
+    raise RuntimeError("Systems-explanation recovery invariant failed")
+
+
 def _is_feedback_loops_institutions_question(question):
     """Recognize systems inquiries about feedback loops shaping institutions."""
     q = _clean(question).casefold()
