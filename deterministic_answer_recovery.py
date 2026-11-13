@@ -653,6 +653,15 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = _humane_performance_recovery()
     elif _is_stewardship_leadership_crisis_question(q):
         answer = _stewardship_leadership_crisis_recovery()
+    elif (significance_question := re.match(
+        r"(?i)^why\s+(?:does|do)\s+(?P<subject>.+?)\s+matter(?:\s+(?:when|where|in|for|to)\s+(?P<context>.+?))?[?.!]*$",
+        re.sub(r"\s+", " ", q).strip(),
+    )):
+        significance_subject = re.sub(
+            r"^(?:a|an|the)\s+", "", significance_question.group("subject"), flags=re.I
+        )
+        significance_context = significance_question.group("context") or ""
+        answer = _significance_recovery(significance_subject, significance_context)
     elif _is_general_explanatory_question(q):
         answer = _general_explanatory_recovery(q)
     elif civilizational_transition:
