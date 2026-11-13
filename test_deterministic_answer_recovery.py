@@ -138,6 +138,23 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         self.assertNotIn("I couldn't verify a reliable answer", answer)
         self.assertNotIn("What detail or context", answer)
 
+    def test_archive_purpose_question_gets_structural_orientation_recovery(self):
+        from deterministic_answer_recovery import registered_recovery_recommendation
+        question = "What problem does the Archive exist to address?"
+        answer = compose_recovery(question)
+        self.assertEqual(len([p for p in answer.split("\n\n") if p.strip()]), 3)
+        self.assertIn("problem of fragmentation", answer)
+        self.assertIn("finding orientation within an abundance", answer)
+        self.assertIn("not to supply one final explanation", answer)
+        self.assertIn("conscious judgment and stewardship", answer)
+        self.assertNotIn("I couldn't verify a reliable answer", answer)
+        doorway = registered_recovery_recommendation(question)
+        self.assertEqual(doorway["title"], "When Knowledge Is Everywhere")
+        self.assertEqual(doorway["url"], "https://geralddaquila.com/when-knowledge-is-everywhere/")
+
+    def test_archive_purpose_recovery_is_narrow(self):
+        answer = compose_recovery("What does the Archive mean by civilizational transition?")
+        self.assertNotIn("The Living Archive exists in response to a problem of fragmentation", answer)
 
     def test_archive_civilizational_transition_meaning_is_answered_during_retrieval_outage(self):
         question = "What does the Archive mean by civilizational transition?"

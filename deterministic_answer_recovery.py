@@ -277,9 +277,27 @@ def _is_public_predictive_system_question(question):
     return public_system and predictive_system and constitutional_human
 
 
+def _is_archive_purpose_question(question):
+    """Recognize the narrow question of what problem the Living Archive exists to address."""
+    q = _clean(question).casefold()
+    return bool(re.search(
+        r"\b(?:what problem does (?:the )?(?:living )?archive exist(?:s)? to address|why does (?:the )?(?:living )?archive exist(?:s)?|what is (?:the )?(?:living )?archive for)\b",
+        q,
+    ))
+
+
+def _archive_purpose_recovery():
+    """Explain the Archive's orientation problem without claiming a single total cause."""
+    return (
+        "The Living Archive exists in response to a problem of fragmentation: knowledge can be abundant while understanding remains scattered. Information is often separated from the larger conditions that give it meaning, and people can accumulate facts, opinions, and expertise without gaining a clearer sense of how the pieces relate or what responsibility follows from seeing them together. The problem is not simply a lack of information; it is the difficulty of finding orientation within an abundance of it.\n\n"
+        "The Archive therefore tries to make relationships visible across questions that are too often treated in isolation—between people and institutions, knowledge and judgment, history and the present, individual experience and larger systems. Its purpose is not to supply one final explanation or tell visitors what to think. It is to create a place where ideas, patterns, and perspectives can be held in relation so that a question becomes more intelligible before a conclusion is rushed.\n\n"
+        "What the Archive ultimately addresses is the gap between having more knowledge and knowing how to live, decide, and act responsibly with it. Orientation matters when certainty is unavailable and no single discipline can see the whole of a problem. The Archive's contribution is therefore to help people notice the relationships that matter, preserve questions that should not be simplified away, and recover the possibility of more conscious judgment and stewardship."
+    )
+
+
 def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
-    return bool(_is_public_predictive_system_question(question))
+    return bool(_is_public_predictive_system_question(question) or _is_archive_purpose_question(question))
 
 
 def _public_predictive_system_recovery():
@@ -297,6 +315,11 @@ def registered_recovery_recommendation(question):
         return {
             "title": "AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever",
             "url": "https://geralddaquila.com/2026/06/16/ai-vs-human-stewardship-why-conscious-guidance-matters-more-than-ever/",
+        }
+    if _is_archive_purpose_question(question):
+        return {
+            "title": "When Knowledge Is Everywhere",
+            "url": "https://geralddaquila.com/when-knowledge-is-everywhere/",
         }
     return None
 
@@ -336,6 +359,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     )
     if _is_public_predictive_system_question(q):
         answer = _public_predictive_system_recovery()
+    elif _is_archive_purpose_question(q):
+        answer = _archive_purpose_recovery()
     elif civilizational_transition:
         answer = (
             "In the Living Archive, civilizational transition refers to a period in which the systems that organize collective life are changing together, rather than a single government, technology, or economic arrangement simply being replaced. "
