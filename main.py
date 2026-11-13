@@ -5043,11 +5043,26 @@ def _boundary_canonical_doorway(payload, query):
         url = str(primary.get("url") or primary.get("canonical_url") or "").strip()
         if title and url.startswith("https://") and not any(ch.isspace() for ch in url):
             return {"title": title, "url": url}
+
+    # Provenance is a navigation-worthy inquiry family. The mirror has already
+    # performed the canonical topical retrieval; a lexical relevance gate must
+    # not erase that evidence merely because "provenance" language is absent
+    # from an otherwise relevant title or summary. Preserve the leading
+    # retrieved canonical asset as a bounded doorway, exactly as the ordinary
+    # retrieval boundary does. This remains retrieval-backed and never invents
+    # a destination.
+    if _is_archive_claim_boundary_inquiry(query):
+        for candidate in docs:
+            title = str(candidate.get("title") or "").strip()
+            url = str(candidate.get("url") or candidate.get("canonical_url") or "").strip()
+            if title and re.match(r"^https://\S+$", url, re.I):
+                print("The Guide provenance doorway: preserved leading canonical recovery result.")
+                return {"title": title, "url": url}
+
     # Do not manufacture a self-referential doorway merely to satisfy a
     # navigation invariant. A doorway must take the visitor somewhere beyond
     # the current Guide experience. If no specific evidence-backed canonical
-    # resource is available, leave the recommendation empty and allow the
-    # upstream navigation layer to supply a genuinely distinct destination.
+    # resource is available, leave the recommendation empty.
     return None
 
 
