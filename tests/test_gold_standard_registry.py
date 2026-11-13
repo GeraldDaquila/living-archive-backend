@@ -112,7 +112,6 @@ def test_user_approved_conflicting_information_gold_star_is_registered_exactly()
     assert "serious or irreversible consequences" in record["expected_response"]
     assert record["expected_doorway"] is None
     assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
-    assert record["expected_doorway"]["url"] is None
     assert "Explicit user instruction" in record["provenance"]["approval_record"]
 
 
@@ -390,7 +389,8 @@ def test_water_boiling_point_general_knowledge_gold_standard_preserves_live_answ
     assert record["status"] == fixture["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["query"] == fixture["query"] == "What is the boiling point of water at sea level?"
     assert record["expected_response"] == fixture["expected_response"]
-    assert record["expected_doorway"] == {"title": None, "url": None}
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
     assert record["rating_out_of_10"] == fixture["rating_out_of_10"] == 9
     assert len(record["expected_response"].split(chr(10) * 2)) == 2
     assert "100°C (212°F)" in record["expected_response"]
