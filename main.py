@@ -10589,6 +10589,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         f"provider={_provider_name or 'none'}, model={_model_name or 'none'}"
     )
 
+    # Navigation is a visitor-facing contract. Publish the final authoritative
+    # doorway under both the stable recommendation field and an explicit canonical
+    # alias so presentation adapters cannot lose it through field translation.
+    _visitor_recommendation = authoritative_doorway
+    if not _visitor_recommendation:
+        try:
+            _visitor_recommendation = _boundary_canonical_doorway(
+                {"recommendation": None}, query
+            )
+        except Exception:
+            _visitor_recommendation = None
+
     payload = {
         "ok": True,
         "version": APP_VERSION,
@@ -10600,7 +10612,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         "response": response,
         # The recommendation is a first-class response field, never
         # inferred from prose and never dependent on provider metadata.
-        "recommendation": authoritative_doorway,
+        "recommendation": _visitor_recommendation,
+        "canonical_doorway": _visitor_recommendation,
         "answer_basis": answer_basis,
         "response_provenance": {
             "class": _response_provenance,
