@@ -7342,17 +7342,8 @@ def _enforce_registered_gold_standard_doorway(doorway, gold_standard, query=""):
 
 
 
-# Registered recovery navigation invariant: canonical doorways must travel with
-# deterministic recovery results at the composition seam, not depend solely on
-# a later payload-enforcement pass.
-_registered_recovery_doorway_probe = "What does stewardship ask of a leader during decline or crisis?"
-try:
-    from deterministic_answer_recovery import registered_recovery_recommendation as _probe_registered_recovery_recommendation
-    _registered_recovery_doorway_contract = _probe_registered_recovery_recommendation(_registered_recovery_doorway_probe)
-    if not (_registered_recovery_doorway_contract and _registered_recovery_doorway_contract.get("title") and _registered_recovery_doorway_contract.get("url")):
-        raise RuntimeError("Registered stewardship recovery doorway invariant failed")
-except ImportError:
-    pass
+# Registered recovery navigation is enforced at runtime response boundaries.
+# Do not execute recovery probes during module import/startup.
 
 # v489.09 regression probes: valid Archive URLs survive validation and stewardship questions retain a canonical doorway
 # validator, while non-HTTPS and off-domain destinations remain rejected.
