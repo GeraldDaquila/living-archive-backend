@@ -2711,10 +2711,7 @@
       "subsystem": "general-purpose-guide",
       "query": "How should The Guide separate direct Archive claims from its own synthesis?",
       "expected_response": "The Guide should keep three layers distinct. A direct Archive claim is something a particular text actually says or clearly supports, and it should remain traceable to that source. A synthesis is different: it draws a relationship, pattern, or implication across more than one Archive resource. It can be useful precisely because it connects materials, but it should be presented as the Guide's synthesis rather than as the statement of any single text.\n\nA third layer is orientation. The Guide may frame a question, identify a tension, or suggest a way of looking without presenting that framing as evidence from the Archive. This matters especially in a Living Archive: its purpose is not to flatten different voices into one authoritative conclusion, but to hold ideas in relationship without losing where they came from. Keeping the layers visible lets a visitor see what is being reported, what is being inferred, and what is being offered as a way to continue thinking.\n\nThe practical discipline is therefore simple: stay close to the source when saying what the Archive says; name synthesis when the Guide is connecting materials; and keep orientation visibly separate from both. Then the Guide can add intelligibility without borrowing authority it has not earned. The distinction protects the integrity of the Archive while preserving the freedom to notice relationships that no single text, on its own, could show.",
-      "expected_doorway": {
-        "title": "A Practical Guide to Waiting",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Distinguishes direct source claims, Guide synthesis, and Guide orientation without collapsing their authority.",
         "Direct Archive claims remain traceable to the particular source that supports them.",
@@ -2749,9 +2746,10 @@
         "verification_context": "rendered production validation of exact response and non-self-referential canonical doorway",
         "approval_date": "2026-11-13",
         "approval_record": "Explicit user instruction: elevate to Gold Star following live acceptance review.",
-        "doorway_verification": "Live result displayed A Practical Guide to Waiting as the canonical continuation. URL was not independently exposed in the rendered screenshot and is therefore not inferred here."
+        "doorway_verification": "Rendered result displayed the canonical continuation title, but its URL was not independently verified. The exemplar is therefore retained without inventing a URL; doorway state is explicitly marked incomplete rather than treated as a complete runtime doorway contract."
       },
-      "freeze_policy": "Frozen approved response and its provenance discipline are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
+      "freeze_policy": "Frozen approved response and its provenance discipline are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED"
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
