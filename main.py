@@ -4987,21 +4987,35 @@ def _boundary_canonical_doorway(payload, query):
     # after retrieval context has been consumed upstream. In that case, perform
     # one bounded canonical lookup rather than silently losing the doorway.
     if not docs:
-        try:
-            # Use the active Guide retrieval boundary, not the raw Pinecone
-            # function. While Pinecone is temporarily bypassed, the active
-            # boundary supplies the canonical territorial mirror used by normal
-            # visitor requests and is therefore the authoritative doorway source.
-            recovered_context = use_core.fetch_canonical_context(query)
-            recovered_text = str(
-                recovered_context.get("canonical_link_context")
-                or recovered_context.get("context_blocks")
-                or ""
-            ) if isinstance(recovered_context, dict) else ""
-            docs = _parse_context_documents(recovered_text) if recovered_text else []
-        except Exception as exc:
-            print(f"The Guide doorway recovery: canonical context unavailable: {exc}")
-            docs = []
+        # First recover against the visitor's own wording. If a specialized
+        # reasoning boundary has consumed the original retrieval context, make
+        # one narrowly expanded canonical pass using the intellectual object of
+        # the inquiry. This remains evidence-bounded: no title or URL is ever
+        # manufactured.
+        recovery_queries = [query]
+        if _is_archive_claim_boundary_inquiry(query):
+            recovery_queries.append(
+                query + " source attribution interpretation synthesis provenance judgment"
+            )
+        for recovery_query in recovery_queries:
+            try:
+                # Use the active Guide retrieval boundary, not the raw Pinecone
+                # function. While Pinecone is temporarily bypassed, the active
+                # boundary supplies the canonical territorial mirror used by normal
+                # visitor requests and is therefore the authoritative doorway source.
+                recovered_context = use_core.fetch_canonical_context(recovery_query)
+                recovered_text = str(
+                    recovered_context.get("canonical_link_context")
+                    or recovered_context.get("context_blocks")
+                    or ""
+                ) if isinstance(recovered_context, dict) else ""
+                candidate_docs = _parse_context_documents(recovered_text) if recovered_text else []
+                if candidate_docs:
+                    docs = candidate_docs
+                    break
+            except Exception as exc:
+                print(f"The Guide doorway recovery: canonical context unavailable: {exc}")
+        
     profile = _base._inquiry_profile(query)
     primary = _canonical_primary_from_docs(docs, query, profile)
     if primary:
@@ -5028,9 +5042,10 @@ def _guide_finalize_visitor_payload(payload, query):
     if _is_archive_claim_boundary_inquiry(query):
         safe = dict(payload)
         safe["response"] = _archive_claim_boundary_recovery()
-        # Do not let an upstream generic doorway survive merely because it was
-        # selected before this reasoning family was recognized. Provenance
-        # questions need a doorway selected for this inquiry, or none at all.
+        # A provenance answer deserves a doorway when the canonical corpus can
+        # substantiate one. Re-select it against the inquiry rather than inheriting
+        # a generic upstream link; the bounded recovery helper returns nothing only
+        # when no evidence-backed destination can be found.
         doorway_payload = dict(safe)
         doorway_payload["recommendation"] = None
         safe["recommendation"] = _boundary_canonical_doorway(doorway_payload, query)
