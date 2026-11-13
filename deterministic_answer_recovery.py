@@ -317,6 +317,9 @@ def registered_recovery_recommendation(question):
             "url": "https://geralddaquila.com/2026/06/16/ai-vs-human-stewardship-why-conscious-guidance-matters-more-than-ever/",
         }
     if _is_archive_purpose_question(question):
+        # Foundational purpose questions have a canonical continuation. This
+        # doorway is part of the registered recovery contract and must not be
+        # displaced by a generic downstream recommendation.
         return {
             "title": "When Knowledge Is Everywhere",
             "url": "https://geralddaquila.com/when-knowledge-is-everywhere/",
