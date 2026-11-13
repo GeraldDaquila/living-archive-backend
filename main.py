@@ -4969,7 +4969,11 @@ def _boundary_canonical_doorway(payload, query):
     # one bounded canonical lookup rather than silently losing the doorway.
     if not docs:
         try:
-            recovered_context = _original_fetch_canonical_context(query)
+            # Use the active Guide retrieval boundary, not the raw Pinecone
+            # function. While Pinecone is temporarily bypassed, the active
+            # boundary supplies the canonical territorial mirror used by normal
+            # visitor requests and is therefore the authoritative doorway source.
+            recovered_context = use_core.fetch_canonical_context(query)
             recovered_text = str(
                 recovered_context.get("canonical_link_context")
                 or recovered_context.get("context_blocks")
