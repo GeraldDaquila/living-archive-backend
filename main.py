@@ -5874,16 +5874,18 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         _recovery_doorway = _normalize_authoritative_recommendation(
             context_data.get("authoritative_doorway")
         ) if isinstance(context_data, dict) else None
-        # A registered foundational-purpose recovery owns its canonical doorway.
-        # Do not let a broader retrieval recommendation displace the precise
-        # continuation selected by the recovery contract.
+        # Registered recoveries may own a canonical continuation. Resolve it
+        # here, at the same seam where deterministic prose is accepted, rather
+        # than relying on a later visitor-boundary pass to rediscover navigation.
+        # This prevents an early recovery return from silently dropping the
+        # Archive doorway for any registered family.
         try:
             from deterministic_answer_recovery import (
-                _is_archive_purpose_question as _registered_archive_purpose_question,
                 registered_recovery_recommendation as _registered_recovery_recommendation,
             )
-            if _registered_archive_purpose_question(query):
-                _recovery_doorway = _registered_recovery_recommendation(query)
+            _registered_recovery_doorway = _registered_recovery_recommendation(query)
+            if _registered_recovery_doorway:
+                _recovery_doorway = _registered_recovery_doorway
         except Exception:
             pass
         return {
@@ -7338,6 +7340,19 @@ def _enforce_registered_gold_standard_doorway(doorway, gold_standard, query=""):
         return None
     return doorway
 
+
+
+# Registered recovery navigation invariant: canonical doorways must travel with
+# deterministic recovery results at the composition seam, not depend solely on
+# a later payload-enforcement pass.
+_registered_recovery_doorway_probe = "What does stewardship ask of a leader during decline or crisis?"
+try:
+    from deterministic_answer_recovery import registered_recovery_recommendation as _probe_registered_recovery_recommendation
+    _registered_recovery_doorway_contract = _probe_registered_recovery_recommendation(_registered_recovery_doorway_probe)
+    if not (_registered_recovery_doorway_contract and _registered_recovery_doorway_contract.get("title") and _registered_recovery_doorway_contract.get("url")):
+        raise RuntimeError("Registered stewardship recovery doorway invariant failed")
+except ImportError:
+    pass
 
 # v489.09 regression probes: valid Archive URLs survive validation and stewardship questions retain a canonical doorway
 # validator, while non-HTTPS and off-domain destinations remain rejected.
