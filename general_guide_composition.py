@@ -2204,6 +2204,25 @@ def _archive_meaning_evidence_recovery(
     }
 
 
+def _cross_scale_canonical_doorway(question: str) -> Dict[str, str]:
+    """Return the canonical hub for a verified local-to-civilizational inquiry.
+
+    This is intentionally narrow. It does not create a general preference for
+    systems pages; it recognizes the specific cross-scale relationship covered
+    by the Systems Thinking & Civilizational Design canonical foundation hub.
+    """
+    normalized = _normalize_space(question).casefold()
+    has_local = bool(re.search(r"\b(?:local\s+actions?|local\s+practice|community)\b", normalized))
+    has_civilizational = bool(re.search(r"\b(?:civilizational|civilisational)\s+(?:patterns?|systems?|change)\b", normalized))
+    has_relationship = bool(re.search(r"\b(?:connect|relate|shape|influence|reduce one to the other)\b", normalized))
+    if has_local and has_civilizational and has_relationship:
+        return {
+            "doorway_title": "Systems Thinking & Civilizational Design",
+            "doorway_url": "https://geralddaquila.com/2026/05/20/systems-thinking-civilizational-design/",
+        }
+    return {"doorway_title": "", "doorway_url": ""}
+
+
 def _select_verified_recovery_doorway(
     question: str,
     documents: List[Dict[str, Any]],
@@ -3464,11 +3483,12 @@ def compose(
             candidate["doorway_title"] = ""
 
     # Doorway selection is deterministic and independent of provider compliance.
-    # A substantive answer may legitimately be accepted even when the provider
-    # leaves doorway_title blank; attach a verified relevant Archive resource
-    # from the retrieved evidence before the response reaches the visitor.
-    if not candidate.get("doorway_title") and documents:
-        doorway = _select_verified_recovery_doorway(question, documents)
+    # First honor the narrowly verified canonical relationship for cross-scale
+    # questions; then fall back to retrieval-backed selection for all others.
+    if not candidate.get("doorway_title"):
+        doorway = _cross_scale_canonical_doorway(question)
+        if not doorway.get("doorway_title") and documents:
+            doorway = _select_verified_recovery_doorway(question, documents)
         if doorway.get("doorway_title"):
             candidate["doorway_title"] = doorway["doorway_title"]
             candidate["doorway_url"] = doorway.get("doorway_url", "")
