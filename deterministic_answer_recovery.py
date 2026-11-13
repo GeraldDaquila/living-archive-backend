@@ -542,6 +542,15 @@ def registered_recovery_recommendation(question):
             "title": "AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever",
             "url": "https://geralddaquila.com/2026/06/16/ai-vs-human-stewardship-why-conscious-guidance-matters-more-than-ever/",
         }
+    if _is_stewardship_leadership_crisis_question(question):
+        # Recovery answers are also Archive entry points. Keep the continuation
+        # in the registered recovery contract so this family cannot bypass the
+        # Guide's doorway role when provider or retrieval paths are unavailable.
+        return {
+            "title": "How Do I Become More Trustworthy?",
+            "url": "https://geralddaquila.com/how-do-i-become-more-trustworthy/",
+        }
+
     if _is_modes_of_knowing_dialogue_question(question):
         return {
             "title": "Being in the Driver's Seat (Without Pretending You Control the Road)",
