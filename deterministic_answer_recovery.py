@@ -464,7 +464,7 @@ def _is_general_explanatory_question(question):
     """Recognize ordinary causal/explanatory questions that must remain answerable without retrieval."""
     q = _clean(question).casefold()
     return bool(re.search(
-        r"^\s*(?:how\s+(?:does|do)|why\s+(?:does|do)|what\s+(?:causes?|shapes?|influences?|affects?)|what\s+happens\s+(?:when|if))\b",
+        r"^\s*(?:how\s+(?:does|do)|why\s+(?:does|do)|what\s+(?:causes?|shapes?|influences?|affects?))\b",
         q,
     ))
 
@@ -480,7 +480,7 @@ def _general_explanatory_recovery(question):
     # Power-and-accountability questions are ordinary answerable conceptual
     # inquiries. They must not collapse into an Archive-evidence disclaimer
     # merely because retrieval does not return an exact canonical passage.
-    if re.search(r"\bpower\b", q) and re.search(r"\baccountab(?:ility|le)\b", q) and re.search(
+    if re.search(r"^\s*what\s+happens\s+(?:when|if)\b", q) and re.search(r"\bpower\b", q) and re.search(r"\baccountab(?:ility|le)\b", q) and re.search(
         r"\b(?:concentrat(?:ed|ion)|unchecked|without|lack(?:ing)?|unaccountable)\b", q
     ):
         return (
