@@ -2887,7 +2887,8 @@
       "transfer_boundary": "Transfer the discipline, not the exact prose or doorway. Apply only to questions genuinely involving relationships across scales. Do not authorize a systems doorway merely because a question mentions society, institutions, or change.",
       "canonical_doorway": "Systems Thinking & Civilizational Design",
       "provenance": "Migrated from GeraldDaquila/gold-standard-exemplars GS-2026-11-13-03; original implementation lineage 68a1bcc32d29f623320c1b196d7db29c41c4b82b; reconciled 2026-11-13.",
-      "subsystem": "general-purpose-guide"
+      "subsystem": "general-purpose-guide",
+      "expected_response": "For cross-scale inquiries, make the relationship between scales visible without collapsing either structure or agency. Wider patterns shape institutions, habits, technologies, relationships, and assumptions; local action occurs within those conditions while also reproducing, interpreting, challenging, or changing them. Repeated action can accumulate through organizations, networks, and communities. Wider structures condition action without making individual or local agency irrelevant."
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
