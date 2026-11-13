@@ -5232,6 +5232,14 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["response"] = _sanitize_basic_inquiry_response(
             general_guide_composition._systems_map_false_confidence_recovery()
         )
+        _systems_map_doorway = general_guide_composition._systems_map_false_confidence_doorway(query)
+        if _systems_map_doorway.get("doorway_title") and _systems_map_doorway.get("doorway_url"):
+            safe["recommendation"] = {
+                "title": _systems_map_doorway["doorway_title"],
+                "url": _systems_map_doorway["doorway_url"],
+            }
+            safe["doorway_title"] = _systems_map_doorway["doorway_title"]
+            safe["doorway_url"] = _systems_map_doorway["doorway_url"]
         # The public envelope may carry an authoritative doorway in either
         # the normalized recommendation or the upstream doorway pair. Preserve
         # both forms before attempting a new selection.
