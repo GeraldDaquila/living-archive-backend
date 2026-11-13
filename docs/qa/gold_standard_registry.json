@@ -2972,11 +2972,8 @@
       "subsystem": "general-purpose-guide",
       "query": "How does organizational culture shape ethical behavior?",
       "expected_response": "Organizational culture shapes ethical behavior by teaching people—often more powerfully than formal policies—what is actually safe, rewarded, tolerated, and expected. People learn from the choices leaders make, the behavior colleagues excuse or challenge, whose judgment carries authority, and what happens when someone raises a concern.\n\nThe gap between stated values and operating norms is often where culture becomes ethically consequential. An organization may have a strong code of conduct, but if speed is rewarded at any cost, difficult questions are treated as disloyal, or small breaches are routinely overlooked, those repeated signals can gradually redefine what feels normal. The reverse is also true: accountability, openness, and the protection of principled dissent become part of culture when people repeatedly see them practiced rather than merely promised.\n\nCulture is therefore not a single cause of ethical behavior, and it does not remove individual responsibility. It is one of the conditions that shapes judgment over time. The useful question is which signals, incentives, relationships, and consequences are reinforcing a pattern—and whether they make ethical action easier or harder when it matters.",
-      "expected_doorway": {
-        "title": null,
-        "url": null
-      },
-      "doorway_status": "OPTIONAL_NO_FIXED_CANONICAL_DOORWAY",
+      "expected_doorway": null,
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
       "rating_out_of_10": 9,
       "approval_state": "Explicitly elevated by user to Gold Star on 2026-11-14 after structural abstention repair and Gold Star refinement.",
       "assertions": [
