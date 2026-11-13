@@ -150,6 +150,9 @@ def _significance_recovery(subject, context=""):
     normalized = re.sub(r"\s+", " ", subject).strip().casefold()
     if normalized == "handoffs":
         normalized = "handoff"
+    # Known concepts may have canonical significance language, but qualified
+    # concepts must retain their full wording rather than collapsing to a bare
+    # noun before lookup.
     known = compose_definition_significance(normalized)
     if not known.startswith("I can't define "):
         return known
