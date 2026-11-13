@@ -150,6 +150,10 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         self.assertNotIn("I couldn't verify a reliable answer", answer)
         doorway = registered_recovery_recommendation(question)
         self.assertEqual(doorway["title"], "When Knowledge Is Everywhere")
+        self.assertEqual(
+            doorway["url"],
+            "https://geralddaquila.com/when-knowledge-is-everywhere/",
+        )
         self.assertEqual(doorway["url"], "https://geralddaquila.com/when-knowledge-is-everywhere/")
 
     def test_archive_purpose_recovery_is_narrow(self):
