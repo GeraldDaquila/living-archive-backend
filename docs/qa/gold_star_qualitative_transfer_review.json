@@ -245,6 +245,24 @@
       "qualifying_context": "Questions asking for a clear explanation of complex social, institutional, or systemic conditions while resisting monocausal stories.",
       "abstention_boundary": "Do not claim a specific cause of societal breakdown without evidence, flatten distinct contexts into one story, or convert an explanatory inquiry into decision coaching.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-contextual-synthesis-across-different-values-gold-star-2026-11-13",
+      "question": "Two archive texts appear to emphasize different values. How should the Guide identify the tension and reason toward a contextual synthesis?",
+      "reasoning_family": "contextual_synthesis_across_different_values",
+      "transferable_discipline": "Identify what each value protects, the conditions that give it weight, and what it can overlook in isolation; then use context to reason about their relationship without erasing the tension or forcing a universal hierarchy.",
+      "qualifying_context": "contextual synthesis across competing values and tensions",
+      "abstention_boundary": "Do not claim what unseen texts say, manufacture agreement where the values are genuinely incompatible, or use contextual synthesis to avoid making an evidence-supported judgment when one is required.",
+      "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-2026-11-13",
+      "question": "A government proposes a highly efficient predictive system for public services. What constitutional and human questions must precede adoption?",
+      "reasoning_family": "public_predictive_systems_constitutional_human_stewardship",
+      "transferable_discipline": "Establish the legitimacy, authority, rights, human recourse, historical inheritance, reversibility, and accountability of consequential public technology before evaluating efficiency.",
+      "qualifying_context": "public predictive systems, constitutional legitimacy, human participation, and stewardship",
+      "abstention_boundary": "Do not assume every predictive tool exercises consequential public power, invent constitutional requirements for a jurisdiction, or reject technology merely because it is automated.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
