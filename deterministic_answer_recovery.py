@@ -392,6 +392,15 @@ def registered_recovery_recommendation(question):
             "title": "When Knowledge Is Everywhere",
             "url": "https://geralddaquila.com/when-knowledge-is-everywhere/",
         }
+    if is_stewardship_failure_repair_question(question):
+        # Repair after a stewardship failure naturally continues into the
+        # question of how trustworthiness is rebuilt through lived responsibility.
+        # Pin the doorway here so generic recommendation ranking cannot replace
+        # this consequential continuation with a merely adjacent concept.
+        return {
+            "title": "How Do I Become More Trustworthy?",
+            "url": "https://geralddaquila.com/how-do-i-become-more-trustworthy/",
+        }
     return None
 
 
