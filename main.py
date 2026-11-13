@@ -5241,8 +5241,16 @@ def _guide_finalize_visitor_payload(payload, query):
         if not _existing_doorway:
             _existing_doorway = _normalize_authoritative_recommendation(
                 {
-                    "title": safe.get("doorway_title"),
-                    "url": safe.get("doorway_url") or safe.get("canonical_url"),
+                    "title": (
+                        safe.get("doorway_title")
+                        or payload.get("doorway_title")
+                    ),
+                    "url": (
+                        safe.get("doorway_url")
+                        or payload.get("doorway_url")
+                        or safe.get("canonical_url")
+                        or payload.get("canonical_url")
+                    ),
                 }
             )
         if not _existing_doorway:
