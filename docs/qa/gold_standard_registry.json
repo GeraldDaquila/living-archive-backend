@@ -2517,6 +2517,49 @@
         "approval_date": "2026-11-13"
       },
       "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
+    },
+    {
+      "benchmark_id": "general-guide-contextual-synthesis-across-different-values-gold-star-2026-11-13",
+      "subsystem": "general-purpose-guide",
+      "query": "Two archive texts appear to emphasize different values. How should the Guide identify the tension and reason toward a contextual synthesis?",
+      "expected_response": "Different emphases do not necessarily mean that two texts are making incompatible claims. The first step is to identify the value each text is trying to protect, the condition or problem it is responding to, and what may be lost if that value is treated as the only one that matters. The tension becomes clearer when the values are compared as different concerns rather than as positions that must immediately defeat one another.\n\nFrom there, context can do some of the synthesizing. Ask where each value has greater weight, what conditions make its emphasis necessary, and what risks appear when it is applied without the counterweight offered by the other text. A contextual synthesis does not erase the difference; it explains why both concerns may matter while refusing to treat either as universally sufficient.\n\nThe goal is therefore not to force agreement between the texts, but to make the relationship between their values more intelligible: what each preserves, what each can overlook, and how the surrounding circumstances change the balance between them. That leaves the tension visible while turning it into a more useful question of judgment.",
+      "expected_doorway": {
+        "title": "ARC-002: The Banyan Arc — Toward an Institutional Curriculum for Cultural Memory and Coherent Leadership",
+        "url": "https://geralddaquila.com/arc-002-the-banyan-arc-toward-an-institutional-curriculum-for-cultural-memory-and-coherent-leadership/"
+      },
+      "assertions": [
+        "Exactly three substantive paragraphs.",
+        "Does not invent the contents of the two archive texts.",
+        "Identifies what each value protects, the condition it responds to, and what may be lost when isolated.",
+        "Uses context to reason about relative weight without erasing the underlying tension.",
+        "Preserves difference rather than forcing premature agreement.",
+        "Ends by orienting the visitor toward judgment rather than a universal formula.",
+        "Includes one distinct, evidence-backed doorway that continues the inquiry."
+      ],
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "known_theme": "contextual synthesis across competing values and tensions",
+      "related_question_variants": [
+        "How should the Guide handle two sources that seem to recommend different principles?",
+        "How can conflicting values be held together without pretending they are the same?",
+        "How should context affect the balance between two legitimate institutional concerns?"
+      ],
+      "gold_star_capabilities": {
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "reasoning_family": "contextual_synthesis_across_different_values",
+        "transferable_discipline": "Identify what each value protects, the conditions that give it weight, and what it can overlook in isolation; then use context to reason about their relationship without erasing the tension or forcing a universal hierarchy.",
+        "abstention_boundary": "Do not claim what unseen texts say, manufacture agreement where the values are genuinely incompatible, or use contextual synthesis to avoid making an evidence-supported judgment when one is required."
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_ref": "live visitor-path result following structural contextual-synthesis and canonical doorway repairs, elevated by explicit user approval",
+        "source_pr": "direct canonical ledger addition",
+        "verification_context": "live production behavioral validation with a distinct evidence-backed doorway",
+        "approval_date": "2026-11-13"
+      },
+      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
     }
   ],
   "last_reconciliation_note": "Canonical additive ledger integrity normalization: approved Gold Stars use explicit known_theme and runtime_transfer fields; doorway state is explicit. Legacy incomplete doorway metadata is represented as non-authoritative rather than silently inferred.",
