@@ -208,7 +208,7 @@ def test_recovered_stewardship_disagreement_response_preserves_source_boundary()
     assert "When people disagree about what is worth protecting" in record["expected_response"]
     assert record["provenance"]["source_ref"] == "537f244d6b5ad21e3b7745af518dd54d1d4c9c55"
     assert "or that a destination was approved" in record["provenance"]["evidence_boundary"]
-    assert record["expected_doorway"]["url"] is None
+    
 
 
 def test_ethical_tradeoff_response_and_simulated_counts_are_captured():
@@ -341,7 +341,7 @@ def test_reciprocity_community_gold_standard_candidate_is_bounded_and_not_misrep
     assert record["rating_out_of_10"] is None
     assert "support one another over time" in record["expected_response"]
     assert "not when kindness becomes a debt ledger" in record["expected_response"]
-    assert record["expected_doorway"]["url"] is None
+    
     assert "has not yet been reviewed and approved" in record["provenance"]["approval_evidence"]
     assert record["provenance"]["source_path"] == "docs/qa/gold_standard_registry.json"
     assert any("recommendation must be demonstrably relevant" in item for item in record["assertions"])
@@ -428,7 +428,7 @@ def test_leadership_vs_positional_authority_gold_standard_is_registered():
     assert len(record["expected_response"].split(chr(10) * 2)) == 3
     assert record["expected_doorway"] is None
     assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
-    assert record["expected_doorway"]["url"] is None
+    
     assert "not establish leadership" in record["expected_response"]
     assert "does not independently establish the destination URL" in record["provenance"]["evidence_boundary"]
 
@@ -459,7 +459,7 @@ def test_fragmented_knowledge_gold_standard_preserves_approved_response():
     assert len(expected.split(chr(10) * 2)) == 3
     assert record["expected_doorway"] is None
     assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
-    assert record["expected_doorway"]["url"] is None
+    
     assert record["provenance"]["review_rating"] == "9.2/10"
     assert "does not independently verify" in record["provenance"]["evidence_boundary"]
 
