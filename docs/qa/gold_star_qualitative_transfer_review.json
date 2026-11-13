@@ -299,6 +299,15 @@
       "qualifying_context": "open questions, uncertainty, orientation, judgment, and the limits of closure",
       "abstention_boundary": "Do not manufacture closure because a visitor requests a final answer, prematurely translate an open inquiry into a decision problem, romanticize vagueness, or treat a necessary decision as proof that the underlying question is settled.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-delegated-judgment-moral-limits-gold-star-2026-11-13",
+      "question": "What are the moral limits of delegating judgment to systems or institutions?",
+      "reasoning_family": "delegation_accountability_and_moral_responsibility",
+      "transferable_discipline": "Distinguish legitimate delegation from disappearance of responsibility; test whether reasons, values, contestability, correction, and ultimate accountability remain visible; scale safeguards to the seriousness of consequences.",
+      "qualifying_context": "delegated judgment, institutions, moral responsibility, accountability, and legitimacy",
+      "abstention_boundary": "Do not treat delegation as inherently illegitimate, reduce the question narrowly to AI, confuse efficiency or formal procedure with legitimacy, or imply that institutional decision-making eliminates human moral responsibility.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
