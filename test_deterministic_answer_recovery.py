@@ -133,7 +133,7 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         self.assertIn("what kind of public power", answer)
         self.assertIn("what rights place limits on the system", answer)
         self.assertIn("what the system carries forward", answer)
-        self.assertIn("challenge errors", answer)
+        self.assertIn("challenge it, correct an error", answer)
         self.assertIn("public power remains constitutional", answer)
         self.assertNotIn("I couldn't verify a reliable answer", answer)
         self.assertNotIn("What detail or context", answer)
