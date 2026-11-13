@@ -5631,6 +5631,18 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         _recovery_doorway = _normalize_authoritative_recommendation(
             context_data.get("authoritative_doorway")
         ) if isinstance(context_data, dict) else None
+        # A registered foundational-purpose recovery owns its canonical doorway.
+        # Do not let a broader retrieval recommendation displace the precise
+        # continuation selected by the recovery contract.
+        try:
+            from deterministic_answer_recovery import (
+                _is_archive_purpose_question as _registered_archive_purpose_question,
+                registered_recovery_recommendation as _registered_recovery_recommendation,
+            )
+            if _registered_archive_purpose_question(query):
+                _recovery_doorway = _registered_recovery_recommendation(query)
+        except Exception:
+            pass
         return {
             "response": _conceptual_recovery,
             "doorway_title": (
