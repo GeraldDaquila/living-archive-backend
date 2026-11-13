@@ -1577,6 +1577,25 @@ def _faithful_stewardship_values_conflict_recovery() -> str:
     )
 
 
+def _requires_systems_map_false_confidence_explanation(query: str) -> bool:
+    """Recognize the bounded conceptual question about when maps clarify versus overstate certainty."""
+    q = _normalize_space(query).casefold()
+    return bool(
+        re.search(r"\bsystems?\s+map\b", q)
+        and re.search(r"\b(?:useful|usefulness|helpful)\b", q)
+        and re.search(r"\b(?:false confidence|overconfiden|mislead|certainty)\b", q)
+    )
+
+
+def _systems_map_false_confidence_recovery() -> str:
+    """Provide orientation without treating a representation as evidence of the system itself."""
+    return (
+        "A systems map is useful when it helps make relationships visible that would otherwise remain scattered or implicit. It can clarify dependencies, feedback, delays, bottlenecks, and points where an action may produce consequences elsewhere. Its value is not that it gives a complete picture, but that it makes assumptions about how a situation is connected explicit enough to examine, question, and revise.\n\n"
+        "A map can create false confidence when its lines and labels are mistaken for proof. Every map selects what to include, what to leave out, and how to describe relationships; uncertain links can look as solid as well-supported ones. A neat diagram may therefore conceal missing evidence, alternative explanations, changing conditions, or perspectives that were never represented. The more complex the situation, the more important it is to distinguish a useful hypothesis about the system from a verified account of it.\n\n"
+        "The practical discipline is to treat a systems map as an instrument for inquiry rather than a final answer. Ask which relationships are evidenced, which are inferred, whose experience or knowledge is absent, and what observations would require the map to change. Used this way, a map can improve judgment by revealing questions worth testing. Used as a substitute for evidence or ongoing attention to reality, it can make uncertainty look settled and give confidence greater precision than the situation deserves."
+    )
+
+
 def _requires_systems_vs_separate_problems_explanation(query: str) -> bool:
     q = _normalize_space(query).casefold()
     return bool(re.search(r"\b(?:what makes|what distinguishes|how is|how does|when does)\b", q) and re.search(r"\b(?:system|systems)\b", q) and re.search(r"\b(?:rather than|instead of|as opposed to|collection of|separate problems?|isolated problems?)\b", q))
@@ -3350,6 +3369,22 @@ def compose(
         if archive_meaning_recovery is not None:
             _emit_guide_outcome("provider_exhaustion_fallback", recovery="archive_meaning_evidence")
             return archive_meaning_recovery
+
+        if _requires_systems_map_false_confidence_explanation(question):
+            doorway = _select_verified_recovery_doorway(question, documents)
+            _emit_guide_outcome(
+                "provider_exhaustion_fallback",
+                recovery="systems_map_false_confidence",
+                doorway=bool(doorway["doorway_title"]),
+            )
+            return {
+                "response": _systems_map_false_confidence_recovery(),
+                "doorway_title": doorway["doorway_title"],
+                "doorway_url": doorway["doorway_url"],
+                "response_shape": "explanatory",
+                "provider": "bounded_systems_map_recovery",
+                "model": "deterministic-contract-recovery",
+            }
 
         if _requires_growth_within_limits_explanation(question):
             _emit_guide_outcome("provider_exhaustion_fallback", recovery="growth_within_limits")
