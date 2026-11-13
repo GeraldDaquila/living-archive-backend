@@ -130,7 +130,7 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         answer = compose_recovery(question)
         paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
         self.assertEqual(len(paragraphs), 3)
-        self.assertIn("what public authority is being exercised", answer)
+        self.assertIn("what kind of public power", answer)
         self.assertIn("rights or protections must not be weakened", answer)
         self.assertIn("what the system cannot see", answer)
         self.assertIn("challenge errors", answer)
