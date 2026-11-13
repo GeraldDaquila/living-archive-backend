@@ -5232,9 +5232,29 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["response"] = _sanitize_basic_inquiry_response(
             general_guide_composition._systems_map_false_confidence_recovery()
         )
-        safe["recommendation"] = _normalize_authoritative_recommendation(
+        _existing_doorway = _normalize_authoritative_recommendation(
             safe.get("recommendation")
         )
+        if not _existing_doorway:
+            _retrieved_docs = []
+            try:
+                _retrieved_docs = (
+                    payload.get("documents")
+                    or payload.get("retrieved_documents")
+                    or payload.get("sources")
+                    or []
+                )
+            except AttributeError:
+                _retrieved_docs = []
+            _selected = general_guide_composition._select_verified_recovery_doorway(
+                query, _retrieved_docs
+            )
+            _existing_doorway = (
+                {"title": _selected["doorway_title"], "url": _selected["doorway_url"]}
+                if _selected.get("doorway_title") and _selected.get("doorway_url")
+                else None
+            )
+        safe["recommendation"] = _existing_doorway
         safe["processing"] = "final_visitor_boundary_systems_map_inquiry"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
