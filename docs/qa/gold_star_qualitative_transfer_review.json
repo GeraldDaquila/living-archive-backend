@@ -326,6 +326,15 @@
       "qualifying_context": "questions about relationships between local action and wider social, institutional, or civilizational patterns; cross-scale structure and agency",
       "abstention_boundary": "Transfer the discipline, not the exact prose or doorway. Do not treat either scale as a complete explanation and do not attach a systems doorway unless it genuinely extends the inquiry.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-humane-performance-not-instrumental-treatment",
+      "question": "How can an organization pursue performance without treating people as instruments?",
+      "reasoning_family": "humane_performance_responsible_relationships",
+      "transferable_discipline": "Pursue demanding institutional outcomes while judging the means as part of performance: protect human dignity, judgment, voice, participation, and the conditions for sustained responsible work.",
+      "qualifying_context": "organizational performance, management, productivity, human dignity, instrumental treatment, workloads, accountability, participation, trust, judgment",
+      "abstention_boundary": "Transfer the discipline, not the exact answer or doorway. Apply only to genuine tensions between organizational performance and the treatment of people; do not imply that humane treatment requires abandoning standards or accountability.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
