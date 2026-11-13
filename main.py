@@ -6235,7 +6235,13 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         and re.search(r"\b(?:archive|living archive)\b", question, re.I)
         and re.search(r"\b(?:what does|what do|what is|what are|mean|means|meaning)\b", question, re.I)
     )
-    if content:
+    # Navigation metadata is not answer evidence. It may establish a doorway,
+    # but it must never become the prose offered as a starting point.
+    _navigation_metadata = (
+        content.startswith("Navigation destination:")
+        or "Metadata only; do not treat this record as factual source evidence." in content
+    )
+    if content and not _navigation_metadata:
         explanation = f"The Archive material available here offers this starting point: “{content[:360].rstrip()}”"
         opening = f"The question is asking about {underlying.rstrip('.')}." if underlying else f"Your question asks: {question.rstrip('?')}."
         if movement:
