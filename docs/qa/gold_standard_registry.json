@@ -2659,6 +2659,52 @@
         "provenance_verified_date": "2026-11-13"
       },
       "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
+    },
+    {
+      "benchmark_id": "general-guide-modes-of-knowing-dialogue-gold-star-2026-11-13",
+      "subsystem": "general-purpose-guide",
+      "query": "How should these modes of knowing be placed in dialogue without being confused with one another?",
+      "expected_response": "Different modes of knowing do not need to be made identical in order to be held in dialogue. The first task is to ask what each mode can illuminate, what kind of claim it can support, and what remains outside its reach. Evidence, lived experience, professional judgment, historical understanding, and moral concern may all matter to the same question, but they do not answer it in the same way. Keeping those differences visible prevents one form of knowing from being mistaken for the whole.\n\nDialogue begins when the forms of knowledge are allowed to question and inform one another without being forced into a single vocabulary or hierarchy. Ask where they converge, where they reveal a tension, and whether an apparent conflict comes from different evidence, different experiences, or different values. The aim is not to make every perspective agree, but to understand what each contributes and what would be lost if one were excluded.\n\nOnly then should the conversation move toward a decision or collective action. Compare the available options, make consequences visible, and include the knowledge of people who will live with those consequences. A responsible judgment remains accountable for the choice it makes, but it does not pretend that one mode of knowing has cancelled the others. The point is to create a clearer field for judgment: differentiated knowledge held in relation, with both its contributions and its limits still visible.",
+      "expected_doorway": {
+        "title": "Being in the Driver's Seat (Without Pretending You Control the Road)",
+        "url": "https://geralddaquila.com/being-in-the-drivers-seat-without-pretending-you-control-the-road/"
+      },
+      "assertions": [
+        "Answers the conceptual question before moving to application.",
+        "Preserves distinctions between modes of knowing rather than collapsing them into one hierarchy.",
+        "Explains dialogue as mutual questioning and informing, including convergence, tension, evidence, experience, and values.",
+        "Moves toward judgment only after differentiated knowledge has been held in relation.",
+        "Maintains accountable judgment without claiming one mode cancels the others.",
+        "Includes the canonical continuation doorway."
+      ],
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "known_theme": "modes of knowing, dialogue, differentiated knowledge, judgment, and responsible action",
+      "related_question_variants": [
+        "How can different ways of knowing inform each other without being collapsed?",
+        "How do we hold evidence, experience, judgment, and values together without confusing them?",
+        "How can different forms of knowledge be brought into dialogue?"
+      ],
+      "gold_star_capabilities": {
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "generation_class": "deterministic_curated_recovery_exemplar",
+        "reasoning_family": "differentiated_modes_of_knowing_dialogue",
+        "transferable_discipline": "Preserve the differences between forms of knowing; let them inform and challenge one another without forced equivalence; only then move toward accountable judgment while keeping contributions and limits visible.",
+        "abstention_boundary": "Do not collapse distinct forms of knowing into a single hierarchy, pretend every perspective must agree, treat disagreement as automatically resolvable, or let one mode claim total authority over questions outside its reach.",
+        "primary_response_source": "deterministic fallback via _modes_of_knowing_dialogue_recovery()",
+        "llm_origin": false
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_ref": "live visitor-path calibration result following structural recovery repair, elevated by explicit user approval",
+        "source_pr": "direct canonical ledger addition",
+        "verification_context": "rendered production validation of exact response and canonical doorway",
+        "approval_date": "2026-11-13",
+        "primary_response_provenance": "The approved response is served by the deterministic modes-of-knowing recovery path for the narrowly recognized dialogue question family.",
+        "provenance_verified_date": "2026-11-13"
+      },
+      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
