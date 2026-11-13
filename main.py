@@ -10490,11 +10490,21 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # so no downstream recommendation can replace the recovery's continuation.
     try:
         from deterministic_answer_recovery import (
-            _is_archive_purpose_question as _final_archive_purpose_question,
+            has_registered_recovery as _final_has_registered_recovery,
             registered_recovery_recommendation as _final_recovery_recommendation,
         )
-        if _final_archive_purpose_question(query):
-            authoritative_doorway = _final_recovery_recommendation(query)
+        # Every registered recovery that authorizes a canonical doorway owns that
+        # doorway through the final visitor payload. The Guide's role as an entry
+        # door into the Archive must not depend on one privileged inquiry family.
+        if _final_has_registered_recovery(query):
+            _registered_doorway = _final_recovery_recommendation(query)
+            if _registered_doorway:
+                authoritative_doorway = _registered_doorway
+                composition_context["authoritative_doorway"] = authoritative_doorway
+                composition_context["authoritative_doorway_title"] = (
+                    authoritative_doorway.get("title") or ""
+                )
+                print("The Guide final payload boundary: enforced registered recovery canonical doorway.")
     except Exception:
         pass
 
