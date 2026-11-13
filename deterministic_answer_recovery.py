@@ -837,10 +837,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         significance_subject = re.sub(
             r"^(?:a|an|the)\s+", "", significance_question.group(1), flags=re.I
         )
-        significance_subject = re.sub(
-            r"^(?:clear|good|effective|reliable|poor|weak|strong|timely)\s+",
-            "", significance_subject, flags=re.I
-        )
+        # Preserve qualifiers: "clear handoff" is a distinct concept, not merely
+        # a handoff. Removing them produced malformed generic recovery prose.
         significance_context = significance_question.group(2) or ""
         answer = _significance_recovery(significance_subject, significance_context)
     elif re.search(r"\b(?:why|what causes|reason for)\b", lower):
