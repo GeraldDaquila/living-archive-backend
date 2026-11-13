@@ -406,6 +406,35 @@ def _commons_care_recovery():
     )
 
 
+def _is_humane_performance_question(question):
+    """Recognize organizational-performance questions that explicitly protect human dignity."""
+    q = _clean(question).casefold()
+    performance = bool(re.search(r"\b(?:pursue|improve|increase|balance|deliver)\s+(?:organizational\s+)?performance\b|\bperformance\b", q))
+    organization = bool(re.search(r"\b(?:organization|organisation|institution|company|workplace)\b", q))
+    dignity = bool(re.search(
+        r"\b(?:treat(?:ing)?\s+people\s+as\s+instruments?|people\s+as\s+means|"
+        r"human\s+dignity|not\s+reduce\s+people\s+to\s+(?:resources?|inputs?|tools?))\b",
+        q,
+    ))
+    return performance and organization and dignity
+
+
+def _humane_performance_recovery():
+    """Answer the performance-and-human-dignity tension without making it retrieval-dependent."""
+    return (
+        "An organization can pursue performance without treating people as instruments by defining performance as a result achieved through responsible relationships, not merely as an output extracted from human beings. The practical discipline is to ask two questions together: what must the organization accomplish, and what conditions must remain intact for the people involved to retain dignity, judgment, voice, and the ability to flourish? A target that can only be met by making people disposable, silencing their experience, or treating them as interchangeable inputs has hidden costs that a narrow performance measure is failing to see.\n\n"
+        "In practice, this changes how decisions are made. Suppose a team can improve short-term output by intensifying workloads. The organization should examine not only the immediate gain, but whether the change erodes health, learning, trust, or the capacity to exercise judgment. Those consequences are not sentimental additions to performance; they affect whether the institution can sustain good work and correct itself when conditions change. People should therefore be participants in understanding the work and its consequences, not merely objects of management.\n\n"
+        "The tension does not disappear, and humane treatment does not mean abandoning standards or accountability. It means making the means of achieving performance part of what is judged. Clear expectations, fair authority, protected dissent, and opportunities for correction help an organization pursue demanding goals without confusing efficiency with permission to use people however it wishes. The deeper test is whether success leaves the institution and the people within it more capable of responsible work together."
+    )
+
+
+# Regression invariant: a common institutional question about performance and
+# human dignity must never collapse into the legacy Archive-verification abstention.
+_humane_performance_probe = "How can an organization pursue performance without treating people as instruments?"
+if not _is_humane_performance_question(_humane_performance_probe):
+    raise RuntimeError("Humane-performance recovery invariant failed")
+
+
 def _archive_purpose_recovery():
     """Explain the Archive's orientation problem without claiming a single total cause."""
     return (
@@ -423,6 +452,7 @@ def has_registered_recovery(question):
         or _is_commons_care_question(question)
         or _is_feedback_loops_institutions_question(question)
         or _is_systems_explanation_vs_simplistic_connection_question(question)
+        or _is_humane_performance_question(question)
         or _is_modes_of_knowing_dialogue_question(question)
         or is_stewardship_failure_repair_question(question)
     )
@@ -532,6 +562,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = _feedback_loops_institutions_recovery()
     elif _is_systems_explanation_vs_simplistic_connection_question(q):
         answer = _systems_explanation_vs_simplistic_connection_recovery()
+    elif _is_humane_performance_question(q):
+        answer = _humane_performance_recovery()
     elif civilizational_transition:
         answer = (
             "In the Living Archive, civilizational transition refers to a period in which the systems that organize collective life are changing together, rather than a single government, technology, or economic arrangement simply being replaced. "
