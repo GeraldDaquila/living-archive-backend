@@ -2224,9 +2224,31 @@ def _select_verified_recovery_doorway(
     selected = max(candidates, key=lambda item: item[:3])
     return {"doorway_title": selected[3], "doorway_url": selected[4]}
 
+def _open_question_orientation_recovery(question: str) -> Optional[str]:
+    """Orient without manufacturing closure when the visitor explicitly asks about an inherently open question."""
+    normalized = _normalize_space(question).casefold()
+    asks_guide_response = bool(re.search(r"\b(?:how should|what should)\s+(?:the )?guide\s+respond\b", normalized))
+    names_open_question = bool(re.search(
+        r"\b(?:final|definitive|one)\s+answer\b.{0,80}\b(?:inherently|genuinely|fundamentally)?\s*open\s+question\b|"
+        r"\b(?:inherently|genuinely|fundamentally)\s+open\s+question\b",
+        normalized,
+    ))
+    if asks_guide_response and names_open_question:
+        return (
+            "When a question is genuinely open, the Guide should not manufacture closure simply because someone asks for a final answer. "
+            "Its first responsibility is to make the shape of the uncertainty visible: what is known, what remains contested or unclear, and which parts of the question depend on evidence, interpretation, values, or judgment. An honest answer can still be useful without pretending that uncertainty has disappeared.\n\n"
+            "The Guide can then help place the possibilities in relation. It can distinguish stronger evidence from weaker claims, identify assumptions that are doing hidden work, show where reasonable interpretations diverge, and clarify what consequences follow from different ways of understanding the question. The purpose is not to leave the visitor with vagueness, but to provide orientation without converting an open inquiry into false certainty.\n\n"
+            "Where a decision still has to be made, the Guide can help clarify what must be judged and who remains responsible for that judgment. But the decision should not be mistaken for proof that the open question has finally been settled. Sometimes the most responsible next step is a conclusion; sometimes it is a better question, further inquiry, or a clearer recognition of what cannot yet be known."
+        )
+    return None
+
+
 def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     """Provide bounded general-knowledge recovery for a recognized, well-established concept pair."""
     normalized = _normalize_space(question).casefold()
+    _open_question_recovery = _open_question_orientation_recovery(question)
+    if _open_question_recovery:
+        return _open_question_recovery
     if re.search(r"\bagency\b", normalized) and re.search(r"\bcircumstances?\b", normalized):
         return (
             "Agency is a person’s capacity to choose and act; circumstance is the set of conditions in which those choices are made. "
