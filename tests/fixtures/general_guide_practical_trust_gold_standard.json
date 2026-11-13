@@ -1,0 +1,44 @@
+{
+  "registry_id": 20,
+  "benchmark_id": "general-guide-practical-trust-application-2026-10-22",
+  "status": "ACCEPTED_GOLD_STANDARD",
+  "rating": 9,
+  "recorded_at": "2026-10-22",
+  "purpose": "Behavioral-quality reference for explicit practical-application questions. This records the accepted live visitor response; it is not a rigid answer template.",
+  "query": "I understand the importance of trust, but what would I actually do differently in an organization trying to live by it?",
+  "observed_accepted_response": "Start with one recurring situation where trust matters, such as a decision that affects a team. Ask the people affected what they see before deciding, and separate observable facts from assumptions. Explain the reasons for the decision, name who is responsible for the next step, and follow through when promised. Then check with the people affected whether the action changed their experience; good intentions alone are not evidence that trust has improved. Where would this make the biggest difference right now: decision-making, handling disagreement, or responding when something goes wrong?",
+  "expected_recommendation": "none",
+  "assessment": {
+    "meets_expectations": true,
+    "gold_standard": true,
+    "strengths": [
+      "Answers the practical-application request with observable organizational behaviors.",
+      "Includes accountability and follow-through rather than relying on good intentions.",
+      "Checks outcomes with the people affected.",
+      "Uses humane, restrained, concrete language.",
+      "Ends with one focused question that helps the visitor choose a practical starting point."
+    ],
+    "disallowed_regressions": [
+      "Abstract reflection framework without concrete organizational actions.",
+      "Asking the visitor to make the question concrete before offering useful action.",
+      "Unsolicited Workshops & Advisory or other service doorway for a practical how-to question."
+    ],
+    "recommendation_relevance_is_evaluated_separately": true,
+    "notes": "Accepted from live visitor screenshot on 2026-10-22 after final practical-answer and doorway-boundary correction. The observed response is a reference example, not mandatory wording for every practical question."
+  },
+  "invariants": [
+    "At least two concrete, observable organizational actions must be present.",
+    "The answer must address what the visitor could do differently before asking a follow-up.",
+    "The answer must not automatically attach a service recommendation unless the visitor explicitly asks to find a resource.",
+    "The closing question should be focused and useful, not a request for the visitor to make the original question concrete.",
+    "Preserve protected use_core.py and provider neutrality.",
+    "Fuzzy relevance remains shadow-only and must not control answer selection or doorway selection."
+  ],
+  "freeze_policy": [
+    "This is a frozen behavioral-quality reference, not a verbatim answer template.",
+    "Do not rewrite the accepted response to accommodate a regression.",
+    "Do not modify protected use_core.py.",
+    "Future changes to the registry require a documented addition or explicit benchmark-version change.",
+    "API tests alone do not substitute for live visitor/browser verification."
+  ]
+}
