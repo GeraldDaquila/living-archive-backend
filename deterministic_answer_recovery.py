@@ -344,6 +344,21 @@ def _is_archive_purpose_question(question):
     ))
 
 
+def _is_feedback_loops_institutions_question(question):
+    """Recognize systems inquiries about feedback loops shaping institutions."""
+    q = _clean(question).casefold()
+    return bool(re.search(r"\bfeedback\s+loops?\b", q) and re.search(r"\b(?:human\s+)?institutions?|organizations?|systems?\b", q))
+
+
+def _feedback_loops_institutions_recovery():
+    """Provide a bounded systems orientation grounded in Archive themes."""
+    return (
+        "Feedback loops shape human institutions because the consequences of earlier decisions become conditions for later decisions. A rule, incentive, or practice changes what people experience; their responses then affect the information, trust, resources, and pressures that return to the institution. Over time, those responses can reinforce the original pattern or push it toward correction.\n\n"
+        "Some loops are reinforcing: success can attract resources that make further success easier, while exclusion or distrust can reduce participation and weaken an institution's ability to learn. Other loops are balancing: complaints, oversight, independent evidence, and opportunities for correction can reveal when a practice is producing consequences its designers did not intend. The distinction is not simply whether feedback is positive or negative, but whether the institution can notice consequences and change course before a pattern becomes self-protecting.\n\n"
+        "From the Archive's perspective, the important task is to make these relationships visible without treating a system as something separate from human judgment. Ask what information returns to decision-makers, whose experience is heard or excluded, what incentives reward repetition, and who has the authority to correct a harmful pattern. Feedback becomes a form of institutional learning only when people can interpret what they are seeing and remain responsible for acting on it. The aim is therefore not to eliminate loops, but to cultivate institutions capable of learning from their own consequences."
+    )
+
+
 def _is_commons_care_question(question):
     """Recognize open inquiries about stewardship of shared conditions and goods."""
     q = _clean(question).casefold()
@@ -378,6 +393,7 @@ def has_registered_recovery(question):
         _is_public_predictive_system_question(question)
         or _is_archive_purpose_question(question)
         or _is_commons_care_question(question)
+        or _is_feedback_loops_institutions_question(question)
         or _is_modes_of_knowing_dialogue_question(question)
         or is_stewardship_failure_repair_question(question)
     )
@@ -416,6 +432,11 @@ def registered_recovery_recommendation(question):
         return {
             "title": "How Do I Become More Trustworthy?",
             "url": "https://geralddaquila.com/how-do-i-become-more-trustworthy/",
+        }
+    if _is_feedback_loops_institutions_question(question):
+        return {
+            "title": "Unraveling Stress: How the System Responds and Why It Loops",
+            "url": "https://geralddaquila.com/unraveling-stress-how-the-system-responds-and-why-it-loops/",
         }
     if is_stewardship_failure_repair_question(question):
         # Repair after a stewardship failure naturally continues into the
@@ -470,6 +491,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = _archive_purpose_recovery()
     elif _is_commons_care_question(q):
         answer = _commons_care_recovery()
+    elif _is_feedback_loops_institutions_question(q):
+        answer = _feedback_loops_institutions_recovery()
     elif civilizational_transition:
         answer = (
             "In the Living Archive, civilizational transition refers to a period in which the systems that organize collective life are changing together, rather than a single government, technology, or economic arrangement simply being replaced. "
