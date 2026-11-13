@@ -3068,6 +3068,33 @@ if _is_normative_conflict_explanatory_request("What does stewardship mean?"):
     raise RuntimeError("USE normative-conflict routing overcaptured a bounded definition")
 
 
+def _is_open_inquiry_request(query):
+    """Keep relational, consequential, and process questions with The Guide.
+
+    The Glossary is a vocabulary surface. Questions asking what something looks
+    like, what follows a condition, or how repair, responsibility, or change
+    should be understood require orientation and must never be reduced to a
+    term lookup merely because they contain a canonical Archive word.
+    """
+    normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
+    if not normalized:
+        return False
+    patterns = (
+        r"^what does .{1,160}\blook like\b",
+        r"^how (?:can|do|does|should|might|could|would)\b",
+        r"^what (?:happens|follows|comes next)\b",
+        r"\b(?:after|following|in the wake of)\s+(?:a|an|the)?\s*(?:failure|breakdown|loss|conflict|crisis|harm)\b",
+    )
+    return any(re.search(pattern, normalized) for pattern in patterns)
+
+
+# Structural routing invariant: open inquiries never become malformed Glossary lookups.
+if not _is_open_inquiry_request("What does repair look like after a stewardship failure?"):
+    raise RuntimeError("USE open-inquiry routing invariant failed")
+if _is_open_inquiry_request("What does stewardship mean?"):
+    raise RuntimeError("USE open-inquiry boundary overcaptured a term definition")
+
+
 def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     """Return True only for a bounded vocabulary lookup.
 
@@ -3081,6 +3108,8 @@ def _is_bounded_glossary_request(query, glossary_term="", embedded_term=""):
     if not normalized or not term:
         return False
     if _is_comparative_explanatory_request(query):
+        return False
+    if _is_open_inquiry_request(query):
         return False
 
     # Institutional-scope meaning questions ask for an explanation of how a
@@ -3219,6 +3248,12 @@ if _is_bounded_glossary_request(
     glossary_term=_normalize_glossary_term("What is the meaning of emptiness?"),
 ) is not False:
     raise RuntimeError("USE glossary fallback invariant failed: unknown glossary term was handed off instead of remaining with the Guide")
+
+if _is_bounded_glossary_request(
+    "What does repair look like after a stewardship failure?",
+    glossary_term=_normalize_glossary_term("What does repair look like after a stewardship failure?"),
+) is not False:
+    raise RuntimeError("USE open inquiry was incorrectly routed to Glossary")
 
 for _conceptual_glossary_regression in (
     "What is the role of trust in community stewardship?",
