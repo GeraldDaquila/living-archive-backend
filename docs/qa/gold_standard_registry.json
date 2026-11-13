@@ -2875,6 +2875,18 @@
       },
       "known_theme": "migrated gold star",
       "runtime_transfer": true
+    },
+    {
+      "benchmark_id": "gs-2026-11-13-03-cross-scale-orientation-canonical-continuation",
+      "query": "How do local actions connect to civilizational patterns without reducing one to the other?",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "runtime_transfer": true,
+      "reasoning_family": "cross_scale_structure_agency",
+      "accepted_response": "For cross-scale inquiries, make the relationship between scales visible without collapsing either structure or agency. Wider patterns shape institutions, habits, technologies, relationships, and assumptions; local action occurs within those conditions while also reproducing, interpreting, challenging, or changing them. Repeated action can accumulate through organizations, networks, and communities. Wider structures condition action without making individual or local agency irrelevant.",
+      "transferable_lesson": "For cross-scale inquiries, make the relationship between scales visible, preserve both structure and agency, and avoid treating either local action or wider patterns as a complete explanation on its own.",
+      "transfer_boundary": "Transfer the discipline, not the exact prose or doorway. Apply only to questions genuinely involving relationships across scales. Do not authorize a systems doorway merely because a question mentions society, institutions, or change.",
+      "canonical_doorway": "Systems Thinking & Civilizational Design",
+      "provenance": "Migrated from GeraldDaquila/gold-standard-exemplars GS-2026-11-13-03; original implementation lineage 68a1bcc32d29f623320c1b196d7db29c41c4b82b; reconciled 2026-11-13."
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
