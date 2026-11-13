@@ -5399,10 +5399,16 @@ def _guide_finalize_visitor_payload(payload, query):
     # overwrite an otherwise valid visitor response merely because its query
     # also has a registered deterministic recovery.
     _outer_clean_substantive_payload = bool(
-        str(response_text or "").strip()
-        and not _basic_inquiry_has_internal_annotation(response_text)
-        and not _basic_inquiry_has_source_dump(response_text)
-        and not _outer_legacy_abstention
+        (
+            str(response_text or "").strip()
+            and not _basic_inquiry_has_internal_annotation(response_text)
+            and not _basic_inquiry_has_source_dump(response_text)
+            and not _outer_legacy_abstention
+        )
+        # A payload already repaired by the shared final boundary is canonical
+        # for transport/template contamination. Preserve that recovery rather
+        # than allowing the outer guard to compose a second, shorter answer.
+        or str(payload.get("processing") or "") == "final_visitor_boundary_recovery"
     )
     _outer_recovery_required = bool(
         _outer_response_failure and not _outer_clean_substantive_payload
