@@ -1,0 +1,25 @@
+name: USE Preflight Integrity
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/qa/gold_standard_registry.json'
+      - 'docs/qa/gold_star_qualitative_transfer_review.json'
+      - 'gold_star_lessons.py'
+      - 'scripts/validate_gold_star_registry.py'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/qa/gold_standard_registry.json'
+      - 'docs/qa/gold_star_qualitative_transfer_review.json'
+      - 'gold_star_lessons.py'
+      - 'scripts/validate_gold_star_registry.py'
+
+jobs:
+  gold-star-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate canonical Gold Star registry
+        run: python scripts/validate_gold_star_registry.py
