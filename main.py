@@ -5232,9 +5232,19 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["response"] = _sanitize_basic_inquiry_response(
             general_guide_composition._systems_map_false_confidence_recovery()
         )
+        # The public envelope may carry an authoritative doorway in either
+        # the normalized recommendation or the upstream doorway pair. Preserve
+        # both forms before attempting a new selection.
         _existing_doorway = _normalize_authoritative_recommendation(
             safe.get("recommendation")
         )
+        if not _existing_doorway:
+            _existing_doorway = _normalize_authoritative_recommendation(
+                {
+                    "title": safe.get("doorway_title"),
+                    "url": safe.get("doorway_url") or safe.get("canonical_url"),
+                }
+            )
         if not _existing_doorway:
             _retrieved_docs = []
             try:
