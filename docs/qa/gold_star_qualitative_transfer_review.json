@@ -308,6 +308,15 @@
       "qualifying_context": "delegated judgment, institutions, moral responsibility, accountability, and legitimacy",
       "abstention_boundary": "Do not treat delegation as inherently illegitimate, reduce the question narrowly to AI, confuse efficiency or formal procedure with legitimacy, or imply that institutional decision-making eliminates human moral responsibility.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-13-04-migrated-canonical-ledger",
+      "question": "When is a systems map useful, and when can it create false confidence?",
+      "reasoning_family": "systems_representation_epistemic_discipline",
+      "transferable_discipline": "Treat systems maps and other representations as provisional instruments for inquiry: make relationships examinable, distinguish evidence from inference, and preserve uncertainty rather than allowing a coherent representation to masquerade as proof.",
+      "qualifying_context": "systems maps, models, frameworks, diagrams, representations, usefulness, limits, evidence, inference, uncertainty, and false confidence",
+      "abstention_boundary": "Transfer the epistemic discipline, not the exact answer or doorway. Do not imply that a representation is complete, causal, verified, or settled merely because it is coherent; do not attach the systems-thinking doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
