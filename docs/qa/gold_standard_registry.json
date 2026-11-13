@@ -3007,11 +3007,8 @@
       "subsystem": "general-purpose-guide",
       "query": "How do organizations create conditions for learning from failure?",
       "expected_response": "Organizations create conditions for learning from failure when people can surface mistakes and problems without automatically being silenced or punished, while still taking responsibility for what happened and changing the conditions that contributed to it. Learning does not require treating every failure as blameless; it requires making honest examination more useful than concealment.\n\nThat begins with what happens after something goes wrong. Leaders and colleagues signal whether the first response is to protect appearances and find someone to blame, or to establish the facts, hear from people closest to the work, and ask what the failure reveals about decisions, incentives, information, relationships, or constraints. When people believe that raising a concern will reliably make their situation worse, small problems tend to remain hidden until they become harder to correct.\n\nAccountability still matters, but it should be connected to learning. Organizations are more likely to improve when they distinguish deliberate misconduct or repeated disregard from ordinary error and from failures produced by conditions no individual could control alone. The final test is whether the examination changes anything: whether lessons are preserved, practices are adjusted, and people can see that speaking honestly leads to better judgment rather than simply greater risk. A culture of learning is built when candor, responsibility, and correction reinforce one another over time.",
-      "expected_doorway": {
-        "title": "The Social Architecture of Thriving: Conditions That Allow Human Potential to Expand",
-        "url": null
-      },
-      "doorway_status": "CONTEXTUAL_CONTINUATION_NOT_REQUIRED_FOR_TRANSFER",
+      "expected_doorway": null,
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
       "rating_out_of_10": 9.1,
       "approval_state": "Explicitly elevated by user to Gold Star on 2026-11-14 following structural subject-sensitive recovery repair.",
       "assertions": [
