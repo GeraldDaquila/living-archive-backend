@@ -2547,17 +2547,21 @@
         "exact_answer_authority": true,
         "active_quality_contributor": true,
         "deterministic_fallback_eligible": true,
-        "generation_class": "runtime_agnostic_curated_exemplar",
+        "generation_class": "deterministic_curated_recovery_exemplar",
         "reasoning_family": "contextual_synthesis_across_different_values",
         "transferable_discipline": "Identify what each value protects, the conditions that give it weight, and what it can overlook in isolation; then use context to reason about their relationship without erasing the tension or forcing a universal hierarchy.",
-        "abstention_boundary": "Do not claim what unseen texts say, manufacture agreement where the values are genuinely incompatible, or use contextual synthesis to avoid making an evidence-supported judgment when one is required."
+        "abstention_boundary": "Do not claim what unseen texts say, manufacture agreement where the values are genuinely incompatible, or use contextual synthesis to avoid making an evidence-supported judgment when one is required.",
+        "primary_response_source": "deterministic fallback via _contextual_synthesis_recovery()",
+        "llm_origin": false
       },
       "runtime_transfer": true,
       "provenance": {
         "source_ref": "live visitor-path result following structural contextual-synthesis and canonical doorway repairs, elevated by explicit user approval",
         "source_pr": "direct canonical ledger addition",
         "verification_context": "live production behavioral validation with a distinct evidence-backed doorway",
-        "approval_date": "2026-11-13"
+        "approval_date": "2026-11-13",
+        "primary_response_provenance": "The approved response was served by the deterministic _contextual_synthesis_recovery() path after the contextual-synthesis classifier detected an upstream source-verification/refusal failure; the doorway was subsequently recovered through active canonical retrieval.",
+        "provenance_verified_date": "2026-11-13"
       },
       "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
     }
