@@ -9304,6 +9304,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         raise RuntimeError("Responsibility-boundary contract failed at final visitor boundary.")
 
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
+    # Initialize provenance inputs before any branch can consult them at the final metrics boundary.
+    # These defaults are intentionally overwritten later by the actual composition/deterministic path.
+    composition_result = None
+    deterministic_result = None
     # Final evidence contract for deterministic relational-burden recovery.
     # This is deliberately enforced at payload assembly, after every composition,
     # sanitization, and discovery path. A broad doorway selected by earlier retrieval
