@@ -12894,17 +12894,10 @@ if any(_is_fsd_request(item) for item in _fsd_nonroute_probes):
 if STREAM_CONTRACT_VERSION != "SSE-VALIDATED-v1" or STREAM_TRANSPORT_VERSION != "0.1.1":
     raise RuntimeError("USE streaming transport contract integrity failure.")
 
-# Last-mile registered recovery doorway regression probe: this exact question
-# must resolve a canonical continuation independently of which answer path exits.
-try:
-    from deterministic_answer_recovery import registered_recovery_recommendation as _last_mile_doorway_probe
-    _last_mile_probe = _last_mile_doorway_probe(
-        "What does stewardship ask of a leader during decline or crisis?"
-    )
-    if not isinstance(_last_mile_probe, dict) or not _last_mile_probe.get("title") or not _last_mile_probe.get("url"):
-        raise RuntimeError("USE registered recovery last-mile doorway invariant failed")
-except ImportError:
-    pass
+# The registered-recovery doorway contract is enforced at the response boundary
+# below. Keep import-time startup free of runtime probes: a production server
+# must not fail to boot merely because an optional recovery module changes its
+# initialization order.
 
 async def _guide_outer_visitor_response_boundary(scope, receive, send):
     """Enforce visitor-response sanitation around every /api/query exit path.
