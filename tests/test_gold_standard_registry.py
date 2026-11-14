@@ -73,8 +73,9 @@ def test_registry_has_unique_ids_and_provenance_for_every_record():
         assert record["subsystem"].strip()
         assert record["status"] in VALID_STATUSES
         assertions = record.get("assertions")
+        expected_response = record.get("expected_response")
         accepted_response = record.get("accepted_response")
-        assert (isinstance(assertions, list) and assertions) or accepted_response, record["benchmark_id"]
+        assert (isinstance(assertions, list) and assertions) or expected_response or accepted_response, record["benchmark_id"]
         provenance = record["provenance"]
         assert provenance
         if isinstance(provenance, dict):
@@ -88,7 +89,11 @@ def test_registry_has_unique_ids_and_provenance_for_every_record():
             ), record["benchmark_id"]
         else:
             assert isinstance(provenance, str) and provenance.strip(), record["benchmark_id"]
-        assert record["freeze_policy"].strip()
+        freeze_policy = record["freeze_policy"]
+        if isinstance(freeze_policy, dict):
+            assert freeze_policy.get("status")
+        else:
+            assert isinstance(freeze_policy, str) and freeze_policy.strip()
         if record.get("query") is None or record.get("expected_response") is None:
             # Evaluation datasets and unrecovered scenarios are explicitly allowed
             # to have no single query/answer; they must not be miscounted as gold answers.
