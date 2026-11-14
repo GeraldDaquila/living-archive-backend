@@ -159,10 +159,10 @@ def _significance_recovery(subject, context=""):
     if not known.startswith("I can't define "):
         return known
 
-    display_subject = subject[:1].upper() + subject[1:]
     context = _clean(context).strip(" ,;:.!?")
-    # Normalize interrogative punctuation captured inside the preserved subject before declarative recovery prose.
+    # Normalize interrogative punctuation before any display form is composed.
     subject = subject.rstrip(" ?.!;:")
+    display_subject = subject[:1].upper() + subject[1:]
     context_phrase = f" in {context}" if context else ""
     return (
         f"{display_subject} matters{context_phrase} because it influences whether people can understand what is at stake and coordinate their choices. "
