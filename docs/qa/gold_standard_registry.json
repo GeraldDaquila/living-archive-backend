@@ -3160,7 +3160,7 @@
       "runtime_transfer": true
     }
   ],
-  "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
+  "last_reconciliation_note": "Registry reconciliation: approved Gold Star count corrected from stale metadata value 28 to 43 by counting canonical records with status USER_APPROVED_GOLD_STANDARD.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -3287,7 +3287,7 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-14",
-    "approved_gold_star_count": 28,
+    "approved_gold_star_count": 43,
     "registry_record_count": 70,
     "review_reconciliation": "27 approved Gold Stars matched to the canonical ledger; no duplicate benchmark IDs detected after the provenance-boundary elevation."
   }
