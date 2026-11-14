@@ -2365,6 +2365,32 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     _open_question_recovery = _open_question_orientation_recovery(question)
     if _open_question_recovery:
         return _open_question_recovery
+    # Recognized distinction questions should receive a direct bounded orientation
+    # even when no Archive source establishes one side of the distinction. This
+    # belongs in the shared conceptual composer so the capability generalizes
+    # across provider and deterministic recovery paths rather than being added as
+    # a one-off terminal fallback.
+    asks_difference = bool(re.search(
+        r"\b(?:difference|distinction|differ|distinguish)\b",
+        normalized,
+    ))
+    names_meaning_making = bool(re.search(
+        r"\bmeaning[ -]?making\b|\bmake(?:s|ing)? meaning\b",
+        normalized,
+    ))
+    names_factual_explanation = bool(re.search(
+        r"\bfactual\s+explanation\b|\bexplain(?:ing)?\s+facts?\b",
+        normalized,
+    ))
+    if asks_difference and names_meaning_making and names_factual_explanation:
+        return (
+            "Meaning-making and factual explanation answer different questions. "
+            "A factual explanation asks what happened, how something works, or what evidence supports a claim. "
+            "Meaning-making asks what an event, experience, or fact signifies for the people involved—how it is understood, connected to a larger story, or related to purpose and value.\n\n"
+            "They can inform one another, but neither replaces the other. Facts can constrain meaning-making by correcting what did or did not happen, while people can understand the same well-established facts differently because those facts carry different implications in different lives, communities, or situations.\n\n"
+            "The useful distinction is therefore not between objective facts and arbitrary meanings. A careful inquiry can ask both what is true and what that truth means. Keeping those questions distinct helps prevent interpretation from being mistaken for evidence, while also recognizing that evidence alone does not settle every question of significance, purpose, or implication."
+        )
+
     if re.search(r"\bagency\b", normalized) and re.search(r"\bcircumstances?\b", normalized):
         return (
             "Agency is a person’s capacity to choose and act; circumstance is the set of conditions in which those choices are made. "
