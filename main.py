@@ -5148,33 +5148,20 @@ def _boundary_canonical_doorway(payload, query):
 
 
 def _archive_claim_authoritative_doorway(query, doorway):
-    """Preserve an evidence-backed canonical doorway for provenance answers.
+    """Return only the query-specific canonical doorway for provenance answers.
 
-    A query-specific Guide node remains authoritative when one exists. When no
-    dedicated node is registered, an already validated upstream recommendation
-    is still a canonical continuation and must not be erased by the final
-    visitor boundary.
+    Provenance answers fail closed against unrelated or stale upstream
+    recommendations. A registered Guide node is the authoritative doorway and
+    is returned even when the upstream recommendation is absent.
     """
-    candidate = _normalize_authoritative_recommendation(doorway)
-    if candidate is None:
-        return None
     node = _guide_node_specific_match(query)
     if not isinstance(node, dict):
-        return candidate
+        return None
     node_title = str(node.get("title") or "").strip()
     node_url = str(node.get("url") or node.get("canonical_url") or "").strip()
-    canonical = _normalize_authoritative_recommendation(
+    return _normalize_authoritative_recommendation(
         {"title": node_title, "url": node_url}
     )
-    if canonical is None:
-        return candidate
-    if (
-        candidate.get("title") != canonical.get("title")
-        or candidate.get("url") != canonical.get("url")
-    ):
-        return canonical
-    return canonical
-
 
 def _guide_finalize_visitor_payload(payload, query):
     """Apply shared visitor-facing quality and contamination boundaries to every route."""
