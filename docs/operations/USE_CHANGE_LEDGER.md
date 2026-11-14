@@ -20,3 +20,13 @@ For each release, record:
 - final gate result.
 
 **Rule:** Production deployment logs may confirm a release; they may not be used as the primary mechanism for discovering incomplete schemas.
+
+
+## 2026-11-14 — Organizational learning Gold Star live calibration confirmation
+
+- **Class:** Content / runtime acceptance evidence (no canonical response change)
+- **Intent:** Confirm the user-approved Gold Star exemplar for “How do organizations create conditions for learning from failure?” remains a successful live calibration response after the canonical doorway repair.
+- **Canonical contract:** Existing immutable Gold Star record `gs-2026-11-14-organizational-learning-from-failure`; no duplicate record created and no canonical prose changed.
+- **Validation:** Live visitor screenshot confirmed the answer and required canonical continuation render together at the visitor boundary.
+- **Result:** PASS — retain as active Gold Star and canonical acceptance reference.
+- **Release relationship:** Confirms the doorway protection introduced by merge commit `38b6a0a21fa21a0793c4bb00fb1b17226418cdef`.
