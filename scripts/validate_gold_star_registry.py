@@ -73,7 +73,26 @@ def main():
     if len(active) != len(approved):
         fail("not every user-approved Gold Star is active for runtime transfer")
 
-    print(f"GOLD STAR INTEGRITY PASS: {len(active)} active contributors, {len(entries)} reviews")
+    audit = registry.get("integrity_audit")
+    if not isinstance(audit, dict):
+        fail("missing integrity_audit metadata")
+    expected_counts = {
+        "approved_gold_star_count": len(approved),
+        "runtime_active_gold_star_count": len(active),
+        "registry_record_count": len(records),
+    }
+    for key, expected in expected_counts.items():
+        if audit.get(key) != expected:
+            fail(
+                f"stale integrity_audit.{key}: "
+                f"reported {audit.get(key)!r}, computed {expected}"
+            )
+
+    print(
+        "GOLD STAR INTEGRITY PASS: "
+        f"{len(approved)} approved, {len(active)} active contributors, "
+        f"{len(entries)} reviews, {len(records)} canonical records"
+    )
 
 if __name__ == "__main__":
     main()
