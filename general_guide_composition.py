@@ -2393,6 +2393,24 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "The useful distinction is therefore not between objective facts and arbitrary meanings. A careful inquiry can ask both what is true and what that truth means. Keeping those questions distinct helps prevent interpretation from being mistaken for evidence, while also recognizing that evidence alone does not settle every question of significance, purpose, or implication."
         )
 
+    # Capability and legitimate authority are distinct but related questions.
+    # This is a general conceptual distinction, so weak Archive retrieval must
+    # not convert an ordinary answerable question into a verification refusal.
+    names_capability = bool(re.search(
+        r"\b(?:technical\s+)?capabilit(?:y|ies)\b|\bcompetenc(?:e|ies)\b|\bexpertise\b",
+        normalized,
+    ))
+    names_legitimate_authority = bool(re.search(
+        r"\blegitimate\s+authorit(?:y|ies)\b|\bauthorit(?:y|ies)\b",
+        normalized,
+    ))
+    if names_capability and names_legitimate_authority:
+        return (
+            "Technical capability and legitimate authority answer different questions. Capability concerns whether a person, institution, or system can do something effectively. Legitimate authority concerns whether it has the right to decide, direct, or exercise power in that domain. A highly capable actor may therefore lack the mandate or accountability required to exercise authority, while an authorized institution may need expertise it does not itself possess.\n\n"
+            "The distinction matters because technical success can make authority appear more justified than it is. Expertise, efficiency, or influence can strengthen a decision, but they do not by themselves establish who should decide or on whose behalf. Legitimate authority requires a further examination of mandate, accountability, the people affected, the safeguards that limit power, and the ways decisions can be questioned or corrected.\n\n"
+            "A sound arrangement brings the two into relationship without confusing them. Authority should be capable enough to carry its responsibilities, while technical expertise should inform decisions without silently becoming a substitute for accountable judgment. When the two diverge, it helps to make the boundary visible: distinguish advice from decision, competence from mandate, and influence from the right to exercise power."
+        )
+
     if re.search(r"\bagency\b", normalized) and re.search(r"\bcircumstances?\b", normalized):
         return (
             "Agency is a person’s capacity to choose and act; circumstance is the set of conditions in which those choices are made. "
