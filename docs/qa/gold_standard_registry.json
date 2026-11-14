@@ -3077,6 +3077,43 @@
       },
       "known_theme": "governance, leadership, management, authority, accountability, institutional conditions",
       "runtime_transfer": true
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-power-accountability-concentration",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What happens when power is concentrated without accountability?",
+      "expected_response": "When power is concentrated without meaningful accountability, decisions can become insulated from correction. The people exercising authority may receive less candid information, face fewer consequences for mistakes, and gain greater ability to define which questions are legitimate. Over time, this can make errors harder to detect and make dissent increasingly costly, even when the people involved believe they are acting for a good purpose.\n\nThe problem is not simply that a powerful individual might behave badly. Concentrated power can change the surrounding system: subordinates may learn to protect themselves rather than speak honestly, information may be filtered before it reaches decision-makers, and institutions may weaken the very safeguards that could reveal a problem. The result can be a self-reinforcing pattern in which power becomes less exposed to the consequences of its own decisions.\n\nAccountability is therefore more than punishment after something goes wrong. It includes independent scrutiny, clear limits on authority, meaningful ways to question decisions, and real capacity to correct course. Those safeguards do not guarantee good judgment, but they help keep power connected to evidence, responsibility, and the people who live with its consequences.",
+      "expected_doorway": {
+        "title": "Power Without Transparency",
+        "url": null
+      },
+      "doorway_status": "REQUIRED_CANONICAL_CONTINUATION",
+      "rating_out_of_10": 9.1,
+      "approval_state": "User explicitly approved elevation to Gold Star on 2026-11-14 following live verification of the structural doorway repair.",
+      "assertions": [
+        "Answer the systemic consequences of concentrated power directly.",
+        "Distinguish individual misconduct from changes in the surrounding information and institutional system.",
+        "Explain how filtered information, costly dissent, weakened safeguards, and reduced correction can reinforce one another.",
+        "Define accountability as scrutiny, limits, contestability, and capacity for correction—not punishment alone.",
+        "Retain the approved canonical continuation at the final visitor-facing response boundary."
+      ],
+      "provenance": {
+        "source": "Live Guide response reviewed and explicitly approved by user on 2026-11-14 after production-facing doorway verification.",
+        "evidence_boundary": "Canonical benchmark preserves the observed live response and its required conceptual continuation."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "live_user_approved_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "power_accountability_concentrated_authority",
+        "transferable_discipline": "Explain concentrated power as a systemic condition: trace how authority can become insulated from correction through information filtering, costly dissent, weakened safeguards, and reduced exposure to consequences; distinguish accountability from punishment alone.",
+        "abstention_boundary": "Transfer the discipline, not the exact prose or doorway. Do not presume misconduct merely from influence or concentration, and do not attach this doorway to unrelated questions."
+      },
+      "known_theme": "concentrated power, accountability, authority, transparency, dissent, safeguards, correction, institutional consequences",
+      "runtime_transfer": true
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
