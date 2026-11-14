@@ -7,7 +7,7 @@ def test_archive_claim_boundary_preserves_upstream_doorway(monkeypatch):
     query = "How does the Archive distinguish tools from the purposes they serve?"
     upstream = {
         "title": "USE: The Protection Layer",
-        "url": "https://geralddaquila.com/",
+        "url": "/canonical-protection-layer/",
     }
 
     def should_not_rerank(*args, **kwargs):
