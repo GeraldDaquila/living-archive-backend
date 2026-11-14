@@ -73,8 +73,9 @@ def test_registry_has_unique_ids_and_provenance_for_every_record():
         assert record["subsystem"].strip()
         assert record["status"] in VALID_STATUSES
         assertions = record.get("assertions")
+        expected_response = record.get("expected_response")
         accepted_response = record.get("accepted_response")
-        assert (isinstance(assertions, list) and assertions) or accepted_response, record["benchmark_id"]
+        assert (isinstance(assertions, list) and assertions) or expected_response or accepted_response, record["benchmark_id"]
         provenance = record["provenance"]
         assert provenance
         if isinstance(provenance, dict):
