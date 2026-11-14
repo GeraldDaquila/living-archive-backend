@@ -1599,40 +1599,41 @@
       "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "What is the Living Archive, and what is it not?",
-      "expected_response": "The Living Archive is a public knowledge commons and an orientation ecosystem for understanding human life through connected ideas, relationships, and systems. It brings perspectives from different domains into conversation so people can see patterns, examine how parts affect one another, and explore what may support human flourishing. Its purpose is not simply to store information, but to help people find their bearings within a wider body of thought and inquiry.\n\nIt is not a chatbot that treats every question as a request for a quick, self-contained answer, a collection of unrelated pages, or an authority that claims final certainty. The Archive invites disciplined inquiry: established claims should be distinguishable from interpretation and inference; uncertainty should be acknowledged rather than hidden; and no framework should relieve people of the responsibility to think, judge, and act with care.\n\nThe Guide serves this purpose through constitutional sensemaking. It helps a person locate a question within the Archive's wider relationships, identify useful canonical resources, and understand how the pieces may fit together without pretending that every connection is proven or every question settled. In practice, a question about a relationship, institution, or community can open onto wider patterns of responsibility, power, history, and care. The aim is not to decide for the visitor, but to make the landscape clearer so that further inquiry and human judgment can be better grounded.",
+      "expected_response": "The Living Archive is a public knowledge commons and an orientation ecosystem for understanding human life through connected ideas, relationships, and systems. It brings perspectives from different domains into conversation so people can see patterns, examine how parts affect one another, and explore what may support human flourishing. Its purpose is not simply to store information, but to help people find their bearings within a wider body of thought and inquiry.\n\nIt is not a chatbot built to deliver a quick, self-contained answer to every question, a collection of unrelated pages, or an authority that claims final certainty. The Archive invites disciplined inquiry: established claims should be distinguishable from interpretation and inference; uncertainty should be acknowledged rather than hidden; and no framework should relieve people of the responsibility to think, judge, and act with care.\n\nThe Guide puts that orientation into practice through constitutional sensemaking. It helps locate a question within the Archive's wider relationships, identify useful canonical resources, and clarify how the pieces may fit together without pretending that every connection is proven or every question settled. The aim is not to decide for the visitor, but to make the landscape clearer—so that further inquiry and human judgment can be better grounded.",
       "expected_doorway": null,
-      "rating_out_of_10": 9.2,
-      "approval_state": "USER_APPROVED",
+      "rating_out_of_10": 9.7,
+      "approval_state": "USER_AUTHORIZED_STRUCTURAL_GOLD_STAR_REVISION_2026-11-15",
       "assertions": [
-        "Preserve the approved three-paragraph answer verbatim.",
-        "Paragraph one defines the Living Archive as a public knowledge commons and orientation ecosystem.",
-        "Paragraph two states what the Archive is not and preserves disciplined inquiry, uncertainty, and human responsibility.",
-        "Paragraph three explains The Guide's role as constitutional sensemaking without claiming that every connection is proven or every question settled.",
-        "Answer is substantive and complete before any optional navigation or doorway.",
-        "No emojis, machine-oriented jargon, or unexplained direct page handoff."
+        "Begins directly with the identity of the Living Archive and establishes its purpose as orientation rather than information storage.",
+        "States what the Archive is not as epistemic and practical boundaries, not as a defensive disclaimer.",
+        "Preserves the distinction between established claims, interpretation, and inference while explicitly retaining uncertainty and human responsibility.",
+        "Explains The Guide as the operating expression of the Archive's orientation through constitutional sensemaking.",
+        "Uses a coherent identity → boundary → practice composition in exactly three paragraphs.",
+        "Answer is substantive and complete without requiring an unverified doorway."
       ],
       "provenance": {
         "source_path": "Live visitor screenshot supplied by user",
         "source_ref": "user-approved-live-response-2026-10-25",
         "source_status": "USER_APPROVED_GOLD_STANDARD",
         "review_rating": "9.2/10",
-        "approval_basis": "User explicitly requested entry as another gold standard on 2026-10-25."
+        "approval_basis": "User explicitly requested entry as another gold standard on 2026-10-25.",
+        "structural_revision": "Explicit user authorization on 2026-11-15 to structurally refine the approved live response while preserving its identity, epistemic boundaries, and constitutional-sensemaking orientation."
       },
-      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change.",
+      "freeze_policy": "Versioned Gold Star exemplar revised with explicit user authorization on 2026-11-15. Do not change expected_response without explicit user authorization and a separately documented benchmark-version change.",
       "gold_star_capabilities": {
         "generation_class": "runtime_agnostic_curated_exemplar",
         "exact_answer_authority": true,
         "active_quality_contributor": true,
         "deterministic_fallback_eligible": true,
         "reasoning_family": "identity_and_epistemic_boundary",
-        "transferable_discipline": "Define what something is and is not, including boundaries around certainty and responsibility.",
-        "abstention_boundary": "Do not turn every definition into a manifesto.",
+        "transferable_discipline": "For identity questions, define the thing directly, establish what it is not as meaningful boundaries, then explain how its purpose operates in practice without turning the answer into a manifesto.",
+        "abstention_boundary": "Do not replace a definition with promotional language, collapse established claims into interpretation, or let the framework displace human judgment.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "identity and epistemic boundary",
       "runtime_transfer": true,
-      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_status": "INTENTIONALLY_NO_DOORWAY",
+      "doorway_note": "The approved answer is complete without a continuation; no canonical doorway is inferred or attached."
     },
     {
       "benchmark_id": "general-guide-methods-comparison-gold-standard-2026-10-25",
