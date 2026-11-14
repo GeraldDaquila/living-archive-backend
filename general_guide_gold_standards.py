@@ -26,9 +26,11 @@ def _normalize_question(value: Any) -> str:
         "\uff07": "'",
     }))
     normalized = re.sub(r"\s+", " ", text).strip().casefold()
-    # Treat terminal question punctuation as presentation, not a different
-    # question. Some request paths normalize it away before final resolution.
-    return re.sub(r"[?.!]+$", "", normalized).strip()
+    # Some browser and transport paths retain harmless terminal whitespace or
+    # punctuation variants. Remove terminal punctuation and collapse any
+    # whitespace exposed by that removal before exact registry lookup.
+    normalized = re.sub(r"[?.!]+$", "", normalized).strip()
+    return normalized
 
 
 def load_approved_standards() -> Dict[str, Dict[str, str]]:

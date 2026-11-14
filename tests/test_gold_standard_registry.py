@@ -674,3 +674,10 @@ def test_exact_gold_standard_finalizer_precedence_contract_is_declared():
     terminal = finalizer.index("_outer_registered_recovery")
     assert exact < provenance < broad < terminal
     assert 'safe["processing"] = "final_visitor_boundary_exact_gold_standard"' in finalizer
+
+
+def test_sacred_language_exact_gold_star_resolves_browser_query():
+    from general_guide_gold_standards import resolve_exact_gold_standard
+    result = resolve_exact_gold_standard("How can sacred language clarify experience, and how can it obscure power relations?")
+    assert result is not None
+    assert result["expected_response"].startswith("Sacred language can clarify experience when it gives people words")
