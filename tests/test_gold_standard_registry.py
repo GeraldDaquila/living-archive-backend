@@ -706,3 +706,21 @@ def test_methods_comparison_gold_star_orients_method_choice_without_collapsing_d
     assert "examining meaning or reasons" in response
     assert "notice experience and interpretation more directly" in response
     assert "The question determines which approach should lead" in response
+
+
+
+def test_integrity_audit_counts_match_canonical_ledger():
+    registry = _registry()
+    audit = registry["integrity_audit"]
+    records = registry["records"]
+    approved = [
+        item for item in records
+        if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
+    ]
+
+    assert audit["registry_record_count"] == len(records)
+    assert audit["approved_gold_star_count"] == len(approved)
+
+    reconciliation_note = registry.get("last_reconciliation_note", "")
+    assert str(len(records)) in reconciliation_note
+    assert str(len(approved)) in reconciliation_note
