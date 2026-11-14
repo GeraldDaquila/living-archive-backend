@@ -407,6 +407,24 @@
       "qualifying_context": "How sacred language can disclose meaning while also obscuring authority and power relations.",
       "abstention_boundary": "Offers a structural framework and does not infer the motives or legitimacy of a particular tradition without evidence.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing",
+      "question": "What is spiritual bypassing, and why does it matter?",
+      "reasoning_family": "recognized-concept-without-archive-specific-evidence",
+      "transferable_discipline": "Distinguish lack of Archive-specific authority from lack of useful orientation; answer recognizable concepts directly while preserving epistemic limits.",
+      "qualifying_context": "",
+      "abstention_boundary": "Do not diagnose visitors or turn general orientation into unsupported Archive doctrine.",
+      "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-practice-community-feedback-development",
+      "question": "What roles do practice, community, and feedback play in development?",
+      "reasoning_family": "multi-element-development-question",
+      "transferable_discipline": "Identify the distinct work of each element, then make their interaction—not their separate definitions—the intellectual spine of the answer.",
+      "qualifying_context": "",
+      "abstention_boundary": "Do not force a triad onto unrelated questions or invent a canonical continuation.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
