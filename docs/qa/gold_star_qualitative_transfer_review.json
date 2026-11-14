@@ -425,6 +425,15 @@
       "qualifying_context": "",
       "abstention_boundary": "Do not force a triad onto unrelated questions or invent a canonical continuation.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-15-ecological-systems-extractive-economics",
+      "question": "How do ecological systems challenge extractive economic assumptions?",
+      "reasoning_family": "ecological-interdependence-extraction-maintenance-resilience",
+      "transferable_discipline": "For broad systems questions, begin with the governing relationship, make the central distinction explicit, and carry the reasoning into institutional or economic consequences without reducing the system to a slogan.",
+      "qualifying_context": "Broad conceptual questions connecting ecological interdependence, economic extraction, maintenance, resilience, regeneration, and ecosystem services.",
+      "abstention_boundary": "Do not present the exemplar as a sourced Archive doctrine beyond what the approved response establishes; do not invent canonical source provenance or doorway URLs.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
