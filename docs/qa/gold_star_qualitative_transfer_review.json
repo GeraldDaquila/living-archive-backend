@@ -443,6 +443,15 @@
       "qualifying_context": "Broad conceptual questions about responsible retrieval, evidence, provenance, interpretation, uncertainty, traceability, and answerability.",
       "abstention_boundary": "Do not invent Archive-specific doctrine, source provenance, or certainty that has not been retrieved; do not use generic uncertainty language as a substitute for answering a recognizable conceptual distinction.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-15-confident-synthesis-fabricated-coherence",
+      "question": "How should the Guide prevent confident synthesis from becoming fabricated coherence?",
+      "reasoning_family": "confident-synthesis-uncertainty-alternatives-accountability",
+      "transferable_discipline": "For questions about synthesis, coherence, or confident interpretation, expose uncertainty, plausible alternatives, evidentiary limits, consequences, and accountable decision-makers before treating an explanation as settled; distinguish clarification from the authority to decide.",
+      "qualifying_context": "Conceptual and governance questions where a persuasive synthesis could conceal unresolved alternatives, evidentiary limits, consequences, or authority boundaries.",
+      "abstention_boundary": "Do not confuse persuasive completeness with established coherence; do not manufacture certainty or displace accountable decision-makers.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
