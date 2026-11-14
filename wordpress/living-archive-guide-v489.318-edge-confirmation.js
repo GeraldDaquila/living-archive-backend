@@ -48,7 +48,7 @@ var USE_TRANSPORT_TIMEOUT_MS = 30000;
 var HRN_PAGE_URL =
   'https://geralddaquila.com/understanding-human-systems-behavior-pressure-and-decision-making/';
 
-var USE_FRONTEND_BUILD = 'v489.320-doorway-rendering-fix';
+var USE_FRONTEND_BUILD = 'v489.321-response-presentation-contract';
 var USE_FRONTEND_AUTHORITY = 'guide-woody-scoped-controller';
 var USE_HRN_HANDOFF_CONTRACT = 'relationship-v2-browser-entrance';
 
@@ -2059,16 +2059,33 @@ async function useGuideSubmit(event) {
        * any of them must never erase a valid backend answer or be mislabeled
        * as a service connection failure.
        */
+      var responseForPresentation = String(data.response || '')
+        .replace(/\\n/g, '\n')
+        .replace(/\\r/g, '\r')
+        .replace(/\r\n?/g, '\n')
+        .trim()
+        .replace(/([^\n])\n{3,}/g, '$1\n\n');
+
       var renderedAnswer = '';
       try {
         if (typeof marked !== 'undefined' && marked && typeof marked.parse === 'function') {
-          renderedAnswer = marked.parse(data.response);
+          renderedAnswer = marked.parse(responseForPresentation);
         } else {
-          renderedAnswer = escapeHtml(data.response).replace(/\r?\n/g, '<br>');
+          renderedAnswer = responseForPresentation
+            .split(/\n{2,}/)
+            .map(function (paragraph) {
+              return '<p>' + escapeHtml(paragraph).replace(/\n/g, '<br>') + '</p>';
+            })
+            .join('');
         }
       } catch (markdownError) {
-        console.error('The Guide Markdown renderer failed; using safe plain text.', markdownError);
-        renderedAnswer = escapeHtml(data.response).replace(/\r?\n/g, '<br>');
+        console.error('The Guide Markdown renderer failed; using structural paragraph fallback.', markdownError);
+        renderedAnswer = responseForPresentation
+          .split(/\n{2,}/)
+          .map(function (paragraph) {
+            return '<p>' + escapeHtml(paragraph).replace(/\n/g, '<br>') + '</p>';
+          })
+          .join('');
       }
       if (guideActiveRequestToken === requestToken) {
         responseText.innerHTML = renderedAnswer;
