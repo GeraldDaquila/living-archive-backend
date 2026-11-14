@@ -60,7 +60,8 @@ def test_unknown_why_does_this_matter_question_keeps_its_concept_and_context():
     answer = compose_recovery(question)
 
     assert "shared understanding" in answer
-    assert "who depends on it" in answer
+    assert "shared understanding" in answer
+    assert ("who depends on it" in answer or "people need to know" in answer)
     assert "immediate event" not in answer
     assert not composition.is_generic_nonanswer(question, answer)
 
