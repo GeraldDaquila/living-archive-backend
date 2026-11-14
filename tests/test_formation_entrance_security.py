@@ -8,7 +8,13 @@ from unittest import mock
 
 from fastapi import HTTPException
 
-import main
+with mock.patch.dict(
+    os.environ,
+    {"USE_DISABLE_LOCAL_EMBEDDING": "1"},
+    clear=False,
+):
+    import main
+
 
 
 class FakeRequest:
