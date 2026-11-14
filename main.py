@@ -5207,7 +5207,7 @@ def _guide_finalize_visitor_payload(payload, query):
             if exact_title and re.match(r"^https://\S+$", exact_url, re.I):
                 safe["recommendation"] = {"title": exact_title, "url": exact_url}
                 safe["canonical_doorway"] = safe["recommendation"]
-        safe["processing"] = "final_visitor_boundary_exact_gold_standard"
+        safe["processing"] = str(payload.get("processing") or "basic_inquiry")
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
