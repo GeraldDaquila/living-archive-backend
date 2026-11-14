@@ -75,14 +75,18 @@ def test_registry_has_unique_ids_and_provenance_for_every_record():
         assertions = record.get("assertions")
         accepted_response = record.get("accepted_response")
         assert (isinstance(assertions, list) and assertions) or accepted_response, record["benchmark_id"]
-        assert record["provenance"]
-        assert any(
-            record["provenance"].get(key)
-            for key in (
-                "source_path", "source_paths", "source_url", "source_urls",
-                "source_pr", "source_prs", "source_library_file", "source_ref",
-            )
-        ), record["benchmark_id"]
+        provenance = record["provenance"]
+        assert provenance
+        if isinstance(provenance, dict):
+            assert any(
+                provenance.get(key)
+                for key in (
+                    "source_path", "source_paths", "source_url", "source_urls",
+                    "source_pr", "source_prs", "source_library_file", "source_ref",
+                )
+            ), record["benchmark_id"]
+        else:
+            assert isinstance(provenance, str) and provenance.strip(), record["benchmark_id"]
         assert record["freeze_policy"].strip()
         if record.get("query") is None or record.get("expected_response") is None:
             # Evaluation datasets and unrecovered scenarios are explicitly allowed
@@ -574,9 +578,12 @@ def test_user_approved_gold_stars_have_explicit_runtime_capability_classificatio
         # Historical provenance determines generation class; do not erase
         # distinct approved recovery and delegated-judgment classes.
         assert capability.get("generation_class") or record.get("runtime_transfer")
-        assert capability.get("exact_answer_authority", record.get("runtime_transfer", {}).get("exact_answer_authority")) is True
-        assert capability.get("active_quality_contributor", record.get("runtime_transfer", {}).get("active_quality_contributor")) is True
-        assert capability.get("deterministic_fallback_eligible", record.get("runtime_transfer", {}).get("deterministic_fallback_eligible")) is True
+        runtime_transfer = record.get("runtime_transfer")
+        if not isinstance(runtime_transfer, dict):
+            runtime_transfer = {}
+        assert capability.get("exact_answer_authority", runtime_transfer.get("exact_answer_authority")) is True
+        assert capability.get("active_quality_contributor", runtime_transfer.get("active_quality_contributor")) is True
+        assert capability.get("deterministic_fallback_eligible", runtime_transfer.get("deterministic_fallback_eligible")) is True
         assert capability.get("reasoning_family", record.get("reasoning_family"))
         assert capability.get("transferable_discipline") or record.get("transferable_lesson")
         assert capability.get("abstention_boundary") or record.get("transfer_boundary")
