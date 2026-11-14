@@ -425,6 +425,15 @@
       "qualifying_context": "",
       "abstention_boundary": "Do not force a triad onto unrelated questions or invent a canonical continuation.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-15-accountable-retrieval",
+      "question": "What does accountable retrieval look like?",
+      "reasoning_family": "accountable-retrieval-evidence-interpretation-uncertainty",
+      "transferable_discipline": "Answer broad conceptual retrieval questions directly, then distinguish source grounding, evidentiary support, interpretation, and uncertainty; do not let a lack of case-specific context displace a useful bounded orientation.",
+      "qualifying_context": "Broad conceptual questions about responsible retrieval, evidence, provenance, interpretation, uncertainty, traceability, and answerability.",
+      "abstention_boundary": "Do not invent Archive-specific doctrine, source provenance, or certainty that has not been retrieved; do not use generic uncertainty language as a substitute for answering a recognizable conceptual distinction.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
