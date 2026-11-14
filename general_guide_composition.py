@@ -2112,6 +2112,11 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                     raise ValueError("provider response exposed internal implementation language")
                 if re.search(r"\]\((https?://[^)\s]+)\)", response, flags=re.I) or re.search(r"\bhttps?://\S+", response, flags=re.I):
                     raise ValueError("provider response embedded navigation URLs in visitor prose")
+                # Conceptual relationship synthesis is a hard quality boundary:
+                # a strict rejection for compression or missing mechanism must not
+                # be silently re-admitted through the soft-contract lane.
+                if _requires_discernment_synthesis(query):
+                    raise strict_exc
                 shape = _normalize_space(parsed.get("response_shape") or "").casefold()
                 if shape not in {"direct", "explanatory", "conceptual", "reflective", "navigational", "general"}:
                     shape = "general"
