@@ -3085,8 +3085,8 @@
       "runtime_transfer": true
     },
     {
-      "benchmark_id": "gs-2026-11-14-inner-development-external-systems-feedback-loop",
-      "status": "USER_APPROVED_GOLD_STANDARD",
+      "benchmark_id": "gs-2026-11-14-inner-development-external-systems-live-validated",
+      "status": "USER_APPROVED_GOLD_STANDARD_LIVE_VALIDATED",
       "subsystem": "general-purpose-guide",
       "query": "How do inner development and external systems shape each other?",
       "gold_star_capabilities": {
@@ -3096,16 +3096,18 @@
         "deterministic_fallback_eligible": true,
         "reasoning_family": "inner-development-systems-feedback",
         "transferable_discipline": "Explain reciprocal causation by connecting personal capacities with incentives, norms, authority, feedback, and institutional change.",
-        "abstention_boundary": "Provides a systems-oriented explanation and does not establish causation in a specific case without supporting evidence."
+        "abstention_boundary": "Provides a systems-oriented explanation and does not establish causation in a specific case without supporting evidence.",
+        "live_delivery_validated": true,
+        "certification_scope": "canonical exemplar plus verified live visitor delivery"
       },
       "provenance": {
-        "source": "User calibration review and structural revision",
+        "source": "User live calibration review",
         "source_date": "2026-11-14",
-        "evidence_boundary": "Elevated after direct review, structural repair of the reciprocal relationship, and explicit user approval."
+        "evidence_boundary": "Replaced the earlier prematurely elevated registry exemplar after the structurally repaired production path delivered and the user directly reviewed the response in the live Guide."
       },
       "expected_response": "Inner development and external systems shape each other through a continuing feedback loop. Systems influence what people notice, reward, fear, and consider possible; people's capacities for judgment, reflection, relationship, and action influence how those systems are maintained or changed.\n\nRepeated signals, incentives, relationships, constraints, and consequences can make some choices feel normal, rewarded, risky, or difficult even when formal rules say something different. But people are not simply products of those conditions. Greater awareness can change what they notice and question; stronger judgment can alter how they respond; and collective action can turn those changes into different practices, norms, and institutions.\n\nThe next question is what mechanisms are actually operating: what people observe and reward, which behavior is tolerated, whose judgment carries authority, and what happens when concerns are raised. Patterns become more consequential when these conditions reinforce one another over time—and more changeable when reflection, feedback, and correction can enter the system.\n\nThis is a starting explanation rather than a claim about a specific case. A stronger account identifies the relationships and evidence that matter, distinguishes influence from proof of causation, and remains open to other conditions that may change the outcome.",
       "freeze_policy": {
-        "status": "FROZEN_AFTER_APPROVAL",
+        "status": "FROZEN_AFTER_LIVE_APPROVAL",
         "change_requires": "explicit_user_reapproval"
       },
       "known_theme": "Reciprocal development: how inner capacities and external systems reinforce, constrain, and reshape one another.",
