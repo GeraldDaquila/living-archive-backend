@@ -1634,6 +1634,13 @@ async function renderGuideAnswer(response) {
   if (!text) return '';
 
   /*
+   * Some transport paths serialize paragraph boundaries as literal "\\n"
+   * characters. Normalize both representations before rendering so visitors
+   * never see escape sequences or a collapsed wall of text.
+   */
+  text = text.replace(/\\\\n/g, '\n').replace(/\\\\r/g, '');
+
+  /*
    * Paragraph boundaries are part of the answer contract. Do not rely solely
    * on the Markdown renderer to preserve plain-text paragraph spacing.
    */
