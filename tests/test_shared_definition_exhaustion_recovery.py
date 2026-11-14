@@ -63,7 +63,7 @@ def test_unknown_why_does_this_matter_question_keeps_its_concept_and_context():
 
     assert "A public record matters when leadership changes because" in answer
     assert "shared understanding" in answer
-    assert "who depends on it" in answer
+    assert "who relies on it" in answer
     assert "immediate event" not in answer
     assert not composition.is_generic_nonanswer(question, answer)
 
