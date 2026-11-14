@@ -3287,6 +3287,39 @@
         "source": "Live Guide response reviewed and approved by user.",
         "evidence_boundary": "Canonical exemplar preserves the reviewed response and transferable discipline; exact runtime generation provenance requires request-level attribution."
       }
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-archive-epistemic-orientation",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "guide_archive_epistemic_orientation",
+      "query": "How does the Archive distinguish tools from the purposes they serve?",
+      "expected_response": "The Guide should keep three layers distinct. A direct Archive claim is something a particular text actually says or clearly supports, and it should remain traceable to that source. A synthesis is different: it draws a relationship, pattern, or implication across more than one Archive resource. It can be useful precisely because it connects materials, but it must be presented as the Guide's synthesis rather than as the statement of any single text.\n\nA third layer is orientation. The Guide may frame a question, identify a tension, or suggest a way of looking without presenting that framing as evidence from the Archive. This matters especially in a Living Archive: its purpose is not to flatten different voices into one authoritative conclusion, but to hold ideas in relationship without losing where they came from. Keeping the layers visible lets a visitor see what is being reported, what is being inferred, and what is being offered as a way to continue thinking.\n\nThe practical discipline is therefore simple: stay close to the source when saying what the Archive says; name synthesis when the Guide is connecting materials; and keep orientation visibly separate from both. Then the Guide can add intelligibility without borrowing authority it has not earned. The distinction protects the integrity of the Archive while preserving the freedom to notice relationships that no single text, on its own, could show.",
+      "doorway_title": null,
+      "doorway_status": "STRUCTURAL_REPAIR_REQUIRED",
+      "rating_out_of_10": 9,
+      "approval_state": "User explicitly approved Gold Star elevation with doorway correction required.",
+      "assertions": [
+        "Distinguish direct source-supported claims from cross-source synthesis.",
+        "Keep interpretive orientation visibly separate from evidence.",
+        "Preserve source traceability while allowing useful navigation.",
+        "Do not borrow the authority of a source for an inference the Guide itself is making."
+      ],
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "archive_epistemic_orientation",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "source-synthesis-orientation-boundary",
+        "transferable_discipline": "Distinguish what a source directly supports; identify when the Guide is synthesizing across sources; keep interpretive orientation visibly separate from evidence; preserve traceability without sacrificing useful navigation.",
+        "abstention_boundary": "Do not present synthesis or orientation as if it were a direct Archive claim."
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_date": "2026-11-14",
+        "source": "Live Guide response reviewed and approved by user; mismatched doorway intentionally excluded pending structural repair.",
+        "evidence_boundary": "Canonical exemplar preserves the reviewed response pattern; exact runtime generation provenance requires request-level attribution."
+      }
     }
   ],
   "last_reconciliation_note": "Canonical promotion branch reconciled to 47 approved Gold Stars after tradition, wisdom, and revision elevation.",
@@ -3416,7 +3449,7 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-14",
-    "approved_gold_star_count": 47,
+    "approved_gold_star_count": 48,
     "registry_record_count": 70,
     "review_reconciliation": "27 approved Gold Stars matched to the canonical ledger; no duplicate benchmark IDs detected after the provenance-boundary elevation."
   }
