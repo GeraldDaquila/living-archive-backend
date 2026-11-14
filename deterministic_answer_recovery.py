@@ -484,7 +484,8 @@ def _general_explanatory_recovery(question):
             "The people exercising authority may receive less candid information, face fewer consequences for mistakes, and gain greater ability to define which questions are legitimate. Over time, this can make errors harder to detect and make dissent increasingly costly, even when the people involved believe they are acting for a good purpose.\n\n"
             "The problem is not simply that a powerful individual might behave badly. Concentrated power can change the surrounding system: subordinates may learn to protect themselves rather than speak honestly, information may be filtered before it reaches decision-makers, and institutions may weaken the very safeguards that could reveal a problem. The result can be a self-reinforcing pattern in which power becomes less exposed to the consequences of its own decisions.\n\n"
             "Accountability is therefore more than punishment after something goes wrong. It includes independent scrutiny, clear limits on authority, meaningful ways to question decisions, and real capacity to correct course. Those safeguards do not guarantee good judgment, but they help keep power connected to evidence, responsibility, and the people who live with its consequences."
-        )    if "organizational culture" in q and ("ethical" in q or "ethic" in q):
+        )
+    if "organizational culture" in q and ("ethical" in q or "ethic" in q):
         return (
             "Organizational culture shapes ethical behavior by teaching people—often more powerfully than formal policies—what is actually safe, rewarded, tolerated, and expected. "
             "People learn from the choices leaders make, the behavior colleagues excuse or challenge, whose judgment carries authority, and what happens when someone raises a concern.\n\n"
@@ -682,7 +683,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     elif _is_humane_performance_question(q):
         answer = _humane_performance_recovery()
     elif _is_stewardship_leadership_crisis_question(q):
-        answer = _stewardship_leadership_crisis_recovery()    elif re.search(r"^\s*what\s+happens\s+(?:when|if)\b", q, re.I) and re.search(r"\bpower\b", lower) and re.search(r"\baccountab(?:ility|le)\b", lower) and re.search(
+        answer = _stewardship_leadership_crisis_recovery()
+    elif re.search(r"^\s*what\s+happens\s+(?:when|if)\b", q, re.I) and re.search(r"\bpower\b", lower) and re.search(r"\baccountab(?:ility|le)\b", lower) and re.search(
         r"\b(?:concentrat(?:ed|ion)|unchecked|without|lack(?:ing)?|unaccountable)\b", lower
     ):
         answer = _general_explanatory_recovery(q)
