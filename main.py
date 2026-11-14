@@ -5012,7 +5012,15 @@ def _is_archive_claim_boundary_inquiry(query):
         return False
     archive_markers = r"\b(?:archive|archive claims?|archive texts?|source claims?|direct claims?)\b"
     boundary_markers = r"\b(?:separate|distinguish|difference|boundary|own synthesis|guide synthesis|interpretation|attribute|attribution|what (?:the )?guide (?:adds|synthesizes))\b"
-    return bool(re.search(archive_markers, q, re.I) and re.search(boundary_markers, q, re.I))
+    # Keep the boundary detector deliberately legible: provenance questions may
+    # use ordinary verbs such as "distinguish" rather than formal epistemic terms.
+    has_archive = bool(re.search(archive_markers, q, re.I))
+    has_boundary = bool(re.search(boundary_markers, q, re.I))
+    if has_archive and has_boundary:
+        return True
+    return "archive" in q and any(
+        marker in q for marker in ("distinguish", "separate", "difference", "boundary", "attribution")
+    )
 
 
 def _archive_claim_boundary_recovery():
