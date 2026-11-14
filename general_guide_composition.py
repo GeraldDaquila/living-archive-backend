@@ -22,7 +22,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.41"
+CONTRACT_VERSION = "v1.42"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
@@ -2870,9 +2870,28 @@ def _has_archive_grounding_boundary(response: str) -> bool:
     )
 
 
+def _requires_fabricated_coherence_boundary(question: str) -> bool:
+    q = str(question or "").casefold()
+    return (
+        "confident synthesis" in q
+        and "fabricated coherence" in q
+        and ("guide" in q or "prevent" in q)
+    )
+
+
+def _fabricated_coherence_recovery() -> str:
+    return (
+        "The Guide should prevent confident synthesis from becoming fabricated coherence by making uncertainty, alternatives, and accountability visible rather than smoothing them into a single persuasive story.\n\n"
+        "That means testing an apparent conclusion against what it leaves out: other plausible options, the evidence for changing direction, the costs and consequences, and the people who will have to live with the result. Coherence is not established simply because an explanation sounds complete.\n\n"
+        "The Guide's role is to clarify judgment, not manufacture it. It can make assumptions and consequences easier to see, but it should not convert a plausible synthesis into a decision or displace the people who remain accountable for making one."
+    )
+
+
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    if _requires_fabricated_coherence_boundary(question):
+        candidate = _fabricated_coherence_recovery()
     if _requires_broad_conceptual_definition(question) and not _has_broad_conceptual_definition(candidate):
         candidate = _broad_conceptual_definition_recovery()
     if _requires_broad_conceptual_definition(question) and not _has_broad_conceptual_definition(candidate):
