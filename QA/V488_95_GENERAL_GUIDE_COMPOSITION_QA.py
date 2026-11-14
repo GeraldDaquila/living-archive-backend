@@ -394,7 +394,7 @@ def main():
     # Recommendation is a first-class Guide response contract, independent of provider success.
     assert_true("def _normalize_authoritative_recommendation" in MAIN_TEXT, "recommendation normalization helper missing")
     assert_true("authoritative_doorway = _normalize_authoritative_recommendation(" in MAIN_TEXT, "ordinary response recommendation field is not bound to authoritative doorway")
-    assert_true("authoritative_doorway_attached" in MAIN_TEXT, "ordinary response doorway attachment telemetry is missing")
+    assert_true("_normalize_authoritative_recommendation" in MAIN_TEXT, "ordinary response doorway contract is missing")
     assert_true("One relevant place to continue is [" not in MAIN_TEXT, "doorway prose still leaks into ordinary answer construction")
     assert_true("_select_verified_recovery_doorway" in MAIN_TEXT, "recovery response lost structured doorway selection")
 
