@@ -5189,7 +5189,7 @@ def _archive_claim_authoritative_doorway(query, doorway):
 def _guide_finalize_visitor_payload(payload, query):
     """Apply shared visitor-facing quality and contamination boundaries to every route."""
     if not isinstance(payload, dict):
-    return payload
+        return payload
 
     response_text = str(payload.get("response") or "")
     # Epistemic provenance questions are not decision problems. They require a
