@@ -1874,13 +1874,23 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                     "Gold Standard candidate is generic metadiscourse, not a question-specific substantive answer"
                 )
 
-        # Conceptual relationship questions need more than a pair of definitions.
-        # Require a substantive relationship mechanism so compressed answers do
-        # not bypass the three-paragraph quality contract.
-        if _requires_discernment_synthesis(query) and not has_conceptual_relationship_explanation(response, query):
-            raise ValueError(
-                "conceptual relationship answer must explain a substantive relationship mechanism"
-            )
+        # Conceptual relationship questions need developed synthesis, not a
+        # pair of definitions. Enforce the same three-paragraph floor explicitly
+        # here so this question class cannot bypass the broader default classifier.
+        if _requires_discernment_synthesis(query):
+            conceptual_paragraphs = [
+                part.strip()
+                for part in re.split(r"\n\s*\n+", response)
+                if part.strip()
+            ]
+            if len(conceptual_paragraphs) < 3:
+                raise ValueError(
+                    "conceptual relationship answer must meet the three-paragraph Guide Gold Standard"
+                )
+            if not has_conceptual_relationship_explanation(response, query):
+                raise ValueError(
+                    "conceptual relationship answer must explain a substantive relationship mechanism"
+                )
 
         # This question class has a structural contract: reject generic trust/cooperation
         # prose and require an answer about consequences across generations. The final
