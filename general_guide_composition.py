@@ -1874,6 +1874,14 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                     "Gold Standard candidate is generic metadiscourse, not a question-specific substantive answer"
                 )
 
+        # Conceptual relationship questions need more than a pair of definitions.
+        # Require a substantive relationship mechanism so compressed answers do
+        # not bypass the three-paragraph quality contract.
+        if _requires_discernment_synthesis(query) and not has_conceptual_relationship_explanation(response, query):
+            raise ValueError(
+                "conceptual relationship answer must explain a substantive relationship mechanism"
+            )
+
         # This question class has a structural contract: reject generic trust/cooperation
         # prose and require an answer about consequences across generations. The final
         # deterministic recovery below handles provider exhaustion; this validation
