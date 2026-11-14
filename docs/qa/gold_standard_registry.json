@@ -3101,7 +3101,13 @@
       "freeze_policy": {
         "status": "FROZEN_AFTER_APPROVAL",
         "change_requires": "explicit_user_reapproval"
-      }
+      },
+      "known_theme": "Reciprocal development: how inner capacities and external systems reinforce, constrain, and reshape one another.",
+      "assertions": [
+        "Systems shape attention, incentives, norms, and perceived possibilities.",
+        "Inner capacities such as reflection and judgment can alter responses and contribute to institutional change.",
+        "Specific causal claims require evidence beyond a general systems explanation."
+      ]
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
