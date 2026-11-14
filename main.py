@@ -3037,15 +3037,19 @@ def _is_conceptual_explanatory_request(query):
         r"^what is (?:the )?(?:cosmology|worldview|metaphysics|ontology) of\b",
         r"^what are (?:the )?(?:roles|purposes|significance|importance|functions|contributions|impacts|relationships) of\b",
         r"^how does .{1,120} (?:shape|support|contribute to|affect|influence|relate to) .{1,120}",
-        r"^what does regenerative design require at the organizational level\\?*$",
+        r"^what does regenerative design require at the organizational level\?$",
         # Broad questions asking what a concept requires at an organizational
         # or system level are answerable conceptual inquiries, not evidence-limit
         # prompts. They should enter the conceptual synthesis path.
-        r"^what does .{1,120}\\b(?:require|requires|look like|mean)\\b.{0,120}\\b(?:organizational|institutional|system|community|societal)\\b",
+        r"^what does .{1,120}\b(?:require|requires|look like|mean)\b.{0,120}\b(?:organizational|institutional|system|community|societal)\b",
         r"^why (?:does|do|is|are) .{1,120} (?:matter|important|significant|essential|relevant)\b",
         # Compound concept questions must not fall into the recurring-problem recovery path.
         r"^what is (?:the )?(?:cosmology|worldview|metaphysics|ontology)\b.{0,120}\band why (?:does|do|is|are)\b",
     )
+    # Compile every routing expression explicitly so malformed patterns fail
+    # at the contract boundary with a clear startup invariant.
+    for _pattern in patterns:
+        re.compile(_pattern)
     return any(re.search(pattern, normalized) for pattern in patterns)
 
 
