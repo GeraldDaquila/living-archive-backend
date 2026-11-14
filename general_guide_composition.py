@@ -2127,6 +2127,18 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                 # be silently re-admitted through the soft-contract lane.
                 if _requires_discernment_synthesis(query):
                     raise strict_exc
+                # A plain stewardship explanation must not silently bypass the
+                # unsolicited-taxonomy, everyday-anchor, or responsibility-limit
+                # contract through the soft admission lane.
+                if (
+                    re.search(r"\bstewardship\b", query, re.I)
+                    and not _question_requests_enumeration(query)
+                    and (
+                        re.search(r"\b(?:explain|what is|define|meaning|describe)\b", query, re.I)
+                        or _normalize_space(query).casefold() in {"stewardship", "what stewardship means"}
+                    )
+                ):
+                    raise strict_exc
                 shape = _normalize_space(parsed.get("response_shape") or "").casefold()
                 if shape not in {"direct", "explanatory", "conceptual", "reflective", "navigational", "general"}:
                     shape = "general"
