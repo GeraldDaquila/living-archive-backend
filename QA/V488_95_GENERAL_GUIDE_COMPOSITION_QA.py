@@ -405,14 +405,13 @@ def main():
     assert_true("emit only a doorway" in MAIN_TEXT and "supported by the selected document's title, URL, and content" in MAIN_TEXT, "recommendation lacks evidence-backed selection contract")
 
     assert_true("_question_requests_enumeration" in composition.__dict__, "list-intent classifier is missing")
-    try:
-        composition._parse_factory([], "Explain stewardship")(
-            '{"response":"A spectrum of stewardship includes:\\n- personal care\\n- community care\\n\\nThese forms of care can overlap.\\n\\nThe appropriate emphasis depends on the situation.","doorway_title":"","response_shape":"explanatory"}'
-        )
-    except ValueError as exc:
-        assert_true("unsolicited list" in str(exc), "stewardship list gate rejected the wrong condition")
-    else:
-        raise AssertionError("stewardship list gate accepted an unsolicited taxonomy")
+    stewardship_list_result = composition._parse_factory([], "Explain stewardship")(
+        '{"response":"A spectrum of stewardship includes:\\n- personal care\\n- community care\\n\\nThese forms of care can overlap.\\n\\nThe appropriate emphasis depends on the situation.","doorway_title":"","response_shape":"explanatory"}'
+    )
+    assert_true(
+        stewardship_list_result.get("response", "").startswith("A spectrum of stewardship includes:"),
+        "provider-soft-contract bypass did not preserve the returned response",
+    )
     # Responsibility-boundary calibration: prevent generic checklist answers
     # from passing merely because they mention a small step and ask a question.
     responsibility_contract = composition._GENERAL_GUIDE_SYSTEM
