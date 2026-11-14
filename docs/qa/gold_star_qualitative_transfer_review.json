@@ -470,6 +470,15 @@
       "qualifying_context": "Broad conceptual questions comparing circularity, regeneration, resource circulation, system renewal, and long-term conditions.",
       "abstention_boundary": "Transfer the structural discipline, not the exemplar-specific claims, wording, or doorway; use the doorway only for the exact approved query.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-15-constitutional-reasoning-archives-sense",
+      "question": "What is constitutional reasoning in the Archive's sense?",
+      "reasoning_family": "constitutional_reasoning_recovery_interpretation_inference",
+      "transferable_discipline": "For constitutional or architecture questions, define the governing concept, explain the method for recovering its relationships, distinguish canonical recovery from interpretation and inference, and provide the authoritative doorway only when it genuinely extends the exact inquiry.",
+      "qualifying_context": "Questions about constitutional architecture, governing relationships among concepts, canonical recovery, interpretation, inference, and Archive-level structural reasoning.",
+      "abstention_boundary": "Do not treat inferred relationships as canonical facts, assume titles establish connections, invent constitutional rules absent explicit support, or transfer an exemplar-specific doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
