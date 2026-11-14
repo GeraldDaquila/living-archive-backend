@@ -70,3 +70,13 @@ For each release, record:
 - **Repairs:** The spiritual-bypassing exemplar now explicitly declares an intentionally approved absence of doorway; the confident-synthesis exemplar does the same; the practice/community/feedback exemplar preserves its legacy doorway title for provenance but withholds runtime doorway authority because no canonical URL was verified.
 - **Validation:** All 50 approved records now satisfy the runtime doorway contract and all retain qualitative-transfer coverage.
 - **Boundary:** No URL was invented, no validator was bypassed or weakened, and no Gold Star approval or response content changed.
+
+
+## 2026-11-15 — Gold Star authoritative count reconciliation and hardening
+
+- **Class:** Content / QA authority
+- **Finding:** A stale reconciliation snapshot reported 50–51 Gold Stars after later elevations had brought the canonical record-level inventory to **53**.
+- **Root cause:** The canonical JSON correctly remained the sole ledger, but derived `integrity_audit` metadata and handoff prose were not machine-checked against the record-level inventory. A stale snapshot could therefore survive later additions and be repeated operationally.
+- **Correction:** The canonical audit metadata now records **53 approved**, **53 runtime-active**, and **91 total canonical records**.
+- **Hardening:** `scripts/validate_gold_star_registry.py` now fails when any audit count differs from the computed canonical inventory. The registry identity report also emits computed approved and runtime-active Gold Star counts rather than requiring operators to infer them from prose.
+- **Rule:** Any future count announcement must be derived from the canonical record-level inventory at the specific `main` commit being discussed; conversational memory, prior reports, and audit prose are not authoritative counts.
