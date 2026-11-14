@@ -3119,9 +3119,42 @@
         "title": "The Social Architecture of Thriving: Conditions That Allow Human Potential to Expand",
         "url": "https://geralddaquila.com/2026/06/15/the-social-architecture-of-thriving-conditions-that-allow-human-potential-to-expand/"
       }
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "guide_bounded_conceptual_orientation",
+      "query": "What is spiritual bypassing, and why does it matter?",
+      "expected_response": "In general use, spiritual bypassing describes using spiritual beliefs, practices, or language to avoid engaging with difficult emotions, conflicts, responsibilities, or realities. The concern is not that spirituality itself is a problem, but that a source of meaning can sometimes be used to move around something that still needs attention. It matters because the appearance of peace, acceptance, or transcendence can coexist with unresolved harm or unacknowledged responsibility.",
+      "doorway_status": "INTENTIONALLY_NONE",
+      "rating_out_of_10": 9.1,
+      "approval_state": "User approved structural refinement and elevation on 2026-11-14.",
+      "assertions": [
+        "Answer a recognized broadly understood concept directly when Archive-specific evidence is absent.",
+        "Do not imply that spirituality itself is the problem.",
+        "Explain the practical significance without diagnosing a visitor.",
+        "Keep the response self-contained; no doorway is required merely because one could be added.",
+        "Do not present the general orientation as an Archive-specific claim."
+      ],
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "bounded_conceptual_orientation",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "recognized-concept-without-archive-specific-evidence",
+        "transferable_discipline": "Distinguish lack of Archive-specific authority from lack of useful orientation; answer recognizable concepts directly while preserving epistemic limits.",
+        "abstention_boundary": "Do not diagnose visitors or turn general orientation into unsupported Archive doctrine."
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_date": "2026-11-14",
+        "source": "Live Guide response following structural repair; refined to remove redundant opening and prominent disclaimer.",
+        "evidence_boundary": "General orientation, not an Archive-specific doctrinal claim."
+      }
     }
   ],
-  "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
+  "last_reconciliation_note": "Canonical ledger status count reconciled to 43 after bounded conceptual orientation elevation.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -3247,8 +3280,8 @@
     "reconciliation_protocol": "Any temporary mirror or evidence store must be marked non-authoritative, reconciled into this ledger, and excluded from ecosystem counts before it is used operationally."
   },
   "integrity_audit": {
-    "last_audit_date": "2026-11-13",
-    "approved_gold_star_count": 27,
+    "last_audit_date": "2026-11-14",
+    "approved_gold_star_count": 43,
     "registry_record_count": 70,
     "review_reconciliation": "27 approved Gold Stars matched to the canonical ledger; no duplicate benchmark IDs detected after the provenance-boundary elevation."
   }

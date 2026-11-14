@@ -6496,8 +6496,6 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         explanation = (
             (
                 _matched_orientation
-                + " I do not have enough grounded Archive material here to make a specific "
-                "Archive-based claim about the concept, but this provides a general orientation."
             )
             if _matched_orientation
             else (
