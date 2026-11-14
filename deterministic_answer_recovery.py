@@ -146,7 +146,12 @@ def compose_definition_significance(subject):
 
 def _significance_recovery(subject, context=""):
     """Answer a reusable why-does-this-matter question without causal-template drift."""
-    subject = _clean(subject).strip(" ,;:") or "the concept"
+    subject = _clean(subject).strip(" ,;:.!?") or "the concept"
+    # Interrogative wording may leave a terminal question mark embedded in a
+    # preserved subject (for example, "... matter when leadership changes?").
+    # Recovery prose must normalize that punctuation before joining it to
+    # "because".
+    subject = subject.rstrip(" ?.!;:")
     normalized = re.sub(r"\s+", " ", subject).strip().casefold()
     if normalized == "handoffs":
         normalized = "handoff"
