@@ -375,8 +375,8 @@ def main():
         "distress-sensitive logic still discards qualified doorways unless explicitly requested",
     )
     assert_true(
-        '"recommendation": authoritative_doorway' in MAIN_TEXT
-        and '"recommendation": recovery_recommendation' in MAIN_TEXT,
+        '"recommendation": recovery_recommendation' in MAIN_TEXT
+        and '"recommendation": doorway' in MAIN_TEXT,
         "ordinary/recovery recommendation contract is incomplete",
     )
 
