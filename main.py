@@ -6472,12 +6472,40 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             if question else
             "The question raises a real issue that deserves a useful starting point."
         )
+        # Some questions name a broadly understood concept even when the Archive has
+        # no authoritative material to support an Archive-specific treatment. Keep that
+        # distinction explicit, but do not turn a recognizable conceptual question into
+        # an empty request for more context.
+        _conceptual_orientations = {
+            "spiritual bypassing": (
+                "In general use, spiritual bypassing describes using spiritual beliefs, "
+                "practices, or language to avoid engaging with difficult emotions, conflicts, "
+                "responsibilities, or realities. The concern is not that spirituality itself is "
+                "a problem, but that a source of meaning can sometimes be used to move around "
+                "something that still needs attention. It matters because the appearance of "
+                "peace, acceptance, or transcendence can coexist with unresolved harm or "
+                "unacknowledged responsibility."
+            ),
+        }
+        _matched_orientation = next(
+            (orientation for concept, orientation in _conceptual_orientations.items()
+             if concept in _normalized_query),
+            None,
+        )
         explanation = (
-            "I do not have enough grounded material here to give a specific Archive-based answer, "
-            "but the question can still be approached by making its central tension visible: "
-            "what is at stake, who or what is affected, what responsibilities are involved, "
-            "and what would change if the situation were understood differently. "
-            "That is a starting orientation rather than a substitute for evidence or context."
+            (
+                _matched_orientation
+                + " I do not have enough grounded Archive material here to make a specific "
+                "Archive-based claim about the concept, but this provides a general orientation."
+            )
+            if _matched_orientation
+            else (
+                "I do not have enough grounded material here to give a specific Archive-based answer, "
+                "but the question can still be approached by making its central tension visible: "
+                "what is at stake, who or what is affected, what responsibilities are involved, "
+                "and what would change if the situation were understood differently. "
+                "That is a starting orientation rather than a substitute for evidence or context."
+            )
         )
         closing = (
             "The Archive resource below may offer one place to continue the inquiry."
