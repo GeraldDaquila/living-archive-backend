@@ -20,3 +20,13 @@ For each release, record:
 - final gate result.
 
 **Rule:** Production deployment logs may confirm a release; they may not be used as the primary mechanism for discovering incomplete schemas.
+
+
+## 2026-11-14 — Technical capability and legitimate authority Gold Star
+
+- **Class:** Content / QA authority
+- **Intent:** Replace generic abstention behavior for the exact conceptual relationship with a direct, bounded distinction.
+- **Canonical benchmark:** `gs-2026-11-14-technical-capability-legitimate-authority`.
+- **Structural discipline:** Separate capability from the right to exercise power; examine mandate, accountability, safeguards, affected interests, and correction.
+- **Gold Star authority:** Exact-answer authority and active quality contribution approved; doorway retained as canonical continuation.
+- **Regression boundary:** Do not let generic uncertainty displace a conceptual distinction that can be answered directly, and do not treat expertise or technical success as self-validating authority.
