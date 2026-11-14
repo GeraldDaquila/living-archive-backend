@@ -452,6 +452,15 @@
       "qualifying_context": "Conceptual and governance questions where a persuasive synthesis could conceal unresolved alternatives, evidentiary limits, consequences, or authority boundaries.",
       "abstention_boundary": "Do not confuse persuasive completeness with established coherence; do not manufacture certainty or displace accountable decision-makers.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-15-regenerative-design-organizational-level",
+      "reasoning_family": "regenerative_design_organizational_purpose_system_health",
+      "question": "What does regenerative design mean at the organizational level?",
+      "transferable_discipline": "Begin directly with the governing distinction, connect organizational purpose to system health, translate the principle into practical relationships and long-term effects, and close with an application-oriented inquiry.",
+      "qualifying_context": "Broad conceptual questions about regenerative design, organizational purpose, system health, adaptation, and long-term stewardship.",
+      "abstention_boundary": "Do not impose this frame on narrow factual, technical, or unrelated questions, and do not transfer exemplar-specific claims, wording, examples, or doorway.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
