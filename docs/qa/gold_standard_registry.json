@@ -1639,29 +1639,33 @@
       "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "How do empirical inquiry, systems analysis, philosophy, and contemplative reflection differ?",
-      "expected_response": "Empirical inquiry investigates what can be observed, measured, or tested, using evidence to evaluate claims about what happens. Systems analysis examines how parts interact, including relationships and feedback loops that shape a larger whole.\n\nPhilosophy clarifies concepts and examines the reasons, assumptions, and values behind claims. Contemplative reflection attends to lived experience and awareness, helping people notice habitual interpretations that might otherwise go unexamined.\n\nThese approaches complement one another without being interchangeable: empirical inquiry tests claims against observation, systems analysis maps interdependence, philosophy evaluates concepts and reasons, and contemplative reflection explores experience. Each has strengths and limits, so the useful approach depends on the question being asked.",
+      "expected_response": "Empirical inquiry asks what can be observed, measured, or tested, using evidence to evaluate claims about what happens. Systems analysis asks how parts interact, tracing relationships, dependencies, and feedback that shape a larger whole.\n\nPhilosophy asks what our concepts mean and whether the reasons, assumptions, and values behind a claim hold together. Contemplative reflection turns attention toward lived experience and awareness, helping us notice habits of interpretation that might otherwise remain invisible.\n\nThe four approaches can work together without becoming interchangeable. If you are asking what happened or whether a claim is supported, empirical inquiry is useful; if you are asking how conditions influence one another, systems analysis helps; if you are examining meaning or reasons, philosophy is the better lens; and if you are trying to notice experience and interpretation more directly, contemplative reflection offers another form of inquiry. The question determines which approach should lead—and sometimes more than one is needed.",
       "expected_doorway": null,
       "assertions": [
         "Answer directly compares all four named approaches.",
-        "Exactly three connected paragraphs: definitions, distinctions, and synthesis.",
+        "Exactly three connected paragraphs: distinctions, orientation, and synthesis.",
         "Preserve the distinction between empirical testing, systems interdependence, philosophical reasoning, and contemplative experience.",
+        "The final paragraph gives the visitor a practical decision framework for choosing which approach should lead, rather than ending with a generic statement that the answer depends on the question.",
+        "Synthesis may show complementarity without collapsing the four approaches into a single generic process.",
         "No generic action-planning substitute and no Glossary handoff for this explanatory comparison.",
-        "Suggested doorway title is recorded from the visitor screenshot; destination URL is intentionally unset pending verification."
+        "No unverified doorway is attached; the answer remains complete before any optional continuation."
       ],
       "provenance": {
         "source_path": "visitor-facing Guide screenshot supplied by user on 2026-10-25",
         "source_ref": "user-approved screenshot in conversation dated 2026-10-25",
         "source_status": "USER_APPROVED_GOLD_STANDARD",
-        "evidence_boundary": "Screenshot confirms visible response and three-paragraph presentation. It does not alone establish live backend provenance or destination URL."
+        "evidence_boundary": "Screenshot confirms visible response and three-paragraph presentation. It does not alone establish live backend provenance or destination URL.",
+        "approval_record": "Explicit user authorization on 2026-11-15 to structurally revise the response and elevate the revised exemplar to the Gold Star standard.",
+        "structural_revision": "The original approved comparison accurately distinguished the four approaches. This revision preserves that distinction while adding an explicit question-to-method orientation layer so the visitor can identify which form of inquiry is most useful."
       },
-      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change.",
+      "freeze_policy": "Versioned Gold Star exemplar revised with explicit user authorization on 2026-11-15. Do not change expected_response without explicit user authorization and a separately documented benchmark-version change.",
       "gold_star_capabilities": {
         "generation_class": "runtime_agnostic_curated_exemplar",
         "exact_answer_authority": true,
         "active_quality_contributor": true,
         "deterministic_fallback_eligible": true,
         "reasoning_family": "distinction_before_synthesis",
-        "transferable_discipline": "Define related approaches, preserve their differences, then explain how they complement one another.",
+        "transferable_discipline": "Define related approaches, preserve their differences, then give the visitor a concise question-to-method orientation before explaining how the approaches can complement one another.",
         "abstention_boundary": "Do not collapse distinct methods into a single generic process.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
