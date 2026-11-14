@@ -18,10 +18,10 @@ def test_recognized_concept_gets_useful_bounded_orientation_without_archive_clai
 
 
 def test_unrecognized_question_keeps_generic_bounded_orientation():
-    result = main._build_generic_recovery(
+    result = main._basic_inquiry_round1_deterministic_response(
         "What is the zyxw concept, and why does it matter?",
         {},
-        None,
+        {},
     )
     response = result["response"].lower()
     assert "central tension visible" in response
