@@ -5220,7 +5220,7 @@ def _guide_finalize_visitor_payload(payload, query):
             node_url = str(node.get("url") or node.get("canonical_url") or "").strip()
             safe["recommendation"] = (
                 {"title": node_title, "url": node_url}
-                if node_title and re.match(r"^https://\\S+$", node_url, re.I)
+                if node_title and re.match(r"^https://\S+$", node_url, re.I)
                 else None
             )
         else:
