@@ -3136,7 +3136,7 @@
       "subsystem": "guide_bounded_conceptual_orientation",
       "query": "What is spiritual bypassing, and why does it matter?",
       "expected_response": "In general use, spiritual bypassing describes using spiritual beliefs, practices, or language to avoid engaging with difficult emotions, conflicts, responsibilities, or realities. The concern is not that spirituality itself is a problem, but that a source of meaning can sometimes be used to move around something that still needs attention. It matters because the appearance of peace, acceptance, or transcendence can coexist with unresolved harm or unacknowledged responsibility.",
-      "doorway_status": "INTENTIONALLY_NONE",
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
       "rating_out_of_10": 9.1,
       "approval_state": "User approved structural refinement and elevation on 2026-11-14.",
       "assertions": [
@@ -3162,7 +3162,8 @@
         "source": "Live Guide response following structural repair; refined to remove redundant opening and prominent disclaimer.",
         "evidence_boundary": "General orientation, not an Archive-specific doctrinal claim."
       },
-      "known_theme": "recognized-concept-without-archive-specific-evidence"
+      "known_theme": "recognized-concept-without-archive-specific-evidence",
+      "expected_doorway": null
     },
     {
       "benchmark_id": "gs-2026-11-14-practice-community-feedback-development",
@@ -3171,7 +3172,7 @@
       "query": "What roles do practice, community, and feedback play in development?",
       "expected_response": "Practice, community, and feedback shape development by doing different work together. Practice builds capability through repeated effort; community provides the relationships and shared context in which that capability can be tested and sustained; feedback makes learning visible by showing what is working, where adjustment is needed, and what cannot be seen from one perspective alone.\n\nTheir value lies in the interaction. Practice without community can become isolated. Community without practice can remain aspirational. Feedback without trust can feel corrective rather than developmental. Together, they create a cycle in which people try, learn with others, see the effects of what they are doing, and adjust.\n\nIn practice, development becomes more durable when those elements are built into a regular rhythm: intentional practice, relationships that provide support and challenge, and feedback that is specific enough to guide the next step.",
       "doorway_title": "ARK-004: Post-Flat Trade — The Community Ledger SOP",
-      "doorway_status": "CANONICAL_RELEVANT_CONTINUATION",
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "rating_out_of_10": 9.3,
       "approval_state": "User explicitly approved structural refinement and full Gold Star elevation on 2026-11-14.",
       "assertions": [
@@ -3196,9 +3197,11 @@
       "provenance": {
         "source_date": "2026-11-14",
         "source": "Live Guide response reviewed by user; structurally tightened into canonical exemplar.",
-        "evidence_boundary": "Integrative orientation based on the response pattern; canonical doorway retained from live response."
+        "evidence_boundary": "Integrative orientation based on the response pattern; canonical doorway retained from live response.",
+        "doorway_boundary": "Legacy continuation title is preserved for provenance, but no canonical URL was verified in the repository during contract reconciliation; runtime doorway authority is withheld rather than inventing a URL."
       },
-      "known_theme": "multi-element-development-question"
+      "known_theme": "multi-element-development-question",
+      "expected_doorway": null
     },
     {
       "benchmark_id": "gs-2026-11-14-sacred-language-clarity-power-live-candidate",
@@ -3385,7 +3388,7 @@
       "query": "How should the Guide prevent confident synthesis from becoming fabricated coherence?",
       "expected_response": "The Guide should prevent confident synthesis from becoming fabricated coherence by making uncertainty, alternatives, and accountability visible rather than smoothing them into a single persuasive story.\n\nThat means testing an apparent conclusion against what it leaves out: other plausible options, the evidence for changing direction, the costs and consequences, and the people who will have to live with the result. Coherence is not established simply because an explanation sounds complete.\n\nThe Guide's role is to clarify judgment, not manufacture it. It can make assumptions and consequences easier to see, but it should not convert a plausible synthesis into a decision or displace the people who remain accountable for making one.",
       "expected_doorway": null,
-      "doorway_status": "CANONICAL_URL_NOT_CAPTURED",
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
       "rating_out_of_10": 9.6,
       "approval_state": "User explicitly approved Gold Star elevation on 2026-11-15 after reviewing the corrected live visitor presentation.",
       "assertions": [
@@ -3397,7 +3400,8 @@
       ],
       "provenance": {
         "source": "Corrected live Guide response reviewed and explicitly approved by user on 2026-11-15.",
-        "evidence_boundary": "Curated conceptual exemplar. The observed continuation title was 'Attention as Ecology: Why Human Focus Is Becoming a Civilizational Resource', but its canonical URL was not independently captured during elevation; no doorway URL is authorized for transfer from this record."
+        "evidence_boundary": "Curated conceptual exemplar. The observed continuation title was 'Attention as Ecology: Why Human Focus Is Becoming a Civilizational Resource', but its canonical URL was not independently captured during elevation; no doorway URL is authorized for transfer from this record.",
+        "doorway_decision": "No canonical continuation URL was independently captured at elevation; user-approved record intentionally authorizes no doorway rather than inventing one."
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "gold_star_capabilities": {
