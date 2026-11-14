@@ -53,3 +53,18 @@ def test_sender_cannot_repopulate_provenance_doorway_after_fail_closed(monkeypat
     asyncio.run(main._use_send_json(capture, payload))
     body = json.loads(sent[-1]["body"].decode("utf-8"))
     assert body["recommendation"] is None
+
+
+def test_archive_claim_boundary_clears_stale_canonical_doorway(monkeypatch):
+    query = "How does the Archive distinguish tools from the purposes they serve?"
+    stale = {
+        "title": "Why the AI Era Is Ultimately a Human Identity Crisis",
+        "url": "https://geralddaquila.com/2026/09/14/why-the-ai-era-is-ultimately-a-human-identity-crisis/",
+    }
+    monkeypatch.setattr(main, "_guide_node_specific_match", lambda q: None)
+    result = main._guide_finalize_visitor_payload(
+        {"response": "placeholder", "recommendation": stale, "canonical_doorway": stale},
+        query,
+    )
+    assert result["recommendation"] is None
+    assert result["canonical_doorway"] is None
