@@ -3484,7 +3484,8 @@
         "exact_answer_authority": true,
         "structural_transfer_authority": true,
         "doorway_authority": true,
-        "active_quality_contributor": true
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true
       },
       "reasoning_family": "circularity_regeneration_distinction",
       "transferable_lesson": "Answer the governing distinction directly, explain why one related practice can contribute without being sufficient, then connect the distinction to consequences and a meaningful next inquiry.",
