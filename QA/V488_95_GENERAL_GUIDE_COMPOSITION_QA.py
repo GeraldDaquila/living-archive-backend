@@ -41,7 +41,7 @@ def main():
     assert_true("I can't give you a reliable answer just now" not in recovery_block, "contradictory retry-later refusal remains in deterministic recovery")
     assert_true("bounded_general_knowledge_recovery" in recovery_block, "bounded general-knowledge recovery is missing")
     assert_true(r'r"\b(?:what\s+is|explain|define|describe|meaning|means|understand|why|matter|important|everyday|life)\b", q):' in recovery_block, "stewardship explanation recovery still depends on why/matter wording")
-    assert_true("recommendation_available=False" in recovery_block and "recommendation_available=True" in MAIN_TEXT, "deterministic fallback no longer preserves the recommendation-aware visitor contract")
+    assert_true("recommendation_available=False" in recovery_block and "safe[\"recommendation\"]" in MAIN_TEXT, "deterministic fallback no longer preserves a bounded visitor recommendation field")
     assert_true("Stewardship does not mean controlling everything or sacrificing yourself for everyone else." in recovery_block, "stewardship fallback lost its limiting distinction")
     assert_true("bounded_reflective_general_knowledge_recovery" in recovery_block, "reflective general-knowledge recovery is missing")
     assert_true("def _explicit_closing_question_requested(query):" in MAIN_TEXT, "deterministic fallback closing-question detector is missing")
