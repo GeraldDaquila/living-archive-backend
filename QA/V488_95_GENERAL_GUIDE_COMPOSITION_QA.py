@@ -376,7 +376,7 @@ def main():
     )
     assert_true(
         '"recommendation": recovery_recommendation' in MAIN_TEXT
-        and '"recommendation": doorway' in MAIN_TEXT,
+        and 'safe["recommendation"] = _boundary_canonical_doorway' in MAIN_TEXT,
         "ordinary/recovery recommendation contract is incomplete",
     )
 
