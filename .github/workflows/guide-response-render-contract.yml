@@ -1,0 +1,27 @@
+name: Guide Response Render Contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'wordpress/living-archive-guide-v489.247-response-integrity.js'
+      - 'QA/test_guide_response_render_contract.mjs'
+  push:
+    branches: [main]
+    paths:
+      - 'wordpress/living-archive-guide-v489.247-response-integrity.js'
+      - 'QA/test_guide_response_render_contract.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  guide-response-render-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate Guide response rendering contract
+        run: node QA/test_guide_response_render_contract.mjs
