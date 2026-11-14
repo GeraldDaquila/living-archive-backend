@@ -5174,9 +5174,9 @@ def _archive_claim_authoritative_doorway(query, doorway):
         return None
     node_title = str(node.get("title") or "").strip()
     node_url = str(node.get("url") or node.get("canonical_url") or "").strip()
-    return _normalize_authoritative_recommendation(
-        {"title": node_title, "url": node_url}
-    )
+    if not node_title or not re.match(r"^https://\\S+$", node_url, re.I):
+        return None
+    return {"title": node_title, "url": node_url}
 
 def _guide_finalize_visitor_payload(payload, query):
     """Apply shared visitor-facing quality and contamination boundaries to every route."""
