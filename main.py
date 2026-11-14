@@ -6487,9 +6487,10 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                 "unacknowledged responsibility."
             ),
         }
+        _orientation_query = _normalize_query(query)
         _matched_orientation = next(
             (orientation for concept, orientation in _conceptual_orientations.items()
-             if concept in _normalized_query),
+             if concept in _orientation_query),
             None,
         )
         explanation = (
