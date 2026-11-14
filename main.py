@@ -5601,8 +5601,7 @@ def _guide_finalize_visitor_payload(payload, query):
         not _basic_inquiry_has_internal_annotation(response_text)
         and not _basic_inquiry_has_source_dump(response_text)
     ):
-        return payload
-        # Exact Gold Stars are terminal visitor authority, but only after the
+            # Exact Gold Stars are terminal visitor authority, but only after the
     # composition/recovery layer has completed its inquiry and evidence work.
     # This preserves constitutional recovery invariants while freezing the
     # visitor-facing answer and approved doorway at the final boundary.
@@ -5626,7 +5625,6 @@ def _guide_finalize_visitor_payload(payload, query):
         return safe
 
     return payload
-
     # If executable/template text escaped into the answer, bypass the same
     # composition path and use the dedicated safe recovery for the visitor's query.
     if _basic_inquiry_has_source_dump(response_text):
