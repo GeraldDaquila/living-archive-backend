@@ -1627,30 +1627,47 @@ async function submitOrdinaryFollowup(panel, input, button, status) {
    MAIN GUIDE SUBMISSION
    ================================================================ */
 
-async function renderGuideAnswer(response) {
+function normalizeGuideEscapedLineBreaks(value) {
+  return String(value || '')
+    .replace(/\\\\r\\\\n/g, '\\n')
+    .replace(/\\\\n/g, '\\n')
+    .replace(/\\\\r/g, '\\n');
+}
 
-  var text = String(response || '').trim();
-
+function renderGuideAnswer(response) {
+  var text = normalizeGuideEscapedLineBreaks(response).trim();
   if (!text) return '';
 
   /*
-   * Some transport paths serialize paragraph boundaries as literal "\\n"
-   * characters. Normalize both representations before rendering so visitors
-   * never see escape sequences or a collapsed wall of text.
+   * The model can return literal backslash-n sequences where actual line
+   * breaks were intended. Normalize those before parsing so paragraph
+   * boundaries survive the transport and reach the visitor-facing surface.
    */
-  text = text.replace(/\\\\n/g, '\n').replace(/\\\\r/g, '');
+  text = text.replace(/\\\\\\\\r\\\\\\\\n/g, '\\n')
+             .replace(/\\\\\\\\n/g, '\\n')
+             .replace(/\\\\\\\\r/g, '\\n');
 
   /*
-   * Paragraph boundaries are part of the answer contract. Do not rely solely
-   * on the Markdown renderer to preserve plain-text paragraph spacing.
+   * A newline between sentences should remain a paragraph boundary when
+   * the response is plain narrative. Preserve explicit blank lines; when a
+   * response arrives as one long line, use conservative sentence boundaries
+   * only for common transition cues, never split inside URLs or decimals.
    */
-  var paragraphs = text.split(/\r?\n\s*\r?\n+/).filter(function (paragraph) {
-    return paragraph.trim().length > 0;
-  });
+  var hasExplicitParagraphs = /\\n\\s*\\n/.test(text);
+  var hasSingleLineEscapes = /\\n/.test(text);
+
+  if (!hasExplicitParagraphs && !hasSingleLineEscapes && text.length > 420) {
+    text = text.replace(/(?<=[.!?])\\s+(?=(?:A useful place to continue:|The practical task is|The distinction matters|The relationship matters|In practice,|A sound arrangement|Conversely,|However,|At the same time,|This distinction|That distinction))/g, '\\n\\n');
+  }
+
+  var paragraphs = text
+    .split(/\\n\\s*\\n+/)
+    .map(function (paragraph) { return paragraph.trim(); })
+    .filter(function (paragraph) { return paragraph.length > 0; });
 
   if (paragraphs.length > 1) {
     return paragraphs.map(function (paragraph) {
-      return '<p>' + escapeHtml(paragraph.trim()).replace(/\r?\n/g, '<br>') + '</p>';
+      return '<p>' + escapeHtml(paragraph).replace(/\\n/g, '<br>') + '</p>';
     }).join('');
   }
 
@@ -1662,7 +1679,7 @@ async function renderGuideAnswer(response) {
     console.error('The Guide Markdown renderer failed; using safe plain text.', markdownError);
   }
 
-  return '<p>' + escapeHtml(text).replace(/\r?\n/g, '<br>') + '</p>';
+  return '<p>' + escapeHtml(text).replace(/\\n/g, '<br>') + '</p>';
 }
 
 function useGuideSubmit(event) {
