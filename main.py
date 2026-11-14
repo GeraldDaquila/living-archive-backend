@@ -5237,6 +5237,8 @@ def _guide_finalize_visitor_payload(payload, query):
         # A rejected provenance doorway must clear both fields; otherwise a stale
         # upstream canonical_doorway can bypass the fail-closed decision in the UI.
         safe["canonical_doorway"] = safe["recommendation"]
+        safe["doorway_title"] = safe["recommendation"]["title"] if safe["recommendation"] else None
+        safe["doorway_url"] = safe["recommendation"]["url"] if safe["recommendation"] else None
         safe["processing"] = "final_visitor_boundary_archive_claim_provenance"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
