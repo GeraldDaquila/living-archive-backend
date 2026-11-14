@@ -661,3 +661,16 @@ def test_inner_development_gold_star_transport_authority_is_exact():
     assert record["expected_response"].startswith("Inner development and external systems shape each other through a continuing feedback loop.")
     assert record["doorway_title"] == "The Social Architecture of Thriving: Conditions That Allow Human Potential to Expand"
     assert record["doorway_url"].startswith("https://geralddaquila.com/")
+
+
+def test_exact_gold_standard_finalizer_precedence_contract_is_declared():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    finalizer_start = source.index("def _guide_finalize_visitor_payload")
+    finalizer_end = source.index("def _apply_exact_gold_standard_authority_to_payload", finalizer_start)
+    finalizer = source[finalizer_start:finalizer_end]
+    exact = finalizer.index("exact_standard = _resolve_exact_guide_gold_standard(query)")
+    provenance = finalizer.index("_is_archive_claim_boundary_inquiry(query)")
+    broad = finalizer.index("_requires_broad_conceptual_definition(query)")
+    terminal = finalizer.index("_outer_registered_recovery")
+    assert exact < provenance < broad < terminal
+    assert 'safe["processing"] = "final_visitor_boundary_exact_gold_standard"' in finalizer
