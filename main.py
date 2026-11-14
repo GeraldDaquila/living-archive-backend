@@ -3019,6 +3019,11 @@ if not _is_lived_experience_explanatory_request("What does it mean to live with 
 if _is_lived_experience_explanatory_request("What does uncertainty mean?"):
     raise RuntimeError("USE v489.90 glossary distinction invariant failed")
 
+# Deterministic recovery must provide a substantive orientation for recognized
+# conceptual questions when bounded Archive evidence or providers are unavailable.
+if "regenerative design" not in _normalize_query("What does regenerative design require at the organizational level?"):
+    raise RuntimeError("USE regenerative design recovery invariant failed")
+
 
 def _is_conceptual_explanatory_request(query):
     """Keep questions about a concept's role or significance in General Guide.
@@ -6516,6 +6521,11 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         # distinction explicit, but do not turn a recognizable conceptual question into
         # an empty request for more context.
         _conceptual_orientations = {
+            "regenerative design": (
+                "Regenerative design asks an organization to move beyond merely reducing harm or improving efficiency and to consider whether its work strengthens the conditions on which people, communities, and ecosystems depend. At the organizational level, this changes both what is designed and how decisions are made.\n\n"
+                "In practice, it requires looking beyond isolated projects and short-term outputs toward relationships and long-term system health. Organizations need ways to learn from consequences, work across boundaries, account for effects that fall outside the organization, and adapt when those effects show that a system is being weakened rather than renewed.\n\n"
+                "The shift is therefore not simply a new sustainability program. It is a change in organizational purpose and practice: from minimizing damage to helping restore capacity, resilience, and the conditions for ongoing renewal."
+            ),
             "spiritual bypassing": (
                 "In general use, spiritual bypassing describes using spiritual beliefs, "
                 "practices, or language to avoid engaging with difficult emotions, conflicts, "
