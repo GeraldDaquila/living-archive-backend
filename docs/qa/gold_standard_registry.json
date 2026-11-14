@@ -3368,9 +3368,43 @@
       },
       "known_theme": "accountable retrieval, source grounding, evidence, interpretation, uncertainty, traceability, answerability",
       "runtime_transfer": true
+    },
+    {
+      "benchmark_id": "gs-2026-11-15-confident-synthesis-fabricated-coherence",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How should the Guide prevent confident synthesis from becoming fabricated coherence?",
+      "expected_response": "The Guide should prevent confident synthesis from becoming fabricated coherence by making uncertainty, alternatives, and accountability visible rather than smoothing them into a single persuasive story.\n\nThat means testing an apparent conclusion against what it leaves out: other plausible options, the evidence for changing direction, the costs and consequences, and the people who will have to live with the result. Coherence is not established simply because an explanation sounds complete.\n\nThe Guide's role is to clarify judgment, not manufacture it. It can make assumptions and consequences easier to see, but it should not convert a plausible synthesis into a decision or displace the people who remain accountable for making one.",
+      "expected_doorway": null,
+      "doorway_status": "CANONICAL_URL_NOT_CAPTURED",
+      "rating_out_of_10": 9.6,
+      "approval_state": "User explicitly approved Gold Star elevation on 2026-11-15 after reviewing the corrected live visitor presentation.",
+      "assertions": [
+        "Opens with the governing safeguard rather than describing the inquiry.",
+        "Makes uncertainty, alternatives, accountability, evidence, consequences, and affected people visible.",
+        "States that apparent completeness is not sufficient evidence of coherence.",
+        "Preserves the boundary between clarifying judgment and manufacturing or displacing accountable decision-making.",
+        "Uses a principle → practice → boundary composition."
+      ],
+      "provenance": {
+        "source": "Corrected live Guide response reviewed and explicitly approved by user on 2026-11-15.",
+        "evidence_boundary": "Curated conceptual exemplar. The observed continuation title was 'Attention as Ecology: Why Human Focus Is Becoming a Civilizational Resource', but its canonical URL was not independently captured during elevation; no doorway URL is authorized for transfer from this record."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "confident_synthesis_uncertainty_alternatives_accountability",
+        "transferable_discipline": "For questions about synthesis, coherence, or confident interpretation, expose uncertainty, plausible alternatives, evidentiary limits, consequences, and accountable decision-makers before treating an explanation as settled; distinguish clarification from the authority to decide.",
+        "abstention_boundary": "Do not confuse a persuasive or complete-sounding synthesis with established coherence; do not manufacture certainty, convert structural guidance into a decision, or displace the people accountable for consequences."
+      },
+      "known_theme": "confident synthesis, fabricated coherence, uncertainty, alternatives, accountability, evidence, consequences, judgment, decision authority",
+      "runtime_transfer": true
     }
   ],
-  "last_reconciliation_note": "Canonical ledger status count reconciled to 44 after integrative development orientation elevation.",
+  "last_reconciliation_note": "Canonical ledger status count reconciled to 45 after confident-synthesis/fabricated-coherence elevation.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -3496,8 +3530,8 @@
     "reconciliation_protocol": "Any temporary mirror or evidence store must be marked non-authoritative, reconciled into this ledger, and excluded from ecosystem counts before it is used operationally."
   },
   "integrity_audit": {
-    "last_audit_date": "2026-11-14",
-    "approved_gold_star_count": 44,
+    "last_audit_date": "2026-11-15",
+    "approved_gold_star_count": 45,
     "registry_record_count": 70,
     "review_reconciliation": "27 approved Gold Stars matched to the canonical ledger; no duplicate benchmark IDs detected after the provenance-boundary elevation."
   }
