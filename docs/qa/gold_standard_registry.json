@@ -3152,9 +3152,43 @@
         "source": "Live Guide response following structural repair; refined to remove redundant opening and prominent disclaimer.",
         "evidence_boundary": "General orientation, not an Archive-specific doctrinal claim."
       }
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-practice-community-feedback-development",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "guide_integrative_development_orientation",
+      "query": "What roles do practice, community, and feedback play in development?",
+      "expected_response": "Practice, community, and feedback shape development by doing different work together. Practice builds capability through repeated effort; community provides the relationships and shared context in which that capability can be tested and sustained; feedback makes learning visible by showing what is working, where adjustment is needed, and what cannot be seen from one perspective alone.\n\nTheir value lies in the interaction. Practice without community can become isolated. Community without practice can remain aspirational. Feedback without trust can feel corrective rather than developmental. Together, they create a cycle in which people try, learn with others, see the effects of what they are doing, and adjust.\n\nIn practice, development becomes more durable when those elements are built into a regular rhythm: intentional practice, relationships that provide support and challenge, and feedback that is specific enough to guide the next step.",
+      "doorway_title": "ARK-004: Post-Flat Trade — The Community Ledger SOP",
+      "doorway_status": "CANONICAL_RELEVANT_CONTINUATION",
+      "rating_out_of_10": 9.3,
+      "approval_state": "User explicitly approved structural refinement and full Gold Star elevation on 2026-11-14.",
+      "assertions": [
+        "Answer the three-part question as one developmental system rather than three disconnected definitions.",
+        "Differentiate the contribution of practice, community, and feedback.",
+        "Make the interaction visible through reciprocal limits and strengths.",
+        "Translate the synthesis into a practical developmental rhythm without turning the answer into a checklist.",
+        "Offer a doorway only when it is a genuinely relevant canonical continuation."
+      ],
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "integrative_system_orientation",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "multi-element-development-question",
+        "transferable_discipline": "Identify the distinct work of each element, then make their interaction—not their separate definitions—the intellectual spine of the answer.",
+        "abstention_boundary": "Do not force a triad onto unrelated questions or invent a canonical continuation."
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_date": "2026-11-14",
+        "source": "Live Guide response reviewed by user; structurally tightened into canonical exemplar.",
+        "evidence_boundary": "Integrative orientation based on the response pattern; canonical doorway retained from live response."
+      }
     }
   ],
-  "last_reconciliation_note": "Canonical ledger status count reconciled to 43 after bounded conceptual orientation elevation.",
+  "last_reconciliation_note": "Canonical ledger status count reconciled to 44 after integrative development orientation elevation.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -3281,7 +3315,7 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-14",
-    "approved_gold_star_count": 43,
+    "approved_gold_star_count": 44,
     "registry_record_count": 70,
     "review_reconciliation": "27 approved Gold Stars matched to the canonical ledger; no duplicate benchmark IDs detected after the provenance-boundary elevation."
   }
