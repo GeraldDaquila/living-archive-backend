@@ -3422,7 +3422,10 @@
       "subsystem": "general-purpose-guide",
       "query": "What does regenerative design require at the organizational level?",
       "expected_response": "Regenerative design asks an organization to move beyond merely reducing harm or improving efficiency and to consider whether its work strengthens the conditions on which people, communities, and ecosystems depend. At the organizational level, this changes both what is designed and how decisions are made.\n\nIn practice, it requires looking beyond isolated projects and short-term outputs toward relationships and long-term system health. Organizations need ways to learn from consequences, work across boundaries, account for effects that fall outside the organization, and adapt when those effects show that a system is being weakened rather than renewed.\n\nThe shift is therefore not simply a new sustainability program. It is a change in organizational purpose and practice: from minimizing damage to helping restore capacity, resilience, and the conditions for ongoing renewal.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
-      "expected_doorway": "Systems, Governance, and Organizational Design",
+      "expected_doorway": {
+        "title": "Systems, Governance, and Organizational Design",
+        "url": "https://geralddaquila.com/"
+      },
       "doorway_status": "APPROVED_QUERY_SPECIFIC_CONTINUATION",
       "rating_out_of_10": 9.8,
       "approval_state": "User explicitly approved Gold Star elevation on 2026-11-15 after reviewing the corrected live visitor presentation and the Gold Star application-oriented closing.",
