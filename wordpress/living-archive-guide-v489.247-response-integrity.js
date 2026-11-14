@@ -1627,7 +1627,7 @@ async function submitOrdinaryFollowup(panel, input, button, status) {
    MAIN GUIDE SUBMISSION
    ================================================================ */
 
-async function renderGuideAnswer(response) {
+function renderGuideAnswer(response) {
 
   var text = String(response || '').trim();
 
