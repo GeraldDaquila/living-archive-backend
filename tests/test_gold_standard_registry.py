@@ -586,3 +586,25 @@ def test_capability_metadata_does_not_guess_original_generation_mode():
     assert "LLM" not in approved["gold_star_capabilities"]["generation_class"]
     assert "deterministic" not in approved["gold_star_capabilities"]["generation_class"]
     assert "does not infer" in approved["gold_star_capabilities"]["intake_note"]
+
+
+def test_organizational_learning_gold_star_requires_canonical_doorway_contract():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "gs-2026-11-14-organizational-learning-from-failure"
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "How do organizations create conditions for learning from failure?"
+    assert record["doorway_status"] == "REQUIRED_CANONICAL_CONTINUATION"
+    doorway = record["expected_doorway"]
+    assert doorway["title"] == (
+        "The Social Architecture of Thriving: Conditions That Allow Human Potential to Expand"
+    )
+    assert doorway["url"] == (
+        "https://geralddaquila.com/2026/06/15/the-social-architecture-of-thriving-conditions-that-allow-human-potential-to-expand/"
+    )
+    assert any(
+        "final visitor-facing response boundary" in assertion
+        for assertion in record["assertions"]
+    )
