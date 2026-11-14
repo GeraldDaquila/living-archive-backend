@@ -14,5 +14,12 @@ class RegisteredConceptualRecoveryPrecedenceTests(unittest.TestCase):
         self.assertIn("not _guide_composition.is_generic_nonanswer(query, _conceptual_recovery)", MAIN)
         self.assertIn("not _guide_composition.is_meta_answer_failure(_conceptual_recovery)", MAIN)
 
+    def test_gold_star_baseline_is_wired_into_live_composition(self):
+        self.assertIn("active_quality_contribution as _gold_star_active_quality_contribution", MAIN)
+        self.assertIn("_gold_star_quality = _gold_star_active_quality_contribution(query)", MAIN)
+        self.assertIn("Gold Star structural baseline: answer the recognized question first.", MAIN)
+        self.assertIn("if _direct_answer_baseline", MAIN)
+        self.assertIn("_direct_answer_baseline = bool(_matched_orientation or _gold_star_quality)", MAIN)
+
 if __name__ == "__main__":
     unittest.main()

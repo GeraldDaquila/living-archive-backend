@@ -6527,11 +6527,14 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         # unfamiliar question. Preserve the distinction between grounded Archive
         # claims and a bounded conceptual orientation, but offer a useful middle
         # ground instead of a sterile verification refusal.
-        opening = (
-            f"The question raises a real issue: {question.rstrip('?')}."
-            if question else
-            "The question raises a real issue that deserves a useful starting point."
-        )
+        # Gold Star structural baseline: approved exemplars may establish
+        # response discipline before the fallback template is assembled.
+        _gold_star_quality = None
+        try:
+            if _gold_star_active_quality_contribution is not None:
+                _gold_star_quality = _gold_star_active_quality_contribution(query)
+        except Exception:
+            _gold_star_quality = None
         # Some questions name a broadly understood concept even when the Archive has
         # no authoritative material to support an Archive-specific treatment. Keep that
         # distinction explicit, but do not turn a recognizable conceptual question into
@@ -6573,6 +6576,18 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                 (orientation for concept, orientation in _conceptual_orientations.items()
                  if concept in _orientation_query),
                 None,
+            )
+        )
+        # A recognized conceptual orientation, or a relevance-selected Gold Star
+        # discipline, establishes a direct-answer baseline before any fallback
+        # framing is considered. Gold Star guidance supplies structure only.
+        _direct_answer_baseline = bool(_matched_orientation or _gold_star_quality)
+        opening = (
+            ""
+            if _direct_answer_baseline
+            else (
+                f"The question raises a real issue: {question.rstrip('?')}."
+                if question else "The question raises a real issue that deserves a useful starting point."
             )
         )
         explanation = (
@@ -8432,11 +8447,17 @@ def _basic_inquiry_has_internal_implementation_language(response):
 
 
 
-# Gold Star shadow observation is imported separately from composition and remains best-effort only.
+# Gold Star quality guidance is structural only: approved exemplars may guide
+# composition discipline, but their claims, prose, examples, and doorways are
+# never transferred across questions.
 try:
-    from gold_star_lessons import shadow_observation as _gold_star_shadow_observation
+    from gold_star_lessons import (
+        shadow_observation as _gold_star_shadow_observation,
+        active_quality_contribution as _gold_star_active_quality_contribution,
+    )
 except Exception:
     _gold_star_shadow_observation = None
+    _gold_star_active_quality_contribution = None
 
 def _basic_inquiry_response(query, history=None, raw_body=None):
     # Observation-only: returned metadata is discarded and cannot influence composition.
