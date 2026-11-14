@@ -5213,9 +5213,8 @@ def _guide_finalize_visitor_payload(payload, query):
         return safe
 
     return payload
-    # Frozen exact-query Gold Standards are terminal visitor authority. Resolve
-    # them before every broader recovery family so no conceptual contract or
-    # deterministic fallback can overwrite an approved calibration exemplar.
+    return payload
+
     response_text = str(payload.get("response") or "")
     # Epistemic provenance questions are not decision problems. They require a
     # clear distinction between direct Archive evidence, cross-Archive synthesis,
