@@ -252,11 +252,37 @@ jobs:
                   flush=True,
               )
               paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-              if payload.get("processing") != "basic_inquiry":
+              processing = payload.get("processing")
+              # This question is itself a USER_APPROVED_GOLD_STANDARD. Either the
+              # ordinary General Guide composition path or the exact approved-answer
+              # boundary is valid, but the latter must reproduce the canonical
+              # reference rather than merely bypassing composition.
+              if processing not in {
+                  "basic_inquiry",
+                  "final_visitor_boundary_exact_gold_standard",
+              }:
                   raise SystemExit(
-                      f"{name}: institutional-memory question left General Guide composition: "
-                      f"{payload.get('processing')!r}"
+                      f"{name}: institutional-memory question used an invalid processing boundary: "
+                      f"{processing!r}"
                   )
+              if processing == "final_visitor_boundary_exact_gold_standard":
+                  registry = json.loads(
+                      Path("docs/qa/gold_standard_registry.json").read_text(encoding="utf-8")
+                  )
+                  standard = next(
+                      (
+                          item for item in registry.get("records", [])
+                          if item.get("query") == institutional_memory_query
+                          and item.get("status") == "USER_APPROVED_GOLD_STANDARD"
+                      ),
+                      None,
+                  )
+                  expected_response = str((standard or {}).get("expected_response") or "").strip()
+                  if not expected_response or response != expected_response:
+                      raise SystemExit(
+                          f"{name}: exact Gold Standard boundary did not reproduce the approved "
+                          "institutional-memory reference"
+                      )
               if len(paragraphs) != 3 or len(response) < 300:
                   raise SystemExit(
                       f"{name}: institutional-memory response did not meet the three-paragraph depth contract; "
