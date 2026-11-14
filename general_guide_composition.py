@@ -2406,9 +2406,9 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     ))
     if names_capability and names_legitimate_authority:
         return (
-            "Technical capability and legitimate authority answer different questions. Capability concerns whether a person, institution, or system can do something effectively. Legitimate authority concerns whether it has the right to decide, direct, or exercise power in that domain. A highly capable actor may therefore lack the mandate or accountability required to exercise authority, while an authorized institution may need expertise it does not itself possess.\n\n"
-            "The distinction matters because technical success can make authority appear more justified than it is. Expertise, efficiency, or influence can strengthen a decision, but they do not by themselves establish who should decide or on whose behalf. Legitimate authority requires a further examination of mandate, accountability, the people affected, the safeguards that limit power, and the ways decisions can be questioned or corrected.\n\n"
-            "A sound arrangement brings the two into relationship without confusing them. Authority should be capable enough to carry its responsibilities, while technical expertise should inform decisions without silently becoming a substitute for accountable judgment. When the two diverge, it helps to make the boundary visible: distinguish advice from decision, competence from mandate, and influence from the right to exercise power."
+            "Technical capability and legitimate authority are not the same thing. Capability is about whether someone can do something well; legitimate authority is about whether they have the right to decide or exercise power.\n\n"
+            "The two often overlap, but neither guarantees the other. Expertise can inform a decision without conferring a mandate. Authority, meanwhile, needs enough competence to carry its responsibilities responsibly.\n\n"
+            "The key question is therefore not only who can act, but who is entitled to decide—and how that power remains accountable to the people affected by it."
         )
 
     if re.search(r"\bagency\b", normalized) and re.search(r"\bcircumstances?\b", normalized):
