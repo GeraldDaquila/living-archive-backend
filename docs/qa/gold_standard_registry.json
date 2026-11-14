@@ -3415,9 +3415,43 @@
       },
       "known_theme": "confident synthesis, fabricated coherence, uncertainty, alternatives, accountability, evidence, consequences, judgment, decision authority",
       "runtime_transfer": true
+    },
+    {
+      "benchmark_id": "gs-2026-11-15-regenerative-design-organizational-level",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What does regenerative design require at the organizational level?",
+      "expected_response": "Regenerative design asks an organization to move beyond merely reducing harm or improving efficiency and to consider whether its work strengthens the conditions on which people, communities, and ecosystems depend. At the organizational level, this changes both what is designed and how decisions are made.\n\nIn practice, it requires looking beyond isolated projects and short-term outputs toward relationships and long-term system health. Organizations need ways to learn from consequences, work across boundaries, account for effects that fall outside the organization, and adapt when those effects show that a system is being weakened rather than renewed.\n\nThe shift is therefore not simply a new sustainability program. It is a change in organizational purpose and practice: from minimizing damage to helping restore capacity, resilience, and the conditions for ongoing renewal.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+      "expected_doorway": "Systems, Governance, and Organizational Design",
+      "doorway_status": "APPROVED_QUERY_SPECIFIC_CONTINUATION",
+      "rating_out_of_10": 9.8,
+      "approval_state": "User explicitly approved Gold Star elevation on 2026-11-15 after reviewing the corrected live visitor presentation and the Gold Star application-oriented closing.",
+      "assertions": [
+        "Begins directly with the conceptual answer and does not restate the visitor's question.",
+        "Establishes the core distinction between harm reduction or efficiency and strengthening the conditions for people, communities, and ecosystems.",
+        "Moves from principle to organizational practice through relationships, long-term system health, consequences, boundaries, learning, and adaptation.",
+        "Frames regenerative design as a shift in organizational purpose and practice rather than a standalone sustainability program.",
+        "Closes by opening inquiry through application rather than retreating to a generic request for more context."
+      ],
+      "provenance": {
+        "source": "Corrected live Guide response reviewed and explicitly approved by user on 2026-11-15.",
+        "evidence_boundary": "Curated conceptual exemplar. The response is authoritative as an approved composition exemplar and transferable structural discipline; it does not authorize unsupported Archive-specific claims beyond the answer itself."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "regenerative_design_organizational_purpose_system_health",
+        "transferable_discipline": "For broad conceptual questions, begin with the answer rather than restating the inquiry; establish the governing distinction, translate it into practice and consequences, deepen the shift in purpose, then open further inquiry through application without retreating into a generic context request.",
+        "abstention_boundary": "Do not transfer the exemplar's claims, wording, examples, or doorway indiscriminately; use its structure and quality discipline only when relevant, and do not invent Archive-specific doctrine or evidence."
+      },
+      "known_theme": "regenerative design, organizational purpose, system health, renewal, resilience, consequences, adaptation, sustainability, governance",
+      "runtime_transfer": true
     }
   ],
-  "last_reconciliation_note": "Canonical inventory reconciled against record-level status on 2026-11-15: 50 USER_APPROVED_GOLD_STANDARD records, all runtime-active with qualitative-transfer coverage.",
+  "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: regenerative design organizational-level exemplar elevated as immutable user-approved Gold Standard; canonical record count 89.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
