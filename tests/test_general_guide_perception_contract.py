@@ -174,8 +174,8 @@ A useful way to think about stewardship is as a spectrum:
 
 Each level expands responsibility."""
     raw = json.dumps({"response": response, "doorway_title": "", "response_shape": "explanatory"})
-    parsed = parse(raw)
-    assert "A useful way to think about stewardship is as a spectrum" in parsed["response"]
+    with pytest.raises(ValueError):
+        parse(raw)
 
 
 def test_plain_stewardship_explanation_accepts_everyday_example_and_clear_limits():
@@ -217,8 +217,8 @@ def test_explicit_closing_question_request_is_detected_and_enforced():
         "doorway_title": "",
         "response_shape": "explanatory",
     })
-    parsed_missing = parse(missing_question)
-    assert parsed_missing["response"].startswith("Stewardship means caring")
+    with pytest.raises(ValueError):
+        parse(missing_question)
 
     valid_invitation = json.dumps({
         "response": "Stewardship means caring for what others rely on, including shared spaces and resources.\n\nIn everyday life, keeping a promise or maintaining what others rely on can protect trust over time.\n\nStewardship does not mean controlling everything or sacrificing yourself for everyone else. It means acting within your limits and caring for what is yours to care for. What is one thing in your everyday life that you feel responsible for caring for?",
