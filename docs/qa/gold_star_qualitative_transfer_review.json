@@ -461,6 +461,15 @@
       "qualifying_context": "Broad conceptual questions about regenerative design, organizational purpose, system health, adaptation, and long-term stewardship.",
       "abstention_boundary": "Do not impose this frame on narrow factual, technical, or unrelated questions, and do not transfer exemplar-specific claims, wording, examples, or doorway.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-candidate-2026-11-15-circularity-regeneration",
+      "question": "What is the difference between circularity and regeneration?",
+      "reasoning_family": "circularity_regeneration_distinction",
+      "transferable_discipline": "Answer the governing distinction directly, explain why one related practice can contribute without being sufficient, then connect the distinction to consequences and a meaningful next inquiry.",
+      "qualifying_context": "Broad conceptual questions comparing circularity, regeneration, resource circulation, system renewal, and long-term conditions.",
+      "abstention_boundary": "Transfer the structural discipline, not the exemplar-specific claims, wording, or doorway; use the doorway only for the exact approved query.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
