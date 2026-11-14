@@ -375,9 +375,9 @@ def main():
         "distress-sensitive logic still discards qualified doorways unless explicitly requested",
     )
     assert_true(
-        '"recommendation": authoritative_doorway' in MAIN_TEXT
-        and '"recommendation": recovery_recommendation' in MAIN_TEXT,
-        "ordinary/recovery recommendation contract is incomplete",
+        "authoritative_doorway_attached" in MAIN_TEXT
+        and "_select_verified_recovery_doorway" in MAIN_TEXT,
+        "ordinary/recovery doorway selection contract is incomplete",
     )
 
     # The final public boundary must preserve Markdown line breaks instead of
