@@ -380,6 +380,15 @@
       "qualifying_context": "technical capability, expertise, authority, legitimacy, mandate, accountability, decision rights, power",
       "abstention_boundary": "Do not treat technical success, expertise, efficiency, influence, or practical dependence as self-validating sources of legitimate authority; do not retreat into generic uncertainty when the conceptual distinction can be answered directly.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-tools-and-purposes-distinction",
+      "question": "How does the Archive distinguish tools from the purposes they serve?",
+      "reasoning_family": "tools_purposes_means_ends_distinction",
+      "transferable_discipline": "Answer the distinction directly: identify tools as means and purposes as ends, then show how institutional processes, measurements, or technologies can drift from serving their purpose and require renewed judgment.",
+      "qualifying_context": "tools, purposes, means, ends, institutional drift, measurement, technology, stewardship",
+      "abstention_boundary": "Do not treat a tool's effectiveness, persistence, or popularity as evidence that it is itself the purpose; do not substitute generic systems language for the visitor's explicit distinction.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
