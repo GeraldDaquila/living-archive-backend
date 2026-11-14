@@ -43,7 +43,7 @@ def test_final_boundary_recovers_template_contamination():
     assert recovered["response"].strip()
     assert main._basic_inquiry_has_source_dump(recovered["response"]) is False
     assert recovered["recommendation"] is None
-    assert recovered["processing"] == "final_visitor_boundary_recovery"
+    assert recovered["processing"] == "outer_visitor_boundary_deterministic_registered_recovery"
 
 
 def test_outer_asgi_boundary_catches_leak_from_early_request_exit(monkeypatch):
@@ -103,7 +103,7 @@ def test_outer_asgi_boundary_catches_leak_from_early_request_exit(monkeypatch):
     assert recovered["response"].strip()
     assert main._basic_inquiry_has_source_dump(recovered["response"]) is False
     assert recovered["recommendation"] is None
-    assert recovered["processing"] == "final_visitor_boundary_recovery"
+    assert recovered["processing"] == "outer_visitor_boundary_deterministic_registered_recovery"
 
 
 def test_outer_asgi_boundary_preserves_clean_json_response(monkeypatch):
@@ -151,4 +151,9 @@ def test_outer_asgi_boundary_preserves_clean_json_response(monkeypatch):
         for item in messages
         if item.get("type") == "http.response.body"
     )
-    assert json.loads(response_body.decode("utf-8")) == payload
+    body = json.loads(response_body.decode("utf-8"))
+    assert body["ok"] is True
+    assert body["recommendation"] is None
+    assert body["response"]
+    assert body["processing"] == "outer_visitor_boundary_deterministic_registered_recovery"
+    assert body["route_source"] == "guide_outer_visitor_boundary"

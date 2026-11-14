@@ -146,7 +146,12 @@ def compose_definition_significance(subject):
 
 def _significance_recovery(subject, context=""):
     """Answer a reusable why-does-this-matter question without causal-template drift."""
-    subject = _clean(subject).strip(" ,;:") or "the concept"
+    subject = _clean(subject).strip(" ,;:.!?") or "the concept"
+    # Interrogative wording may leave a terminal question mark embedded in a
+    # preserved subject (for example, "... matter when leadership changes?").
+    # Recovery prose must normalize that punctuation before joining it to
+    # "because".
+    subject = subject.rstrip(" ?.!;:")
     normalized = re.sub(r"\s+", " ", subject).strip().casefold()
     if normalized == "handoffs":
         normalized = "handoff"
@@ -154,8 +159,10 @@ def _significance_recovery(subject, context=""):
     if not known.startswith("I can't define "):
         return known
 
+    context = _clean(context).strip(" ,;:.!?")
+    # Normalize interrogative punctuation before any display form is composed.
+    subject = subject.rstrip(" ?.!;:")
     display_subject = subject[:1].upper() + subject[1:]
-    context = _clean(context).strip(" ,;:")
     context_phrase = f" in {context}" if context else ""
     return (
         f"{display_subject} matters{context_phrase} because it influences whether people can understand what is at stake and coordinate their choices. "
@@ -505,8 +512,8 @@ def _general_explanatory_recovery(question):
     # grammatical fragment into the general systems template.
     matter_match = re.match(r"^why\s+does\s+(.+?)\s+matter(?:\s+(.+))?$", q, re.I)
     if matter_match:
-        concept = matter_match.group(1).strip(" ,;:")
-        context = (matter_match.group(2) or "").strip(" ,;:")
+        concept = matter_match.group(1).strip(" ,;:.!?")
+        context = (matter_match.group(2) or "").strip(" ,;:.!?")
         if concept in {"a clear handoff", "clear handoff"}:
             return (
                 "Handoff matters because a clear handoff is the transfer of responsibility, information, and context from one person or team to another so work can continue without losing what has already been learned. When teams coordinate their work, that transfer makes ownership and the next action visible rather than leaving them to assumption.\n\n"
@@ -880,7 +887,10 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "", significance_subject, flags=re.I
         )
         significance_context = significance_question.group(2) or ""
-        answer = _significance_recovery(significance_subject, significance_context)
+        answer = _significance_recovery(
+            significance_subject,
+            significance_context.rstrip(" ?.!;:"),
+        )
     elif re.search(r"\b(?:why|what causes|reason for)\b", lower):
         answer = (
             f"The most useful explanation for why {subject} begins by distinguishing the immediate event from the conditions that made it more likely. "

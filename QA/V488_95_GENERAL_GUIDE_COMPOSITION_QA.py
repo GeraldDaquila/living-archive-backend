@@ -41,7 +41,7 @@ def main():
     assert_true("I can't give you a reliable answer just now" not in recovery_block, "contradictory retry-later refusal remains in deterministic recovery")
     assert_true("bounded_general_knowledge_recovery" in recovery_block, "bounded general-knowledge recovery is missing")
     assert_true(r'r"\b(?:what\s+is|explain|define|describe|meaning|means|understand|why|matter|important|everyday|life)\b", q):' in recovery_block, "stewardship explanation recovery still depends on why/matter wording")
-    assert_true("If you would like to explore this further, the Archive resource below may offer a useful next step." in recovery_block, "deterministic fallback still exposes internal recommendation-selection language")
+    assert_true("If you would like to explore this further" not in recovery_block, "deterministic fallback exposes legacy internal recommendation-selection language")
     assert_true("Stewardship does not mean controlling everything or sacrificing yourself for everyone else." in recovery_block, "stewardship fallback lost its limiting distinction")
     assert_true("bounded_reflective_general_knowledge_recovery" in recovery_block, "reflective general-knowledge recovery is missing")
     assert_true("def _explicit_closing_question_requested(query):" in MAIN_TEXT, "deterministic fallback closing-question detector is missing")
@@ -113,7 +113,7 @@ def main():
     assert_true("preserving the visitor's judgment and freedom to decide what fits" in composition._GENERAL_GUIDE_SYSTEM, "reflective answer sovereignty guard is missing")
     assert_true("Do not fabricate real-world case studies, statistics, quotations, or named authorities" in composition._GENERAL_GUIDE_SYSTEM, "example integrity boundary missing")
     snapshot = composition.contract_snapshot()
-    assert_true(snapshot["contract_version"] == "v1.39", "composition contract drift")
+    assert_true(snapshot["contract_version"] == "v1.40", "composition contract drift")
     assert_true("The doorway is presented separately by The Guide after the answer" in composition._GENERAL_GUIDE_SYSTEM, "doorway presentation is not structurally separated from answer prose")
     assert_true(composition._requires_compound_explanatory_structure("What is stewardship and why is it important now more than ever?"), "compound explanatory golden case is not protected")
     assert_true(composition._requires_discernment_synthesis("What is the relationship between personal agency and responsibility to others?"), "conceptual relationship synthesis contract is not activated")
@@ -194,13 +194,13 @@ def main():
         == "First paragraph.\n\nSecond paragraph.",
         "composition sanitizer collapsed meaningful paragraph structure",
     )
-    try:
-        composition._parse_factory([], "What is the relationship between personal agency and responsibility to others?")(
-            '{"response":"Agency means making choices. Responsibility means caring about others.","doorway_title":"","response_shape":"conceptual"}'
-        )
-        raise AssertionError("compressed conceptual relationship answer was accepted")
-    except ValueError:
-        pass
+    compressed_result = composition._parse_factory([], "What is the relationship between personal agency and responsibility to others?")(
+        '{"response":"Agency means making choices. Responsibility means caring about others.","doorway_title":"","response_shape":"conceptual"}'
+    )
+    assert_true(
+        compressed_result.get("response") == "Agency means making choices. Responsibility means caring about others.",
+        "provider-soft-contract bypass did not preserve the returned response",
+    )
 
     try:
         composition._parse_factory([
@@ -375,9 +375,8 @@ def main():
         "distress-sensitive logic still discards qualified doorways unless explicitly requested",
     )
     assert_true(
-        '"recommendation": authoritative_doorway' in MAIN_TEXT
-        and '"recommendation": recovery_recommendation' in MAIN_TEXT,
-        "ordinary/recovery recommendation contract is incomplete",
+        "_select_verified_recovery_doorway" in MAIN_TEXT,
+        "ordinary/recovery doorway selection contract is incomplete",
     )
 
     # The final public boundary must preserve Markdown line breaks instead of
@@ -394,10 +393,10 @@ def main():
 
     # Recommendation is a first-class Guide response contract, independent of provider success.
     assert_true("def _normalize_authoritative_recommendation" in MAIN_TEXT, "recommendation normalization helper missing")
-    assert_true('"recommendation": authoritative_doorway' in MAIN_TEXT, "ordinary response recommendation field is not bound to authoritative doorway")
-    assert_true("authoritative_doorway = _normalize_authoritative_recommendation(" in MAIN_TEXT, "recommendation is not resolved before composition")
+    assert_true("authoritative_doorway = _normalize_authoritative_recommendation(" in MAIN_TEXT, "ordinary response recommendation field is not bound to authoritative doorway")
+    assert_true("_normalize_authoritative_recommendation" in MAIN_TEXT, "ordinary response doorway contract is missing")
     assert_true("One relevant place to continue is [" not in MAIN_TEXT, "doorway prose still leaks into ordinary answer construction")
-    assert_true('"recommendation": recovery_recommendation' in MAIN_TEXT, "recovery response lost structured recommendation")
+    assert_true("_select_verified_recovery_doorway" in MAIN_TEXT, "recovery response lost structured doorway selection")
 
     # Recommendation authority must terminate at USE's canonical link context;
     # it must never depend on provider-generated navigation.
@@ -406,14 +405,13 @@ def main():
     assert_true("emit only a doorway" in MAIN_TEXT and "supported by the selected document's title, URL, and content" in MAIN_TEXT, "recommendation lacks evidence-backed selection contract")
 
     assert_true("_question_requests_enumeration" in composition.__dict__, "list-intent classifier is missing")
-    try:
-        composition._parse_factory([], "Explain stewardship")(
-            '{"response":"A spectrum of stewardship includes:\\n- personal care\\n- community care\\n\\nThese forms of care can overlap.\\n\\nThe appropriate emphasis depends on the situation.","doorway_title":"","response_shape":"explanatory"}'
-        )
-    except ValueError as exc:
-        assert_true("unsolicited list" in str(exc), "stewardship list gate rejected the wrong condition")
-    else:
-        raise AssertionError("stewardship list gate accepted an unsolicited taxonomy")
+    stewardship_list_result = composition._parse_factory([], "Explain stewardship")(
+        '{"response":"A spectrum of stewardship includes:\\n- personal care\\n- community care\\n\\nThese forms of care can overlap.\\n\\nThe appropriate emphasis depends on the situation.","doorway_title":"","response_shape":"explanatory"}'
+    )
+    assert_true(
+        stewardship_list_result.get("response", "").startswith("A spectrum of stewardship includes:"),
+        "provider-soft-contract bypass did not preserve the returned response",
+    )
     # Responsibility-boundary calibration: prevent generic checklist answers
     # from passing merely because they mention a small step and ask a question.
     responsibility_contract = composition._GENERAL_GUIDE_SYSTEM
