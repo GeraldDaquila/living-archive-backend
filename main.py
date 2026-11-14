@@ -6603,10 +6603,16 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                 "That is a starting orientation rather than a substitute for evidence or context."
             )
         )
+        # Gold Star closing discipline: once a direct answer has been established,
+        # open the inquiry through application rather than retreating into a
+        # generic request for more context.
         closing = (
             "The Archive resource below may offer one place to continue the inquiry."
             if recommendation_available
-            else "If you add context about the situation, people involved, or decision at stake, the question can be examined more specifically."
+            else (
+                "A useful next question is where this distinction matters most: "
+                "in how the organization makes decisions, measures success, or responds to consequences."
+            )
         )
     # This low-level deterministic helper is imported in isolation by recovery
     # tests, so keep its classification self-contained rather than depending on
