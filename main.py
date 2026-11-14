@@ -12302,20 +12302,13 @@ async def _use_request_boundary(scope, receive, send):
                 # became unavailable. Preserve only a retrieval-validated primary;
                 # never invent or inherit a stale destination.
                 recovery_recommendation = None
-                # This direct Basic Inquiry recovery returns before the main
-                # composition payload boundary. Preserve the same narrowly
-                # verified cross-scale continuation here so navigation is not
-                # lost simply because the answer took the resilient recovery route.
-                try:
-                    candidate = general_guide_composition._cross_scale_canonical_doorway(query)
-                    if candidate.get("doorway_title") and candidate.get("doorway_url"):
-                        recovery_recommendation = {
-                            "title": candidate["doorway_title"],
-                            "url": candidate["doorway_url"],
-                        }
-                except Exception:
-                    pass
-                if recovery_recommendation is None and isinstance(context_data, dict):
+                # This direct Basic Inquiry recovery is a terminal answer path.
+                # It must not run an independent doorway selector after the main
+                # navigation boundary has failed. A cross-scale lookup here can
+                # reintroduce an unrelated destination (for example, the leading
+                # financial-sovereignty asset for a tools-versus-purposes inquiry).
+                # Preserve only a canonical primary already validated upstream.
+                if isinstance(context_data, dict):
                     candidate = context_data.get("recommendation_canonical_primary")
                     if isinstance(candidate, dict):
                         title = str(candidate.get("title") or "").strip()
