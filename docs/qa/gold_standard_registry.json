@@ -2925,11 +2925,12 @@
       "provenance": {
         "source_date": "2026-11-14",
         "source": "Live Guide response verified after structural abstention repair.",
-        "evidence_boundary": "User-approved live exemplar; exact response retained as acceptance reference."
+        "evidence_boundary": "User-approved live exemplar; exact response retained as acceptance reference.",
+        "source_ref": "GeraldDaquila/living-archive-backend live verification 2026-11-14"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "gold_star_capabilities": {
-        "generation_class": "live_user_approved_exemplar",
+        "generation_class": "runtime_agnostic_curated_exemplar",
         "exact_answer_authority": true,
         "active_quality_contributor": true,
         "deterministic_fallback_eligible": true,
