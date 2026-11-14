@@ -1638,7 +1638,7 @@ function renderGuideAnswer(response) {
    * characters. Normalize both representations before rendering so visitors
    * never see escape sequences or a collapsed wall of text.
    */
-  text = text.replace(/\\\\n/g, '\n').replace(/\\\\r/g, '');
+  text = text.replace(/\\\\n/g, '\n').replace(/\\\\r/g, '').replace(/\\n/g, '\n').replace(/\\r/g, '');
 
 
   var headings = ['What the Archive says', 'What the Guide synthesizes', 'What the Guide offers as orientation'];
