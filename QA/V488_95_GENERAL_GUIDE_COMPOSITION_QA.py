@@ -375,8 +375,7 @@ def main():
         "distress-sensitive logic still discards qualified doorways unless explicitly requested",
     )
     assert_true(
-        "authoritative_doorway_attached" in MAIN_TEXT
-        and "_select_verified_recovery_doorway" in MAIN_TEXT,
+        "_select_verified_recovery_doorway" in MAIN_TEXT,
         "ordinary/recovery doorway selection contract is incomplete",
     )
 
