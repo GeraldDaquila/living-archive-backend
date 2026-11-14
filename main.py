@@ -3019,6 +3019,11 @@ if not _is_lived_experience_explanatory_request("What does it mean to live with 
 if _is_lived_experience_explanatory_request("What does uncertainty mean?"):
     raise RuntimeError("USE v489.90 glossary distinction invariant failed")
 
+# Deterministic recovery must provide a substantive orientation for recognized
+# conceptual questions when bounded Archive evidence or providers are unavailable.
+if "regenerative design" not in _normalize_query("What does regenerative design require at the organizational level?"):
+    raise RuntimeError("USE regenerative design recovery invariant failed")
+
 
 def _is_conceptual_explanatory_request(query):
     """Keep questions about a concept's role or significance in General Guide.
@@ -5007,7 +5012,15 @@ def _is_archive_claim_boundary_inquiry(query):
         return False
     archive_markers = r"\b(?:archive|archive claims?|archive texts?|source claims?|direct claims?)\b"
     boundary_markers = r"\b(?:separate|distinguish|difference|boundary|own synthesis|guide synthesis|interpretation|attribute|attribution|what (?:the )?guide (?:adds|synthesizes))\b"
-    return bool(re.search(archive_markers, q, re.I) and re.search(boundary_markers, q, re.I))
+    # Keep the boundary detector deliberately legible: provenance questions may
+    # use ordinary verbs such as "distinguish" rather than formal epistemic terms.
+    has_archive = bool(re.search(archive_markers, q, re.I))
+    has_boundary = bool(re.search(boundary_markers, q, re.I))
+    if has_archive and has_boundary:
+        return True
+    return "archive" in q and any(
+        marker in q for marker in ("distinguish", "separate", "difference", "boundary", "attribution")
+    )
 
 
 def _archive_claim_boundary_recovery():
@@ -5169,9 +5182,9 @@ def _archive_claim_authoritative_doorway(query, doorway):
         return None
     node_title = str(node.get("title") or "").strip()
     node_url = str(node.get("url") or node.get("canonical_url") or "").strip()
-    return _normalize_authoritative_recommendation(
-        {"title": node_title, "url": node_url}
-    )
+    if not node_title or not re.match(r"^https://\\S+$", node_url, re.I):
+        return None
+    return {"title": node_title, "url": node_url}
 
 def _guide_finalize_visitor_payload(payload, query):
     """Apply shared visitor-facing quality and contamination boundaries to every route."""
@@ -5206,18 +5219,26 @@ def _guide_finalize_visitor_payload(payload, query):
     if _is_archive_claim_boundary_inquiry(query):
         safe = dict(payload)
         safe["response"] = _archive_claim_boundary_recovery()
-        # Preserve doorway authority already established upstream. This final
-        # reasoning boundary must not erase that decision and run a second
-        # retrieval pass: provenance expansion can otherwise promote an unrelated
-        # asset into visitor-facing navigation.
-        safe["recommendation"] = _archive_claim_authoritative_doorway(
-            query,
-            safe.get("recommendation"),
-        )
+        # Archive provenance answers accept only a query-specific registered
+        # doorway. Never let a generic Atlas fallback replace a rejected or
+        # missing subject doorway.
+        node = _guide_node_specific_match(query)
+        if isinstance(node, dict):
+            node_title = str(node.get("title") or "").strip()
+            node_url = str(node.get("url") or node.get("canonical_url") or "").strip()
+            safe["recommendation"] = (
+                {"title": node_title, "url": node_url}
+                if node_title and re.match(r"^https://\S+$", node_url, re.I)
+                else None
+            )
+        else:
+            safe["recommendation"] = None
         # recommendation and canonical_doorway are one visitor-facing contract.
         # A rejected provenance doorway must clear both fields; otherwise a stale
         # upstream canonical_doorway can bypass the fail-closed decision in the UI.
         safe["canonical_doorway"] = safe["recommendation"]
+        safe["doorway_title"] = safe["recommendation"]["title"] if safe["recommendation"] else None
+        safe["doorway_url"] = safe["recommendation"]["url"] if safe["recommendation"] else None
         safe["processing"] = "final_visitor_boundary_archive_claim_provenance"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
@@ -6516,6 +6537,11 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         # distinction explicit, but do not turn a recognizable conceptual question into
         # an empty request for more context.
         _conceptual_orientations = {
+            "regenerative design": (
+                "Regenerative design asks an organization to move beyond merely reducing harm or improving efficiency and to consider whether its work strengthens the conditions on which people, communities, and ecosystems depend. At the organizational level, this changes both what is designed and how decisions are made.\n\n"
+                "In practice, it requires looking beyond isolated projects and short-term outputs toward relationships and long-term system health. Organizations need ways to learn from consequences, work across boundaries, account for effects that fall outside the organization, and adapt when those effects show that a system is being weakened rather than renewed.\n\n"
+                "The shift is therefore not simply a new sustainability program. It is a change in organizational purpose and practice: from minimizing damage to helping restore capacity, resilience, and the conditions for ongoing renewal."
+            ),
             "spiritual bypassing": (
                 "In general use, spiritual bypassing describes using spiritual beliefs, "
                 "practices, or language to avoid engaging with difficult emotions, conflicts, "
