@@ -661,3 +661,14 @@ def test_inner_development_gold_star_transport_authority_is_exact():
     assert record["expected_response"].startswith("Inner development and external systems shape each other through a continuing feedback loop.")
     assert record["doorway_title"] == "The Social Architecture of Thriving: Conditions That Allow Human Potential to Expand"
     assert record["doorway_url"].startswith("https://geralddaquila.com/")
+
+
+def test_exact_gold_standard_precedes_all_finalizer_recovery_families():
+    import sys
+    sys.path.insert(0, str(ROOT))
+    from main import _guide_finalize_visitor_payload
+    query = "How do inner development and external systems shape each other?"
+    result = _guide_finalize_visitor_payload({"response": "stale response"}, query)
+    assert result["response"].startswith("Inner development and external systems shape each other through a continuing feedback loop.")
+    assert result["processing"] == "final_visitor_boundary_exact_gold_standard"
+    assert result["recommendation"]["title"] == "The Social Architecture of Thriving: Conditions That Allow Human Potential to Expand"
