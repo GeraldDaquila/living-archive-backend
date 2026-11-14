@@ -3187,9 +3187,43 @@
         "source": "Live Guide response reviewed by user; structurally tightened into canonical exemplar.",
         "evidence_boundary": "Integrative orientation based on the response pattern; canonical doorway retained from live response."
       }
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-meaning-making-factual-explanation",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "guide_recognized_conceptual_distinction",
+      "query": "What is the difference between meaning-making and factual explanation?",
+      "expected_response": "Meaning-making and factual explanation answer different questions. A factual explanation asks what happened, how something works, or what evidence supports a claim. Meaning-making asks what an event, experience, or fact signifies for the people involved—how it is understood, connected to a larger story, or related to purpose and value.\n\nThey can inform one another, but neither replaces the other. Facts can constrain meaning-making by correcting what did or did not happen, while people can understand the same well-established facts differently because those facts carry different implications in different lives, communities, or situations.\n\nThe useful distinction is therefore not between objective facts and arbitrary meanings. A careful inquiry can ask both what is true and what that truth means. Keeping those questions distinct helps prevent interpretation from being mistaken for evidence, while also recognizing that evidence alone does not settle every question of significance, purpose, or implication.",
+      "doorway_title": "Making Sense of Life Without Oversimplifying It",
+      "doorway_status": "CANONICAL_RELEVANT_CONTINUATION",
+      "rating_out_of_10": 9.3,
+      "approval_state": "User explicitly approved Gold Star elevation after live production verification on 2026-11-14.",
+      "assertions": [
+        "Answer the conceptual distinction directly before discussing source limitations.",
+        "Define the distinct question each concept answers.",
+        "Show how evidence and interpretation constrain and inform one another without collapsing them.",
+        "Preserve the boundary between factual support and significance.",
+        "Offer a doorway only after the orientation is complete."
+      ],
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "recognized_conceptual_distinction",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "direct-distinction-with-epistemic-boundary",
+        "transferable_discipline": "Distinguish the concepts directly, show their interaction without collapsing them, and make the evidentiary boundary explicit.",
+        "abstention_boundary": "Do not treat ordinary conceptual orientation as unavailable merely because no Archive-specific source establishes the distinction."
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_date": "2026-11-14",
+        "source": "Live Guide response reviewed by user after production deployment of structural repair.",
+        "evidence_boundary": "Canonical exemplar records the response pattern; runtime generation provenance requires request-level attribution."
+      }
     }
   ],
-  "last_reconciliation_note": "Canonical ledger status count reconciled to 44 after integrative development orientation elevation.",
+  "last_reconciliation_note": "Canonical ledger status count reconciled to 45 after recognized conceptual distinction elevation.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -3316,7 +3350,7 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-14",
-    "approved_gold_star_count": 44,
+    "approved_gold_star_count": 45,
     "registry_record_count": 70,
     "review_reconciliation": "27 approved Gold Stars matched to the canonical ledger; no duplicate benchmark IDs detected after the provenance-boundary elevation."
   }
