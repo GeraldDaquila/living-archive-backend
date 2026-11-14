@@ -3224,6 +3224,42 @@
         "url": "https://geralddaquila.com/"
       },
       "doorway_status": "CANONICAL_URL_VALIDATED"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-technical-capability-legitimate-authority",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the relationship between technical capability and legitimate authority?",
+      "expected_response": "Technical capability and legitimate authority answer different questions. Capability concerns whether a person, institution, or system can do something effectively. Legitimate authority concerns whether it has the right to decide, direct, or exercise power in that domain. A highly capable actor may therefore lack the mandate, accountability, or consent required to exercise authority; conversely, an authorized institution may need expertise it does not itself possess.\\n\\nThe relationship matters because capability can make authority appear more justified than it is. Technical success may create confidence, dependence, or practical influence, but none of these by themselves establish who should decide or on whose behalf. Legitimate authority requires a further examination of how power is granted, bounded, and answerable: what mandate exists, whose interests are affected, what safeguards apply, and how decisions can be questioned or corrected.\\n\\nA sound arrangement brings the two into relationship without confusing them. Authority should be capable enough to carry its responsibilities, while technical expertise should inform decisions without silently becoming a substitute for accountable judgment. When the two diverge, the practical task is to make the boundary visible: distinguish advice from decision, competence from mandate, and influence from the right to exercise power. That distinction helps preserve both effective action and the conditions under which power can remain legitimate.",
+      "expected_doorway": {
+        "title": "Archetypes in Governance: Why Societies Recreate Familiar Leadership Patterns",
+        "url": "https://geralddaquila.com/2026/06/15/archetypes-in-governance-why-societies-recreate-familiar-leadership-patterns"
+      },
+      "doorway_status": "REQUIRED_CANONICAL_CONTINUATION",
+      "rating_out_of_10": 9.4,
+      "approval_state": "User explicitly requested structural revision and Gold Star elevation on 2026-11-14 after live review identified a generic abstention response.",
+      "assertions": [
+        "Distinguishes technical capability from legitimate authority directly.",
+        "Explains that effectiveness, influence, or technical success do not by themselves establish a right to decide.",
+        "Frames legitimacy through mandate, accountability, safeguards, affected interests, and correction.",
+        "Preserves the productive relationship between expertise and accountable decision-making without conflating them."
+      ],
+      "provenance": {
+        "source": "Live Guide response reviewed by user on 2026-11-14; structurally revised into an exact-question Gold Star benchmark.",
+        "evidence_boundary": "Canonical benchmark answers the conceptual relationship without claiming Archive-specific evidence beyond the response's stated conceptual distinctions."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "technical_capability_legitimate_authority_distinction",
+        "transferable_discipline": "Answer the relationship directly by separating what an actor can do from whether it has the right to decide; then connect expertise to mandate, accountability, safeguards, and correction.",
+        "abstention_boundary": "Do not treat technical success, expertise, efficiency, influence, or practical dependence as self-validating sources of legitimate authority; do not retreat into generic uncertainty when the conceptual distinction can be answered directly."
+      },
+      "known_theme": "technical capability, legitimate authority, expertise, mandate, accountability, legitimacy, power",
+      "runtime_transfer": true
     }
   ],
   "last_reconciliation_note": "Canonical ledger status count reconciled to 44 after integrative development orientation elevation.",

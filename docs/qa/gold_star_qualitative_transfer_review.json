@@ -371,6 +371,15 @@
       "qualifying_context": "governance, leadership, management, authority, accountability, institutional conditions",
       "abstention_boundary": "Do not flatten governance into administration, treat leadership as a substitute for legitimate authority, or use a generic systems lens before answering the visitor's actual distinction.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-technical-capability-legitimate-authority",
+      "question": "What is the relationship between technical capability and legitimate authority?",
+      "reasoning_family": "technical_capability_legitimate_authority_distinction",
+      "transferable_discipline": "Answer the relationship directly by separating what an actor can do from whether it has the right to decide; then connect expertise to mandate, accountability, safeguards, and correction.",
+      "qualifying_context": "technical capability, expertise, authority, legitimacy, mandate, accountability, decision rights, power",
+      "abstention_boundary": "Do not treat technical success, expertise, efficiency, influence, or practical dependence as self-validating sources of legitimate authority; do not retreat into generic uncertainty when the conceptual distinction can be answered directly.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
