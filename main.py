@@ -7274,23 +7274,42 @@ def _general_guide_authoritative_doorway(query, context_data):
 
 
 def _broad_conceptual_doorway_candidate_fit(query, conceptual_answer, candidate):
-    """Require subject continuity before attaching a broad-concept doorway."""
+    """Require discriminative subject continuity before attaching a doorway.
+
+    Broad-answer prose contains many generic Archive terms. Those terms must
+    never be enough to validate an unrelated destination. A candidate needs a
+    direct, discriminative anchor in the visitor's inquiry; answer-language may
+    strengthen that match but cannot create it by itself.
+    """
     if not isinstance(candidate, dict):
         return False
     title = str(candidate.get("title") or "")
     body = str(candidate.get("text") or candidate.get("summary") or candidate.get("content") or "")
-    haystack = _normalize_query(f"{title} {body}")
-    if not haystack:
+    haystack_terms = set(re.findall(r"[a-z]{4,}", _normalize_query(f"{title} {body}").casefold()))
+    if not haystack_terms:
         return False
-    stop = {"about", "archive", "does", "from", "guide", "have", "into", "that", "their", "there", "these", "this", "what", "with"}
-    subject = {
-        term.casefold()
-        for term in re.findall(r"[A-Za-z]{5,}", f"{query or ''} {conceptual_answer or ''}")
-        if term.casefold() not in stop
+    generic = {
+        "about", "archive", "does", "from", "guide", "have", "into",
+        "that", "their", "there", "these", "this", "what", "with",
+        "they", "serve", "tools", "purpose", "purposes", "living",
     }
-    candidate_terms = set(re.findall(r"[a-z]{5,}", haystack.casefold()))
-    return len(subject & candidate_terms) >= 2
-
+    query_terms = {
+        term.casefold()
+        for term in re.findall(r"[A-Za-z]{7,}", str(query or ""))
+        if term.casefold() not in generic
+    }
+    # Fail closed when the question has no sufficiently discriminative lexical
+    # anchor. In that case semantic discovery alone may rank an adjacent page,
+    # but cannot justify presenting it as the visitor's continuation.
+    direct_anchor = query_terms & haystack_terms
+    if not direct_anchor:
+        return False
+    answer_terms = {
+        term.casefold()
+        for term in re.findall(r"[A-Za-z]{7,}", str(conceptual_answer or ""))
+        if term.casefold() not in generic
+    }
+    return len((query_terms | answer_terms) & haystack_terms) >= 2
 
 def _broad_conceptual_doorway(query, conceptual_answer=""):
     """Select a canonical doorway independently of broad-concept answer composition.
