@@ -672,7 +672,7 @@ def test_exact_gold_standard_finalizer_precedence_contract_is_declared():
     provenance = finalizer.index("_is_archive_claim_boundary_inquiry(query)")
     broad = finalizer.index("_requires_broad_conceptual_definition(query)")
     terminal = finalizer.index("_outer_registered_recovery")
-    assert provenance < broad < exact < terminal
+    assert provenance < broad < terminal < exact
     assert 'safe["processing"] = str(payload.get("processing") or "basic_inquiry")' in finalizer
 
 
