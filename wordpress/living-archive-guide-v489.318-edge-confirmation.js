@@ -48,7 +48,7 @@ var USE_TRANSPORT_TIMEOUT_MS = 30000;
 var HRN_PAGE_URL =
   'https://geralddaquila.com/understanding-human-systems-behavior-pressure-and-decision-making/';
 
-var USE_FRONTEND_BUILD = 'v489.322-literal-escape-normalization';
+var USE_FRONTEND_BUILD = 'v489.323-response-charcode-normalization';
 var USE_FRONTEND_AUTHORITY = 'guide-woody-scoped-controller';
 var USE_HRN_HANDOFF_CONTRACT = 'relationship-v2-browser-entrance';
 
@@ -2061,9 +2061,11 @@ async function useGuideSubmit(event) {
        */
       var responseForPresentation = String(data.response || '');
       var literalBackslash = String.fromCharCode(92);
+      var carriageReturn = String.fromCharCode(13);
+      var lineFeed = String.fromCharCode(10);
       responseForPresentation = responseForPresentation
-        .split(literalBackslash + 'r').join('\r')
-        .split(literalBackslash + 'n').join('\n')
+        .split(literalBackslash + 'r').join(carriageReturn)
+        .split(literalBackslash + 'n').join(lineFeed)
         .replace(/\r\n?/g, '\n')
         .trim()
         .replace(/([^\n])\n{3,}/g, '$1\n\n');
