@@ -21,5 +21,10 @@ class RegisteredConceptualRecoveryPrecedenceTests(unittest.TestCase):
         self.assertIn("if _direct_answer_baseline", MAIN)
         self.assertIn("_direct_answer_baseline = bool(_matched_orientation or _gold_star_quality)", MAIN)
 
+    def test_gold_star_baseline_uses_application_closing_not_context_fallback(self):
+        self.assertIn("Gold Star closing discipline", MAIN)
+        self.assertIn("where this distinction matters most", MAIN)
+        self.assertNotIn("If you add context about the situation, people involved, or decision at stake, the question can be examined more specifically.", MAIN)
+
 if __name__ == "__main__":
     unittest.main()
