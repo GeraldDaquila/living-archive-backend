@@ -10750,27 +10750,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     except Exception:
         pass
 
-    # Final cross-scale navigation authority: this question family has a
-    # verified canonical continuation and may pass through several late answer
-    # recoveries. Enforce the title/URL pair at the last visitor boundary so a
-    # cache hit or downstream prose recovery cannot silently discard navigation
-    # that was already authorized by the composition contract.
-    try:
-        _cross_scale_doorway = general_guide_composition._cross_scale_canonical_doorway(query)
-        if _cross_scale_doorway.get("doorway_title") and _cross_scale_doorway.get("doorway_url"):
-            authoritative_doorway = {
-                "title": _cross_scale_doorway["doorway_title"],
-                "url": _cross_scale_doorway["doorway_url"],
-            }
-            composition_context["authoritative_doorway"] = authoritative_doorway
-            composition_context["authoritative_doorway_title"] = authoritative_doorway["title"]
-            print("The Guide final payload boundary: enforced verified cross-scale canonical doorway.")
-    except Exception as exc:
-        print(
-            "The Guide final payload boundary: cross-scale doorway check failed safely "
-            f"({type(exc).__name__})."
-        )
-
+    # Final payload boundary: do not run a second independent cross-scale
+    # selector here. Composition has already established (or rejected) doorway
+    # authority. A late selector can overwrite that decision with an unrelated
+    # retrieved asset, turning retrieval rank into visitor-facing navigation.
+    # Preserve an already-authorized doorway; otherwise fail closed.
     # The systems-map calibration recovery may replace a non-answer late in the
     # request while preserving a doorway selected by General Composition. Carry
     # that already-validated composition pair into the final payload authority;
