@@ -3538,7 +3538,7 @@
       "runtime_transfer": true
     }
   ],
-  "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
+  "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91; approved Gold Star count 53.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -3665,8 +3665,8 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-15",
-    "approved_gold_star_count": 50,
-    "registry_record_count": 70,
-    "review_reconciliation": "27 approved Gold Stars matched to the canonical ledger; no duplicate benchmark IDs detected after the provenance-boundary elevation."
+    "approved_gold_star_count": 53,
+    "registry_record_count": 91,
+    "review_reconciliation": "Canonical ledger recomputed from registry records on 2026-11-15; approved Gold Stars and total records are derived from the sole authoritative ledger."
   }
 }
