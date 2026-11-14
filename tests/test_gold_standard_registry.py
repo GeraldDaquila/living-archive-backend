@@ -673,7 +673,7 @@ def test_exact_gold_standard_finalizer_precedence_contract_is_declared():
     broad = finalizer.index("_requires_broad_conceptual_definition(query)")
     terminal = finalizer.index("_outer_registered_recovery")
     assert exact < provenance < broad < terminal
-    assert 'safe["processing"] = "final_visitor_boundary_exact_gold_standard"' in finalizer
+    assert 'safe["processing"] = str(payload.get("processing") or "basic_inquiry")' in finalizer
 
 
 def test_sacred_language_exact_gold_star_resolves_browser_query():
