@@ -48,7 +48,7 @@ var USE_TRANSPORT_TIMEOUT_MS = 30000;
 var HRN_PAGE_URL =
   'https://geralddaquila.com/understanding-human-systems-behavior-pressure-and-decision-making/';
 
-var USE_FRONTEND_BUILD = 'v489.321-response-presentation-contract';
+var USE_FRONTEND_BUILD = 'v489.322-literal-escape-normalization';
 var USE_FRONTEND_AUTHORITY = 'guide-woody-scoped-controller';
 var USE_HRN_HANDOFF_CONTRACT = 'relationship-v2-browser-entrance';
 
@@ -2059,9 +2059,11 @@ async function useGuideSubmit(event) {
        * any of them must never erase a valid backend answer or be mislabeled
        * as a service connection failure.
        */
-      var responseForPresentation = String(data.response || '')
-        .replace(/\\n/g, '\n')
-        .replace(/\\r/g, '\r')
+      var responseForPresentation = String(data.response || '');
+      var literalBackslash = String.fromCharCode(92);
+      responseForPresentation = responseForPresentation
+        .split(literalBackslash + 'r').join('\r')
+        .split(literalBackslash + 'n').join('\n')
         .replace(/\r\n?/g, '\n')
         .trim()
         .replace(/([^\n])\n{3,}/g, '$1\n\n');
