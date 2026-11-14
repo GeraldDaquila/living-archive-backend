@@ -39,8 +39,22 @@ def main():
         missing = sorted(k for k in REQUIRED if not record.get(k))
         if missing:
             fail(f"{record.get('benchmark_id')} missing: {', '.join(missing)}")
-        if "expected_doorway" not in record and not record.get("doorway_status"):
+        if "expected_doorway" not in record:
             fail(f"{record['benchmark_id']} lacks explicit doorway state")
+        doorway = record.get("expected_doorway")
+        if doorway is None:
+            if record.get("doorway_status") not in {
+                "INTENTIONALLY_NONE_APPROVED",
+                "LEGACY_INCOMPLETE_NOT_APPROVED",
+                "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+            }:
+                fail(f"{record['benchmark_id']} has no explicit approved/withheld doorway state")
+        elif (
+            not isinstance(doorway, dict)
+            or not str(doorway.get("title") or "").strip()
+            or not str(doorway.get("url") or "").strip()
+        ):
+            fail(f"{record['benchmark_id']} has an incomplete expected_doorway")
 
     active_ids = {r["benchmark_id"] for r in active}
     review_set = set(review_ids)
