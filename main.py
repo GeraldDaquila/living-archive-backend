@@ -5147,6 +5147,34 @@ def _boundary_canonical_doorway(payload, query):
     return None
 
 
+def _archive_claim_authoritative_doorway(query, doorway):
+    """Allow provenance answers to hand off only to a provenance-specific canonical node.
+
+    A generic upstream recommendation is not authority for this response family.
+    If the canonical node has not been registered, fail closed rather than turning
+    the answer into a vehicle for an unrelated Archive asset.
+    """
+    candidate = _normalize_authoritative_recommendation(doorway)
+    if candidate is None:
+        return None
+    node = _guide_node_specific_match(query)
+    if not isinstance(node, dict):
+        return None
+    node_title = str(node.get("title") or "").strip()
+    node_url = str(node.get("url") or node.get("canonical_url") or "").strip()
+    canonical = _normalize_authoritative_recommendation(
+        {"title": node_title, "url": node_url}
+    )
+    if canonical is None:
+        return None
+    if (
+        candidate.get("title") != canonical.get("title")
+        or candidate.get("url") != canonical.get("url")
+    ):
+        return None
+    return canonical
+
+
 def _guide_finalize_visitor_payload(payload, query):
     """Apply shared visitor-facing quality and contamination boundaries to every route."""
     if not isinstance(payload, dict):
@@ -5184,8 +5212,9 @@ def _guide_finalize_visitor_payload(payload, query):
         # reasoning boundary must not erase that decision and run a second
         # retrieval pass: provenance expansion can otherwise promote an unrelated
         # asset into visitor-facing navigation.
-        safe["recommendation"] = _normalize_authoritative_recommendation(
-            safe.get("recommendation")
+        safe["recommendation"] = _archive_claim_authoritative_doorway(
+            query,
+            safe.get("recommendation"),
         )
         safe["processing"] = "final_visitor_boundary_archive_claim_provenance"
         safe["route_source"] = "guide_final_visitor_boundary"
