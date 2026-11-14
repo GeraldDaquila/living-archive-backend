@@ -4,6 +4,20 @@
 **Authority:** Living Archive USE ecosystem  
 **Purpose:** Make the production environment self-describing so no operator or assistant must rely on conversational memory to change it safely.
 
+## First rule — Read before acting
+
+**Do not rely on conversational memory, prior assumptions, or remembered architecture when making claims or changes to this ecosystem.**
+
+**Repository-based constitutional state is authoritative. Conversational memory is advisory only.**
+
+Before making a production-affecting claim or change, read:
+
+1. this Constitution;
+2. `docs/operations/USE_ECOSYSTEM_STATE.md`;
+3. the relevant canonical contracts and current implementation.
+
+**If repository evidence conflicts with memory, repository evidence wins. If the required evidence cannot be inspected, stop rather than infer.**
+
 ## 1. Canonical authority
 - Production repository: `GeraldDaquila/living-archive-backend`.
 - Canonical production branch: `main`.
