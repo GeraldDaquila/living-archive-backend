@@ -389,6 +389,24 @@
       "qualifying_context": "tools, purposes, means, ends, institutional drift, measurement, technology, stewardship",
       "abstention_boundary": "Do not treat a tool's effectiveness, persistence, or popularity as evidence that it is itself the purpose; do not substitute generic systems language for the visitor's explicit distinction.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-inner-development-external-systems-feedback-loop",
+      "question": "How do inner development and external systems shape each other?",
+      "reasoning_family": "inner-development-systems-feedback",
+      "transferable_discipline": "Explain reciprocal causation by connecting personal capacities with incentives, norms, authority, feedback, and institutional change.",
+      "qualifying_context": "Reciprocal development: how inner capacities and external systems reinforce, constrain, and reshape one another.",
+      "abstention_boundary": "Provides a systems-oriented explanation and does not establish causation in a specific case without supporting evidence.",
+      "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-sacred-language-clarity-power-live-candidate",
+      "question": "How can sacred language clarify experience, and how can it obscure power relations?",
+      "reasoning_family": "sacred-language-power-interpretation",
+      "transferable_discipline": "Distinguish language that clarifies lived meaning from language that shields authority from examination.",
+      "qualifying_context": "How sacred language can disclose meaning while also obscuring authority and power relations.",
+      "abstention_boundary": "Offers a structural framework and does not infer the motives or legitimacy of a particular tradition without evidence.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
