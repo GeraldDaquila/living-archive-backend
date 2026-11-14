@@ -3127,8 +3127,8 @@
       "query": "What is spiritual bypassing, and why does it matter?",
       "expected_response": "In general use, spiritual bypassing describes using spiritual beliefs, practices, or language to avoid engaging with difficult emotions, conflicts, responsibilities, or realities. The concern is not that spirituality itself is a problem, but that a source of meaning can sometimes be used to move around something that still needs attention. It matters because the appearance of peace, acceptance, or transcendence can coexist with unresolved harm or unacknowledged responsibility.",
       "doorway_status": "INTENTIONALLY_NONE",
-      "rating_out_of_10": 9.1,
-      "approval_state": "User approved structural refinement and elevation on 2026-11-14.",
+      "rating_out_of_10": 9.2,
+      "approval_state": "User explicitly approved replacement with the live visitor-facing response on 2026-11-14.",
       "assertions": [
         "Answer a recognized broadly understood concept directly when Archive-specific evidence is absent.",
         "Do not imply that spirituality itself is the problem.",
@@ -3149,8 +3149,9 @@
       "runtime_transfer": true,
       "provenance": {
         "source_date": "2026-11-14",
-        "source": "Live Guide response following structural repair; refined to remove redundant opening and prominent disclaimer.",
-        "evidence_boundary": "General orientation, not an Archive-specific doctrinal claim."
+        "source": "Live production response reviewed and approved by user after deployment of the structural refinement.",
+        "evidence_boundary": "General orientation, not an Archive-specific doctrinal claim.",
+        "replacement_note": "This record replaces the prior bounded conceptual orientation Gold Star text with the live canonical visitor-facing exemplar; it is not an additional Gold Star."
       }
     }
   ],
