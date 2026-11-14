@@ -3455,7 +3455,7 @@
     },
     {
       "benchmark_id": "gs-candidate-2026-11-15-circularity-regeneration",
-      "status": "CALIBRATION_CANDIDATE_PENDING_USER_ELEVATION",
+      "status": "CANDIDATE",
       "subsystem": "general-purpose-guide",
       "query": "What is the difference between circularity and regeneration?",
       "expected_response": "Circularity and regeneration are related, but they ask different questions. Circularity is concerned with keeping materials and resources in use longer, reducing waste and unnecessary extraction through reuse, repair, renewal, and recovery. Regeneration asks the broader question of whether a system restores and renews the ecological, social, and institutional conditions on which it depends.\n\nThe distinction matters because a system can become more circular without becoming regenerative: resources may circulate more efficiently while deeper patterns of depletion or damage remain unchanged. Circularity can therefore contribute to regeneration, but it does not by itself establish it. A regenerative orientation asks what must be restored or renewed so that the larger system can remain capable of flourishing over time.\n\nA useful next question is where this distinction matters most: in how an organization makes decisions, measures success, and responds to consequences. The broader relationship between regeneration and the design of interconnected systems can be explored through The Living Archive Navigator: Volume VI – Regeneration & Network Architecture.",
@@ -3465,7 +3465,7 @@
       },
       "doorway_status": "CALIBRATION_DOORWAY_VERIFIED_PENDING_ELEVATION",
       "rating_out_of_10": 9.3,
-      "approval_state": "Calibration candidate only; not user-approved as a Gold Star and not authorized for runtime transfer.",
+      "approval_state": "Candidate pending user elevation; not authorized for runtime transfer.",
       "assertions": [
         "Begins directly with the conceptual distinction.",
         "Explains why circularity can contribute to regeneration without being sufficient for it.",
