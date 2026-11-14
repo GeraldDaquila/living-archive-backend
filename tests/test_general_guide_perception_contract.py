@@ -90,8 +90,8 @@ def test_conceptual_relationships_require_three_paragraph_default():
     import json
     import pytest
     compressed = json.dumps({"response":"Agency means making choices. Responsibility means caring about others.","doorway_title":"","response_shape":"conceptual"})
-    parsed_compressed = parse(compressed)["response"]
-    assert parsed_compressed.startswith("Agency means making choices")
+    with pytest.raises(ValueError):
+        parse(compressed)
     complete = json.dumps({"response": "\n\n".join([
         "Personal agency and responsibility to others are interdependent aspects of the same moral life. Agency is the capacity to make choices and act on them; responsibility is recognizing that those choices affect other people. Genuine agency does not require ignoring the relationships in which our choices take effect.",
         "The tension appears when agency is treated as independence from consequences. For example, a manager who restructures a team is exercising real choice, but that decision also changes employees’ working conditions, security, and morale. Responsible leadership considers the people affected and explains the decision fairly.",
