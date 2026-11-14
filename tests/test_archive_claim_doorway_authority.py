@@ -33,3 +33,23 @@ def test_archive_claim_boundary_accepts_matching_registered_node(monkeypatch):
     )
 
     assert result["recommendation"] == canonical
+
+
+def test_sender_cannot_repopulate_provenance_doorway_after_fail_closed(monkeypatch):
+    query = "How does the Archive distinguish tools from the purposes they serve?"
+    payload = {
+        "query": query,
+        "response": "placeholder",
+        "recommendation": None,
+        "processing": "final_visitor_boundary_archive_claim_provenance",
+    }
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda q: None)
+
+    sent = []
+    async def capture(message):
+        sent.append(message)
+
+    import asyncio, json
+    asyncio.run(main._use_send_json(capture, payload))
+    body = json.loads(sent[-1]["body"].decode("utf-8"))
+    assert body["recommendation"] is None

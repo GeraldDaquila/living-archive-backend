@@ -11078,9 +11078,21 @@ async def _use_send_json(send, payload, status_code=200):
                 if _boundary_title and re.match(r"^https://\S+$", _boundary_url, re.I):
                     payload["recommendation"] = {"title": _boundary_title, "url": _boundary_url}
                     payload["canonical_doorway"] = payload["recommendation"]
+        # Archive-claim provenance answers own a stricter navigation contract than
+        # generic recovery. Once the final visitor boundary has rejected a doorway,
+        # no later sender-level fallback may repopulate it from an unrelated
+        # deterministic registry.
+        _archive_claim_final = (
+            str(payload.get("processing") or "")
+            == "final_visitor_boundary_archive_claim_provenance"
+        )
         if _boundary_standard is not None and bool(_boundary_standard.get("forbids_doorway")):
             payload["recommendation"] = None
-        elif not isinstance(payload.get("recommendation"), dict) and _boundary_query:
+        elif (
+            not _archive_claim_final
+            and not isinstance(payload.get("recommendation"), dict)
+            and _boundary_query
+        ):
             # Absolute last-mile navigation contract: a registered deterministic
             # recovery owns its canonical doorway. Earlier answer paths may return
             # before composition-level navigation code, so resolve the contract
