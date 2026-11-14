@@ -1643,8 +1643,7 @@ function renderGuideAnswer(response) {
 
   var headings = ['What the Archive says', 'What the Guide synthesizes', 'What the Guide offers as orientation'];
   var matches = headings.map(function (heading) {
-    var escaped = heading.replace(/[.*+?^$()|[\]\\]/g, '\\  /*
-   * Paragraph boundaries are part of the answer contract.');
+    var escaped = heading.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
     var pattern = new RegExp(
       '(?:^|\\n\\s*\\n|\\n)(?:#{1,6}\\s*)?(' + escaped + ')\\s*(?:\\n|$)',
       'i'
