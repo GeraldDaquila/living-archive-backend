@@ -2892,7 +2892,12 @@
       "known_theme": "cross-scale orientation, structure and agency, civilizational patterns, systems thinking",
       "freeze_policy": "immutable_user_approved_gold_standard",
       "expected_doorway": null,
-      "doorway_status": "INTENTIONALLY_NONE_APPROVED"
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+      "assertions": [
+        "preserve both structure and agency",
+        "explain cross-scale relationship without reduction",
+        "avoid treating either scale as a complete explanation"
+      ]
     },
     {
       "benchmark_id": "gs-2026-11-14-humane-performance-not-instrumental-treatment",
