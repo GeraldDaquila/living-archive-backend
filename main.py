@@ -6536,33 +6536,32 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         # no authoritative material to support an Archive-specific treatment. Keep that
         # distinction explicit, but do not turn a recognizable conceptual question into
         # an empty request for more context.
+        # Gold Star baseline for bounded conceptual recovery:
+        # answer directly -> make the governing distinction visible -> state the
+        # practical implication. Do not pad a clear conceptual answer with a
+        # question echo or a generic request for more context.
         _conceptual_orientations = {
-            "regenerative design": (
-                "Regenerative design asks an organization to move beyond merely reducing harm or improving efficiency and to consider whether its work strengthens the conditions on which people, communities, and ecosystems depend. At the organizational level, this changes both what is designed and how decisions are made.\n\n"
-                "In practice, it requires looking beyond isolated projects and short-term outputs toward relationships and long-term system health. Organizations need ways to learn from consequences, work across boundaries, account for effects that fall outside the organization, and adapt when those effects show that a system is being weakened rather than renewed.\n\n"
-                "The shift is therefore not simply a new sustainability program. It is a change in organizational purpose and practice: from minimizing damage to helping restore capacity, resilience, and the conditions for ongoing renewal."
-            ),
             "spiritual bypassing": (
                 "In general use, spiritual bypassing describes using spiritual beliefs, "
                 "practices, or language to avoid engaging with difficult emotions, conflicts, "
-                "responsibilities, or realities. The concern is not that spirituality itself is "
-                "a problem, but that a source of meaning can sometimes be used to move around "
-                "something that still needs attention. It matters because the appearance of "
-                "peace, acceptance, or transcendence can coexist with unresolved harm or "
-                "unacknowledged responsibility."
+                "responsibilities, or realities.",
+                "The concern is not that spirituality itself is a problem, but that a source of "
+                "meaning can sometimes be used to move around something that still needs attention.",
+                "The practical boundary is whether spiritual language helps make difficult realities "
+                "more visible or helps place them beyond examination."
             ),
             "circularity and regeneration": (
                 "Circularity and regeneration are related, but they ask different questions. "
                 "Circularity is concerned with keeping materials and resources in use for longer, "
                 "reducing waste and unnecessary extraction through reuse, repair, renewal, and recovery. "
-                "Regeneration asks the broader question of whether a system restores and renews the "
-                "ecological, social, and institutional conditions on which it depends. "
-                "\\n\\n"
+                "Regeneration asks whether a system restores and renews the ecological, social, and "
+                "institutional conditions on which it depends.",
                 "The distinction matters because a system can become more circular without becoming "
                 "regenerative: resources may circulate more efficiently while deeper patterns of depletion "
-                "or damage remain unchanged. Circularity can therefore contribute to regeneration, but it "
-                "does not by itself establish it. A regenerative orientation asks what must be restored or "
-                "renewed so that the larger system can remain capable of flourishing over time."
+                "or damage remain unchanged. Circularity can contribute to regeneration, but it does not "
+                "by itself establish it.",
+                "A regenerative orientation therefore asks what must be restored or renewed so that the "
+                "larger system can remain capable of flourishing over time."
             ),
         }
         _orientation_query = _normalize_query(query)
@@ -6575,24 +6574,26 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                 None,
             )
         )
-        explanation = (
-            (
-                _matched_orientation
-            )
-            if _matched_orientation
-            else (
+        if _matched_orientation:
+            # A recognized conceptual orientation is already a complete answer
+            # shape. Preserve its three-part Gold Star construction instead of
+            # wrapping it in the generic fallback opening and closing.
+            opening = ""
+            explanation = "\\n\\n".join(_matched_orientation)
+            closing = ""
+        else:
+            explanation = (
                 "I do not have enough grounded material here to give a specific Archive-based answer, "
                 "but the question can still be approached by making its central tension visible: "
                 "what is at stake, who or what is affected, what responsibilities are involved, "
                 "and what would change if the situation were understood differently. "
                 "That is a starting orientation rather than a substitute for evidence or context."
             )
-        )
-        closing = (
-            "The Archive resource below may offer one place to continue the inquiry."
-            if recommendation_available
-            else "If you add context about the situation, people involved, or decision at stake, the question can be examined more specifically."
-        )
+            closing = (
+                "The Archive resource below may offer one place to continue the inquiry."
+                if recommendation_available
+                else "If you add context about the situation, people involved, or decision at stake, the question can be examined more specifically."
+            )
     # This low-level deterministic helper is imported in isolation by recovery
     # tests, so keep its classification self-contained rather than depending on
     # the later request-routing helper.
