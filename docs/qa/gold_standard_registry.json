@@ -3187,9 +3187,43 @@
         "source": "Live Guide response reviewed by user; structurally tightened into canonical exemplar.",
         "evidence_boundary": "Integrative orientation based on the response pattern; canonical doorway retained from live response."
       }
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-comparative-spiritual-inquiry",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "guide_comparative_spiritual_inquiry",
+      "query": "How can multiple spiritual traditions be approached with respect and intellectual discipline?",
+      "expected_response": "When you want to study several spiritual paths—whether Buddhism, Christianity, Sufism, or any other tradition—do so with two guiding habits. First, treat each tradition as a living system, not a set of isolated ideas. Read primary texts, listen to practitioners, and note the cultural, historical, and experiential contexts that shape the teachings. Second, keep a critical, yet open, mindset: ask what each tradition claims, how it supports those claims, and what assumptions it makes. By combining respectful immersion with disciplined inquiry, you can appreciate the unique insights each path offers while avoiding the trap of cherry-picking or misrepresenting them.\n\nA useful distinction here is between cultural appropriation and cultural appreciation: Appropriation happens when you adopt symbols or practices without understanding their meaning or the community that holds them sacred. Appreciation, in contrast, involves learning the background, asking permission when appropriate, and acknowledging the source culture. This distinction matters because it protects the integrity of the traditions you study and ensures that your engagement is ethical, not exploitative.\n\nPractically, start with a small, focused project: choose one text or practice from each tradition, summarize its core idea, and compare how each addresses a common human concern—say, suffering or compassion. Record your findings in a simple table or journal. This method keeps the work manageable, encourages cross-checking, and builds a habit of respectful, evidence-based exploration that can gradually deepen into a broader, more nuanced understanding over time.",
+      "doorway_title": "Am I Truly Awakening? Discerning Authentic Spiritual Awakening in the Age of Spiritual Ascension",
+      "doorway_status": "CANONICAL_RELEVANT_CONTINUATION",
+      "rating_out_of_10": 9.2,
+      "approval_state": "User explicitly approved Gold Star elevation after live production verification on 2026-11-14.",
+      "assertions": [
+        "Approach each tradition on its own terms before comparing it.",
+        "Combine respectful understanding with critical examination.",
+        "Preserve meaningful differences rather than flattening traditions into interchangeable ideas.",
+        "Distinguish appreciation from extraction or appropriation.",
+        "Make practical comparison transparent, bounded, and open to cross-checking."
+      ],
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "comparative_spiritual_inquiry",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "comparative-understanding-with-critical-discipline",
+        "transferable_discipline": "Begin with each tradition on its own terms; combine respectful understanding with critical examination; preserve meaningful differences; distinguish appreciation from extraction; make comparison transparent and bounded.",
+        "abstention_boundary": "Do not substitute an institutional decision framework for a comparative spiritual inquiry merely because the question is abstract or normative."
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_date": "2026-11-14",
+        "source": "Live Guide response reviewed and approved by user after production verification of the inquiry-family boundary repair.",
+        "evidence_boundary": "Canonical exemplar preserves the reviewed response and transferable discipline; exact runtime generation provenance requires request-level attribution."
+      }
     }
   ],
-  "last_reconciliation_note": "Canonical ledger status count reconciled to 44 after integrative development orientation elevation.",
+  "last_reconciliation_note": "Canonical ledger status count reconciled to 45 after comparative spiritual inquiry elevation.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -3316,7 +3350,7 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-14",
-    "approved_gold_star_count": 44,
+    "approved_gold_star_count": 45,
     "registry_record_count": 70,
     "review_reconciliation": "27 approved Gold Stars matched to the canonical ledger; no duplicate benchmark IDs detected after the provenance-boundary elevation."
   }
