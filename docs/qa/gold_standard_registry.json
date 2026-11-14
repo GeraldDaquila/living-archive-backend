@@ -3152,7 +3152,8 @@
         "source_date": "2026-11-14",
         "source": "Live Guide response following structural repair; refined to remove redundant opening and prominent disclaimer.",
         "evidence_boundary": "General orientation, not an Archive-specific doctrinal claim."
-      }
+      },
+      "known_theme": "recognized-concept-without-archive-specific-evidence"
     },
     {
       "benchmark_id": "gs-2026-11-14-practice-community-feedback-development",
@@ -3187,7 +3188,8 @@
         "source_date": "2026-11-14",
         "source": "Live Guide response reviewed by user; structurally tightened into canonical exemplar.",
         "evidence_boundary": "Integrative orientation based on the response pattern; canonical doorway retained from live response."
-      }
+      },
+      "known_theme": "multi-element-development-question"
     },
     {
       "benchmark_id": "gs-2026-11-14-sacred-language-clarity-power-live-candidate",
