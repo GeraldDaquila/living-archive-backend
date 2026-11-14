@@ -1627,7 +1627,38 @@ async function submitOrdinaryFollowup(panel, input, button, status) {
    MAIN GUIDE SUBMISSION
    ================================================================ */
 
-async function useGuideSubmit(event) {
+async function renderGuideAnswer(response) {
+
+  var text = String(response || '').trim();
+
+  if (!text) return '';
+
+  /*
+   * Paragraph boundaries are part of the answer contract. Do not rely solely
+   * on the Markdown renderer to preserve plain-text paragraph spacing.
+   */
+  var paragraphs = text.split(/\r?\n\s*\r?\n+/).filter(function (paragraph) {
+    return paragraph.trim().length > 0;
+  });
+
+  if (paragraphs.length > 1) {
+    return paragraphs.map(function (paragraph) {
+      return '<p>' + escapeHtml(paragraph.trim()).replace(/\r?\n/g, '<br>') + '</p>';
+    }).join('');
+  }
+
+  try {
+    if (typeof marked !== 'undefined' && marked && typeof marked.parse === 'function') {
+      return marked.parse(text);
+    }
+  } catch (markdownError) {
+    console.error('The Guide Markdown renderer failed; using safe plain text.', markdownError);
+  }
+
+  return '<p>' + escapeHtml(text).replace(/\r?\n/g, '<br>') + '</p>';
+}
+
+function useGuideSubmit(event) {
 
   event.preventDefault();
 
@@ -2045,17 +2076,7 @@ async function useGuideSubmit(event) {
        * any of them must never erase a valid backend answer or be mislabeled
        * as a service connection failure.
        */
-      var renderedAnswer = '';
-      try {
-        if (typeof marked !== 'undefined' && marked && typeof marked.parse === 'function') {
-          renderedAnswer = marked.parse(data.response);
-        } else {
-          renderedAnswer = escapeHtml(data.response).replace(/\r?\n/g, '<br>');
-        }
-      } catch (markdownError) {
-        console.error('The Guide Markdown renderer failed; using safe plain text.', markdownError);
-        renderedAnswer = escapeHtml(data.response).replace(/\r?\n/g, '<br>');
-      }
+      var renderedAnswer = renderGuideAnswer(data.response);
       if (guideActiveRequestToken === requestToken) {
         responseText.innerHTML = renderedAnswer;
         responseText.dataset.guideRequestToken = String(requestToken);
