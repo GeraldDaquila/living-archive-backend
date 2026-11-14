@@ -1628,26 +1628,38 @@ async function submitOrdinaryFollowup(panel, input, button, status) {
    ================================================================ */
 
 async function renderGuideAnswer(response) {
-
   var text = String(response || '').trim();
-
   if (!text) return '';
 
-  /*
-   * Some transport paths serialize paragraph boundaries as literal "\\n"
-   * characters. Normalize both representations before rendering so visitors
-   * never see escape sequences or a collapsed wall of text.
-   */
   text = text.replace(/\\\\n/g, '\n').replace(/\\\\r/g, '');
 
-  /*
-   * Paragraph boundaries are part of the answer contract. Do not rely solely
-   * on the Markdown renderer to preserve plain-text paragraph spacing.
-   */
+  var headings = ['What the Archive says', 'What the Guide synthesizes', 'What the Guide offers as orientation'];
+  var positions = headings.map(function (heading) {
+    return text.toLowerCase().indexOf(heading.toLowerCase());
+  });
+  var ordered = positions.every(function (position, index) {
+    return position >= 0 && (index === 0 || position > positions[index - 1]);
+  });
+
+  if (ordered) {
+    var html = '<div class="guide-response-structure" data-guide-response-structure="three-layer">';
+    var intro = text.slice(0, positions[0]).trim();
+    if (intro) html += '<p class="guide-response-intro">' + escapeHtml(intro).replace(/\r?\n/g, '<br>') + '</p>';
+
+    headings.forEach(function (heading, index) {
+      var bodyStart = positions[index] + heading.length;
+      var bodyEnd = index + 1 < headings.length ? positions[index + 1] : text.length;
+      var body = text.slice(bodyStart, bodyEnd).trim();
+      html += '<section class="guide-response-layer"><h3>' + escapeHtml(heading) + '</h3><p>' +
+        escapeHtml(body).replace(/\r?\n/g, '<br>') + '</p></section>';
+    });
+    html += '</div>';
+    return html;
+  }
+
   var paragraphs = text.split(/\r?\n\s*\r?\n+/).filter(function (paragraph) {
     return paragraph.trim().length > 0;
   });
-
   if (paragraphs.length > 1) {
     return paragraphs.map(function (paragraph) {
       return '<p>' + escapeHtml(paragraph.trim()).replace(/\r?\n/g, '<br>') + '</p>';
@@ -1655,16 +1667,12 @@ async function renderGuideAnswer(response) {
   }
 
   try {
-    if (typeof marked !== 'undefined' && marked && typeof marked.parse === 'function') {
-      return marked.parse(text);
-    }
+    if (typeof marked !== 'undefined' && marked && typeof marked.parse === 'function') return marked.parse(text);
   } catch (markdownError) {
     console.error('The Guide Markdown renderer failed; using safe plain text.', markdownError);
   }
-
   return '<p>' + escapeHtml(text).replace(/\r?\n/g, '<br>') + '</p>';
 }
-
 function useGuideSubmit(event) {
 
   event.preventDefault();
