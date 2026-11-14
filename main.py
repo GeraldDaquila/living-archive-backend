@@ -5189,30 +5189,6 @@ def _archive_claim_authoritative_doorway(query, doorway):
 def _guide_finalize_visitor_payload(payload, query):
     """Apply shared visitor-facing quality and contamination boundaries to every route."""
     if not isinstance(payload, dict):
-        # Exact Gold Stars are terminal visitor authority, but only after the
-    # composition/recovery layer has completed its inquiry and evidence work.
-    # This preserves constitutional recovery invariants while freezing the
-    # visitor-facing answer and approved doorway at the final boundary.
-    exact_standard = _resolve_exact_guide_gold_standard(query)
-    if exact_standard is not None:
-        safe = dict(payload)
-        exact_answer = str(exact_standard.get("expected_response") or "").strip()
-        if exact_answer:
-            safe["response"] = exact_answer
-            if "answer" in safe:
-                safe["answer"] = exact_answer
-        if not bool(exact_standard.get("forbids_doorway")):
-            exact_title = str(exact_standard.get("doorway_title") or "").strip()
-            exact_url = str(exact_standard.get("doorway_url") or "").strip()
-            if exact_title and re.match(r"^https://\S+$", exact_url, re.I):
-                safe["recommendation"] = {"title": exact_title, "url": exact_url}
-                safe["canonical_doorway"] = safe["recommendation"]
-        safe["processing"] = str(payload.get("processing") or "basic_inquiry")
-        safe["route_source"] = "guide_final_visitor_boundary"
-        safe["visitor_boundary_version"] = APP_VERSION
-        return safe
-
-    return payload
     return payload
 
     response_text = str(payload.get("response") or "")
@@ -5625,7 +5601,31 @@ def _guide_finalize_visitor_payload(payload, query):
         not _basic_inquiry_has_internal_annotation(response_text)
         and not _basic_inquiry_has_source_dump(response_text)
     ):
-        return payload
+            # Exact Gold Stars are terminal visitor authority, but only after the
+    # composition/recovery layer has completed its inquiry and evidence work.
+    # This preserves constitutional recovery invariants while freezing the
+    # visitor-facing answer and approved doorway at the final boundary.
+    exact_standard = _resolve_exact_guide_gold_standard(query)
+    if exact_standard is not None:
+        safe = dict(payload)
+        exact_answer = str(exact_standard.get("expected_response") or "").strip()
+        if exact_answer:
+            safe["response"] = exact_answer
+            if "answer" in safe:
+                safe["answer"] = exact_answer
+        if not bool(exact_standard.get("forbids_doorway")):
+            exact_title = str(exact_standard.get("doorway_title") or "").strip()
+            exact_url = str(exact_standard.get("doorway_url") or "").strip()
+            if exact_title and re.match(r"^https://\S+$", exact_url, re.I):
+                safe["recommendation"] = {"title": exact_title, "url": exact_url}
+                safe["canonical_doorway"] = safe["recommendation"]
+        safe["processing"] = str(payload.get("processing") or "basic_inquiry")
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
+    return payload
+    return payload
 
     # If executable/template text escaped into the answer, bypass the same
     # composition path and use the dedicated safe recovery for the visitor's query.
