@@ -1571,18 +1571,14 @@ def _recommendation_first_fetch(query_str):
                 "The Guide outward navigation boundary: canonical selector "
                 f"failed safely ({type(exc).__name__})."
             )
-        # The Meta-Net result order is the canonical retrieval ranking. If the
-        # higher-level doorway selector cannot establish a primary, retain the
-        # leading retrieved canonical asset as a bounded resilience doorway.
-        # This fallback never searches outside the actual request context.
+        # Retrieval rank is not doorway authority. If the selector cannot
+        # establish a subject-specific canonical primary, fail closed. Never
+        # promote the leading Meta-Net asset merely because it was retrieved.
         if not selected_doorway:
-            for candidate in docs:
-                title = str(candidate.get("title") or "").strip()
-                url = str(candidate.get("url") or candidate.get("canonical_url") or "").strip()
-                if title and re.match(r"^https://\\S+$", url, re.I):
-                    selected_doorway = {"title": title, "url": url}
-                    print("The Guide canonical primary: preserved leading Meta-Net result.")
-                    break
+            print(
+                "The Guide outward navigation boundary: no subject-specific "
+                "canonical doorway; recommendation suppressed."
+            )
 
         if selected_doorway:
             target_url = str(selected_doorway.get("url") or "").rstrip("/").casefold()
