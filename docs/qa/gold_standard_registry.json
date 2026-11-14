@@ -3300,6 +3300,42 @@
         "url": "https://geralddaquila.com/"
       },
       "doorway_status": "CANONICAL_URL_VALIDATED"
+    },
+    {
+      "benchmark_id": "gs-2026-11-15-ecological-systems-extractive-economics",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How do ecological systems challenge extractive economic assumptions?",
+      "expected_response": "Ecological systems show that value is not simply a linear, extract-and-sell commodity. In nature, resources are interdependent, self-regulating, and often regenerative only when the whole system is respected. When an economy treats a forest as a pile of timber, it ignores the soil, water cycle, and biodiversity that keep that timber productive. The result is a short-term gain often followed by long-term loss—soil erosion, loss of pollinators, and reduced carbon sequestration. This pattern contradicts the extractive assumption that more extraction always equals more wealth.\n\nA key distinction is between extraction and maintenance. Extraction removes a resource from its context, while maintenance keeps the resource in a productive state. In a forest, maintenance means protecting water corridors, preserving seed-dispersing species, and allowing natural fire regimes. These actions cost money but also sustain the very resource that would otherwise be depleted. Economies that ignore this distinction often overestimate the value of a resource and underestimate the hidden costs of its loss.\n\nUnderstanding this tension matters because it reshapes policy and business strategy. If a company recognizes that a river’s health depends on upstream wetlands, it may invest in wetland restoration rather than expensive dams. Governments can design taxes or subsidies that reward ecosystem services—clean water, pollination, carbon storage—rather than merely taxing extraction. In short, ecological systems remind us that wealth is tied to resilience, not just to how much we can take out of a system before it collapses.",
+      "expected_doorway": {
+        "title": "Global Reset: Systems Change, Economic Transition, and Future Models"
+      },
+      "doorway_status": "APPROVED_LIVE_PRESENTATION",
+      "rating_out_of_10": 9,
+      "approval_state": "User explicitly approved Gold Star elevation on 2026-11-15 after reviewing the live visitor presentation.",
+      "assertions": [
+        "Answers directly through ecological interdependence, regeneration, and system-level consequences.",
+        "Distinguishes extraction from maintenance as an economic and ecological structural tension.",
+        "Connects the conceptual distinction to policy and business strategy without losing the systems frame.",
+        "Preserves the progression from ecological conditions to economic assumptions to practical implications.",
+        "Ends by linking wealth to resilience rather than maximizing extraction."
+      ],
+      "provenance": {
+        "source": "Live Guide response reviewed and explicitly approved by user on 2026-11-15.",
+        "evidence_boundary": "Curated conceptual exemplar based on the approved live presentation; the doorway title is recorded as presented and is not expanded into an unverified URL."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "ecological_interdependence_extraction_maintenance_resilience",
+        "transferable_discipline": "For broad systems questions, begin with the governing relationship, make the central distinction explicit, and carry the reasoning into institutional or economic consequences without reducing the system to a slogan.",
+        "abstention_boundary": "Do not present the exemplar as a sourced Archive doctrine beyond what the approved response establishes; do not invent canonical source provenance or doorway URLs."
+      },
+      "known_theme": "ecological systems, extractive economics, extraction, maintenance, resilience, ecosystem services, systems change",
+      "runtime_transfer": true
     }
   ],
   "last_reconciliation_note": "Canonical ledger status count reconciled to 44 after integrative development orientation elevation.",
