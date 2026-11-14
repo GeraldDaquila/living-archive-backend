@@ -4,6 +4,7 @@ import main
 
 
 def test_archive_claim_boundary_rejects_unrelated_upstream_doorway(monkeypatch):
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda q: None)
     query = "How does the Archive distinguish tools from the purposes they serve?"
     unrelated = {
         "title": "Why the AI Era Is Ultimately a Human Identity Crisis",
@@ -20,6 +21,7 @@ def test_archive_claim_boundary_rejects_unrelated_upstream_doorway(monkeypatch):
 
 
 def test_archive_claim_boundary_accepts_matching_registered_node(monkeypatch):
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda q: None)
     query = "How does the Archive distinguish tools from the purposes they serve?"
     canonical = {
         "title": "USE: The Protection Layer",
@@ -56,6 +58,7 @@ def test_sender_cannot_repopulate_provenance_doorway_after_fail_closed(monkeypat
 
 
 def test_archive_claim_boundary_clears_stale_canonical_doorway(monkeypatch):
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda q: None)
     query = "How does the Archive distinguish tools from the purposes they serve?"
     stale = {
         "title": "Why the AI Era Is Ultimately a Human Identity Crisis",
