@@ -1600,7 +1600,10 @@
       "subsystem": "general-purpose-guide",
       "query": "What is the Living Archive, and what is it not?",
       "expected_response": "The Living Archive is a public knowledge commons and an orientation ecosystem for understanding human life through connected ideas, relationships, and systems. It brings perspectives from different domains into conversation so people can see patterns, examine how parts affect one another, and explore what may support human flourishing. Its purpose is not simply to store information, but to help people find their bearings within a wider body of thought and inquiry.\n\nIt is not a chatbot built to deliver a quick, self-contained answer to every question, a collection of unrelated pages, or an authority that claims final certainty. The Archive invites disciplined inquiry: established claims should be distinguishable from interpretation and inference; uncertainty should be acknowledged rather than hidden; and no framework should relieve people of the responsibility to think, judge, and act with care.\n\nThe Guide puts that orientation into practice through constitutional sensemaking. It helps locate a question within the Archive's wider relationships, identify useful canonical resources, and clarify how the pieces may fit together without pretending that every connection is proven or every question settled. The aim is not to decide for the visitor, but to make the landscape clearer—so that further inquiry and human judgment can be better grounded.",
-      "expected_doorway": null,
+      "expected_doorway": {
+        "title": "Start Here — Where to begin and how to navigate the Living Archive",
+        "url": "https://geralddaquila.com/start-here-2/"
+      },
       "rating_out_of_10": 9.7,
       "approval_state": "USER_AUTHORIZED_STRUCTURAL_GOLD_STAR_REVISION_2026-11-15",
       "assertions": [
@@ -1609,7 +1612,8 @@
         "Preserves the distinction between established claims, interpretation, and inference while explicitly retaining uncertainty and human responsibility.",
         "Explains The Guide as the operating expression of the Archive's orientation through constitutional sensemaking.",
         "Uses a coherent identity → boundary → practice composition in exactly three paragraphs.",
-        "Answer is substantive and complete without requiring an unverified doorway."
+        "Answer is substantive and complete without requiring an unverified doorway.",
+        "One verified canonical doorway may follow the complete answer, offering an intentional entry point rather than a generic promotional handoff."
       ],
       "provenance": {
         "source_path": "Live visitor screenshot supplied by user",
@@ -1632,8 +1636,8 @@
       },
       "known_theme": "identity and epistemic boundary",
       "runtime_transfer": true,
-      "doorway_status": "INTENTIONALLY_NO_DOORWAY",
-      "doorway_note": "The approved answer is complete without a continuation; no canonical doorway is inferred or attached."
+      "doorway_status": "APPROVED_QUERY_SPECIFIC_CONTINUATION",
+      "doorway_note": "Identity-and-orientation questions may offer one verified canonical entry point after the answer is complete. Start Here is the approved doorway because it directly supports the visitor's next task: entering and navigating the Living Archive."
     },
     {
       "benchmark_id": "general-guide-methods-comparison-gold-standard-2026-10-25",
