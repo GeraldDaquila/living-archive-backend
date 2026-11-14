@@ -60,3 +60,13 @@ For each release, record:
 - **Correction:** Audit count set to 50 after record-level reconciliation.
 - **Activation repair:** The canonical cross-scale exemplar was already runtime-active but lacked explicit `gold_star_capabilities.active_quality_contributor` metadata; its capability metadata was completed to reflect the existing universal runtime-activation decision.
 - **Validation boundary:** No approvals added or removed; no Gold Star prose, doorway authority, routing, provider, or Pinecone behavior changed.
+
+
+## 2026-11-15 — Two-server startup repair: complete Gold Star doorway contract
+
+- **Class:** Content / QA authority
+- **Failure:** Primary and USE2-Mirror failed startup because runtime validation enforces a stricter explicit-doorway contract than the registry's earlier descriptive metadata.
+- **Reconciliation:** All 50 approved records were checked against the runtime contract.
+- **Repairs:** The spiritual-bypassing exemplar now explicitly declares an intentionally approved absence of doorway; the confident-synthesis exemplar does the same; the practice/community/feedback exemplar preserves its legacy doorway title for provenance but withholds runtime doorway authority because no canonical URL was verified.
+- **Validation:** All 50 approved records now satisfy the runtime doorway contract and all retain qualitative-transfer coverage.
+- **Boundary:** No URL was invented, no validator was bypassed or weakened, and no Gold Star approval or response content changed.
