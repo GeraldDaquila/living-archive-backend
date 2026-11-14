@@ -3222,7 +3222,8 @@
       "expected_doorway": {
         "title": "The Power of Language & Symbol",
         "url": "https://geralddaquila.com/"
-      }
+      },
+      "doorway_status": "RESTORED_AFTER_LIVE_REVIEW"
     }
   ],
   "last_reconciliation_note": "Canonical ledger status count reconciled to 44 after integrative development orientation elevation.",
