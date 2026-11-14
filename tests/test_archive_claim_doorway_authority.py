@@ -3,11 +3,11 @@
 import main
 
 
-def test_archive_claim_boundary_preserves_upstream_doorway(monkeypatch):
+def test_archive_claim_boundary_preserves_valid_upstream_doorway(monkeypatch):
     query = "How does the Archive distinguish tools from the purposes they serve?"
     upstream = {
-        "title": "USE: The Protection Layer",
-        "url": "/canonical-protection-layer/",
+        "title": "Canonical Archive Resource",
+        "url": "https://geralddaquila.com/canonical-resource/",
     }
 
     def should_not_rerank(*args, **kwargs):
@@ -23,12 +23,13 @@ def test_archive_claim_boundary_preserves_upstream_doorway(monkeypatch):
     assert result["recommendation"] == upstream
 
 
-def test_archive_claim_boundary_rejects_unvalidated_upstream_doorway(monkeypatch):
+def test_archive_claim_boundary_fails_closed_without_upstream_doorway(monkeypatch):
     query = "How does the Archive distinguish tools from the purposes they serve?"
-    monkeypatch.setattr(main, "_boundary_canonical_doorway", lambda *args, **kwargs: {
-        "title": "Anchoring GESARA in Daily Life: Practical Tools for Embracing Financial Sovereignty",
-        "url": "https://geralddaquila.com/example/financial-sovereignty/",
-    })
+
+    def should_not_rerank(*args, **kwargs):
+        raise AssertionError("archive-claim boundary must fail closed, not retrieve a new doorway")
+
+    monkeypatch.setattr(main, "_boundary_canonical_doorway", should_not_rerank)
 
     result = main._guide_finalize_visitor_payload(
         {"response": "placeholder", "recommendation": None},
