@@ -3307,11 +3307,8 @@
       "subsystem": "general-purpose-guide",
       "query": "How do ecological systems challenge extractive economic assumptions?",
       "expected_response": "Ecological systems show that value is not simply a linear, extract-and-sell commodity. In nature, resources are interdependent, self-regulating, and often regenerative only when the whole system is respected. When an economy treats a forest as a pile of timber, it ignores the soil, water cycle, and biodiversity that keep that timber productive. The result is a short-term gain often followed by long-term loss—soil erosion, loss of pollinators, and reduced carbon sequestration. This pattern contradicts the extractive assumption that more extraction always equals more wealth.\n\nA key distinction is between extraction and maintenance. Extraction removes a resource from its context, while maintenance keeps the resource in a productive state. In a forest, maintenance means protecting water corridors, preserving seed-dispersing species, and allowing natural fire regimes. These actions cost money but also sustain the very resource that would otherwise be depleted. Economies that ignore this distinction often overestimate the value of a resource and underestimate the hidden costs of its loss.\n\nUnderstanding this tension matters because it reshapes policy and business strategy. If a company recognizes that a river’s health depends on upstream wetlands, it may invest in wetland restoration rather than expensive dams. Governments can design taxes or subsidies that reward ecosystem services—clean water, pollination, carbon storage—rather than merely taxing extraction. In short, ecological systems remind us that wealth is tied to resilience, not just to how much we can take out of a system before it collapses.",
-      "expected_doorway": {
-        "title": "Global Reset: Systems Change, Economic Transition, and Future Models",
-        "url": "https://geralddaquila.com/"
-      },
-      "doorway_status": "APPROVED_LIVE_PRESENTATION",
+      "expected_doorway": null,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "rating_out_of_10": 9,
       "approval_state": "User explicitly approved Gold Star elevation on 2026-11-15 after reviewing the live visitor presentation.",
       "assertions": [
@@ -3323,7 +3320,7 @@
       ],
       "provenance": {
         "source": "Live Guide response reviewed and explicitly approved by user on 2026-11-15.",
-        "evidence_boundary": "Curated conceptual exemplar based on the approved live presentation; the doorway title is recorded as presented and is not expanded into an unverified URL."
+        "evidence_boundary": "Curated conceptual exemplar based on the approved live presentation. The doorway title was observed during review, but no canonical URL was independently verified; no doorway URL is authorized in the canonical record."
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "gold_star_capabilities": {
