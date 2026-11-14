@@ -160,7 +160,7 @@ def _significance_recovery(subject, context=""):
         return known
 
     display_subject = subject[:1].upper() + subject[1:]
-    context = _clean(context).strip(" ,;:")
+    context = _clean(context).strip(" ,;:.!?")
     context_phrase = f" in {context}" if context else ""
     return (
         f"{display_subject} matters{context_phrase} because it influences whether people can understand what is at stake and coordinate their choices. "
