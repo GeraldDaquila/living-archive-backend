@@ -452,6 +452,18 @@
       "qualifying_context": "Conceptual and governance questions where a persuasive synthesis could conceal unresolved alternatives, evidentiary limits, consequences, or authority boundaries.",
       "abstention_boundary": "Do not confuse persuasive completeness with established coherence; do not manufacture certainty or displace accountable decision-makers.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-15-regenerative-design-organizational-level",
+      "review_status": "APPROVED_FOR_RUNTIME_TRANSFER",
+      "structural_disciplines": [
+        "Begin directly with the conceptual answer without restating the visitor's question.",
+        "Establish the governing distinction before moving into practice and consequences.",
+        "Translate principle into organizational practice using relationships, long-term effects, learning, boundaries, and adaptation where relevant.",
+        "Close by opening a useful application-oriented inquiry rather than making a generic request for more context."
+      ],
+      "transfer_boundary": "Structural guidance only. Do not transfer the exemplar's claims, wording, examples, facts, or query-specific doorway to unrelated questions.",
+      "review_basis": "Reconciles the explicitly approved runtime-active Gold Star record with the canonical qualitative transfer review registry."
     }
   ]
 }
