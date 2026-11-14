@@ -689,3 +689,20 @@ def test_sacred_language_gold_star_has_valid_doorway_url():
     assert result is not None
     assert result["doorway_title"] == "The Power of Language & Symbol"
     assert result["doorway_url"].startswith("https://")
+
+
+def test_methods_comparison_gold_star_orients_method_choice_without_collapsing_distinctions():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-methods-comparison-gold-standard-2026-10-25"
+    )
+    response = record["expected_response"]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["runtime_transfer"] is True
+    assert len(response.split(chr(10) * 2)) == 3
+    assert "what happened or whether a claim is supported" in response
+    assert "how conditions influence one another" in response
+    assert "examining meaning or reasons" in response
+    assert "notice experience and interpretation more directly" in response
+    assert "The question determines which approach should lead" in response

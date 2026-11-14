@@ -52,9 +52,9 @@
       "benchmark_id": "general-guide-methods-comparison-gold-standard-2026-10-25",
       "question": "How do empirical inquiry, systems analysis, philosophy, and contemplative reflection differ?",
       "reasoning_family": "distinction_before_synthesis",
-      "transferable_discipline": "Define related approaches, preserve their differences, then explain how they complement one another.",
-      "qualifying_context": "Comparative questions involving methods, disciplines, or perspectives.",
-      "abstention_boundary": "Do not collapse distinct methods into a single generic process.",
+      "transferable_discipline": "Define related approaches, preserve their differences, give the visitor a concise question-to-method orientation, then explain how the approaches can complement one another.",
+      "qualifying_context": "Comparative questions involving methods, disciplines, or perspectives where the visitor may also need help choosing which lens fits the question.",
+      "abstention_boundary": "Do not collapse distinct methods into a single generic process or force a decision framework onto a comparison that only asks for definitions.",
       "activation": "active_quality_contributor"
     },
     {
