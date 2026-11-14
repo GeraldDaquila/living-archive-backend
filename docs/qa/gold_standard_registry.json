@@ -3255,9 +3255,41 @@
         "source": "Live Guide response reviewed by user after production deployment of structural repair.",
         "evidence_boundary": "Canonical exemplar records the response pattern; runtime generation provenance requires request-level attribution."
       }
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-tradition-wisdom-revision",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "guide_tradition_wisdom_revision",
+      "query": "How can communities preserve wisdom without treating tradition as infallible?",
+      "expected_response": "Communities can keep wisdom alive while avoiding the trap of treating tradition as infallible by keeping a clear separation between different ways of knowing. First, they should recognize that tradition is a collection of stories, practices, and lessons that have worked in the past, but it is not a set of absolute truths. By treating tradition as a starting point rather than a final verdict, members can ask whether a practice still fits the current context, what evidence supports it, and how it might be adapted. This approach turns tradition into a living conversation rather than a rigid rulebook.\n\nSecond, communities should create spaces where multiple perspectives—historical, experiential, scientific, and imaginative—can be heard side by side. When a new idea challenges an old custom, the group can examine both the wisdom embedded in the tradition and the fresh insights offered by the newcomer. The goal is not to force agreement but to let each view inform the other, revealing where a tradition may need updating or where a new idea might be grounded in deeper patterns. This dialogue keeps the tradition relevant without erasing its value.\n\nFinally, accountability mechanisms help ensure that neither tradition nor innovation becomes dogma. By documenting decisions, inviting critique, and revisiting outcomes, a community keeps its knowledge transparent and open to revision. When a practice is shown to be ineffective or harmful, the community can revise or abandon it, and when a new insight proves useful, it can be incorporated as part of the evolving tradition. This cycle of reflection, debate, and revision preserves wisdom while guarding against the assumption that tradition is always right.",
+      "rating_out_of_10": 9.1,
+      "approval_state": "User explicitly approved Gold Star elevation after live production review on 2026-11-14.",
+      "assertions": [
+        "Receive inherited wisdom seriously without treating it as a final verdict.",
+        "Bring multiple forms of knowledge into dialogue.",
+        "Distinguish preservation from infallibility.",
+        "Make revision accountable through critique, documentation, and revisiting outcomes.",
+        "Renew what remains valuable without erasing what came before."
+      ],
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "tradition_wisdom_revision",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "tradition-wisdom-and-revision",
+        "transferable_discipline": "Receive inherited wisdom seriously; distinguish preservation from infallibility; bring multiple forms of knowledge into dialogue; make revision accountable; renew what remains valuable without erasing what came before.",
+        "abstention_boundary": "Do not collapse this inquiry into either unquestioning traditionalism or reflexive dismissal of inherited knowledge."
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_date": "2026-11-14",
+        "source": "Live Guide response reviewed and approved by user.",
+        "evidence_boundary": "Canonical exemplar preserves the reviewed response and transferable discipline; exact runtime generation provenance requires request-level attribution."
+      }
     }
   ],
-  "last_reconciliation_note": "Reconciled the previously isolated meaning-making versus factual-explanation Gold Star into the active elevation branch; canonical promotion set now contains 46 approved Gold Stars pending validation and merge.",
+  "last_reconciliation_note": "Canonical promotion branch reconciled to 47 approved Gold Stars after tradition, wisdom, and revision elevation.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -3384,7 +3416,7 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-14",
-    "approved_gold_star_count": 46,
+    "approved_gold_star_count": 47,
     "registry_record_count": 70,
     "review_reconciliation": "27 approved Gold Stars matched to the canonical ledger; no duplicate benchmark IDs detected after the provenance-boundary elevation."
   }
