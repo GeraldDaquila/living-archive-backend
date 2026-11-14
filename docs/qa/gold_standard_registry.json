@@ -3534,7 +3534,7 @@
       "runtime_transfer": true
     }
   ],
-  "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
+  "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: 53 user-approved, runtime-active Gold Stars; canonical record count 91. Counts are derived from record-level inventory, not conversational history or stale audit metadata.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -3647,7 +3647,7 @@
     ],
     "runtime_integration_note": "Runtime composition must invoke active_quality_contribution() for eligible unseen questions before composition and pass only structural guidance—not exemplar answer text, factual claims, examples, citations, or doorways—into the response process. Exact-match enforcement remains separate.",
     "registry_authority": "SOLE_CANONICAL_SOURCE",
-    "last_reconciled": "2026-11-13"
+    "last_reconciled": "2026-11-15"
   },
   "canonical_storage": {
     "authority": "docs/qa/gold_standard_registry.json on the living-archive-backend main branch is the sole authoritative, additive Gold Star ledger.",
@@ -3661,8 +3661,10 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-15",
-    "approved_gold_star_count": 50,
-    "registry_record_count": 70,
-    "review_reconciliation": "27 approved Gold Stars matched to the canonical ledger; no duplicate benchmark IDs detected after the provenance-boundary elevation."
+    "approved_gold_star_count": 53,
+    "registry_record_count": 91,
+    "review_reconciliation": "53 active Gold Stars matched to the canonical qualitative-transfer ledger; no duplicate benchmark IDs or review IDs detected.",
+    "runtime_active_gold_star_count": 53,
+    "reconciliation_authority": "Counts are derived from record-level status and runtime_transfer fields in this file; this metadata is an audited mirror and must match the computed inventory."
   }
 }
