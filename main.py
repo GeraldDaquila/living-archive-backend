@@ -3037,6 +3037,7 @@ def _is_conceptual_explanatory_request(query):
         r"^what is (?:the )?(?:cosmology|worldview|metaphysics|ontology) of\b",
         r"^what are (?:the )?(?:roles|purposes|significance|importance|functions|contributions|impacts|relationships) of\b",
         r"^how does .{1,120} (?:shape|support|contribute to|affect|influence|relate to) .{1,120}",
+        r"^what does regenerative design require at the organizational level\\?*$",
         # Broad questions asking what a concept requires at an organizational
         # or system level are answerable conceptual inquiries, not evidence-limit
         # prompts. They should enter the conceptual synthesis path.
