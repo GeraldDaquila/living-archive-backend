@@ -3260,6 +3260,41 @@
       },
       "known_theme": "technical capability, legitimate authority, expertise, mandate, accountability, legitimacy, power",
       "runtime_transfer": true
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-tools-and-purposes-distinction",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How does the Archive distinguish tools from the purposes they serve?",
+      "expected_response": "The Archive distinguishes tools from purposes by asking a simple question: is this thing valuable because of what it is, or because of what it helps make possible?\n\nA tool is a means. Its significance depends on the work it enables, the conditions it changes, or the capacities it extends. A purpose concerns the end toward which action is directed: what is worth pursuing, protecting, sustaining, or becoming.\n\nThe distinction matters because tools can quietly acquire the status of purposes. An institution may become devoted to preserving a process rather than the human or civic purpose the process was created to serve. A measurement can become the target rather than an indicator. A technology can become an end in itself rather than a means whose consequences remain open to judgment.\n\nThe Archive therefore treats tools as things to be assessed in relation to the purposes they serve. The question is not simply whether a tool works, but what it makes easier, what it makes harder, whose purposes it advances, and whether those purposes remain worthy of pursuit.\n\nA useful place to continue: The Living Archive Atlas",
+      "known_theme": "tools, purposes, means, ends, institutional drift, measurement, technology, stewardship",
+      "runtime_transfer": true,
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "rating_out_of_10": 9,
+      "approval_state": "User explicitly requested Gold Star elevation after live review on 2026-11-14.",
+      "assertions": [
+        "Distinguishes tools as means from purposes as ends.",
+        "Explains how tools, processes, measurements, or technologies can become mistaken for purposes.",
+        "Keeps evaluation tied to consequences, affected purposes, and continued judgment."
+      ],
+      "provenance": {
+        "source": "Live Guide response reviewed and approved by user on 2026-11-14.",
+        "evidence_boundary": "Curated conceptual exemplar; doorway is recorded separately from the answer's transferable reasoning."
+      },
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "tools_purposes_means_ends_distinction",
+        "transferable_discipline": "Answer the distinction directly: identify tools as means and purposes as ends, then show how institutional processes, measurements, or technologies can drift from serving their purpose and require renewed judgment.",
+        "abstention_boundary": "Do not treat a tool's effectiveness, persistence, or popularity as evidence that it is itself the purpose; do not substitute generic systems language for the visitor's explicit distinction."
+      },
+      "expected_doorway": {
+        "title": "The Living Archive Atlas",
+        "url": "https://geralddaquila.com/"
+      },
+      "doorway_status": "CANONICAL_URL_VALIDATED"
     }
   ],
   "last_reconciliation_note": "Canonical ledger status count reconciled to 44 after integrative development orientation elevation.",
