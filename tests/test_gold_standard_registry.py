@@ -681,3 +681,11 @@ def test_sacred_language_exact_gold_star_resolves_browser_query():
     result = resolve_exact_gold_standard("How can sacred language clarify experience, and how can it obscure power relations?")
     assert result is not None
     assert result["expected_response"].startswith("Sacred language can clarify experience when it gives people words")
+
+
+def test_sacred_language_gold_star_has_valid_doorway_url():
+    from general_guide_gold_standards import resolve_exact_gold_standard
+    result = resolve_exact_gold_standard("How can sacred language clarify experience, and how can it obscure power relations?")
+    assert result is not None
+    assert result["doorway_title"] == "The Power of Language & Symbol"
+    assert result["doorway_url"].startswith("https://")
