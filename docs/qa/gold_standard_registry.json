@@ -3237,7 +3237,7 @@
       },
       "doorway_status": "REQUIRED_CANONICAL_CONTINUATION",
       "rating_out_of_10": 9.4,
-      "approval_state": "User explicitly requested structural revision and Gold Star elevation on 2026-11-14 after live review identified a generic abstention response.",
+      "approval_state": "User explicitly approved Gold Star elevation on 2026-11-14 after reviewing the corrected live visitor presentation.",
       "assertions": [
         "Distinguishes technical capability from legitimate authority directly.",
         "Explains that effectiveness, influence, or technical success do not by themselves establish a right to decide.",
@@ -3245,8 +3245,9 @@
         "Preserves the productive relationship between expertise and accountable decision-making without conflating them."
       ],
       "provenance": {
-        "source": "Live Guide response reviewed by user on 2026-11-14; structurally revised into an exact-question Gold Star benchmark.",
-        "evidence_boundary": "Canonical benchmark answers the conceptual relationship without claiming Archive-specific evidence beyond the response's stated conceptual distinctions."
+        "source": "Corrected live Guide response reviewed and explicitly approved by user on 2026-11-14.",
+        "evidence_boundary": "Canonical benchmark answers the conceptual relationship without claiming Archive-specific evidence beyond the response's stated conceptual distinctions.",
+        "elevation_note": "This record supersedes the earlier premature elevation metadata; the benchmark ID and canonical answer are retained, but approval is now grounded in the user's explicit post-calibration approval."
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "gold_star_capabilities": {
