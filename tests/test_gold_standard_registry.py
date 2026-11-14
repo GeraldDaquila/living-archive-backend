@@ -689,3 +689,48 @@ def test_sacred_language_gold_star_has_valid_doorway_url():
     assert result is not None
     assert result["doorway_title"] == "The Power of Language & Symbol"
     assert result["doorway_url"].startswith("https://")
+
+
+def test_integrity_audit_counts_match_authoritative_record_level_inventory():
+    registry = _registry()
+    records = registry["records"]
+    approved = [
+        record for record in records
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+    ]
+    active = [
+        record for record in approved
+        if record.get("runtime_transfer") is True
+    ]
+    audit = registry["integrity_audit"]
+    assert audit["approved_gold_star_count"] == len(approved)
+    assert audit["runtime_active_gold_star_count"] == len(active)
+    assert audit["registry_record_count"] == len(records)
+
+
+def test_identity_report_includes_computed_gold_star_counts(tmp_path):
+    import subprocess
+    import sys
+
+    report_path = tmp_path / "registry-report.json"
+    script_path = ROOT / "scripts" / "qa" / "report_gold_standard_registry.py"
+    completed = subprocess.run(
+        [
+            sys.executable, str(script_path),
+            "--application-commit", "test-app-commit-123",
+            "--runtime-identity", "test-runtime-primary",
+            "--output", str(report_path),
+        ],
+        cwd=ROOT, capture_output=True, text=True, check=False,
+    )
+    assert completed.returncode == 0, completed.stderr
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    records = _registry()["records"]
+    approved = [
+        item for item in records
+        if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
+    ]
+    assert report["approved_gold_star_count"] == len(approved)
+    assert report["runtime_active_gold_star_count"] == sum(
+        item.get("runtime_transfer") is True for item in approved
+    )
