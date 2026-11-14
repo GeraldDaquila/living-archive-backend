@@ -3037,6 +3037,10 @@ def _is_conceptual_explanatory_request(query):
         r"^what is (?:the )?(?:cosmology|worldview|metaphysics|ontology) of\b",
         r"^what are (?:the )?(?:roles|purposes|significance|importance|functions|contributions|impacts|relationships) of\b",
         r"^how does .{1,120} (?:shape|support|contribute to|affect|influence|relate to) .{1,120}",
+        # Broad questions asking what a concept requires at an organizational
+        # or system level are answerable conceptual inquiries, not evidence-limit
+        # prompts. They should enter the conceptual synthesis path.
+        r"^what does .{1,120}\\b(?:require|requires|look like|mean)\\b.{0,120}\\b(?:organizational|institutional|system|community|societal)\\b",
         r"^why (?:does|do|is|are) .{1,120} (?:matter|important|significant|essential|relevant)\b",
         # Compound concept questions must not fall into the recurring-problem recovery path.
         r"^what is (?:the )?(?:cosmology|worldview|metaphysics|ontology)\b.{0,120}\band why (?:does|do|is|are)\b",
@@ -3052,6 +3056,7 @@ for _conceptual_glossary_regression in (
     "What is the significance of human development?",
     "What is the cosmology of the Living Archive?",
     "What is cosmology, and why does it matter to how people live?",
+    "What does regenerative design require at the organizational level?",
 ):
     if not _is_conceptual_explanatory_request(_conceptual_glossary_regression):
         raise RuntimeError("USE conceptual inquiry routing invariant failed")
