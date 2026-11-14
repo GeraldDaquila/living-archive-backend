@@ -740,4 +740,6 @@ def test_living_archive_identity_gold_star_preserves_identity_boundary_and_pract
     assert "established claims should be distinguishable from interpretation and inference" in response
     assert "The Guide puts that orientation into practice through constitutional sensemaking" in response
     assert "The aim is not to decide for the visitor" in response
-    assert record["doorway_status"] == "INTENTIONALLY_NO_DOORWAY"
+    assert record["doorway_status"] == "APPROVED_QUERY_SPECIFIC_CONTINUATION"
+    assert record["expected_doorway"]["title"] == "Start Here — Where to begin and how to navigate the Living Archive"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/start-here-2/"
