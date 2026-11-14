@@ -6525,12 +6525,29 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
                 "peace, acceptance, or transcendence can coexist with unresolved harm or "
                 "unacknowledged responsibility."
             ),
+            "circularity and regeneration": (
+                "Circularity and regeneration are related, but they ask different questions. "
+                "Circularity is concerned with keeping materials and resources in use for longer, "
+                "reducing waste and unnecessary extraction through reuse, repair, renewal, and recovery. "
+                "Regeneration asks the broader question of whether a system restores and renews the "
+                "ecological, social, and institutional conditions on which it depends. "
+                "\\n\\n"
+                "The distinction matters because a system can become more circular without becoming "
+                "regenerative: resources may circulate more efficiently while deeper patterns of depletion "
+                "or damage remain unchanged. Circularity can therefore contribute to regeneration, but it "
+                "does not by itself establish it. A regenerative orientation asks what must be restored or "
+                "renewed so that the larger system can remain capable of flourishing over time."
+            ),
         }
         _orientation_query = _normalize_query(query)
-        _matched_orientation = next(
-            (orientation for concept, orientation in _conceptual_orientations.items()
-             if concept in _orientation_query),
-            None,
+        _matched_orientation = (
+            _conceptual_orientations["circularity and regeneration"]
+            if "circularity" in _orientation_query and "regeneration" in _orientation_query
+            else next(
+                (orientation for concept, orientation in _conceptual_orientations.items()
+                 if concept in _orientation_query),
+                None,
+            )
         )
         explanation = (
             (
