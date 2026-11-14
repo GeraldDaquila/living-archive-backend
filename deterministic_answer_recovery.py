@@ -512,8 +512,8 @@ def _general_explanatory_recovery(question):
     # grammatical fragment into the general systems template.
     matter_match = re.match(r"^why\s+does\s+(.+?)\s+matter(?:\s+(.+))?$", q, re.I)
     if matter_match:
-        concept = matter_match.group(1).strip(" ,;:")
-        context = (matter_match.group(2) or "").strip(" ,;:")
+        concept = matter_match.group(1).strip(" ,;:.!?")
+        context = (matter_match.group(2) or "").strip(" ,;:.!?")
         if concept in {"a clear handoff", "clear handoff"}:
             return (
                 "Handoff matters because a clear handoff is the transfer of responsibility, information, and context from one person or team to another so work can continue without losing what has already been learned. When teams coordinate their work, that transfer makes ownership and the next action visible rather than leaving them to assumption.\n\n"
