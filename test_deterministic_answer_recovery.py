@@ -175,7 +175,15 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
     def test_archive_civilizational_transition_recovery_does_not_capture_unrelated_questions(self):
         answer = compose_recovery("How can a city manage a transition between software systems?")
         self.assertNotIn("In the Living Archive, civilizational transition", answer)
-        self.assertIn("first task is to make the decision visible", answer)
+        self.assertIn("The inquiry begins by making the situation itself visible", answer)
+
+    def test_generic_inquiry_opening_handles_full_question_subject_without_meta_awkwardness(self):
+        question = "How can an institution recognize when its formal structure and actual power structure differ?"
+        answer = compose_recovery(question)
+        self.assertIn("The inquiry begins by making the situation itself visible", answer)
+        self.assertNotIn("For a question like", answer)
+        self.assertIn("What outcome is the organisation trying to achieve", answer)
+        self.assertEqual(len([p for p in answer.split("\n\n") if p.strip()]), 3)
 
     def test_complex_institutional_approach_uses_integrated_prose_not_generic_action_template(self):
         question = (
