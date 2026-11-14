@@ -9,11 +9,11 @@
 - Test entrypoint: `test-main.py`
 
 ## Current release record
-- Canonical commit: **record after coordinated verification**
-- Build/version/fingerprint: **record after coordinated verification**
-- Primary deployment state: **record after coordinated verification**
-- USE2-Mirror deployment state: **record after coordinated verification**
-- Last coordinated release gate: **record result and timestamp**
+- Canonical commit: `43db408eb0b28791932c6d485e3c9e35914cddda` (Gold Star runtime activation merge; coordinated deployment verification pending)
+- Build/version/fingerprint: **pending coordinated deployment verification**
+- Primary deployment state: **pending verification of canonical release identity**
+- USE2-Mirror deployment state: **pending verification of canonical release identity**
+- Last coordinated release gate: PR validation passed before merge; post-deployment two-server verification pending
 
 ## Active architecture
 - Two-server topology: Primary + USE2-Mirror
