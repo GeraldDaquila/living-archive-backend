@@ -3077,6 +3077,28 @@
       },
       "known_theme": "governance, leadership, management, authority, accountability, institutional conditions",
       "runtime_transfer": true
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-governance-ethical-responsibility-actionable",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How can governance structures make ethical responsibility actionable?",
+      "accepted_response": "Governance structures become actionable when they make ethical responsibility visible, assign clear authority, outline concrete consequences, and allow for ongoing revision. First, a governance framework should state its purpose in plain terms—what ethical goal it seeks to protect or promote—so that stakeholders can see the moral stakes. Second, it must designate who has the power to enforce or adjust that goal, whether through formal roles, committees, or community norms, and specify the mechanisms by which those roles can be held accountable. Third, the framework should link decisions to tangible outcomes: for example, a policy that requires a safety audit must also define the penalties for non-compliance and the benefits for compliance, making the ethical stakes concrete. Finally, the structure should include a revisability clause, allowing stakeholders to review and modify the rules as new information or context emerges, thereby preventing the system from becoming rigid or obsolete.\n\nThis approach matters because it turns abstract moral language into a decision-making process that people can follow and challenge. When purpose, authority, consequences, and revisability are explicit, individuals and groups can assess whether a particular action aligns with the ethical goal, who should be responsible for that assessment, and what will happen if the assessment is ignored. It also creates a feedback loop: if outcomes reveal that the ethical goal is not being met, the revisability mechanism lets the structure adapt rather than remain static.\n\nIn practice, applying this framework means crafting governance documents that list the ethical objective, the responsible actors, the expected outcomes, and the review schedule. For instance, a company might adopt a data-privacy charter that states its commitment to user consent, names a data-protection officer, specifies audit intervals and penalties for breaches, and sets a yearly review to incorporate new regulations. By making each element visible and actionable, the governance structure turns ethical responsibility from a vague aspiration into a concrete, enforceable practice.",
+      "doorway_title": "Ethical Gravity: Human Responsibility in the Age of Artificial Intelligence",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "governance-ethical-accountability",
+        "transferable_discipline": "Translate ethical purpose into explicit authority, consequences, feedback, and revision mechanisms.",
+        "abstention_boundary": "Applies to governance structures; does not substitute for context-specific legal, regulatory, or professional judgment."
+      },
+      "provenance": {
+        "source": "User calibration review",
+        "source_date": "2026-11-14",
+        "evidence_boundary": "Elevated only after direct review of the displayed visitor response and explicit user approval."
+      }
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
