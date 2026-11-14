@@ -1600,7 +1600,10 @@
       "subsystem": "general-purpose-guide",
       "query": "What is the Living Archive, and what is it not?",
       "expected_response": "The Living Archive is a public knowledge commons and an orientation ecosystem for understanding human life through connected ideas, relationships, and systems. It brings perspectives from different domains into conversation so people can see patterns, examine how parts affect one another, and explore what may support human flourishing. Its purpose is not simply to store information, but to help people find their bearings within a wider body of thought and inquiry.\n\nIt is not a chatbot that treats every question as a request for a quick, self-contained answer, a collection of unrelated pages, or an authority that claims final certainty. The Archive invites disciplined inquiry: established claims should be distinguishable from interpretation and inference; uncertainty should be acknowledged rather than hidden; and no framework should relieve people of the responsibility to think, judge, and act with care.\n\nThe Guide serves this purpose through constitutional sensemaking. It helps a person locate a question within the Archive's wider relationships, identify useful canonical resources, and understand how the pieces may fit together without pretending that every connection is proven or every question settled. In practice, a question about a relationship, institution, or community can open onto wider patterns of responsibility, power, history, and care. The aim is not to decide for the visitor, but to make the landscape clearer so that further inquiry and human judgment can be better grounded.",
-      "expected_doorway": null,
+      "expected_doorway": {
+        "title": "Orientation",
+        "url": "https://geralddaquila.com/start-here"
+      },
       "rating_out_of_10": 9.2,
       "approval_state": "USER_APPROVED",
       "assertions": [
@@ -1627,12 +1630,13 @@
         "reasoning_family": "identity_and_epistemic_boundary",
         "transferable_discipline": "Define what something is and is not, including boundaries around certainty and responsibility.",
         "abstention_boundary": "Do not turn every definition into a manifesto.",
-        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated.",
+        "doorway_authority": true
       },
       "known_theme": "identity and epistemic boundary",
       "runtime_transfer": true,
-      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_status": "USER_APPROVED_GOLD_STAR_DOORWAY",
+      "doorway_note": "Structural doorway repair authorized by user on 2026-11-15. The canonical Orientation page is the direct next step for a visitor asking what the Living Archive is and where to begin."
     },
     {
       "benchmark_id": "general-guide-methods-comparison-gold-standard-2026-10-25",
