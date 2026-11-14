@@ -3119,6 +3119,45 @@
         "title": "The Social Architecture of Thriving: Conditions That Allow Human Potential to Expand",
         "url": "https://geralddaquila.com/2026/06/15/the-social-architecture-of-thriving-conditions-that-allow-human-potential-to-expand/"
       }
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-formal-actual-power-structure-distinction",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How can an institution recognize that its formal structure and actual power structure differ?",
+      "expected_response": "The inquiry begins by making the situation itself visible: an institution recognizes that its formal structure and actual power structure differ. What outcome is the organisation trying to achieve, what responsibilities does it carry, and who will live with the consequences? Those questions bring operations, governance, human development, ethics, and stewardship into the same frame without pretending they are separate problems.\n\nFrom there, compare the real options rather than assuming that the proposed course is the only one. Look at what each option makes possible, what it may damage, who bears the costs, and what evidence would justify changing direction. The knowledge of people affected by the decision belongs in that assessment, especially where they will carry consequences they did not choose.\n\nThe point is not to make the decision for the organisation, but to make the grounds for acting clearer. Choose deliberately, make the reasoning and limits visible, and remain accountable for what follows. AI may inform that work, but it cannot take responsibility for a decision away from the people who have the authority to make it.",
+      "expected_doorway": {
+        "title": "Case Study 26: The Power Behind the Throne",
+        "url": null
+      },
+      "doorway_status": "REQUIRED_CANONICAL_CONTINUATION",
+      "rating_out_of_10": 9.2,
+      "approval_state": "User explicitly approved elevation to Gold Star on 2026-11-14 after reviewing the live visitor response and confirming the canonical continuation.",
+      "assertions": [
+        "Make the divergence between formal structure and actual power visible without reducing the answer to abstract systems language.",
+        "Bring institutional purpose, responsibilities, consequences, governance, ethics, human development, and stewardship into one coherent frame.",
+        "Compare real options, including what each makes possible, what it may damage, who bears costs, and what evidence could justify changing direction.",
+        "Include the knowledge and consequences of people affected by the decision.",
+        "Preserve human authority and accountability: AI may inform judgment but cannot assume responsibility for an institutional decision.",
+        "Retain the approved canonical continuation at the final visitor-facing response boundary."
+      ],
+      "provenance": {
+        "source_date": "2026-11-14",
+        "source": "Live Guide response reviewed and approved by user from the visitor-facing production response.",
+        "evidence_boundary": "User-approved exemplar; exact response and canonical continuation retained as the acceptance reference."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "live_user_approved_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "institutional_power_formal_actual_structure",
+        "transferable_discipline": "Make the gap between formal arrangements and lived power visible, then orient judgment through purpose, responsibility, options, consequences, affected knowledge, evidence, and accountable human authority.",
+        "abstention_boundary": "Transfer the discipline, not the exact prose. Do not imply that informal power automatically makes formal authority illegitimate, prescribe a decision without context, or allow AI to displace accountable human judgment."
+      },
+      "known_theme": "formal structure, actual power, institutions, governance, accountability, consequences, decision-making",
+      "runtime_transfer": true
     }
   ],
   "last_reconciliation_note": "Canonical ledger is additive. Historical and current approved Gold Stars share one registry, one capability contract, and one active QA role; doorway provenance remains explicit and no unverified destination is inferred.",
@@ -3247,8 +3286,8 @@
     "reconciliation_protocol": "Any temporary mirror or evidence store must be marked non-authoritative, reconciled into this ledger, and excluded from ecosystem counts before it is used operationally."
   },
   "integrity_audit": {
-    "last_audit_date": "2026-11-13",
-    "approved_gold_star_count": 27,
+    "last_audit_date": "2026-11-14",
+    "approved_gold_star_count": 28,
     "registry_record_count": 70,
     "review_reconciliation": "27 approved Gold Stars matched to the canonical ledger; no duplicate benchmark IDs detected after the provenance-boundary elevation."
   }
