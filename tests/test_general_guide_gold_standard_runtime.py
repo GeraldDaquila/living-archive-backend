@@ -261,7 +261,7 @@ def test_continuous_learning_contract_is_explicit_and_does_not_claim_implementat
 
     assert contract["contract_id"] == "living-archive-guide-continuous-learning-loop"
     assert contract["contract_version"] == "1.0.0"
-    assert contract["status"] == "SPECIFIED_NOT_YET_IMPLEMENTED"
+    assert contract["status"] == "IMPLEMENTED_ACTIVE_QUALITY_MEMORY"
     assert any("questions not used during calibration" in item for item in contract["governing_principles"])
     assert any("does not train a model" in item for item in contract["data_and_authority_boundaries"])
     assert "human approval" in contract["learning_cycle"][-2]["requirement"]
