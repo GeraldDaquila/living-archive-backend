@@ -633,3 +633,21 @@ def test_organizational_learning_gold_star_requires_canonical_doorway_contract()
         "final visitor-facing response boundary" in assertion
         for assertion in record["assertions"]
     )
+
+
+def test_inner_development_systems_gold_star_is_runtime_resolvable_and_frozen():
+    import sys
+    sys.path.insert(0, str(ROOT))
+    from general_guide_gold_standards import resolve_exact_gold_standard
+
+    query = "How do inner development and external systems shape each other?"
+    record = resolve_exact_gold_standard(query)
+    assert record is not None
+    assert record["benchmark_id"] == "gs-2026-11-14-inner-development-external-systems-feedback-loop"
+    assert record["expected_response"].startswith(
+        "Inner development and external systems shape each other through a continuing feedback loop."
+    )
+    assert record["doorway_title"] == (
+        "The Social Architecture of Thriving: Conditions That Allow Human Potential to Expand"
+    )
+    assert record["doorway_url"].startswith("https://geralddaquila.com/")
