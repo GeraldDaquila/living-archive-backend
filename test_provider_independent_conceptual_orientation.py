@@ -2,6 +2,14 @@ import unittest
 from deterministic_answer_recovery import compose_recovery
 
 class ProviderIndependentConceptualOrientationTests(unittest.TestCase):
+    def test_accountable_retrieval_survives_provider_exhaustion(self):
+        answer = compose_recovery("What does accountable retrieval look like?")
+        self.assertIn("where an answer comes from", answer.lower())
+        self.assertIn("where evidence ends and interpretation begins", answer.lower())
+        self.assertIn("open to examination, challenge, correction", answer.lower())
+        self.assertNotIn("not enough grounded material", answer.lower())
+        self.assertEqual(len([p for p in answer.split("\n\n") if p.strip()]), 3)
+
     def test_ai_interpreter_authority_survives_provider_exhaustion(self):
         answer = compose_recovery("What does it mean for an AI to be an interpreter rather than an authority?")
         self.assertIn("interpreter rather than an authority", answer)
