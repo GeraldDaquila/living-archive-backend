@@ -2890,7 +2890,8 @@
         "source_repository": "GeraldDaquila/gold-standard-exemplars",
         "source_benchmark": "GS-2026-11-13-03",
         "original_implementation_lineage": "68a1bcc32d29f623320c1b196d7db29c41c4b82b",
-        "reconciled_date": "2026-11-13"
+        "reconciled_date": "2026-11-13",
+        "source_ref": "GeraldDaquila/gold-standard-exemplars@68a1bcc32d29f623320c1b196d7db29c41c4b82b"
       },
       "subsystem": "general-purpose-guide",
       "expected_response": "For cross-scale inquiries, make the relationship between scales visible without collapsing either structure or agency. Wider patterns shape institutions, habits, technologies, relationships, and assumptions; local action occurs within those conditions while also reproducing, interpreting, challenging, or changing them. Repeated action can accumulate through organizations, networks, and communities. Wider structures condition action without making individual or local agency irrelevant.",
