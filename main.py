@@ -5180,13 +5180,13 @@ def _guide_finalize_visitor_payload(payload, query):
     if _is_archive_claim_boundary_inquiry(query):
         safe = dict(payload)
         safe["response"] = _archive_claim_boundary_recovery()
-        # A provenance answer deserves a doorway when the canonical corpus can
-        # substantiate one. Re-select it against the inquiry rather than inheriting
-        # a generic upstream link; the bounded recovery helper returns nothing only
-        # when no evidence-backed destination can be found.
-        doorway_payload = dict(safe)
-        doorway_payload["recommendation"] = None
-        safe["recommendation"] = _boundary_canonical_doorway(doorway_payload, query)
+        # Preserve doorway authority already established upstream. This final
+        # reasoning boundary must not erase that decision and run a second
+        # retrieval pass: provenance expansion can otherwise promote an unrelated
+        # asset into visitor-facing navigation.
+        safe["recommendation"] = _normalize_authoritative_recommendation(
+            safe.get("recommendation")
+        )
         safe["processing"] = "final_visitor_boundary_archive_claim_provenance"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
