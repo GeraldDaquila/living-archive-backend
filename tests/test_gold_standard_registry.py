@@ -569,7 +569,7 @@ def test_user_approved_gold_stars_have_explicit_runtime_capability_classificatio
     assert approved
     for record in approved:
         capability = record["gold_star_capabilities"]
-        assert capability["generation_class"] in {"runtime_agnostic_curated_exemplar", "deterministic_recovery_exemplar"}
+        assert capability["generation_class"] in {"runtime_agnostic_curated_exemplar", "deterministic_recovery_exemplar", "deterministic_curated_recovery_exemplar"}
         assert capability["exact_answer_authority"] is True
         assert capability["active_quality_contributor"] is True
         assert capability["deterministic_fallback_eligible"] is True
