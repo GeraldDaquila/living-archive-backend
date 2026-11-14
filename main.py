@@ -5165,7 +5165,7 @@ def _guide_finalize_visitor_payload(payload, query):
         if not bool(exact_standard.get("forbids_doorway")):
             exact_title = str(exact_standard.get("doorway_title") or "").strip()
             exact_url = str(exact_standard.get("doorway_url") or "").strip()
-            if exact_title and re.match(r"^https://\\S+$", exact_url, re.I):
+            if exact_title and re.match(r"^https://\S+$", exact_url, re.I):
                 safe["recommendation"] = {"title": exact_title, "url": exact_url}
                 safe["canonical_doorway"] = safe["recommendation"]
         safe["processing"] = "final_visitor_boundary_exact_gold_standard"
@@ -11024,7 +11024,7 @@ def _apply_exact_gold_standard_authority_to_payload(payload):
     if not bool(standard.get("forbids_doorway")):
         title = str(standard.get("doorway_title") or "").strip()
         url = str(standard.get("doorway_url") or "").strip()
-        if title and re.match(r"^https://\\S+$", url, re.I):
+        if title and re.match(r"^https://\S+$", url, re.I):
             payload["recommendation"] = {"title": title, "url": url}
             payload["canonical_doorway"] = payload["recommendation"]
     return payload
@@ -12313,7 +12313,7 @@ async def _use_request_boundary(scope, receive, send):
                     if isinstance(candidate, dict):
                         title = str(candidate.get("title") or "").strip()
                         url = str(candidate.get("url") or "").strip()
-                        if title and re.match(r"^https://\\S+$", url, re.I):
+                        if title and re.match(r"^https://\S+$", url, re.I):
                             recovery_recommendation = {"title": title, "url": url}
                 if recovery_text:
                     request_id = "basic-recovery-" + hashlib.sha1(
