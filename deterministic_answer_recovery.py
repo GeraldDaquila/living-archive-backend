@@ -675,7 +675,20 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         and re.search(r"\binterpreter\b", lower)
         and re.search(r"\bauthority\b", lower)
     )
-    if _is_modes_of_knowing_dialogue_question(q):
+    accountable_retrieval = bool(
+        re.search(r"\baccountable\s+retrieval\b", lower)
+        and re.search(r"\b(?:what does|what is|define|explain|look like)\b", lower)
+    )
+    if accountable_retrieval:
+        answer = (
+            "Accountable retrieval means being able to show where an answer comes from, what supports it, and where its limits are. "
+            "Finding material that appears relevant is not enough: a responsible answer keeps a visible relationship between the question, the source material, the interpretation, and the confidence that the evidence can reasonably support.\n\n"
+            "In practice, this means asking whether the retrieved material directly supports the claim being made, what context is needed to understand it accurately, and where evidence ends and interpretation begins. "
+            "It also means making uncertainty visible rather than filling gaps with confidence, so that a visitor can distinguish a well-supported conclusion from a useful but provisional reading.\n\n"
+            "The purpose is not simply to produce a plausible answer. It is to make an answer answerable: open to examination, challenge, correction, and further inquiry. "
+            "That is a form of stewardship of knowledge—handling what has been found carefully enough that neither the source nor the visitor is asked to carry more certainty than the evidence can bear."
+        )
+    elif _is_modes_of_knowing_dialogue_question(q):
         answer = _modes_of_knowing_dialogue_recovery()
     elif _is_public_predictive_system_question(q):
         answer = _public_predictive_system_recovery()
@@ -964,6 +977,18 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     # classifier remains responsible for genuinely missing subjects.
     return answer
 
+
+_accountable_retrieval_question = "What does accountable retrieval look like?"
+_accountable_retrieval_answer = compose_recovery(_accountable_retrieval_question)
+_accountable_retrieval_paragraphs = [part.strip() for part in _accountable_retrieval_answer.split("\n\n") if part.strip()]
+if len(_accountable_retrieval_paragraphs) != 3:
+    raise RuntimeError("Accountable retrieval recovery contract failed: expected three substantive paragraphs.")
+for _required in ("where an answer comes from", "directly supports", "uncertainty", "answerable"):
+    if _required not in _accountable_retrieval_answer.casefold():
+        raise RuntimeError("Accountable retrieval recovery contract failed: missing accountability structure.")
+for _forbidden in ("add context", "not enough grounded material", "couldn't verify a reliable answer"):
+    if _forbidden in _accountable_retrieval_answer.casefold():
+        raise RuntimeError("Accountable retrieval recovery contract failed: refusal-style fallback leaked.")
 
 _risk_constraint_question = "What are the risks of charisma without constitutional restraint?"
 _risk_constraint_answer = compose_recovery(_risk_constraint_question)
