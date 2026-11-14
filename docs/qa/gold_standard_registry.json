@@ -3480,10 +3480,14 @@
       "known_theme": "circularity, regeneration, system renewal, resource circulation, organizational design, long-term system health",
       "runtime_transfer": true,
       "gold_star_capabilities": {
+        "generation_class": "user_approved_exact_query",
         "exact_answer_authority": true,
         "structural_transfer_authority": true,
         "doorway_authority": true
-      }
+      },
+      "reasoning_family": "circularity_regeneration_distinction",
+      "transferable_lesson": "Answer the governing distinction directly, explain why one related practice can contribute without being sufficient, then connect the distinction to consequences and a meaningful next inquiry.",
+      "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific claims, wording, or doorway; use the doorway only for the exact approved query."
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: regenerative design organizational-level exemplar elevated as immutable user-approved Gold Standard; canonical record count 89.",
