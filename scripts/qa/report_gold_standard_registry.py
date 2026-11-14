@@ -57,6 +57,15 @@ def main() -> int:
         else str(args.registry),
         "registry_sha256": hashlib.sha256(registry_bytes).hexdigest(),
         "benchmark_count": len(registry["records"]),
+        "approved_gold_star_count": sum(
+            1 for item in registry["records"]
+            if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        ),
+        "runtime_active_gold_star_count": sum(
+            1 for item in registry["records"]
+            if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
+            and item.get("runtime_transfer") is True
+        ),
         "benchmark_ids": [item["benchmark_id"] for item in registry["records"]],
         "application_commit": args.application_commit,
         "runtime_identity": args.runtime_identity,
