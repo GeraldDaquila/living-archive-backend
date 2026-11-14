@@ -50,3 +50,13 @@ For each release, record:
 - **Gold Star authority:** Exact-answer authority and active quality contribution approved by the user after live review.
 - **Doorway boundary:** Continuation title was observed, but no canonical URL was independently captured; no doorway is authorized for runtime transfer.
 - **Regression boundary:** Do not let persuasive completeness substitute for coherence, and do not let the Guide clarify judgment in a way that manufactures a decision or displaces accountable people.
+
+
+## 2026-11-15 — Gold Star inventory reconciliation
+
+- **Class:** Content / QA authority
+- **Intent:** Reconcile registry audit metadata with the canonical record-level inventory without changing approval status or weakening integrity rules.
+- **Finding:** 50 records carry `USER_APPROVED_GOLD_STANDARD`, while stale audit metadata reported 45.
+- **Correction:** Audit count set to 50 after record-level reconciliation.
+- **Activation repair:** The canonical cross-scale exemplar was already runtime-active but lacked explicit `gold_star_capabilities.active_quality_contributor` metadata; its capability metadata was completed to reflect the existing universal runtime-activation decision.
+- **Validation boundary:** No approvals added or removed; no Gold Star prose, doorway authority, routing, provider, or Pinecone behavior changed.
