@@ -2898,7 +2898,16 @@
         "Transfer preserves both structure and agency without reducing one to the other.",
         "The record does not authorize a systems doorway for unrelated questions.",
         "Doorway status remains intentionally none unless separately approved."
-      ]
+      ],
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "cross_scale_structure_agency",
+        "transferable_discipline": "For cross-scale inquiries, make the relationship between scales visible, preserve both structure and agency, and avoid treating either local action or wider patterns as a complete explanation on its own.",
+        "abstention_boundary": "Transfer the discipline, not the exact prose or doorway. Apply only to questions genuinely involving relationships across scales. Do not authorize a systems doorway merely because a question mentions society, institutions, or change."
+      }
     },
     {
       "benchmark_id": "gs-2026-11-14-humane-performance-not-instrumental-treatment",
@@ -3404,7 +3413,7 @@
       "runtime_transfer": true
     }
   ],
-  "last_reconciliation_note": "Canonical ledger status count reconciled to 45 after confident-synthesis/fabricated-coherence elevation.",
+  "last_reconciliation_note": "Canonical inventory reconciled against record-level status on 2026-11-15: 50 USER_APPROVED_GOLD_STANDARD records, all runtime-active with qualitative-transfer coverage.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -3531,7 +3540,7 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-15",
-    "approved_gold_star_count": 45,
+    "approved_gold_star_count": 50,
     "registry_record_count": 70,
     "review_reconciliation": "27 approved Gold Stars matched to the canonical ledger; no duplicate benchmark IDs detected after the provenance-boundary elevation."
   }
