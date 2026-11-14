@@ -253,7 +253,7 @@ def test_first_principles_gold_standard_names_all_six_published_principles():
 
 
 
-def test_continuous_learning_contract_is_explicit_and_does_not_claim_implementation():
+def test_continuous_learning_contract_is_explicit_and_active_but_non_autonomous():
     registry = json.loads(
         (ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8")
     )
@@ -261,12 +261,12 @@ def test_continuous_learning_contract_is_explicit_and_does_not_claim_implementat
 
     assert contract["contract_id"] == "living-archive-guide-continuous-learning-loop"
     assert contract["contract_version"] == "1.0.0"
-    assert contract["status"] == "SPECIFIED_NOT_YET_IMPLEMENTED"
+    assert contract["status"] == "IMPLEMENTED_ACTIVE_QUALITY_MEMORY"
     assert any("questions not used during calibration" in item for item in contract["governing_principles"])
     assert any("does not train a model" in item for item in contract["data_and_authority_boundaries"])
     assert "human approval" in contract["learning_cycle"][-2]["requirement"]
     assert any("held-out question suite" in item.lower() for item in contract["acceptance_gates"])
-    assert "current exact-match registry" in contract["current_capability_boundary"]
+    assert "exact questions retain deterministic answer authority" in contract["current_capability_boundary"]
     assert [stage["stage"] for stage in contract["rollout_stages"]] == [
         "1_contract_and_baseline",
         "2_shadow_evaluation",

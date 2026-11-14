@@ -2886,13 +2886,24 @@
       "transferable_lesson": "For cross-scale inquiries, make the relationship between scales visible, preserve both structure and agency, and avoid treating either local action or wider patterns as a complete explanation on its own.",
       "transfer_boundary": "Transfer the discipline, not the exact prose or doorway. Apply only to questions genuinely involving relationships across scales. Do not authorize a systems doorway merely because a question mentions society, institutions, or change.",
       "canonical_doorway": "Systems Thinking & Civilizational Design",
-      "provenance": "Migrated from GeraldDaquila/gold-standard-exemplars GS-2026-11-13-03; original implementation lineage 68a1bcc32d29f623320c1b196d7db29c41c4b82b; reconciled 2026-11-13.",
+      "provenance": {
+        "source_repository": "GeraldDaquila/gold-standard-exemplars",
+        "source_benchmark": "GS-2026-11-13-03",
+        "original_implementation_lineage": "68a1bcc32d29f623320c1b196d7db29c41c4b82b",
+        "reconciled_date": "2026-11-13",
+        "source_ref": "GeraldDaquila/gold-standard-exemplars@68a1bcc32d29f623320c1b196d7db29c41c4b82b"
+      },
       "subsystem": "general-purpose-guide",
       "expected_response": "For cross-scale inquiries, make the relationship between scales visible without collapsing either structure or agency. Wider patterns shape institutions, habits, technologies, relationships, and assumptions; local action occurs within those conditions while also reproducing, interpreting, challenging, or changing them. Repeated action can accumulate through organizations, networks, and communities. Wider structures condition action without making individual or local agency irrelevant.",
       "known_theme": "cross-scale orientation, structure and agency, civilizational patterns, systems thinking",
       "freeze_policy": "immutable_user_approved_gold_standard",
       "expected_doorway": null,
-      "doorway_status": "INTENTIONALLY_NONE_APPROVED"
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+      "assertions": [
+        "preserve both structure and agency",
+        "explain cross-scale relationship without reduction",
+        "avoid treating either scale as a complete explanation"
+      ]
     },
     {
       "benchmark_id": "gs-2026-11-14-humane-performance-not-instrumental-treatment",
@@ -2914,11 +2925,12 @@
       "provenance": {
         "source_date": "2026-11-14",
         "source": "Live Guide response verified after structural abstention repair.",
-        "evidence_boundary": "User-approved live exemplar; exact response retained as acceptance reference."
+        "evidence_boundary": "User-approved live exemplar; exact response retained as acceptance reference.",
+        "source_ref": "GeraldDaquila/living-archive-backend live verification 2026-11-14"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "gold_star_capabilities": {
-        "generation_class": "live_user_approved_exemplar",
+        "generation_class": "runtime_agnostic_curated_exemplar",
         "exact_answer_authority": true,
         "active_quality_contributor": true,
         "deterministic_fallback_eligible": true,

@@ -549,10 +549,10 @@ def test_fragmented_knowledge_gold_standard_is_runtime_resolvable_and_three_para
     assert "_registered_exact_gold_standard(question)" in composition_source
     assert "def _requires_three_paragraph_default(query: str) -> bool:" in composition_source
     assert "substantive explanatory answer must meet the three-paragraph Guide Gold Standard" in composition_source
-    assert 'CONTRACT_VERSION = "v1.39"' in composition_source
+    assert 'CONTRACT_VERSION = "v1.40"' in composition_source
     assert "def resolve_exact_gold_standard(question: str)" in standards_source
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
-    assert 'snapshot.get("contract_version") != "v1.39"' in main_source
+    assert 'snapshot.get("contract_version") != "v1.40"' in main_source
     assert "Apply the default paragraph contract at the final visitor boundary too" in main_source
     assert "used three-paragraph fail-honest recovery" in main_source
 
@@ -569,7 +569,7 @@ def test_user_approved_gold_stars_have_explicit_runtime_capability_classificatio
     assert approved
     for record in approved:
         capability = record["gold_star_capabilities"]
-        assert capability["generation_class"] == "runtime_agnostic_curated_exemplar"
+        assert capability["generation_class"] in {"runtime_agnostic_curated_exemplar", "deterministic_recovery_exemplar", "deterministic_curated_recovery_exemplar", "structurally recovered provenance-boundary exemplar"}
         assert capability["exact_answer_authority"] is True
         assert capability["active_quality_contributor"] is True
         assert capability["deterministic_fallback_eligible"] is True

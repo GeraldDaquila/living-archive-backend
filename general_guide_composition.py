@@ -1874,6 +1874,24 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                     "Gold Standard candidate is generic metadiscourse, not a question-specific substantive answer"
                 )
 
+        # Conceptual relationship questions need developed synthesis, not a
+        # pair of definitions. Enforce the same three-paragraph floor explicitly
+        # here so this question class cannot bypass the broader default classifier.
+        if _requires_discernment_synthesis(query):
+            conceptual_paragraphs = [
+                part.strip()
+                for part in re.split(r"\n\s*\n+", response)
+                if part.strip()
+            ]
+            if len(conceptual_paragraphs) < 3:
+                raise ValueError(
+                    "conceptual relationship answer must meet the three-paragraph Guide Gold Standard"
+                )
+            if not has_conceptual_relationship_explanation(response, query):
+                raise ValueError(
+                    "conceptual relationship answer must explain a substantive relationship mechanism"
+                )
+
         # This question class has a structural contract: reject generic trust/cooperation
         # prose and require an answer about consequences across generations. The final
         # deterministic recovery below handles provider exhaustion; this validation
@@ -1910,7 +1928,17 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
             raise ValueError("multi-step practical advice must use separate Markdown list lines")
         # General Guide answers do not default to lists. A plain stewardship
         # explanation must stay grounded and bounded, not drift into a taxonomy.
-        if re.search(r"\bstewardship\b", query, re.I) and re.search(r"\b(?:explain|what is|define|meaning|describe)\b", query, re.I) and not _question_requests_enumeration(query):
+        # Match explanatory requests whether they use an explicit verb ("Explain")
+        # or a bare concept prompt ("Stewardship").
+        plain_stewardship_query = bool(
+            re.search(r"\bstewardship\b", query, re.I)
+            and not _question_requests_enumeration(query)
+            and (
+                re.search(r"\b(?:explain|what is|define|meaning|describe)\b", query, re.I)
+                or _normalize_space(query).casefold() in {"stewardship", "what stewardship means"}
+            )
+        )
+        if plain_stewardship_query:
             if re.search(r"(?m)^\s*(?:[-*+]\s+|\d+[.)]\s+)", response):
                 raise ValueError("plain stewardship explanation must not introduce an unsolicited list")
             if not re.search(r"\b(?:keeping a promise|shared spaces?|maintain(?:ing)? what others rely on|using resources thoughtfully|resources thoughtfully|returning|borrowed item)\b", response, re.I):
@@ -2094,6 +2122,23 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                     raise ValueError("provider response exposed internal implementation language")
                 if re.search(r"\]\((https?://[^)\s]+)\)", response, flags=re.I) or re.search(r"\bhttps?://\S+", response, flags=re.I):
                     raise ValueError("provider response embedded navigation URLs in visitor prose")
+                # Conceptual relationship synthesis is a hard quality boundary:
+                # a strict rejection for compression or missing mechanism must not
+                # be silently re-admitted through the soft-contract lane.
+                if _requires_discernment_synthesis(query):
+                    raise strict_exc
+                # A plain stewardship explanation must not silently bypass the
+                # unsolicited-taxonomy, everyday-anchor, or responsibility-limit
+                # contract through the soft admission lane.
+                if (
+                    re.search(r"\bstewardship\b", query, re.I)
+                    and not _question_requests_enumeration(query)
+                    and (
+                        re.search(r"\b(?:explain|what is|define|meaning|describe)\b", query, re.I)
+                        or _normalize_space(query).casefold() in {"stewardship", "what stewardship means"}
+                    )
+                ):
+                    raise strict_exc
                 shape = _normalize_space(parsed.get("response_shape") or "").casefold()
                 if shape not in {"direct", "explanatory", "conceptual", "reflective", "navigational", "general"}:
                     shape = "general"
