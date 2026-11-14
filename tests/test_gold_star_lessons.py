@@ -22,3 +22,10 @@ def test_unrelated_question_abstains():
 
 def test_reconstructed_records_cannot_influence_live_learning():
     assert "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT" not in lessons._ALLOWED_STATUSES
+
+
+def test_constitutional_reasoning_exact_gold_star_is_loaded():
+    result = lessons.select_lesson("What is constitutional reasoning in the Archive's sense?")
+    assert result
+    assert result["exact"] is True
+    assert result["benchmark_id"] == "gs-2026-11-15-constitutional-reasoning-archives-sense"
