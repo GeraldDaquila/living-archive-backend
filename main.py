@@ -5263,14 +5263,10 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["response"] = _sanitize_basic_inquiry_response(
             general_guide_composition._systems_map_false_confidence_recovery()
         )
-        _systems_map_doorway = general_guide_composition._systems_map_false_confidence_doorway(query)
-        if _systems_map_doorway.get("doorway_title") and _systems_map_doorway.get("doorway_url"):
-            safe["recommendation"] = {
-                "title": _systems_map_doorway["doorway_title"],
-                "url": _systems_map_doorway["doorway_url"],
-            }
-            safe["doorway_title"] = _systems_map_doorway["doorway_title"]
-            safe["doorway_url"] = _systems_map_doorway["doorway_url"]
+        # Preserve only doorway authority already established upstream.
+        # This recovery boundary must not independently manufacture a destination:
+        # systems-map recovery answers are useful without a doorway, and a fallback
+        # selected here can reintroduce an unrelated retrieval result.
         # The public envelope may carry an authoritative doorway in either
         # the normalized recommendation or the upstream doorway pair. Preserve
         # both forms before attempting a new selection.
@@ -5311,18 +5307,6 @@ def _guide_finalize_visitor_payload(payload, query):
                 if _selected.get("doorway_title") and _selected.get("doorway_url")
                 else None
             )
-            # A recovery answer is also an Archive doorway. Retrieval may be
-            # empty precisely when deterministic recovery is needed, so use the
-            # canonical fallback registry rather than leaving the visitor at a
-            # navigational dead end.
-            if not _existing_doorway:
-                try:
-                    _fallback_doorway = _select_guide_node_fallback_doorway(query)
-                    _existing_doorway = _normalize_authoritative_recommendation(
-                        _fallback_doorway
-                    ) if isinstance(_fallback_doorway, dict) else None
-                except Exception:
-                    _existing_doorway = None
         safe["recommendation"] = _existing_doorway
         safe["processing"] = "final_visitor_boundary_systems_map_inquiry"
         safe["route_source"] = "guide_final_visitor_boundary"
