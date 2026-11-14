@@ -5216,6 +5216,10 @@ def _guide_finalize_visitor_payload(payload, query):
             query,
             safe.get("recommendation"),
         )
+        # recommendation and canonical_doorway are one visitor-facing contract.
+        # A rejected provenance doorway must clear both fields; otherwise a stale
+        # upstream canonical_doorway can bypass the fail-closed decision in the UI.
+        safe["canonical_doorway"] = safe["recommendation"]
         safe["processing"] = "final_visitor_boundary_archive_claim_provenance"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
