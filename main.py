@@ -7272,6 +7272,26 @@ def _general_guide_authoritative_doorway(query, context_data):
         return None
 
 
+
+def _broad_conceptual_doorway_candidate_fit(query, conceptual_answer, candidate):
+    """Require subject continuity before attaching a broad-concept doorway."""
+    if not isinstance(candidate, dict):
+        return False
+    title = str(candidate.get("title") or "")
+    body = str(candidate.get("text") or candidate.get("summary") or candidate.get("content") or "")
+    haystack = _normalize_query(f"{title} {body}")
+    if not haystack:
+        return False
+    stop = {"about", "archive", "does", "from", "guide", "have", "into", "that", "their", "there", "these", "this", "what", "with"}
+    subject = {
+        term.casefold()
+        for term in re.findall(r"[A-Za-z]{5,}", f"{query or ''} {conceptual_answer or ''}")
+        if term.casefold() not in stop
+    }
+    candidate_terms = set(re.findall(r"[a-z]{5,}", haystack.casefold()))
+    return len(subject & candidate_terms) >= 2
+
+
 def _broad_conceptual_doorway(query, conceptual_answer=""):
     """Select a canonical doorway independently of broad-concept answer composition.
 
@@ -7318,17 +7338,26 @@ def _broad_conceptual_doorway(query, conceptual_answer=""):
 
         if not evidence:
             return None
+        filtered_evidence = [
+            item for item in evidence
+            if _broad_conceptual_doorway_candidate_fit(
+                str(query or ""), str(conceptual_answer or ""), item
+            )
+        ]
+        if not filtered_evidence:
+            return None
         doorway = _normalize_authoritative_recommendation(
             _general_guide_authoritative_doorway(
                 str(query or ""),
                 {
-                    "generation_authority_protected_docs": evidence,
+                    "generation_authority_protected_docs": filtered_evidence,
                     "_skip_doorway_search_recovery": True,
                 },
             )
         )
         if doorway is not None:
             return doorway
+        evidence = filtered_evidence
 
         # expand_context has already ranked this canonical territorial evidence
         # for the visitor's query. Broad-concept navigation must not discard that
