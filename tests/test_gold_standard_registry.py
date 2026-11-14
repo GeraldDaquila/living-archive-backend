@@ -722,3 +722,18 @@ def test_cosmology_generalization_gold_star_uses_boundary_corroboration_calibrat
     assert "A broader claim requires corroboration, not resemblance" in response
     assert "Then calibrate the conclusion to the evidence actually available" in response
     assert "Archive-wide generalization" in response
+
+
+def test_stewardship_gold_star_orients_meaning_practice_and_boundaries():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-stewardship-living-archive-meaning-gold-standard-2026-10-25"
+    )
+    response = record["expected_response"]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["runtime_transfer"] is True
+    assert len(response.split("\n\n")) == 3
+    assert "stewardship follows understanding" in response
+    assert "receive what matters with care, understand what depends on it, and act with its future in mind" in response
+    assert "Stewardship is neither control nor unlimited self-sacrifice" in response
