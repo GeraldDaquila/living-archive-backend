@@ -3495,9 +3495,43 @@
       "reasoning_family": "circularity_regeneration_distinction",
       "transferable_lesson": "Answer the governing distinction directly, explain why one related practice can contribute without being sufficient, then connect the distinction to consequences and a meaningful next inquiry.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific claims, wording, or doorway; use the doorway only for the exact approved query."
+    },
+    {
+      "benchmark_id": "gs-2026-11-15-constitutional-reasoning-archives-sense",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is constitutional reasoning in the Archive's sense?",
+      "expected_response": "Within the Living Archive, constitutional reasoning means recovering the principles and governing relationships among concepts that organize its body of knowledge, rather than treating each concept or page as an isolated statement. These governing relationships among concepts are the constitutional relationships that organize the Archive. It asks how concepts and responsibilities connect across the constitutional resources, and which commitments remain stable across those relationships.\n\nThe Archive's stated order is recovery before translation, and clarity before application. First identify what the canonical material explicitly establishes; only then translate it into an interpretation or practical use. The Constitutional Register is the relevant doorway for tracing that recovered constitutional architecture while related sources should be used to check particular connections rather than assume that a title alone proves them.\n\nRecovered constitutional architecture and later interpretation are not the same thing. Where a connection is inferred rather than directly stated, it should be labelled as inference; where the sources do not establish a rule, the Guide should not invent one. The purpose is to make the Archive's own framework clearer while leaving judgment and application with the reader.",
+      "expected_doorway": "Living Archive Constitutional Register",
+      "doorway_status": "APPROVED_QUERY_SPECIFIC_CONTINUATION",
+      "rating_out_of_10": 9.7,
+      "approval_state": "User explicitly approved Gold Star elevation on 2026-11-15 after reviewing the live visitor presentation.",
+      "assertions": [
+        "Defines constitutional reasoning through recovery of governing principles and relationships rather than isolated concepts.",
+        "Explains the operating order of recovery before translation and clarity before application.",
+        "Distinguishes canonical material from later interpretation and practical application.",
+        "Requires inferred connections to be labelled as inference and prohibits inventing unsupported rules.",
+        "Provides the Constitutional Register as a specific authoritative continuation."
+      ],
+      "provenance": {
+        "source": "Live Guide response reviewed and explicitly approved by user on 2026-11-15.",
+        "evidence_boundary": "Curated Archive-specific exemplar. Claims and doorway are authoritative for this approved question; transferable use is limited to structural and epistemic discipline."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "constitutional_reasoning_recovery_interpretation_inference",
+        "transferable_discipline": "For constitutional or architecture questions, define the governing concept, explain the method for recovering its relationships, distinguish canonical recovery from interpretation and inference, and provide the authoritative doorway.",
+        "abstention_boundary": "Do not treat inferred relationships as canonical facts, assume titles establish connections, or invent constitutional rules absent explicit support."
+      },
+      "known_theme": "constitutional reasoning, Living Archive, recovery, constitutional relationships, interpretation, inference, canonical architecture, Constitutional Register",
+      "runtime_transfer": true
     }
   ],
-  "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: regenerative design organizational-level exemplar elevated as immutable user-approved Gold Standard; canonical record count 89.",
+  "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
