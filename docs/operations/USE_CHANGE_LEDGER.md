@@ -39,3 +39,14 @@ For each release, record:
 - **Decision:** Availability is universal across user-approved Gold Stars; relevance and abstention boundaries determine influence on any individual answer.
 - **Validation boundary:** Every approved Gold Star must be runtime-active and have qualitative-transfer coverage; registry and review IDs must remain unique.
 - **Rollback point:** Parent canonical commit before this PR merge.
+
+
+## 2026-11-15 — Confident synthesis and fabricated coherence Gold Star
+
+- **Class:** Content / QA authority
+- **Intent:** Preserve the corrected live response as an exact-answer benchmark and activate its transferable discipline against persuasive but unsupported coherence.
+- **Canonical benchmark:** `gs-2026-11-15-confident-synthesis-fabricated-coherence`.
+- **Structural discipline:** Principle → practice → boundary: expose uncertainty, alternatives, evidence, consequences, and accountability before treating synthesis as settled.
+- **Gold Star authority:** Exact-answer authority and active quality contribution approved by the user after live review.
+- **Doorway boundary:** Continuation title was observed, but no canonical URL was independently captured; no doorway is authorized for runtime transfer.
+- **Regression boundary:** Do not let persuasive completeness substitute for coherence, and do not let the Guide clarify judgment in a way that manufactures a decision or displaces accountable people.
