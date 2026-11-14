@@ -2892,7 +2892,13 @@
       "known_theme": "cross-scale orientation, structure and agency, civilizational patterns, systems thinking",
       "freeze_policy": "immutable_user_approved_gold_standard",
       "expected_doorway": null,
-      "doorway_status": "INTENTIONALLY_NONE_APPROVED"
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+      "assertions": [
+        "Approved response is preserved as the canonical cross-scale orientation reference.",
+        "Transfer preserves both structure and agency without reducing one to the other.",
+        "The record does not authorize a systems doorway for unrelated questions.",
+        "Doorway status remains intentionally none unless separately approved."
+      ]
     },
     {
       "benchmark_id": "gs-2026-11-14-humane-performance-not-instrumental-treatment",
