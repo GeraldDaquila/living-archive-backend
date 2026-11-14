@@ -722,3 +722,24 @@ def test_cosmology_generalization_gold_star_uses_boundary_corroboration_calibrat
     assert "A broader claim requires corroboration, not resemblance" in response
     assert "Then calibrate the conclusion to the evidence actually available" in response
     assert "Archive-wide generalization" in response
+
+
+
+def test_living_archive_identity_gold_star_preserves_identity_boundary_and_practice():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-living-archive-definition-gold-standard-2026-10-25"
+    )
+    response = record["expected_response"]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["runtime_transfer"] is True
+    assert len(response.split(chr(10) * 2)) == 3
+    assert "public knowledge commons and an orientation ecosystem" in response
+    assert "It is not a chatbot" in response
+    assert "established claims should be distinguishable from interpretation and inference" in response
+    assert "The Guide puts that orientation into practice through constitutional sensemaking" in response
+    assert "The aim is not to decide for the visitor" in response
+    assert record["doorway_status"] == "APPROVED_QUERY_SPECIFIC_CONTINUATION"
+    assert record["expected_doorway"]["title"] == "Start Here — Where to begin and how to navigate the Living Archive"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/start-here-2/"
