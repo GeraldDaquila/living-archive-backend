@@ -1638,7 +1638,45 @@ function renderGuideAnswer(response) {
    * characters. Normalize both representations before rendering so visitors
    * never see escape sequences or a collapsed wall of text.
    */
-  text = text.replace(/\\\\n/g, '\n').replace(/\\\\r/g, '');
+  text = text.replace(/\\\\n/g, '\n').replace(/\\\\r/g, '').replace(/\\n/g, '\n').replace(/\\r/g, '');
+
+
+  var headings = ['What the Archive says', 'What the Guide synthesizes', 'What the Guide offers as orientation'];
+  var matches = headings.map(function (heading) {
+    var escaped = heading.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+    var pattern = new RegExp(
+      '(?:^|\\n\\s*\\n|\\n)(?:#{1,6}\\s*)?(' + escaped + ')\\s*(?:\\n|$)',
+      'i'
+    );
+    return { heading: heading, match: pattern.exec(text) };
+  });
+
+  var ordered = matches.every(function (item, index) {
+    return item.match && (index === 0 || item.match.index > matches[index - 1].match.index);
+  });
+
+  if (ordered) {
+    var html = '<div class="guide-response-structure" data-guide-response-structure="three-layer">';
+    var intro = text.slice(0, matches[0].match.index).trim();
+
+    if (intro) {
+      html += '<p class="guide-response-intro">' +
+        escapeHtml(intro).replace(/\r?\n/g, '<br>') + '</p>';
+    }
+
+    matches.forEach(function (item, index) {
+      var bodyStart = item.match.index + item.match[0].length;
+      var bodyEnd = index + 1 < matches.length ? matches[index + 1].match.index : text.length;
+      var body = text.slice(bodyStart, bodyEnd).trim();
+
+      html += '<section class="guide-response-layer"><h3>' +
+        escapeHtml(item.heading) + '</h3><p>' +
+        escapeHtml(body).replace(/\r?\n/g, '<br>') + '</p></section>';
+    });
+
+    html += '</div>';
+    return html;
+  }
 
   /*
    * Paragraph boundaries are part of the answer contract. Do not rely solely
