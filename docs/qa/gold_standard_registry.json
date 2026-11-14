@@ -3336,6 +3336,40 @@
       },
       "known_theme": "ecological systems, extractive economics, extraction, maintenance, resilience, ecosystem services, systems change",
       "runtime_transfer": true
+    },
+    {
+      "benchmark_id": "gs-2026-11-15-accountable-retrieval",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What does accountable retrieval look like?",
+      "expected_response": "Accountable retrieval means being able to show where an answer comes from, what supports it, and where its limits are. Finding material that appears relevant is not enough: a responsible answer keeps a visible relationship between the question, the source material, the interpretation, and the confidence that the evidence can reasonably support.\n\nIn practice, this means asking whether the retrieved material directly supports the claim being made, what context is needed to understand it accurately, and where evidence ends and interpretation begins. It also means making uncertainty visible rather than filling gaps with confidence, so that a visitor can distinguish a well-supported conclusion from a useful but provisional reading.\n\nThe purpose is not simply to produce a plausible answer. It is to make an answer answerable: open to examination, challenge, correction, and further inquiry. That is a form of stewardship of knowledge—handling what has been found carefully enough that neither the source nor the visitor is asked to carry more certainty than the evidence can bear.",
+      "expected_doorway": null,
+      "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+      "rating_out_of_10": 8.8,
+      "approval_state": "User explicitly approved Gold Star elevation on 2026-11-15 after reviewing the corrected live visitor presentation.",
+      "assertions": [
+        "Answers the conceptual question directly before discussing uncertainty or requesting more context.",
+        "Makes source, support, interpretation, and uncertainty visible as distinct parts of accountable retrieval.",
+        "Distinguishes direct evidentiary support from interpretation and provisional reading.",
+        "Frames accountability as making an answer open to examination, challenge, correction, and further inquiry.",
+        "Does not fall back to generic refusal language such as insufficient grounded material."
+      ],
+      "provenance": {
+        "source": "Corrected live Guide response reviewed and explicitly approved by user on 2026-11-15.",
+        "evidence_boundary": "Curated conceptual exemplar. The live presentation showed a continuation title, but its canonical URL was not independently captured during elevation; no doorway is authorized for transfer from this record."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "accountable_retrieval_evidence_interpretation_uncertainty",
+        "transferable_discipline": "Answer broad conceptual retrieval questions directly, then distinguish source grounding, evidentiary support, interpretation, and uncertainty; do not let a lack of case-specific context displace a useful bounded orientation.",
+        "abstention_boundary": "Do not invent Archive-specific doctrine, source provenance, or certainty that has not been retrieved; do not use generic uncertainty language as a substitute for answering a recognizable conceptual distinction."
+      },
+      "known_theme": "accountable retrieval, source grounding, evidence, interpretation, uncertainty, traceability, answerability",
+      "runtime_transfer": true
     }
   ],
   "last_reconciliation_note": "Canonical ledger status count reconciled to 44 after integrative development orientation elevation.",
