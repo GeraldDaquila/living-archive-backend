@@ -651,3 +651,13 @@ def test_inner_development_systems_gold_star_is_runtime_resolvable_and_frozen():
         "The Social Architecture of Thriving: Conditions That Allow Human Potential to Expand"
     )
     assert record["doorway_url"].startswith("https://geralddaquila.com/")
+
+
+def test_inner_development_gold_star_transport_authority_is_exact():
+    from general_guide_gold_standards import resolve_exact_gold_standard
+    query = "How do inner development and external systems shape each other?"
+    record = resolve_exact_gold_standard(query)
+    assert record is not None
+    assert record["expected_response"].startswith("Inner development and external systems shape each other through a continuing feedback loop.")
+    assert record["doorway_title"] == "The Social Architecture of Thriving: Conditions That Allow Human Potential to Expand"
+    assert record["doorway_url"].startswith("https://geralddaquila.com/")

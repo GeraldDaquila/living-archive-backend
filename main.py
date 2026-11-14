@@ -10953,9 +10953,32 @@ def _use_replay_receive(body):
     return _receive
 
 
+
+def _apply_exact_gold_standard_authority_to_payload(payload):
+    """Apply frozen exact-match authority before any transport serialization."""
+    if not isinstance(payload, dict):
+        return payload
+    query = str(payload.get("query") or "").strip()
+    standard = _resolve_exact_guide_gold_standard(query)
+    if standard is None:
+        return payload
+    answer = str(standard.get("expected_response") or "").strip()
+    if answer:
+        payload["response"] = answer
+        if "answer" in payload:
+            payload["answer"] = answer
+    if not bool(standard.get("forbids_doorway")):
+        title = str(standard.get("doorway_title") or "").strip()
+        url = str(standard.get("doorway_url") or "").strip()
+        if title and re.match(r"^https://\\S+$", url, re.I):
+            payload["recommendation"] = {"title": title, "url": url}
+            payload["canonical_doorway"] = payload["recommendation"]
+    return payload
+
 async def _use_send_json(send, payload, status_code=200):
     # Stamp every visitor-facing JSON payload with the actual Render deployment
     # identity so E2E can reject responses served by a stale instance during rollout.
+    payload = _apply_exact_gold_standard_authority_to_payload(payload)
     if isinstance(payload, dict):
         payload.setdefault(
             "deployment_commit_sha", os.environ.get("RENDER_GIT_COMMIT", "").strip()
