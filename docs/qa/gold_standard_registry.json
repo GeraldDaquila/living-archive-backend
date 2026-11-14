@@ -3083,7 +3083,6 @@
       "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "How do inner development and external systems shape each other?",
-      "accepted_response": "Inner development and external systems shape each other through a continuing feedback loop. Systems influence what people notice, reward, fear, and consider possible; people's capacities for judgment, reflection, relationship, and action influence how those systems are maintained or changed.\n\nRepeated signals, incentives, relationships, constraints, and consequences can make some choices feel normal, rewarded, risky, or difficult even when formal rules say something different. But people are not simply products of those conditions. Greater awareness can change what they notice and question; stronger judgment can alter how they respond; and collective action can turn those changes into different practices, norms, and institutions.\n\nThe next question is what mechanisms are actually operating: what people observe and reward, which behavior is tolerated, whose judgment carries authority, and what happens when concerns are raised. Patterns become more consequential when these conditions reinforce one another over time—and more changeable when reflection, feedback, and correction can enter the system.\n\nThis is a starting explanation rather than a claim about a specific case. A stronger account identifies the relationships and evidence that matter, distinguishes influence from proof of causation, and remains open to other conditions that may change the outcome.",
       "gold_star_capabilities": {
         "generation_class": "runtime_agnostic_curated_exemplar",
         "exact_answer_authority": true,
@@ -3097,6 +3096,11 @@
         "source": "User calibration review and structural revision",
         "source_date": "2026-11-14",
         "evidence_boundary": "Elevated after direct review, structural repair of the reciprocal relationship, and explicit user approval."
+      },
+      "expected_response": "Inner development and external systems shape each other through a continuing feedback loop. Systems influence what people notice, reward, fear, and consider possible; people's capacities for judgment, reflection, relationship, and action influence how those systems are maintained or changed.\n\nRepeated signals, incentives, relationships, constraints, and consequences can make some choices feel normal, rewarded, risky, or difficult even when formal rules say something different. But people are not simply products of those conditions. Greater awareness can change what they notice and question; stronger judgment can alter how they respond; and collective action can turn those changes into different practices, norms, and institutions.\n\nThe next question is what mechanisms are actually operating: what people observe and reward, which behavior is tolerated, whose judgment carries authority, and what happens when concerns are raised. Patterns become more consequential when these conditions reinforce one another over time—and more changeable when reflection, feedback, and correction can enter the system.\n\nThis is a starting explanation rather than a claim about a specific case. A stronger account identifies the relationships and evidence that matter, distinguishes influence from proof of causation, and remains open to other conditions that may change the outcome.",
+      "freeze_policy": {
+        "status": "FROZEN_AFTER_APPROVAL",
+        "change_requires": "explicit_user_reapproval"
       }
     }
   ],
