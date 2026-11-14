@@ -3175,10 +3175,11 @@
         "generation_class": "integrative_system_orientation",
         "exact_answer_authority": true,
         "active_quality_contributor": true,
-        "deterministic_fallback_eligible": false,
+        "deterministic_fallback_eligible": true,
         "reasoning_family": "multi-element-development-question",
         "transferable_discipline": "Identify the distinct work of each element, then make their interaction—not their separate definitions—the intellectual spine of the answer.",
-        "abstention_boundary": "Do not force a triad onto unrelated questions or invent a canonical continuation."
+        "abstention_boundary": "Do not force a triad onto unrelated questions or invent a canonical continuation.",
+        "generation_mode_note": "Eligibility records the transferable deterministic recovery contract and does not assert the original live response was generated deterministically."
       },
       "runtime_transfer": true,
       "provenance": {
