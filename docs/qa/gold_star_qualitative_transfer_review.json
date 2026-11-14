@@ -371,6 +371,15 @@
       "qualifying_context": "governance, leadership, management, authority, accountability, institutional conditions",
       "abstention_boundary": "Do not flatten governance into administration, treat leadership as a substitute for legitimate authority, or use a generic systems lens before answering the visitor's actual distinction.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-power-accountability-concentration",
+      "question": "What happens when power is concentrated without accountability?",
+      "reasoning_family": "power_accountability_concentrated_authority",
+      "transferable_discipline": "Explain concentrated power as a systemic condition: trace how authority can become insulated from correction through information filtering, costly dissent, weakened safeguards, and reduced exposure to consequences; distinguish accountability from punishment alone.",
+      "qualifying_context": "concentrated power, accountability, authority, transparency, dissent, safeguards, institutional correction",
+      "abstention_boundary": "Transfer the discipline, not the exact prose or doorway. Do not presume misconduct merely from influence or concentration, and do not attach this doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
