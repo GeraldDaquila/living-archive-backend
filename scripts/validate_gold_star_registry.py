@@ -31,8 +31,7 @@ def main():
 
     active = [
         r for r in records
-        if r.get("subsystem") == "general-purpose-guide"
-        and r.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        if r.get("status") == "USER_APPROVED_GOLD_STANDARD"
         and r.get("runtime_transfer") is True
     ]
 
@@ -52,6 +51,13 @@ def main():
     orphan_reviews = sorted(review_set - set(ids))
     if orphan_reviews:
         fail("orphan qualitative-transfer reviews: " + ", ".join(orphan_reviews))
+
+    approved = [
+        r for r in records
+        if r.get("status") == "USER_APPROVED_GOLD_STANDARD"
+    ]
+    if len(active) != len(approved):
+        fail("not every user-approved Gold Star is active for runtime transfer")
 
     print(f"GOLD STAR INTEGRITY PASS: {len(active)} active contributors, {len(entries)} reviews")
 

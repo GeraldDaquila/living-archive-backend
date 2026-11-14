@@ -30,3 +30,12 @@ For each release, record:
 - **Structural discipline:** Separate capability from the right to exercise power; examine mandate, accountability, safeguards, affected interests, and correction.
 - **Gold Star authority:** Exact-answer authority and active quality contribution approved; doorway retained as canonical continuation.
 - **Regression boundary:** Do not let generic uncertainty displace a conceptual distinction that can be answered directly, and do not treat expertise or technical success as self-validating authority.
+
+## 2026-11-14 — Full Gold Star runtime activation
+
+- **Class:** Content / QA authority
+- **Intent:** Make every user-approved Gold Star available to the Guide's relevance-selected qualitative learning layer.
+- **Canonical contracts:** `docs/qa/gold_standard_registry.json`, `docs/qa/gold_star_qualitative_transfer_review.json`, and `scripts/validate_gold_star_registry.py`.
+- **Decision:** Availability is universal across user-approved Gold Stars; relevance and abstention boundaries determine influence on any individual answer.
+- **Validation boundary:** Every approved Gold Star must be runtime-active and have qualitative-transfer coverage; registry and review IDs must remain unique.
+- **Rollback point:** Parent canonical commit before this PR merge.

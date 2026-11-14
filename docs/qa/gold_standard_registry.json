@@ -3114,11 +3114,12 @@
         "Inner capacities such as reflection and judgment can alter responses and contribute to institutional change.",
         "Specific causal claims require evidence beyond a general systems explanation."
       ],
-      "runtime_transfer": false,
+      "runtime_transfer": true,
       "expected_doorway": {
         "title": "The Social Architecture of Thriving: Conditions That Allow Human Potential to Expand",
         "url": "https://geralddaquila.com/2026/06/15/the-social-architecture-of-thriving-conditions-that-allow-human-potential-to-expand/"
-      }
+      },
+      "activation_note": "Activated so every user-approved Gold Star is available to the Guide's relevance-selected qualitative learning layer."
     },
     {
       "benchmark_id": "gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing",
@@ -3151,7 +3152,8 @@
         "source_date": "2026-11-14",
         "source": "Live Guide response following structural repair; refined to remove redundant opening and prominent disclaimer.",
         "evidence_boundary": "General orientation, not an Archive-specific doctrinal claim."
-      }
+      },
+      "known_theme": "recognized-concept-without-archive-specific-evidence"
     },
     {
       "benchmark_id": "gs-2026-11-14-practice-community-feedback-development",
@@ -3186,7 +3188,8 @@
         "source_date": "2026-11-14",
         "source": "Live Guide response reviewed by user; structurally tightened into canonical exemplar.",
         "evidence_boundary": "Integrative orientation based on the response pattern; canonical doorway retained from live response."
-      }
+      },
+      "known_theme": "multi-element-development-question"
     },
     {
       "benchmark_id": "gs-2026-11-14-sacred-language-clarity-power-live-candidate",
@@ -3218,12 +3221,13 @@
         "Authority can be obscured when sacred language is treated as beyond interpretation or criticism.",
         "Interpretation, inclusion, authority, and consequences should remain open to examination."
       ],
-      "runtime_transfer": false,
+      "runtime_transfer": true,
       "expected_doorway": {
         "title": "The Power of Language & Symbol",
         "url": "https://geralddaquila.com/"
       },
-      "doorway_status": "CANONICAL_URL_VALIDATED"
+      "doorway_status": "CANONICAL_URL_VALIDATED",
+      "activation_note": "Activated so every user-approved Gold Star is available to the Guide's relevance-selected qualitative learning layer."
     },
     {
       "benchmark_id": "gs-2026-11-14-technical-capability-legitimate-authority",

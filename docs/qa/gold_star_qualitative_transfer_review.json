@@ -389,6 +389,42 @@
       "qualifying_context": "tools, purposes, means, ends, institutional drift, measurement, technology, stewardship",
       "abstention_boundary": "Do not treat a tool's effectiveness, persistence, or popularity as evidence that it is itself the purpose; do not substitute generic systems language for the visitor's explicit distinction.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-inner-development-external-systems-feedback-loop",
+      "question": "How do inner development and external systems shape each other?",
+      "reasoning_family": "inner-development-systems-feedback",
+      "transferable_discipline": "Explain reciprocal causation by connecting personal capacities with incentives, norms, authority, feedback, and institutional change.",
+      "qualifying_context": "Reciprocal development: how inner capacities and external systems reinforce, constrain, and reshape one another.",
+      "abstention_boundary": "Provides a systems-oriented explanation and does not establish causation in a specific case without supporting evidence.",
+      "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-sacred-language-clarity-power-live-candidate",
+      "question": "How can sacred language clarify experience, and how can it obscure power relations?",
+      "reasoning_family": "sacred-language-power-interpretation",
+      "transferable_discipline": "Distinguish language that clarifies lived meaning from language that shields authority from examination.",
+      "qualifying_context": "How sacred language can disclose meaning while also obscuring authority and power relations.",
+      "abstention_boundary": "Offers a structural framework and does not infer the motives or legitimacy of a particular tradition without evidence.",
+      "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing",
+      "question": "What is spiritual bypassing, and why does it matter?",
+      "reasoning_family": "recognized-concept-without-archive-specific-evidence",
+      "transferable_discipline": "Distinguish lack of Archive-specific authority from lack of useful orientation; answer recognizable concepts directly while preserving epistemic limits.",
+      "qualifying_context": "",
+      "abstention_boundary": "Do not diagnose visitors or turn general orientation into unsupported Archive doctrine.",
+      "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-14-practice-community-feedback-development",
+      "question": "What roles do practice, community, and feedback play in development?",
+      "reasoning_family": "multi-element-development-question",
+      "transferable_discipline": "Identify the distinct work of each element, then make their interaction—not their separate definitions—the intellectual spine of the answer.",
+      "qualifying_context": "",
+      "abstention_boundary": "Do not force a triad onto unrelated questions or invent a canonical continuation.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
