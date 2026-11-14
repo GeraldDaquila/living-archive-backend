@@ -156,5 +156,4 @@ def test_outer_asgi_boundary_preserves_clean_json_response(monkeypatch):
     assert body["recommendation"] is None
     assert body["response"] == payload["response"]
     assert "processing" not in body
-    assert body.get("route_source") != "guide_outer_visitor_boundary"
     assert body["route_source"] == "guide_outer_visitor_boundary"
