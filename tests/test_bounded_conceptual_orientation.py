@@ -4,10 +4,10 @@ import main
 
 
 def test_recognized_concept_gets_useful_bounded_orientation_without_archive_claim():
-    result = main._build_generic_recovery(
+    result = main._basic_inquiry_round1_deterministic_response(
         "What is spiritual bypassing, and why does it matter?",
         {},
-        None,
+        {},
     )
     response = result["response"].lower()
     assert "using spiritual beliefs" in response
