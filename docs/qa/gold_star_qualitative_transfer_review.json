@@ -61,9 +61,9 @@
       "benchmark_id": "general-guide-cosmology-generalization-standards-gold-standard-2026-10-25",
       "question": "What standards should be met before The Guide generalizes from one archive text to the whole cosmology?",
       "reasoning_family": "evidence_scope_and_generalization",
-      "transferable_discipline": "Separate direct claims from inference; require corroboration and calibrate conclusions to evidence.",
-      "qualifying_context": "Questions requiring synthesis across sources or claims about a whole corpus.",
-      "abstention_boundary": "Do not apply as boilerplate to ordinary conceptual questions.",
+      "transferable_discipline": "Establish the boundary of what a local source can support, require corroboration and counterevidence before broader synthesis, then calibrate the conclusion to the evidence actually available.",
+      "qualifying_context": "Questions about moving from one source, example, or passage to a broader Archive, corpus, or system-level claim.",
+      "abstention_boundary": "Do not turn ordinary conceptual questions into an evidentiary checklist, and do not infer corpus-wide authority from thematic resemblance alone.",
       "activation": "active_quality_contributor"
     },
     {

@@ -1679,31 +1679,32 @@
       "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "What standards should be met before The Guide generalizes from one archive text to the whole cosmology?",
-      "expected_response": "The Guide should not generalize from one Archive text to the whole cosmology merely because an idea sounds consistent or important. First, interpret the passage in its full context: identify what it explicitly says, what question it addresses, and any limits or qualifications. Record the exact source and distinguish the text’s own claims from the Guide’s interpretation or inference. A single passage can establish what that passage says; by itself, it cannot establish that the same principle governs the entire cosmology.\n\nBefore making a broader claim, seek corroboration across relevant and meaningfully independent Archive texts, follow explicit cross-references, and test the proposed reading against passages that qualify, complicate, or contradict it. Check whether the sources use the same terms in the same sense and whether a local statement is being mistaken for a universal rule. The reasoning should be traceable: a reviewer must be able to see which passages support each part of the generalization, what evidence cuts against it, and why the broader conclusion follows.\n\nFinally, state the conclusion at the level the evidence warrants. Label direct textual statements, cross-text synthesis, and tentative interpretation distinctly; preserve exceptions and unresolved tensions instead of smoothing them away. If evidence comes from only one text, say that the claim is text-specific or a hypothesis for further testing—not an established account of the whole cosmology. A corpus-wide generalization is justified only when its scope, corroboration, counterevidence, and reasoning have been checked and remain open to revision.",
+      "expected_response": "A single Archive text can establish what that text says; it cannot, by itself, establish what governs the whole cosmology. The first standard is therefore fidelity to the source: read the passage in context, identify the question it addresses, and preserve its limits and qualifications. Record the exact source and distinguish clearly between the text's own claims and the Guide's interpretation or inference.\n\nA broader claim requires corroboration, not resemblance. Compare relevant and meaningfully independent Archive texts, follow explicit cross-references, and look deliberately for passages that qualify, complicate, or contradict the proposed reading. Check whether the same terms are being used in the same sense and whether a local observation is being mistaken for a universal rule. The reasoning should remain traceable: a reviewer should be able to see which passages support each part of the generalization, what evidence cuts against it, and why the broader conclusion follows.\n\nThen calibrate the conclusion to the evidence actually available. Label direct textual statements, cross-text synthesis, and tentative interpretation distinctly, and preserve exceptions or unresolved tensions rather than smoothing them away. If the evidence comes from only one text, the claim remains text-specific or a hypothesis for further testing—not an established account of the whole cosmology. An Archive-wide generalization becomes justified only when its scope, corroboration, counterevidence, and reasoning have been examined and remain open to revision.",
       "expected_doorway": null,
       "assertions": [
         "Exactly three substantive paragraphs in the approved visitor-facing response.",
-        "Explains contextual reading, scope, and the difference between direct source claims and inference.",
-        "Requires corroboration across relevant texts and examination of qualifications, contradictions, and exceptions.",
-        "Requires traceable evidence for each part of a corpus-wide claim.",
-        "Calibrates conclusions to evidence and labels single-text claims as text-specific or tentative.",
-        "Does not replace the standards question with generic uncertainty or action-planning advice.",
-        "No doorway is present in the approved screenshot; do not invent or attach one."
+        "Open with the governing boundary: one text can establish what that text says, but cannot by itself establish the whole cosmology.",
+        "First paragraph requires source fidelity and distinguishes direct claims from interpretation or inference.",
+        "Second paragraph requires corroboration, meaningful independence, counterevidence, semantic consistency, and traceable reasoning.",
+        "Final paragraph calibrates the conclusion to the evidence and distinguishes text-specific claims, cross-text synthesis, tentative interpretation, and Archive-wide generalization.",
+        "The response uses the structural progression boundary → corroboration → calibration rather than a generic list of cautions.",
+        "No doorway is present; do not invent or attach one."
       ],
       "provenance": {
         "source_path": "visitor-facing Guide screenshot supplied by user on 2026-10-25",
         "source_ref": "user-approved screenshot in conversation dated 2026-10-25",
         "source_status": "USER_APPROVED_GOLD_STANDARD",
-        "evidence_boundary": "Screenshot confirms the displayed response and presentation; it does not by itself prove generalization across held-out queries."
+        "evidence_boundary": "Screenshot confirms the displayed response and presentation; it does not by itself prove generalization across held-out queries.",
+        "structural_revision": "Explicit user authorization on 2026-11-15 to refine the Gold Star structurally. The revision sharpens the progression from source boundary to corroboration to evidence-calibrated conclusion without broadening the underlying claim."
       },
-      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change.",
+      "freeze_policy": "Versioned Gold Star exemplar structurally refined with explicit user authorization on 2026-11-15. Do not change expected_response without explicit user authorization and a separately documented benchmark-version change.",
       "gold_star_capabilities": {
         "generation_class": "runtime_agnostic_curated_exemplar",
         "exact_answer_authority": true,
         "active_quality_contributor": true,
         "deterministic_fallback_eligible": true,
         "reasoning_family": "evidence_scope_and_generalization",
-        "transferable_discipline": "Separate direct claims from inference; require corroboration and calibrate conclusions to evidence.",
+        "transferable_discipline": "Establish the boundary of what a local source can support, require corroboration and counterevidence before broader synthesis, then calibrate the conclusion to the evidence actually available.",
         "abstention_boundary": "Do not apply as boilerplate to ordinary conceptual questions.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
