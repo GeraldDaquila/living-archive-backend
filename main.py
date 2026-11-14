@@ -5189,7 +5189,30 @@ def _archive_claim_authoritative_doorway(query, doorway):
 def _guide_finalize_visitor_payload(payload, query):
     """Apply shared visitor-facing quality and contamination boundaries to every route."""
     if not isinstance(payload, dict):
-        return payload
+        # Exact Gold Stars are terminal visitor authority, but only after the
+    # composition/recovery layer has completed its inquiry and evidence work.
+    # This preserves constitutional recovery invariants while freezing the
+    # visitor-facing answer and approved doorway at the final boundary.
+    exact_standard = _resolve_exact_guide_gold_standard(query)
+    if exact_standard is not None:
+        safe = dict(payload)
+        exact_answer = str(exact_standard.get("expected_response") or "").strip()
+        if exact_answer:
+            safe["response"] = exact_answer
+            if "answer" in safe:
+                safe["answer"] = exact_answer
+        if not bool(exact_standard.get("forbids_doorway")):
+            exact_title = str(exact_standard.get("doorway_title") or "").strip()
+            exact_url = str(exact_standard.get("doorway_url") or "").strip()
+            if exact_title and re.match(r"^https://\S+$", exact_url, re.I):
+                safe["recommendation"] = {"title": exact_title, "url": exact_url}
+                safe["canonical_doorway"] = safe["recommendation"]
+        safe["processing"] = str(payload.get("processing") or "basic_inquiry")
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
+    return payload
     # Frozen exact-query Gold Standards are terminal visitor authority. Resolve
     # them before every broader recovery family so no conceptual contract or
     # deterministic fallback can overwrite an approved calibration exemplar.
@@ -5398,29 +5421,6 @@ def _guide_finalize_visitor_payload(payload, query):
         )
         return safe
 
-
-    # Exact Gold Stars are terminal visitor authority, but only after the
-    # composition/recovery layer has completed its inquiry and evidence work.
-    # This preserves constitutional recovery invariants while freezing the
-    # visitor-facing answer and approved doorway at the final boundary.
-    exact_standard = _resolve_exact_guide_gold_standard(query)
-    if exact_standard is not None:
-        safe = dict(payload)
-        exact_answer = str(exact_standard.get("expected_response") or "").strip()
-        if exact_answer:
-            safe["response"] = exact_answer
-            if "answer" in safe:
-                safe["answer"] = exact_answer
-        if not bool(exact_standard.get("forbids_doorway")):
-            exact_title = str(exact_standard.get("doorway_title") or "").strip()
-            exact_url = str(exact_standard.get("doorway_url") or "").strip()
-            if exact_title and re.match(r"^https://\S+$", exact_url, re.I):
-                safe["recommendation"] = {"title": exact_title, "url": exact_url}
-                safe["canonical_doorway"] = safe["recommendation"]
-        safe["processing"] = str(payload.get("processing") or "basic_inquiry")
-        safe["route_source"] = "guide_final_visitor_boundary"
-        safe["visitor_boundary_version"] = APP_VERSION
-        return safe
 
     # Absolute last-mile recovery contract. The outer ASGI boundary is the only
     # layer guaranteed to see every JSON response emitted by /api/query.
