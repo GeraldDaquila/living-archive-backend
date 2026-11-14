@@ -95,8 +95,9 @@ def validate_registry_integrity(
     # without requiring a transfer review for every legacy benchmark.
     approved_ids = {
         str(record.get("benchmark_id") or "").strip()
-        for record in approved
-        if bool(record.get("runtime_transfer"))
+        for record in records
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        and bool(record.get("runtime_transfer"))
     }
     if approved_ids != set(review_ids):
         missing = sorted(approved_ids - set(review_ids))
