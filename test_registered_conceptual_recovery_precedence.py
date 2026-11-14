@@ -18,7 +18,7 @@ class RegisteredConceptualRecoveryPrecedenceTests(unittest.TestCase):
         self.assertIn("active_quality_contribution as _gold_star_active_quality_contribution", MAIN)
         self.assertIn("_gold_star_quality = _gold_star_active_quality_contribution(query)", MAIN)
         self.assertIn("Gold Star structural baseline: answer the recognized question first.", MAIN)
-        self.assertIn("opening = \"\"", MAIN)
+        self.assertIn("if _direct_answer_baseline", MAIN)
         self.assertIn("_direct_answer_baseline = bool(_matched_orientation or _gold_star_quality)", MAIN)
 
 if __name__ == "__main__":
