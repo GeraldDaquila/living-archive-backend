@@ -17,6 +17,14 @@ def test_verified_canonical_ai_role_candidate_can_be_released():
     candidate = {"title": "AI and Human Judgment", "url": "https://geralddaquila.com/example/"}
     assert candidate["title"] and candidate["url"].startswith("https://geralddaquila.com/")
 
+def test_ai_role_distinction_is_a_verified_conceptual_family():
+    import main as runtime
+    assert runtime._select_verified_doorway_conceptual_family(QUESTION) == "ai_role_distinction"
+    assert runtime._select_verified_doorway_conceptual_family(
+        "What does authority mean in governance?"
+    ) is None
+
+
 def test_ai_role_distinction_recovers_verified_responsible_ai_doorway():
     # Import the runtime selector rather than duplicating its decision logic.
     import main as runtime
