@@ -2,6 +2,7 @@
 
 import ast
 import re
+from typing import Dict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -12,7 +13,7 @@ target = next(
     if isinstance(node, ast.FunctionDef)
     and node.name == "_stewardship_technology_canonical_doorway"
 )
-namespace = {"re": re, "_normalize_space": lambda value: re.sub(r"\s+", " ", str(value or "")).strip()}
+namespace = {"re": re, "Dict": Dict, "_normalize_space": lambda value: re.sub(r"\s+", " ", str(value or "")).strip()}
 exec(compile(ast.Module(body=[target], type_ignores=[]), str(SOURCE), "exec"), namespace)
 doorway = namespace["_stewardship_technology_canonical_doorway"]
 
