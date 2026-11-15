@@ -3789,6 +3789,49 @@
       "transferable_lesson": "Circumstances shape the field of possible action without fully determining response; strong conceptual explanations preserve that asymmetry and connect it to responsibility without blame.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, financial-pressure example, claims, or continuation.",
       "user_approved_at": "2026-11-15"
+    },
+    {
+      "benchmark_id": "general-guide-culture-notice-value-imagine-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How does culture shape what people can notice, value, and imagine?",
+      "expected_response": "Culture gives people shared habits of interpretation: stories, symbols, expectations, and ways of deciding what matters. Those habits influence what people notice, which differences feel important, and what they take for granted. Because culture works partly in the background, two people can encounter the same situation and attend to different features of it.\n\nCulture also shapes value by providing languages of praise, duty, success, belonging, and responsibility. That does not mean every individual simply repeats their culture: people can question inherited assumptions, encounter other traditions, and change their own commitments. But the cultural setting often supplies the starting patterns against which those choices are made.\n\nImagination is affected in a similar way. What a community has seen, named, practiced, or considered possible can expand or narrow the futures its members can picture. Learning across cultures, hearing different stories, and noticing previously invisible assumptions can therefore widen what people are able to value and imagine.",
+      "expected_doorway": null,
+      "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+      "doorway_note": "The live visitor response displayed the continuation title \"Rules of Reasoning\", but no independently verified canonical destination URL was captured at elevation; doorway authority is intentionally withheld rather than invented.",
+      "rating_out_of_10": 9.1,
+      "approval_state": "User explicitly reviewed the live visitor-facing response and authorized: 'elevate, then merge' on 2026-11-15.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User message accompanying the reviewed live screenshot on 2026-11-15: 'elevate, then merge'.",
+      "assertions": [
+        "Exactly three substantive paragraphs with distinct functions: interpretation and noticing; value and agency; imagination and expanded possibility.",
+        "Explains culture as shared habits that shape attention without treating individuals as mechanically determined by culture.",
+        "Preserves agency by stating that people can question inherited assumptions, encounter other traditions, and change commitments.",
+        "Connects culture to imagination through what communities have seen, named, practiced, or considered possible.",
+        "Ends with an orienting implication: cross-cultural learning and noticing assumptions can widen what people value and imagine."
+      ],
+      "provenance": {
+        "source": "User-provided screenshot of the live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
+        "source_ref": "live visitor-facing production response.",
+        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "culture, interpretation, attention, value, imagination, agency, inherited assumptions, cross-cultural learning",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "culture_as_interpretive_field_with_agency",
+        "transferable_discipline": "For substantive questions about culture and human meaning, explain how shared interpretive habits shape attention, value, and imagination while preserving individual and collective agency; distinguish background influence from deterministic control and end with a practical opening toward wider perception or possibility.",
+        "abstention_boundary": "Do not treat culture as a monolithic force, imply that individuals merely repeat inherited norms, or present this general conceptual explanation as a formal canonical definition without source support."
+      },
+      "reasoning_family": "culture_as_interpretive_field_with_agency",
+      "transferable_lesson": "Culture shapes the interpretive field in which people notice, value, and imagine; strong explanations preserve both that formative influence and the capacity to question, revise, and widen inherited horizons.",
+      "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
+      "user_approved_at": "2026-11-15"
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
