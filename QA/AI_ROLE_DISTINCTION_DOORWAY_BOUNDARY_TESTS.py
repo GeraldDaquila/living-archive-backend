@@ -26,6 +26,13 @@ def test_ai_role_distinction_recovers_verified_responsible_ai_doorway():
         "url": "https://geralddaquila.com/responsible-ai-principle/",
     }
 
+def test_ai_role_distinction_final_fallback_contract_is_not_recovery_only():
+    # The selector is the last-mile authority for this conceptual family and
+    # must be available independently of systems-map recovery.
+    import main as runtime
+    doorway = runtime._select_guide_node_fallback_doorway(QUESTION)
+    assert doorway["title"] == "Responsible AI Principle"
+
 def main():
     assert suppresses_unreviewed(QUESTION, {"response": "bounded explanation"})
     assert not suppresses_unreviewed(
