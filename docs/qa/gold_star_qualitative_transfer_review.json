@@ -505,6 +505,15 @@
       "qualifying_context": "Questions about agency, choice, structure, circumstance, constraints, responsibility, and how conditions shape action without fully determining it.",
       "abstention_boundary": "Do not treat constraints as destiny, agency as unlimited freedom, or this general conceptual explanation as a formal canonical definition without source support.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-developmental-language-gold-star-2026-11-09",
+      "question": "How can developmental language become hierarchical or dismissive?",
+      "reasoning_family": "developmental_language_descriptive_not_hierarchical",
+      "transferable_discipline": "Answer directly by distinguishing descriptions of capacities from rankings of human worth, showing how labels can dismiss lived perspectives, and restoring developmental frameworks as descriptive and provisional rather than hierarchical.",
+      "qualifying_context": "Questions about developmental language, capacities, hierarchy, labels, dismissiveness, human worth, and the appropriate use of developmental frameworks.",
+      "abstention_boundary": "Do not use developmental labels to rank human worth, explain away a person's perspective, erase context or situational variation, or present an unverified doorway URL as canonical.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
