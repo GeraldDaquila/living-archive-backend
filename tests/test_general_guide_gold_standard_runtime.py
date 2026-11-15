@@ -651,3 +651,16 @@ def test_explicit_release_candidate_is_served_exactly_for_live_review(monkeypatc
     assert result["response"] == expected["expected_response"]
     assert result["doorway_title"] == expected["doorway_title"]
     assert result["doorway_url"] == expected["doorway_url"]
+
+
+def test_release_candidate_matches_browser_dash_variants():
+    variants = (
+        "What is the role of technology in a stewardship‑centered society?",  # non-breaking hyphen
+        "What is the role of technology in a stewardship–centered society?",  # en dash
+        "What is the role of technology in a stewardship—centered society?",  # em dash
+    )
+    for query in variants:
+        expected = resolve_exact_gold_standard(query)
+        assert expected is not None
+        assert expected["benchmark_id"] == "general-guide-technology-stewardship-governance-refinement-2026-11-15"
+        assert expected["doorway_title"] == "Foundations of Stewardship Governance"
