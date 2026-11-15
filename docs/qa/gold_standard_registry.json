@@ -4903,7 +4903,7 @@
     "last_audit_date": "2026-11-15",
     "approved_gold_star_count": 77,
     "registry_record_count": 113,
-    "review_reconciliation": "Runtime query failure exposed two approved records with the same exact question. The older immutable historical record remains preserved but is marked SUPERSEDED_GOLD_STANDARD and inactive for exact-answer resolution; Gold Star #82 is the sole approved exact-answer authority for this question.",
+    "review_reconciliation": "Deployment startup validation found the superseded legacy cross-scale record's qualitative review entry had become orphaned after the record was removed from approved Gold Star status. Removed only the orphan review entry; immutable historical record remains preserved in the registry as SUPERSEDED_GOLD_STANDARD, and Gold Star #82 remains the sole active authority.",
     "numbered_gold_star_record_count": 16,
     "highest_assigned_gold_star_number": 75,
     "numbering_reconciliation": "The explicit numbered sequence currently extends through #75. Unnumbered approved records remain canonical but are not retroactively assigned historical positions without evidence."
