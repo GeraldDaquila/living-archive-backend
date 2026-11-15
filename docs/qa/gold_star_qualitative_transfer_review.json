@@ -703,6 +703,15 @@
       "qualifying_context": "Questions about governance, institutional decisions, ethical responsibility, accountability, affected stakeholders, or AI-assisted authority.",
       "abstention_boundary": "Do not present governance procedure, AI advice, efficiency, or formal compliance as substitutes for accountable human judgment about consequences and responsibilities.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-formal-actual-power-structure-gold-standard-2026-11-16",
+      "question": "How can an institution recognize that its formal structure and actual power structure differ?",
+      "reasoning_family": "formal_authority_actual_influence_informal_power_visibility",
+      "transferable_discipline": "Compare authority on paper with influence in practice by tracing who shapes options, controls information, can alter outcomes, and can safely challenge decisions; treat repeated patterns as evidence of the actual power structure.",
+      "qualifying_context": "Questions about informal power, shadow authority, governance gaps, decision influence, or differences between formal structure and actual practice.",
+      "abstention_boundary": "Do not assume informal influence is inherently illegitimate or that organizational charts fully describe how power operates; the issue is whether consequential power can be seen, challenged, and connected to accountability.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
