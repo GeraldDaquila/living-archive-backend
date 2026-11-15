@@ -1819,7 +1819,10 @@
       "subsystem": "general-purpose-guide",
       "query": "What does faithful stewardship require when values conflict?",
       "expected_response": "Faithful stewardship when values conflict begins by naming what is actually in tension, rather than treating one value as automatically decisive. Clarify what has been entrusted, which commitments or duties are relevant, what each value protects, and what the situation's context makes possible or impossible. Separate what is known from assumptions, and distinguish a genuine conflict between obligations from a conflict between a principle and personal preference.\n\nNext, consider who is affected and what each possible choice would protect, risk, or harm. Give particular attention to people who bear the consequences but have less power to shape the decision. Look for options that honor more than one value, and identify any duties that cannot responsibly be traded away, such as honesty, keeping faith with an explicit commitment, or preventing avoidable harm. Where no option preserves everything, explain why one obligation must take priority in this case instead of disguising the trade-off as a perfect solution.\n\nA faithful decision should be proportionate to the evidence, transparent about its reasoning, and accountable to those affected. State which values guided the choice, what costs or limits remain, and what new information would lead you to reconsider it. Stewardship is not simply defending a preferred value; it is caring for what has been entrusted while acknowledging competing responsibilities, avoiding self-serving exceptions, and remaining willing to repair harm if the decision proves mistaken.",
-      "expected_doorway": null,
+      "expected_doorway": {
+        "title": "The Stewardship Landscape",
+        "url": "https://geralddaquila.com/the-stewardship-landscape"
+      },
       "assertions": [
         "Exactly three substantive paragraphs: identify the tension, weigh obligations and effects, then explain accountability and revision.",
         "Distinguishes conflicts between obligations from conflict between a principle and personal preference.",
@@ -1827,13 +1830,14 @@
         "Makes trade-offs explicit when no option preserves every value.",
         "Requires transparent reasoning, evidence-proportionate judgment, accountability, and willingness to repair harm.",
         "Does not divert the normative question into a Glossary-only lookup or generic action-planning fallback.",
-        "Suggested doorway title is recorded from screenshot; destination URL is unset pending verification."
+        "Doorway is verified against the canonical archive crosslink snapshot and must retain its canonical public URL."
       ],
       "provenance": {
         "source_path": "visitor-facing Guide screenshot supplied by user on 2026-10-25",
         "source_ref": "user-approved screenshot in conversation dated 2026-10-25",
         "source_status": "USER_APPROVED_GOLD_STANDARD",
-        "evidence_boundary": "Screenshot confirms displayed answer and presentation, but does not establish corpus-grounding for every claim or validate the suggested destination."
+        "evidence_boundary": "Screenshot confirms displayed answer and presentation, but does not establish corpus-grounding for every claim or validate the suggested destination.",
+        "doorway_reconciliation": "2026-11-15: live continuation “The Stewardship Landscape” reconciled to canonical public asset 🧭 The Stewardship Landscape → https://geralddaquila.com/the-stewardship-landscape."
       },
       "freeze_policy": "Do not alter expected_response without explicit user authorization and a separately documented benchmark-version change.",
       "gold_star_capabilities": {
@@ -1848,8 +1852,8 @@
       },
       "known_theme": "tradeoff discernment",
       "runtime_transfer": true,
-      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_status": "VERIFIED_CANONICAL_RECONCILED",
+      "doorway_note": "Live Guide continuation matched a verified public asset in the canonical archive crosslink snapshot."
     },
     {
       "benchmark_id": "general-guide-intergenerational-stewardship-gold-standard-2026-10-25",
