@@ -3919,6 +3919,50 @@
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
       "user_approved_at": "2026-11-15",
       "gold_star_number": 60
+    },
+    {
+      "benchmark_id": "general-guide-consciousness-civilization-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What does the Archive mean by consciousness in relation to civilization?",
+      "expected_response": "In the Living Archive, consciousness and civilization are connected through the way human capacities for perception, judgment, valuing, and imagination become embodied in collective life. A civilization is not separate from human consciousness: the ways people understand what can be noticed, valued, imagined, and taken responsibility for help shape the institutions, cultures, and forms of collective life they create. In this sense, the Archive treats consciousness as relevant not only to private experience, but to the conditions from which our shared world is continually made.\n\nThis relationship becomes especially visible in governance. Every system of governance gives practical expression to some view of human beings—for example, whether people are treated mainly as subjects to be controlled, consumers to be managed, participants capable of judgment, or persons whose development and relationships matter. Those assumptions influence what a society makes visible, what it rewards, who is trusted to decide, and which forms of human flourishing its institutions are organized to support.\n\nThe relationship is reciprocal rather than mechanical. Consciousness does not simply determine civilization, and civilization in turn shapes the conditions in which human capacities develop. The Archive's interest lies in this ongoing relationship: collective systems carry particular models of the human person, while those systems also cultivate habits, relationships, capacities, and horizons of possibility. Seen this way, questions of consciousness belong not only to inner life, but also to the design and stewardship of our shared world.",
+      "expected_doorway": null,
+      "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+      "doorway_note": "The live visitor response displayed the continuation title 'Every Governance System Encodes a Model of Human Consciousness', but no independently verified canonical destination URL was captured at elevation; doorway authority is intentionally withheld rather than invented.",
+      "rating_out_of_10": 9.4,
+      "approval_state": "User explicitly reviewed the live visitor-facing response and authorized: 'elevate, merge if all tests pass' on 2026-11-15.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User message accompanying the reviewed live screenshot on 2026-11-15: 'elevate, merge if all tests pass'.",
+      "assertions": [
+        "Exactly three substantive paragraphs with distinct functions: foundational relationship; institutional and governance expression; reciprocal synthesis and stewardship implication.",
+        "Connects consciousness to collective life through perception, judgment, valuing, and imagination without reducing consciousness to private experience.",
+        "Uses governance to show how assumptions about human beings shape institutions, trust, reward, and supported forms of flourishing.",
+        "Preserves reciprocal causality: consciousness influences civilization while collective systems also cultivate capacities and horizons of possibility.",
+        "Ends by connecting consciousness to the design and stewardship of the shared world without claiming mechanical determination."
+      ],
+      "provenance": {
+        "source": "User-provided screenshot of the live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
+        "source_ref": "live visitor-facing production response.",
+        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "consciousness, civilization, governance, human capacities, institutions, collective life, reciprocity, stewardship",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "consciousness_and_civilization_as_reciprocal_system",
+        "transferable_discipline": "For questions linking inner human capacities to collective systems, begin with the foundational relationship, show how it becomes embodied in institutions or governance, and synthesize the reciprocal influence without reducing either persons or systems to mechanical causes.",
+        "abstention_boundary": "Do not treat consciousness as only private experience, claim that institutions mechanically determine persons, or present a general conceptual orientation as a formal canonical definition without source support."
+      },
+      "reasoning_family": "consciousness_and_civilization_as_reciprocal_system",
+      "transferable_lesson": "Civilizations embody assumptions about human capacities, while collective systems also shape the conditions in which those capacities develop; strong explanations preserve this reciprocal relationship.",
+      "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
+      "user_approved_at": "2026-11-15",
+      "gold_star_number": 61
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
