@@ -56,6 +56,16 @@ Stop and investigate rather than patch repeatedly when:
 Repository contracts, manifests, tests and health evidence are the source of operational truth. Conversational memory is advisory context only and is never sufficient authority for production changes.
 
 
+### 4.0 Explicit user-review elevation gate
+
+**No candidate may be elevated to `USER_APPROVED_GOLD_STANDARD` unless the user has first reviewed the actual visitor-facing response and explicitly authorized its Gold Star elevation.**
+
+- A rating, assistant recommendation, source recovery, test result, or instruction to "continue" is **not** elevation approval.
+- Approval must be recorded as explicit evidence in the canonical registry.
+- A candidate may be stored, tested, merged as evaluation material, or displayed for review without becoming a Gold Star or runtime contributor.
+- Automated validation must fail closed if a record claims Gold Star status without the required explicit review-and-approval evidence.
+- Assistants and operators must not infer approval from conversational momentum or ambiguous instructions.
+
 ### 4.1 Canonical definition of Gold Star
 
 A **Gold Star** has one constitutional meaning only: a fully evidenced exemplar that has completed rigorous validation, passed the required gates, been explicitly frozen, and is actively participating in the Guide's adaptive learning module.
