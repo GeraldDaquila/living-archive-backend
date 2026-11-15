@@ -114,3 +114,13 @@ For each release, record:
 - **Gold Star authority:** Explicit user approval to elevate and merge after review of the corrected live response and ARC III continuation.
 - **Structural discipline:** Explain how expansion can outrun living-system capacity, reveal displaced costs, distinguish development from extractive overreach, and return to long-term viability.
 - **Canonical continuation:** **ARC III: Growth doesn’t break systems. It reveals the limits of the structure holding them.**
+
+## 2026-11-15 — Gold Star #77 delegated-judgment inventory reconciliation
+
+- **Class:** Registry governance / inventory reconciliation
+- **Canonical benchmark:** `general-guide-delegated-judgment-moral-limits-gold-star-2026-11-13`.
+- **Decision:** Assign canonical Gold Star number **#77** to the existing user-approved exemplar after repository reconciliation confirmed that #76 was the highest assigned number and #77 was unused.
+- **Boundary:** This is not a new exemplar and does not alter the frozen approved response, qualitative-transfer review, runtime-transfer authority, or doorway decision.
+- **Doorway state:** Preserved as `NOT_APPROVED_CONCEPTUAL_MISMATCH`; no contextually narrow Philippine-systems continuation is promoted as canonical authority for this general inquiry.
+- **Validation:** Canonical registry and qualitative-transfer review remain aligned; duplicate benchmark and Gold Star number checks pass in offline integrity review.
+
