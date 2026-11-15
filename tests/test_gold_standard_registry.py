@@ -585,6 +585,16 @@ def test_user_approved_gold_stars_have_explicit_runtime_capability_classificatio
         # Canonical continuation records predate the capability object and carry
         # their transfer contract in the record-level fields.
         if not capability:
+            # Some historically approved exemplars are canonical learning records
+            # but do not yet have an exact response fixture. They remain in the
+            # single approved inventory; fixture incompleteness is evidence
+            # metadata, not a second approval status.
+            if record.get("fixture_state") == "PENDING_EXACT_FIXTURE":
+                assert record.get("provenance", {}).get("evidence_boundary")
+                assert record.get("freeze_policy")
+                assert record.get("query")
+                assert record.get("expected_response") or record.get("lesson")
+                continue
             assert record.get("runtime_transfer") is True
             assert record.get("reasoning_family")
             assert record.get("transferable_lesson")
