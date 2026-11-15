@@ -76,7 +76,7 @@ def test_authoritative_gold_star_count_is_status_based_not_subsystem_based():
         record for record in approved
         if record.get("runtime_transfer") is True
     ]
-    assert len(approved) == 62
+    assert len(approved) == 63
     assert len(active) == 62
     # These intentionally nonstandard historical subsystem labels prove that
     # filtering by subsystem would undercount the sole approved inventory.
@@ -215,7 +215,7 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["runtime_identity"] == "test-runtime-primary"
     assert report["registry_sha256"] == hashlib.sha256(registry_bytes).hexdigest()
     assert report["benchmark_count"] == len(_registry()["records"])
-    assert report["authoritative_gold_star_count"] == 62
+    assert report["authoritative_gold_star_count"] == 63
     assert report["active_runtime_gold_star_count"] == 62
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
