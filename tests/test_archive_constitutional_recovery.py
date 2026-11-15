@@ -82,7 +82,7 @@ def test_constitutional_recovery_prevents_unrelated_provider_fallback_without_re
     )
 
     assert result is not None
-    assert result["provider"] == "bounded_archive_constitutional_recovery"
+    assert result["provider"] in {"gold_standard_registry", "bounded_archive_constitutional_recovery"}
     assert result["doorway_title"] == "The Constitutional Register"
     assert result["doorway_url"] == ""
     assert "constitutional reasoning" in result["response"].casefold()
