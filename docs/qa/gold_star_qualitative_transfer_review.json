@@ -649,6 +649,15 @@
       "qualifying_context": "Questions asking how related concepts differ, especially stewardship, ownership, control, management, authority, care, or benevolence.",
       "abstention_boundary": "Do not substitute a causal or mechanism-first explanation for a conceptual distinction question. Do not collapse related concepts into synonyms or treat efficiency, goodwill, possession, and responsible stewardship as interchangeable.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-repair-after-failure-gold-standard-2026-11-15",
+      "question": "What does repair look like after a stewardship failure?",
+      "reasoning_family": "accountable_repair_after_failure",
+      "transferable_discipline": "When asked what repair looks like after a failure, begin with visibility and accountability, distinguish repair from apology or procedural correction, examine conditions without turning explanation into excuse, acknowledge limits to restoration, and identify the changes and follow-through that make renewed trust possible.",
+      "qualifying_context": "Questions about repair, accountability, trust, institutional failure, relational harm, or stewardship failure.",
+      "abstention_boundary": "Do not promise that repair automatically restores trust, reverses harm, or returns conditions to their prior state. Do not use systems analysis to dissolve individual or institutional responsibility.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
