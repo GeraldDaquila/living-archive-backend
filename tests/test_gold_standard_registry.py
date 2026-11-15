@@ -450,7 +450,7 @@ def test_fragmented_knowledge_gold_standard_preserves_approved_response():
         if item["benchmark_id"] == "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26"
     )
     expected = (
-        "Fragmented knowledge impedes wise action when useful facts, experience, and perspectives remain separated, "
+        "Fragmented knowledge impedes wise action because decisions are made from partial pictures, "
         "so no one can see enough of the situation to judge what a decision may set in motion. A piece of information "
         "can be accurate on its own yet misleading when stripped of its context or its relationship to other parts of "
         "the problem. Wisdom depends not only on having information, but on understanding how the pieces bear on one another.\n\n"
