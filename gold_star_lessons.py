@@ -126,6 +126,18 @@ def validate_registry_integrity(
             raise GoldStarRegistryIntegrityError(
                 f"Approved Gold Star {benchmark_id} must explicitly declare runtime_transfer."
             )
+        if record.get("user_reviewed_response") is not True:
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} lacks evidence that the user reviewed the actual response."
+            )
+        if record.get("explicit_user_elevation_approval") is not True:
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} lacks explicit user authorization for elevation."
+            )
+        if not str(record.get("elevation_approval_evidence") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} lacks recorded elevation approval evidence."
+            )
         if not str(record.get("freeze_policy") or "").strip():
             raise GoldStarRegistryIntegrityError(
                 f"Approved Gold Star {benchmark_id} is missing freeze_policy."
