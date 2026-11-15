@@ -4880,7 +4880,7 @@
       "query": "How can an institution recognize that its formal structure and actual power structure differ?",
       "expected_response": "An institution can begin by comparing authority on paper with influence in practice. Ask who formally has the right to decide, then ask who actually shapes the options, receives information early, can delay or quietly veto action, or whose approval is practically necessary even when no rule requires it.\n\nThe difference often becomes most visible at points of consequence. When a difficult decision is made, who was consulted before it became public? Whose concerns can change the outcome, and whose concerns are routinely absorbed or ignored? Who can safely challenge a decision? Repeated patterns matter more than a single exception: when formal rules and ordinary behaviour conflict, the pattern that repeatedly determines what happens is part of the institution's actual power structure.\n\nIt also helps to trace the flow of information and dependency. Informal power may sit with people who control access, define what counts as a realistic option, hold expertise others depend on, or shape relationships behind formal meetings. None of this automatically makes informal influence illegitimate. The question is whether important power is visible enough to be understood, challenged, and held accountable.\n\nThe aim is not to eliminate every informal relationship or make an organization mechanically identical to its chart. It is to make the gap between formal authority and actual influence discussable. Once that gap is visible, an institution can ask whether its formal arrangements still describe how decisions are really made—and whether the people exercising power remain connected to responsibility, evidence, and the consequences their decisions create.",
       "expected_doorway": null,
-      "doorway_status": "TITLE_OBSERVED_URL_NOT_CAPTURED",
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "observed_doorway_title": "Case Study 26: The Power Behind the Throne",
       "rating_out_of_10": 9.7,
       "user_reviewed_response": true,
@@ -4893,7 +4893,17 @@
       "transfer_boundary": "Do not assume informal influence is inherently illegitimate or that organizational charts fully describe how power operates; the issue is whether consequential power can be seen, challenged, and connected to accountability.",
       "user_approved_at": "2026-11-16",
       "known_theme": "formal authority, actual influence, informal power, institutional accountability",
-      "elevation_approval_evidence": "User reviewed the live response, explicitly requested: “fix structurally and turn this into a gold star,” and subsequently directed alignment of the code with the Gold Star rating on 2026-11-16."
+      "elevation_approval_evidence": "User reviewed the live response, explicitly requested: “fix structurally and turn this into a gold star,” and subsequently directed alignment of the code with the Gold Star rating on 2026-11-16.",
+      "doorway_evidence_boundary": "A doorway title was observed during review, but no canonical URL was captured or independently verified; navigation is therefore explicitly withheld rather than inferred.",
+      "gold_star_capabilities": {
+        "generation_class": "user_reviewed_gold_standard",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "formal_authority_actual_influence_informal_power_visibility",
+        "transferable_discipline": "Compare authority on paper with influence in practice by tracing who shapes options, controls information, can alter outcomes, and can safely challenge decisions; treat repeated patterns as evidence of the actual power structure.",
+        "abstention_boundary": "Do not assume informal influence is inherently illegitimate or that organizational charts fully describe how power operates; the issue is whether consequential power can be seen, challenged, and connected to accountability."
+      }
     },
     {
       "benchmark_id": "general-guide-reflection-vs-therapy-boundary-gold-standard-2026-11-16",
