@@ -4295,6 +4295,53 @@
         "approval_evidence": "User instruction: 'elevate. merge'.",
         "evidence_boundary": "Screenshot establishes the exact reviewed response, the visible canonical doorway, and explicit approval. The doorway was validated through the structural regression and live deployment sequence before visitor-facing acceptance."
       }
+    },
+    {
+      "benchmark_id": "general-guide-care-commons-economic-recognition-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How can economic systems recognize unpaid care and commons maintenance?",
+      "expected_response": "Economic systems can better recognize unpaid care and commons maintenance by treating them as conditions that make other economic activity possible, rather than as invisible work outside the economy. Caring for children, older people, communities, and shared places sustains the people, relationships, and environments on which markets and institutions depend. Recognition therefore begins with making that contribution visible in how value and success are understood.\n\nVisibility alone is not enough. The responsibility for sustaining these conditions should not fall indefinitely on the people who happen to provide the care or maintenance. Public institutions, employers, communities, and other beneficiaries can share responsibility through the way they allocate time, resources, investment, and decision-making. The appropriate form will vary by context, but the structural question remains the same: who benefits from this sustaining work, and who bears its costs?\n\nThis does not mean that every act of care or every shared resource must be turned into a market transaction. The deeper shift is to stop treating care and commons maintenance as external to economic life while depending on them to keep society functioning. An economy becomes more honest and durable when it can see, support, and renew the conditions that sustain its own activity.",
+      "expected_doorway": {
+        "title": "Global Reset: Systems Change, Economic Transition, and Future Models",
+        "url": "https://geralddaquila.com/global-reset-systems-change-economic-transition-and-future-models/"
+      },
+      "rating_out_of_10": 9.5,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the corrected live visitor-facing response and explicitly authorized Gold Star elevation and merge on 2026-11-15.",
+      "elevation_approval_evidence": "User instruction on 2026-11-15: 'elevate. merge'.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "unpaid care, commons maintenance, economic recognition, invisible infrastructure, shared responsibility, externalities",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "care_and_commons_economic_recognition",
+        "transferable_discipline": "Establish sustaining work as a condition of wider economic activity; distinguish visibility from shared responsibility; identify who benefits and who bears costs; preserve the boundary that recognition does not require commodifying care or shared resources.",
+        "abstention_boundary": "Do not reduce the explanation to a list of policy instruments, and do not replace a bounded conceptual answer with a generic evidence-insufficiency abstention for qualifying questions."
+      },
+      "reasoning_family": "care_and_commons_economic_recognition",
+      "transferable_lesson": "Strong explanations of invisible sustaining work make the supporting conditions visible, connect recognition to shared responsibility, and preserve the distinction between valuing care and commodifying it.",
+      "transfer_boundary": "Transfer the reasoning discipline, not the exemplar-specific wording, examples, claims, or Global Reset continuation.",
+      "user_approved_at": "2026-11-15",
+      "gold_star_number": 69,
+      "assertions": [
+        "Establishes unpaid care and commons maintenance as conditions that make wider economic activity possible.",
+        "Moves from visibility to the structural question of shared responsibility and who bears sustaining costs.",
+        "Avoids reducing the answer to a policy-shopping list.",
+        "Preserves the boundary that recognition does not require commodifying every act of care or shared resource.",
+        "Completes the visitor journey with one verified Global Reset continuation."
+      ],
+      "provenance": {
+        "source_date": "2026-11-15",
+        "source": "User-provided screenshot of corrected live Guide response reviewed after the final-boundary structural repair.",
+        "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
+        "approval_evidence": "User instruction: 'elevate. merge'.",
+        "evidence_boundary": "Screenshot establishes the exact reviewed live response, visible doorway, rating basis, and explicit approval."
+      }
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
