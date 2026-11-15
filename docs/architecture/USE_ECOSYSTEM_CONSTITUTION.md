@@ -54,3 +54,13 @@ Stop and investigate rather than patch repeatedly when:
 
 ## 7. External-memory principle
 Repository contracts, manifests, tests and health evidence are the source of operational truth. Conversational memory is advisory context only and is never sufficient authority for production changes.
+
+
+### 4.1 Canonical definition of Gold Star
+
+A **Gold Star** has one constitutional meaning only: a fully evidenced exemplar that has completed rigorous validation, passed the required gates, been explicitly frozen, and is actively participating in the Guide's adaptive learning module.
+
+- `USER_APPROVED_GOLD_STANDARD` is reserved exclusively for records meeting that complete contract.
+- Historical approvals, recovered provenance, candidate lessons, incomplete fixtures, observers, and pending evidence records are **not Gold Stars** and must not be counted or treated as Gold Star learning authority.
+- There is one canonical registry, one Gold Star definition, one authoritative count, and one active Gold Star learning set: the validated records carrying `USER_APPROVED_GOLD_STANDARD`.
+- Any record that ceases to satisfy the full contract must be reclassified out of Gold Star status until the missing validation is completed.
