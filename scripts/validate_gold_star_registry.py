@@ -86,11 +86,26 @@ def main():
     if orphan_reviews:
         fail("orphan qualitative-transfer reviews: " + ", ".join(orphan_reviews))
 
-    # Runtime exact-answer authority must be unique per normalized question.
-    # Historical or superseded exemplars may remain active quality contributors,
-    # but they cannot compete as a second exact runtime answer.
+    # Exact-answer authority must be unique across both active Gold Stars and
+    # exact-query release candidates. Candidates are not Gold Stars and may not
+    # participate in runtime learning, but they can temporarily serve a precise
+    # visitor-facing answer for review. They therefore cannot compete with any
+    # approved deterministic answer for the same normalized question.
+    release_candidates = [
+        r for r in records
+        if r.get("status") == "USER_APPROVED_RELEASE_CANDIDATE"
+    ]
+    for candidate in release_candidates:
+        if candidate.get("runtime_transfer") is not False:
+            fail(f"{candidate.get('benchmark_id')} release candidate must not be runtime-transfer active")
+        capabilities = candidate.get("gold_star_capabilities") or {}
+        if bool(capabilities.get("active_quality_contributor")):
+            fail(f"{candidate.get('benchmark_id')} release candidate cannot be an active quality contributor")
+        if capabilities.get("exact_answer_authority") and candidate.get("candidate_state") != "PENDING_VISITOR_REVIEW":
+            fail(f"{candidate.get('benchmark_id')} exact-query release candidate lacks pending-review state")
+
     exact_authority = {}
-    for record in active:
+    for record in [*active, *release_candidates]:
         capabilities = record.get("gold_star_capabilities") or {}
         if not bool(capabilities.get("exact_answer_authority")):
             continue
@@ -99,9 +114,9 @@ def main():
         if not question or not answer:
             fail(f"{record['benchmark_id']} has incomplete exact-answer authority")
         previous = exact_authority.get(question)
-        if previous and previous["answer"] != answer:
+        if previous:
             fail(
-                "conflicting exact-answer authority for normalized question: "
+                "duplicate exact-answer authority for normalized question: "
                 + question
             )
         exact_authority[question] = {
