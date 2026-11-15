@@ -24,7 +24,8 @@ permissions:
 
 concurrency:
   group: live-guide-dual-service-e2e
-  cancel-in-progress: true
+  # Preserve an in-flight production acceptance check; a newer push may queue behind it, but must not erase its evidence.
+  cancel-in-progress: false
 
 jobs:
   production-e2e:
@@ -479,11 +480,30 @@ jobs:
                   )
               response = str(payload.get("response") or "").strip()
               paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-              if payload.get("processing") != "basic_inquiry":
+              processing = payload.get("processing")
+              if processing not in {"basic_inquiry", "final_visitor_boundary_exact_gold_standard"}:
                   raise SystemExit(
-                      f"{name}: constitutional reasoning left General Guide composition: "
-                      f"{payload.get('processing')!r}/{payload.get('intent')!r}"
+                      f"{name}: constitutional reasoning used an invalid processing boundary: "
+                      f"{processing!r}/{payload.get('intent')!r}"
                   )
+              if processing == "final_visitor_boundary_exact_gold_standard":
+                  registry = json.loads(
+                      Path("docs/qa/gold_standard_registry.json").read_text(encoding="utf-8")
+                  )
+                  standard = next(
+                      (
+                          item for item in registry.get("records", [])
+                          if item.get("query") == constitutional_query
+                          and item.get("status") == "USER_APPROVED_GOLD_STANDARD"
+                      ),
+                      None,
+                  )
+                  expected_response = str((standard or {}).get("expected_response") or "").strip()
+                  if not expected_response or response != expected_response:
+                      raise SystemExit(
+                          f"{name}: constitutional reasoning exact Gold Standard boundary did not "
+                          "reproduce the approved reference"
+                      )
               if payload.get("intent") == "GLOSSARY_HANDOFF" or payload.get("handoff") == "glossary":
                   raise SystemExit(f"{name}: constitutional reasoning was misrouted to Glossary")
               if len(paragraphs) < 3 or len(response) < 300:
