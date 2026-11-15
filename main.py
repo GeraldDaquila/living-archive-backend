@@ -238,6 +238,13 @@ def _select_verified_doorway_conceptual_family(query):
         and re.search(r"\bauthority\b", text, re.I)
     ):
         return "ai_role_distinction"
+    if (
+        re.search(r"\bregeneration\b", text, re.I)
+        and re.search(r"\bbeyond\b", text, re.I)
+        and re.search(r"\b(?:environmental|environment)\b", text, re.I)
+        and re.search(r"\brestoration\b", text, re.I)
+    ):
+        return "regeneration_beyond_restoration"
     return None
 
 
