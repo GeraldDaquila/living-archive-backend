@@ -3677,5 +3677,21 @@
     "approved_gold_star_count": 50,
     "registry_record_count": 70,
     "review_reconciliation": "27 approved Gold Stars matched to the canonical ledger; no duplicate benchmark IDs detected after the provenance-boundary elevation."
+  },
+  "elevation_workflow": {
+    "effective_date": "2026-11-15",
+    "authority": "LIVE REVIEW BEFORE GOLD STAR ELEVATION",
+    "rule": "For new Gold Star elevations and substantive Gold Star upgrades, the candidate must first be structurally fixed and pass automated validation, then be deployed to a reviewable live production state. The user must review the actual visitor-facing response and explicitly approve elevation before the registry may mark the record USER_APPROVED_GOLD_STANDARD or freeze the revised exemplar.",
+    "required_sequence": [
+      "structural_fix",
+      "automated_validation",
+      "live_or_reviewable_production_deployment",
+      "user_review_of_actual_visitor_facing_response",
+      "explicit_user_approval_for_elevation",
+      "registry_elevation_and_regression_freeze"
+    ],
+    "prohibition": "Registry elevation must not be used as a prediction that an unreviewed production response will be Gold Star quality.",
+    "runtime_requirement": "Live review evidence must identify the reviewed response state or deployment identity and record the user's explicit approval.",
+    "historical_boundary": "Records elevated before the effective date are historical and are not retroactively invalidated. The policy applies to elevations or substantive upgrades initiated on or after the effective date."
   }
 }
