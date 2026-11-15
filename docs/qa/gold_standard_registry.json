@@ -3120,7 +3120,7 @@
     },
     {
       "benchmark_id": "gs-2026-11-14-stewardship-leadership-decline-crisis",
-      "status": "USER_APPROVED_GOLD_STANDARD",
+      "status": "SUPERSEDED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "What does stewardship ask of a leader during decline or crisis?",
       "expected_response": "Stewardship asks a leader to hold responsibility for the whole condition, not simply to preserve appearances or protect a position. During decline or crisis, that begins with seeing clearly what is changing: what is being lost, who is carrying the consequences, which responsibilities remain non-negotiable, and where uncertainty is still real. A steward does not need to promise control over everything, but should resist both denial and the temptation to make certainty look stronger than it is.\n\nThe next task is to protect the conditions from which recovery remains possible. That can mean preserving trust, keeping truthful information available, listening to people closest to the consequences, and distinguishing what must be defended now from what can be changed or relinquished. Difficult decisions may still be necessary, but stewardship asks that their costs be made visible and that those with less power are not treated as expendable simply to preserve short-term stability.\n\nFinally, a steward keeps the future in view without abandoning the present. The question is not only how to survive the crisis, but what capacities, relationships, and responsibilities should remain intact so that renewal is possible afterward. Good stewardship therefore combines accountability with adaptability: act, learn from what the conditions reveal, correct course when necessary, and leave the people and institution more capable of carrying responsibility together.",
@@ -3155,7 +3155,10 @@
       "known_theme": "stewardship, leadership, decline, crisis, responsibility, trust, recovery, renewal, accountability",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "superseded_by": "general-guide-stewardship-leadership-decline-crisis-refined-gold-standard-2026-11-16",
+      "active_quality_contributor": false,
+      "exact_answer_authority": false
     },
     {
       "benchmark_id": "gs-2026-11-14-organizational-culture-ethical-behavior",
@@ -4821,6 +4824,28 @@
         "How do you test whether a systems model is wrong?"
       ],
       "user_approved_at": "2026-11-15"
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-leadership-decline-crisis-refined-gold-standard-2026-11-16",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "gold_star_number": 84,
+      "query": "What does stewardship ask of a leader during decline or crisis?",
+      "expected_response": "Stewardship asks a leader to hold responsibility for the whole condition, not simply to preserve appearances or protect a position. During decline or crisis, that begins with seeing clearly what is changing: what is being lost, who is carrying the consequences, which responsibilities remain non-negotiable, and where uncertainty is still real. A steward does not need to promise control over everything, but should resist both denial and the temptation to make certainty look stronger than it is.\n\nThe next task is to protect the conditions from which recovery remains possible. That can mean preserving trust, keeping truthful information available, listening to people closest to the consequences, and distinguishing what must be defended now from what can be changed or relinquished. Difficult decisions may still be necessary, but stewardship asks that their costs be made visible and that those with less power are not treated as expendable simply to preserve short-term stability.\n\nA further discipline is not to confuse preserving the institution with preserving every existing arrangement. Sometimes responsible continuity requires changing structures that once appeared indispensable. The question is whether what is being protected still serves the responsibilities the institution exists to carry.\n\nFinally, a steward keeps the future in view without abandoning the present. The question is not only how to survive the crisis, but what capacities, relationships, and responsibilities should remain intact so that renewal is possible afterward. Good stewardship therefore combines accountability with adaptability: act, learn from what the conditions reveal, correct course when necessary, and leave the people and institution more capable of carrying responsibility together.",
+      "expected_doorway": null,
+      "doorway_status": "TITLE_OBSERVED_URL_NOT_CAPTURED",
+      "observed_doorway_title": "How Do I Become More Trustworthy?",
+      "rating_out_of_10": 9.6,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the live visitor-facing response and explicitly approved elevation on 2026-11-16.",
+      "supersedes_benchmark_id": "gs-2026-11-14-stewardship-leadership-decline-crisis",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "stewardship_crisis_responsibility_recovery_renewal",
+      "transferable_lesson": "In decline or crisis, hold responsibility for the whole condition: see consequences clearly, protect recovery conditions, distinguish necessary continuity from preserving every arrangement, and adapt without abandoning accountability.",
+      "transfer_boundary": "Do not treat stewardship as a promise of control or as a mandate to preserve the institution at any cost; preserve responsibility, truthfulness, and protection of those with less power.",
+      "user_approved_at": "2026-11-16"
     }
   ],
   "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-15: 71 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory. 16 now carry explicit Gold Star numbers, including #75 for the user-reviewed open-question exemplar. Historical numbering remains incomplete for other approved records and must not be inferred without provenance evidence.",
