@@ -4893,7 +4893,17 @@
       "transfer_boundary": "Do not assume informal influence is inherently illegitimate or that organizational charts fully describe how power operates; the issue is whether consequential power can be seen, challenged, and connected to accountability.",
       "user_approved_at": "2026-11-16",
       "known_theme": "formal authority, actual influence, informal power, institutional accountability",
-      "elevation_approval_evidence": "User reviewed the live response, explicitly requested: “fix structurally and turn this into a gold star,” and subsequently directed alignment of the code with the Gold Star rating on 2026-11-16."
+      "elevation_approval_evidence": "User reviewed the live response, explicitly requested: “fix structurally and turn this into a gold star,” and subsequently directed alignment of the code with the Gold Star rating on 2026-11-16.",
+      "gold_star_capabilities": {
+        "generation_class": "user_reviewed_live_gold_standard",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "formal_authority_actual_influence_informal_power_visibility",
+        "transferable_discipline": "Compare authority on paper with influence in practice by tracing who shapes options, controls information, can alter outcomes, and can safely challenge decisions; treat repeated patterns as evidence of the actual power structure.",
+        "abstention_boundary": "Do not assume informal influence is inherently illegitimate or that organizational charts fully describe how power operates; the issue is whether consequential power can be seen, challenged, and connected to accountability.",
+        "intake_note": "Capability metadata records the explicit user-reviewed elevation and preserves the approved exact response without inferring an unobserved generation mode."
+      }
     },
     {
       "benchmark_id": "general-guide-reflection-vs-therapy-boundary-gold-standard-2026-11-16",
