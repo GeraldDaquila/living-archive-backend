@@ -196,10 +196,7 @@
       "subsystem": "general-purpose-guide",
       "query": "What if each person sincerely believes they are protecting something important, but protecting one person's priorities means another person will lose something they deeply value? How should we decide what to protect?",
       "expected_response": "When protecting one important thing puts something else at risk, the decision cannot be made fairly by asking only which priority matters more. We also need to consider who depends on each choice, who has the power to decide, and who will bear the consequences.\n\nMake each person's claim visible, including the needs of people who may not have a voice in the decision. Distinguish losses that can be repaired from those that cannot, and examine whether a different approach could protect at least part of what matters to each side. Shared facts, clear criteria, and a chance for affected people to challenge assumptions make the process more defensible.\n\nSometimes a genuine trade-off remains. In that case, responsibility means explaining the reasons for the decision, acknowledging what is being sacrificed, and checking that the burden does not fall unfairly on those with the least power. The question is not only what we choose to protect, but whether we can justify that choice to the people who must live with its consequences.",
-      "expected_doorway": {
-        "title": "A Descriptive Map of Human Sense-Making Under Change",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Address competing values and explicit sacrifice, not generic how-to advice.",
         "Consider who has power to decide, people with least power, and what can be repaired versus what cannot.",
@@ -212,7 +209,7 @@
         "source_path": "test_deterministic_answer_recovery.py",
         "source_ref": "main",
         "source_blob_sha": "d51817ea1c2aa940f724b61cc586faffda3bbef2",
-        "evidence_boundary": "Exact response is preserved and frozen. Live review confirms the displayed response and doorway title; the doorway destination URL remains unverified and must not be invented.",
+        "evidence_boundary": "Exact response is preserved and frozen. Live review confirms the displayed response and continuation title, but the destination URL remains unverified; no canonical doorway is approved or inferred.",
         "prior_calibration_context": "Prior calibration summary records this same accepted answer as GS #18, rated 9.0/10. The Issue #747 approval comment calls it Gold Standard #2. Both labels are preserved; sequence/numbering equivalence is not proven.",
         "reconciliation_note": "Reconciled into the sole canonical Gold Star inventory and active learning authority on 2026-11-15. Pending fixture status is evidence metadata only and does not create a second approval or learning category.",
         "reclassification_note": "2026-11-15 constitutional reconciliation: removed from Gold Star count because Gold Star is reserved exclusively for a fully evidenced, rigorously tested, passed, frozen exemplar that actively participates in adaptive learning. Historical approval or transferable lessons alone do not qualify.",
@@ -248,7 +245,7 @@
         "abstention_boundary": "Do not force false consensus, conceal sacrifice, shift burdens unfairly onto people with least power, or invent an unverified doorway URL.",
         "intake_note": "Historical provenance is retained; this classification does not infer an original generation mode beyond the available record evidence."
       },
-      "doorway_status": "LIVE_DISPLAYED_TITLE_DESTINATION_UNVERIFIED",
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "gold_star_candidate_state": "NOT_GOLD_STAR_UNTIL_FULLY_VALIDATED"
     },
     {
