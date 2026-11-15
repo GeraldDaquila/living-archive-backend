@@ -496,6 +496,15 @@
       "qualifying_context": "Archive-specific conceptual questions about human development, human flourishing, personal capacities, relationships, institutions, and the conditions that enable or constrain participation.",
       "abstention_boundary": "Do not present a bounded interpretive orientation as a substitute for a specific formal definition where one exists. Do not transfer this bounded Archive orientation as a formal definition where a more specific canonical source governs.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-developmental-language-gold-star-2026-11-09",
+      "question": "How can developmental language become hierarchical or dismissive?",
+      "reasoning_family": "developmental_language_descriptive_not_hierarchical",
+      "transferable_discipline": "Answer directly by distinguishing descriptions of capacities from rankings of human worth, showing how labels can dismiss lived perspectives, and restoring developmental frameworks as descriptive and provisional rather than hierarchical.",
+      "qualifying_context": "Questions about developmental language, capacities, hierarchy, labels, dismissiveness, human worth, and the appropriate use of developmental frameworks.",
+      "abstention_boundary": "Do not use developmental labels to rank human worth, explain away a person's perspective, erase context or situational variation, or present an unverified doorway URL as canonical.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
