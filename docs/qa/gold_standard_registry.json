@@ -4455,6 +4455,50 @@
         "approval_evidence": "User instruction: 'elevate. merge'.",
         "evidence_boundary": "Screenshot establishes the exact reviewed live response, visible doorway, rating basis, and explicit approval."
       }
+    },
+    {
+      "benchmark_id": "general-guide-modes-of-knowing-dialogue-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How should these modes of knowing be placed in dialogue without being confused with one another?",
+      "expected_response": "Different modes of knowing do not need to be made identical in order to be held in dialogue. The first task is to ask what each mode can illuminate, what kind of claim it can support, and what remains outside its reach. Evidence, lived experience, professional judgment, historical understanding, and moral concern may all matter to the same question, but they do not answer it in the same way. Keeping those differences visible prevents one form of knowing from being mistaken for the whole.\n\nDialogue begins when the forms of knowledge are allowed to question and inform one another without being forced into a single vocabulary or hierarchy. Ask where they converge, where they reveal a tension, and whether an apparent conflict comes from different evidence, different experiences, or different values. The aim is not to make every perspective agree, but to understand what each contributes and what would be lost if one were excluded.\n\nOnly then should the conversation move toward a decision or collective action. Compare the available options, make consequences visible, and include the knowledge of people who will live with those consequences. A responsible judgment remains accountable for the choice it makes, but it does not pretend that one mode of knowing has cancelled the others. The point is to create a clearer field for judgment: differentiated knowledge held in relation, with both its contributions and its limits still visible.",
+      "expected_doorway": null,
+      "doorway_status": "TITLE_OBSERVED_URL_NOT_CAPTURED",
+      "doorway_note": "The live visitor response displayed the continuation title 'Being in the Driver's Seat (Without Pretending You Control the Road)', but no canonical destination URL was independently captured at elevation; doorway authority is intentionally withheld rather than invented.",
+      "rating_out_of_10": 9.6,
+      "approval_state": "User reviewed the live visitor-facing response and explicitly authorized Gold Star elevation on 2026-11-15.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User instruction on 2026-11-15: 'elevate'.",
+      "assertions": [
+        "Maintains a three-part movement: differentiate modes and their warrants; place differences in dialogue without forced hierarchy; move toward accountable judgment and action.",
+        "Does not collapse distinct forms of knowing into one standard or treat one form as the whole.",
+        "Makes tensions visible and distinguishes conflicts of evidence, experience, and values.",
+        "Connects plural knowledge to accountable collective judgment and the consequences borne by affected people.",
+        "Preserves the limits of each mode while allowing them to inform one another."
+      ],
+      "provenance": {
+        "source": "User-provided screenshot of the live Guide response reviewed and approved for Gold Star elevation on 2026-11-15.",
+        "source_ref": "live visitor-facing production response.",
+        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "modes of knowing, evidence, lived experience, professional judgment, historical understanding, moral concern, dialogue, plural knowledge, collective judgment",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "differentiated_modes_of_knowing_in_dialogue",
+        "transferable_discipline": "Differentiate what each mode of knowing can illuminate and support; keep standards and limits visible; place modes in dialogue without forced hierarchy; then move toward accountable judgment that makes consequences and affected perspectives visible.",
+        "abstention_boundary": "Do not collapse distinct forms of knowing into one vocabulary or hierarchy, mistake one mode for the whole, force false consensus, or treat the observed continuation title as a verified canonical doorway without an independently verified URL."
+      },
+      "reasoning_family": "differentiated_modes_of_knowing_in_dialogue",
+      "transferable_lesson": "Strong plural-knowledge guidance differentiates forms of knowing before integrating them: each contributes under its own standards, differences remain visible, and judgment becomes accountable without pretending that one mode cancels the others.",
+      "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or unverified continuation title.",
+      "user_approved_at": "2026-11-15",
+      "gold_star_number": 73
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
@@ -4587,8 +4631,8 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-15",
-    "approved_gold_star_count": 50,
-    "registry_record_count": 70,
-    "review_reconciliation": "27 approved Gold Stars matched to the canonical ledger; no duplicate benchmark IDs detected after the provenance-boundary elevation."
+    "approved_gold_star_count": 72,
+    "registry_record_count": 108,
+    "review_reconciliation": "Canonical main reconciled after Gold Star #73 elevation; count reflects USER_APPROVED_GOLD_STANDARD records only."
   }
 }
