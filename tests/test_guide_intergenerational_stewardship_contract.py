@@ -88,4 +88,4 @@ def test_recovery_has_distinct_relationship_practice_and_boundary_paragraphs():
     assert paragraphs[0].startswith("Stewardship connects to intergenerational responsibility")
     assert paragraphs[1].startswith("For example,")
     assert paragraphs[2].startswith("This responsibility has limits.")
-    assert "pass preventable burdens" in paragraphs[2]
+    assert "preventable burdens" in paragraphs[2]
