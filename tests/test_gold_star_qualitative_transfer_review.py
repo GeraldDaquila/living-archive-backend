@@ -7,8 +7,7 @@ def test_qualitative_transfer_review_covers_all_active_gold_standards():
     active={
         r["benchmark_id"]
         for r in registry["records"]
-        if r.get("subsystem")=="general-purpose-guide"
-        and r.get("status")=="USER_APPROVED_GOLD_STANDARD"
+        if r.get("status")=="USER_APPROVED_GOLD_STANDARD"
         and r.get("runtime_transfer") is True
     }
     review=json.loads(Path("docs/qa/gold_star_qualitative_transfer_review.json").read_text())
@@ -28,10 +27,7 @@ def test_every_approved_gold_star_has_a_complete_or_explicitly_withheld_doorway(
         "NOT_APPROVED_CONCEPTUAL_MISMATCH",
     }
     for record in registry["records"]:
-        if (
-            record.get("subsystem")!="general-purpose-guide"
-            or record.get("status")!="USER_APPROVED_GOLD_STANDARD"
-        ):
+        if record.get("status")!="USER_APPROVED_GOLD_STANDARD":
             continue
         assert "expected_doorway" in record, record["benchmark_id"]
         doorway=record["expected_doorway"]

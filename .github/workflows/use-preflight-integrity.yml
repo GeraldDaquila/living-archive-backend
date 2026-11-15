@@ -8,6 +8,9 @@ on:
       - 'docs/qa/gold_star_qualitative_transfer_review.json'
       - 'gold_star_lessons.py'
       - 'scripts/validate_gold_star_registry.py'
+      - 'tests/test_gold_star_lessons.py'
+      - 'tests/test_gold_star_qualitative_transfer_review.py'
+      - '.github/workflows/use-preflight-integrity.yml'
   push:
     branches: [main]
     paths:
@@ -15,11 +18,20 @@ on:
       - 'docs/qa/gold_star_qualitative_transfer_review.json'
       - 'gold_star_lessons.py'
       - 'scripts/validate_gold_star_registry.py'
+      - 'tests/test_gold_star_lessons.py'
+      - 'tests/test_gold_star_qualitative_transfer_review.py'
+      - '.github/workflows/use-preflight-integrity.yml'
 
 jobs:
   gold-star-integrity:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install Gold Star test dependencies
+        run: python -m pip install --upgrade pytest
       - name: Validate canonical Gold Star registry
         run: python scripts/validate_gold_star_registry.py
+      - name: Compile Gold Star runtime
+        run: python -m py_compile gold_star_lessons.py
+      - name: Run Gold Star runtime and transfer regressions
+        run: python -m pytest -q tests/test_gold_star_lessons.py tests/test_gold_star_qualitative_transfer_review.py
