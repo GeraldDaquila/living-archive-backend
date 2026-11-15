@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
 
 def test_algorithmic_bias_question_uses_mechanism_first_recovery():
-    answer = compose_recovery("How can algorithmic systems scale existing biases or institutional failures?")
+    answer = main._compose_provider_exhaustion_recovery("How can algorithmic systems scale existing biases or institutional failures?")
     lowered = answer.casefold()
     assert "ranking system" in lowered
     assert "feedback loops" in lowered
