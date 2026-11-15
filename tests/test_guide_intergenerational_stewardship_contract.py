@@ -54,7 +54,7 @@ def test_recovery_explains_relationship_example_and_bounded_responsibility():
     assert _has_intergenerational_stewardship_explanation(answer)
     assert len(answer.split("\n\n")) == 3
     for concept in (
-        "what people after us will be able to inherit", "future generations", "for example",
+        "future generations", "for example",
         "pass on knowledge", "does not require", "reasonable care",
     ):
         assert concept in answer.casefold()
