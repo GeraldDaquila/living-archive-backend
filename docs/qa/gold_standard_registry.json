@@ -2024,44 +2024,46 @@
       "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "How does fragmented knowledge impede wise action?",
-      "expected_response": "Fragmented knowledge impedes wise action when useful facts, experience, and perspectives remain separated, so no one can see enough of the situation to judge what a decision may set in motion. A piece of information can be accurate on its own yet misleading when stripped of its context or its relationship to other parts of the problem. Wisdom depends not only on having information, but on understanding how the pieces bear on one another.\n\nFor example, one team may know why a process is failing, another may understand how a proposed fix affects people, and a third may hold the history of earlier attempts. If those insights never meet, a decision can solve the visible symptom while recreating the original problem somewhere else. Bringing the knowledge together helps reveal dependencies, trade-offs, and consequences that no single fragment could show.\n\nIntegration does not mean forcing every view into one story or pretending uncertainty disappears. It means comparing sources, listening to people who hold different parts of the picture, and making clear what is known, what is inferred, and what remains missing. Wise action becomes more likely when decisions reflect the whole available picture, stay open to correction, and account for the people who will live with the consequences.",
+      "expected_response": "Fragmented knowledge impedes wise action because decisions are made from partial pictures. Useful facts, experience, and perspectives remain separated, leaving no one able to see enough of the situation to judge what a decision may set in motion. A piece of information can be accurate on its own yet misleading when stripped of its context or its relationship to other parts of the problem.\n\nFor example, one team may know why a process is failing, another may understand how a proposed fix affects people, and a third may hold the history of earlier attempts. If those insights never meet, a decision can solve the visible symptom while recreating the original problem somewhere else. Bringing the knowledge together helps reveal dependencies, trade-offs, and consequences that no single fragment could show.\n\nIntegration does not mean forcing every view into one story or pretending uncertainty disappears. It means comparing sources, listening to people who hold different parts of the picture, and making clear what is known, what is inferred, and what remains missing. Wise action becomes more likely when decisions reflect the whole available picture, stay open to correction, and account for the people who will live with the consequences.",
       "expected_doorway": null,
       "assertions": [
-        "Exactly three substantive paragraphs, preserving the approved visitor-facing response.",
-        "Directly explains how separated facts, experience, and perspectives can mislead when their context and relationships are missing.",
-        "Provides a concrete cross-team example in which disconnected knowledge leads to treating a symptom while recreating the original problem elsewhere.",
+        "Exactly three substantive paragraphs with distinct roles: orienting explanation, concrete cross-team consequence, and disciplined integration boundary.",
+        "Directly explains the problem through the orienting idea that decisions are made from partial pictures.",
+        "Shows how separated facts, experience, and perspectives can lead to treating a symptom while recreating the underlying problem elsewhere.",
         "Explains integration without forcing consensus or pretending uncertainty disappears.",
         "Distinguishes what is known, inferred, and missing; keeps decisions open to correction and attentive to affected people.",
-        "Keeps the optional continuation doorway separate from the substantive answer.",
-        "Preserves humane, direct language and avoids generic planning checklists or internal implementation terminology."
+        "The answer is complete before any optional continuation doorway."
       ],
       "provenance": {
         "source_path": "visitor-facing Guide screenshot supplied by user on 2026-10-26",
         "source_ref": "user-approved screenshot in conversation dated 2026-10-26",
         "source_status": "USER_APPROVED_GOLD_STANDARD",
-        "review_rating": "9.2/10",
-        "approval_basis": "The live visitor-facing response was assessed as meeting expectations and passing the Gold Standard hurdle; the user explicitly requested registry inclusion.",
-        "evidence_boundary": "Screenshot confirms the displayed response, three-paragraph structure, and visible doorway title. It does not independently verify canonical source traceability, destination URL, or backend runtime identity."
+        "review_rating": "9.6/10",
+        "approval_basis": "The refined response was reviewed in live production and the user explicitly authorized Gold Star elevation on 2026-11-15.",
+        "evidence_boundary": "Exact response wording is frozen from the reviewed live production composition. Transfer authority applies to its structural and reasoning discipline, not to copying its wording or claims into unrelated questions.",
+        "source": "Validated and deployed live Guide response reviewed by the user on 2026-11-15.",
+        "source_commit": "6861ad8e42eef31b56f4b5cb481d6de2407884d9"
       },
-      "freeze_policy": "Preserve expected_response verbatim. Do not change wording or doorway title without explicit user authorization and a separately documented benchmark-version change.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
       "runtime_transfer": true,
       "related_question_variants": [
         "How can an organization act wisely when knowledge is scattered across different people?",
         "What helps reconnect siloed information without pretending everyone must agree?"
       ],
       "gold_star_capabilities": {
-        "generation_class": "runtime_agnostic_curated_exemplar",
+        "generation_class": "user_approved_live_exemplar",
         "exact_answer_authority": true,
         "active_quality_contributor": true,
         "deterministic_fallback_eligible": true,
         "reasoning_family": "integration_without_false_consensus",
-        "transferable_discipline": "Bring partial knowledge into relationship while preserving disagreement and uncertainty.",
-        "abstention_boundary": "Do not force consensus or claim integration eliminates uncertainty.",
+        "transferable_discipline": "For fragmented-knowledge questions, orient the reader around the partial picture, show how disconnected perspectives can distort consequences, and end with integration that preserves disagreement, uncertainty, and openness to correction.",
+        "abstention_boundary": "Do not force consensus, claim integration eliminates uncertainty, or transfer exemplar-specific wording or claims into unrelated questions.",
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "integration without false consensus",
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "The Gold Star freezes the substantive live response. No canonical doorway URL is inferred or invented; doorway metadata remains non-authoritative until separately recovered and approved.",
+      "rating_out_of_10": 9.6
     },
     {
       "benchmark_id": "general-guide-leadership-vs-positional-authority-gold-standard-2026-10-26",

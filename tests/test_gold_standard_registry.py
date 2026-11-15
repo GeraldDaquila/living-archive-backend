@@ -450,10 +450,10 @@ def test_fragmented_knowledge_gold_standard_preserves_approved_response():
         if item["benchmark_id"] == "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26"
     )
     expected = (
-        "Fragmented knowledge impedes wise action when useful facts, experience, and perspectives remain separated, "
-        "so no one can see enough of the situation to judge what a decision may set in motion. A piece of information "
-        "can be accurate on its own yet misleading when stripped of its context or its relationship to other parts of "
-        "the problem. Wisdom depends not only on having information, but on understanding how the pieces bear on one another.\n\n"
+        "Fragmented knowledge impedes wise action because decisions are made from partial pictures. "
+        "Useful facts, experience, and perspectives remain separated, leaving no one able to see enough of the situation "
+        "to judge what a decision may set in motion. A piece of information can be accurate on its own yet misleading when "
+        "stripped of its context or its relationship to other parts of the problem.\n\n"
         "For example, one team may know why a process is failing, another may understand how a proposed fix affects "
         "people, and a third may hold the history of earlier attempts. If those insights never meet, a decision can "
         "solve the visible symptom while recreating the original problem somewhere else. Bringing the knowledge "
@@ -469,10 +469,8 @@ def test_fragmented_knowledge_gold_standard_preserves_approved_response():
     assert len(expected.split(chr(10) * 2)) == 3
     assert record["expected_doorway"] is None
     assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
-    
-    assert record["provenance"]["review_rating"] == "9.2/10"
-    assert "does not independently verify" in record["provenance"]["evidence_boundary"]
-
+    assert record["provenance"]["review_rating"] == "9.6/10"
+    assert "Exact response wording is frozen" in record["provenance"]["evidence_boundary"]
 
 def test_gold_standard_rejects_three_paragraph_meta_answer_fallback():
     import json

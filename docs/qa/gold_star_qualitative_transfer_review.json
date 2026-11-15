@@ -133,9 +133,9 @@
       "benchmark_id": "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26",
       "question": "How does fragmented knowledge impede wise action?",
       "reasoning_family": "integration_without_false_consensus",
-      "transferable_discipline": "Bring partial knowledge into relationship while preserving disagreement and uncertainty.",
-      "qualifying_context": "Questions about fragmented information, coordination, or whole-picture understanding.",
-      "abstention_boundary": "Do not force consensus or claim integration eliminates uncertainty.",
+      "transferable_discipline": "For fragmented-knowledge questions, orient the reader around the partial picture, show how disconnected perspectives can distort consequences, and end with integration that preserves disagreement, uncertainty, and openness to correction.",
+      "qualifying_context": "Questions about fragmented information, coordination, siloed knowledge, whole-picture understanding, and wise action under incomplete perspectives.",
+      "abstention_boundary": "Do not force consensus, claim integration eliminates uncertainty, or transfer exemplar-specific wording or claims into unrelated questions.",
       "activation": "active_quality_contributor"
     },
     {
