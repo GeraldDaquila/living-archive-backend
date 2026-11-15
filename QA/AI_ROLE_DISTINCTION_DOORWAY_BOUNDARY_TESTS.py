@@ -143,3 +143,21 @@ def test_archive_guidance_provenance_final_json_boundary_emits_doorway():
         "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
         "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
     }
+
+
+def test_archive_guidance_provenance_outer_visitor_boundary_preserves_verified_doorway():
+    import main as runtime
+
+    query = "How should The Guide distinguish archive-grounded guidance from general external knowledge?"
+    payload = {
+        "query": query,
+        "response": "An upstream answer without a recommendation.",
+        "recommendation": None,
+    }
+    final_payload = runtime._guide_finalize_visitor_payload(payload, query)
+    expected = {
+        "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+    }
+    assert final_payload["recommendation"] == expected
+    assert final_payload["canonical_doorway"] == expected
