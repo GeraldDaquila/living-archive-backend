@@ -712,6 +712,15 @@
       "qualifying_context": "Questions about informal power, shadow authority, governance gaps, decision influence, or differences between formal structure and actual practice.",
       "abstention_boundary": "Do not assume informal influence is inherently illegitimate or that organizational charts fully describe how power operates; the issue is whether consequential power can be seen, challenged, and connected to accountability.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-reflection-vs-therapy-boundary-gold-standard-2026-11-16",
+      "question": "How should The Guide distinguish reflection from therapy?",
+      "reasoning_family": "reflection_orientation_vs_therapy_professional_boundary",
+      "transferable_discipline": "Separate orientation from treatment by stating what reflective inquiry can help with, what requires professional therapeutic care, and where the Guide's responsibility ends.",
+      "qualifying_context": "Questions about the boundary between reflection, self-inquiry, orientation, therapy, professional care, or the Guide's role when psychological needs are involved.",
+      "abstention_boundary": "Do not diagnose, treat, or imply clinical authority; when deeper psychological distress or therapeutic needs are central, preserve the distinction between reflective guidance and qualified care.",
+      "activation": "active_quality_contributor"
     }
   ]
 }

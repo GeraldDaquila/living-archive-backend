@@ -4894,6 +4894,40 @@
       "user_approved_at": "2026-11-16",
       "known_theme": "formal authority, actual influence, informal power, institutional accountability",
       "elevation_approval_evidence": "User reviewed the live response, explicitly requested: “fix structurally and turn this into a gold star,” and subsequently directed alignment of the code with the Gold Star rating on 2026-11-16."
+    },
+    {
+      "benchmark_id": "general-guide-reflection-vs-therapy-boundary-gold-standard-2026-11-16",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "gold_star_number": 88,
+      "query": "How should The Guide distinguish reflection from therapy?",
+      "expected_response": "The Guide can distinguish reflection from therapy by focusing on purpose, depth, and professional involvement. Reflection is a self-initiated, exploratory activity that helps a person notice patterns, clarify values, or plan future actions. It is usually brief, informal, and does not aim to resolve deep emotional wounds. Therapy, on the other hand, is a structured, often long-term process led by a licensed professional whose goal is to treat mental-health conditions, heal trauma, or manage symptoms that interfere with daily functioning. The key distinction lies in the intent and the expertise required: reflection is a tool for personal insight, while therapy is a clinical intervention designed to change underlying psychological states.\n\nIn practice, the Guide can signal this difference by labeling content that encourages journaling, mindfulness, or goal setting as \"reflection\" and reserving any material that offers diagnostic language, coping strategies for distress, or advice that could be construed as mental-health treatment for \"therapy.\" This clear labeling helps users understand whether they are engaging in a self-help exercise or seeking professional support. It also protects the Guide from inadvertently providing therapeutic advice that could be inappropriate or harmful.\n\nRecognizing this boundary matters because it respects both the autonomy of users who want to learn about themselves and the ethical limits of non-professional advice. By keeping reflection and therapy distinct, the Guide encourages users to consult qualified practitioners when deeper psychological issues arise. This approach maintains trust, preserves institutional integrity, and aligns with best practices for responsible digital mental-health support.",
+      "expected_doorway": {
+        "title": "The First Institution: Why Human Development Begins at Home",
+        "url": "https://geralddaquila.com/2025/06/17/the-first-institution-why-human-development-begins-at-home/"
+      },
+      "doorway_status": "CANONICAL_REPOSITORY_VERIFIED_CONTINUATION",
+      "rating_out_of_10": 9.3,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the corrected visitor-facing response, identified the missing doorway, and explicitly requested structural correction and Gold Star elevation on 2026-11-16.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "reflection_orientation_vs_therapy_professional_boundary",
+      "transferable_lesson": "Distinguish reflective orientation from therapeutic care by making purpose, scope, professional role, and limits explicit; reflection can deepen attention and judgment without being represented as diagnosis or treatment.",
+      "transfer_boundary": "Do not use the Guide's orientation role to diagnose, treat, or manage mental-health conditions, and do not attach a doorway unless a verifiable canonical continuation genuinely supports the boundary.",
+      "known_theme": "reflection, therapy, human development, orientation, professional boundaries, responsible guidance",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "reflection_orientation_vs_therapy_professional_boundary",
+        "transferable_discipline": "Separate orientation from treatment by stating what reflective inquiry can help with, what requires professional therapeutic care, and where the Guide's responsibility ends.",
+        "abstention_boundary": "Do not diagnose, treat, or imply clinical authority; when deeper psychological distress or therapeutic needs are central, preserve the distinction between reflective guidance and qualified care."
+      },
+      "user_approved_at": "2026-11-16",
+      "elevation_approval_evidence": "User explicitly requested: 'fix structurally and turn this into gold star' after reviewing the corrected live response and identifying the missing doorway."
     }
   ],
   "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-15: 71 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory. 16 now carry explicit Gold Star numbers, including #75 for the user-reviewed open-question exemplar. Historical numbering remains incomplete for other approved records and must not be inferred without provenance evidence.",
