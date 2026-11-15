@@ -752,3 +752,38 @@ def test_held_in_trust_gold_star_preserves_recognition_relationship_boundary():
     assert "Trust is relational" in response
     assert "where the holder's authority ends" in response
     assert "without assuming that every duty is unlimited or belongs to one person alone" in response
+
+
+
+def test_live_review_before_gold_star_elevation_policy_is_hardcoded():
+    registry = _registry()
+    policy = registry["elevation_workflow"]
+    assert policy["authority"] == "LIVE REVIEW BEFORE GOLD STAR ELEVATION"
+    assert policy["effective_date"] == "2026-11-15"
+    assert policy["required_sequence"] == [
+        "structural_fix",
+        "automated_validation",
+        "live_or_reviewable_production_deployment",
+        "user_review_of_actual_visitor_facing_response",
+        "explicit_user_approval_for_elevation",
+        "registry_elevation_and_regression_freeze",
+    ]
+    assert "must not be used as a prediction" in policy["prohibition"]
+
+    # The policy is prospective: new elevations and substantive upgrades from the
+    # effective date onward must carry evidence that the actual visitor-facing
+    # response was reviewed before the Gold Star state was frozen.
+    for record in registry["records"]:
+        provenance = record.get("provenance")
+        if not isinstance(provenance, dict):
+            continue
+        initiated = provenance.get("elevation_initiated_date") or provenance.get("structural_revision_date")
+        if initiated and initiated >= policy["effective_date"] and record["status"] in {
+            "USER_APPROVED_GOLD_STANDARD",
+            "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE",
+        }:
+            live_review = provenance.get("live_review")
+            assert isinstance(live_review, dict), record["benchmark_id"]
+            assert live_review.get("deployment_identity"), record["benchmark_id"]
+            assert live_review.get("user_reviewed_at"), record["benchmark_id"]
+            assert live_review.get("explicit_elevation_approval"), record["benchmark_id"]
