@@ -191,9 +191,10 @@ def validate_registry_integrity(
                 "INTENTIONALLY_NONE_APPROVED",
                 "LEGACY_INCOMPLETE_NOT_APPROVED",
                 "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+                "TITLE_OBSERVED_URL_NOT_CAPTURED",
             }:
                 raise GoldStarRegistryIntegrityError(
-                    f"Approved Gold Star {benchmark_id} has no explicit doorway state."
+                    f"Approved Gold Star {benchmark_id} has no recognized explicit doorway state."
                 )
         elif not isinstance(doorway, dict) or not str(doorway.get("title") or "").strip() or not str(doorway.get("url") or "").strip():
             raise GoldStarRegistryIntegrityError(
