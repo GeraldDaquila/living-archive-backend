@@ -5300,26 +5300,29 @@ def _guide_finalize_visitor_payload(payload, query):
     if _is_archive_claim_boundary_inquiry(query):
         safe = dict(payload)
         safe["response"] = _archive_claim_boundary_recovery()
-        # Archive provenance answers accept only a query-specific registered
-        # doorway. Never let a generic Atlas fallback replace a rejected or
-        # missing subject doorway.
-        node = _guide_node_specific_match(query)
-        if isinstance(node, dict):
-            node_title = str(node.get("title") or "").strip()
-            node_url = str(node.get("url") or node.get("canonical_url") or "").strip()
-            safe["recommendation"] = (
-                {"title": node_title, "url": node_url}
-                if node_title and re.match(r"^https://\S+$", node_url, re.I)
-                else None
-            )
-        else:
-            safe["recommendation"] = None
-        # recommendation and canonical_doorway are one visitor-facing contract.
-        # A rejected provenance doorway must clear both fields; otherwise a stale
-        # upstream canonical_doorway can bypass the fail-closed decision in the UI.
-        safe["canonical_doorway"] = safe["recommendation"]
-        safe["doorway_title"] = safe["recommendation"]["title"] if safe["recommendation"] else None
-        safe["doorway_url"] = safe["recommendation"]["url"] if safe["recommendation"] else None
+        # Archive provenance is still an Archive inquiry. Preserve a verified
+        # continuation first, then recover one at the shared canonical boundary.
+        # A specialist provenance branch may reject an unrelated candidate, but
+        # it may not turn a valid Guide answer into a navigational dead end.
+        _archive_doorway = _normalize_authoritative_recommendation(
+            safe.get("recommendation") or safe.get("canonical_doorway")
+        )
+        if not _archive_doorway:
+            _archive_doorway = _boundary_canonical_doorway(safe, query)
+        if not _archive_doorway:
+            try:
+                from deterministic_answer_recovery import (
+                    registered_recovery_recommendation as _registered_recovery_recommendation,
+                )
+                _archive_doorway = _normalize_authoritative_recommendation(
+                    _registered_recovery_recommendation(query)
+                )
+            except Exception:
+                _archive_doorway = None
+        safe["recommendation"] = _archive_doorway
+        safe["canonical_doorway"] = _archive_doorway
+        safe["doorway_title"] = _archive_doorway["title"] if _archive_doorway else None
+        safe["doorway_url"] = _archive_doorway["url"] if _archive_doorway else None
         safe["processing"] = "final_visitor_boundary_archive_claim_provenance"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
@@ -11281,19 +11284,19 @@ async def _use_send_json(send, payload, status_code=200):
                 if _boundary_title and re.match(r"^https://\S+$", _boundary_url, re.I):
                     payload["recommendation"] = {"title": _boundary_title, "url": _boundary_url}
                     payload["canonical_doorway"] = payload["recommendation"]
-        # Archive-claim provenance answers own a stricter navigation contract than
-        # generic recovery. Once the final visitor boundary has rejected a doorway,
-        # no later sender-level fallback may repopulate it from an unrelated
-        # deterministic registry.
-        _archive_claim_final = (
-            str(payload.get("processing") or "")
-            == "final_visitor_boundary_archive_claim_provenance"
+        # One outer navigation authority applies to every inquiry family.
+        # Processing labels are descriptive, not authority to suppress a verified
+        # continuation. Only an explicit canonical forbids_doorway instruction
+        # may leave a relevant doorway intentionally absent.
+        _forbids_doorway = (
+            _boundary_standard is not None
+            and bool(_boundary_standard.get("forbids_doorway"))
         )
-        if _boundary_standard is not None and bool(_boundary_standard.get("forbids_doorway")):
+        if _forbids_doorway:
             payload["recommendation"] = None
+            payload["canonical_doorway"] = None
         elif (
-            not _archive_claim_final
-            and not isinstance(payload.get("recommendation"), dict)
+            not isinstance(payload.get("recommendation"), dict)
             and _boundary_query
         ):
             # Absolute last-mile navigation contract: a registered deterministic
@@ -11327,7 +11330,7 @@ async def _use_send_json(send, payload, status_code=200):
         # It covers ordinary successful answers that bypass composition-level
         # navigation recovery, while remaining opt-in to verified families.
         if (
-            not _archive_claim_final
+            not _forbids_doorway
             and not isinstance(payload.get("recommendation"), dict)
             and _boundary_query
             and _boundary_standard is None
