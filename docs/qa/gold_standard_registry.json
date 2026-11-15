@@ -4702,7 +4702,7 @@
     "last_audit_date": "2026-11-15",
     "approved_gold_star_count": 73,
     "registry_record_count": 109,
-    "review_reconciliation": "Canonical main audited immediately before elevation: highest existing Gold Star is #77, so the stewardship-repair exemplar is assigned #78. The observed continuation title is retained without inventing an uncaptured URL.",
+    "review_reconciliation": "Gold Star #78 doorway normalized to the explicit title-only observed state recognized by runtime integrity validation; no URL was invented.",
     "numbered_gold_star_record_count": 16,
     "highest_assigned_gold_star_number": 75,
     "numbering_reconciliation": "The explicit numbered sequence currently extends through #75. Unnumbered approved records remain canonical but are not retroactively assigned historical positions without evidence."
