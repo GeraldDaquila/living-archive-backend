@@ -4153,6 +4153,53 @@
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
       "user_approved_at": "2026-11-15",
       "gold_star_number": 65
+    },
+    {
+      "benchmark_id": "general-guide-regeneration-beyond-environmental-restoration-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What does regeneration mean beyond environmental restoration?",
+      "expected_response": "Beyond environmental restoration, regeneration can be understood as renewing the conditions that allow life and human communities to remain capable of flourishing. Restoration often focuses on repairing damage; regeneration also asks whether the relationships, capacities, and conditions that sustain a system are becoming healthier and more able to renew themselves over time.\n\nThat broader meaning can apply to communities, institutions, economies, and cultures as well as ecosystems. For example, a community may restore a damaged building, but a regenerative approach would also ask whether trust, local capability, participation, and the relationships needed to care for the place are being strengthened. The point is not simply to return to an earlier state, but to improve the conditions from which healthy life can continue.\n\nRegeneration therefore does not mean endless growth or a promise that everything can be repaired. It is an ongoing orientation toward renewing capacity while recognizing limits and consequences. In the Living Archive's wider concerns with stewardship and place, it offers a way of asking not only what has been restored, but what conditions are being created for people and living systems to thrive into the future.",
+      "expected_doorway": {
+        "title": "Regenerative Governance: What Comes After Extraction-Based Systems?",
+        "url": "https://geralddaquila.com/2026/06/08/regenerative-governance-what-comes-after-extraction-based-systems/"
+      },
+      "rating_out_of_10": 9.6,
+      "approval_state": "User reviewed the corrected live visitor-facing response with its canonical doorway and explicitly authorized Gold Star elevation on 2026-11-15.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User instruction on 2026-11-15: 'elevate to gold star'.",
+      "assertions": [
+        "Exactly three substantive paragraphs: definition beyond repair; application across systems; limits and stewardship orientation.",
+        "Distinguishes restoration of damage from regeneration of the relationships, capacities, and conditions that sustain renewal.",
+        "Applies the concept concretely to communities, institutions, economies, cultures, and ecosystems.",
+        "Rejects both endless-growth assumptions and guarantees that everything can be repaired.",
+        "Completes the visitor journey with one verified canonical continuation: Regenerative Governance: What Comes After Extraction-Based Systems?"
+      ],
+      "provenance": {
+        "source_date": "2026-11-15",
+        "source": "User-provided screenshot of the corrected live Guide response reviewed and explicitly approved for Gold Star elevation.",
+        "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
+        "approval_evidence": "User instruction: 'elevate to gold star'.",
+        "evidence_boundary": "Screenshot establishes the exact reviewed response, visible canonical doorway, and explicit approval. The canonical destination was verified before structural deployment."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "regeneration, restoration, flourishing, stewardship, place, systems, renewal",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "conditions_for_regenerative_flourishing",
+        "transferable_discipline": "For conceptual questions about regeneration, distinguish repairing past damage from renewing the conditions, relationships, and capacities that allow a living system to continue flourishing; apply the concept across relevant systems, establish limits, and offer one verified continuation when a canonical conceptual family applies.",
+        "abstention_boundary": "Do not equate regeneration with unlimited growth, guaranteed repair, environmental restoration alone, or a generic positive outcome; do not transfer the exemplar-specific wording or doorway to unrelated questions."
+      },
+      "reasoning_family": "conditions_for_regenerative_flourishing",
+      "transferable_lesson": "Strong systems explanations of regeneration move from repair to the conditions of continued renewal, while preserving limits, consequences, and the visitor's concrete question.",
+      "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
+      "user_approved_at": "2026-11-15",
+      "gold_star_number": 66
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
