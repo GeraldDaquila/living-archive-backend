@@ -9,13 +9,22 @@ def test_exact_question_is_observable_but_not_automatically_transferable():
     assert result and result["exact"] is True
     assert result["runtime_transfer"] is False
 
-def test_explicit_transfer_matches_related_variant():
+def test_explicit_transfer_matches_approved_cross_scale_structure_agency_lesson():
     result = lessons.select_lesson(
-        "How should we understand personal responsibility when circumstances limit people's choices?"
+        "How do local choices relate to wider institutional and social circumstances?"
     )
     assert result
-    assert result["benchmark_id"] == "general-guide-agency-circumstance-gold-star-2026-11-09"
+    assert result["benchmark_id"] == "gs-2026-11-13-03-cross-scale-orientation-canonical-continuation"
     assert result["exact"] is False
+
+
+def test_non_general_guide_subsystem_labels_do_not_exclude_approved_inventory():
+    approved = [
+        record for record in lessons._LESSONS
+        if record["id"] == "gs-2026-11-13-03-cross-scale-orientation-canonical-continuation"
+    ]
+    assert len(approved) == 1
+    assert approved[0]["runtime_transfer"] is True
 
 def test_unrelated_question_abstains():
     assert lessons.select_lesson("How do I calculate the area of a triangle?") is None
