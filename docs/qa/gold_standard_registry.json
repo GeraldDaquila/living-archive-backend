@@ -4821,6 +4821,56 @@
         "How do you test whether a systems model is wrong?"
       ],
       "user_approved_at": "2026-11-15"
+    },
+    {
+      "benchmark_id": "general-guide-actionable-ethical-responsibility-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "gold_star_number": 84,
+      "query": "How can governance structures make ethical responsibility actionable?",
+      "expected_response": "The inquiry begins by making the situation itself visible: governance structures make ethical responsibility actionable. What outcome is the organisation trying to achieve, what responsibilities does it carry, and who will live with the consequences? Those questions bring operations, governance, human development, ethics, and stewardship into the same frame without pretending they are separate problems.\n\nFrom there, compare the real options rather than assuming that the proposed course is the only one. Look at what each option makes possible, what it may damage, who bears the costs, and what evidence would justify changing direction. The knowledge of people affected by the decision belongs in that assessment, especially where they will carry consequences they did not choose.\n\nThe point is not to make the decision for the organisation, but to make the grounds for acting clearer. Choose deliberately, make the reasoning and limits visible, and remain accountable for what follows. AI may inform the work, but it cannot take responsibility for a decision away from the people who have the authority to make it.",
+      "expected_doorway": null,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "observed_doorway_title": "Ethical Gravity: Human Responsibility in the Age of Artificial Intelligence",
+      "rating_out_of_10": 9.4,
+      "approval_state": "User reviewed the live visitor-facing response and explicitly requested elevation on 2026-11-15.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User requested pre-merge tests followed by commit after Gold Star recommendation.",
+      "assertions": [
+        "Governance makes ethical responsibility actionable by making purposes, responsibilities, consequences, and affected people visible in decision-making.",
+        "Ethical judgment improves when real options are compared rather than treating a proposed course as inevitable.",
+        "The knowledge of people who bear consequences belongs in the assessment, especially where those consequences were not chosen.",
+        "Responsible governance makes reasoning and limits visible and remains accountable for what follows.",
+        "AI may inform decisions but cannot transfer moral responsibility away from authorized human decision-makers."
+      ],
+      "provenance": {
+        "source": "User-provided live Guide screenshot reviewed on 2026-11-15.",
+        "source_ref": "visitor-facing production response.",
+        "evidence_boundary": "Observed continuation title is retained as provenance only; no canonical doorway URL is invented or promoted to authority without repository-based verification."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "governance, ethical responsibility, accountability, decision-making, affected people, AI",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "actionable_ethical_governance",
+        "transferable_discipline": "Make ethical responsibility actionable by structuring decisions so that purposes, responsibilities, consequences, affected people, evidence, reasoning, and accountability remain visible throughout the act of governing.",
+        "abstention_boundary": "Do not present governance procedure, AI advice, efficiency, or formal compliance as substitutes for accountable human judgment about consequences and responsibilities."
+      },
+      "reasoning_family": "actionable_ethical_governance",
+      "transferable_lesson": "Governance becomes ethically actionable when it turns responsibility into visible questions, comparative judgment, documented reasoning, and continuing accountability.",
+      "transfer_boundary": "Transfer this discipline to institutional governance, leadership, public decision-making, organizational redesign, and AI-assisted decisions where authority and consequences must remain visible.",
+      "related_question_variants": [
+        "How can institutions turn ethics into practical governance?",
+        "What makes a governance decision ethically accountable?",
+        "How should leaders include people affected by a decision?",
+        "Can AI make governance decisions without replacing human responsibility?"
+      ],
+      "user_approved_at": "2026-11-15"
     }
   ],
   "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-15: 71 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory. 16 now carry explicit Gold Star numbers, including #75 for the user-reviewed open-question exemplar. Historical numbering remains incomplete for other approved records and must not be inferred without provenance evidence.",
