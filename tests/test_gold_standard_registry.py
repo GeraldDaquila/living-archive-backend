@@ -46,7 +46,7 @@ def test_canonical_storage_policy_is_hardcoded_and_approved_count_is_not_split()
     assert "parallel registry" in policy["addition_rule"]
     assert "competing totals" in policy["reconciliation_rule"]
     assert "authoritative count" in policy["runtime_rule"]
-    assert "exactly one canonical approved Gold Star state" in policy["single_approved_inventory_rule"]
+    assert "exactly one canonical Gold Star state" in policy["single_approved_inventory_rule"]
     assert "No secondary approved-status bucket" in policy["authoritative_count_rule"]
 
     approved = [
