@@ -541,6 +541,15 @@
       "qualifying_context": "Questions comparing contemplative, experiential, empirical, scientific, or other modes of knowing and their appropriate standards of warrant.",
       "abstention_boundary": "Do not present contemplative insight as universal empirical proof, reduce all meaningful knowledge to measurement, or imply that distinct standards of warrant make one mode inherently invalid.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-consciousness-civilization-gold-standard-2026-11-15",
+      "question": "What does the Archive mean by consciousness in relation to civilization?",
+      "reasoning_family": "consciousness_and_civilization_as_reciprocal_system",
+      "transferable_discipline": "For questions linking inner human capacities to collective systems, begin with the foundational relationship, show how it becomes embodied in institutions or governance, and synthesize the reciprocal influence without reducing either persons or systems to mechanical causes.",
+      "qualifying_context": "Questions linking consciousness, human capacities, collective life, governance, institutions, and civilization.",
+      "abstention_boundary": "Do not treat consciousness as only private experience, claim that institutions mechanically determine persons, or present a general conceptual orientation as a formal canonical definition without source support.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
