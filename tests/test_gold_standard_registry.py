@@ -861,3 +861,33 @@ def test_technology_refinement_release_candidate_has_exact_query_review_authorit
         assert "not a Gold Star" in record["freeze_policy"]
     else:
         assert record.get("runtime_transfer") is True
+
+
+def test_reflection_vs_therapy_gold_star_preserves_verified_doorway_through_final_visitor_boundary():
+    """Regression: a verified exact Gold Star doorway must reach every visitor alias."""
+    import sys
+    sys.path.insert(0, str(ROOT))
+    from general_guide_gold_standards import resolve_exact_gold_standard
+
+    query = "How should The Guide distinguish reflection from therapy?"
+    record = resolve_exact_gold_standard(query)
+    assert record is not None
+    assert record["benchmark_id"] == (
+        "general-guide-reflection-vs-therapy-boundary-gold-standard-2026-11-16"
+    )
+    assert record["doorway_title"] == (
+        "The First Institution: Why Human Development Begins at Home"
+    )
+    assert record["doorway_url"] == (
+        "https://geralddaquila.com/2025/06/17/"
+        "the-first-institution-why-human-development-begins-at-home/"
+    )
+
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    start = source.index("def _guide_finalize_visitor_payload")
+    end = source.index("\n    response_text =", start)
+    exact_boundary = source[start:end]
+    assert 'safe["recommendation"] = exact_doorway' in exact_boundary
+    assert 'safe["canonical_doorway"] = exact_doorway' in exact_boundary
+    assert 'safe["doorway_title"] = exact_title' in exact_boundary
+    assert 'safe["doorway_url"] = exact_url' in exact_boundary
