@@ -4941,7 +4941,7 @@
       "elevation_approval_evidence": "User explicitly requested: 'fix structurally and turn this into gold star' after reviewing the corrected live response and identifying the missing doorway."
     }
   ],
-  "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-15: 71 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory. 16 now carry explicit Gold Star numbers, including #75 for the user-reviewed open-question exemplar. Historical numbering remains incomplete for other approved records and must not be inferred without provenance evidence.",
+  "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-16: 80 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory; 27 carry explicit Gold Star numbers. The highest assigned number is #88. #85 and #86 remain unassigned because no provenance evidence authorizes retroactive assignment; they are not counted as missing approved records.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -5070,12 +5070,12 @@
     "gold_star_contract": "Gold Star means one thing only: a fully validated, frozen exemplar that actively contributes to adaptive learning. The canonical registry may retain non-Gold-Star evidence and candidate records, but they are excluded from the Gold Star count and runtime Gold Star authority."
   },
   "integrity_audit": {
-    "last_audit_date": "2026-11-15",
-    "approved_gold_star_count": 77,
-    "registry_record_count": 113,
-    "review_reconciliation": "Deployment startup validation found the superseded legacy cross-scale record's qualitative review entry had become orphaned after the record was removed from approved Gold Star status. Removed only the orphan review entry; immutable historical record remains preserved in the registry as SUPERSEDED_GOLD_STANDARD, and Gold Star #82 remains the sole active authority.",
-    "numbered_gold_star_record_count": 16,
-    "highest_assigned_gold_star_number": 75,
-    "numbering_reconciliation": "The explicit numbered sequence currently extends through #75. Unnumbered approved records remain canonical but are not retroactively assigned historical positions without evidence."
+    "last_audit_date": "2026-11-16",
+    "approved_gold_star_count": 80,
+    "registry_record_count": 117,
+    "review_reconciliation": "Canonical inventory reconciled against the current registry before merge: 80 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative Gold Star inventory. Historical and superseded records remain outside that count.",
+    "numbered_gold_star_record_count": 27,
+    "highest_assigned_gold_star_number": 88,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-16 confirms 27 explicitly numbered USER_APPROVED_GOLD_STANDARD records, spanning #60 through #88, with no duplicate numbers. #85 and #86 are unassigned provenance gaps and are not backfilled or inferred."
   }
 }
