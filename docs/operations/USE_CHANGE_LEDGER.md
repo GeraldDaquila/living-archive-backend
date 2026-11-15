@@ -82,3 +82,14 @@ For each release, record:
 - **Transfer boundary:** Transfer the structural discipline only. Do not transfer exemplar-specific wording, claims, or doorway to unrelated questions.
 - **Validation:** Candidate registry contains 64 approved Gold Stars with unique benchmark IDs and Gold Star numbers; qualitative-transfer coverage is present; authoritative count assertions are updated to 64.
 - **Release boundary:** Repository CI did not emit a workflow run for this documentation/registry-only PR. Branch-level integrity validation was therefore completed before merge; no production code or visitor-facing runtime behavior is changed by this elevation.
+
+
+## 2026-11-15 — AI as interpreter rather than authority Gold Star
+
+- **Class:** Content / QA authority
+- **Intent:** Preserve the user-reviewed live Guide response distinguishing interpretive AI assistance from legitimate authority as an exact-answer benchmark and active qualitative contributor.
+- **Canonical benchmark:** `general-guide-ai-interpreter-vs-authority-gold-standard-2026-11-15`.
+- **Gold Star authority:** Explicit user elevation approval followed live review of the corrected response and canonical continuation, **Responsible AI Principle**.
+- **Structural discipline:** Distinguish the ability to organize, compare, and clarify information from legitimate standing to decide; preserve inspectability, contestability, accountable judgment, and responsibility for consequences.
+- **Transfer boundary:** Transfer the structural discipline only. Do not equate analytical capability or confidence with authority, and do not transfer exemplar-specific wording or doorway to unrelated questions.
+- **Validation boundary:** Registry and qualitative-transfer coverage must remain aligned; this elevation follows the live response after the structural doorway repair was deployed to both Primary and Mirror.
