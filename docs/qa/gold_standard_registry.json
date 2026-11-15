@@ -3591,6 +3591,45 @@
       },
       "known_theme": "constitutional reasoning, Living Archive, recovery, constitutional relationships, interpretation, inference, canonical architecture, Constitutional Register",
       "runtime_transfer": true
+    },
+    {
+      "benchmark_id": "general-guide-human-development-archive-framework-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What does human development mean in the Archive's framework?",
+      "expected_response": "In the Living Archive's framework, human development should be understood in relation to human flourishing, the relationships that shape people's lives, and the systems through which choices and consequences unfold. It is not only a label for an individual trait or outcome; the useful question is how human development develops through the interaction of personal capacities, relationships, institutions, and the conditions people inherit or create. That relational view helps connect individual experience with the wider patterns that enable or constrain it.\n\nPractically, this means asking what changes in a person's capacities and judgment over time, what relationships and environments support or obstruct that change, and how those effects are distributed across a community. For human development, avoid treating a single measure or visible achievement as the whole story: examine the person's agency and well-being alongside the quality of their relationships and the conditions in which they participate. These are interpretive lenses for inquiry, not a claim that one metric or one causal explanation settles the question.\n\nThe Archive's wider orientation is to make connections visible while distinguishing established evidence from interpretation. So use this framework to ask better questions, compare perspectives, and identify what a canonical Archive text specifically establishes; do not treat this bounded explanation as a substitute for a retrieved formal definition. If a specific codex or constitutional text defines the concept more precisely, that source should take precedence over this general orientation.",
+      "expected_doorway": null,
+      "rating_out_of_10": 9.1,
+      "approval_state": "User-approved Gold Star elevation following live visitor-path review and registry reconciliation on 2026-11-15.",
+      "assertions": [
+        "Exactly three substantive paragraphs with distinct functions: relational orientation; practical inquiry; epistemic and constitutional boundary.",
+        "Directly answers the Archive-specific question without presenting the Guide's general orientation as a formal canonical definition.",
+        "Connects personal capacities, relationships, institutions, and inherited or created conditions.",
+        "Preserves the distinction between established evidence and interpretation.",
+        "Requires a more specific codex or constitutional text to take precedence where it defines the concept formally.",
+        "Doorway remains separate from answer authority until its canonical destination is independently verified."
+      ],
+      "provenance": {
+        "source_path": "visitor-provided production screenshot",
+        "source_ref": "user-approved live response screenshot, 2026-11-15",
+        "source_status": "USER_APPROVED_GOLD_STANDARD",
+        "evidence_boundary": "Screenshot establishes the observed response and explicit approval for registry elevation. It does not independently establish a canonical formal definition or doorway URL."
+      },
+      "freeze_policy": "Preserve approved expected_response. Change only with explicit user authorization and a separately documented benchmark-version change.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "relational_human_development_with_epistemic_boundary",
+        "transferable_discipline": "Connect individual development with relationships, institutions, and conditions while distinguishing general orientation from formal canonical authority.",
+        "abstention_boundary": "Do not present a bounded interpretive orientation as a substitute for a specific formal definition where one exists.",
+        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+      },
+      "known_theme": "human development in the Living Archive framework",
+      "runtime_transfer": true,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_note": "The observed doorway title is not treated as authoritative until its canonical destination is separately verified and approved."
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
