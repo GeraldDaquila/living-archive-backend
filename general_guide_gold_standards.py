@@ -25,6 +25,15 @@ def _normalize_question(value: Any) -> str:
     # without changing the visitor's question. Canonicalize those variants so
     # exact approved standards still apply, while keeping matching non-fuzzy.
     text = str(value or "").translate(str.maketrans({
+        # Normalize browser/editor dash variants so an exact visitor question
+        # cannot bypass an approved release review merely because typography
+        # changed in transit.
+        "\u2010": "-",  # hyphen
+        "\u2011": "-",  # non-breaking hyphen
+        "\u2012": "-",  # figure dash
+        "\u2013": "-",  # en dash
+        "\u2014": "-",  # em dash
+        "\u2212": "-",  # minus sign
         "\u2018": "'",
         "\u2019": "'",
         "\u02bc": "'",
