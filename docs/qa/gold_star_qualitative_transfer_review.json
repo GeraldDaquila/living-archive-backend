@@ -568,6 +568,15 @@
       "qualifying_context": "Questions about algorithms, automation, ranking, recommendation, classification, feedback loops, or other systems that may scale, accelerate, distribute, or reinforce an existing social or institutional condition.",
       "abstention_boundary": "Do not attribute every harmful pattern to algorithms alone, treat amplification as proof of original causation, or substitute abstract systems language for the concrete mechanism named in the question.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-technology-stewardship-governance-refinement-2026-11-15",
+      "question": "What role should technology play in a stewardship-centered society?",
+      "reasoning_family": "technology_as_means_under_stewardship",
+      "transferable_discipline": "For questions about technology in relation to human purposes, establish that technology is a means rather than the source of direction, distinguish technical capability from human judgment, and return to accountability, relationships, and long-term responsible care.",
+      "qualifying_context": "Broad conceptual questions about technology, automation, or technical systems in relation to stewardship, governance, human purposes, institutional responsibility, or long-term care.",
+      "abstention_boundary": "Do not treat efficiency or technical capability as sufficient grounds for social direction, assign human judgment to technology, or transfer the exemplar-specific claims or canonical doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
