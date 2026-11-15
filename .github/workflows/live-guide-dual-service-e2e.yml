@@ -572,8 +572,21 @@ jobs:
                   raise SystemExit(f"{name}: explicit explanation left General Guide composition")
               if len(paragraphs) < 3 or len(response) < 300:
                   raise SystemExit(f"{name}: explicit stewardship explanation is too thin: chars={len(response)}, paragraphs={len(paragraphs)}")
-              if not re.search(r"(?i)^stewardship means", response):
-                  raise SystemExit(f"{name}: explicit stewardship request was not answered directly")
+              # Directness is semantic, not a mandated opening phrase. A visitor
+              # may receive a clear definition such as "Stewardship is..." or
+              # "At its simplest, stewardship means..." without using one exact
+              # string. Keep the answer-first contract while avoiding a brittle
+              # stylistic false negative.
+              first_paragraph = paragraphs[0] if paragraphs else ""
+              direct_definition = re.search(
+                  r"(?i)\bstewardship\b.{0,120}\b(?:means|is|involves|refers to)\b",
+                  first_paragraph,
+              )
+              if not direct_definition:
+                  raise SystemExit(
+                      f"{name}: explicit stewardship request was not answered directly: "
+                      f"{first_paragraph!r}"
+                  )
               if (
                   re.search(
                       r"(?i)couldn't verify a reliable answer|won't present a guess as fact|separately selected Archive resource|provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer",
