@@ -622,6 +622,15 @@
       "qualifying_context": "Questions about local and systemic change, ecological transformation, multi-scale action, grassroots agency, institutional structures, coordination, or how local evidence can connect to broader change.",
       "abstention_boundary": "Do not imply that local initiatives alone cause systemic transformation, that larger policy structures simply override local agency, or that the Alignment Before Transformation doorway applies to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-care-commons-economic-recognition-gold-standard-2026-11-15",
+      "question": "How can economic systems recognize unpaid care and commons maintenance?",
+      "reasoning_family": "care_and_commons_economic_recognition",
+      "transferable_discipline": "Establish sustaining work as a condition of wider economic activity; distinguish visibility from shared responsibility; identify who benefits and who bears costs; preserve the boundary that recognition does not require commodifying care or shared resources.",
+      "qualifying_context": "Questions about unpaid care, care work, commons maintenance, invisible infrastructure, sustaining conditions, economic recognition, externalized costs, or shared responsibility.",
+      "abstention_boundary": "Do not reduce the explanation to a policy-shopping list, and do not replace a bounded conceptual answer with a generic evidence-insufficiency abstention for qualifying questions. Do not transfer the exemplar-specific wording or Global Reset doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
