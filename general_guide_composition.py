@@ -1424,19 +1424,18 @@ def _has_intergenerational_stewardship_explanation(response: str) -> bool:
         and bool(re.search(r"\b(?:stewardship|steward)\b", paragraphs[0], re.I))
         and bool(re.search(r"\b(?:intergenerational|future generations?|those who come after|generations to come)\b", paragraphs[0], re.I))
         and bool(re.search(r"\b(?:for example|in practice|institution|knowledge|capabilities|relationships|resources)\b", paragraphs[1], re.I))
-        and bool(re.search(r"\b(?:does not mean|doesn't mean|not mean|not about)\b", paragraphs[2], re.I))
+        and bool(re.search(r"\b(?:does not mean|doesn't mean|does not require|not mean|not about)\b", paragraphs[2], re.I))
         and bool(re.search(r"\b(?:responsib|care|control|limits?)\w*\b", paragraphs[2], re.I))
         and bool(re.search(r"\b(?:because|so that|which means|as a result|over time|what remains)\b", text, re.I))
     )
 
 
 def _intergenerational_stewardship_recovery() -> str:
-    """Explain stewardship across generations with a concrete example and bounded responsibility."""
+    """Explain the present-to-future relationship, practical duty, and its boundary."""
     return (
-        "Stewardship connects to intergenerational responsibility because the way we care for something now shapes what remains possible for people who come after us. In the Living Archive's constitutional framing, stewardship is more than managing what we have inherited: it is participating responsibly in an enduring order, with attention to reciprocity, cultivation, and the quality of what is passed on. "
-        "Responsibility therefore reaches beyond immediate performance to the relationships, knowledge, capabilities, and institutions that future generations will have to rely on.\n\n"
-        "For example, an institution may meet today's targets while allowing trust to erode, losing practical knowledge, or leaving the next group without the skills and resources to continue the work. A stewardship approach looks at both today's results and what those results leave behind: whether people can learn, participate, maintain what matters, and carry responsibility forward. The point is not simply to preserve an institution unchanged, but to leave people with sounder conditions for responsible action.\n\n"
-        "Intergenerational responsibility does not mean predicting every future need or making one generation answer for everything. It means taking reasonable care with the consequences within our influence, listening to those affected, and strengthening the conditions others will inherit rather than passing avoidable costs along. Stewardship is thus neither control over the future nor self-sacrifice without limits; it is accountable care for what has been entrusted to us and for the possibilities our choices help create."
+        "Stewardship connects to intergenerational responsibility because what we do with what is entrusted to us shapes what future generations will be able to inherit and build upon. The responsibility is not simply to preserve what exists. It is to care for the relationships, knowledge, resources, and institutions that make future action possible. What matters, therefore, is not only what we achieve now, but also what our choices leave others able to do.\n\n"
+        "For example, an institution may meet its current targets while trust weakens, practical knowledge is lost, or the next group is left without the skills and resources to continue. Stewardship asks decision-makers to notice these effects while there is still time to act: to pass on knowledge, sustain relationships, maintain what people depend on, and make room for those who will carry the work forward.\n\n"
+        "This responsibility has limits. It does not require predicting every future need, keeping every institution unchanged, or making one generation answer for everything. It asks us to take reasonable care for consequences we can influence, listen to people affected, and avoid passing preventable burdens to those who come after us. Stewardship is accountable care across time—not control over the future and not unlimited self-sacrifice."
     )
 
 
