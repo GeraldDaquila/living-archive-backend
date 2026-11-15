@@ -328,15 +328,6 @@
       "activation": "active_quality_contributor"
     },
     {
-      "benchmark_id": "gs-2026-11-14-stewardship-leadership-decline-crisis",
-      "question": "What does stewardship ask of a leader during decline or crisis?",
-      "reasoning_family": "stewardship_leadership_under_pressure",
-      "transferable_discipline": "During decline or crisis, hold responsibility for the whole condition: see clearly, protect the conditions for recovery, make costs visible, preserve trust and truthful information, and combine accountability with adaptability toward renewal.",
-      "qualifying_context": "stewardship, steward, leadership, leader, decline, crisis, breakdown, collapse, emergency, loss, deterioration, trust, recovery, renewal",
-      "abstention_boundary": "Transfer the discipline, not the exact answer or doorway. Apply only to genuine leadership questions under consequential pressure; do not imply that stewardship guarantees control or eliminates difficult decisions.",
-      "activation": "active_quality_contributor"
-    },
-    {
       "benchmark_id": "gs-2026-11-14-organizational-culture-ethical-behavior",
       "question": "How does organizational culture shape ethical behavior?",
       "reasoning_family": "organizational_culture_ethical_operating_norms",
@@ -693,6 +684,15 @@
       "transferable_discipline": "Treat representations of a system as hypotheses that organize inquiry, not as proof. Make assumptions, omissions, evidence, uncertainty, absent perspectives, and changing conditions visible, then return the representation to reality through observation and revision.",
       "qualifying_context": "Questions about systems maps, models, diagrams, frameworks, or other representations of complex conditions, especially where apparent completeness may create unwarranted confidence.",
       "abstention_boundary": "Do not treat a diagram's coherence or completeness as evidence of causal truth, and do not use a map to conceal uncertainty or substitute representation for ongoing attention to reality.",
+      "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-leadership-decline-crisis-refined-gold-standard-2026-11-16",
+      "question": "What does stewardship ask of a leader during decline or crisis?",
+      "reasoning_family": "stewardship_crisis_responsibility_recovery_renewal",
+      "transferable_discipline": "In decline or crisis, hold responsibility for the whole condition: see consequences clearly, protect recovery conditions, distinguish necessary continuity from preserving every arrangement, and adapt without abandoning accountability.",
+      "qualifying_context": "Questions about leadership responsibility during organizational decline, crisis, or renewal.",
+      "abstention_boundary": "Do not treat stewardship as a promise of control or as a mandate to preserve the institution at any cost; preserve responsibility, truthfulness, and protection of those with less power.",
       "activation": "active_quality_contributor"
     }
   ]
