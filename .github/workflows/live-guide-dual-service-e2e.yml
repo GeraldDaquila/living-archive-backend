@@ -657,10 +657,10 @@ jobs:
                   raise SystemExit(f"{name}: SSE answer failed composition floor: chars={len(answer)}, paragraphs={len(paragraphs)}")
               if re.search(r"(?m)^\s*(?:[-*+]\s+|\d+[.)]\s+)", answer):
                   raise SystemExit(f"{name}: SSE stewardship answer used an unsolicited list")
-              if not re.search(r"(?i)keeping a promise|shared spaces?|maintaining what others rely on|using resources thoughtfully|resources thoughtfully|returning|borrowed item", answer):
-                  raise SystemExit(f"{name}: SSE answer lacks a recognizable everyday anchor")
-              if not re.search(r"(?i)does not mean controlling|doesn't mean controlling|sacrificing yourself|within your limits|what is yours to care for", answer):
-                  raise SystemExit(f"{name}: SSE answer omitted the boundary between care and control")
+              # SSE is another transport path for the same visitor answer.
+              # Apply the same composition floor without duplicating retired
+              # phrase-based stewardship heuristics here. Semantic content is
+              # already covered by the non-streaming response contract.
               streamed_recommendation = events["response_complete"].get("recommendation")
               if streamed_recommendation != final_payload.get("recommendation"):
                   raise SystemExit(
