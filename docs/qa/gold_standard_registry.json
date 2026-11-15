@@ -237,7 +237,8 @@
         "deterministic_fallback_eligible": true,
         "reasoning_family": "ethical_tradeoff_and_conflicting_harms",
         "transferable_discipline": "Make competing claims visible, examine power and irreversible harms, use defensible criteria, acknowledge sacrifice, and test whether burdens fall unfairly on those with least power.",
-        "abstention_boundary": "Use the governing discipline without inventing a verified canonical doorway destination or claiming a missing fixture has been independently reproduced."
+        "abstention_boundary": "Use the governing discipline without inventing a verified canonical doorway destination or claiming a missing fixture has been independently reproduced.",
+        "intake_note": "Historical provenance is retained; this classification does not infer an original generation mode beyond the available record evidence."
       },
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED"
     },
@@ -2393,7 +2394,8 @@
         "deterministic_fallback_eligible": true,
         "reasoning_family": "bounded_general_explanatory_recovery",
         "transferable_discipline": "Answer the explanatory question directly while distinguishing descriptive frameworks from rankings of human worth and preserving nuance.",
-        "abstention_boundary": "Transfer the recovery principle only; do not transfer wording, subject matter, or invent an exact approved response."
+        "abstention_boundary": "Transfer the recovery principle only; do not transfer wording, subject matter, or invent an exact approved response.",
+        "intake_note": "Historical provenance is retained; this classification does not infer an original generation mode beyond the available record evidence."
       },
       "expected_doorway": null,
       "doorway_status": "INTENTIONALLY_NONE_APPROVED",
