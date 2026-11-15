@@ -738,3 +738,17 @@ def test_stewardship_gold_star_orients_meaning_practice_and_boundaries():
     assert "receive what matters with care, understand what depends on it, and act with its future in mind" in response
     assert "Stewardship is neither control nor unlimited self-sacrifice" in response
 
+
+
+
+def test_held_in_trust_gold_star_preserves_recognition_relationship_boundary():
+    registry = _registry()
+    record = next(item for item in registry["records"] if item["benchmark_id"] == "general-guide-identifying-what-is-held-in-trust-gold-standard-2026-10-25")
+    response = record["expected_response"]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert len(response.split(chr(10) * 2)) == 3
+    assert "what has been placed in someone's care" in response
+    assert "care is owed beyond the holder's own preference or convenience" in response
+    assert "Trust is relational" in response
+    assert "where the holder's authority ends" in response
+    assert "without assuming that every duty is unlimited or belongs to one person alone" in response
