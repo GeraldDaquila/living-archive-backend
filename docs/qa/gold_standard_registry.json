@@ -1939,7 +1939,10 @@
       "subsystem": "general-purpose-guide",
       "query": "What is a leverage point, and why can it be misused?",
       "expected_response": "A leverage point is a place in a system where a relatively small change can produce a much larger effect because it influences how other parts behave. The leverage comes from the relationships, rules, incentives, or dependencies around that point—not simply from how large the action looks. Understanding the point means seeing what it affects and why those connections matter.\n\nFor example, changing how an organization shares information can help many teams coordinate their work. But someone who controls that same information could hide problems, steer decisions, or give themselves an advantage while others bear the costs. A leverage point is misused when a person exploits a system's dependency, bottleneck, rule, or information gap for private advantage rather than addressing the consequences for everyone affected.\n\nThe distinction is not whether leverage is powerful, but how it is exercised and held accountable. Responsible use makes the mechanism and trade-offs visible, considers who may be harmed, and remains open to scrutiny and correction. Misuse concentrates advantage, conceals consequences, or leaves others dependent without a fair way to question the decision.",
-      "expected_doorway": null,
+      "expected_doorway": {
+        "title": "Case Study 26: The Power Behind the Throne",
+        "url": "https://geralddaquila.com/case-study-26"
+      },
       "assertions": [
         "Exactly three substantive paragraphs, preserving the approved visitor-facing presentation.",
         "Defines a leverage point directly in the first paragraph as a relatively small change capable of producing a larger effect through its influence on a system.",
@@ -1955,7 +1958,8 @@
         "source_status": "USER_APPROVED_GOLD_STANDARD",
         "review_rating": "9.5/10",
         "approval_basis": "The visitor-facing response was assessed as meeting expectations and passing the Gold Standard hurdle; the user explicitly requested registry inclusion.",
-        "evidence_boundary": "Screenshot confirms the displayed response and three-paragraph presentation. It does not independently verify canonical source traceability or every backend runtime path."
+        "evidence_boundary": "Screenshot confirms the displayed response and three-paragraph presentation. It does not independently verify canonical source traceability or every backend runtime path.",
+        "doorway_selection": "2026-11-15: verified against complete canonical archive crosslink snapshot; selected Case Study 26: The Power Behind the Throne → https://geralddaquila.com/case-study-26."
       },
       "freeze_policy": "Preserve expected_response verbatim. Do not change wording without explicit user authorization and a separately documented benchmark-version change.",
       "gold_star_capabilities": {
@@ -1970,8 +1974,8 @@
       },
       "known_theme": "powerful intervention with safeguards",
       "runtime_transfer": true,
-      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
-      "doorway_note": "No continuation doorway was visible in the screenshot-approved exemplar; no doorway is inferred or invented."
+      "doorway_status": "VERIFIED_CANONICAL_SELECTED",
+      "doorway_note": "Selected from the complete canonical archive crosslink snapshot because the case study directly extends the response's concern with leverage, hidden influence, dependency, and accountable use of power."
     },
     {
       "benchmark_id": "general-guide-complexity-and-uncertainty-gold-standard-2026-10-26",
