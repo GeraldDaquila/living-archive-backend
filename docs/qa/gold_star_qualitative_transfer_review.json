@@ -97,9 +97,9 @@
       "benchmark_id": "general-guide-intergenerational-stewardship-gold-standard-2026-10-25",
       "question": "How does stewardship relate to intergenerational responsibility?",
       "reasoning_family": "intergenerational_consequences",
-      "transferable_discipline": "Extend responsibility across time by considering inheritance, future effects, and what is passed on.",
-      "qualifying_context": "Questions involving long-term stewardship and future generations.",
-      "abstention_boundary": "Do not speculate about distant futures without relevant evidence.",
+      "transferable_discipline": "For long-term stewardship questions, establish the relationship across time directly, show how present institutional choices shape what others inherit, then define a realistic boundary between accountable care and control of the future.",
+      "qualifying_context": "Questions involving stewardship, future generations, institutional inheritance, long-term consequences, and what present choices leave possible for others.",
+      "abstention_boundary": "Do not speculate about distant futures, impose unlimited responsibility, or transfer exemplar-specific wording or claims into unrelated questions.",
       "activation": "active_quality_contributor"
     },
     {

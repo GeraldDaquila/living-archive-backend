@@ -1860,40 +1860,37 @@
       "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "How does stewardship relate to intergenerational responsibility?",
-      "expected_response": "Stewardship connects to intergenerational responsibility because the way we care for something now shapes what remains possible for people who come after us. In the Living Archive's constitutional framing, stewardship is more than managing what we have inherited; it is participating responsibly in an enduring order, with attention to reciprocity, cultivation, and the quality of what is passed on. Responsibility therefore reaches beyond immediate performance to the relationships, knowledge, capabilities, and institutions that future generations will have to rely on.\n\nFor example, an institution may meet today's targets while allowing trust to erode, losing practical knowledge, or leaving the next group without the skills and resources to continue the work. A stewardship approach looks at both today's results and what those results leave behind: whether people can learn, participate, maintain what matters, and carry responsibility forward. The point is not simply to preserve an institution unchanged, but to leave people with sounder conditions for responsible action.\n\nIntergenerational responsibility does not mean predicting every future need or making one generation answer for everything. It means taking reasonable care with the consequences within our influence, listening to those affected, and strengthening the conditions others will inherit rather than passing avoidable costs along. Stewardship is this patient care: neither control over the future nor self-sacrifice without limits; it is accountable care for what has been entrusted to us and for the possibilities our choices help create.",
+      "expected_response": "Stewardship connects to intergenerational responsibility because what we do with what is entrusted to us shapes what future generations will be able to inherit and build upon. The responsibility is not simply to preserve what exists. It is to leave the conditions for responsible action stronger rather than weaker. What matters, therefore, is not only what we achieve now, but also what our choices leave others able to do.\n\nFor example, an institution may meet its current targets while trust weakens, practical knowledge is lost, or the next group is left without the skills and resources to continue. Stewardship asks decision-makers to notice these effects while there is still time to act: to pass on knowledge, sustain relationships, maintain what people depend on, and make room for those who will carry the work forward.\n\nThis responsibility has limits. It does not require predicting every future need, keeping every institution unchanged, or making one generation answer for everything. It asks us to take reasonable care for consequences we can influence, listen to people affected, and avoid passing preventable burdens to those who come after us. Stewardship is accountable care across time—not control over the future and not unlimited self-sacrifice.",
       "expected_doorway": null,
       "assertions": [
-        "Exactly three substantive paragraphs before the optional continuation doorway.",
+        "Exactly three paragraphs with distinct roles: relationship across time, practical institutional expression, and boundary of responsibility.",
         "Answers the relationship between stewardship and intergenerational responsibility directly in the opening paragraph.",
-        "Uses the Living Archive's constitutional framing, including reciprocity, cultivation, and the quality of what is passed on.",
-        "Explains how present institutional choices affect the knowledge, skills, trust, resources, and capabilities available to future generations.",
-        "Explicitly rejects both unlimited self-sacrifice and the idea that stewardship requires predicting or controlling every future need.",
-        "The optional continuation doorway appears after the complete answer; its URL remains unset pending independent verification.",
-        "Preserve the visitor-facing response wording verbatim as the approved reference; do not substitute the earlier generic trust-and-garden fallback."
+        "Frames responsibility as strengthening the conditions for responsible action rather than merely preserving what exists.",
+        "Uses a concrete institutional example to show how trust, knowledge, skills, relationships, and resources can be passed forward or weakened.",
+        "Explicitly rejects both control of the future and unlimited self-sacrifice, while grounding responsibility in consequences within our influence.",
+        "The answer is complete before any optional continuation doorway."
       ],
       "provenance": {
-        "source_path": "visitor-facing Guide screenshot supplied by user on 2026-10-25",
-        "source_ref": "user-approved screenshot in conversation dated 2026-10-25",
-        "source_status": "USER_APPROVED_GOLD_STANDARD",
-        "review_rating": "9.2/10",
-        "approval_basis": "After reviewing the live visitor-facing response and receiving a Pass assessment, the user explicitly requested that this response be added to the Gold Standard Registry.",
-        "evidence_boundary": "Screenshot confirms the displayed response, three-paragraph structure, and visible doorway title. It does not independently verify canonical source traceability, destination URL, or backend runtime identity."
+        "source": "Validated and deployed live Guide response reviewed by the user on 2026-11-15.",
+        "source_commit": "ab19e2fe2f062c8a087bb32b817e443fd0c442ec",
+        "evidence_boundary": "Exact response wording is frozen from the reviewed live production composition. Transfer authority applies to its structural and reasoning discipline, not to copying its wording or claims into unrelated questions."
       },
-      "freeze_policy": "Preserve expected_response verbatim. Do not change wording or doorway title without explicit user authorization and a separately documented benchmark-version change.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
       "gold_star_capabilities": {
-        "generation_class": "runtime_agnostic_curated_exemplar",
+        "generation_class": "user_approved_live_exemplar",
         "exact_answer_authority": true,
         "active_quality_contributor": true,
         "deterministic_fallback_eligible": true,
         "reasoning_family": "intergenerational_consequences",
-        "transferable_discipline": "Extend responsibility across time by considering inheritance, future effects, and what is passed on.",
-        "abstention_boundary": "Do not speculate about distant futures without relevant evidence.",
-        "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
+        "transferable_discipline": "For long-term stewardship questions, establish the relationship across time directly, show how present institutional choices shape what others inherit, and end by defining a realistic boundary between accountable care and control of the future.",
+        "abstention_boundary": "Do not speculate about distant futures, impose unlimited responsibility, or transfer the exemplar's exact claims, wording, or doorway to unrelated questions."
       },
-      "known_theme": "intergenerational consequences",
+      "known_theme": "intergenerational consequences, stewardship, future generations, institutional inheritance, responsible action, accountability across time",
       "runtime_transfer": true,
-      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+      "doorway_note": "No doorway is frozen into this elevation because the exact canonical destination URL was not independently verified as part of this release; the answer remains complete without one.",
+      "rating_out_of_10": 9.6,
+      "approval_state": "User explicitly approved Gold Star elevation on 2026-11-15 after final review of the validated live response."
     },
     {
       "benchmark_id": "general-guide-system-vs-separate-problems-gold-standard-2026-10-25",
