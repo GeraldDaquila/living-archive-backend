@@ -54,8 +54,8 @@ def test_recovery_explains_relationship_example_and_bounded_responsibility():
     assert _has_intergenerational_stewardship_explanation(answer)
     assert len(answer.split("\n\n")) == 3
     for concept in (
-        "what remains possible", "future generations", "for example",
-        "conditions others will inherit", "does not mean", "within our influence",
+        "what people after us will be able to inherit", "future generations", "for example",
+        "pass on knowledge", "does not require", "reasonable care",
     ):
         assert concept in answer.casefold()
 
@@ -72,9 +72,20 @@ def test_live_screenshot_garden_fallback_is_replaced_by_gold_standard():
     paragraphs = [p.strip() for p in recovered.split("\n\n") if p.strip()]
     assert len(paragraphs) == 3
     assert "future generations" in recovered.casefold()
-    assert "does not mean" in recovered.casefold()
+    assert "does not require" in recovered.casefold()
 
 def test_incomplete_single_paragraph_is_not_accepted():
     assert not _has_intergenerational_stewardship_explanation(
         "Stewardship means caring responsibly for what we have today and later."
     )
+
+
+
+def test_recovery_has_distinct_relationship_practice_and_boundary_paragraphs():
+    answer = _intergenerational_stewardship_recovery()
+    paragraphs = [p.strip() for p in answer.split("\\n\\n") if p.strip()]
+    assert len(paragraphs) == 3
+    assert paragraphs[0].startswith("Stewardship connects to intergenerational responsibility")
+    assert paragraphs[1].startswith("For example,")
+    assert paragraphs[2].startswith("This responsibility has limits.")
+    assert "pass preventable burdens" in paragraphs[2]
