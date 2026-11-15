@@ -1764,13 +1764,17 @@
       "subsystem": "general-purpose-guide",
       "query": "How does one identify what is being held in trust in a given situation?",
       "expected_response": "To identify what is being held in trust, begin by asking what has been placed in someone's care without becoming theirs to use solely for personal advantage. It may be a responsibility, a relationship, a resource, a promise, knowledge, a role, or a shared place. What unites these different forms is that care is owed beyond the holder's own preference or convenience.\n\nNext, identify who or what depends on that care and what gives the responsibility its shape. Consider the purpose for which something was entrusted, the promises or rules that govern it, the people affected by its use, and the authority actually granted to the holder. Trust is relational: what is held cannot be understood fully apart from those who entrusted it, those affected by it, and the conditions under which the care was given.\n\nFinally, ask what responsible care requires and where the holder's authority ends. Consider what would preserve the trust, what misuse or neglect would look like, and which responsibilities belong to others as well. Something is held in trust when care is owed beyond immediate ownership or convenience; good stewardship makes that responsibility visible without assuming that every duty is unlimited or belongs to one person alone.",
-      "expected_doorway": null,
+      "expected_doorway": {
+        "title": "The Stewardship Age",
+        "url": "https://geralddaquila.com/2026/08/19/the-stewardship-age-why-stewardship-will-define-the-twenty-first-century/"
+      },
       "assertions": [
         "Uses a recognition → relationship → boundary structure to turn an abstract trust question into a reusable orientation method.",
         "Defines what is entrusted without reducing trust to property or possession.",
         "Establishes the governing principle that care is owed beyond the holder's own preference or convenience.",
         "Makes trust relational by identifying entrusters, affected parties, purpose, rules, and actual authority.",
-        "Preserves a clear boundary: responsible care does not imply unlimited responsibility or sole ownership of every duty."
+        "Preserves a clear boundary: responsible care does not imply unlimited responsibility or sole ownership of every duty.",
+        "A complete answer may still offer one coherent canonical continuation when the next movement deepens the inquiry rather than merely adding a generic link."
       ],
       "provenance": {
         "source_path": "visitor-facing Guide screenshot supplied by user on 2026-10-25",
@@ -1794,8 +1798,8 @@
       },
       "known_theme": "entrustment and obligation",
       "runtime_transfer": true,
-      "doorway_status": "INTENTIONALLY_NO_DOORWAY",
-      "doorway_note": "The structurally revised answer is a complete orientation instrument and no verified query-specific continuation has been identified; absence of a doorway is intentional rather than an incomplete legacy state.",
+      "doorway_status": "APPROVED_QUERY_SPECIFIC_CONTINUATION",
+      "doorway_note": "The answer remains complete in itself. The doorway is a separate, intentional continuation into the Archive: identifying what is held in trust naturally opens into the wider question of stewardship—how responsibilities for people, resources, relationships, and institutions are understood and exercised.",
       "rating_out_of_10": 9.8,
       "approval_state": "USER_AUTHORIZED_STRUCTURAL_GOLD_STAR_REVISION_2026-11-15"
     },
