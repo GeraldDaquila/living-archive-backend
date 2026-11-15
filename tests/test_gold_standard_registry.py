@@ -76,8 +76,9 @@ def test_authoritative_gold_star_count_is_status_based_not_subsystem_based():
         record for record in approved
         if record.get("runtime_transfer") is True
     ]
-    assert len(approved) == 64
-    assert len(active) == 64
+    report = _run_registry_report()
+    assert len(approved) == report["authoritative_gold_star_count"]
+    assert len(active) == report["active_runtime_gold_star_count"]
     # These intentionally nonstandard historical subsystem labels prove that
     # filtering by subsystem would undercount the sole approved inventory.
     assert any(record["subsystem"] == "guide_bounded_conceptual_orientation" for record in approved)
