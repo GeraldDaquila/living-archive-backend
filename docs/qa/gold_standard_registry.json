@@ -1983,7 +1983,10 @@
       "subsystem": "general-purpose-guide",
       "query": "What is the relationship between complexity and uncertainty?",
       "expected_response": "Complexity and uncertainty are related, but they are not the same. Complexity arises when many parts of a situation interact, influence one another, and produce effects that are difficult to understand by examining each part alone. Uncertainty is the limit of what we can confidently know about the situation, how it will develop, or what a particular action will cause. A situation can be complex because its relationships are interdependent, uncertain because important information is missing, or both.\n\nComplexity often increases uncertainty because interactions and feedback can produce unexpected outcomes. A small change may travel through a network of relationships, trigger further changes, and make the eventual result difficult to predict. Yet uncertainty can also exist in a simple situation—for example, when one crucial fact is unknown—and a complex situation can become more understandable when its patterns, history, and relationships are well evidenced. More information helps, but it does not always remove uncertainty when the system itself keeps changing.\n\nThe practical distinction is to ask two questions: what makes this situation hard to understand—the way its parts interact, or what we do not yet know? Then respond accordingly. Map dependencies and feedback when complexity is central; identify assumptions, gather relevant evidence, and keep multiple plausible outcomes in view when uncertainty remains. When both are present, avoid false precision: make decisions proportionate to the evidence, watch how the situation responds, and revise your understanding as new information emerges.",
-      "expected_doorway": null,
+      "expected_doorway": {
+        "title": "The Anxiety of Uncertainty: Human Identity During Nonlinear Change",
+        "url": "https://geralddaquila.com/2026/08/19/the-anxiety-of-uncertainty-human-identity-during-nonlinear-change"
+      },
       "assertions": [
         "Exactly three substantive paragraphs.",
         "Clearly distinguishes complexity (interacting parts and relationships) from uncertainty (limits of knowledge and prediction).",
@@ -1996,7 +1999,8 @@
         "source_path": "visitor-facing Guide screenshot supplied by user on 2026-10-25",
         "source_ref": "user-provided screenshot dated 2026-10-25",
         "source_status": "USER_APPROVED_GOLD_STANDARD",
-        "evidence_boundary": "Screenshot establishes a cross-question failure: the displayed answer addressed a different question. The replacement response is an authored canonical benchmark and must be verified against live visitor behavior."
+        "evidence_boundary": "Screenshot establishes a cross-question failure: the displayed answer addressed a different question. The replacement response is an authored canonical benchmark and must be verified against live visitor behavior.",
+        "doorway_reconciliation": "2026-11-15: live continuation reconciled to canonical public asset."
       },
       "freeze_policy": "Do not alter expected_response without explicit user authorization and a separately documented benchmark-version change.",
       "runtime_transfer": true,
@@ -2015,8 +2019,8 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "distinction under complexity",
-      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_status": "VERIFIED_CANONICAL_RECONCILED",
+      "doorway_note": "Live Guide continuation matched a verified public asset in the canonical archive crosslink snapshot."
     },
     {
       "benchmark_id": "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26",
