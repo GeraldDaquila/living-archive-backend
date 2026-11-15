@@ -230,8 +230,24 @@ def _guide_node_prompt_context():
 
 
 def _select_guide_node_fallback_doorway(query):
-    """Select a verified canonical Guide Node when recovery has no retrieval docs."""
+    """Select a verified canonical doorway when recovery has no retrieval docs.
+
+    Exact conceptual families may use a repository-verified public Archive
+    destination when the visitor's language expresses the same governed
+    distinction. This precedes lexical node scoring so a sparse node registry
+    cannot erase a stronger canonical continuation.
+    """
     normalized = str(query or "").casefold()
+    ai_role_distinction = (
+        bool(re.search(r"\b(?:ai|artificial intelligence)\b", normalized))
+        and bool(re.search(r"\binterpreter\b", normalized))
+        and bool(re.search(r"\bauthorit(?:y|ative)\b", normalized))
+    )
+    if ai_role_distinction:
+        return {
+            "title": "Responsible AI Principle",
+            "url": "https://geralddaquila.com/responsible-ai-principle/",
+        }
     terms = set(re.findall(r"[a-z]{4,}", normalized))
     best = None
     best_score = 0

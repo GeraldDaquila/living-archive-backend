@@ -17,6 +17,15 @@ def test_verified_canonical_ai_role_candidate_can_be_released():
     candidate = {"title": "AI and Human Judgment", "url": "https://geralddaquila.com/example/"}
     assert candidate["title"] and candidate["url"].startswith("https://geralddaquila.com/")
 
+def test_ai_role_distinction_recovers_verified_responsible_ai_doorway():
+    # Import the runtime selector rather than duplicating its decision logic.
+    import main as runtime
+    doorway = runtime._select_guide_node_fallback_doorway(QUESTION)
+    assert doorway == {
+        "title": "Responsible AI Principle",
+        "url": "https://geralddaquila.com/responsible-ai-principle/",
+    }
+
 def main():
     assert suppresses_unreviewed(QUESTION, {"response": "bounded explanation"})
     assert not suppresses_unreviewed(
