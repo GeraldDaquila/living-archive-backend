@@ -63,7 +63,7 @@ Repository contracts, manifests, tests and health evidence are the source of ope
 - A rating, assistant recommendation, source recovery, test result, or instruction to "continue" is **not** elevation approval.
 - Approval must be recorded as explicit evidence in the canonical registry.
 - A candidate may be stored, tested, merged as evaluation material, or displayed for review without becoming a Gold Star or runtime contributor.
-- Automated validation must fail closed if a record claims Gold Star status without the required explicit review-and-approval evidence.
+- Automated validation must fail closed if a record claims Gold Star status without the required explicit review-and-approval evidence. Records already approved before this gate was introduced may be explicitly marked as legacy-grandfathered with a documented reason; that exemption may not be used for new elevations.
 - Assistants and operators must not infer approval from conversational momentum or ambiguous instructions.
 
 ### 4.1 Canonical definition of Gold Star
