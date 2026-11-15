@@ -267,10 +267,10 @@
     {
       "benchmark_id": "general-guide-living-archive-purpose-orientation-gold-star-2026-11-13",
       "question": "What problem does the Archive exist to address?",
-      "reasoning_family": "archive_purpose_orientation_from_fragmentation",
-      "transferable_discipline": "Distinguish information abundance from orientation; make the relationships that give knowledge meaning visible without claiming one final explanation, then orient the visitor toward more conscious judgment and stewardship.",
-      "qualifying_context": "Living Archive purpose, fragmentation, orientation, judgment, and stewardship",
-      "abstention_boundary": "Do not invent a total doctrine for the Archive, reduce fragmentation to a single cause, claim that the Archive can resolve every question, or replace orientation with prescriptive advice.",
+      "reasoning_family": "orientation_within_abundance_relational_sensemaking",
+      "transferable_discipline": "When information is abundant but understanding is fragmented, do not answer by adding more information or forcing premature conclusions. Restore orientation by making relationships, conditions, perspectives, and consequential unanswered questions visible so judgment can become more responsible.",
+      "qualifying_context": "Questions about information abundance, fragmentation, orientation, sensemaking, how knowledge relates to judgment, or why relationships and unanswered questions matter when addressing complex problems.",
+      "abstention_boundary": "Do not treat information abundance itself as understanding; do not force a single final explanation where plurality or uncertainty matters; do not transfer the When Knowledge Is Everywhere doorway to unrelated questions.",
       "activation": "active_quality_contributor"
     },
     {
@@ -630,15 +630,6 @@
       "transferable_discipline": "Test aspirational claims through the outcomes they seek, the responsibilities they create, the consequences they distribute, the alternatives they exclude, and the authority accountable for the decision. Make reasoning and limits visible without displacing responsibility from legitimate decision-makers.",
       "qualifying_context": "Questions about whether an aspirational, regenerative, sustainable, ethical, or transformational claim has substantive grounding; decisions involving responsibility, consequences, alternatives, affected stakeholders, or accountable authority.",
       "abstention_boundary": "Do not treat branding language as evidence of substance; do not use the framework to make decisions for accountable actors; do not transfer the Codex of Regenerative Economies doorway to unrelated questions.",
-      "activation": "active_quality_contributor"
-    },
-    {
-      "benchmark_id": "general-guide-living-archive-purpose-orientation-gold-star-2026-11-13",
-      "question": "What problem does the Archive exist to address?",
-      "reasoning_family": "orientation_within_abundance_relational_sensemaking",
-      "transferable_discipline": "When information is abundant but understanding is fragmented, do not answer by adding more information or forcing premature conclusions. Restore orientation by making relationships, conditions, perspectives, and consequential unanswered questions visible so judgment can become more responsible.",
-      "qualifying_context": "Questions about information abundance, fragmentation, orientation, sensemaking, how knowledge relates to judgment, or why relationships and unanswered questions matter when addressing complex problems.",
-      "abstention_boundary": "Do not treat information abundance itself as understanding; do not force a single final explanation where plurality or uncertainty matters; do not transfer the When Knowledge Is Everywhere doorway to unrelated questions.",
       "activation": "active_quality_contributor"
     }
   ]
