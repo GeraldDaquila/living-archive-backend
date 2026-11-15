@@ -35,6 +35,38 @@ def _tokens(value: Any) -> set[str]:
 def _normalized_phrase(value: Any) -> str:
     return " ".join(re.findall(r"[a-z0-9]+", str(value or "").casefold()))
 
+
+def _concept_terms(value: Any) -> set[str]:
+    """Normalize structural vocabulary without introducing an external ontology.
+
+    The adaptive layer learns only from reviewer-approved Archive metadata. A
+    light stem lets related surface forms meet (orientation/orienting) while
+    avoiding speculative synonym expansion.
+    """
+    terms = _tokens(value)
+    normalized = set()
+    for term in terms:
+        stem = term
+        for suffix in ("ations", "ation", "ments", "ment", "ities", "ity", "ing", "ers", "er", "ed", "es", "s"):
+            if len(stem) > len(suffix) + 3 and stem.endswith(suffix):
+                stem = stem[:-len(suffix)]
+                break
+        normalized.add(stem)
+    return normalized
+
+
+def _lesson_signature(lesson: Dict[str, Any]) -> set[str]:
+    """Return the approved structural vocabulary eligible for analogue matching."""
+    return _concept_terms(" ".join((
+        str(lesson.get("query") or ""),
+        str(lesson.get("known_theme") or ""),
+        str(lesson.get("reasoning_family") or ""),
+        str(lesson.get("qualifying_context") or ""),
+        str(lesson.get("transferable_discipline") or ""),
+        " ".join(str(x) for x in lesson.get("variants") or []),
+        " ".join(str(x) for x in lesson.get("assertions") or []),
+    )))
+
 class GoldStarRegistryIntegrityError(RuntimeError):
     """Raised when the canonical Gold Star ledger violates a hard invariant."""
 
@@ -272,19 +304,33 @@ def select_lesson(query: str) -> Optional[Dict[str, Any]]:
     ranked = []
     for x in candidates:
         variant_terms = set().union(*(_tokens(v) for v in x["variants"])) if x["variants"] else set()
-        context_terms = _tokens(x.get("qualifying_context", "") + " " + x.get("transferable_discipline", ""))
-        exemplar_terms = _tokens(x["query"]) | context_terms
-        shared_exemplar = query_terms & exemplar_terms
-        shared_variant = query_terms & variant_terms
-        shared_context = query_terms & context_terms
-        support = len(shared_variant) + len(shared_context)
-        if len(shared_exemplar) < 1 or support < 2:
+        # Match against the full reviewer-approved structural signature rather
+        # than only the exemplar wording. This lets the system recognize a shared
+        # reasoning family expressed in different visitor language while keeping
+        # all vocabulary inside the approved Gold Star record and transfer review.
+        signature_terms = _lesson_signature(x)
+        normalized_query_terms = _concept_terms(query)
+        shared_signature = normalized_query_terms & signature_terms
+        shared_variant = _concept_terms(" ".join(x["variants"])) & normalized_query_terms
+        reasoning_terms = _concept_terms(x.get("reasoning_family", ""))
+        shared_family = normalized_query_terms & reasoning_terms
+        if len(shared_signature) < 2:
             continue
-        coverage = support / max(1, len(query_terms))
-        if coverage < 0.34:
+        coverage = len(shared_signature) / max(1, len(normalized_query_terms))
+        if coverage < 0.20:
             continue
-        score = min(0.99, 0.45 + 0.1 * len(shared_exemplar) + 0.06 * support)
-        ranked.append((score, support, x["id"], x))
+        # Reasoning-family overlap is a stronger signal than incidental topic
+        # overlap; variants provide a modest bonus. Keep the score below exact
+        # authority and abstain rather than forcing weak analogues.
+        score = min(
+            0.94,
+            0.42
+            + 0.08 * len(shared_signature)
+            + 0.08 * len(shared_family)
+            + 0.04 * len(shared_variant)
+            + 0.12 * coverage,
+        )
+        ranked.append((score, len(shared_signature), x["id"], x))
     if not ranked:
         return None
     ranked.sort(key=lambda item: (-item[0], -item[1], item[2]))
