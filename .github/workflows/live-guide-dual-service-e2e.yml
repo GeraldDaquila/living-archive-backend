@@ -445,19 +445,27 @@ jobs:
                       f"{name}: intergenerational Gold Standard must have exactly 3 paragraphs; "
                       f"got {len(paragraphs)}: {response!r}"
                   )
-              required_groups = (
-                  r"(?i)stewardship",
-                  r"(?i)intergenerational responsibility|future generations|people who come after",
-                  r"(?i)for example|in practice",
-                  r"(?i)does not mean|doesn't mean|not about",
-                  r"(?i)within our influence|reasonable care|responsibility",
+              registry = json.loads(
+                  Path("docs/qa/gold_standard_registry.json").read_text(encoding="utf-8")
               )
-              for pattern in required_groups:
-                  if not re.search(pattern, response):
-                      raise SystemExit(
-                          f"{name}: intergenerational answer missed required Gold Standard content "
-                          f"{pattern!r}: {response!r}"
-                      )
+              standard = next(
+                  (
+                      item for item in registry.get("records", [])
+                      if item.get("query") == intergenerational_query
+                      and item.get("status") == "USER_APPROVED_GOLD_STANDARD"
+                  ),
+                  None,
+              )
+              expected_response = str((standard or {}).get("expected_response") or "").strip()
+              if not expected_response:
+                  raise SystemExit(
+                      f"{name}: intergenerational Gold Standard is missing from the canonical registry"
+                  )
+              if response != expected_response:
+                  raise SystemExit(
+                      f"{name}: intergenerational response does not reproduce the approved "
+                      f"Gold Standard reference: {response!r}"
+                  )
               if re.search(r"(?i)think of a shared garden|trust helps people in a community rely on one another", response):
                   raise SystemExit(f"{name}: visitor-reported generic garden fallback was not replaced")
               if re.search(r"(?i)\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\b|\bUSE\b", response):
