@@ -5537,6 +5537,49 @@ def _guide_finalize_visitor_payload(payload, query):
         return safe
 
 
+    # Care and commons recognition is an ordinary conceptual answer obligation,
+    # not an Archive-evidence lookup. Earlier provider or retrieval paths can
+    # still emit a fluent insufficiency disclaimer, so enforce this bounded
+    # contract at the final boundary before generic abstention handling.
+    if general_guide_composition._requires_care_and_commons_economic_recognition(query):
+        _care_abstention = bool(
+            re.search(
+                r"(?:do not have enough grounded material|don't have enough grounded material|"
+                r"insufficient.*(?:grounded|archive).*(?:material|evidence)|"
+                r"cannot give a specific archive-based answer)",
+                str(response_text or ""),
+                re.I,
+            )
+        )
+        contracted = general_guide_composition.enforce_response_contracts(
+            query, response_text
+        )
+        rendered = _sanitize_basic_inquiry_response(contracted)
+        if _care_abstention or not general_guide_composition._has_care_and_commons_economic_recognition_explanation(rendered):
+            rendered = _sanitize_basic_inquiry_response(
+                general_guide_composition._care_and_commons_economic_recognition_recovery()
+            )
+        if not general_guide_composition._has_care_and_commons_economic_recognition_explanation(rendered):
+            raise RuntimeError(
+                "Final visitor boundary failed to preserve care-and-commons economic recognition."
+            )
+        safe = dict(payload)
+        safe["response"] = rendered
+        # The conceptual answer and navigation remain independent. Preserve a
+        # verified doorway if one was already earned; never let an upstream
+        # abstention erase the answer merely because retrieval was sparse.
+        safe["recommendation"] = _normalize_authoritative_recommendation(
+            safe.get("recommendation")
+        )
+        safe["processing"] = "final_visitor_boundary_care_commons_contract"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        print(
+            "The Guide final visitor boundary: restored care-and-commons economic recognition."
+        )
+        return safe
+
+
     # Absolute last-mile recovery contract. The outer ASGI boundary is the only
     # layer guaranteed to see every JSON response emitted by /api/query.
     # Therefore a valid bounded recovery registered by the composition layer
