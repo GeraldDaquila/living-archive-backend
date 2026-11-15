@@ -2383,7 +2383,7 @@
     },
     {
       "benchmark_id": "general-guide-developmental-language-gold-star-2026-11-09",
-      "status": "USER_APPROVED_GOLD_STANDARD",
+      "status": "CANDIDATE_PENDING_USER_REVIEW",
       "query": "How can developmental language become hierarchical or dismissive?",
       "answer_type": "bounded_general_explanatory",
       "lesson": "When an explanatory question lacks directly establishing Archive evidence but can be responsibly answered from general knowledge, preserve the visitor's question and provide a bounded conceptual explanation rather than forcing an unrelated template or unnecessarily abstaining.",
@@ -2394,7 +2394,7 @@
         "preserve useful nuance rather than rejecting developmental frameworks wholesale",
         "transfer the recovery principle, not the wording or subject matter"
       ],
-      "runtime_transfer": true,
+      "runtime_transfer": false,
       "subsystem": "general-purpose-guide",
       "provenance": {
         "source_path": "visitor-provided production screenshot",
@@ -2403,7 +2403,7 @@
         "evidence_boundary": "Screenshot establishes the exact observed response and explicit approval for registry elevation. The observed doorway title \"Becoming Fully Human\" does not establish a canonical URL."
       },
       "freeze_policy": "Preserve approved expected_response. Change only with explicit user authorization and a separately documented benchmark-version change.",
-      "fixture_state": "EXACT_FIXTURE_RECOVERED_AND_APPROVED",
+      "fixture_state": "EXACT_FIXTURE_RECOVERED_TEST_CANDIDATE",
       "gold_star_capabilities": {
         "generation_class": "runtime_agnostic_curated_exemplar",
         "exact_answer_authority": true,
@@ -2417,11 +2417,11 @@
       "expected_doorway": null,
       "doorway_status": "OBSERVED_UNVERIFIED_NOT_ACTIVE",
       "known_theme": "developmental language and hierarchy",
-      "gold_star_candidate_state": "USER_APPROVED_GOLD_STANDARD",
+      "gold_star_candidate_state": "EXACT_FIXTURE_RECOVERED_PENDING_USER_REVIEW",
       "expected_response": "Developmental language can become hierarchical when descriptions of different capacities or patterns are treated as rankings of human worth. Words such as \"higher,\" \"lower,\" \"advanced,\" or \"less developed\" can quietly shift from describing a framework to implying that some people are more worthy of respect or less worth hearing.\n\nIt can become dismissive when a developmental label is used to explain away someone's perspective instead of engaging with what they are actually saying. Context, culture, experience, and the fact that people can show different capacities in different situations can disappear behind the label.\n\nDevelopmental frameworks can still be useful when they remain descriptive and provisional. The important distinction is between asking what capacities may be emerging and using a model to place people above or below one another.",
       "doorway_note": "Observed continuation title \"Becoming Fully Human\" is preserved as source evidence but is not treated as authoritative until its canonical destination is independently verified and approved.",
       "rating_out_of_10": 9.3,
-      "approval_state": "Explicit user review completed in live conversation on 2026-11-15; elevated following reviewed output and approval gate."
+      "approval_state": "Pending explicit user review and explicit approval for Gold Star elevation."
     },
     {
       "benchmark_id": "general-guide-civilizational-transition-archive-meaning-gold-star-2026-11-13",
