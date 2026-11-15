@@ -63,6 +63,25 @@ def test_canonical_storage_policy_is_hardcoded_and_approved_count_is_not_split()
     assert len({record["benchmark_id"] for record in approved}) == len(approved)
 
 
+
+def test_authoritative_gold_star_count_is_status_based_not_subsystem_based():
+    registry = _registry()
+    approved = [
+        record for record in registry["records"]
+        if record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    ]
+    active = [
+        record for record in approved
+        if record.get("runtime_transfer") is True
+    ]
+    assert len(approved) == 55
+    assert len(active) == 55
+    # These intentionally nonstandard historical subsystem labels prove that
+    # filtering by subsystem would undercount the sole approved inventory.
+    assert any(record["subsystem"] == "guide_bounded_conceptual_orientation" for record in approved)
+    assert any(record["subsystem"] == "guide_integrative_development_orientation" for record in approved)
+
+
 def test_registry_has_unique_ids_and_provenance_for_every_record():
     registry = _registry()
     assert registry["registry_id"] == "living-archive-gold-standard-registry"
@@ -194,6 +213,8 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["runtime_identity"] == "test-runtime-primary"
     assert report["registry_sha256"] == hashlib.sha256(registry_bytes).hexdigest()
     assert report["benchmark_count"] == len(_registry()["records"])
+    assert report["authoritative_gold_star_count"] == 55
+    assert report["active_runtime_gold_star_count"] == 55
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
