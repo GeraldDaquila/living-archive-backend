@@ -1358,6 +1358,43 @@ def _broad_conceptual_definition_recovery() -> str:
     )
 
 
+def _requires_care_and_commons_economic_recognition(query: str) -> bool:
+    """Recognize questions about making sustaining work economically visible."""
+    q = _normalize_space(query).casefold()
+    care = bool(re.search(r"\bunpaid care\b|\bcare work\b|\bcaring work\b", q))
+    commons = bool(re.search(r"\bcommons?\b.{0,80}\bmaint(?:ain|enance)\b|\bmaint(?:ain|enance)\b.{0,80}\bcommons?\b", q))
+    economic = bool(re.search(r"\beconomic(?:s| system| systems|ally)?\b|\beconomy\b", q))
+    asks_recognition = bool(re.search(r"\b(?:recogniz|recognis|value|account|count|visible|compensat|support)\w*\b", q))
+    return economic and asks_recognition and (care or commons)
+
+
+def _has_care_and_commons_economic_recognition_explanation(response: str) -> bool:
+    """Require a hierarchy of principle, institutional responsibility, and boundary."""
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
+    if len(paragraphs) != 3:
+        return False
+    first, second, third = paragraphs
+    text = _normalize_space(response)
+    return (
+        bool(re.search(r"\b(?:care|commons?|maintenance)\b", first, re.I))
+        and bool(re.search(r"\b(?:economic|economy|productive|value|invisible)\b", first, re.I))
+        and bool(re.search(r"\b(?:conditions?|depend|possible|sustain|make .* possible)\b", first, re.I))
+        and bool(re.search(r"\b(?:institution|public|employer|community|shared|responsib|investment|budget)\w*\b", second, re.I))
+        and bool(re.search(r"\b(?:not|does not|rather than|not simply)\b", third, re.I))
+        and bool(re.search(r"\b(?:care|commons?|maintenance|sustain|investment|value)\b", third, re.I))
+        and not bool(re.search(r"\b(?:care credits?|tax aggregation|social impact bonds?|infrastructure funds?)\b", text, re.I))
+    )
+
+
+def _care_and_commons_economic_recognition_recovery() -> str:
+    """Explain recognition without reducing sustaining work to a policy shopping list."""
+    return (
+        "Economic systems can better recognize unpaid care and commons maintenance by treating them as conditions that make other economic activity possible, rather than as invisible work outside the economy. Caring for children, older people, communities, and shared places sustains the people, relationships, and environments on which markets and institutions depend. Recognition therefore begins with making that contribution visible in how value and success are understood.\n\n"
+        "Visibility alone is not enough. The responsibility for sustaining these conditions should not fall indefinitely on the people who happen to provide the care or maintenance. Public institutions, employers, communities, and other beneficiaries can share responsibility through the way they allocate time, resources, investment, and decision-making. The appropriate form will vary by context, but the structural question remains the same: who benefits from this sustaining work, and who bears its costs?\n\n"
+        "This does not mean that every act of care or every shared resource must be turned into a market transaction. The deeper shift is to stop treating care and commons maintenance as external to economic life while depending on them to keep society functioning. An economy becomes more honest and durable when it can see, support, and renew the conditions that sustain its own activity."
+    )
+
+
 def _requires_growth_within_living_limits(query: str) -> bool:
     """Recognize explanatory questions about growth exceeding ecological and social limits."""
     q = _normalize_space(query).casefold()
@@ -2969,6 +3006,10 @@ def enforce_response_contracts(question: str, response: str) -> str:
         candidate = _growth_within_living_limits_recovery()
     if _requires_growth_within_living_limits(question) and not _has_growth_within_living_limits_explanation(candidate):
         raise RuntimeError("Growth-within-living-limits response contract failed after recovery.")
+    if _requires_care_and_commons_economic_recognition(question) and not _has_care_and_commons_economic_recognition_explanation(candidate):
+        candidate = _care_and_commons_economic_recognition_recovery()
+    if _requires_care_and_commons_economic_recognition(question) and not _has_care_and_commons_economic_recognition_explanation(candidate):
+        raise RuntimeError("Care-and-commons economic-recognition response contract failed after recovery.")
     if _requires_archive_grounding_boundary(question) and not _has_archive_grounding_boundary(candidate):
         candidate = _archive_grounding_boundary_recovery()
     if _requires_archive_grounding_boundary(question) and not _has_archive_grounding_boundary(candidate):
