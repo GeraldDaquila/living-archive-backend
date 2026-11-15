@@ -83,7 +83,12 @@ def main():
     if len(active) != len(approved):
         fail("not every user-approved Gold Star is active for runtime transfer")
 
-    print(f"GOLD STAR INTEGRITY PASS: {len(active)} active contributors, {len(entries)} reviews")
+    numbered = [r.get("gold_star_number") for r in approved if r.get("gold_star_number") is not None]
+    if any(not isinstance(n, int) or n <= 0 for n in numbered):
+        fail("gold_star_number must be a positive integer when present")
+    if len(numbered) != len(set(numbered)):
+        fail("duplicate gold_star_number in canonical registry")
+    print(f"GOLD STAR INTEGRITY PASS: {len(active)} active contributors, {len(entries)} reviews, {len(numbered)} explicitly numbered records")
 
 if __name__ == "__main__":
     main()
