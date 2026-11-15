@@ -341,3 +341,17 @@ def test_conceptual_relationship_recovery_is_not_the_old_unrelated_canned_answer
     assert response is not None
     assert "accountability" not in response.casefold()
     assert "trust and repairing harm" not in response.casefold()
+
+
+def test_transformation_relief_recovery_distinguishes_state_change_from_pattern_change():
+    response = guide._conceptual_relationship_recovery(
+        "How can a user distinguish genuine transformation from temporary emotional relief?"
+    )
+    assert response is not None
+    paragraphs = response.split("\n\n")
+    assert len(paragraphs) == 3
+    assert "changes how a person feels in the moment" in paragraphs[0]
+    assert "ongoing relationship" in paragraphs[1]
+    assert "relief alone is not evidence of transformation" in paragraphs[2]
+    assert "survives beyond the feeling of the moment" in paragraphs[2]
+    assert "not a claim that the Living Archive defines" in paragraphs[2]

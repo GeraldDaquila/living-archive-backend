@@ -2410,6 +2410,17 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "The key question is therefore not only who can act, but who is entitled to decide—and how that power remains accountable to the people affected by it."
         )
 
+    # Relief and transformation are related but distinct temporal patterns: one can change
+    # the immediate state without changing the pattern that repeatedly produces it.
+    names_relief = bool(re.search(r"\b(?:temporary\s+)?emotional\s+relief\b|\brelief\b", normalized))
+    names_transformation = bool(re.search(r"\b(?:genuine\s+)?transformation\b|\btransform(?:ation|ed|ing)\b", normalized))
+    if names_relief and names_transformation:
+        return (
+            "Temporary emotional relief and genuine transformation can overlap, but they are not the same thing. Relief primarily changes how a person feels in the moment: a burden may ease, anxiety may settle, or a difficult experience may briefly feel more manageable. Transformation becomes visible when something more durable changes in how a person understands a situation, acts within it, or responds when a familiar pattern returns.\n\n"
+            "One useful distinction is to look beyond the intensity of the immediate experience and ask what remains different afterward. A powerful insight, retreat, conversation, or emotional release can feel significant without yet changing the conditions or habits that produced the difficulty. Transformation is more likely when the experience alters an ongoing relationship: different choices become possible, automatic reactions lose some of their force, relationships or responsibilities are approached differently, or the person can meet a recurring situation without simply returning to the old pattern.\n\n"
+            "That does not make temporary relief superficial or unimportant. Relief can create the space in which deeper change becomes possible, but relief alone is not evidence of transformation. The practical question is whether the change survives beyond the feeling of the moment and becomes part of how the person lives, relates, or responds over time. This is a general conceptual orientation, not a claim that the Living Archive defines the distinction in exactly these terms."
+        )
+
     if re.search(r"\bagency\b", normalized) and re.search(r"\bcircumstances?\b", normalized):
         return (
             "Agency is a person’s capacity to choose and act; circumstance is the set of conditions in which those choices are made. "
