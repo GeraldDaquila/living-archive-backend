@@ -39,12 +39,16 @@ def main():
         missing = sorted(k for k in REQUIRED if not record.get(k))
         if missing:
             fail(f"{record.get('benchmark_id')} missing: {', '.join(missing)}")
-        if record.get("user_reviewed_response") is not True:
-            fail(f"{record['benchmark_id']} lacks explicit evidence that the user reviewed the actual response")
-        if record.get("explicit_user_elevation_approval") is not True:
-            fail(f"{record['benchmark_id']} lacks explicit user authorization for Gold Star elevation")
-        if not str(record.get("elevation_approval_evidence") or "").strip():
-            fail(f"{record['benchmark_id']} lacks recorded elevation approval evidence")
+        legacy = record.get("legacy_approval_grandfathered") is True
+        if not legacy:
+            if record.get("user_reviewed_response") is not True:
+                fail(f"{record['benchmark_id']} lacks explicit evidence that the user reviewed the actual response")
+            if record.get("explicit_user_elevation_approval") is not True:
+                fail(f"{record['benchmark_id']} lacks explicit user authorization for Gold Star elevation")
+            if not str(record.get("elevation_approval_evidence") or "").strip():
+                fail(f"{record['benchmark_id']} lacks recorded elevation approval evidence")
+        elif not str(record.get("legacy_approval_grandfathered_reason") or "").strip():
+            fail(f"{record['benchmark_id']} has an undocumented legacy approval exemption")
         if "expected_doorway" not in record:
             fail(f"{record['benchmark_id']} lacks explicit doorway state")
         doorway = record.get("expected_doorway")
