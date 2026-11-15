@@ -613,6 +613,15 @@
       "qualifying_context": "Questions about Archive provenance, source integrity, synthesis across materials, interpretive orientation, knowledge, sensemaking, or how the Guide should distinguish what sources say from what it infers or frames.",
       "abstention_boundary": "Do not present synthesis or orientation as a direct Archive claim; do not flatten distinct Archive voices into a single authoritative conclusion; do not transfer exemplar-specific wording or the Knowledge & Sensemaking doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-care-commons-economic-recognition-gold-standard-2026-11-15",
+      "question": "How can economic systems recognize unpaid care and commons maintenance?",
+      "reasoning_family": "care_and_commons_economic_recognition",
+      "transferable_discipline": "Establish sustaining work as a condition of wider economic activity; distinguish visibility from shared responsibility; identify who benefits and who bears costs; preserve the boundary that recognition does not require commodifying care or shared resources.",
+      "qualifying_context": "Questions about unpaid care, care work, commons maintenance, invisible infrastructure, sustaining conditions, economic recognition, externalized costs, or shared responsibility.",
+      "abstention_boundary": "Do not reduce the explanation to a policy-shopping list, and do not replace a bounded conceptual answer with a generic evidence-insufficiency abstention for qualifying questions. Do not transfer the exemplar-specific wording or Global Reset doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
