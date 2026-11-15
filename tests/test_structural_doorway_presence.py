@@ -1,0 +1,31 @@
+"""Regression contract: the Guide remains an Archive doorway when verified evidence exists."""
+import main
+
+
+def test_verified_retrieved_resource_is_recovered_when_strict_selection_returns_none(monkeypatch):
+    query = "How should The Guide distinguish archive-grounded guidance from general external knowledge?"
+    docs = [{
+        "title": "Archive Grounding and Interpretation",
+        "url": "https://geralddaquila.com/archive-grounding-and-interpretation/",
+        "text": "The Archive distinguishes direct claims from synthesis and orientation, keeping each traceable to its evidence.",
+    }]
+    profile = {"action": "topical", "grief": False}
+
+    monkeypatch.setattr(main, "_canonical_primary_from_docs", lambda docs, query, profile: docs[0])
+    monkeypatch.setattr(main, "_select_guide_node_fallback_doorway", lambda query: None)
+
+    doorway = main._verified_archive_doorway_fallback(query, docs, profile)
+
+    assert doorway == {
+        "title": "Archive Grounding and Interpretation",
+        "url": "https://geralddaquila.com/archive-grounding-and-interpretation/",
+    }
+
+
+def test_no_verified_evidence_keeps_no_doorway(monkeypatch):
+    monkeypatch.setattr(main, "_canonical_primary_from_docs", lambda docs, query, profile: None)
+    monkeypatch.setattr(main, "_select_guide_node_fallback_doorway", lambda query: None)
+
+    assert main._verified_archive_doorway_fallback(
+        "A question with no verified Archive continuation", [], {"action": "topical"}
+    ) is None
