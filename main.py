@@ -11123,6 +11123,28 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     response, _glossary_answer_basis = general_guide_composition.apply_glossary_source_attribution(
         response, context_data
     )
+
+    # Absolute last-mile answer-integrity boundary. Earlier cross-question
+    # checks can be invalidated by downstream attribution or recovery rewrites,
+    # so inspect the actual response immediately before payload assembly.
+    # An approved answer to a different question must never reach a visitor.
+    _last_mile_cross_question_standard = _find_cross_question_standard_response(query, response)
+    if _last_mile_cross_question_standard is not None:
+        response = (
+            "I couldn’t produce a reliable answer to that question just now. "
+            "I won’t substitute an approved answer to a different question for the one you asked. "
+            "Please try again shortly; the Guide should address your question directly or clearly identify what the available sources do not establish."
+        )
+        authoritative_doorway = None
+        answer_basis = {
+            "kind": "answer_integrity_failure",
+            "label": "Answer needs recovery",
+            "explanation": "A final integrity check detected that the response belonged to a different approved question.",
+        }
+        print(
+            "The Guide absolute final integrity boundary: blocked cross-question "
+            "approved-answer leakage before visitor payload assembly."
+        )
     if _glossary_answer_basis:
         answer_basis = _glossary_answer_basis
 
