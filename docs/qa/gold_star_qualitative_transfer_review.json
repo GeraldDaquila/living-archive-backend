@@ -676,6 +676,15 @@
       "qualifying_context": "Questions about feedback loops, institutions, recurring patterns, systems, organizational learning, or self-reinforcing consequences.",
       "abstention_boundary": "Do not imply that feedback is inherently corrective or that receiving information automatically produces learning. Do not use systems language to obscure who can act, who is affected, or who remains accountable.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-cross-scale-orientation-refined-gold-standard-2026-11-15",
+      "question": "How do local actions connect to civilizational patterns without reducing one to the other?",
+      "reasoning_family": "cross_scale_structure_agency_reciprocal_asymmetric",
+      "transferable_discipline": "For cross-scale questions, trace influence in both directions: wider patterns condition local possibilities, while local actions can reproduce or alter those patterns through accumulation across organizations, networks, and communities. Preserve both structure and agency without treating either as a complete explanation.",
+      "qualifying_context": "Questions connecting local action with institutional, historical, social, or civilizational patterns.",
+      "abstention_boundary": "Do not imply that local action automatically scales into civilizational change, or that wider structures fully determine local judgment. Do not collapse reciprocal influence into equal causal power at every scale.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
