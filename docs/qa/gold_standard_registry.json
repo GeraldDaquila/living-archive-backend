@@ -192,14 +192,11 @@
     },
     {
       "benchmark_id": "general-guide-ethical-tradeoff-2026-10",
-      "status": "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE",
+      "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "What if each person sincerely believes they are protecting something important, but protecting one person's priorities means another person will lose something they deeply value? How should we decide what to protect?",
       "expected_response": "When protecting one important thing puts something else at risk, the decision cannot be made fairly by asking only which priority matters more. We also need to consider who depends on each choice, who has the power to decide, and who will bear the consequences.\n\nMake each person's claim visible, including the needs of people who may not have a voice in the decision. Distinguish losses that can be repaired from those that cannot, and examine whether a different approach could protect at least part of what matters to each side. Shared facts, clear criteria, and a chance for affected people to challenge assumptions make the process more defensible.\n\nSometimes a genuine trade-off remains. In that case, responsibility means explaining the reasons for the decision, acknowledging what is being sacrificed, and checking that the burden does not fall unfairly on those with the least power. The question is not only what we choose to protect, but whether we can justify that choice to the people who must live with its consequences.",
-      "expected_doorway": {
-        "title": "Leadership Case Study 01: Decision-Making Under Pressure and Resource Scarcity",
-        "url": null
-      },
+      "expected_doorway": null,
       "assertions": [
         "Address competing values and explicit sacrifice, not generic how-to advice.",
         "Consider who has power to decide, people with least power, and what can be repaired versus what cannot.",
@@ -213,7 +210,8 @@
         "source_ref": "main",
         "source_blob_sha": "d51817ea1c2aa940f724b61cc586faffda3bbef2",
         "evidence_boundary": "Exact accepted answer, explicit user approval, displayed navigation title, and 9.0/10 rating are recovered across Issue #747 and prior calibration context. Destination URL and independent doorway relevance validation remain unrecovered.",
-        "prior_calibration_context": "Prior calibration summary records this same accepted answer as GS #18, rated 9.0/10. The Issue #747 approval comment calls it Gold Standard #2. Both labels are preserved; sequence/numbering equivalence is not proven."
+        "prior_calibration_context": "Prior calibration summary records this same accepted answer as GS #18, rated 9.0/10. The Issue #747 approval comment calls it Gold Standard #2. Both labels are preserved; sequence/numbering equivalence is not proven.",
+        "reconciliation_note": "Reconciled into the sole canonical Gold Star inventory and active learning authority on 2026-11-15. Pending fixture status is evidence metadata only and does not create a second approval or learning category."
       },
       "freeze_policy": "Preserve exact accepted response verbatim. Create a dedicated fixture and test separately from the existing October 14 stewardship fixture; do not change use_core.py or claim the deterministic production path generated this answer.",
       "rating": null,
@@ -228,7 +226,21 @@
         "Gold Standard #2 — Deterministic Recovery Calibration (Issue #747 comment, 2026-10-22)",
         "GS #18 — Ethical Trade-offs and Conflicting Harms (prior calibration summary, 2026-10-21)"
       ],
-      "numbering_conflict": "Source calls this Gold Standard #2 in Issue #747 and GS #18 in prior calibration context; it is not assigned to the original 14-sequence numbering until reconciled."
+      "numbering_conflict": "Source calls this Gold Standard #2 in Issue #747 and GS #18 in prior calibration context; it is not assigned to the original 14-sequence numbering until reconciled.",
+      "fixture_state": "PENDING_EXACT_FIXTURE",
+      "known_theme": "general-purpose-guide",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "APPROVED_EXACT_RESPONSE_WITH_PENDING_FIXTURE",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "ethical_tradeoff_and_conflicting_harms",
+        "transferable_discipline": "Make competing claims visible, examine power and irreversible harms, use defensible criteria, acknowledge sacrifice, and test whether burdens fall unfairly on those with least power.",
+        "abstention_boundary": "Use the governing discipline without inventing a verified canonical doorway destination or claiming a missing fixture has been independently reproduced.",
+        "intake_note": "Historical provenance is retained; this classification does not infer an original generation mode beyond the available record evidence."
+      },
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED"
     },
     {
       "benchmark_id": "general-guide-responsibility-boundary-2026-10",
@@ -2354,7 +2366,7 @@
     },
     {
       "benchmark_id": "general-guide-developmental-language-gold-star-2026-11-09",
-      "status": "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE",
+      "status": "USER_APPROVED_GOLD_STANDARD",
       "query": "How can developmental language become hierarchical or dismissive?",
       "answer_type": "bounded_general_explanatory",
       "lesson": "When an explanatory question lacks directly establishing Archive evidence but can be responsibly answered from general knowledge, preserve the visitor's question and provide a bounded conceptual explanation rather than forcing an unrelated template or unnecessarily abstaining.",
@@ -2370,9 +2382,24 @@
       "provenance": {
         "source_ref": "live visitor calibration 2026-11-09",
         "approval_evidence": "Retained as a Gold Star calibration record; exact response fixture is not registered in this record.",
-        "evidence_boundary": "This record preserves the approved calibration lesson and runtime transfer, not a verbatim visitor response fixture."
+        "evidence_boundary": "This record preserves the approved calibration lesson and runtime transfer, not a verbatim visitor response fixture.",
+        "reconciliation_note": "Reconciled into the sole canonical Gold Star inventory and active runtime learning set on 2026-11-15. Its evidence boundary prevents verbatim replay while allowing the approved transferable discipline to inform bounded explanatory recovery."
       },
-      "freeze_policy": "Preserve the calibration lesson and runtime transfer; do not represent this record as an exact response fixture until one is independently registered."
+      "freeze_policy": "Preserve the calibration lesson and runtime transfer; do not represent this record as an exact response fixture until one is independently registered.",
+      "fixture_state": "PENDING_EXACT_FIXTURE",
+      "gold_star_capabilities": {
+        "generation_class": "CALIBRATION_LESSON_WITHOUT_EXACT_FIXTURE",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "bounded_general_explanatory_recovery",
+        "transferable_discipline": "Answer the explanatory question directly while distinguishing descriptive frameworks from rankings of human worth and preserving nuance.",
+        "abstention_boundary": "Transfer the recovery principle only; do not transfer wording, subject matter, or invent an exact approved response.",
+        "intake_note": "Historical provenance is retained; this classification does not infer an original generation mode beyond the available record evidence."
+      },
+      "expected_doorway": null,
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+      "known_theme": "developmental language and hierarchy"
     },
     {
       "benchmark_id": "general-guide-civilizational-transition-archive-meaning-gold-star-2026-11-13",
@@ -3670,7 +3697,9 @@
     "reconciliation_rule": "If an approved candidate was temporarily recorded outside this ledger, reconcile it into this registry before counting it as a new Gold Star. Do not maintain competing totals.",
     "runtime_rule": "Runtime QA and production systems may consume or mirror approved lessons, but they do not define the authoritative count.",
     "consolidation_guardrail": "Before creating, importing, or reporting any Gold Star registry, agents and maintainers must read docs/qa/gold_standard_registry.json on main. No new directory, repository, or independent ledger may be created without explicit user authorization and a documented migration plan.",
-    "reconciliation_protocol": "Any temporary mirror or evidence store must be marked non-authoritative, reconciled into this ledger, and excluded from ecosystem counts before it is used operationally."
+    "reconciliation_protocol": "Any temporary mirror or evidence store must be marked non-authoritative, reconciled into this ledger, and excluded from ecosystem counts before it is used operationally.",
+    "single_approved_inventory_rule": "There is exactly one canonical approved Gold Star state: USER_APPROVED_GOLD_STANDARD. Fixture or provenance incompleteness must be represented by evidence metadata, never by a second approved-status category or competing inventory.",
+    "authoritative_count_rule": "The authoritative Gold Star inventory count is the number of records with status USER_APPROVED_GOLD_STANDARD. No secondary approved-status bucket may be added."
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-15",
