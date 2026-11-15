@@ -229,6 +229,18 @@ def _guide_node_prompt_context():
     ], ensure_ascii=False, separators=(",", ":"))
 
 
+def _select_verified_doorway_conceptual_family(query):
+    """Return a verified conceptual family only when a canonical doorway applies."""
+    text = str(query or "")
+    if (
+        re.search(r"\b(?:ai|artificial intelligence)\b", text, re.I)
+        and re.search(r"\binterpreter\b", text, re.I)
+        and re.search(r"\bauthority\b", text, re.I)
+    ):
+        return "ai_role_distinction"
+    return None
+
+
 def _select_guide_node_fallback_doorway(query):
     """Select a verified canonical doorway when recovery has no retrieval docs.
 
