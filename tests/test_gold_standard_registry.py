@@ -21,7 +21,6 @@ VALID_STATUSES = {
     "RECOVERED_SHADOW_DIAGNOSTIC_NOT_GOLD_STANDARD",
     "RECOVERED_QUESTION_SET_PENDING_PER_ITEM_APPROVAL",
     "RECOVERED_PROVENANCE_PENDING_EXACT_RESPONSE",
-    "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE",
     "CONFIRMED_CASE",
     "NEEDS_SOURCE_RECOVERY",
     "CANDIDATE",
@@ -47,13 +46,12 @@ def test_canonical_storage_policy_is_hardcoded_and_approved_count_is_not_split()
     assert "parallel registry" in policy["addition_rule"]
     assert "competing totals" in policy["reconciliation_rule"]
     assert "authoritative count" in policy["runtime_rule"]
+    assert "exactly one canonical approved Gold Star state" in policy["single_approved_inventory_rule"]
+    assert "No secondary approved-status bucket" in policy["authoritative_count_rule"]
 
     approved = [
         record for record in registry["records"]
-        if record["status"] in {
-            "USER_APPROVED_GOLD_STANDARD",
-            "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE",
-        }
+        if record["status"] == "USER_APPROVED_GOLD_STANDARD"
     ]
     assert approved
     assert len({record["benchmark_id"] for record in approved}) == len(approved)
@@ -752,3 +750,11 @@ def test_held_in_trust_gold_star_preserves_recognition_relationship_boundary():
     assert "Trust is relational" in response
     assert "where the holder's authority ends" in response
     assert "without assuming that every duty is unlimited or belongs to one person alone" in response
+
+
+def test_gold_star_inventory_has_one_canonical_approved_directory():
+    registry = _registry()
+    approved = [r for r in registry["records"] if r["status"] == "USER_APPROVED_GOLD_STANDARD"]
+    assert approved
+    assert all(r["status"] != "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE" for r in registry["records"])
+    assert len({r["benchmark_id"] for r in approved}) == len(approved)
