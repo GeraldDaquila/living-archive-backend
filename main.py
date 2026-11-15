@@ -359,6 +359,17 @@ _relationship_contract_probe = validate_relationship_contribution({
     "movement": {"direction": "perspective"},
     "canonical_candidates": [],
 })
+def _ordinary_orientation_boundary_recovery(query):
+    """Preserve ordinary-language orientation when Archive evidence is insufficient.
+
+    Evidence limits what may be attributed to the Archive; they do not erase the
+    ordinary meaning of familiar orientation language. This seam is deliberately
+    bounded to the composition contract's recognized orientation family and
+    returns no answer for unrelated definition requests.
+    """
+    return general_guide_composition._ordinary_language_orientation_recovery(query)
+
+
 if _relationship_contract_probe["voice_policy"] != "preserve_specialist_voice":
     raise RuntimeError("USE v487.52 invariant failed: relational voice-preservation policy lost")
 if _relationship_contract_probe["human_response"].startswith("A useful place to begin"):
@@ -10257,14 +10268,30 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 composition_context["conceptual_subject_recovery"] = "institutional_meaning_verified_doorway"
                                 print("The Guide conceptual boundary: preserved verified doorway orientation for Archive-voice meaning request.")
                             else:
-                                response = _archive_limitation_response(query)
-                                archive_evidence_unavailable = True
-                                composition_context["evidence_sufficiency_unavailable"] = True
-                                print(
-                                    "The Guide conceptual boundary: no question-matched canonical "
-                                    "sentences and no substantive general answer to preserve; "
-                                    "returned the Archive-only limitation."
-                                )
+                                # Ordinary-language orientation is a separate answer basis from
+                                # Archive attribution. Do not turn a familiar, answerable question
+                                # into a three-paragraph disclaimer merely because retrieval could
+                                # not establish an Archive-specific definition.
+                                _ordinary_orientation = _ordinary_orientation_boundary_recovery(query)
+                                if _ordinary_orientation:
+                                    response = _sanitize_basic_inquiry_response(_ordinary_orientation)
+                                    archive_evidence_unavailable = False
+                                    composition_context.pop("evidence_sufficiency_unavailable", None)
+                                    composition_context["answer_basis"] = "ordinary_language_orientation"
+                                    if verified_navigation_available:
+                                        authoritative_doorway = verified_navigation_doorway
+                                        composition_context["authoritative_doorway"] = authoritative_doorway
+                                        composition_context["authoritative_doorway_title"] = authoritative_doorway.get("title") or ""
+                                    print("The Guide conceptual boundary: preserved ordinary-language orientation after evidence miss.")
+                                else:
+                                    response = _archive_limitation_response(query)
+                                    archive_evidence_unavailable = True
+                                    composition_context["evidence_sufficiency_unavailable"] = True
+                                    print(
+                                        "The Guide conceptual boundary: no question-matched canonical "
+                                        "sentences and no substantive general answer to preserve; "
+                                        "returned the Archive-only limitation."
+                                    )
 
     # Conceptual evidence gates govern explanatory attribution, not a separately
     # selected canonical next step. Restore the request-level navigation decision
