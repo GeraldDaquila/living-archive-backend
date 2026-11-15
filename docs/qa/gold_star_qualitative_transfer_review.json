@@ -694,6 +694,15 @@
       "qualifying_context": "Questions about systems maps, models, diagrams, frameworks, or other representations of complex conditions, especially where apparent completeness may create unwarranted confidence.",
       "abstention_boundary": "Do not treat a diagram's coherence or completeness as evidence of causal truth, and do not use a map to conceal uncertainty or substitute representation for ongoing attention to reality.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-power-concentration-accountability-refined-gold-standard-2026-11-16",
+      "question": "What happens when power is concentrated without accountability?",
+      "reasoning_family": "power_accountability_visibility_challenge_correction",
+      "transferable_discipline": "Assess concentrated authority by whether proportionate mechanisms for visibility, independent challenge, and correction keep decision-makers connected to evidence and consequences.",
+      "qualifying_context": "Questions about concentrated authority, accountability, transparency, dissent, institutional safeguards, or correction.",
+      "abstention_boundary": "Do not treat concentration of authority as inherently illegitimate, nor mistake punishment alone for accountability; the structural issue is whether correction can operate meaningfully.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
