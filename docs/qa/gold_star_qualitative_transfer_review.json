@@ -479,6 +479,15 @@
       "qualifying_context": "Questions about constitutional architecture, governing relationships among concepts, canonical recovery, interpretation, inference, and Archive-level structural reasoning.",
       "abstention_boundary": "Do not treat inferred relationships as canonical facts, assume titles establish connections, invent constitutional rules absent explicit support, or transfer an exemplar-specific doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-human-development-archive-framework-gold-standard-2026-11-15",
+      "question": "What does human development mean in the Archive's framework?",
+      "reasoning_family": "relational_human_development_with_epistemic_boundary",
+      "transferable_discipline": "Connect individual development with relationships, institutions, and conditions while distinguishing general orientation from formal canonical authority.",
+      "qualifying_context": "Archive-specific conceptual questions about human development, human flourishing, personal capacities, relationships, institutions, and the conditions that enable or constrain participation.",
+      "abstention_boundary": "Do not present a bounded interpretive orientation as a substitute for a specific formal definition where one exists. Do not transfer this bounded Archive orientation as a formal definition where a more specific canonical source governs.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
