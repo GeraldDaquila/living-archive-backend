@@ -355,15 +355,6 @@
       "activation": "active_quality_contributor"
     },
     {
-      "benchmark_id": "gs-2026-11-14-governance-leadership-management-distinction",
-      "question": "How does governance differ from leadership and management?",
-      "reasoning_family": "governance_leadership_management_distinction",
-      "transferable_discipline": "Answer the explicit conceptual distinction first, then deepen it through authority, accountability, operational coordination, institutional conditions, and correction.",
-      "qualifying_context": "governance, leadership, management, authority, accountability, institutional conditions",
-      "abstention_boundary": "Do not flatten governance into administration, treat leadership as a substitute for legitimate authority, or use a generic systems lens before answering the visitor's actual distinction.",
-      "activation": "active_quality_contributor"
-    },
-    {
       "benchmark_id": "gs-2026-11-14-technical-capability-legitimate-authority",
       "question": "What is the relationship between technical capability and legitimate authority?",
       "reasoning_family": "technical_capability_legitimate_authority_distinction",
@@ -693,6 +684,15 @@
       "transferable_discipline": "Treat representations of a system as hypotheses that organize inquiry, not as proof. Make assumptions, omissions, evidence, uncertainty, absent perspectives, and changing conditions visible, then return the representation to reality through observation and revision.",
       "qualifying_context": "Questions about systems maps, models, diagrams, frameworks, or other representations of complex conditions, especially where apparent completeness may create unwarranted confidence.",
       "abstention_boundary": "Do not treat a diagram's coherence or completeness as evidence of causal truth, and do not use a map to conceal uncertainty or substitute representation for ongoing attention to reality.",
+      "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-governance-leadership-management-refined-gold-standard-2026-11-16",
+      "question": "How does governance differ from leadership and management?",
+      "reasoning_family": "governance_leadership_management_authority_correction",
+      "transferable_discipline": "Distinguish the framework and legitimacy of collective authority from the work of direction and judgment and from the coordination of action; examine whether each role remains capable of correction when conditions change.",
+      "qualifying_context": "Questions distinguishing governance, leadership, management, authority, or institutional accountability.",
+      "abstention_boundary": "Do not collapse operational efficiency, personal influence, or formal structure into legitimate and accountable authority.",
       "activation": "active_quality_contributor"
     }
   ]
