@@ -1778,7 +1778,8 @@
         "source_status": "USER_APPROVED_GOLD_STANDARD",
         "evidence_boundary": "Original user-approved Gold Star, structurally revised with explicit user authorization on 2026-11-15; the revision preserves the same conceptual scope while strengthening transferable orientation.",
         "structural_revision": "Explicit user authorization on 2026-11-15 to structurally strengthen the existing Gold Star using recognition → relationship → boundary while preserving its stewardship discipline.",
-        "source_date": "2026-10-25"
+        "source_date": "2026-10-25",
+        "approval_record": "Explicit user approval recorded in the Gold Star registry on 2026-10-25; structural revision explicitly authorized by the user on 2026-11-15."
       },
       "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change.",
       "gold_star_capabilities": {
