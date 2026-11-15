@@ -550,6 +550,15 @@
       "qualifying_context": "Questions linking consciousness, human capacities, collective life, governance, institutions, and civilization.",
       "abstention_boundary": "Do not treat consciousness as only private experience, claim that institutions mechanically determine persons, or present a general conceptual orientation as a formal canonical definition without source support.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-recover-orientation-uncertainty-gold-standard-2026-11-15",
+      "question": "What does it mean to recover orientation during a season of uncertainty?",
+      "reasoning_family": "bounded_orientation_under_uncertainty",
+      "transferable_discipline": "When a familiar human question remains meaningful despite incomplete evidence, distinguish ordinary-language orientation from formal source attribution: give a bounded practical answer, clarify what remains unresolved, and preserve agency without manufacturing certainty.",
+      "qualifying_context": "Questions about uncertainty, ambiguity, transition, regaining bearings, or taking responsible action before the larger situation is resolved.",
+      "abstention_boundary": "Do not present ordinary-language orientation as a formal canonical definition without source support, manufacture certainty, or retreat into a disclaimer when a bounded and clearly non-attributed answer is possible.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
