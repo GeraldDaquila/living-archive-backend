@@ -4343,6 +4343,54 @@
         "approval_evidence": "User instruction: 'elevate. merge'.",
         "evidence_boundary": "Screenshot establishes the reviewed response and visible doorway; elevation records the user-approved live exemplar."
       }
+    },
+    {
+      "benchmark_id": "general-guide-regenerative-claims-substance-branding-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How should regenerative claims be tested for substance rather than branding?",
+      "expected_response": "The inquiry begins by making the situation itself visible: regenerative claims be tested for substance rather than branding. What outcome is the organisation trying to achieve, what responsibilities does it carry, and who will live with the consequences? Those questions bring operations, governance, human development, ethics, and stewardship into the same frame without pretending they are separate problems.\n\nFrom there, compare the real options rather than assuming that the proposed course is the only one. Look at what each option makes possible, what it may damage, who bears the costs, and what evidence would justify changing direction. The knowledge of people affected by the decision belongs in that assessment, especially where they will carry consequences they did not choose.\n\nThe point is not to make the decision for the organisation, but to make the grounds for acting clearer. Choose deliberately, make the reasoning and limits visible, and remain accountable for what follows. AI may inform that work, but it cannot take responsibility for a decision away from the people who have the authority to make it.",
+      "expected_doorway": {
+        "title": "Codex of Regenerative Economies",
+        "url": "https://geralddaquila.com/codex-of-regenerative-economies"
+      },
+      "rating_out_of_10": 9.6,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the live visitor-facing response with its visible canonical doorway and explicitly authorized Gold Star elevation and merge on 2026-11-15.",
+      "elevation_approval_evidence": "User instruction on 2026-11-15: 'elevate. merge'.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "regenerative claims, substance versus branding, stewardship, consequences, responsibility, decision accountability, distributed costs",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "substance_before_branding_consequence_aware_stewardship",
+        "transferable_discipline": "Test aspirational claims through the outcomes they seek, the responsibilities they create, the consequences they distribute, the alternatives they exclude, and the authority accountable for the decision. Make reasoning and limits visible without displacing responsibility from legitimate decision-makers.",
+        "abstention_boundary": "Do not treat branding language as evidence of substance; do not use the framework to make decisions for accountable actors; do not transfer the Codex of Regenerative Economies doorway to unrelated questions."
+      },
+      "reasoning_family": "substance_before_branding_consequence_aware_stewardship",
+      "transferable_lesson": "Strong stewardship guidance tests claims against consequences and accountability, compares real alternatives, includes affected knowledge, and clarifies grounds for action without taking authority away from responsible decision-makers.",
+      "transfer_boundary": "Transfer the consequence-aware decision discipline, not the exemplar-specific regenerative claims, wording, examples, or doorway.",
+      "user_approved_at": "2026-11-15",
+      "gold_star_number": 70,
+      "assertions": [
+        "Tests regenerative claims through outcomes, responsibilities, and consequences rather than accepting branding at face value.",
+        "Brings operational, governance, human, ethical, and stewardship considerations into one decision frame.",
+        "Requires comparison of real alternatives, including harms, costs, possibilities, and evidence for changing direction.",
+        "Includes the knowledge of people who will carry consequences in the assessment.",
+        "Makes reasoning and limits visible while preserving accountability with legitimate decision-makers.",
+        "Completes the visitor journey with one visible canonical continuation: Codex of Regenerative Economies."
+      ],
+      "provenance": {
+        "source_date": "2026-11-15",
+        "source": "User-provided screenshot of the live Guide response.",
+        "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
+        "approval_evidence": "User instruction: 'elevate. merge'.",
+        "evidence_boundary": "Screenshot establishes the reviewed response and visible doorway; elevation records the user-approved live exemplar."
+      }
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
