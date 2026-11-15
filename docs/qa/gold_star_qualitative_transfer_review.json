@@ -577,6 +577,15 @@
       "qualifying_context": "Broad conceptual questions about technology, automation, or technical systems in relation to stewardship, governance, human purposes, institutional responsibility, or long-term care.",
       "abstention_boundary": "Do not treat efficiency or technical capability as sufficient grounds for social direction, assign human judgment to technology, or transfer the exemplar-specific claims or canonical doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-ai-interpreter-vs-authority-gold-standard-2026-11-15",
+      "question": "What does it mean for an AI to be an interpreter rather than an authority?",
+      "reasoning_family": "interpretation_without_authority",
+      "transferable_discipline": "For questions about AI or other systems that inform judgment, distinguish interpretive capability from legitimate authority: clarify what the system can organize or reveal, then preserve inspectability, contestability, accountable decision-making, and responsibility for consequences.",
+      "qualifying_context": "Conceptual questions about AI, automated systems, decision support, interpretation, recommendations, or the boundary between technical assistance and legitimate human or institutional authority.",
+      "abstention_boundary": "Do not equate analytical capability, confidence, ranking, or recommendation with legitimate authority; do not imply AI must be passive; and do not transfer the exemplar-specific wording or doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
