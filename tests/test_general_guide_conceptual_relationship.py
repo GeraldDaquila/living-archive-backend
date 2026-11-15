@@ -71,3 +71,13 @@ def test_developmental_language_gold_star_recovery_principle():
         "a label explains away someone's perspective rather than engaging with what they are saying."
     )
     assert not is_generic_nonanswer(query, response)
+
+
+def test_algorithmic_amplification_contract_names_mechanism_before_system_context():
+    source = Path("general_guide_composition.py").read_text(encoding="utf-8")
+    for phrase in (
+        "how algorithmic or automated systems scale existing biases",
+        "repeated ranking, allocation, recommendation, classification, optimization, or feedback loops",
+        "Distinguish amplification from sole causation",
+    ):
+        assert phrase in source
