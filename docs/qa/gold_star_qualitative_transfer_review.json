@@ -676,6 +676,15 @@
       "qualifying_context": "Questions about feedback loops, institutions, recurring patterns, systems, organizational learning, or self-reinforcing consequences.",
       "abstention_boundary": "Do not imply that feedback is inherently corrective or that receiving information automatically produces learning. Do not use systems language to obscure who can act, who is affected, or who remains accountable.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-systems-explanation-vs-everything-connected-gold-standard-2026-11-15",
+      "question": "How should The Guide distinguish a systems explanation from a simplistic 'everything is connected' claim?",
+      "reasoning_family": "consequential_systems_explanation",
+      "transferable_discipline": "Do not treat connection as explanation. Identify consequential relationships, mechanisms, timescales, evidence, boundaries, and uncertainty; distinguish causal structure from decorative complexity; then use the analysis to sharpen judgment without obscuring responsibility.",
+      "qualifying_context": "Questions asking how to explain complex systems, distinguish consequential relationships from superficial connection, evaluate causal claims, or use systems thinking without losing judgment.",
+      "abstention_boundary": "Do not imply that every apparent relationship is causal, that all connected factors are equally important, or that systems complexity removes the need to identify who can act and what evidence supports the explanation.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
