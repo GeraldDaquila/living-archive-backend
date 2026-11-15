@@ -268,6 +268,30 @@ def _select_guide_node_fallback_doorway(query):
             best, best_score = {"title": title, "url": url}, score
     return best if best_score else None
 
+
+def _verified_archive_doorway_fallback(query, docs, profile):
+    """Return a verified Archive continuation when one is available.
+
+    The Guide is a doorway into the Archive, not merely an answering engine.
+    Strict primary selection may reject a candidate without proving that no
+    honest continuation exists. This recovery path may use only repository-
+    verified canonical evidence: first the retrieved canonical documents, then
+    an approved Guide Node with direct lexical grounding. It never invents a
+    destination and still returns None when no verifiable continuation exists.
+    """
+    try:
+        candidate = _canonical_primary_from_docs(docs or [], query, profile)
+    except Exception:
+        candidate = None
+    normalized = _normalize_authoritative_recommendation(candidate)
+    if normalized:
+        return normalized
+    try:
+        node = _select_guide_node_fallback_doorway(query)
+    except Exception:
+        node = None
+    return _normalize_authoritative_recommendation(node)
+
 def _guide_node_by_id(node_id):
     target = str(node_id or "").strip()
     if not target:
@@ -1598,14 +1622,26 @@ def _recommendation_first_fetch(query_str):
                 "The Guide outward navigation boundary: canonical selector "
                 f"failed safely ({type(exc).__name__})."
             )
-        # Retrieval rank is not doorway authority. If the selector cannot
-        # establish a subject-specific canonical primary, fail closed. Never
-        # promote the leading Meta-Net asset merely because it was retrieved.
+        # The Guide is a doorway into the Archive, not merely an answering
+        # engine. A strict primary selector failing to choose a winner does not
+        # establish that no honest continuation exists. Before suppressing the
+        # doorway, make one bounded recovery pass over verified canonical
+        # evidence and approved Guide Nodes. Suppression is now reserved for the
+        # verifiable case: no canonical continuation is available.
         if not selected_doorway:
-            print(
-                "The Guide outward navigation boundary: no subject-specific "
-                "canonical doorway; recommendation suppressed."
+            selected_doorway = _verified_archive_doorway_fallback(
+                query_str, docs, profile
             )
+            if selected_doorway:
+                print(
+                    "The Guide outward navigation boundary: recovered verified "
+                    "canonical doorway after strict selection returned none."
+                )
+            else:
+                print(
+                    "The Guide outward navigation boundary: no verifiable "
+                    "canonical doorway available; recommendation suppressed."
+                )
 
         if selected_doorway:
             target_url = str(selected_doorway.get("url") or "").rstrip("/").casefold()
