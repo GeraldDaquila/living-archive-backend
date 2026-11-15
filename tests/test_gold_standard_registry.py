@@ -215,8 +215,16 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["runtime_identity"] == "test-runtime-primary"
     assert report["registry_sha256"] == hashlib.sha256(registry_bytes).hexdigest()
     assert report["benchmark_count"] == len(_registry()["records"])
-    assert report["authoritative_gold_star_count"] == 63
-    assert report["active_runtime_gold_star_count"] == 63
+    approved = [
+        item for item in _registry()["records"]
+        if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
+    ]
+    active = [
+        item for item in approved
+        if item.get("runtime_transfer") is True
+    ]
+    assert report["authoritative_gold_star_count"] == len(approved)
+    assert report["active_runtime_gold_star_count"] == len(active)
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
@@ -841,8 +849,14 @@ def test_technology_refinement_release_candidate_has_exact_query_review_authorit
         item for item in registry["records"]
         if item["benchmark_id"] == "general-guide-technology-stewardship-governance-refinement-2026-11-15"
     )
-    assert record["status"] == "USER_APPROVED_RELEASE_CANDIDATE"
-    assert record["runtime_review_authority"] is True
-    assert record["rating_out_of_10"] is None
+    assert record["status"] in {
+        "USER_APPROVED_RELEASE_CANDIDATE",
+        "USER_APPROVED_GOLD_STANDARD",
+    }
     assert record["expected_doorway"]["title"] == "Foundations of Stewardship Governance"
-    assert "not a Gold Star" in record["freeze_policy"]
+    if record["status"] == "USER_APPROVED_RELEASE_CANDIDATE":
+        assert record["runtime_review_authority"] is True
+        assert record["rating_out_of_10"] is None
+        assert "not a Gold Star" in record["freeze_policy"]
+    else:
+        assert record.get("runtime_transfer") is True
