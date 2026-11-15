@@ -2999,7 +2999,8 @@
       "freeze_policy": "Frozen approved response is an immutable reference artifact; future changes require a new approval record rather than silent mutation.",
       "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "gold_star_number": 77
     },
     {
       "benchmark_id": "gs-2026-11-13-04-migrated-canonical-ledger",
