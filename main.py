@@ -249,6 +249,12 @@ def _select_verified_doorway_conceptual_family(query):
         and re.search(r"\b(?:ecological|environmental|social|planetary|living)\b.{0,100}\blimits?\b|\blimits?\b.{0,100}\b(?:ecological|environmental|social|planetary|living)\b", text, re.I)
     ):
         return "growth_within_living_limits"
+    if (
+        re.search(r"\\barchive(?:-grounded|\\s+grounded)?\\b", text, re.I)
+        and re.search(r"\\b(?:guidance|knowledge|evidence|synthesis|orientation)\\b", text, re.I)
+        and re.search(r"\\b(?:distinguish|difference|separate|external)\\b", text, re.I)
+    ):
+        return "archive_guidance_provenance"
     return None
 
 
@@ -260,6 +266,10 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "regeneration_beyond_restoration": {
         "title": "Regenerative Governance: What Comes After Extraction-Based Systems?",
         "url": "https://geralddaquila.com/2026/06/08/regenerative-governance-what-comes-after-extraction-based-systems/",
+    },
+    "archive_guidance_provenance": {
+        "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
     },
     "growth_within_living_limits": {
         "title": "ARC III: Growth doesn’t break systems. It reveals the limits of the structure holding them.",
