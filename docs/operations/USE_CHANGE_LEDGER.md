@@ -93,3 +93,14 @@ For each release, record:
 - **Structural discipline:** Distinguish the ability to organize, compare, and clarify information from legitimate standing to decide; preserve inspectability, contestability, accountable judgment, and responsibility for consequences.
 - **Transfer boundary:** Transfer the structural discipline only. Do not equate analytical capability or confidence with authority, and do not transfer exemplar-specific wording or doorway to unrelated questions.
 - **Validation boundary:** Registry and qualitative-transfer coverage must remain aligned; this elevation follows the live response after the structural doorway repair was deployed to both Primary and Mirror.
+
+
+## 2026-11-15 — Regeneration beyond environmental restoration Gold Star
+
+- **Class:** Content / QA authority
+- **Intent:** Preserve the user-reviewed live Guide response explaining regeneration beyond repair as a Gold Star exact-answer benchmark and active qualitative contributor.
+- **Canonical benchmark:** `general-guide-regeneration-beyond-environmental-restoration-gold-standard-2026-11-15`.
+- **Gold Star authority:** Explicit user elevation approval after review of the corrected live response and its canonical continuation.
+- **Structural discipline:** Distinguish restoration of damage from renewal of the conditions, relationships, and capacities that sustain flourishing; preserve limits and consequences.
+- **Canonical continuation:** **Regenerative Governance: What Comes After Extraction-Based Systems?**
+- **Transfer boundary:** Transfer the reasoning discipline only; do not treat regeneration as unlimited growth, guaranteed repair, or a generic positive outcome.
