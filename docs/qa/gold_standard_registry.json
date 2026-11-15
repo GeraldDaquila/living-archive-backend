@@ -4526,7 +4526,7 @@
       "query": "What does repair look like after a stewardship failure?",
       "expected_response": "Repair after a stewardship failure begins by making the failure visible rather than treating it as something to explain away. That means acknowledging what was entrusted, what responsibility was not met, and who or what was affected. Repair is not complete when an apology has been made or a procedure has been corrected; those may be part of the work, but they do not by themselves restore what was damaged.\n\nThe next task is to understand the failure in relation. Ask what conditions, decisions, relationships, or assumptions made it possible, and listen to the people who carried its consequences. Some harms can be corrected directly; others involve trust, opportunity, safety, dignity, or relationships that may take longer to rebuild. Some losses cannot be fully reversed. Responsible repair does not deny that limit or use it as an excuse to stop taking responsibility.\n\nA responsible response distinguishes learning from excuse-making: understanding the conditions behind a failure should make future responsibility clearer, not make responsibility disappear. Repair therefore joins accountability with renewal. Clarify what must be changed, who remains responsible for following through, how affected people can question or challenge the response, and what would show that the conditions producing the failure are actually changing.\n\nThe aim is not to return mechanically to the situation that existed before, but to restore what can be restored while building a more trustworthy way of carrying the responsibility forward.",
       "expected_doorway": null,
-      "doorway_status": "TITLE_OBSERVED_URL_NOT_CAPTURED",
+      "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH",
       "rating_out_of_10": 9.6,
       "approval_state": "User reviewed the live visitor-facing response and explicitly approved elevation on 2026-11-15.",
       "user_reviewed_response": true,
@@ -4542,7 +4542,7 @@
       "provenance": {
         "source": "User-provided live Guide screenshot reviewed on 2026-11-15.",
         "source_ref": "visitor-facing production response.",
-        "evidence_boundary": "The exemplar freezes the reviewed response with one explicit refinement: repair may confront losses that cannot be fully reversed. The continuation title is preserved exactly as observed; no URL is fabricated."
+        "evidence_boundary": "The exemplar freezes the reviewed response with one explicit refinement: repair may confront losses that cannot be fully reversed. The observed continuation title is preserved as provenance only; no URL is fabricated or promoted to canonical doorway authority because the observed continuation was not separately approved as a canonical continuation."
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "stewardship failure, repair, accountability, trust, consequences, renewal, responsibility",
