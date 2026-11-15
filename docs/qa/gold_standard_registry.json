@@ -4295,6 +4295,54 @@
         "approval_evidence": "User instruction: 'elevate. merge'.",
         "evidence_boundary": "Screenshot establishes the exact reviewed response, the visible canonical doorway, and explicit approval. The doorway was validated through the structural regression and live deployment sequence before visitor-facing acceptance."
       }
+    },
+    {
+      "benchmark_id": "general-guide-local-action-systemic-ecological-transformation-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How can local action connect to systemic ecological transformation?",
+      "expected_response": "Local actions—such as community gardens, neighborhood clean-ups, or local policy changes—serve as concrete experiments that demonstrate ecological principles in everyday life. When these initiatives are documented, shared, and linked to broader networks, they create a feedback loop: the successes and lessons learned inform regional or national strategies, while larger policy shifts provide resources and legitimacy that enable more local projects. This two-way flow preserves agency at the grassroots level while ensuring that local practices are not isolated experiments but part of a larger pattern of change.\n\nThe key distinction lies between scale and structure. Scale refers to the geographic or institutional reach of an action, whereas structure refers to the mechanisms that connect actions across scales—data sharing, collaborative platforms, or policy frameworks that translate local evidence into systemic guidance. A local composting program, for example, can influence municipal waste regulations if its outcomes are communicated through regional coordination that aggregates results and advocates for policy change. Conversely, a national carbon-pricing policy can empower local communities by providing financial incentives for renewable projects, creating a virtuous cycle.\n\nUnderstanding this relationship matters because it prevents the common pitfall of treating local initiatives as either isolated successes or as the sole drivers of systemic change. Recognizing that local actions both shape and are shaped by larger systems helps practitioners design interventions that are scalable, resilient, and responsive to local contexts while contributing to broader ecological transformation. This balanced perspective encourages collaboration, evidence-based scaling, and the maintenance of local autonomy within a transformative trajectory.",
+      "expected_doorway": {
+        "title": "Alignment Before Transformation",
+        "url": "https://geralddaquila.com/alignment-before-transformation"
+      },
+      "rating_out_of_10": 9.3,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the live visitor-facing response with its visible canonical doorway and explicitly authorized Gold Star elevation and merge on 2026-11-15.",
+      "elevation_approval_evidence": "User instruction on 2026-11-15: 'elevate. merge'.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "local action, systemic ecological transformation, multi-scale systems orientation, scale, structure, feedback, local autonomy, policy alignment",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "multi_scale_systems_orientation",
+        "transferable_discipline": "Connect local agency to wider systemic conditions without reducing transformation to any single scale. Distinguish scale from the structures that connect scales; show feedback in both directions; preserve local autonomy while explaining coordination, evidence, and institutional alignment.",
+        "abstention_boundary": "Do not imply that local initiatives alone cause systemic transformation, that larger policy structures simply override local agency, or that the Alignment Before Transformation doorway applies to unrelated questions."
+      },
+      "reasoning_family": "multi_scale_systems_orientation",
+      "transferable_lesson": "Strong systems orientation explains how local action both shapes and is shaped by larger structures, revealing the feedback mechanisms that connect agency, coordination, evidence, and institutional change.",
+      "transfer_boundary": "Transfer the multi-scale reasoning discipline, not the exemplar-specific ecological claims, examples, wording, or doorway.",
+      "user_approved_at": "2026-11-15",
+      "gold_star_number": 69,
+      "assertions": [
+        "Distinguishes scale from the structures that connect actions across scales.",
+        "Shows two-way feedback between local initiatives and broader institutional or policy systems.",
+        "Preserves grassroots agency without treating local action as the sole driver of systemic change.",
+        "Explains how evidence and coordination can translate local outcomes into broader guidance.",
+        "Maintains local autonomy within a wider transformative trajectory.",
+        "Completes the visitor journey with one visible canonical continuation: Alignment Before Transformation."
+      ],
+      "provenance": {
+        "source_date": "2026-11-15",
+        "source": "User-provided screenshot of the live Guide response.",
+        "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
+        "approval_evidence": "User instruction: 'elevate. merge'.",
+        "evidence_boundary": "Screenshot establishes the reviewed response and visible doorway; elevation records the user-approved live exemplar."
+      }
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
