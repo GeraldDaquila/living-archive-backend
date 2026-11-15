@@ -4010,7 +4010,7 @@
     },
     {
       "benchmark_id": "general-guide-technology-stewardship-governance-refinement-2026-11-15",
-      "status": "CANDIDATE",
+      "status": "USER_APPROVED_RELEASE_CANDIDATE",
       "subsystem": "general-purpose-guide",
       "query": "What is the role of technology in a stewardship-centered society?",
       "expected_response": "In a stewardship-centered society, technology is a means, not the source of direction. Its value is judged by whether it strengthens the purposes, relationships, and responsibilities that a society is trying to sustain—not simply by whether it performs a task more efficiently.\n\nThe practical question is therefore not only what technology can do, but what it makes easier or harder for people and institutions to see, decide, and care for over time. Technology can extend human capacity, reduce unnecessary burdens, improve coordination, and reveal patterns that deserve attention. But it cannot decide what ought to be done, whose interests should take priority, or which consequences are acceptable. Those remain matters of human judgment, accountability, and governance.\n\nA responsible approach therefore keeps technology answerable to the larger purposes it serves. It asks who benefits, who bears the costs, what dependencies are created, and whether the arrangement strengthens or weakens people's capacity to act responsibly over the long term. The guiding question is not simply what technology makes possible, but what it helps people and institutions become capable of caring for.",
@@ -4030,14 +4030,15 @@
         "source": "User-provided live Guide screenshot followed by user-authorized refinement and explicit acceptance of the canonical doorway.",
         "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
         "approval_evidence": "User instruction: 'proceed with your refinement, together with a doorway' followed by explicit acceptance: 'this is accepted: Foundations of Stewardship Governance. continue'.",
-        "evidence_boundary": "The user has accepted the refinement and canonical doorway as a candidate release change, but has not yet reviewed the revised live response as a Gold Star exact-answer elevation.",
+        "evidence_boundary": "The user explicitly authorized the refinement and accepted the canonical doorway for release. This record has exact-query live-review authority only; it is not a Gold Star and cannot contribute answer authority or lessons beyond this exact query.",
         "canonical_doorway_evidence": "Accepted by the user; canonical public page verified at the Living Archive domain.",
         "source_path": "docs/qa/gold_standard_registry.json",
         "source_ref": "technology-stewardship-refinement-2026-11-15"
       },
       "rating": null,
       "rating_out_of_10": null,
-      "freeze_policy": "Candidate calibration only. Do not mark user-approved or elevate to Gold Star until the revised live response has been reviewed. Do not treat this candidate record itself as runtime exact-answer authority."
+      "freeze_policy": "Explicitly user-authorized release candidate for exact-query live review only. It is not a Gold Star, does not count toward the authoritative Gold Star inventory, does not contribute cross-question lessons, and cannot be elevated until the user reviews the revised live response and explicitly approves Gold Star elevation.",
+      "runtime_review_authority": true
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",

@@ -31,6 +31,7 @@ VALID_STATUSES = {
     "NEEDS_SOURCE_RECOVERY",
     "CANDIDATE",
     "CANDIDATE_PENDING_USER_REVIEW",
+    "USER_APPROVED_RELEASE_CANDIDATE",
     "MODEL_RECONSTRUCTION_CANDIDATE_NOT_LIVE_REPLAY",
     "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
     "USER_CONFIRMED_NAVIGATOR_HANDOFF_RECORD",
@@ -832,3 +833,16 @@ def test_frozen_ethical_tradeoff_record_matches_authoritative_fixture_exactly():
     assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
     assert record["runtime_transfer"] is True
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+
+
+def test_technology_refinement_release_candidate_has_exact_query_review_authority_without_gold_star_status():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-technology-stewardship-governance-refinement-2026-11-15"
+    )
+    assert record["status"] == "USER_APPROVED_RELEASE_CANDIDATE"
+    assert record["runtime_review_authority"] is True
+    assert record["rating_out_of_10"] is None
+    assert record["expected_doorway"]["title"] == "Foundations of Stewardship Governance"
+    assert "not a Gold Star" in record["freeze_policy"]

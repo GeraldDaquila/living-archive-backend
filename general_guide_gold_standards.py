@@ -12,7 +12,12 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 _REGISTRY_PATH = Path(__file__).resolve().parent / "docs" / "qa" / "gold_standard_registry.json"
-_ELIGIBLE_STATUSES = {"USER_APPROVED_GOLD_STANDARD"}
+_ELIGIBLE_STATUSES = {
+    "USER_APPROVED_GOLD_STANDARD",
+    # Explicit release candidates may be served only for exact-query live review.
+    # They are deliberately excluded from Gold Star learning and count authority.
+    "USER_APPROVED_RELEASE_CANDIDATE",
+}
 
 
 def _normalize_question(value: Any) -> str:
@@ -34,7 +39,7 @@ def _normalize_question(value: Any) -> str:
 
 
 def load_approved_standards() -> Dict[str, Dict[str, str]]:
-    """Load exact current approved answers keyed by normalized benchmark question."""
+    """Load exact approved answers and explicitly authorized exact-query release candidates."""
     payload = json.loads(_REGISTRY_PATH.read_text(encoding="utf-8"))
     records = payload.get("records")
     if not isinstance(records, list):
