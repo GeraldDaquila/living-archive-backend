@@ -4769,6 +4769,56 @@
         "How should we connect personal agency with historical conditions?"
       ],
       "user_approved_at": "2026-11-15"
+    },
+    {
+      "benchmark_id": "general-guide-systems-map-useful-false-confidence-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "gold_star_number": 83,
+      "query": "When is a systems map useful, and when can it create false confidence?",
+      "expected_response": "A systems map is useful when it helps make relationships visible that would otherwise remain scattered or implicit. It can clarify dependencies, feedback, delays, bottlenecks, and points where an action may produce consequences elsewhere. Its value is not that it gives a complete picture, but that it makes assumptions about how a situation is connected explicit enough to examine, question, and revise.\n\nA map can create false confidence when its lines and labels are mistaken for proof. Every map selects what to include, what to leave out, and how to describe relationships; uncertain links can look as solid as well-supported ones. A neat diagram may therefore conceal missing evidence, alternative explanations, changing conditions, or perspectives that were never represented. The more complete a map appears to be, the more important it is to distinguish a useful hypothesis about the system from a verified account of it.\n\nThe practical discipline is to treat a systems map as an instrument for inquiry rather than a final answer. Ask which relationships are evidenced, which are inferred, whose experience or knowledge is absent, and what observations would require the map to change. Used this way, a map can improve judgment by revealing questions worth testing. Used as a substitute for evidence or ongoing attention to reality, it can make uncertainty look settled and give confidence greater precision than the situation deserves.",
+      "expected_doorway": null,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "observed_doorway_title": "Systems Thinking & Civilizational Design",
+      "rating_out_of_10": 9.4,
+      "approval_state": "User reviewed the live visitor-facing response and explicitly approved elevation on 2026-11-15.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User instruction on 2026-11-15: 'elevate'.",
+      "assertions": [
+        "A systems map is useful when it makes relationships and assumptions explicit enough to examine and revise.",
+        "Maps can clarify dependencies, feedback, delays, bottlenecks, and downstream consequences without claiming completeness.",
+        "Lines and labels in a map are not proof; selection, omission, and uncertain relationships can create false confidence.",
+        "A systems map should be treated as a hypothesis or instrument for inquiry rather than a final account of reality.",
+        "Evidence, absent perspectives, changing conditions, and observations that would require revision should remain visible."
+      ],
+      "provenance": {
+        "source": "User-provided live Guide screenshot reviewed on 2026-11-15.",
+        "source_ref": "visitor-facing production response.",
+        "evidence_boundary": "The observed continuation title is retained as provenance only; no canonical doorway URL is invented or promoted to authority without repository-based verification."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "systems maps, representation, evidence, uncertainty, assumptions, feedback, inquiry, false confidence",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "representation_as_testable_hypothesis",
+        "transferable_discipline": "Treat representations of a system as hypotheses that organize inquiry, not as proof. Make assumptions, omissions, evidence, uncertainty, absent perspectives, and changing conditions visible, then return the representation to reality through observation and revision.",
+        "abstention_boundary": "Do not treat a diagram's coherence or completeness as evidence of causal truth, and do not use a map to conceal uncertainty or substitute representation for ongoing attention to reality."
+      },
+      "reasoning_family": "representation_as_testable_hypothesis",
+      "transferable_lesson": "The value of a systems map lies in making assumptions and relationships inspectable; its authority depends on evidence and continued revision against reality.",
+      "transfer_boundary": "Transfer this discipline to models, diagrams, frameworks, theories, dashboards, and other representations of complex conditions; do not assume that visual coherence establishes causal accuracy.",
+      "related_question_variants": [
+        "How should I use a systems map responsibly?",
+        "Can a systems diagram be misleading?",
+        "What is the difference between a systems map and evidence?",
+        "How do you test whether a systems model is wrong?"
+      ],
+      "user_approved_at": "2026-11-15"
     }
   ],
   "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-15: 71 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory. 16 now carry explicit Gold Star numbers, including #75 for the user-reviewed open-question exemplar. Historical numbering remains incomplete for other approved records and must not be inferred without provenance evidence.",
