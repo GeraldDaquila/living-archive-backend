@@ -1,6 +1,7 @@
 name: USE Preflight Integrity
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [main]
     paths:
@@ -15,6 +16,13 @@ on:
       - 'docs/qa/gold_star_qualitative_transfer_review.json'
       - 'gold_star_lessons.py'
       - 'scripts/validate_gold_star_registry.py'
+
+
+# A validation run is a release gate. Serializing runs prevents stale
+# superseded commits from being mistaken for the current PR validation.
+concurrency:
+  group: validation-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   gold-star-integrity:
