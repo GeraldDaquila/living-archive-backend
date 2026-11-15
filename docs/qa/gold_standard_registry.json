@@ -2951,7 +2951,9 @@
       "freeze_policy": "Frozen approved response is an immutable reference artifact; future changes require a new approval record rather than silent mutation.",
       "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "gold_star_number": 75,
+      "numbering_reconciliation_note": "Explicitly numbered #75 on 2026-11-15 following user review and reconciliation. The exemplar was already canonical and approved; this change reconciles its visible Gold Star sequence without duplicating the record."
     },
     {
       "benchmark_id": "general-guide-delegated-judgment-moral-limits-gold-star-2026-11-13",
@@ -4465,7 +4467,7 @@
       }
     }
   ],
-  "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
+  "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-15: 71 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory. 16 now carry explicit Gold Star numbers, including #75 for the user-reviewed open-question exemplar. Historical numbering remains incomplete for other approved records and must not be inferred without provenance evidence.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -4597,6 +4599,9 @@
     "last_audit_date": "2026-11-15",
     "approved_gold_star_count": 71,
     "registry_record_count": 107,
-    "review_reconciliation": "Consolidated duplicate exact-question modes-of-knowing records into one canonical Gold Star #74 record; preserved the verified canonical doorway from the original production-validated exemplar and removed the conflicting duplicate doorway state."
+    "review_reconciliation": "Consolidated duplicate exact-question modes-of-knowing records into one canonical Gold Star #74 record; preserved the verified canonical doorway from the original production-validated exemplar and removed the conflicting duplicate doorway state.",
+    "numbered_gold_star_record_count": 16,
+    "highest_assigned_gold_star_number": 75,
+    "numbering_reconciliation": "The explicit numbered sequence currently extends through #75. Unnumbered approved records remain canonical but are not retroactively assigned historical positions without evidence."
   }
 }
