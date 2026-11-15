@@ -229,6 +229,18 @@ def _guide_node_prompt_context():
     ], ensure_ascii=False, separators=(",", ":"))
 
 
+def _select_verified_doorway_conceptual_family(query):
+    """Return a verified conceptual family only when a canonical doorway applies."""
+    text = str(query or "")
+    if (
+        re.search(r"\b(?:ai|artificial intelligence)\b", text, re.I)
+        and re.search(r"\binterpreter\b", text, re.I)
+        and re.search(r"\bauthority\b", text, re.I)
+    ):
+        return "ai_role_distinction"
+    return None
+
+
 def _select_guide_node_fallback_doorway(query):
     """Select a verified canonical doorway when recovery has no retrieval docs.
 
@@ -10960,6 +10972,40 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             composition_context["authoritative_doorway_title"] = authoritative_doorway["title"]
             print("The Guide final payload boundary: preserved composed systems-map doorway.")
 
+    # Last-mile doorway recovery: composition may answer a visitor correctly
+    # without producing navigation. Do not let a special recovery branch be the
+    # only route that can invoke canonical fallback. Every final payload gets
+    # one bounded recovery attempt, unless a governed standard explicitly
+    # forbids a handoff.
+    # Last-mile recovery is opt-in by a verified conceptual family. A generic
+    # lexical fallback must not add navigation to bounded practical/safety
+    # responses whose contract intentionally has no recommendation.
+    _final_conceptual_family = _select_verified_doorway_conceptual_family(query)
+    if (
+        not authoritative_doorway
+        and _final_conceptual_family
+        and not (
+            _final_gold_standard is not None
+            and bool(_final_gold_standard.get("forbids_doorway"))
+        )
+    ):
+        try:
+            _final_fallback_doorway = _select_guide_node_fallback_doorway(query)
+            authoritative_doorway = _normalize_authoritative_recommendation(
+                _final_fallback_doorway
+            ) if isinstance(_final_fallback_doorway, dict) else None
+            if authoritative_doorway:
+                composition_context["authoritative_doorway"] = authoritative_doorway
+                composition_context["authoritative_doorway_title"] = (
+                    authoritative_doorway["title"]
+                )
+                print(
+                    "The Guide final payload boundary: recovered verified canonical doorway."
+                )
+        except Exception:
+            # Navigation must fail closed; answer availability is independent.
+            authoritative_doorway = None
+
     # Final authority boundary: only an explicit no-handoff instruction may
     # suppress an independently verified doorway at the final visitor boundary.
     authoritative_doorway = _enforce_registered_gold_standard_doorway(
@@ -11276,6 +11322,41 @@ async def _use_send_json(send, payload, status_code=200):
                         payload["canonical_doorway"] = payload["recommendation"]
             except Exception:
                 # Navigation must never turn a valid answer into a service error.
+                pass
+        # Conceptual-family fallback is the final visitor-facing doorway seam.
+        # It covers ordinary successful answers that bypass composition-level
+        # navigation recovery, while remaining opt-in to verified families.
+        if (
+            not _archive_claim_final
+            and not isinstance(payload.get("recommendation"), dict)
+            and _boundary_query
+            and _boundary_standard is None
+        ):
+            try:
+                _boundary_family = _select_verified_doorway_conceptual_family(
+                    _boundary_query
+                )
+                if _boundary_family:
+                    _boundary_fallback = _select_guide_node_fallback_doorway(
+                        _boundary_query
+                    )
+                    if isinstance(_boundary_fallback, dict):
+                        _boundary_title = str(
+                            _boundary_fallback.get("title") or ""
+                        ).strip()
+                        _boundary_url = str(
+                            _boundary_fallback.get("url") or ""
+                        ).strip()
+                        if _boundary_title and re.match(
+                            r"^https://\S+$", _boundary_url, re.I
+                        ):
+                            payload["recommendation"] = {
+                                "title": _boundary_title,
+                                "url": _boundary_url,
+                            }
+                            payload["canonical_doorway"] = payload["recommendation"]
+            except Exception:
+                # Navigation fallback must never interrupt a valid answer.
                 pass
         # Exact approved standards with a required canonical continuation must
         # fail visibly in QA rather than silently render as navigational dead ends.
