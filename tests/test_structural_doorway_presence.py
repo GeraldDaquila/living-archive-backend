@@ -26,6 +26,7 @@ def test_no_verified_evidence_keeps_no_doorway(monkeypatch):
     monkeypatch.setattr(main, "_canonical_primary_from_docs", lambda docs, query, profile: None)
     monkeypatch.setattr(main, "_select_guide_node_fallback_doorway", lambda query: None)
 
+    # Suppression is legitimate only when no verified canonical continuation exists.
     assert main._verified_archive_doorway_fallback(
         "A question with no verified Archive continuation", [], {"action": "topical"}
     ) is None
