@@ -658,6 +658,15 @@
       "qualifying_context": "Questions about repair, accountability, trust, institutional failure, relational harm, or stewardship failure.",
       "abstention_boundary": "Do not promise that repair automatically restores trust, reverses harm, or returns conditions to their prior state. Do not use systems analysis to dissolve individual or institutional responsibility.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-care-for-the-commons-gold-standard-2026-11-15",
+      "question": "How does the Archive understand care for the commons?",
+      "reasoning_family": "stewardship_of_shared_conditions",
+      "transferable_discipline": "When asked about care for a shared good, begin by identifying the conditions held in common rather than reducing the answer to ownership or resource management. Keep collective responsibility and differentiated accountability together; make benefits, costs, participation, and answerability visible; then extend the frame from preservation toward renewal of shared conditions and collective capacity.",
+      "qualifying_context": "Questions about common goods, shared conditions, collective stewardship, public responsibility, or care for resources and relationships people depend upon together.",
+      "abstention_boundary": "Do not collapse the commons into a single resource, treat collective care as the disappearance of individual responsibility, or reduce long-term stewardship to short-term preservation alone.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
