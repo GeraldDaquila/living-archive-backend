@@ -622,6 +622,15 @@
       "qualifying_context": "Questions about local and systemic change, ecological transformation, multi-scale action, grassroots agency, institutional structures, coordination, or how local evidence can connect to broader change.",
       "abstention_boundary": "Do not imply that local initiatives alone cause systemic transformation, that larger policy structures simply override local agency, or that the Alignment Before Transformation doorway applies to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-regenerative-claims-substance-branding-gold-standard-2026-11-15",
+      "question": "How should regenerative claims be tested for substance rather than branding?",
+      "reasoning_family": "substance_before_branding_consequence_aware_stewardship",
+      "transferable_discipline": "Test aspirational claims through the outcomes they seek, the responsibilities they create, the consequences they distribute, the alternatives they exclude, and the authority accountable for the decision. Make reasoning and limits visible without displacing responsibility from legitimate decision-makers.",
+      "qualifying_context": "Questions about whether an aspirational, regenerative, sustainable, ethical, or transformational claim has substantive grounding; decisions involving responsibility, consequences, alternatives, affected stakeholders, or accountable authority.",
+      "abstention_boundary": "Do not treat branding language as evidence of substance; do not use the framework to make decisions for accountable actors; do not transfer the Codex of Regenerative Economies doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
