@@ -2242,6 +2242,29 @@ def _archive_meaning_evidence_recovery(
     }
 
 
+def _stewardship_technology_canonical_doorway(question: str) -> Dict[str, str]:
+    """Return the governance foundation for stewardship-centered technology inquiries.
+
+    This is deliberately narrow: it applies only when a visitor asks about the
+    role of technology in a stewardship-centered society. The canonical
+    destination is verified in the published territorial snapshot and provides
+    a continuation into institutional judgment, accountability, and governance.
+    """
+    normalized = _normalize_space(question).casefold()
+    has_technology = bool(re.search(r"\b(?:technology|technological|digital)\b", normalized))
+    has_stewardship = bool(re.search(r"\bstewardship(?:-centered| centred)?\b", normalized))
+    has_societal_role = bool(re.search(
+        r"\bwhat role should\b.{0,80}\bplay in\b.{0,100}\b(?:society|societal)\b",
+        normalized,
+    ))
+    if has_technology and has_stewardship and has_societal_role:
+        return {
+            "doorway_title": "Foundations of Stewardship Governance",
+            "doorway_url": "https://geralddaquila.com/foundations-of-stewardship-governance",
+        }
+    return {"doorway_title": "", "doorway_url": ""}
+
+
 def _cross_scale_canonical_doorway(question: str) -> Dict[str, str]:
     """Return the canonical hub for a verified local-to-civilizational inquiry.
 
@@ -3540,6 +3563,8 @@ def compose(
             # relying on a later generic attachment pass to reconstruct it.
             doorway = _cross_scale_canonical_doorway(question)
             if not doorway.get("doorway_title"):
+                doorway = _stewardship_technology_canonical_doorway(question)
+            if not doorway.get("doorway_title"):
                 doorway = _select_verified_recovery_doorway(question, documents)
             _emit_guide_outcome(
                 "provider_exhaustion_fallback",
@@ -3660,6 +3685,8 @@ def compose(
     # questions; then fall back to retrieval-backed selection for all others.
     if not candidate.get("doorway_title"):
         doorway = _cross_scale_canonical_doorway(question)
+        if not doorway.get("doorway_title"):
+            doorway = _stewardship_technology_canonical_doorway(question)
         if not doorway.get("doorway_title") and documents:
             doorway = _select_verified_recovery_doorway(question, documents)
         if doorway.get("doorway_title"):
