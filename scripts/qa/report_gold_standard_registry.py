@@ -45,6 +45,14 @@ def main() -> int:
 
     registry_bytes = args.registry.read_bytes()
     registry = json.loads(registry_bytes)
+    approved_gold_stars = [
+        item for item in registry["records"]
+        if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
+    ]
+    active_runtime_gold_stars = [
+        item for item in approved_gold_stars
+        if item.get("runtime_transfer") is True
+    ]
     report = {
         "report_schema_version": "1.0.0",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -57,6 +65,11 @@ def main() -> int:
         else str(args.registry),
         "registry_sha256": hashlib.sha256(registry_bytes).hexdigest(),
         "benchmark_count": len(registry["records"]),
+        # The authoritative Gold Star count is status-based and intentionally
+        # independent of subsystem labels. Subsystem naming has evolved over
+        # time and must never split the approved inventory.
+        "authoritative_gold_star_count": len(approved_gold_stars),
+        "active_runtime_gold_star_count": len(active_runtime_gold_stars),
         "benchmark_ids": [item["benchmark_id"] for item in registry["records"]],
         "application_commit": args.application_commit,
         "runtime_identity": args.runtime_identity,
