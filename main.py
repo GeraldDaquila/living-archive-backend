@@ -5307,6 +5307,9 @@ def _guide_finalize_visitor_payload(payload, query):
         # Do not blindly preserve an upstream URL merely because it is canonical:
         # provenance inquiries require query relevance. The shared recovery boundary
         # is authoritative for selecting the continuation from the inquiry evidence.
+        # Query-specific Guide Nodes have first authority for provenance inquiries.
+        # If no node exists, bounded evidence recovery may select a continuation;
+        # unrelated upstream recommendations are never preserved by default.
         _archive_doorway = _archive_claim_authoritative_doorway(
             query,
             safe.get("recommendation") or safe.get("canonical_doorway"),
