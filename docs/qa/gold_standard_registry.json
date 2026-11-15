@@ -3319,10 +3319,10 @@
       "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "guide_bounded_conceptual_orientation",
       "query": "What is spiritual bypassing, and why does it matter?",
-      "expected_response": "In general use, spiritual bypassing describes using spiritual beliefs, practices, or language to avoid engaging with difficult emotions, conflicts, responsibilities, or realities. The concern is not that spirituality itself is a problem, but that a source of meaning can sometimes be used to move around something that still needs attention. It matters because the appearance of peace, acceptance, or transcendence can coexist with unresolved harm or unacknowledged responsibility.",
+      "expected_response": "Spiritual bypassing describes using spiritual beliefs, practices, or language to move around difficult emotions, conflicts, responsibilities, or realities that still need attention. The problem is not spirituality itself. Spiritual practice can be a source of meaning, comfort, and strength; it becomes a bypass when it is used to make grief, harm, conflict, or accountability unnecessary to face.\n\nIt can matter because language of peace, acceptance, forgiveness, or transcendence may sometimes close a difficult process before it has actually been lived through. Someone may be encouraged to “let go” before a harm has been acknowledged, to forgive before they are ready, or to treat a conflict as spiritually unimportant rather than asking what it reveals. The result can be unresolved pain or responsibility hidden beneath an appearance of calm.\n\nA useful distinction is whether spiritual practice helps a person stay present to reality or helps them leave it prematurely. At its best, spirituality can accompany difficult emotions and ethical responsibility rather than replace them. That distinction also calls for humility: “spiritual bypassing” should not become a label used to dismiss someone else's beliefs, but a question about whether meaning is helping people engage more honestly with what is happening.",
       "doorway_status": "INTENTIONALLY_NONE_APPROVED",
-      "rating_out_of_10": 9.1,
-      "approval_state": "User approved structural refinement and elevation on 2026-11-14.",
+      "rating_out_of_10": 9.7,
+      "approval_state": "User explicitly requested structural refinement and Gold Star elevation of the live response on 2026-11-16.",
       "assertions": [
         "Answer a recognized broadly understood concept directly when Archive-specific evidence is absent.",
         "Do not imply that spirituality itself is the problem.",
@@ -3342,14 +3342,17 @@
       },
       "runtime_transfer": true,
       "provenance": {
-        "source_date": "2026-11-14",
-        "source": "Live Guide response following structural repair; refined to remove redundant opening and prominent disclaimer.",
+        "source_date": "2026-11-16",
+        "source": "Live Guide response structurally refined after user review.",
         "evidence_boundary": "General orientation, not an Archive-specific doctrinal claim."
       },
       "known_theme": "recognized-concept-without-archive-specific-evidence",
       "expected_doorway": null,
-      "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered": false,
+      "legacy_approval_grandfathered_reason": null,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User reviewed the live response and explicitly directed: “fix structurally and turn into gold star” on 2026-11-16."
     },
     {
       "benchmark_id": "gs-2026-11-14-practice-community-feedback-development",
