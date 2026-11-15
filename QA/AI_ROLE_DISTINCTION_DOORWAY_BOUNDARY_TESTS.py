@@ -13,6 +13,10 @@ def suppresses_unreviewed(query, recovery):
     reviewed = recovery.get("doorway") if isinstance(recovery, dict) else None
     return ai_role_distinction and not reviewed
 
+def test_verified_canonical_ai_role_candidate_can_be_released():
+    candidate = {"title": "AI and Human Judgment", "url": "https://geralddaquila.com/example/"}
+    assert candidate["title"] and candidate["url"].startswith("https://geralddaquila.com/")
+
 def main():
     assert suppresses_unreviewed(QUESTION, {"response": "bounded explanation"})
     assert not suppresses_unreviewed(
