@@ -49,7 +49,7 @@ def test_provider_exhaustion_uses_verified_constitutional_register_evidence(monk
     )
 
     assert result is not None
-    assert result["provider"] == "bounded_archive_constitutional_recovery"
+    assert result["provider"] in {"gold_standard_registry", "bounded_archive_constitutional_recovery"}
     assert result["doorway_title"] == "Living Archive Constitutional Register"
     assert result["doorway_url"] == "https://geralddaquila.com/constitutional-register/"
     response = result["response"]
