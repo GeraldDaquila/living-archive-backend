@@ -640,15 +640,6 @@
       "qualifying_context": "Questions about unpaid care, care work, commons maintenance, invisible infrastructure, sustaining conditions, economic recognition, externalized costs, or shared responsibility.",
       "abstention_boundary": "Do not reduce the explanation to a policy-shopping list, and do not replace a bounded conceptual answer with a generic evidence-insufficiency abstention for qualifying questions. Do not transfer the exemplar-specific wording or Global Reset doorway to unrelated questions.",
       "activation": "active_quality_contributor"
-    },
-    {
-      "benchmark_id": "general-guide-modes-of-knowing-dialogue-gold-standard-2026-11-15",
-      "question": "How should these modes of knowing be placed in dialogue without being confused with one another?",
-      "reasoning_family": "differentiated_modes_of_knowing_in_dialogue",
-      "transferable_discipline": "Differentiate what each mode of knowing can illuminate and support; keep standards and limits visible; place modes in dialogue without forced hierarchy; then move toward accountable judgment that makes consequences and affected perspectives visible.",
-      "qualifying_context": "Questions about different modes of knowing, evidence, lived experience, expertise, historical understanding, moral concern, plural knowledge, dialogue, or collective judgment.",
-      "abstention_boundary": "Do not collapse distinct forms of knowing into one vocabulary or hierarchy, mistake one mode for the whole, force false consensus, or treat the observed continuation title as a verified canonical doorway without an independently verified URL.",
-      "activation": "active_quality_contributor"
     }
   ]
 }
