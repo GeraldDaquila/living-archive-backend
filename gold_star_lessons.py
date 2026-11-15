@@ -48,11 +48,12 @@ def validate_registry_integrity(
     This validator is deliberately fail-closed: an inconsistent approved ledger
     must not silently degrade into partial or ambiguous runtime quality guidance.
     """
+    # The Constitution defines one approved inventory by status, not by
+    # subsystem label. Subsystem names are descriptive metadata and must not
+    # silently exclude an approved contributor from runtime governance.
     approved = [
         r for r in records
-        if isinstance(r, dict)
-        and r.get("subsystem") == "general-purpose-guide"
-        and r.get("status") in _ALLOWED_STATUSES
+        if isinstance(r, dict) and r.get("status") in _ALLOWED_STATUSES
     ]
     ids = [str(r.get("benchmark_id") or "").strip() for r in approved]
     if not all(ids):
@@ -191,10 +192,11 @@ def _load_lessons() -> List[Dict[str, Any]]:
     for record in records:
         if not isinstance(record, dict):
             continue
-        if record.get("subsystem") != "general-purpose-guide":
-            continue
         if record.get("status") not in _ALLOWED_STATUSES:
             continue
+        # All explicitly approved Gold Stars belong to the one constitutional
+        # inventory. Relevance and abstention rules, not subsystem labels,
+        # govern whether a lesson contributes to a particular visitor question.
         benchmark_id = str(record.get("benchmark_id") or "").strip()
         query = str(record.get("query") or "").strip()
         if not benchmark_id or not query or benchmark_id in seen:
