@@ -243,6 +243,12 @@ def _select_verified_doorway_conceptual_family(query):
         and re.search(r"\b(?:restoration|restore|repair|damage|environmental)\b", text, re.I)
     ):
         return "regeneration_beyond_restoration"
+    if (
+        re.search(r"\bgrowth\b", text, re.I)
+        and re.search(r"\b(?:destructive|harmful|damage|collapse|break)\b", text, re.I)
+        and re.search(r"\b(?:ecological|environmental|social|planetary|living)\b.{0,100}\blimits?\b|\blimits?\b.{0,100}\b(?:ecological|environmental|social|planetary|living)\b", text, re.I)
+    ):
+        return "growth_within_living_limits"
     return None
 
 
@@ -254,6 +260,10 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "regeneration_beyond_restoration": {
         "title": "Regenerative Governance: What Comes After Extraction-Based Systems?",
         "url": "https://geralddaquila.com/2026/06/08/regenerative-governance-what-comes-after-extraction-based-systems/",
+    },
+    "growth_within_living_limits": {
+        "title": "ARC III: Growth doesn’t break systems. It reveals the limits of the structure holding them.",
+        "url": "https://geralddaquila.com/arc-iii-growth-doesnt-break-systems-it-reveals-the-limits-of-the-structure-holding-them/",
     },
 }
 
