@@ -4894,6 +4894,25 @@
       "user_approved_at": "2026-11-16",
       "known_theme": "formal authority, actual influence, informal power, institutional accountability",
       "elevation_approval_evidence": "User reviewed the live response, explicitly requested: “fix structurally and turn this into a gold star,” and subsequently directed alignment of the code with the Gold Star rating on 2026-11-16."
+    },
+    {
+      "benchmark_id": "general-guide-reflection-vs-therapy-release-candidate-2026-11-15",
+      "status": "USER_APPROVED_RELEASE_CANDIDATE",
+      "subsystem": "general-purpose-guide",
+      "runtime_transfer": false,
+      "query": "How should The Guide distinguish reflection from therapy?",
+      "expected_response": "The Guide treats reflection as a practice of attention and inquiry, not as therapy. Reflection can help someone notice patterns, clarify values, consider relationships and choices, and place an experience in a wider context. Its purpose is orientation and judgment: helping a person see more clearly without claiming to diagnose, assess, or resolve a mental-health condition.\n\nTherapy has a different role. It is a form of care that addresses psychological distress, mental health, trauma, or other therapeutic needs within an appropriate professional relationship. The Guide should not present its reflections as clinical assessment, treatment, or a substitute for that kind of care.\n\nThe boundary matters because reflection can sometimes bring difficult experiences into view. When a question points toward significant distress, safety concerns, trauma, or a need for clinical support, the Guide should remain honest about its limits rather than extending reflection into treatment. Its role is to offer orientation and preserve the person's agency—not to take the place of a therapeutic relationship.",
+      "expected_doorway": null,
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+      "known_theme": "reflection, therapy, human development, boundaries, orientation",
+      "freeze_policy": "Release candidate for exact-query visitor review only; do not promote to Gold Star or runtime learning authority without explicit post-fix live review and elevation approval.",
+      "release_candidate_evidence": "Created to repair the user-observed cross-question answer leakage and provide the exact corrected response for live review.",
+      "gold_star_capabilities": {
+        "exact_answer_authority": true,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": false
+      },
+      "candidate_state": "PENDING_VISITOR_REVIEW"
     }
   ],
   "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-15: 71 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory. 16 now carry explicit Gold Star numbers, including #75 for the user-reviewed open-question exemplar. Historical numbering remains incomplete for other approved records and must not be inferred without provenance evidence.",
