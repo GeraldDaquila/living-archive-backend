@@ -630,3 +630,24 @@ def test_final_visitor_payload_applies_visible_glossary_attribution():
     attribution = source.index("general_guide_composition.apply_glossary_source_attribution(")
     payload = source.index('    payload = {\n        "ok": True,', attribution)
     assert attribution < payload
+
+
+def test_explicit_release_candidate_is_served_exactly_for_live_review(monkeypatch):
+    import general_guide_composition as composition
+
+    query = "What is the role of technology in a stewardship-centered society?"
+    expected = resolve_exact_gold_standard(query)
+    assert expected is not None
+    assert expected["status"] == "USER_APPROVED_RELEASE_CANDIDATE"
+    assert expected["doorway_title"] == "Foundations of Stewardship Governance"
+    assert expected["doorway_url"] == "https://geralddaquila.com/%F0%9F%8C%B1foundations-of-stewardship-governance/"
+
+    def provider_must_not_be_called(**kwargs):
+        raise AssertionError("An explicitly authorized exact-query release candidate must be reviewable live.")
+
+    monkeypatch.setattr(composition, "route_with_model_bank", provider_must_not_be_called)
+    result = composition.compose(use_core=object(), query=query, context_data={})
+    assert result["provider"] == "gold_standard_registry"
+    assert result["response"] == expected["expected_response"]
+    assert result["doorway_title"] == expected["doorway_title"]
+    assert result["doorway_url"] == expected["doorway_url"]
