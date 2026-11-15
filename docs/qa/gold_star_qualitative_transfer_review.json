@@ -640,6 +640,15 @@
       "qualifying_context": "Questions about unpaid care, care work, commons maintenance, invisible infrastructure, sustaining conditions, economic recognition, externalized costs, or shared responsibility.",
       "abstention_boundary": "Do not reduce the explanation to a policy-shopping list, and do not replace a bounded conceptual answer with a generic evidence-insufficiency abstention for qualifying questions. Do not transfer the exemplar-specific wording or Global Reset doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-open-question-finality-uncertainty-gold-standard-2026-11-15",
+      "question": "How should the Guide respond when a user seeks a final answer to an inherently open question?",
+      "reasoning_family": "open_question_orientation_without_false_closure",
+      "transferable_discipline": "Make the shape of uncertainty visible; distinguish stronger evidence from weaker claims; surface assumptions and divergent interpretations; provide orientation without false closure; preserve responsibility for judgment.",
+      "qualifying_context": "Questions seeking definitive answers where the underlying issue remains open, contested, uncertain, interpretive, or dependent on unresolved evidence or values.",
+      "abstention_boundary": "Do not manufacture a final answer when the question remains genuinely open, but do not collapse into vague non-answering or generic evidence-insufficiency when useful orientation is possible. Do not transfer exemplar-specific wording or doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
