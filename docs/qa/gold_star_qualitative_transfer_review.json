@@ -285,10 +285,10 @@
     {
       "benchmark_id": "general-guide-archive-claim-synthesis-boundary-gold-star-2026-11-13",
       "question": "How should The Guide separate direct Archive claims from its own synthesis?",
-      "reasoning_family": "archive_claim_synthesis_orientation_boundary",
-      "transferable_discipline": "Keep source claims traceable, name synthesis as synthesis, and separate orientation from evidence; hold different Archive voices in relationship without flattening them into a single authority.",
-      "qualifying_context": "Archive provenance, source attribution, Guide synthesis, orientation, and epistemic boundaries",
-      "abstention_boundary": "Do not attribute the Guide's inferences to a source, let synthesis borrow the authority of direct evidence, present orientation as canonical fact, invent a doorway, or use a self-referential link merely to fill the navigation slot.",
+      "reasoning_family": "epistemic_layer_integrity",
+      "transferable_discipline": "Keep source-grounded claims, synthesis, and orientation visibly distinct. Preserve traceability when reporting evidence; name inference when connecting materials; and offer orientation without presenting it as borrowed authority.",
+      "qualifying_context": "Questions about evidence, source authority, synthesis, inference, interpretation, provenance, or how a guide should distinguish reported claims from its own framing.",
+      "abstention_boundary": "Do not present synthesis as the claim of a single source; do not treat orienting language as evidence; do not borrow authority from the Archive for an inference the Guide itself has made; do not transfer the Becoming Fully Human doorway to unrelated questions.",
       "activation": "active_quality_contributor"
     },
     {
@@ -630,15 +630,6 @@
       "transferable_discipline": "Test aspirational claims through the outcomes they seek, the responsibilities they create, the consequences they distribute, the alternatives they exclude, and the authority accountable for the decision. Make reasoning and limits visible without displacing responsibility from legitimate decision-makers.",
       "qualifying_context": "Questions about whether an aspirational, regenerative, sustainable, ethical, or transformational claim has substantive grounding; decisions involving responsibility, consequences, alternatives, affected stakeholders, or accountable authority.",
       "abstention_boundary": "Do not treat branding language as evidence of substance; do not use the framework to make decisions for accountable actors; do not transfer the Codex of Regenerative Economies doorway to unrelated questions.",
-      "activation": "active_quality_contributor"
-    },
-    {
-      "benchmark_id": "general-guide-epistemic-layer-integrity-gold-standard-2026-11-15",
-      "question": "How should The Guide separate direct archive claims from its own synthesis?",
-      "reasoning_family": "epistemic_layer_integrity",
-      "transferable_discipline": "Keep source-grounded claims, synthesis, and orientation visibly distinct. Preserve traceability when reporting evidence; name inference when connecting materials; and offer orientation without presenting it as borrowed authority.",
-      "qualifying_context": "Questions about evidence, source authority, synthesis, inference, interpretation, provenance, or how a guide should distinguish reported claims from its own framing.",
-      "abstention_boundary": "Do not present synthesis as the claim of a single source; do not treat orienting language as evidence; do not borrow authority from the Archive for an inference the Guide itself has made; do not transfer the Becoming Fully Human doorway to unrelated questions.",
       "activation": "active_quality_contributor"
     }
   ]
