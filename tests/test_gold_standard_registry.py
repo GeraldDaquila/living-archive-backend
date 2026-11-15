@@ -756,4 +756,4 @@ def test_held_in_trust_gold_star_preserves_recognition_relationship_boundary():
     assert "care is owed beyond the holder's own preference or convenience" in response
     assert "Trust is relational" in response
     assert "where the holder's authority ends" in response
-    assert "not imply unlimited responsibility" in response
+    assert "without assuming that every duty is unlimited or belongs to one person alone" in response
