@@ -246,7 +246,9 @@
         "intake_note": "Historical provenance is retained; this classification does not infer an original generation mode beyond the available record evidence."
       },
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "gold_star_candidate_state": "NOT_GOLD_STAR_UNTIL_FULLY_VALIDATED"
+      "gold_star_candidate_state": "NOT_GOLD_STAR_UNTIL_FULLY_VALIDATED",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-responsibility-boundary-2026-10",
@@ -1453,7 +1455,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "humane orientation",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-water-boiling-point-failure-control-2026-10-24",
@@ -1523,7 +1527,9 @@
       "known_theme": "direct factual answer",
       "runtime_transfer": true,
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-living-archive-cosmology-gold-standard-2026-10-25",
@@ -1564,7 +1570,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "scope and worldview",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-first-principles-gold-standard-2026-10-25",
@@ -1610,7 +1618,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "concept then source",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-living-archive-definition-gold-standard-2026-10-25",
@@ -1650,7 +1660,9 @@
       "known_theme": "identity and epistemic boundary",
       "runtime_transfer": true,
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-methods-comparison-gold-standard-2026-10-25",
@@ -1690,7 +1702,9 @@
       "known_theme": "distinction before synthesis",
       "runtime_transfer": true,
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-cosmology-generalization-standards-gold-standard-2026-10-25",
@@ -1729,7 +1743,9 @@
       "known_theme": "evidence scope and generalization",
       "runtime_transfer": true,
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-stewardship-living-archive-meaning-gold-standard-2026-10-25",
@@ -1770,7 +1786,9 @@
       "known_theme": "stewardship with boundaries",
       "runtime_transfer": true,
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-identifying-what-is-held-in-trust-gold-standard-2026-10-25",
@@ -1815,7 +1833,9 @@
       "doorway_status": "APPROVED_QUERY_SPECIFIC_CONTINUATION",
       "doorway_note": "The answer remains complete in itself. The doorway is a separate, intentional continuation into the Archive: identifying what is held in trust naturally opens into the wider question of stewardship—how responsibilities for people, resources, relationships, and institutions are understood and exercised.",
       "rating_out_of_10": 9.8,
-      "approval_state": "USER_AUTHORIZED_STRUCTURAL_GOLD_STAR_REVISION_2026-11-15"
+      "approval_state": "USER_AUTHORIZED_STRUCTURAL_GOLD_STAR_REVISION_2026-11-15",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-faithful-stewardship-values-conflict-gold-standard-2026-10-25",
@@ -1857,7 +1877,9 @@
       "known_theme": "tradeoff discernment",
       "runtime_transfer": true,
       "doorway_status": "VERIFIED_CANONICAL_RECONCILED",
-      "doorway_note": "Live Guide continuation matched a verified public asset in the canonical archive crosslink snapshot."
+      "doorway_note": "Live Guide continuation matched a verified public asset in the canonical archive crosslink snapshot.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-intergenerational-stewardship-gold-standard-2026-10-25",
@@ -1894,7 +1916,9 @@
       "doorway_status": "INTENTIONALLY_NONE_APPROVED",
       "doorway_note": "No doorway is frozen into this elevation because the exact canonical destination URL was not independently verified as part of this release; the answer remains complete without one.",
       "rating_out_of_10": 9.6,
-      "approval_state": "User explicitly approved Gold Star elevation on 2026-11-15 after final review of the validated live response."
+      "approval_state": "User explicitly approved Gold Star elevation on 2026-11-15 after final review of the validated live response.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-system-vs-separate-problems-gold-standard-2026-10-25",
@@ -1932,7 +1956,9 @@
       "known_theme": "systems relationships",
       "runtime_transfer": true,
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-leverage-point-misuse-gold-standard-2026-10-26",
@@ -1976,7 +2002,9 @@
       "known_theme": "powerful intervention with safeguards",
       "runtime_transfer": true,
       "doorway_status": "VERIFIED_CANONICAL_SELECTED",
-      "doorway_note": "Selected from the complete canonical archive crosslink snapshot because the case study directly extends the response's concern with leverage, hidden influence, dependency, and accountable use of power."
+      "doorway_note": "Selected from the complete canonical archive crosslink snapshot because the case study directly extends the response's concern with leverage, hidden influence, dependency, and accountable use of power.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-complexity-and-uncertainty-gold-standard-2026-10-26",
@@ -2021,7 +2049,9 @@
       },
       "known_theme": "distinction under complexity",
       "doorway_status": "VERIFIED_CANONICAL_RECONCILED",
-      "doorway_note": "Live Guide continuation matched a verified public asset in the canonical archive crosslink snapshot."
+      "doorway_note": "Live Guide continuation matched a verified public asset in the canonical archive crosslink snapshot.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26",
@@ -2067,7 +2097,9 @@
       "known_theme": "integration without false consensus",
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "The Gold Star freezes the substantive live response. No canonical doorway URL is inferred or invented; doorway metadata remains non-authoritative until separately recovered and approved.",
-      "rating_out_of_10": 9.6
+      "rating_out_of_10": 9.6,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-leadership-vs-positional-authority-gold-standard-2026-10-26",
@@ -2104,7 +2136,9 @@
       "known_theme": "role vs practice",
       "runtime_transfer": true,
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-operational-discipline-humane-leadership-gold-standard-2026-10-26",
@@ -2144,7 +2178,9 @@
       "known_theme": "humane reliability",
       "runtime_transfer": true,
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Visible doorway label is preserved in assertions/provenance, but no complete canonical title-and-URL doorway pair is inferred or invented."
+      "doorway_note": "Visible doorway label is preserved in assertions/provenance, but no complete canonical title-and-URL doorway pair is inferred or invented.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-competing-stakeholder-obligations-gold-standard-2026-10-26",
@@ -2182,7 +2218,9 @@
       "known_theme": "stakeholder tradeoffs",
       "runtime_transfer": true,
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-governance-beyond-administration-gold-standard-2026-10-26",
@@ -2221,7 +2259,9 @@
         "intake_note": "Capability metadata governs future retrieval roles. It does not infer how the original answer was generated."
       },
       "known_theme": "governance architecture",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-charisma-constitutional-restraint-gold-standard-2026-10-26",
@@ -2259,7 +2299,9 @@
       "known_theme": "power with checks",
       "runtime_transfer": true,
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-governance-redesign-preaction-questions-gold-standard-2026-10-26",
@@ -2296,7 +2338,9 @@
       "known_theme": "preaction governance inquiry",
       "runtime_transfer": true,
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-institutional-memory-gold-standard-2026-10-26",
@@ -2332,7 +2376,9 @@
       "known_theme": "continuity with context",
       "runtime_transfer": true,
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-conflicting-information-discernment-gold-star-2026-11-07",
@@ -2379,7 +2425,9 @@
       },
       "known_theme": "epistemic discernment",
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Visible doorway label is preserved in assertions/provenance, but no complete canonical title-and-URL doorway pair is inferred or invented."
+      "doorway_note": "Visible doorway label is preserved in assertions/provenance, but no complete canonical title-and-URL doorway pair is inferred or invented.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-developmental-language-gold-star-2026-11-09",
@@ -2460,7 +2508,9 @@
       },
       "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13",
@@ -2499,7 +2549,9 @@
       },
       "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved."
+      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-reflective-decline-without-romanticizing-gold-star-2026-11-13",
@@ -2541,7 +2593,9 @@
         "verification_context": "live production validation following final visitor-boundary repair",
         "approval_date": "2026-11-13"
       },
-      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
+      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-systems-intelligibility-without-monocausal-reduction-gold-star-2026-11-13",
@@ -2578,7 +2632,9 @@
         "verification_context": "live production behavioral validation of explanatory reasoning family",
         "approval_date": "2026-11-13"
       },
-      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
+      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-contextual-synthesis-across-different-values-gold-star-2026-11-13",
@@ -2625,7 +2681,9 @@
         "primary_response_provenance": "The approved response was served by the deterministic _contextual_synthesis_recovery() path after the contextual-synthesis classifier detected an upstream source-verification/refusal failure; the doorway was subsequently recovered through active canonical retrieval.",
         "provenance_verified_date": "2026-11-13"
       },
-      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
+      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-2026-11-13",
@@ -2673,7 +2731,9 @@
         "primary_response_provenance": "The approved response is served by the deterministic _public_predictive_system_recovery() path when the registered public predictive-system reasoning family is detected and upstream retrieval/provider failure would otherwise produce a generic non-answer.",
         "provenance_verified_date": "2026-11-13"
       },
-      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
+      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-living-archive-purpose-orientation-gold-star-2026-11-13",
@@ -2720,7 +2780,9 @@
         "primary_response_provenance": "The approved response is served by the deterministic _archive_purpose_recovery() path when the narrow foundational purpose question is detected and upstream retrieval/provider failure would otherwise produce a generic non-answer.",
         "provenance_verified_date": "2026-11-13"
       },
-      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
+      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-modes-of-knowing-dialogue-gold-star-2026-11-13",
@@ -2766,7 +2828,9 @@
         "primary_response_provenance": "The approved response is served by the deterministic modes-of-knowing recovery path for the narrowly recognized dialogue question family.",
         "provenance_verified_date": "2026-11-13"
       },
-      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation."
+      "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-archive-claim-synthesis-boundary-gold-star-2026-11-13",
@@ -2811,7 +2875,9 @@
         "doorway_verification": "Rendered result displayed the canonical continuation title, but its URL was not independently verified. The exemplar is therefore retained without inventing a URL; doorway state is explicitly marked incomplete rather than treated as a complete runtime doorway contract."
       },
       "freeze_policy": "Frozen approved response and its provenance discipline are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
-      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED"
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-open-question-orientation-gold-star-2026-11-13",
@@ -2855,7 +2921,9 @@
         "approval_record": "Explicit user instruction: elevate to Gold Star."
       },
       "freeze_policy": "Frozen approved response is an immutable reference artifact; future changes require a new approval record rather than silent mutation.",
-      "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH"
+      "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-delegated-judgment-moral-limits-gold-star-2026-11-13",
@@ -2899,7 +2967,9 @@
         "approval_record": "Explicit user instruction: elevate to gold star."
       },
       "freeze_policy": "Frozen approved response is an immutable reference artifact; future changes require a new approval record rather than silent mutation.",
-      "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH"
+      "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-13-04-migrated-canonical-ledger",
@@ -2936,7 +3006,9 @@
         "intake_note": "Migrated from a temporary parallel registry into the canonical ledger; normalized without creating a competing authority."
       },
       "known_theme": "migrated gold star",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-13-03-cross-scale-orientation-canonical-continuation",
@@ -2969,7 +3041,9 @@
         "reasoning_family": "cross_scale_structure_agency",
         "transferable_discipline": "For cross-scale inquiries, make the relationship between scales visible, preserve both structure and agency, and avoid treating either local action or wider patterns as a complete explanation on its own.",
         "abstention_boundary": "Transfer the discipline, not the exact prose or doorway. Apply only to questions genuinely involving relationships across scales. Do not authorize a systems doorway merely because a question mentions society, institutions, or change."
-      }
+      },
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-14-humane-performance-not-instrumental-treatment",
@@ -3004,7 +3078,9 @@
         "abstention_boundary": "Transfer the discipline, not the exact prose or doorway. Apply only to genuine tensions between organizational performance and the treatment of people; do not dilute accountability or attach this doorway to unrelated management questions."
       },
       "known_theme": "humane performance, organizational dignity, responsible relationships, standards and accountability",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-14-stewardship-leadership-decline-crisis",
@@ -3041,7 +3117,9 @@
         "abstention_boundary": "Transfer the discipline, not the exact prose or doorway. Apply to genuine leadership questions under decline, crisis, breakdown, or consequential loss; do not turn every leadership question into crisis framing or use the doorway as a generic recommendation."
       },
       "known_theme": "stewardship, leadership, decline, crisis, responsibility, trust, recovery, renewal, accountability",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-14-organizational-culture-ethical-behavior",
@@ -3076,7 +3154,9 @@
         "abstention_boundary": "Transfer the discipline, not the exact prose. Do not treat culture as a single deterministic cause, excuse individual responsibility, infer misconduct from culture alone, or attach an unrelated doorway merely to fill a navigation slot."
       },
       "known_theme": "organizational culture, ethics, operating norms, incentives, leadership signals, accountability, principled dissent",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-14-organizational-learning-from-failure",
@@ -3115,7 +3195,9 @@
         "abstention_boundary": "Transfer the discipline, not the exact prose. Do not assume every failure is blameless, excuse deliberate misconduct, or treat psychological safety as immunity from responsibility."
       },
       "known_theme": "organizational learning, failure, mistakes, candor, accountability, blame, correction, institutional memory",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-14-governance-leadership-management-distinction",
@@ -3153,7 +3235,9 @@
         "abstention_boundary": "Do not flatten governance into administration, treat leadership as a substitute for legitimate authority, or use a generic systems lens before answering the visitor's actual distinction."
       },
       "known_theme": "governance, leadership, management, authority, accountability, institutional conditions",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-14-inner-development-external-systems-feedback-loop",
@@ -3190,7 +3274,9 @@
         "title": "The Social Architecture of Thriving: Conditions That Allow Human Potential to Expand",
         "url": "https://geralddaquila.com/2026/06/15/the-social-architecture-of-thriving-conditions-that-allow-human-potential-to-expand/"
       },
-      "activation_note": "Activated so every user-approved Gold Star is available to the Guide's relevance-selected qualitative learning layer."
+      "activation_note": "Activated so every user-approved Gold Star is available to the Guide's relevance-selected qualitative learning layer.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing",
@@ -3225,7 +3311,9 @@
         "evidence_boundary": "General orientation, not an Archive-specific doctrinal claim."
       },
       "known_theme": "recognized-concept-without-archive-specific-evidence",
-      "expected_doorway": null
+      "expected_doorway": null,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-14-practice-community-feedback-development",
@@ -3263,7 +3351,9 @@
         "doorway_boundary": "Legacy continuation title is preserved for provenance, but no canonical URL was verified in the repository during contract reconciliation; runtime doorway authority is withheld rather than inventing a URL."
       },
       "known_theme": "multi-element-development-question",
-      "expected_doorway": null
+      "expected_doorway": null,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-14-sacred-language-clarity-power-live-candidate",
@@ -3301,7 +3391,9 @@
         "url": "https://geralddaquila.com/"
       },
       "doorway_status": "CANONICAL_URL_VALIDATED",
-      "activation_note": "Activated so every user-approved Gold Star is available to the Guide's relevance-selected qualitative learning layer."
+      "activation_note": "Activated so every user-approved Gold Star is available to the Guide's relevance-selected qualitative learning layer.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-14-technical-capability-legitimate-authority",
@@ -3338,7 +3430,9 @@
         "abstention_boundary": "Do not treat technical success, expertise, efficiency, influence, or practical dependence as self-validating sources of legitimate authority; do not retreat into generic uncertainty when the conceptual distinction can be answered directly."
       },
       "known_theme": "technical capability, legitimate authority, expertise, mandate, accountability, legitimacy, power",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-14-tools-and-purposes-distinction",
@@ -3373,7 +3467,9 @@
         "title": "The Living Archive Atlas",
         "url": "https://geralddaquila.com/"
       },
-      "doorway_status": "CANONICAL_URL_VALIDATED"
+      "doorway_status": "CANONICAL_URL_VALIDATED",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-15-ecological-systems-extractive-economics",
@@ -3407,7 +3503,9 @@
         "abstention_boundary": "Do not present the exemplar as a sourced Archive doctrine beyond what the approved response establishes; do not invent canonical source provenance or doorway URLs."
       },
       "known_theme": "ecological systems, extractive economics, extraction, maintenance, resilience, ecosystem services, systems change",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-15-accountable-retrieval",
@@ -3441,7 +3539,9 @@
         "abstention_boundary": "Do not invent Archive-specific doctrine, source provenance, or certainty that has not been retrieved; do not use generic uncertainty language as a substitute for answering a recognizable conceptual distinction."
       },
       "known_theme": "accountable retrieval, source grounding, evidence, interpretation, uncertainty, traceability, answerability",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-15-confident-synthesis-fabricated-coherence",
@@ -3476,7 +3576,9 @@
         "abstention_boundary": "Do not confuse a persuasive or complete-sounding synthesis with established coherence; do not manufacture certainty, convert structural guidance into a decision, or displace the people accountable for consequences."
       },
       "known_theme": "confident synthesis, fabricated coherence, uncertainty, alternatives, accountability, evidence, consequences, judgment, decision authority",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-15-regenerative-design-organizational-level",
@@ -3513,7 +3615,9 @@
         "abstention_boundary": "Do not transfer the exemplar's claims, wording, examples, or doorway indiscriminately; use its structure and quality discipline only when relevant, and do not invent Archive-specific doctrine or evidence."
       },
       "known_theme": "regenerative design, organizational purpose, system health, renewal, resilience, consequences, adaptation, sustainability, governance",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-candidate-2026-11-15-circularity-regeneration",
@@ -3556,7 +3660,9 @@
       },
       "reasoning_family": "circularity_regeneration_distinction",
       "transferable_lesson": "Answer the governing distinction directly, explain why one related practice can contribute without being sufficient, then connect the distinction to consequences and a meaningful next inquiry.",
-      "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific claims, wording, or doorway; use the doorway only for the exact approved query."
+      "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific claims, wording, or doorway; use the doorway only for the exact approved query.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "gs-2026-11-15-constitutional-reasoning-archives-sense",
@@ -3593,7 +3699,9 @@
         "abstention_boundary": "Do not treat inferred relationships as canonical facts, assume titles establish connections, or invent constitutional rules absent explicit support."
       },
       "known_theme": "constitutional reasoning, Living Archive, recovery, constitutional relationships, interpretation, inference, canonical architecture, Constitutional Register",
-      "runtime_transfer": true
+      "runtime_transfer": true,
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
     {
       "benchmark_id": "general-guide-human-development-archive-framework-gold-standard-2026-11-15",
@@ -3632,7 +3740,9 @@
       "known_theme": "human development in the Living Archive framework",
       "runtime_transfer": true,
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "The observed doorway title is not treated as authoritative until its canonical destination is separately verified and approved."
+      "doorway_note": "The observed doorway title is not treated as authoritative until its canonical destination is separately verified and approved.",
+      "legacy_approval_grandfathered": true,
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
