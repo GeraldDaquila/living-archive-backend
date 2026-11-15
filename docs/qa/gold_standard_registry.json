@@ -4399,6 +4399,54 @@
         "approval_evidence": "User instruction: 'elevate. merge'.",
         "evidence_boundary": "Screenshot establishes the reviewed response and visible doorway; elevation records the user-approved live exemplar."
       }
+    },
+    {
+      "benchmark_id": "general-guide-epistemic-layer-integrity-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How should The Guide separate direct archive claims from its own synthesis?",
+      "expected_response": "The Guide should keep three layers distinct. A direct Archive claim is something a particular text actually says or clearly supports, and it should remain traceable to that source. A synthesis is different: it draws a relationship, pattern, or implication across more than one Archive resource. It can be useful precisely because it connects materials, but it should be presented as the Guide's synthesis rather than as the statement of any single text.\n\nA third layer is orientation. The Guide may frame a question, identify a tension, or suggest a way of looking without presenting that framing as evidence from the Archive. This matters especially in a Living Archive: its purpose is not to flatten different voices into one authoritative conclusion, but to hold ideas in relationship without losing where they came from. Keeping the layers visible lets a visitor see what is being reported, what is being inferred, and what is being offered as a way to continue thinking.\n\nThe practical discipline is therefore simple: stay close to the source when saying what the Archive says; name synthesis when the Guide is connecting materials; and keep orientation visibly separate from both. Then the Guide can add intelligibility without borrowing the authority it has not earned. The distinction protects the integrity of the Archive while preserving the freedom to notice relationships that no single text, on its own, could show.",
+      "expected_doorway": {
+        "title": "Becoming Fully Human",
+        "url": "https://geralddaquila.com/becoming-fully-human"
+      },
+      "rating_out_of_10": 9.8,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the live visitor-facing response with its visible canonical doorway and explicitly authorized Gold Star elevation and merge on 2026-11-15.",
+      "elevation_approval_evidence": "User instruction on 2026-11-15: 'elevate. merge'.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "direct Archive claims, synthesis, orientation, traceability, inference, epistemic integrity, source authority",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "epistemic_layer_integrity",
+        "transferable_discipline": "Keep source-grounded claims, synthesis, and orientation visibly distinct. Preserve traceability when reporting evidence; name inference when connecting materials; and offer orientation without presenting it as borrowed authority.",
+        "abstention_boundary": "Do not present synthesis as the claim of a single source; do not treat orienting language as evidence; do not borrow authority from the Archive for an inference the Guide itself has made; do not transfer the Becoming Fully Human doorway to unrelated questions."
+      },
+      "reasoning_family": "epistemic_layer_integrity",
+      "transferable_lesson": "Strong Archive guidance preserves epistemic integrity by distinguishing what a source says, what a synthesis infers across sources, and what orientation offers as a way of continuing thought.",
+      "transfer_boundary": "Transfer the three-layer epistemic discipline, not the exemplar-specific wording, claims, or doorway.",
+      "user_approved_at": "2026-11-15",
+      "gold_star_number": 72,
+      "assertions": [
+        "Separates direct source-grounded claims from synthesis across multiple resources.",
+        "Requires direct Archive claims to remain traceable to their supporting source.",
+        "Names synthesis as the Guide's own relationship, pattern, or implication rather than borrowing the authority of a single text.",
+        "Keeps orientation distinct from both evidence and synthesis.",
+        "Preserves plurality in a Living Archive without flattening different voices into one conclusion.",
+        "Completes the visitor journey with one visible canonical continuation: Becoming Fully Human."
+      ],
+      "provenance": {
+        "source_date": "2026-11-15",
+        "source": "User-provided screenshot of the live Guide response.",
+        "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
+        "approval_evidence": "User instruction: 'elevate. merge'.",
+        "evidence_boundary": "Screenshot establishes the reviewed response and visible doorway; elevation records the user-approved live exemplar."
+      }
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
