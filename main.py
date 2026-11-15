@@ -250,7 +250,7 @@ def _select_verified_doorway_conceptual_family(query):
     ):
         return "growth_within_living_limits"
     if (
-        re.search(r"\\barchive(?:-grounded|\\s+grounded)?\\b", text, re.I)
+        re.search(r"\barchive(?:-grounded|\s+grounded)?\b", text, re.I)
         and re.search(r"\b(?:guidance|knowledge|evidence|synthesis|orientation)\b", text, re.I)
         and re.search(r"\b(?:distinguish|difference|separate|external)\b", text, re.I)
     ):
