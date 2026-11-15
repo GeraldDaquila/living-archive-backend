@@ -613,6 +613,15 @@
       "qualifying_context": "Questions about Archive provenance, source integrity, synthesis across materials, interpretive orientation, knowledge, sensemaking, or how the Guide should distinguish what sources say from what it infers or frames.",
       "abstention_boundary": "Do not present synthesis or orientation as a direct Archive claim; do not flatten distinct Archive voices into a single authoritative conclusion; do not transfer exemplar-specific wording or the Knowledge & Sensemaking doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-local-action-systemic-ecological-transformation-gold-standard-2026-11-15",
+      "question": "How can local action connect to systemic ecological transformation?",
+      "reasoning_family": "multi_scale_systems_orientation",
+      "transferable_discipline": "Connect local agency to wider systemic conditions without reducing transformation to any single scale. Distinguish scale from the structures that connect scales; show feedback in both directions; preserve local autonomy while explaining coordination, evidence, and institutional alignment.",
+      "qualifying_context": "Questions about local and systemic change, ecological transformation, multi-scale action, grassroots agency, institutional structures, coordination, or how local evidence can connect to broader change.",
+      "abstention_boundary": "Do not imply that local initiatives alone cause systemic transformation, that larger policy structures simply override local agency, or that the Alignment Before Transformation doorway applies to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
