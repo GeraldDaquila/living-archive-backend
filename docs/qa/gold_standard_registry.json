@@ -4105,6 +4105,54 @@
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
       "user_approved_at": "2026-11-15",
       "gold_star_number": 63
+    },
+    {
+      "benchmark_id": "general-guide-ai-interpreter-vs-authority-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What does it mean for an AI to be an interpreter rather than an authority?",
+      "expected_response": "For an AI to act as an interpreter rather than an authority is for it to help people understand information without claiming the final right to decide what that information means or what should be done. It can organize evidence, compare perspectives, identify patterns, explain relationships, and make uncertainties easier to see. Those are interpretive contributions: they improve the material available for judgment, but they do not settle the judgment themselves.\n\nAuthority carries a different responsibility. It involves having legitimate standing to make or enforce a decision and being answerable for its consequences. An AI system can sound certain, rank options, or produce a recommendation, but those capabilities do not by themselves give it the legitimacy, situated understanding, or accountability required to decide for people. For example, an AI might compare policy options and expose who could be affected; the accountable people or institution must still weigh the evidence, values, rights, and consequences before making the decision.\n\nThe distinction is not that AI must remain passive or that humans are automatically wise. It is that the system's contribution should remain inspectable and contestable: people need to be able to ask what evidence was used, which assumptions shaped the interpretation, whose perspective is missing, and where uncertainty remains. The human or institutional decision-maker must retain responsibility for the values applied and the action taken. AI is most useful here when it clarifies the landscape of judgment without quietly appropriating the authority to decide.",
+      "expected_doorway": {
+        "title": "Responsible AI Principle",
+        "url": "https://geralddaquila.com/responsible-ai-principle/"
+      },
+      "rating_out_of_10": 9.5,
+      "approval_state": "User reviewed the corrected live visitor-facing response with the canonical doorway and explicitly authorized: 'elevate. then merge' on 2026-11-15.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User instruction on 2026-11-15 after reviewing the live visitor-facing screenshot: 'elevate. then merge'.",
+      "assertions": [
+        "Exactly three substantive paragraphs: interpretation; legitimate authority and accountability; inspectability and retained human or institutional responsibility.",
+        "Distinguishes AI assistance in organizing and interpreting information from legitimate authority to decide or enforce outcomes.",
+        "Preserves legitimacy, situated understanding, accountability, values, rights, and consequences as matters for accountable people or institutions.",
+        "Requires interpretive contributions to remain inspectable and contestable, including evidence, assumptions, missing perspectives, and uncertainty.",
+        "Attaches the verified canonical continuation 'Responsible AI Principle' after the complete answer."
+      ],
+      "provenance": {
+        "source_date": "2026-11-15",
+        "source": "User-provided screenshot of the corrected live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
+        "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
+        "approval_evidence": "User instruction: 'elevate. then merge'.",
+        "evidence_boundary": "Screenshot establishes the exact reviewed response, visible canonical doorway, and explicit user approval. The doorway title and destination were independently verified through the canonical Living Archive site.",
+        "canonical_doorway_evidence": "Published Responsible AI Principle page verified through Cowboy MCP; production response visibly displayed the doorway."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "AI, interpretation, authority, legitimacy, accountability, human judgment, governance",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "interpretation_without_authority",
+        "transferable_discipline": "For questions about AI or other systems that inform judgment, distinguish interpretive capability from legitimate authority: clarify what the system can organize or reveal, then preserve inspectability, contestability, accountable decision-making, and responsibility for consequences.",
+        "abstention_boundary": "Do not equate analytical capability, confidence, ranking, or recommendation with legitimate authority; do not imply AI must be passive; and do not transfer the exemplar-specific wording or doorway to unrelated questions."
+      },
+      "reasoning_family": "interpretation_without_authority",
+      "transferable_lesson": "Strong explanations of AI's role separate the ability to clarify a decision landscape from the legitimate authority to decide within it, preserving accountability and making the system's contribution open to inspection and challenge.",
+      "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
+      "user_approved_at": "2026-11-15",
+      "gold_star_number": 65
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
