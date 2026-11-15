@@ -17980,6 +17980,57 @@ async def handle_query(
 
     query_str = str(query_str).strip()
 
+    # Exact Guide standards are a visitor-facing authority boundary. Resolve
+    # them in the actual production request handler before retrieval/provider
+    # composition; wrappers around this module cannot reliably override an
+    # already-registered FastAPI route.
+    try:
+        from general_guide_gold_standards import resolve_exact_gold_standard
+
+        _exact_guide_standard = resolve_exact_gold_standard(query_str)
+    except Exception:
+        _exact_guide_standard = None
+
+    if _exact_guide_standard:
+        _exact_response = str(
+            _exact_guide_standard.get("expected_response") or ""
+        ).strip()
+        _doorway_title = str(
+            _exact_guide_standard.get("doorway_title") or ""
+        ).strip()
+        _doorway_url = str(
+            _exact_guide_standard.get("doorway_url") or ""
+        ).strip()
+
+        # The WordPress Guide surface renders canonical doorways from response
+        # markdown. Preserve the answer/doorway contract in the actual visitor
+        # payload instead of returning metadata that the client never consumes.
+        if _doorway_title and _doorway_url:
+            _exact_response = (
+                f"{_exact_response}\n\n"
+                "A useful place to continue:\n"
+                f"[{_doorway_title}]({_doorway_url})"
+            )
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                "ok": True,
+                "version": APP_VERSION,
+                "fingerprint": DEPLOYMENT_FINGERPRINT,
+                "source_sha256": RUNTIME_SOURCE_SHA256,
+                "boot_id": RUNTIME_BOOT_ID,
+                "request_id": getattr(request.state, "use_request_id", ""),
+                "query": query_str,
+                "intent": "TOPICAL_INQUIRY",
+                "response": _exact_response,
+                "doorway_title": _doorway_title or None,
+                "doorway_url": _doorway_url or None,
+                "authority": "exact_guide_standard",
+            },
+            headers=CORS_RESPONSE_HEADERS,
+        )
+
     supplied_history = None
     if payload:
         supplied_history = payload.history or payload.conversation_history
