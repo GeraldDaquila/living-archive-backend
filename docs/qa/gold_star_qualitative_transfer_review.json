@@ -559,6 +559,15 @@
       "qualifying_context": "Questions about uncertainty, ambiguity, transition, regaining bearings, or taking responsible action before the larger situation is resolved.",
       "abstention_boundary": "Do not present ordinary-language orientation as a formal canonical definition without source support, manufacture certainty, or retreat into a disclaimer when a bounded and clearly non-attributed answer is possible.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-algorithmic-amplification-institutional-failure-gold-standard-2026-11-15",
+      "question": "How can algorithmic systems scale existing biases or institutional failures?",
+      "reasoning_family": "mechanism_first_systemic_amplification",
+      "transferable_discipline": "For questions about a system scaling an existing condition, name the specific mechanism first, distinguish amplification from original causation, then examine the wider relationships, oversight conditions, and intervention points without replacing the named mechanism with a generic systems explanation.",
+      "qualifying_context": "Questions about algorithms, automation, ranking, recommendation, classification, feedback loops, or other systems that may scale, accelerate, distribute, or reinforce an existing social or institutional condition.",
+      "abstention_boundary": "Do not attribute every harmful pattern to algorithms alone, treat amplification as proof of original causation, or substitute abstract systems language for the concrete mechanism named in the question.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
