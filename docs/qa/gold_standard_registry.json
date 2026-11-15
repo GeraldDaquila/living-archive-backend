@@ -4501,7 +4501,7 @@
       "gold_star_number": 74
     }
   ],
-  "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
+  "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-15: 72 records carry USER_APPROVED_GOLD_STANDARD and are the sole authoritative inventory. 15 currently carry explicit legacy/display gold_star_number values, with highest assigned number #74. These are distinct fields and must not be conflated until a separately evidenced historical numbering migration is completed.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -4633,6 +4633,9 @@
     "last_audit_date": "2026-11-15",
     "approved_gold_star_count": 72,
     "registry_record_count": 108,
-    "review_reconciliation": "Corrected duplicate Gold Star #73 numbering after canonical audit: care-and-commons remains #73; modes-of-knowing dialogue is #74. Approved-record count retained as canonical inventory count."
+    "review_reconciliation": "Corrected duplicate Gold Star #73 numbering after canonical audit: care-and-commons remains #73; modes-of-knowing dialogue is #74. Approved-record count retained as canonical inventory count.",
+    "numbered_gold_star_record_count": 15,
+    "highest_assigned_gold_star_number": 74,
+    "numbering_reconciliation": "Explicit numbers are incomplete historical/display metadata: 57 approved records currently lack gold_star_number. No unnumbered record may be assigned a historical number without provenance evidence; new Gold Star reporting must use the approved inventory count unless and until numbering is formally reconciled."
   }
 }
