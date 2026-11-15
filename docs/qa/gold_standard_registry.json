@@ -3028,7 +3028,7 @@
       "freeze_policy": "Preserve approved expected_response and canonical doorway. Change only through an explicit user-authorized benchmark-version update with provenance.",
       "gold_star_capabilities": {
         "generation_class": "runtime_agnostic_curated_exemplar",
-        "exact_answer_authority": true,
+        "exact_answer_authority": false,
         "active_quality_contributor": true,
         "deterministic_fallback_eligible": true,
         "reasoning_family": "normalized_migrated_gold_star",
@@ -3039,7 +3039,9 @@
       "known_theme": "migrated gold star",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "superseded_exact_authority_by": "general-guide-systems-map-useful-false-confidence-gold-standard-2026-11-15",
+      "supersession_reason": "A later user-reviewed Gold Star #83 explicitly approved a refined answer for the same exact question. The migrated exemplar remains canonical historical and qualitative evidence but is no longer eligible as competing exact runtime answer authority."
     },
     {
       "benchmark_id": "gs-2026-11-13-03-cross-scale-orientation-canonical-continuation",
