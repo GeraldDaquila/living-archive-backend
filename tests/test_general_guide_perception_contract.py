@@ -350,7 +350,7 @@ def test_transformation_relief_recovery_distinguishes_state_change_from_pattern_
     assert response is not None
     paragraphs = response.split("\n\n")
     assert len(paragraphs) == 3
-    assert "immediate state" in paragraphs[0]
+    assert "changes how a person feels in the moment" in paragraphs[0]
     assert "ongoing relationship" in paragraphs[1]
     assert "relief alone is not evidence of transformation" in paragraphs[2]
     assert "survives beyond the feeling of the moment" in paragraphs[2]
