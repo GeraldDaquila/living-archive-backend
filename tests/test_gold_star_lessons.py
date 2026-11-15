@@ -12,19 +12,19 @@ def test_exact_question_preserves_its_canonical_runtime_transfer_setting():
     assert result["runtime_transfer"] is True
 
 
-def test_explicit_transfer_matches_canonical_structure_agency_lesson():
+def test_explicit_transfer_matches_active_structure_agency_lesson():
     result = lessons.select_lesson(
         "How do local choices relate to wider institutional and social circumstances?"
     )
     assert result
-    assert result["benchmark_id"] == "gs-2026-11-13-03-cross-scale-orientation-canonical-continuation"
+    assert result["benchmark_id"] == "general-guide-cross-scale-orientation-refined-gold-standard-2026-11-15"
     assert result["exact"] is False
 
 
-def test_approved_gold_star_with_non_general_subsystem_is_loaded():
+def test_active_approved_gold_star_is_loaded_for_runtime_transfer():
     matching = [
         record for record in lessons._LESSONS
-        if record["id"] == "gs-2026-11-13-03-cross-scale-orientation-canonical-continuation"
+        if record["id"] == "general-guide-cross-scale-orientation-refined-gold-standard-2026-11-15"
     ]
     assert len(matching) == 1
     assert matching[0]["runtime_transfer"] is True

@@ -124,3 +124,11 @@ For each release, record:
 - **Doorway state:** Preserved as `NOT_APPROVED_CONCEPTUAL_MISMATCH`; no contextually narrow Philippine-systems continuation is promoted as canonical authority for this general inquiry.
 - **Validation:** Canonical registry and qualitative-transfer review remain aligned; duplicate benchmark and Gold Star number checks pass in offline integrity review.
 
+
+## 2026-11-16 — Gold Star inventory count reconciliation before doorway-repair merge
+
+- **Class:** Registry governance / release integrity
+- **Finding:** The registry's record-level inventory and its descriptive audit metadata had diverged. The records contained **117 total entries**, of which **80** carry the sole canonical Gold Star status, `USER_APPROVED_GOLD_STANDARD`.
+- **Numbering:** **27** approved records carry explicit Gold Star numbers. The highest assigned number is **#88**; there are no duplicate numbers. **#85 and #86 are unassigned provenance gaps**, not inferred missing Gold Stars.
+- **Decision:** Reconciled descriptive audit metadata and the canonical reconciliation note to the actual record-level inventory. No approval was added or removed, no historical number was invented, and no response, doorway, runtime-transfer authority, or routing behavior changed.
+- **Release boundary:** This reconciliation makes the registry's declared inventory agree with the records that the machine-checkable validator treats as authoritative before merge.

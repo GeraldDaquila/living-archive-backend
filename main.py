@@ -5317,8 +5317,27 @@ def _guide_finalize_visitor_payload(payload, query):
             exact_title = str(exact_standard.get("doorway_title") or "").strip()
             exact_url = str(exact_standard.get("doorway_url") or "").strip()
             if exact_title and re.match(r"^https://\S+$", exact_url, re.I):
-                safe["recommendation"] = {"title": exact_title, "url": exact_url}
-                safe["canonical_doorway"] = safe["recommendation"]
+                # Exact Gold Standards are a complete visitor contract. Publish
+                # every supported doorway representation so no presentation
+                # adapter can lose a verified continuation by reading a legacy
+                # alias instead of recommendation.
+                exact_doorway = {"title": exact_title, "url": exact_url}
+                safe["recommendation"] = exact_doorway
+                safe["canonical_doorway"] = exact_doorway
+                safe["doorway_title"] = exact_title
+                safe["doorway_url"] = exact_url
+            else:
+                # Fail closed: an exact standard with no verified doorway must
+                # not inherit stale navigation from an upstream payload.
+                safe["recommendation"] = None
+                safe["canonical_doorway"] = None
+                safe["doorway_title"] = None
+                safe["doorway_url"] = None
+        else:
+            safe["recommendation"] = None
+            safe["canonical_doorway"] = None
+            safe["doorway_title"] = None
+            safe["doorway_url"] = None
         safe["processing"] = "final_visitor_boundary_exact_gold_standard"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION

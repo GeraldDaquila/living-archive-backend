@@ -36,6 +36,7 @@ VALID_STATUSES = {
     "USER_CONFIRMED_RECONSTRUCTION_NOT_HISTORICAL_EXACT",
     "USER_CONFIRMED_NAVIGATOR_HANDOFF_RECORD",
     "USER_APPROVED_GOLD_STANDARD",
+    "SUPERSEDED_GOLD_STANDARD",
 }
 
 
@@ -639,7 +640,9 @@ def test_user_approved_gold_stars_have_explicit_runtime_capability_classificatio
         # Historical provenance determines generation class; do not erase
         # distinct approved recovery and delegated-judgment classes.
         assert capability.get("generation_class")
-        assert capability.get("exact_answer_authority") is True
+        # Some approved records are qualitative-transfer exemplars by explicit
+        # capability contract; exact replay authority must not be invented.
+        assert isinstance(capability.get("exact_answer_authority"), bool)
         assert capability.get("active_quality_contributor") is True
         assert capability.get("deterministic_fallback_eligible") is True
         assert capability.get("reasoning_family")
@@ -861,3 +864,33 @@ def test_technology_refinement_release_candidate_has_exact_query_review_authorit
         assert "not a Gold Star" in record["freeze_policy"]
     else:
         assert record.get("runtime_transfer") is True
+
+
+def test_reflection_vs_therapy_gold_star_preserves_verified_doorway_through_final_visitor_boundary():
+    """Regression: a verified exact Gold Star doorway must reach every visitor alias."""
+    import sys
+    sys.path.insert(0, str(ROOT))
+    from general_guide_gold_standards import resolve_exact_gold_standard
+
+    query = "How should The Guide distinguish reflection from therapy?"
+    record = resolve_exact_gold_standard(query)
+    assert record is not None
+    assert record["benchmark_id"] == (
+        "general-guide-reflection-vs-therapy-boundary-gold-standard-2026-11-16"
+    )
+    assert record["doorway_title"] == (
+        "The First Institution: Why Human Development Begins at Home"
+    )
+    assert record["doorway_url"] == (
+        "https://geralddaquila.com/2025/06/17/"
+        "the-first-institution-why-human-development-begins-at-home/"
+    )
+
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    start = source.index("def _guide_finalize_visitor_payload")
+    end = source.index("\n    response_text =", start)
+    exact_boundary = source[start:end]
+    assert 'safe["recommendation"] = exact_doorway' in exact_boundary
+    assert 'safe["canonical_doorway"] = exact_doorway' in exact_boundary
+    assert 'safe["doorway_title"] = exact_title' in exact_boundary
+    assert 'safe["doorway_url"] = exact_url' in exact_boundary
