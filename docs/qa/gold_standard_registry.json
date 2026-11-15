@@ -1781,7 +1781,7 @@
         "source_date": "2026-10-25",
         "approval_record": "Explicit user approval recorded in the Gold Star registry on 2026-10-25; structural revision explicitly authorized by the user on 2026-11-15."
       },
-      "freeze_policy": "Do not change expected_response without explicit user authorization and a separately documented benchmark-version change.",
+      "freeze_policy": "Versioned Gold Star exemplar revised with explicit user authorization on 2026-11-15. Preserve the approved three-part recognition → relationship → boundary structure; further changes require explicit user authorization and a documented benchmark-version change.",
       "gold_star_capabilities": {
         "generation_class": "runtime_agnostic_curated_exemplar",
         "exact_answer_authority": true,
