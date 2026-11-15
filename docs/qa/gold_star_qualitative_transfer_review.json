@@ -667,6 +667,15 @@
       "qualifying_context": "Questions about common goods, shared conditions, collective stewardship, public responsibility, or care for resources and relationships people depend upon together.",
       "abstention_boundary": "Do not collapse the commons into a single resource, treat collective care as the disappearance of individual responsibility, or reduce long-term stewardship to short-term preservation alone.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-feedback-loops-human-institutions-gold-standard-2026-11-15",
+      "question": "How do feedback loops shape human institutions?",
+      "reasoning_family": "systems_consequences_with_human_responsibility",
+      "transferable_discipline": "When explaining feedback loops or institutional systems, show how consequences return as conditions for later action, distinguish reinforcing from balancing dynamics, and keep human judgment, authority, incentives, and responsibility visible. Do not let 'the system' become an abstraction that dissolves agency.",
+      "qualifying_context": "Questions about feedback loops, institutions, recurring patterns, systems, organizational learning, or self-reinforcing consequences.",
+      "abstention_boundary": "Do not imply that feedback is inherently corrective or that receiving information automatically produces learning. Do not use systems language to obscure who can act, who is affected, or who remains accountable.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
