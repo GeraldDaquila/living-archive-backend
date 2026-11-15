@@ -216,7 +216,7 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["registry_sha256"] == hashlib.sha256(registry_bytes).hexdigest()
     assert report["benchmark_count"] == len(_registry()["records"])
     assert report["authoritative_gold_star_count"] == 63
-    assert report["active_runtime_gold_star_count"] == 62
+    assert report["active_runtime_gold_star_count"] == 63
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
