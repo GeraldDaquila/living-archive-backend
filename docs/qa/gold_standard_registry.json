@@ -4821,6 +4821,27 @@
         "How do you test whether a systems model is wrong?"
       ],
       "user_approved_at": "2026-11-15"
+    },
+    {
+      "benchmark_id": "general-guide-power-concentration-accountability-refined-gold-standard-2026-11-16",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "gold_star_number": 86,
+      "query": "What happens when power is concentrated without accountability?",
+      "expected_response": "When power is concentrated without meaningful accountability, decisions can become insulated from correction. The people exercising authority may receive less candid information, face fewer consequences for mistakes, and gain greater ability to define which questions are legitimate. Over time, this can make errors harder to detect and make dissent increasingly costly, even when the people involved believe they are acting for a good purpose.\n\nThe problem is not simply that a powerful individual might behave badly. Concentrated power can change the surrounding system: subordinates may learn to protect themselves rather than speak honestly, information may be filtered before it reaches decision-makers, and institutions may weaken the very safeguards that could reveal a problem. The result can be a self-reinforcing pattern in which power becomes less exposed to the consequences of its own decisions.\n\nConcentrated authority is not inherently illegitimate in every circumstance. The deeper question is whether its concentration is matched by proportionate mechanisms for visibility, challenge, and correction—and whether those mechanisms can operate without making dissent prohibitively costly.\n\nAccountability is therefore more than punishment after something goes wrong. It includes independent scrutiny, clear limits on authority, meaningful ways to question decisions, and real capacity to correct course. Those safeguards do not guarantee good judgment, but they help keep power connected to evidence, responsibility, and the people who live with its consequences.",
+      "expected_doorway": null,
+      "doorway_status": "TITLE_OBSERVED_URL_NOT_CAPTURED",
+      "observed_doorway_title": "Power Without Transparency",
+      "rating_out_of_10": 9.7,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the live visitor-facing response and approved Gold Star elevation with a structural refinement on 2026-11-16.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "power_accountability_visibility_challenge_correction",
+      "transferable_lesson": "Assess concentrated authority by whether proportionate mechanisms for visibility, independent challenge, and correction keep decision-makers connected to evidence and consequences.",
+      "transfer_boundary": "Do not treat concentration of authority as inherently illegitimate, nor mistake punishment alone for accountability; the structural issue is whether correction can operate meaningfully.",
+      "user_approved_at": "2026-11-16"
     }
   ],
   "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-15: 71 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory. 16 now carry explicit Gold Star numbers, including #75 for the user-reviewed open-question exemplar. Historical numbering remains incomplete for other approved records and must not be inferred without provenance evidence.",
