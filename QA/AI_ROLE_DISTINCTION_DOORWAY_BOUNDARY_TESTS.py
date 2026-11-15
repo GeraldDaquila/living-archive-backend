@@ -82,3 +82,23 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+def test_regeneration_beyond_restoration_recovers_verified_canonical_doorway():
+    import main as runtime
+    query = "What does regeneration mean beyond environmental restoration?"
+    assert runtime._select_verified_doorway_conceptual_family(query) == (
+        "regeneration_beyond_restoration"
+    )
+    assert runtime._select_guide_node_fallback_doorway(query) == {
+        "title": "Regenerative Governance: What Comes After Extraction-Based Systems?",
+        "url": "https://geralddaquila.com/2026/06/08/regenerative-governance-what-comes-after-extraction-based-systems/",
+    }
+
+
+def test_regeneration_family_does_not_capture_unrelated_restoration_question():
+    import main as runtime
+    assert runtime._select_verified_doorway_conceptual_family(
+        "How should a historic building be restored?"
+    ) is None
