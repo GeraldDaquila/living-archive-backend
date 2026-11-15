@@ -11235,48 +11235,68 @@ async def _use_send_json(send, payload, status_code=200):
                 if _boundary_title and re.match(r"^https://\S+$", _boundary_url, re.I):
                     payload["recommendation"] = {"title": _boundary_title, "url": _boundary_url}
                     payload["canonical_doorway"] = payload["recommendation"]
-        # Archive-claim provenance answers own a stricter navigation contract than
-        # generic recovery. Once the final visitor boundary has rejected a doorway,
-        # no later sender-level fallback may repopulate it from an unrelated
-        # deterministic registry.
-        _archive_claim_final = (
-            str(payload.get("processing") or "")
-            == "final_visitor_boundary_archive_claim_provenance"
+        # Single authoritative outer doorway contract. Specialized answer boundaries
+        # may reject a candidate, but they may not permanently erase verified Archive
+        # navigation. The JSON sender is the final shared visitor boundary.
+        _forbids_doorway = (
+            _boundary_standard is not None
+            and bool(_boundary_standard.get("forbids_doorway"))
         )
-        if _boundary_standard is not None and bool(_boundary_standard.get("forbids_doorway")):
+        if _forbids_doorway:
             payload["recommendation"] = None
-        elif (
-            not _archive_claim_final
-            and not isinstance(payload.get("recommendation"), dict)
-            and _boundary_query
-        ):
-            # Absolute last-mile navigation contract: a registered deterministic
-            # recovery owns its canonical doorway. Earlier answer paths may return
-            # before composition-level navigation code, so resolve the contract
-            # here at the single JSON exit shared by every /api/query response.
-            try:
-                from deterministic_answer_recovery import (
-                    registered_recovery_recommendation as _boundary_registered_recovery_recommendation,
-                )
-                _boundary_registered_doorway = _boundary_registered_recovery_recommendation(
-                    _boundary_query
-                )
-                if isinstance(_boundary_registered_doorway, dict):
-                    _boundary_title = str(
-                        _boundary_registered_doorway.get("title") or ""
-                    ).strip()
-                    _boundary_url = str(
-                        _boundary_registered_doorway.get("url") or ""
-                    ).strip()
-                    if _boundary_title and re.match(r"^https://\S+$", _boundary_url, re.I):
-                        payload["recommendation"] = {
-                            "title": _boundary_title,
-                            "url": _boundary_url,
-                        }
-                        payload["canonical_doorway"] = payload["recommendation"]
-            except Exception:
-                # Navigation must never turn a valid answer into a service error.
-                pass
+            payload["canonical_doorway"] = None
+            payload["doorway_title"] = None
+            payload["doorway_url"] = None
+        else:
+            _outer_doorway = _normalize_authoritative_recommendation(
+                payload.get("recommendation")
+                or payload.get("canonical_doorway")
+                or {
+                    "title": payload.get("doorway_title"),
+                    "url": payload.get("doorway_url"),
+                }
+            )
+            if not _outer_doorway and _boundary_query:
+                # First recover only from registered deterministic authority.
+                try:
+                    from deterministic_answer_recovery import (
+                        registered_recovery_recommendation as _boundary_registered_recovery_recommendation,
+                    )
+                    _outer_doorway = _normalize_authoritative_recommendation(
+                        _boundary_registered_recovery_recommendation(_boundary_query)
+                    )
+                except Exception:
+                    _outer_doorway = None
+            if not _outer_doorway and _boundary_query:
+                # Then use the shared verified Archive recovery. This is deliberately
+                # outside all specialist answer boundaries: a valid answer may not
+                # become a navigational dead end because a downstream seam cleared
+                # its local recommendation field.
+                try:
+                    _outer_doorway = _verified_archive_doorway_fallback(
+                        _boundary_query,
+                        [],
+                        _base._inquiry_profile(_boundary_query),
+                    )
+                except Exception:
+                    _outer_doorway = None
+            if not _outer_doorway and _boundary_query:
+                try:
+                    _outer_doorway = _normalize_authoritative_recommendation(
+                        _boundary_canonical_doorway(
+                            {"recommendation": None}, _boundary_query
+                        )
+                    )
+                except Exception:
+                    _outer_doorway = None
+            payload["recommendation"] = _outer_doorway
+            payload["canonical_doorway"] = _outer_doorway
+            payload["doorway_title"] = (
+                _outer_doorway.get("title") if isinstance(_outer_doorway, dict) else None
+            )
+            payload["doorway_url"] = (
+                _outer_doorway.get("url") if isinstance(_outer_doorway, dict) else None
+            )
         # Exact approved standards with a required canonical continuation must
         # fail visibly in QA rather than silently render as navigational dead ends.
         if _boundary_standard is not None and not bool(_boundary_standard.get("forbids_doorway")):
