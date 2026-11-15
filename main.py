@@ -5348,7 +5348,12 @@ def _guide_finalize_visitor_payload(payload, query):
             # navigation, but a verified conceptual family remains authoritative
             # when no query-specific node exists. Otherwise this outer boundary
             # can erase a doorway correctly recovered at an inner JSON seam.
-            family_doorway = _select_guide_node_fallback_doorway(query)
+            family = _select_verified_doorway_conceptual_family(query)
+            family_doorway = (
+                _select_guide_node_fallback_doorway(query)
+                if family
+                else None
+            )
             if isinstance(family_doorway, dict):
                 family_title = str(family_doorway.get("title") or "").strip()
                 family_url = str(family_doorway.get("url") or "").strip()
