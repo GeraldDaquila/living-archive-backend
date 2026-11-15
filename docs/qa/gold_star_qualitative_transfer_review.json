@@ -631,6 +631,15 @@
       "qualifying_context": "Questions about whether an aspirational, regenerative, sustainable, ethical, or transformational claim has substantive grounding; decisions involving responsibility, consequences, alternatives, affected stakeholders, or accountable authority.",
       "abstention_boundary": "Do not treat branding language as evidence of substance; do not use the framework to make decisions for accountable actors; do not transfer the Codex of Regenerative Economies doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-care-commons-economic-recognition-gold-standard-2026-11-15",
+      "question": "How can economic systems recognize unpaid care and commons maintenance?",
+      "reasoning_family": "care_and_commons_economic_recognition",
+      "transferable_discipline": "Establish sustaining work as a condition of wider economic activity; distinguish visibility from shared responsibility; identify who benefits and who bears costs; preserve the boundary that recognition does not require commodifying care or shared resources.",
+      "qualifying_context": "Questions about unpaid care, care work, commons maintenance, invisible infrastructure, sustaining conditions, economic recognition, externalized costs, or shared responsibility.",
+      "abstention_boundary": "Do not reduce the explanation to a policy-shopping list, and do not replace a bounded conceptual answer with a generic evidence-insufficiency abstention for qualifying questions. Do not transfer the exemplar-specific wording or Global Reset doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
