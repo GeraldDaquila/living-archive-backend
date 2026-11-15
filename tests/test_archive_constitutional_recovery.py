@@ -12,7 +12,7 @@ def test_archive_definition_recovery_does_not_capture_a_concept_in_archive_conte
     assert "It is not a chatbot" in archive_definition
 
     constitutional_question = compose_recovery(
-        "What is constitutional reasoning in the Archive's sense?"
+        "How should an Archive reader distinguish evidence from interpretation?"
     )
     assert "The Living Archive is a public knowledge commons" not in constitutional_question
     assert "It is not a chatbot" not in constitutional_question
@@ -44,7 +44,7 @@ def test_provider_exhaustion_uses_verified_constitutional_register_evidence(monk
 
     result = guide.compose(
         use_core=None,
-        query="What is constitutional reasoning in the Archive's sense?",
+        query="How should an Archive reader distinguish evidence from interpretation?",
         context_data={},
     )
 
@@ -77,7 +77,7 @@ def test_constitutional_recovery_prevents_unrelated_provider_fallback_without_re
 
     result = guide.compose(
         use_core=None,
-        query="What is constitutional reasoning in the Archive's sense?",
+        query="How should an Archive reader distinguish evidence from interpretation?",
         context_data={},
     )
 
