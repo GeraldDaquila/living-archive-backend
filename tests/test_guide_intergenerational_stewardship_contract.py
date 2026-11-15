@@ -83,7 +83,7 @@ def test_incomplete_single_paragraph_is_not_accepted():
 
 def test_recovery_has_distinct_relationship_practice_and_boundary_paragraphs():
     answer = _intergenerational_stewardship_recovery()
-    paragraphs = [p.strip() for p in answer.split("\\n\\n") if p.strip()]
+    paragraphs = [p.strip() for p in answer.split("\n\n") if p.strip()]
     assert len(paragraphs) == 3
     assert paragraphs[0].startswith("Stewardship connects to intergenerational responsibility")
     assert paragraphs[1].startswith("For example,")
