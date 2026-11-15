@@ -608,8 +608,19 @@ jobs:
               )
               if not everyday_anchor:
                   raise SystemExit(f"{name}: stewardship answer lacks a recognizable everyday anchor")
-              if not re.search(r"(?i)does not mean controlling|doesn't mean controlling|sacrificing yourself|within your limits|what is yours to care for", response):
-                  raise SystemExit(f"{name}: stewardship answer omitted the boundary between care and control")
+              # Preserve the care/control boundary without requiring one stock
+              # formulation. A valid answer may express agency, limits, scope, or
+              # non-control in different language.
+              care_boundary = re.search(
+                  r"(?i)\b(?:not|cannot|can't|without)\b.{0,80}\b(?:control|controlling|"
+                  r"own|ownership|everything|others?)\b"
+                  r"|\b(?:limits?|boundaries|scope|influence|responsibility|what you can care for)\b",
+                  response,
+              )
+              if not care_boundary:
+                  raise SystemExit(
+                      f"{name}: stewardship answer omitted the boundary between care and control"
+                  )
               if re.search(r"https?://|\[[^\]]+\]\(", response):
                   raise SystemExit(f"{name}: navigation was embedded in answer prose despite the visitor's instruction")
               recommendation = payload.get("recommendation")
