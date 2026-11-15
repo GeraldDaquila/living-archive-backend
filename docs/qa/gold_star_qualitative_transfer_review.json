@@ -640,6 +640,15 @@
       "qualifying_context": "Questions about unpaid care, care work, commons maintenance, invisible infrastructure, sustaining conditions, economic recognition, externalized costs, or shared responsibility.",
       "abstention_boundary": "Do not reduce the explanation to a policy-shopping list, and do not replace a bounded conceptual answer with a generic evidence-insufficiency abstention for qualifying questions. Do not transfer the exemplar-specific wording or Global Reset doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-distinction-ownership-control-management-benevolence-gold-standard-2026-11-15",
+      "question": "How does stewardship differ from ownership, control, management, or benevolence?",
+      "reasoning_family": "conceptual_distinction_before_systemic_analysis",
+      "transferable_discipline": "When a visitor asks how closely related concepts differ, answer the requested distinctions directly before introducing mechanisms, systems, or causal analysis. Define the organizing difference, clarify what each concept does and does not imply, then explain why the distinction matters in practice.",
+      "qualifying_context": "Questions asking how related concepts differ, especially stewardship, ownership, control, management, authority, care, or benevolence.",
+      "abstention_boundary": "Do not substitute a causal or mechanism-first explanation for a conceptual distinction question. Do not collapse related concepts into synonyms or treat efficiency, goodwill, possession, and responsible stewardship as interchangeable.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
