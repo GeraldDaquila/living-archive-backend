@@ -11269,6 +11269,41 @@ async def _use_send_json(send, payload, status_code=200):
             except Exception:
                 # Navigation must never turn a valid answer into a service error.
                 pass
+        # Conceptual-family fallback is the final visitor-facing doorway seam.
+        # It covers ordinary successful answers that bypass composition-level
+        # navigation recovery, while remaining opt-in to verified families.
+        if (
+            not _archive_claim_final
+            and not isinstance(payload.get("recommendation"), dict)
+            and _boundary_query
+            and _boundary_standard is None
+        ):
+            try:
+                _boundary_family = _select_verified_doorway_conceptual_family(
+                    _boundary_query
+                )
+                if _boundary_family:
+                    _boundary_fallback = _select_guide_node_fallback_doorway(
+                        _boundary_query
+                    )
+                    if isinstance(_boundary_fallback, dict):
+                        _boundary_title = str(
+                            _boundary_fallback.get("title") or ""
+                        ).strip()
+                        _boundary_url = str(
+                            _boundary_fallback.get("url") or ""
+                        ).strip()
+                        if _boundary_title and re.match(
+                            r"^https://\S+$", _boundary_url, re.I
+                        ):
+                            payload["recommendation"] = {
+                                "title": _boundary_title,
+                                "url": _boundary_url,
+                            }
+                            payload["canonical_doorway"] = payload["recommendation"]
+            except Exception:
+                # Navigation fallback must never interrupt a valid answer.
+                pass
         # Exact approved standards with a required canonical continuation must
         # fail visibly in QA rather than silently render as navigational dead ends.
         if _boundary_standard is not None and not bool(_boundary_standard.get("forbids_doorway")):
