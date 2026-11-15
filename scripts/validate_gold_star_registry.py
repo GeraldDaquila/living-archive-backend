@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Pre-merge integrity gate for the canonical Gold Star learning corpus."""
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,6 +15,15 @@ REQUIRED = {
 
 def fail(message):
     raise SystemExit(f"GOLD STAR INTEGRITY FAIL: {message}")
+
+def normalize_exact_question(value):
+    text = str(value or "").translate(str.maketrans({
+        "‐": "-", "‑": "-", "‒": "-", "–": "-",
+        "—": "-", "−": "-", "‘": "'", "’": "'",
+        "ʼ": "'", "＇": "'",
+    }))
+    normalized = re.sub(r"\s+", " ", text).strip().casefold()
+    return re.sub(r"[?.!]+$", "", normalized).strip()
 
 def main():
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
@@ -76,6 +86,29 @@ def main():
     if orphan_reviews:
         fail("orphan qualitative-transfer reviews: " + ", ".join(orphan_reviews))
 
+    # Runtime exact-answer authority must be unique per normalized question.
+    # Historical or superseded exemplars may remain active quality contributors,
+    # but they cannot compete as a second exact runtime answer.
+    exact_authority = {}
+    for record in active:
+        capabilities = record.get("gold_star_capabilities") or {}
+        if not bool(capabilities.get("exact_answer_authority")):
+            continue
+        question = normalize_exact_question(record.get("query"))
+        answer = str(record.get("expected_response") or "").strip()
+        if not question or not answer:
+            fail(f"{record['benchmark_id']} has incomplete exact-answer authority")
+        previous = exact_authority.get(question)
+        if previous and previous["answer"] != answer:
+            fail(
+                "conflicting exact-answer authority for normalized question: "
+                + question
+            )
+        exact_authority[question] = {
+            "benchmark_id": record["benchmark_id"],
+            "answer": answer,
+        }
+
     approved = [
         r for r in records
         if r.get("status") == "USER_APPROVED_GOLD_STANDARD"
@@ -88,7 +121,7 @@ def main():
         fail("gold_star_number must be a positive integer when present")
     if len(numbered) != len(set(numbered)):
         fail("duplicate gold_star_number in canonical registry")
-    print(f"GOLD STAR INTEGRITY PASS: {len(active)} active contributors, {len(entries)} reviews, {len(numbered)} explicitly numbered records")
+    print(f"GOLD STAR INTEGRITY PASS: {len(active)} active contributors, {len(entries)} reviews, {len(numbered)} explicitly numbered records, {len(exact_authority)} exact-answer authorities")
 
 if __name__ == "__main__":
     main()
