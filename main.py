@@ -5344,7 +5344,14 @@ def _guide_finalize_visitor_payload(payload, query):
                 else None
             )
         else:
-            safe["recommendation"] = None
+            family = _select_verified_doorway_conceptual_family(query)
+            family_doorway = _select_guide_node_fallback_doorway(query) if family else None
+            if isinstance(family_doorway, dict):
+                family_title = str(family_doorway.get("title") or "").strip()
+                family_url = str(family_doorway.get("url") or "").strip()
+                safe["recommendation"] = {"title": family_title, "url": family_url} if family_title and re.match(r"^https://\S+$", family_url, re.I) else None
+            else:
+                safe["recommendation"] = None
         # recommendation and canonical_doorway are one visitor-facing contract.
         # A rejected provenance doorway must clear both fields; otherwise a stale
         # upstream canonical_doorway can bypass the fail-closed decision in the UI.
