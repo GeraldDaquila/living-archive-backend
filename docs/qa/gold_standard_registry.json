@@ -4010,9 +4010,9 @@
     },
     {
       "benchmark_id": "general-guide-technology-stewardship-governance-refinement-2026-11-15",
-      "status": "USER_APPROVED_RELEASE_CANDIDATE",
+      "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
-      "query": "What is the role of technology in a stewardship-centered society?",
+      "query": "What role should technology play in a stewardship-centered society?",
       "expected_response": "In a stewardship-centered society, technology is a means, not the source of direction. Its value is judged by whether it strengthens the purposes, relationships, and responsibilities that a society is trying to sustain—not simply by whether it performs a task more efficiently.\n\nThe practical question is therefore not only what technology can do, but what it makes easier or harder for people and institutions to see, decide, and care for over time. Technology can extend human capacity, reduce unnecessary burdens, improve coordination, and reveal patterns that deserve attention. But it cannot decide what ought to be done, whose interests should take priority, or which consequences are acceptable. Those remain matters of human judgment, accountability, and governance.\n\nA responsible approach therefore keeps technology answerable to the larger purposes it serves. It asks who benefits, who bears the costs, what dependencies are created, and whether the arrangement strengthens or weakens people's capacity to act responsibly over the long term. The guiding question is not simply what technology makes possible, but what it helps people and institutions become capable of caring for.",
       "expected_doorway": {
         "title": "Foundations of Stewardship Governance",
@@ -4027,18 +4027,39 @@
       ],
       "provenance": {
         "source_date": "2026-11-15",
-        "source": "User-provided live Guide screenshot followed by user-authorized refinement and explicit acceptance of the canonical doorway.",
+        "source": "User-provided screenshot of the corrected live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
         "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
         "approval_evidence": "User instruction: 'proceed with your refinement, together with a doorway' followed by explicit acceptance: 'this is accepted: Foundations of Stewardship Governance. continue'.",
-        "evidence_boundary": "The user explicitly authorized the refinement and accepted the canonical doorway for release. This record has exact-query live-review authority only; it is not a Gold Star and cannot contribute answer authority or lessons beyond this exact query.",
+        "evidence_boundary": "Screenshot establishes the exact reviewed response, visible canonical doorway, and explicit user approval. The doorway title and destination were verified before elevation.",
         "canonical_doorway_evidence": "Accepted by the user; canonical public page verified at the Living Archive domain.",
         "source_path": "docs/qa/gold_standard_registry.json",
-        "source_ref": "technology-stewardship-refinement-2026-11-15"
+        "source_ref": "live visitor-facing production response after structural doorway repair.",
+        "elevation_review": "User reviewed the live response showing 'Foundations of Stewardship Governance' as the useful continuation and then explicitly instructed: 'elevate to gold star'."
       },
       "rating": null,
-      "rating_out_of_10": null,
-      "freeze_policy": "Explicitly user-authorized release candidate for exact-query live review only. It is not a Gold Star, does not count toward the authoritative Gold Star inventory, does not contribute cross-question lessons, and cannot be elevated until the user reviews the revised live response and explicitly approves Gold Star elevation.",
-      "runtime_review_authority": true
+      "rating_out_of_10": 9.7,
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_review_authority": true,
+      "approval_state": "User reviewed the corrected live visitor-facing response with the canonical doorway and explicitly authorized: 'elevate to gold star' on 2026-11-15.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User instruction on 2026-11-15 after reviewing the live visitor-facing screenshot: 'elevate to gold star'.",
+      "known_theme": "technology, stewardship, governance, human judgment, accountability, institutional capacity, long-term care",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "technology_as_means_under_stewardship",
+        "transferable_discipline": "For questions about technology in relation to human purposes, establish that technology is a means rather than the source of direction, distinguish technical capability from human judgment, and return to accountability, relationships, and long-term responsible care.",
+        "abstention_boundary": "Do not treat efficiency or technical capability as sufficient grounds for social direction, assign human judgment to technology, or transfer the exemplar-specific claims or canonical doorway to unrelated questions."
+      },
+      "reasoning_family": "technology_as_means_under_stewardship",
+      "transferable_lesson": "Technology can extend capacity without supplying legitimate social direction; strong stewardship explanations distinguish what systems can do from the human judgment required to decide what ought to matter, who bears consequences, and what capacities should be sustained.",
+      "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or doorway.",
+      "user_approved_at": "2026-11-15",
+      "gold_star_number": 64
     },
     {
       "benchmark_id": "general-guide-algorithmic-amplification-institutional-failure-gold-standard-2026-11-15",
