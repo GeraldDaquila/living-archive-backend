@@ -769,3 +769,23 @@ def test_gold_star_inventory_has_one_canonical_approved_directory():
     assert approved
     assert all(r["status"] != "USER_APPROVED_GOLD_STANDARD_PENDING_FIXTURE" for r in registry["records"])
     assert len({r["benchmark_id"] for r in approved}) == len(approved)
+
+
+def test_gold_star_has_one_strict_canonical_definition():
+    registry = _registry()
+    gold = [r for r in registry["records"] if r["status"] == "USER_APPROVED_GOLD_STANDARD"]
+    assert gold
+    for record in gold:
+        assert record.get("expected_response"), record["benchmark_id"]
+        assert record.get("freeze_policy"), record["benchmark_id"]
+        assert record.get("runtime_transfer") is True, record["benchmark_id"]
+        capability = record.get("gold_star_capabilities") or {}
+        assert capability.get("active_quality_contributor") is True, record["benchmark_id"]
+        assert capability.get("deterministic_fallback_eligible") is True, record["benchmark_id"]
+        assert record.get("fixture_state") != "PENDING_EXACT_FIXTURE", record["benchmark_id"]
+
+
+def test_incomplete_evidence_records_are_not_counted_as_gold_stars():
+    registry = _registry()
+    incomplete = [r for r in registry["records"] if r.get("fixture_state") == "PENDING_EXACT_FIXTURE"]
+    assert all(r["status"] != "USER_APPROVED_GOLD_STANDARD" for r in incomplete)
