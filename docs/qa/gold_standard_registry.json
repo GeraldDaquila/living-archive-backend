@@ -3789,6 +3789,49 @@
       "transferable_lesson": "Circumstances shape the field of possible action without fully determining response; strong conceptual explanations preserve that asymmetry and connect it to responsibility without blame.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, financial-pressure example, claims, or continuation.",
       "user_approved_at": "2026-11-15"
+    },
+    {
+      "benchmark_id": "general-guide-transformation-temporary-relief-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How can a user distinguish genuine transformation from temporary emotional relief?",
+      "expected_response": "Temporary emotional relief and genuine transformation can overlap, but they are not the same thing. Relief primarily changes how a person feels in the moment: a burden may ease, anxiety may settle, or a difficult experience may briefly feel more manageable. Transformation becomes visible when something more durable changes in how a person understands a situation, acts within it, or responds when a familiar pattern returns.\n\nOne useful distinction is to look beyond the intensity of the immediate experience and ask what remains different afterward. A powerful insight, retreat, conversation, or emotional release can feel significant without yet changing the conditions or habits that produced the difficulty. Transformation is more likely when the experience alters an ongoing relationship: different choices become possible, automatic reactions lose some of their force, relationships or responsibilities are approached differently, or the person can meet a recurring situation without simply returning to the old pattern.\n\nThat does not make temporary relief superficial or unimportant. Relief can create the space in which deeper change becomes possible, but relief alone is not evidence of transformation. The practical question is whether the change survives beyond the feeling of the moment and becomes part of how the person lives, relates, or responds over time. This is a general conceptual orientation, not a claim that the Living Archive defines the distinction in exactly these terms.",
+      "expected_doorway": null,
+      "doorway_status": "NOT_APPROVED_UNVERIFIED",
+      "doorway_note": "The live visitor response displayed the continuation title 'Alignment Before Transformation', but no canonical destination URL was independently verified at elevation; answer authority is preserved without inventing doorway authority.",
+      "rating_out_of_10": 9.5,
+      "approval_state": "User explicitly reviewed the live visitor-facing response and authorized: 'elevate, merge if all tests pass' on 2026-11-15.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User message accompanying the reviewed live screenshot on 2026-11-15: 'comment? rating? gold star? elevate, merge if all tests pass'.",
+      "assertions": [
+        "Exactly three substantive paragraphs with distinct functions: direct distinction; observable continuity and changed pattern; practical test and bounded conclusion.",
+        "Distinguishes immediate emotional state change from durable change in how a person understands, acts, relates, or responds.",
+        "Preserves the value of temporary relief without treating relief alone as evidence of transformation.",
+        "Uses recurring situations and the persistence of changed patterns as an observable diagnostic rather than claiming a single universal measure.",
+        "Maintains an epistemic boundary by identifying the response as a general conceptual orientation rather than a formal Living Archive definition."
+      ],
+      "provenance": {
+        "source": "User-provided screenshot of the live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
+        "source_ref": "live visitor-facing production response following PR #1431 refinement.",
+        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "transformation, emotional relief, durable change, recurring patterns, changed relationships, continuity over time",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "durable_pattern_change_vs_immediate_state_change",
+        "transferable_discipline": "For questions that distinguish temporary experience from deeper change, define the difference directly, preserve the value of the temporary state, identify observable continuity in how the person understands, acts, relates, or responds, and end with a practical test that does not overclaim certainty.",
+        "abstention_boundary": "Do not treat emotional intensity as proof of transformation, dismiss temporary relief as superficial, or present this general conceptual orientation as a formal canonical definition without source support."
+      },
+      "reasoning_family": "durable_pattern_change_vs_immediate_state_change",
+      "transferable_lesson": "A durable transformation is best distinguished from temporary relief by what remains different when the immediate feeling passes and a familiar pattern or situation returns.",
+      "transfer_boundary": "Transfer the structural distinction and diagnostic discipline, not the exemplar-specific wording, examples, or continuation title.",
+      "user_approved_at": "2026-11-15"
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
