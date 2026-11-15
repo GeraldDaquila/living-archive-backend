@@ -3352,7 +3352,8 @@
       "legacy_approval_grandfathered_reason": null,
       "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
-      "elevation_approval_evidence": "User reviewed the live response and explicitly directed: “fix structurally and turn into gold star” on 2026-11-16."
+      "elevation_approval_evidence": "User reviewed the live response and explicitly directed: “fix structurally and turn into gold star” on 2026-11-16.",
+      "gold_star_number": 88
     },
     {
       "benchmark_id": "gs-2026-11-14-practice-community-feedback-development",
