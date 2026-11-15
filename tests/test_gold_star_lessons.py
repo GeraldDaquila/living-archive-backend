@@ -6,10 +6,10 @@ def test_only_explicitly_approved_records_are_loaded():
     assert lessons._ALLOWED_STATUSES == frozenset({"USER_APPROVED_GOLD_STANDARD"})
 
 
-def test_exact_question_is_observable_but_not_automatically_transferable():
+def test_exact_question_preserves_its_canonical_runtime_transfer_setting():
     result = lessons.select_lesson("What is institutional memory, and why does it matter?")
     assert result and result["exact"] is True
-    assert result["runtime_transfer"] is False
+    assert result["runtime_transfer"] is True
 
 
 def test_explicit_transfer_matches_canonical_structure_agency_lesson():
