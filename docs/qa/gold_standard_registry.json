@@ -4904,7 +4904,12 @@
         "abstention_boundary": "Do not assume informal influence is inherently illegitimate or that organizational charts fully describe how power operates; the issue is whether consequential power can be seen, challenged, and connected to accountability.",
         "intake_note": "Capability metadata records the explicit user-reviewed elevation and preserves the approved exact response without inferring an unobserved generation mode."
       },
-      "doorway_note": "A doorway title was observed during review, but no canonical URL was captured or independently verified. Navigation is explicitly withheld rather than inferred."
+      "doorway_note": "A doorway title was observed during review, but no canonical URL was captured or independently verified. Navigation is explicitly withheld rather than inferred.",
+      "provenance": {
+        "source": "explicit_user_review",
+        "evidence": "User reviewed the live response, explicitly requested: “fix structurally and turn this into a gold star,” and subsequently directed alignment of the code with the Gold Star rating on 2026-11-16.",
+        "approved_at": "2026-11-16"
+      }
     },
     {
       "benchmark_id": "general-guide-reflection-vs-therapy-boundary-gold-standard-2026-11-16",
@@ -4938,7 +4943,12 @@
         "abstention_boundary": "Do not diagnose, treat, or imply clinical authority; when deeper psychological distress or therapeutic needs are central, preserve the distinction between reflective guidance and qualified care."
       },
       "user_approved_at": "2026-11-16",
-      "elevation_approval_evidence": "User explicitly requested: 'fix structurally and turn this into gold star' after reviewing the corrected live response and identifying the missing doorway."
+      "elevation_approval_evidence": "User explicitly requested: 'fix structurally and turn this into gold star' after reviewing the corrected live response and identifying the missing doorway.",
+      "provenance": {
+        "source": "explicit_user_review",
+        "evidence": "User explicitly requested: 'fix structurally and turn this into gold star' after reviewing the corrected live response and identifying the missing doorway.",
+        "approved_at": "2026-11-16"
+      }
     }
   ],
   "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-16: 80 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory; 27 carry explicit Gold Star numbers. The highest assigned number is #88. #85 and #86 remain unassigned because no provenance evidence authorizes retroactive assignment; they are not counted as missing approved records.",
