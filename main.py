@@ -238,7 +238,24 @@ def _select_verified_doorway_conceptual_family(query):
         and re.search(r"\bauthority\b", text, re.I)
     ):
         return "ai_role_distinction"
+    if (
+        re.search(r"\bregenerat(?:ion|ive)\b", text, re.I)
+        and re.search(r"\b(?:restoration|restore|repair|damage|environmental)\b", text, re.I)
+    ):
+        return "regeneration_beyond_restoration"
     return None
+
+
+_VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
+    "ai_role_distinction": {
+        "title": "Responsible AI Principle",
+        "url": "https://geralddaquila.com/responsible-ai-principle/",
+    },
+    "regeneration_beyond_restoration": {
+        "title": "Regenerative Governance: What Comes After Extraction-Based Systems?",
+        "url": "https://geralddaquila.com/2026/06/08/regenerative-governance-what-comes-after-extraction-based-systems/",
+    },
+}
 
 
 def _select_guide_node_fallback_doorway(query):
@@ -250,16 +267,10 @@ def _select_guide_node_fallback_doorway(query):
     cannot erase a stronger canonical continuation.
     """
     normalized = str(query or "").casefold()
-    ai_role_distinction = (
-        bool(re.search(r"\b(?:ai|artificial intelligence)\b", normalized))
-        and bool(re.search(r"\binterpreter\b", normalized))
-        and bool(re.search(r"\bauthorit(?:y|ative)\b", normalized))
-    )
-    if ai_role_distinction:
-        return {
-            "title": "Responsible AI Principle",
-            "url": "https://geralddaquila.com/responsible-ai-principle/",
-        }
+    family = _select_verified_doorway_conceptual_family(query)
+    verified_family_doorway = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
+    if verified_family_doorway:
+        return dict(verified_family_doorway)
     terms = set(re.findall(r"[a-z]{4,}", normalized))
     best = None
     best_score = 0
