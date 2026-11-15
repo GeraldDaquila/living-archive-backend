@@ -4716,6 +4716,56 @@
       ],
       "user_approved_at": "2026-11-15",
       "observed_doorway_title": "Why Everything Feels Connected (And What That Actually Means)"
+    },
+    {
+      "benchmark_id": "general-guide-cross-scale-orientation-refined-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "gold_star_number": 81,
+      "query": "How do local actions connect to civilizational patterns without reducing one to the other?",
+      "expected_response": "Local actions and civilizational patterns are connected, but neither is a complete explanation of the other. Wider patterns shape the institutions, habits, technologies, relationships, and assumptions within which people act. Those conditions influence what becomes possible, difficult, rewarded, or taken for granted.\n\nLocal action, however, is not simply an effect of those conditions. People and communities reproduce patterns through ordinary practice, but they can also interpret, adapt, challenge, and redirect them. The relationship is reciprocal but asymmetric: a single local action rarely changes a civilizational pattern by itself, yet repeated actions can accumulate through organizations, networks, and communities until wider conditions begin to change.\n\nThe practical discipline is therefore to trace the relationship in both directions. Ask what larger conditions are shaping a local situation, and ask how local decisions are carrying those conditions forward—or altering them. This keeps structure visible without making agency irrelevant, and keeps agency visible without pretending that people act outside history or circumstance.",
+      "expected_doorway": null,
+      "doorway_status": "TITLE_OBSERVED_URL_NOT_CAPTURED",
+      "observed_doorway_title": "Seeing Patterns Without Fooling Yourself",
+      "rating_out_of_10": 9.6,
+      "approval_state": "User reviewed the live visitor-facing response, requested structural correction, and explicitly approved conversion to Gold Standard on 2026-11-15.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User instruction on 2026-11-15: 'fix structurally and turn this into gold standard'.",
+      "supersedes_benchmark_id": "gs-2026-11-13-03-cross-scale-orientation-canonical-continuation",
+      "assertions": [
+        "Wider civilizational patterns shape the conditions within which local action occurs without fully determining that action.",
+        "Local actors can reproduce, interpret, adapt, challenge, or redirect wider patterns.",
+        "The relationship across scales is reciprocal but asymmetric: local actions commonly accumulate through organizations, networks, and communities before altering wider conditions.",
+        "Cross-scale reasoning should trace influence in both directions without collapsing structure into agency or agency into structure."
+      ],
+      "provenance": {
+        "source": "User-provided live Guide screenshot reviewed on 2026-11-15.",
+        "source_ref": "visitor-facing production response.",
+        "evidence_boundary": "This reviewed refinement supersedes the earlier canonical exemplar for quality calibration while preserving the original cross-scale discipline. The observed doorway title is retained without inventing a URL."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "cross-scale orientation, structure and agency, civilizational patterns, local action, accumulation, institutions",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_corrected_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "cross_scale_structure_agency_reciprocal_asymmetric",
+        "transferable_discipline": "For cross-scale questions, trace influence in both directions: wider patterns condition local possibilities, while local actions can reproduce or alter those patterns through accumulation across organizations, networks, and communities. Preserve both structure and agency without treating either as a complete explanation.",
+        "abstention_boundary": "Do not imply that local action automatically scales into civilizational change, or that wider structures fully determine local judgment. Do not collapse reciprocal influence into equal causal power at every scale."
+      },
+      "reasoning_family": "cross_scale_structure_agency_reciprocal_asymmetric",
+      "transferable_lesson": "Cross-scale relationships are reciprocal but asymmetric: conditions shape action, while action can reproduce or redirect conditions through cumulative institutional and network effects.",
+      "transfer_boundary": "Apply to genuine relationships across scales; preserve asymmetry, accumulation, and agency boundaries rather than using generic systems language.",
+      "related_question_variants": [
+        "How can individuals influence larger social patterns?",
+        "Do institutions determine local behavior?",
+        "How do small actions accumulate into systemic change?",
+        "How should we connect personal agency with historical conditions?"
+      ],
+      "user_approved_at": "2026-11-15"
     }
   ],
   "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-15: 71 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory. 16 now carry explicit Gold Star numbers, including #75 for the user-reviewed open-question exemplar. Historical numbering remains incomplete for other approved records and must not be inferred without provenance evidence.",
@@ -4848,9 +4898,9 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-15",
-    "approved_gold_star_count": 75,
-    "registry_record_count": 111,
-    "review_reconciliation": "Gold Star #80 normalized to the validator's canonical title-observed/no-URL state: expected_doorway is null, doorway_status records TITLE_OBSERVED_URL_NOT_CAPTURED, and observed_doorway_title preserves the reviewed title without fabricating a URL.",
+    "approved_gold_star_count": 77,
+    "registry_record_count": 113,
+    "review_reconciliation": "Rebased Gold Star #81 cross-scale refinement onto current canonical main after PR #1499 diverged. Existing canonical additions were preserved; the refined exemplar remains additive and supersedes the older legacy exemplar for current calibration without mutating historical source.",
     "numbered_gold_star_record_count": 16,
     "highest_assigned_gold_star_number": 75,
     "numbering_reconciliation": "The explicit numbered sequence currently extends through #75. Unnumbered approved records remain canonical but are not retroactively assigned historical positions without evidence."
