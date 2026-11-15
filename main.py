@@ -10918,6 +10918,35 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             composition_context["authoritative_doorway_title"] = authoritative_doorway["title"]
             print("The Guide final payload boundary: preserved composed systems-map doorway.")
 
+    # Last-mile doorway recovery: composition may answer a visitor correctly
+    # without producing navigation. Do not let a special recovery branch be the
+    # only route that can invoke canonical fallback. Every final payload gets
+    # one bounded recovery attempt, unless a governed standard explicitly
+    # forbids a handoff.
+    if (
+        not authoritative_doorway
+        and not (
+            _final_gold_standard is not None
+            and bool(_final_gold_standard.get("forbids_doorway"))
+        )
+    ):
+        try:
+            _final_fallback_doorway = _select_guide_node_fallback_doorway(query)
+            authoritative_doorway = _normalize_authoritative_recommendation(
+                _final_fallback_doorway
+            ) if isinstance(_final_fallback_doorway, dict) else None
+            if authoritative_doorway:
+                composition_context["authoritative_doorway"] = authoritative_doorway
+                composition_context["authoritative_doorway_title"] = (
+                    authoritative_doorway["title"]
+                )
+                print(
+                    "The Guide final payload boundary: recovered verified canonical doorway."
+                )
+        except Exception:
+            # Navigation must fail closed; answer availability is independent.
+            authoritative_doorway = None
+
     # Final authority boundary: only an explicit no-handoff instruction may
     # suppress an independently verified doorway at the final visitor boundary.
     authoritative_doorway = _enforce_registered_gold_standard_doorway(
