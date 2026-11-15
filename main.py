@@ -290,7 +290,13 @@ def _verified_archive_doorway_fallback(query, docs, profile):
         node = _select_guide_node_fallback_doorway(query)
     except Exception:
         node = None
-    return _normalize_authoritative_recommendation(node)
+    normalized = _normalize_authoritative_recommendation(node)
+    if normalized:
+        return normalized
+
+    # No verified canonical continuation is available. This is the only
+    # legitimate condition under which the Guide suppresses its doorway.
+    return None
 
 def _guide_node_by_id(node_id):
     target = str(node_id or "").strip()
