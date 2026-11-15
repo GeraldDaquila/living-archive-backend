@@ -496,6 +496,15 @@
       "qualifying_context": "Archive-specific conceptual questions about human development, human flourishing, personal capacities, relationships, institutions, and the conditions that enable or constrain participation.",
       "abstention_boundary": "Do not present a bounded interpretive orientation as a substitute for a specific formal definition where one exists. Do not transfer this bounded Archive orientation as a formal definition where a more specific canonical source governs.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-agency-circumstance-gold-standard-2026-11-15",
+      "question": "What is the relationship between agency and circumstance?",
+      "reasoning_family": "agency_within_circumstance_asymmetry",
+      "transferable_discipline": "For substantive questions about agency and conditions, define the relationship directly, show how circumstances shape the field of possible action without fully determining response, use a concrete mechanism when useful, and end with the practical distinction that prevents both unfair blame and the erasure of agency.",
+      "qualifying_context": "Questions about agency, choice, structure, circumstance, constraints, responsibility, and how conditions shape action without fully determining it.",
+      "abstention_boundary": "Do not treat constraints as destiny, agency as unlimited freedom, or this general conceptual explanation as a formal canonical definition without source support.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
