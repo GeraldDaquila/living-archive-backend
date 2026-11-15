@@ -3044,7 +3044,7 @@
     {
       "benchmark_id": "gs-2026-11-13-03-cross-scale-orientation-canonical-continuation",
       "query": "How do local actions connect to civilizational patterns without reducing one to the other?",
-      "status": "USER_APPROVED_GOLD_STANDARD",
+      "status": "SUPERSEDED_GOLD_STANDARD",
       "runtime_transfer": true,
       "reasoning_family": "cross_scale_structure_agency",
       "accepted_response": "For cross-scale inquiries, make the relationship between scales visible without collapsing either structure or agency. Wider patterns shape institutions, habits, technologies, relationships, and assumptions; local action occurs within those conditions while also reproducing, interpreting, challenging, or changing them. Repeated action can accumulate through organizations, networks, and communities. Wider structures condition action without making individual or local agency irrelevant.",
@@ -3074,7 +3074,10 @@
         "abstention_boundary": "Transfer the discipline, not the exact prose or doorway. Apply only to questions genuinely involving relationships across scales. Do not authorize a systems doorway merely because a question mentions society, institutions, or change."
       },
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "superseded_by": "general-guide-cross-scale-orientation-refined-gold-standard-2026-11-15",
+      "active_quality_contributor": false,
+      "exact_answer_authority": false
     },
     {
       "benchmark_id": "gs-2026-11-14-humane-performance-not-instrumental-treatment",
@@ -4900,7 +4903,7 @@
     "last_audit_date": "2026-11-15",
     "approved_gold_star_count": 77,
     "registry_record_count": 113,
-    "review_reconciliation": "Post-merge inventory reconciliation found an intervening canonical Gold Star #81 added after the original cross-scale audit and before rebased merge. The cross-scale exemplar is renumbered #82 to eliminate the duplicate while preserving both approved exemplars.",
+    "review_reconciliation": "Runtime query failure exposed two approved records with the same exact question. The older immutable historical record remains preserved but is marked SUPERSEDED_GOLD_STANDARD and inactive for exact-answer resolution; Gold Star #82 is the sole approved exact-answer authority for this question.",
     "numbered_gold_star_record_count": 16,
     "highest_assigned_gold_star_number": 75,
     "numbering_reconciliation": "The explicit numbered sequence currently extends through #75. Unnumbered approved records remain canonical but are not retroactively assigned historical positions without evidence."
