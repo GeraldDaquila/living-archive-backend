@@ -4247,6 +4247,54 @@
         "approval_evidence": "User instruction: 'elevate to gold star. merge'.",
         "evidence_boundary": "Screenshot establishes the exact reviewed response, visible doorway, rating basis, and explicit approval."
       }
+    },
+    {
+      "benchmark_id": "general-guide-archive-grounded-guidance-knowledge-sensemaking-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How should The Guide distinguish archive-grounded guidance from general external knowledge?",
+      "expected_response": "The Guide should keep three layers distinct. A direct Archive claim is something a particular text actually says or clearly supports, and it should remain traceable to that source. A synthesis is different: it draws a relationship, pattern, or implication across more than one Archive resource. It can be useful precisely because it connects materials, but it should be presented as the Guide's synthesis rather than as the statement of any single text.\n\nA third layer is orientation. The Guide may frame a question, identify a tension, or suggest a way of looking without presenting that framing as evidence from the Archive. This matters especially in a Living Archive: its purpose is not to flatten different voices into one authoritative conclusion, but to hold ideas in relationship without losing where they came from. Keeping the layers visible lets a visitor see what is being reported, what is being inferred, and what is being offered as a way to continue thinking.\n\nThe practical discipline is therefore simple: stay close to the source when saying what the Archive says; name synthesis when the Guide is connecting materials; and keep orientation visibly separate from both. Then the Guide can add intelligibility without borrowing authority it has not earned. The distinction protects the integrity of the Archive while preserving the freedom to notice relationships that no single text, on its own, could show.",
+      "expected_doorway": {
+        "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii"
+      },
+      "rating_out_of_10": 9.5,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the corrected live visitor-facing response with its visible canonical doorway and explicitly authorized Gold Star elevation and merge on 2026-11-15.",
+      "elevation_approval_evidence": "User instruction on 2026-11-15: 'elevate. merge'.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "Archive provenance, direct claims, synthesis, orientation, knowledge, sensemaking, source integrity",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "archive_guidance_provenance_and_orientation",
+        "transferable_discipline": "Keep three layers visibly distinct: direct source-grounded claims remain traceable; cross-resource relationships are named as synthesis; orientation frames inquiry without borrowing evidentiary authority. Preserve relationships among materials without flattening different voices into one conclusion, then offer one verified continuation when a canonical conceptual family applies.",
+        "abstention_boundary": "Do not present synthesis or orientation as a direct Archive claim; do not flatten distinct Archive voices into a single authoritative conclusion; do not transfer exemplar-specific wording or the Knowledge & Sensemaking doorway to unrelated questions."
+      },
+      "reasoning_family": "archive_guidance_provenance_and_orientation",
+      "transferable_lesson": "Strong Archive-grounded guidance distinguishes what a source says, what the Guide infers across sources, and how the Guide orients further inquiry—adding intelligibility without borrowing authority.",
+      "transfer_boundary": "Transfer the provenance discipline and compositional structure, not the exemplar-specific wording, claims, or continuation.",
+      "user_approved_at": "2026-11-15",
+      "gold_star_number": 68,
+      "assertions": [
+        "Maintains exactly three substantive paragraphs corresponding to direct claims, synthesis, and orientation.",
+        "Keeps direct Archive claims traceable to particular sources.",
+        "Names cross-resource relationships as the Guide's synthesis rather than as any single source's statement.",
+        "Keeps orientation separate from evidence while allowing useful framing and continued inquiry.",
+        "Protects plurality in a Living Archive by holding ideas in relationship without flattening them into one authoritative conclusion.",
+        "Completes the visitor journey with one visible canonical continuation: The Living Archive Navigator: Volume III – Knowledge & Sensemaking."
+      ],
+      "provenance": {
+        "source_date": "2026-11-15",
+        "source": "User-provided screenshot of the corrected live Guide response after structural doorway repair.",
+        "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
+        "approval_evidence": "User instruction: 'elevate. merge'.",
+        "evidence_boundary": "Screenshot establishes the exact reviewed response, the visible canonical doorway, and explicit approval. The doorway was validated through the structural regression and live deployment sequence before visitor-facing acceptance."
+      }
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",

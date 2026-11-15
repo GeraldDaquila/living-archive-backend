@@ -604,6 +604,15 @@
       "qualifying_context": "Questions about growth, ecological or social limits, carrying capacity, extractive expansion, externalized costs, or long-term viability.",
       "abstention_boundary": "Do not treat all growth as destructive or equate limits with opposition to development; do not transfer exemplar-specific wording or ARC III doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-archive-grounded-guidance-knowledge-sensemaking-gold-standard-2026-11-15",
+      "question": "How should The Guide distinguish archive-grounded guidance from general external knowledge?",
+      "reasoning_family": "archive_guidance_provenance_and_orientation",
+      "transferable_discipline": "Keep three layers visibly distinct: direct source-grounded claims remain traceable; cross-resource relationships are named as synthesis; orientation frames inquiry without borrowing evidentiary authority. Preserve relationships among materials without flattening different voices into one conclusion, then offer one verified continuation when a canonical conceptual family applies.",
+      "qualifying_context": "Questions about Archive provenance, source integrity, synthesis across materials, interpretive orientation, knowledge, sensemaking, or how the Guide should distinguish what sources say from what it infers or frames.",
+      "abstention_boundary": "Do not present synthesis or orientation as a direct Archive claim; do not flatten distinct Archive voices into a single authoritative conclusion; do not transfer exemplar-specific wording or the Knowledge & Sensemaking doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
