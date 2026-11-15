@@ -1424,7 +1424,7 @@ def _has_intergenerational_stewardship_explanation(response: str) -> bool:
         and bool(re.search(r"\b(?:stewardship|steward)\b", paragraphs[0], re.I))
         and bool(re.search(r"\b(?:intergenerational|future generations?|those who come after|generations to come)\b", paragraphs[0], re.I))
         and bool(re.search(r"\b(?:for example|in practice|institution|knowledge|capabilities|relationships|resources)\b", paragraphs[1], re.I))
-        and bool(re.search(r"\b(?:does not mean|doesn't mean|not mean|not about)\b", paragraphs[2], re.I))
+        and bool(re.search(r"\b(?:does not mean|doesn't mean|does not require|not mean|not about)\b", paragraphs[2], re.I))
         and bool(re.search(r"\b(?:responsib|care|control|limits?)\w*\b", paragraphs[2], re.I))
         and bool(re.search(r"\b(?:because|so that|which means|as a result|over time|what remains)\b", text, re.I))
     )
