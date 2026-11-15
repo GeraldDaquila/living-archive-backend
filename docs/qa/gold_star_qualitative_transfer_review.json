@@ -586,6 +586,15 @@
       "qualifying_context": "Conceptual questions about AI, automated systems, decision support, interpretation, recommendations, or the boundary between technical assistance and legitimate human or institutional authority.",
       "abstention_boundary": "Do not equate analytical capability, confidence, ranking, or recommendation with legitimate authority; do not imply AI must be passive; and do not transfer the exemplar-specific wording or doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-regeneration-beyond-environmental-restoration-gold-standard-2026-11-15",
+      "question": "What does regeneration mean beyond environmental restoration?",
+      "reasoning_family": "conditions_for_regenerative_flourishing",
+      "transferable_discipline": "For conceptual questions about regeneration, distinguish repairing past damage from renewing the conditions, relationships, and capacities that allow a living system to continue flourishing; apply the concept across relevant systems, establish limits, and offer one verified continuation when a canonical conceptual family applies.",
+      "qualifying_context": "Questions about regeneration, restoration, renewal, flourishing, stewardship, place, or the conditions that sustain living systems.",
+      "abstention_boundary": "Do not equate regeneration with unlimited growth, guaranteed repair, environmental restoration alone, or a generic positive outcome; do not transfer the exemplar-specific wording or doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
