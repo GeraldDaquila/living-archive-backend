@@ -3832,6 +3832,49 @@
       "transferable_lesson": "Culture shapes the interpretive field in which people notice, value, and imagine; strong explanations preserve both that formative influence and the capacity to question, revise, and widen inherited horizons.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
       "user_approved_at": "2026-11-15"
+    },
+    {
+      "benchmark_id": "general-guide-contemplative-insight-empirical-evidence-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What distinguishes contemplative insight from empirical evidence?",
+      "expected_response": "Contemplative insight and empirical evidence answer different kinds of questions. Contemplative insight arises through sustained attention to experience: it can clarify how something feels, what a pattern means to a person, or how one understands a relationship or situation from within. Its strength is depth of first-person understanding, but the insight is not automatically proof that the same conclusion holds for everyone.\n\nEmpirical evidence is gathered through observation, measurement, comparison, or other methods that allow a claim to be checked against the world. Its strength is that other people can examine the method and evidence, look for alternative explanations, and test whether a finding holds beyond one person's experience. Empirical evidence can therefore support or challenge general claims, but it may not by itself capture the full meaning or texture of lived experience.\n\nThe distinction is not that one is true and the other is false. They have different standards of warrant. A contemplative insight may be personally illuminating and can suggest a question worth investigating; empirical evidence asks what can be publicly supported about that question. Keeping the two distinct helps avoid treating a powerful inner experience as universal proof while also avoiding the mistake of assuming that only what can be measured is meaningful.",
+      "expected_doorway": null,
+      "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+      "doorway_note": "The reviewed live response displayed the continuation title \"How to Read the Living Archive\", but no independently verified canonical destination URL was captured at elevation; doorway authority is intentionally withheld rather than invented.",
+      "rating_out_of_10": 9.5,
+      "approval_state": "User explicitly reviewed the live visitor-facing response and authorized elevation and merge on 2026-11-15.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User instruction on 2026-11-15: 'elevate #60. merge'. Canonical registry count was independently verified at 58 before this elevation; this record is therefore the next available canonical entry pending validation.",
+      "assertions": [
+        "Distinguishes first-person contemplative insight from publicly checkable empirical evidence without ranking one as universally superior.",
+        "Explains different standards of warrant and the limits of each mode of knowing.",
+        "Avoids universalizing private experience as proof.",
+        "Avoids reducing meaningful experience to only what can be measured.",
+        "Uses a three-part structure: contemplative insight; empirical evidence; integration and boundary."
+      ],
+      "provenance": {
+        "source": "User-provided screenshot of the live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
+        "source_ref": "live visitor-facing production response.",
+        "evidence_boundary": "Screenshot establishes the reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "contemplation, empirical evidence, first-person experience, warrant, measurement, meaning",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "plural_modes_of_knowing_with_distinct_warrant",
+        "transferable_discipline": "Distinguish complementary modes of knowing by their questions, methods, strengths, and standards of warrant without collapsing them into a false hierarchy; preserve both public scrutiny and lived meaning.",
+        "abstention_boundary": "Do not present contemplative insight as universal empirical proof, reduce all meaningful knowledge to measurement, or imply that distinct standards of warrant make one mode inherently invalid."
+      },
+      "reasoning_family": "plural_modes_of_knowing_with_distinct_warrant",
+      "transferable_lesson": "Strong explanations of different epistemic modes clarify what each can establish, where its authority ends, and how the modes can remain distinct without becoming enemies.",
+      "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
+      "user_approved_at": "2026-11-15"
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
