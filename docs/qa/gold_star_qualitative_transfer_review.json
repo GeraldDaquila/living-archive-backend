@@ -514,6 +514,15 @@
       "qualifying_context": "Questions about developmental language, capacities, hierarchy, labels, dismissiveness, human worth, and the appropriate use of developmental frameworks.",
       "abstention_boundary": "Do not use developmental labels to rank human worth, explain away a person's perspective, erase context or situational variation, or present an unverified doorway URL as canonical.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-transformation-temporary-relief-gold-standard-2026-11-15",
+      "question": "How can a user distinguish genuine transformation from temporary emotional relief?",
+      "reasoning_family": "durable_pattern_change_vs_immediate_state_change",
+      "transferable_discipline": "For questions that distinguish temporary experience from deeper change, define the difference directly, preserve the value of the temporary state, identify observable continuity in how the person understands, acts, relates, or responds, and end with a practical test that does not overclaim certainty.",
+      "qualifying_context": "Questions about transformation, growth, recovery, change, relief, recurring patterns, and whether an experience produces durable differences over time.",
+      "abstention_boundary": "Do not treat emotional intensity as proof of transformation, dismiss temporary relief as superficial, or present this general conceptual orientation as a formal canonical definition without source support.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
