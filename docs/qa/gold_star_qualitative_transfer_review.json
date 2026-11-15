@@ -685,6 +685,15 @@
       "qualifying_context": "Questions asking how to explain complex systems, distinguish consequential relationships from superficial connection, evaluate causal claims, or use systems thinking without losing judgment.",
       "abstention_boundary": "Do not imply that every apparent relationship is causal, that all connected factors are equally important, or that systems complexity removes the need to identify who can act and what evidence supports the explanation.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-cross-scale-orientation-refined-gold-standard-2026-11-15",
+      "question": "How do local actions connect to civilizational patterns without reducing one to the other?",
+      "reasoning_family": "cross_scale_structure_agency_reciprocal_asymmetric",
+      "transferable_discipline": "For cross-scale questions, trace influence in both directions: wider patterns condition local possibilities, while local actions can reproduce or alter those patterns through accumulation across organizations, networks, and communities. Preserve both structure and agency without treating either as a complete explanation.",
+      "qualifying_context": "Questions connecting local action with institutional, historical, social, or civilizational patterns.",
+      "abstention_boundary": "Do not imply that local action automatically scales into civilizational change, or that wider structures fully determine local judgment. Do not collapse reciprocal influence into equal causal power at every scale.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
