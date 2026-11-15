@@ -487,6 +487,15 @@
       "transferable_discipline": "Make competing claims visible, examine power and irreversible harms, use defensible criteria, acknowledge sacrifice, and test whether burdens fall unfairly on those with least power.",
       "abstention_boundary": "Do not force false consensus, conceal sacrifice, shift burdens unfairly onto people with least power, or invent an unverified doorway URL.",
       "reasoning_family": "ethical_tradeoff"
+    },
+    {
+      "benchmark_id": "general-guide-human-development-archive-framework-gold-standard-2026-11-15",
+      "question": "What does human development mean in the Archive's framework?",
+      "reasoning_family": "relational_human_development_with_epistemic_boundary",
+      "transferable_discipline": "Connect individual development with relationships, institutions, and conditions while distinguishing general orientation from formal canonical authority.",
+      "qualifying_context": "Archive-specific conceptual questions about human development, human flourishing, personal capacities, relationships, institutions, and the conditions that enable or constrain participation.",
+      "abstention_boundary": "Do not present a bounded interpretive orientation as a substitute for a specific formal definition where one exists. Do not transfer this bounded Archive orientation as a formal definition where a more specific canonical source governs.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
