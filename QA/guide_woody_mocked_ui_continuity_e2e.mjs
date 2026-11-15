@@ -380,3 +380,10 @@ try {
 // repository copy of a separately deployed WordPress media artifact. The live
 // controller itself is exercised above; keep repository-only static checks out
 // of this browser acceptance contract.
+
+
+// Regression: a verified canonical doorway must still render when an adapter
+// supplies only the canonical alias and omits recommendation.
+if (!source.includes('data.canonical_doorway') || !source.includes('presentation adapter can never erase a verified doorway')) {
+  throw new Error('Woody canonical doorway alias fallback is missing.');
+}
