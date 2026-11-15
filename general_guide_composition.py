@@ -1358,6 +1358,42 @@ def _broad_conceptual_definition_recovery() -> str:
     )
 
 
+def _requires_growth_within_living_limits(query: str) -> bool:
+    """Recognize explanatory questions about growth exceeding ecological and social limits."""
+    q = _normalize_space(query).casefold()
+    growth = bool(re.search(r"\bgrowth\b", q))
+    destructive = bool(re.search(r"\b(?:destructive|harmful|damage|collapse|break)\b", q))
+    limits = bool(re.search(r"\b(?:ecological|environmental|social|planetary|living)\b.{0,80}\blimits?\b|\blimits?\b.{0,80}\b(?:ecological|environmental|social|planetary|living)\b", q))
+    return growth and destructive and limits
+
+
+def _has_growth_within_living_limits_explanation(response: str) -> bool:
+    """Require the causal mechanism, concrete consequences, and a bounded conclusion."""
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
+    if len(paragraphs) != 3:
+        return False
+    first, second, third = paragraphs
+    text = _normalize_space(response)
+    return (
+        bool(re.search(r"\bgrowth\b", first, re.I))
+        and bool(re.search(r"\b(?:ecological|social)\b", first, re.I))
+        and bool(re.search(r"\b(?:limits?|capacity|regenerate|absorb)\b", first, re.I))
+        and bool(re.search(r"\b(?:costs?|damage|extract|depletion|pollution|inequal|trust|community|relationship)\w*\b", second, re.I))
+        and bool(re.search(r"\b(?:not|does not|isn't|rather than)\b", third, re.I))
+        and bool(re.search(r"\b(?:limits?|consequences|viable|flourish|stewardship|purpose)\b", third, re.I))
+        and not bool(re.search(r"\b(?:immediate event|visible incident|repeated failure)\b", text, re.I))
+    )
+
+
+def _growth_within_living_limits_recovery() -> str:
+    """Explain why growth becomes destructive when expansion outruns living-system limits."""
+    return (
+        "Growth becomes destructive when expansion is treated as an end in itself and is allowed to outrun the ecological and social conditions that make continued life possible. Ecosystems can regenerate resources and absorb disruption only within limits, while communities depend on trust, care, fair participation, and capacities that cannot simply be expanded on demand. When growth ignores those conditions, it can increase output in the short term by weakening the very systems that sustain it.\n\n"
+        "This often happens when the benefits of expansion are counted in one place while its costs are pushed elsewhere or into the future. A business, city, or institution may grow by extracting resources faster than they can renew, concentrating pollution or risk on particular communities, or demanding more from people while relationships and public capacity deteriorate. What looks like success from a narrow measure can therefore transfer damage to the wider system.\n\n"
+        "The problem is not growth by itself, nor does respecting limits mean that nothing should change or develop. The question is what is growing, for whose benefit, at whose cost, and whether the relationships and living systems supporting that growth remain viable. Growth becomes regenerative only when it remains accountable to those conditions rather than consuming them as if they were external to the system."
+    )
+
+
 def _requires_compound_explanatory_structure(query: str) -> bool:
     """Return True when the question explicitly asks for both meaning and significance."""
     q = _normalize_space(query).casefold()
@@ -2929,6 +2965,10 @@ def enforce_response_contracts(question: str, response: str) -> str:
         candidate = _broad_conceptual_definition_recovery()
     if _requires_broad_conceptual_definition(question) and not _has_broad_conceptual_definition(candidate):
         raise RuntimeError("Broad conceptual definition contract failed after recovery.")
+    if _requires_growth_within_living_limits(question) and not _has_growth_within_living_limits_explanation(candidate):
+        candidate = _growth_within_living_limits_recovery()
+    if _requires_growth_within_living_limits(question) and not _has_growth_within_living_limits_explanation(candidate):
+        raise RuntimeError("Growth-within-living-limits response contract failed after recovery.")
     if _requires_archive_grounding_boundary(question) and not _has_archive_grounding_boundary(candidate):
         candidate = _archive_grounding_boundary_recovery()
     if _requires_archive_grounding_boundary(question) and not _has_archive_grounding_boundary(candidate):
