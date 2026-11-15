@@ -4725,7 +4725,7 @@
       "query": "How do local actions connect to civilizational patterns without reducing one to the other?",
       "expected_response": "Local actions and civilizational patterns are connected, but neither is a complete explanation of the other. Wider patterns shape the institutions, habits, technologies, relationships, and assumptions within which people act. Those conditions influence what becomes possible, difficult, rewarded, or taken for granted.\n\nLocal action, however, is not simply an effect of those conditions. People and communities reproduce patterns through ordinary practice, but they can also interpret, adapt, challenge, and redirect them. The relationship is reciprocal but asymmetric: a single local action rarely changes a civilizational pattern by itself, yet repeated actions can accumulate through organizations, networks, and communities until wider conditions begin to change.\n\nThe practical discipline is therefore to trace the relationship in both directions. Ask what larger conditions are shaping a local situation, and ask how local decisions are carrying those conditions forward—or altering them. This keeps structure visible without making agency irrelevant, and keeps agency visible without pretending that people act outside history or circumstance.",
       "expected_doorway": null,
-      "doorway_status": "TITLE_OBSERVED_URL_NOT_CAPTURED",
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "observed_doorway_title": "Seeing Patterns Without Fooling Yourself",
       "rating_out_of_10": 9.6,
       "approval_state": "User reviewed the live visitor-facing response, requested structural correction, and explicitly approved conversion to Gold Standard on 2026-11-15.",
@@ -4742,7 +4742,7 @@
       "provenance": {
         "source": "User-provided live Guide screenshot reviewed on 2026-11-15.",
         "source_ref": "visitor-facing production response.",
-        "evidence_boundary": "This reviewed refinement supersedes the earlier canonical exemplar for quality calibration while preserving the original cross-scale discipline. The observed doorway title is retained without inventing a URL."
+        "evidence_boundary": "This reviewed refinement supersedes the earlier canonical exemplar for quality calibration while preserving the original cross-scale discipline. The observed doorway title is retained as provenance only; no URL is fabricated or promoted to canonical doorway authority without repository-based verification."
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "cross-scale orientation, structure and agency, civilizational patterns, local action, accumulation, institutions",
