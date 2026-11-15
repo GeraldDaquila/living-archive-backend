@@ -4468,7 +4468,7 @@
       "benchmark_id": "general-guide-stewardship-distinction-ownership-control-management-benevolence-gold-standard-2026-11-15",
       "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
-      "gold_star_number": 75,
+      "gold_star_number": 76,
       "query": "How does stewardship differ from ownership, control, management, or benevolence?",
       "expected_response": "Stewardship differs from ownership, control, management, and benevolence because it begins with a different question: not simply what do I possess, direct, administer, or give, but what has been entrusted to my care, and what responsibility follows from that relationship?\n\nOwnership concerns rights of possession. Control concerns the power to determine outcomes. Management concerns the organization of resources toward particular purposes. Benevolence concerns goodwill or generosity. Each can be part of a healthy relationship, but none by itself is stewardship.\n\nStewardship is a discipline of responsible relationship. It recognizes that what is being cared for may exceed the steward's possession, authority, knowledge, or immediate interest. The task is therefore not to maximize personal control or simply to act generously, but to attend to consequences, limits, continuity, and the people and systems affected by present choices.\n\nThat distinction matters because a person can own without stewarding, control without caring, manage efficiently while damaging what they administer, or act benevolently without sharing responsibility or listening to those affected. Stewardship asks for something more demanding: the responsible use of whatever authority one has, together with humility about what one does not control and accountability for what one's decisions set in motion.\n\nIn that sense, stewardship is neither ownership nor the refusal of ownership; neither control nor the absence of agency; neither management nor mere goodwill. It is the practice of holding authority, resources, and relationships in trust for a reality larger than oneself.",
       "expected_doorway": {
@@ -4648,6 +4648,6 @@
     "last_audit_date": "2026-11-15",
     "approved_gold_star_count": 72,
     "registry_record_count": 108,
-    "review_reconciliation": "Reconciled canonical main before Gold Star #75 elevation; exact stewardship-distinction question added with conceptual-distinction-first reasoning family to prevent mechanism-first routing for analogous questions."
+    "review_reconciliation": "Reconciled before elevation: canonical main already contains Gold Star #75 (open-question orientation); stewardship distinction is therefore Gold Star #76."
   }
 }
