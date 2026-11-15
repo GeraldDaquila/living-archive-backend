@@ -10923,8 +10923,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # only route that can invoke canonical fallback. Every final payload gets
     # one bounded recovery attempt, unless a governed standard explicitly
     # forbids a handoff.
+    # Last-mile recovery is opt-in by a verified conceptual family. A generic
+    # lexical fallback must not add navigation to bounded practical/safety
+    # responses whose contract intentionally has no recommendation.
+    _final_conceptual_family = _select_verified_doorway_conceptual_family(query)
     if (
         not authoritative_doorway
+        and _final_conceptual_family
         and not (
             _final_gold_standard is not None
             and bool(_final_gold_standard.get("forbids_doorway"))
