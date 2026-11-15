@@ -69,3 +69,12 @@ class FoundationProviderExhaustionRecoveryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_algorithmic_bias_question_uses_mechanism_first_recovery():
+    answer = main._compose_provider_exhaustion_recovery("How can algorithmic systems scale existing biases or institutional failures?")
+    lowered = answer.casefold()
+    assert "ranking system" in lowered
+    assert "feedback loops" in lowered
+    assert "not mean an algorithm is always the original cause" in lowered
+    assert answer.count("\n\n") == 2

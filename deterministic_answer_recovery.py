@@ -642,6 +642,15 @@ def registered_recovery_recommendation(question):
     return None
 
 
+def _algorithmic_amplification_recovery():
+    """Bounded mechanism-first recovery for algorithmic amplification questions."""
+    return (
+        "Algorithmic systems can scale existing biases or institutional failures because they can repeat a pattern across many decisions quickly. A ranking system can repeatedly favor what has already received attention, a recommendation system can keep reinforcing past preferences, and an automated classification or allocation process can carry assumptions embedded in its data or rules into every new case. Feedback loops can then make the resulting pattern appear to confirm itself.\n\n"
+        "That does not mean an algorithm is always the original cause of the problem. The underlying bias may already exist in the data, the objective the system is asked to optimize, or the institution using it. Automation can nevertheless make the condition more consequential by accelerating, distributing, or standardizing it before people have a chance to notice and correct it. The useful question is therefore not only whether the system is biased, but which choices, measures, incentives, and feedback loops are allowing an existing pattern to travel further.\n\n"
+        "The broader institutional context still matters because the same system can produce different effects under different rules, forms of oversight, and opportunities for challenge. Seeing the mechanism and the surrounding relationships together makes it easier to distinguish amplification from sole causation—and to identify where a pattern can actually be interrupted rather than treating either the algorithm or the institution as the single explanation."
+    )
+
+
 def compose_recovery(question, *, underlying_question="", desired_movement=""):
     """Offer a useful bounded response without inventing facts or sources."""
     q = _clean(question)
@@ -696,6 +705,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = _archive_purpose_recovery()
     elif _is_commons_care_question(q):
         answer = _commons_care_recovery()
+    elif ("algorithmic" in lower or "algorithm" in lower or "automated system" in lower) and ("bias" in lower or "biases" in lower or "institutional failure" in lower or "institutional failures" in lower):
+        answer = _algorithmic_amplification_recovery()
     elif _is_feedback_loops_institutions_question(q):
         answer = _feedback_loops_institutions_recovery()
     elif _is_systems_explanation_vs_simplistic_connection_question(q):
