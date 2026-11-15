@@ -631,6 +631,15 @@
       "qualifying_context": "Questions about whether an aspirational, regenerative, sustainable, ethical, or transformational claim has substantive grounding; decisions involving responsibility, consequences, alternatives, affected stakeholders, or accountable authority.",
       "abstention_boundary": "Do not treat branding language as evidence of substance; do not use the framework to make decisions for accountable actors; do not transfer the Codex of Regenerative Economies doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-epistemic-layer-integrity-gold-standard-2026-11-15",
+      "question": "How should The Guide separate direct archive claims from its own synthesis?",
+      "reasoning_family": "epistemic_layer_integrity",
+      "transferable_discipline": "Keep source-grounded claims, synthesis, and orientation visibly distinct. Preserve traceability when reporting evidence; name inference when connecting materials; and offer orientation without presenting it as borrowed authority.",
+      "qualifying_context": "Questions about evidence, source authority, synthesis, inference, interpretation, provenance, or how a guide should distinguish reported claims from its own framing.",
+      "abstention_boundary": "Do not present synthesis as the claim of a single source; do not treat orienting language as evidence; do not borrow authority from the Archive for an inference the Guide itself has made; do not transfer the Becoming Fully Human doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
