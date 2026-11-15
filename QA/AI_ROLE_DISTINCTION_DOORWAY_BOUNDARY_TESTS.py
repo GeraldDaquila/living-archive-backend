@@ -33,6 +33,33 @@ def test_ai_role_distinction_final_fallback_contract_is_not_recovery_only():
     doorway = runtime._select_guide_node_fallback_doorway(QUESTION)
     assert doorway["title"] == "Responsible AI Principle"
 
+def test_final_json_boundary_emits_responsible_ai_doorway():
+    import asyncio
+    import json
+    import main as runtime
+
+    sent = []
+
+    async def capture(message):
+        sent.append(message)
+
+    asyncio.run(
+        runtime._use_send_json(
+            capture,
+            {
+                "query": QUESTION,
+                "response": "A bounded conceptual explanation.",
+                "recommendation": None,
+            },
+        )
+    )
+    body = next(item["body"] for item in sent if item["type"] == "http.response.body")
+    payload = json.loads(body.decode("utf-8"))
+    assert payload["recommendation"] == {
+        "title": "Responsible AI Principle",
+        "url": "https://geralddaquila.com/responsible-ai-principle/",
+    }
+
 def main():
     assert suppresses_unreviewed(QUESTION, {"response": "bounded explanation"})
     assert not suppresses_unreviewed(
