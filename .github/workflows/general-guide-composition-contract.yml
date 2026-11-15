@@ -32,6 +32,7 @@ on:
       - "scripts/qa/report_gold_standard_registry.py"
       - "tests/test_gold_standard_registry.py"
       - "tests/test_visitor_meta_commentary_boundary.py"
+      - "tests/test_guide_direct_answer_opening.py"
       - "tests/test_shared_definition_exhaustion_recovery.py"
       - "tests/test_provider_exhaustion_regex_contract.py"
       - "tests/test_guide_resource_discovery_evidence.py"
