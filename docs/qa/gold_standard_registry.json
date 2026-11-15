@@ -4721,7 +4721,7 @@
       "benchmark_id": "general-guide-cross-scale-orientation-refined-gold-standard-2026-11-15",
       "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
-      "gold_star_number": 81,
+      "gold_star_number": 82,
       "query": "How do local actions connect to civilizational patterns without reducing one to the other?",
       "expected_response": "Local actions and civilizational patterns are connected, but neither is a complete explanation of the other. Wider patterns shape the institutions, habits, technologies, relationships, and assumptions within which people act. Those conditions influence what becomes possible, difficult, rewarded, or taken for granted.\n\nLocal action, however, is not simply an effect of those conditions. People and communities reproduce patterns through ordinary practice, but they can also interpret, adapt, challenge, and redirect them. The relationship is reciprocal but asymmetric: a single local action rarely changes a civilizational pattern by itself, yet repeated actions can accumulate through organizations, networks, and communities until wider conditions begin to change.\n\nThe practical discipline is therefore to trace the relationship in both directions. Ask what larger conditions are shaping a local situation, and ask how local decisions are carrying those conditions forward—or altering them. This keeps structure visible without making agency irrelevant, and keeps agency visible without pretending that people act outside history or circumstance.",
       "expected_doorway": null,
@@ -4900,7 +4900,7 @@
     "last_audit_date": "2026-11-15",
     "approved_gold_star_count": 77,
     "registry_record_count": 113,
-    "review_reconciliation": "Rebased Gold Star #81 cross-scale refinement onto current canonical main after PR #1499 diverged. Existing canonical additions were preserved; the refined exemplar remains additive and supersedes the older legacy exemplar for current calibration without mutating historical source.",
+    "review_reconciliation": "Post-merge inventory reconciliation found an intervening canonical Gold Star #81 added after the original cross-scale audit and before rebased merge. The cross-scale exemplar is renumbered #82 to eliminate the duplicate while preserving both approved exemplars.",
     "numbered_gold_star_record_count": 16,
     "highest_assigned_gold_star_number": 75,
     "numbering_reconciliation": "The explicit numbered sequence currently extends through #75. Unnumbered approved records remain canonical but are not retroactively assigned historical positions without evidence."
