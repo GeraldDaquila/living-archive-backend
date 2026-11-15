@@ -5288,20 +5288,31 @@ def _guide_finalize_visitor_payload(payload, query):
     if _is_archive_claim_boundary_inquiry(query):
         safe = dict(payload)
         safe["response"] = _archive_claim_boundary_recovery()
-        # Archive provenance answers accept only a query-specific registered
-        # doorway. Never let a generic Atlas fallback replace a rejected or
-        # missing subject doorway.
-        node = _guide_node_specific_match(query)
-        if isinstance(node, dict):
-            node_title = str(node.get("title") or "").strip()
-            node_url = str(node.get("url") or node.get("canonical_url") or "").strip()
-            safe["recommendation"] = (
-                {"title": node_title, "url": node_url}
-                if node_title and re.match(r"^https://\S+$", node_url, re.I)
-                else None
-            )
-        else:
-            safe["recommendation"] = None
+        # Provenance answers still belong to the Archive. Preserve an upstream
+        # verified doorway first; otherwise prefer a query-specific Guide Node.
+        # Only suppress navigation when neither provides a verifiable continuation.
+        preserved = _normalize_authoritative_recommendation(
+            safe.get("recommendation")
+            or safe.get("canonical_doorway")
+        )
+        if not preserved:
+            node = _guide_node_specific_match(query)
+            preserved = _normalize_authoritative_recommendation(node)
+        if not preserved:
+            try:
+                preserved = _verified_archive_doorway_fallback(
+                    query,
+                    (
+                        safe.get("documents")
+                        or safe.get("retrieved_documents")
+                        or safe.get("sources")
+                        or []
+                    ),
+                    _base._inquiry_profile(query),
+                )
+            except Exception:
+                preserved = None
+        safe["recommendation"] = preserved
         # recommendation and canonical_doorway are one visitor-facing contract.
         # A rejected provenance doorway must clear both fields; otherwise a stale
         # upstream canonical_doorway can bypass the fail-closed decision in the UI.
