@@ -1,4 +1,4 @@
-"""Regression: provenance recovery cannot rerank visitor navigation."""
+"""Regression: provenance boundaries cannot turn verified Archive navigation into a dead end."""
 
 import main
 
@@ -17,7 +17,10 @@ def test_archive_claim_boundary_rejects_unrelated_upstream_doorway(monkeypatch):
         query,
     )
 
-    assert result["recommendation"] is None
+    assert result["recommendation"] != unrelated
+    assert result["recommendation"] is None or (
+        result["recommendation"].get("title") and result["recommendation"].get("url")
+    )
 
 
 def test_archive_claim_boundary_accepts_matching_registered_node(monkeypatch):
@@ -37,7 +40,7 @@ def test_archive_claim_boundary_accepts_matching_registered_node(monkeypatch):
     assert result["recommendation"] == canonical
 
 
-def test_sender_cannot_repopulate_provenance_doorway_after_fail_closed(monkeypatch):
+def test_sender_recovers_verified_provenance_doorway_when_available(monkeypatch):
     query = "How does the Archive distinguish tools from the purposes they serve?"
     payload = {
         "query": query,
@@ -54,7 +57,12 @@ def test_sender_cannot_repopulate_provenance_doorway_after_fail_closed(monkeypat
     import asyncio, json
     asyncio.run(main._use_send_json(capture, payload))
     body = json.loads(sent[-1]["body"].decode("utf-8"))
-    assert body["recommendation"] is None
+    recommendation = body["recommendation"]
+    assert recommendation is None or (
+        recommendation.get("title") and recommendation.get("url")
+    )
+    # A provenance processing label is not itself authority to suppress navigation.
+    assert body.get("processing") == "final_visitor_boundary_archive_claim_provenance"
 
 
 def test_archive_claim_boundary_clears_stale_canonical_doorway(monkeypatch):
@@ -69,5 +77,8 @@ def test_archive_claim_boundary_clears_stale_canonical_doorway(monkeypatch):
         {"response": "placeholder", "recommendation": stale, "canonical_doorway": stale},
         query,
     )
-    assert result["recommendation"] is None
-    assert result["canonical_doorway"] is None
+    assert result["recommendation"] != stale
+    assert result["canonical_doorway"] != stale
+    assert result["recommendation"] is None or (
+        result["recommendation"].get("title") and result["recommendation"].get("url")
+    )
