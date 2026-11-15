@@ -1794,8 +1794,8 @@
       },
       "known_theme": "entrustment and obligation",
       "runtime_transfer": true,
-      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
-      "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
+      "doorway_status": "INTENTIONALLY_NO_DOORWAY",
+      "doorway_note": "The structurally revised answer is a complete orientation instrument and no verified query-specific continuation has been identified; absence of a doorway is intentional rather than an incomplete legacy state.",
       "rating_out_of_10": 9.8,
       "approval_state": "USER_AUTHORIZED_STRUCTURAL_GOLD_STAR_REVISION_2026-11-15"
     },
