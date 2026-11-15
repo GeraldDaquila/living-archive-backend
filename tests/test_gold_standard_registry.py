@@ -743,3 +743,17 @@ def test_living_archive_identity_gold_star_preserves_identity_boundary_and_pract
     assert record["doorway_status"] == "APPROVED_QUERY_SPECIFIC_CONTINUATION"
     assert record["expected_doorway"]["title"] == "Start Here — Where to begin and how to navigate the Living Archive"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/start-here-2/"
+
+
+
+def test_held_in_trust_gold_star_preserves_recognition_relationship_boundary():
+    registry = _registry()
+    record = next(item for item in registry["records"] if item["benchmark_id"] == "general-guide-identifying-what-is-held-in-trust-gold-standard-2026-10-25")
+    response = record["expected_response"]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert len(response.split(chr(10) * 2)) == 3
+    assert "what has been placed in someone's care" in response
+    assert "care is owed beyond the holder's own preference or convenience" in response
+    assert "Trust is relational" in response
+    assert "where the holder's authority ends" in response
+    assert "without assuming that every duty is unlimited or belongs to one person alone" in response
