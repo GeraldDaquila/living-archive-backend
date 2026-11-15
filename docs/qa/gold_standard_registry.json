@@ -4465,6 +4465,57 @@
         "approval_evidence": "User instruction: 'elevate. merge'.",
         "evidence_boundary": "Screenshot establishes the exact reviewed live response, visible doorway, rating basis, and explicit approval."
       }
+    },
+    {
+      "benchmark_id": "general-guide-stewardship-distinction-ownership-control-management-benevolence-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "gold_star_number": 76,
+      "query": "How does stewardship differ from ownership, control, management, or benevolence?",
+      "expected_response": "Stewardship differs from ownership, control, management, and benevolence because it begins with a different question: not simply what do I possess, direct, administer, or give, but what has been entrusted to my care, and what responsibility follows from that relationship?\n\nOwnership concerns rights of possession. Control concerns the power to determine outcomes. Management concerns the organization of resources toward particular purposes. Benevolence concerns goodwill or generosity. Each can be part of a healthy relationship, but none by itself is stewardship.\n\nStewardship is a discipline of responsible relationship. It recognizes that what is being cared for may exceed the steward's possession, authority, knowledge, or immediate interest. The task is therefore not to maximize personal control or simply to act generously, but to attend to consequences, limits, continuity, and the people and systems affected by present choices.\n\nThat distinction matters because a person can own without stewarding, control without caring, manage efficiently while damaging what they administer, or act benevolently without sharing responsibility or listening to those affected. Stewardship asks for something more demanding: the responsible use of whatever authority one has, together with humility about what one does not control and accountability for what one's decisions set in motion.\n\nIn that sense, stewardship is neither ownership nor the refusal of ownership; neither control nor the absence of agency; neither management nor mere goodwill. It is the practice of holding authority, resources, and relationships in trust for a reality larger than oneself.",
+      "expected_doorway": {
+        "title": "Case Study 42: When Stewardship Becomes Control",
+        "url": "https://geralddaquila.com/case-study-42-when-stewardship-becomes-control/"
+      },
+      "doorway_status": "VERIFIED_CANONICAL",
+      "rating_out_of_10": 9.7,
+      "approval_state": "User reviewed the live visitor-facing response failure, requested a structural correction, and explicitly authorized conversion of the corrected answer into a Gold Star on 2026-11-15.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User instruction on 2026-11-15: 'fix structurally and turn this into gold star'.",
+      "assertions": [
+        "Stewardship is distinguished from ownership, control, management, and benevolence by its orientation toward responsibility within relationship rather than possession, power, administration, or goodwill alone.",
+        "Stewardship can include authority and management but requires attention to consequences, limits, continuity, affected people, and realities beyond the steward's immediate interest.",
+        "A person can own, control, manage, or act benevolently without practicing stewardship.",
+        "Responsible stewardship combines the use of available authority with humility about what cannot be controlled and accountability for consequences."
+      ],
+      "provenance": {
+        "source": "User-provided live Guide screenshot and explicit correction request on 2026-11-15.",
+        "source_ref": "visitor-facing production response review.",
+        "evidence_boundary": "The Gold Star freezes the corrected conceptual distinction approved for this exact visitor question. The doorway is the continuation displayed on the reviewed live response and is recorded as canonical for the exemplar."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "stewardship, ownership, control, management, benevolence, responsibility, authority, accountability, relational care",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_corrected_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "conceptual_distinction_before_systemic_analysis",
+        "transferable_discipline": "When a visitor asks how closely related concepts differ, answer the requested distinctions directly before introducing mechanisms, systems, or causal analysis. Define the organizing difference, clarify what each concept does and does not imply, then explain why the distinction matters in practice.",
+        "abstention_boundary": "Do not substitute a causal or mechanism-first explanation for a conceptual distinction question. Do not collapse related concepts into synonyms or treat efficiency, goodwill, possession, and responsible stewardship as interchangeable."
+      },
+      "reasoning_family": "conceptual_distinction_before_systemic_analysis",
+      "transferable_lesson": "Conceptual questions require conceptual routing: establish the distinctions the visitor asked for before extending the answer into systems analysis, mechanisms, or consequences.",
+      "transfer_boundary": "Transfer the distinction-first discipline to analogous conceptual comparison questions; do not transfer this exemplar's specific definitions or doorway to unrelated concepts.",
+      "related_question_variants": [
+        "How is stewardship different from ownership?",
+        "What is the difference between stewardship and control?",
+        "How does stewardship differ from management?",
+        "Is stewardship just benevolence or good intentions?"
+      ],
+      "user_approved_at": "2026-11-15"
     }
   ],
   "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-15: 71 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory. 16 now carry explicit Gold Star numbers, including #75 for the user-reviewed open-question exemplar. Historical numbering remains incomplete for other approved records and must not be inferred without provenance evidence.",
@@ -4597,9 +4648,9 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-15",
-    "approved_gold_star_count": 71,
-    "registry_record_count": 107,
-    "review_reconciliation": "Consolidated duplicate exact-question modes-of-knowing records into one canonical Gold Star #74 record; preserved the verified canonical doorway from the original production-validated exemplar and removed the conflicting duplicate doorway state.",
+    "approved_gold_star_count": 72,
+    "registry_record_count": 108,
+    "review_reconciliation": "Rebased Gold Star #76 onto current canonical main after reconciling intervening registry changes; #75 remains open-question orientation and #76 is stewardship conceptual distinction.",
     "numbered_gold_star_record_count": 16,
     "highest_assigned_gold_star_number": 75,
     "numbering_reconciliation": "The explicit numbered sequence currently extends through #75. Unnumbered approved records remain canonical but are not retroactively assigned historical positions without evidence."
