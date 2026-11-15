@@ -19,3 +19,40 @@ def test_shadow_abstention_emits_explicit_event(monkeypatch, capsys):
     assert lessons.shadow_observation("another private visitor question") == (None, None)
     out = capsys.readouterr().out
     assert out.strip() == "gold_star_shadow match=abstain"
+
+
+def test_structural_signature_matching_recognizes_inflected_reasoning_terms(monkeypatch):
+    lessons = [{
+        "id": "orientation-lesson",
+        "query": "How can someone recover orientation during uncertainty?",
+        "known_theme": "orientation, uncertainty, provisional agency",
+        "assertions": ["Restore bearings without manufacturing certainty."],
+        "runtime_transfer": True,
+        "reasoning_family": "bounded_orientation_under_uncertainty",
+        "qualifying_context": "ambiguity and transition while taking responsible action",
+        "transferable_discipline": "Give bounded practical orientation without false certainty.",
+        "abstention_boundary": "Do not manufacture certainty.",
+        "variants": ["How do I regain my bearings amid uncertain change?"],
+    }]
+    monkeypatch.setattr(lessons, "_LESSONS", lessons)
+    selected = lessons.select_lesson("How can I orient myself while things remain uncertain and unresolved?")
+    assert selected is not None
+    assert selected["benchmark_id"] == "orientation-lesson"
+    assert selected["exact"] is False
+
+
+def test_structural_signature_still_abstains_on_unrelated_topic(monkeypatch):
+    lessons = [{
+        "id": "orientation-lesson",
+        "query": "How can someone recover orientation during uncertainty?",
+        "known_theme": "orientation, uncertainty, provisional agency",
+        "assertions": [],
+        "runtime_transfer": True,
+        "reasoning_family": "bounded_orientation_under_uncertainty",
+        "qualifying_context": "ambiguity and transition",
+        "transferable_discipline": "Give bounded practical orientation.",
+        "abstention_boundary": "Do not manufacture certainty.",
+        "variants": [],
+    }]
+    monkeypatch.setattr(lessons, "_LESSONS", lessons)
+    assert lessons.select_lesson("What is the boiling point of water at sea level?") is None
