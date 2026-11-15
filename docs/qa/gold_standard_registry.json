@@ -4039,6 +4039,51 @@
       "rating_out_of_10": null,
       "freeze_policy": "Explicitly user-authorized release candidate for exact-query live review only. It is not a Gold Star, does not count toward the authoritative Gold Star inventory, does not contribute cross-question lessons, and cannot be elevated until the user reviews the revised live response and explicitly approves Gold Star elevation.",
       "runtime_review_authority": true
+    },
+    {
+      "benchmark_id": "general-guide-algorithmic-amplification-institutional-failure-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How can algorithmic systems scale existing biases or institutional failures?",
+      "expected_response": "Algorithmic systems can scale existing biases or institutional failures because they can repeat a pattern across many decisions quickly. A ranking system can repeatedly favor what has already received attention, a recommendation system can keep reinforcing past preferences, and an automated classification or allocation process can carry assumptions embedded in its data or rules into every new case. Feedback loops can then make the resulting pattern appear to confirm itself.\n\nThat does not mean an algorithm is always the original cause of the problem. The underlying bias may already exist in the data, the objective the system is asked to optimize, or the institution using it. Automation can nevertheless make the condition more consequential by accelerating, distributing, or standardizing it before people have a chance to notice and correct it. The useful question is therefore not only whether the system is biased, but which choices, measures, incentives, and feedback loops are allowing an existing pattern to travel further.\n\nThe broader institutional context still matters because the same system can produce different effects under different rules, forms of oversight, and opportunities for challenge. Seeing the mechanism and the surrounding relationships together makes it easier to distinguish amplification from sole causation—and to identify where a pattern can actually be interrupted rather than treating either the algorithm or the institution as the single explanation.",
+      "expected_doorway": {
+        "title": "Institutional Consciousness: Can Systems Evolve Beyond Survival Logic?",
+        "url": "https://geralddaquila.com/institutional-consciousness-can-systems-evolve-beyond-survival-logic/"
+      },
+      "rating_out_of_10": 9.6,
+      "approval_state": "User reviewed the corrected live visitor-facing response and explicitly authorized: 'elevate to gold star, then merge' on 2026-11-15.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User instruction on 2026-11-15: 'elevate to gold star, then merge'.",
+      "assertions": [
+        "Exactly three substantive paragraphs: mechanism of amplification; distinction between amplification and origin; institutional context and intervention.",
+        "Answers the named algorithmic mechanism directly through ranking, recommendation, classification, allocation, and feedback loops.",
+        "Distinguishes amplification from sole causation and locates possible sources in data, objectives, and institutions.",
+        "Preserves systems context without allowing the broader explanation to replace the visitor's specific question.",
+        "Identifies oversight and interruption points without treating either algorithms or institutions as a single explanation."
+      ],
+      "provenance": {
+        "source": "User-provided screenshot of the corrected live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
+        "source_ref": "live visitor-facing production response after PR #1443 deterministic recovery fix.",
+        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit approval; canonical doorway URL is retained only after repository verification."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "algorithmic systems, bias, institutional failure, amplification, feedback loops, causation, oversight",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "mechanism_first_systemic_amplification",
+        "transferable_discipline": "For questions about a system scaling an existing condition, name the specific mechanism first, distinguish amplification from original causation, then examine the wider relationships, oversight conditions, and intervention points without replacing the named mechanism with a generic systems explanation.",
+        "abstention_boundary": "Do not attribute every harmful pattern to algorithms alone, treat amplification as proof of original causation, or substitute abstract systems language for the concrete mechanism named in the question."
+      },
+      "reasoning_family": "mechanism_first_systemic_amplification",
+      "transferable_lesson": "Strong systems explanations answer the mechanism actually named by the visitor before widening to the larger system, preserving the distinction between what amplifies a condition and what originally produced it.",
+      "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
+      "user_approved_at": "2026-11-15",
+      "gold_star_number": 63
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
