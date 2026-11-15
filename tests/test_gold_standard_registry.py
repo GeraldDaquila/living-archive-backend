@@ -806,8 +806,7 @@ def test_frozen_ethical_tradeoff_record_matches_authoritative_fixture_exactly():
     assert record["query"] == fixture["query"]
     assert record["expected_response"] == fixture["expected_response"]
     assert len(record["expected_response"].split(chr(10) * 2)) == 3
-    assert record["expected_doorway"]["title"] == fixture["expected_doorway_title"]
-    assert record["expected_doorway"]["url"] is None
-    assert record["doorway_status"] == "LIVE_DISPLAYED_TITLE_DESTINATION_UNVERIFIED"
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
     assert record["runtime_transfer"] is True
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
