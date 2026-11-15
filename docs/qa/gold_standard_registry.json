@@ -4674,11 +4674,8 @@
       "gold_star_number": 81,
       "query": "How should The Guide distinguish a systems explanation from a simplistic 'everything is connected' claim?",
       "expected_response": "A systems explanation is not established simply by saying that everything is connected. Connection is a starting observation; explanation begins when the relationships that matter can be identified and their consequences made intelligible. Ask what is influencing what, through which mechanisms, over what period of time, and with what evidence.\n\nThe Guide should therefore distinguish a meaningful relationship from a decorative one. A systems explanation identifies patterns of interaction: feedback, incentives, constraints, delays, dependencies, or changes in one condition that alter another. It should also show boundaries and limits. Not every factor is equally important, and not every apparent connection is causal. A useful explanation makes clear what can reasonably be inferred and what remains uncertain.\n\nMost importantly, systems thinking should sharpen judgment rather than dissolve everything into complexity. The question is not whether everything is connected, but which relationships are consequential enough to change how a person or institution understands a condition and acts within it. The Guide's task is to make those relationships visible while keeping responsibility, evidence, and the limits of explanation in view.",
-      "expected_doorway": {
-        "title": "Why Everything Feels Connected (And What That Actually Means)",
-        "url": "/why-everything-feels-connected-and-what-that-actually-means/"
-      },
-      "doorway_status": "CANONICAL_MATCH_APPROVED",
+      "expected_doorway": null,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "rating_out_of_10": 9.5,
       "approval_state": "User reviewed the live visitor-facing response and explicitly approved elevation on 2026-11-15.",
       "user_reviewed_response": true,
@@ -4694,7 +4691,7 @@
       "provenance": {
         "source": "User-provided live Guide screenshot reviewed on 2026-11-15.",
         "source_ref": "visitor-facing production response.",
-        "evidence_boundary": "The response and observed continuation title were reviewed directly by the user. The canonical doorway URL is recorded only as the corresponding normalized Living Archive path for the observed title."
+        "evidence_boundary": "The response and observed continuation title were reviewed directly by the user. The title is retained as provenance only; no canonical doorway URL is invented or promoted to authority without repository-based verification."
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "systems thinking, explanation, causality, feedback, mechanisms, evidence, boundaries, responsibility, complexity",
@@ -4717,7 +4714,8 @@
         "How do you distinguish causation from apparent connection in a complex system?",
         "When does systems thinking become vague complexity?"
       ],
-      "user_approved_at": "2026-11-15"
+      "user_approved_at": "2026-11-15",
+      "observed_doorway_title": "Why Everything Feels Connected (And What That Actually Means)"
     }
   ],
   "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-15: 71 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory. 16 now carry explicit Gold Star numbers, including #75 for the user-reviewed open-question exemplar. Historical numbering remains incomplete for other approved records and must not be inferred without provenance evidence.",
