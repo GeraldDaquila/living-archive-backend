@@ -102,3 +102,45 @@ def test_regeneration_family_does_not_capture_unrelated_restoration_question():
     assert runtime._select_verified_doorway_conceptual_family(
         "How should a historic building be restored?"
     ) is None
+
+
+def test_archive_guidance_provenance_recovers_verified_knowledge_sensemaking_doorway():
+    import main as runtime
+    query = "How should The Guide distinguish archive-grounded guidance from general external knowledge?"
+    expected = {
+        "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+    }
+    assert runtime._select_verified_doorway_conceptual_family(query) == (
+        "archive_guidance_provenance"
+    )
+    assert runtime._select_guide_node_fallback_doorway(query) == expected
+
+
+def test_archive_guidance_provenance_final_json_boundary_emits_doorway():
+    import asyncio
+    import json
+    import main as runtime
+
+    query = "How should The Guide distinguish archive-grounded guidance from general external knowledge?"
+    sent = []
+
+    async def capture(message):
+        sent.append(message)
+
+    asyncio.run(
+        runtime._use_send_json(
+            capture,
+            {
+                "query": query,
+                "response": "A bounded explanation of claims, synthesis, and orientation.",
+                "recommendation": None,
+            },
+        )
+    )
+    body = next(item["body"] for item in sent if item["type"] == "http.response.body")
+    payload = json.loads(body.decode("utf-8"))
+    assert payload["recommendation"] == {
+        "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+    }
