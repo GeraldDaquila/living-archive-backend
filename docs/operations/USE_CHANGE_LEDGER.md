@@ -104,3 +104,13 @@ For each release, record:
 - **Structural discipline:** Distinguish restoration of damage from renewal of the conditions, relationships, and capacities that sustain flourishing; preserve limits and consequences.
 - **Canonical continuation:** **Regenerative Governance: What Comes After Extraction-Based Systems?**
 - **Transfer boundary:** Transfer the reasoning discipline only; do not treat regeneration as unlimited growth, guaranteed repair, or a generic positive outcome.
+
+
+## 2026-11-15 — Growth within ecological and social limits Gold Star
+
+- **Class:** Content / QA authority
+- **Intent:** Preserve the user-reviewed corrected live Guide response as a Gold Star exact-answer benchmark and active qualitative contributor.
+- **Canonical benchmark:** `general-guide-growth-within-living-limits-gold-standard-2026-11-15`.
+- **Gold Star authority:** Explicit user approval to elevate and merge after review of the corrected live response and ARC III continuation.
+- **Structural discipline:** Explain how expansion can outrun living-system capacity, reveal displaced costs, distinguish development from extractive overreach, and return to long-term viability.
+- **Canonical continuation:** **ARC III: Growth doesn’t break systems. It reveals the limits of the structure holding them.**

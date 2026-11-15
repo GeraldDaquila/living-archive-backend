@@ -595,6 +595,15 @@
       "qualifying_context": "Questions about regeneration, restoration, renewal, flourishing, stewardship, place, or the conditions that sustain living systems.",
       "abstention_boundary": "Do not equate regeneration with unlimited growth, guaranteed repair, environmental restoration alone, or a generic positive outcome; do not transfer the exemplar-specific wording or doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-growth-within-living-limits-gold-standard-2026-11-15",
+      "query": "Why can growth become destructive when detached from ecological and social limits?",
+      "reasoning_family": "growth_within_living_limits",
+      "transferable_discipline": "Explain the mechanism by which expansion outruns ecological and social capacity; show how benefits and costs can become separated; distinguish growth from extractive expansion; return to the conditions required for long-term viability.",
+      "qualifying_context": "Questions about growth, ecological or social limits, carrying capacity, extractive expansion, externalized costs, or long-term viability.",
+      "abstention_boundary": "Do not treat all growth as destructive or equate limits with opposition to development; do not transfer exemplar-specific wording or ARC III doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
