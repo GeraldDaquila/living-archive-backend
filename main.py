@@ -5304,11 +5304,22 @@ def _guide_finalize_visitor_payload(payload, query):
         # continuation first, then recover one at the shared canonical boundary.
         # A specialist provenance branch may reject an unrelated candidate, but
         # it may not turn a valid Guide answer into a navigational dead end.
-        _archive_doorway = _normalize_authoritative_recommendation(
-            safe.get("recommendation") or safe.get("canonical_doorway")
+        # Do not blindly preserve an upstream URL merely because it is canonical:
+        # provenance inquiries require query relevance. The shared recovery boundary
+        # is authoritative for selecting the continuation from the inquiry evidence.
+        _archive_doorway = _archive_claim_authoritative_doorway(
+            query,
+            safe.get("recommendation") or safe.get("canonical_doorway"),
         )
         if not _archive_doorway:
-            _archive_doorway = _boundary_canonical_doorway(safe, query)
+            _archive_doorway = _boundary_canonical_doorway(
+                {
+                    **safe,
+                    "recommendation": None,
+                    "canonical_doorway": None,
+                },
+                query,
+            )
         if not _archive_doorway:
             try:
                 from deterministic_answer_recovery import (
