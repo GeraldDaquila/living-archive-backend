@@ -4232,7 +4232,21 @@
       "transferable_lesson": "Strong explanations of destructive growth connect expansion to the living conditions it depends upon, reveal displaced costs, and preserve the distinction between development and extractive overreach.",
       "transfer_boundary": "Transfer the reasoning discipline, not the exemplar-specific wording, examples, claims, or continuation.",
       "user_approved_at": "2026-11-15",
-      "gold_star_number": 67
+      "gold_star_number": 67,
+      "assertions": [
+        "Answers the causal mechanism directly before introducing examples.",
+        "Explains ecological and social capacities and conditions of continued viability.",
+        "Shows how narrow measures can displace costs onto communities, places, or the future.",
+        "Distinguishes growth itself from extractive expansion that consumes its supporting conditions.",
+        "Completes the visitor journey with one verified ARC III continuation."
+      ],
+      "provenance": {
+        "source_date": "2026-11-15",
+        "source": "User-provided screenshot of corrected live Guide response reviewed and explicitly approved for Gold Star elevation and merge.",
+        "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
+        "approval_evidence": "User instruction: 'elevate to gold star. merge'.",
+        "evidence_boundary": "Screenshot establishes the exact reviewed response, visible doorway, rating basis, and explicit approval."
+      }
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
