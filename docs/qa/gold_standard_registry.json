@@ -3743,6 +3743,49 @@
       "doorway_note": "The observed doorway title is not treated as authoritative until its canonical destination is separately verified and approved.",
       "legacy_approval_grandfathered": true,
       "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+    },
+    {
+      "benchmark_id": "general-guide-agency-circumstance-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the relationship between agency and circumstance?",
+      "expected_response": "Agency is a person's capacity to choose and act; circumstance is the set of conditions in which those choices are made. Their relationship is that people exercise agency within circumstances, rather than outside them. Circumstances can open some possibilities, restrict others, and shape the likely consequences of a choice, but they do not always determine a single response.\n\nFor example, someone facing financial pressure may have fewer realistic options than someone with more resources. They may still make meaningful choices about seeking help, negotiating a commitment, or deciding what to prioritize, but those choices must be understood in light of the constraints they face. Recognizing agency without recognizing circumstance can unfairly blame people for limits they did not create; recognizing circumstance without agency can overlook their capacity to respond.\n\nThe practical implication is that agency should not be judged apart from the field in which it operates. Circumstances shape the range and cost of available actions, while individual and collective action can sometimes change those circumstances over time. Seeing both together helps distinguish responsibility from blame: people can be accountable for their choices without being treated as responsible for every constraint they face. This is a general conceptual explanation, not a claim that the Living Archive defines the terms in exactly this way.",
+      "expected_doorway": null,
+      "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+      "doorway_note": "The live visitor response displayed a continuation title, but no canonical destination URL was independently verified at elevation; the Gold Star preserves answer authority and intentionally withholds doorway authority rather than inventing a URL.",
+      "rating_out_of_10": 9.4,
+      "approval_state": "User explicitly reviewed the live visitor-facing response and authorized: 'elevate. then merge if all pass' on 2026-11-15.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User message accompanying the reviewed live screenshot on 2026-11-15: 'comment? rating? gold star? elevate. then merge if all pass'.",
+      "assertions": [
+        "Exactly three substantive paragraphs with distinct functions: relationship definition; concrete mechanism and consequence; practical implication and responsibility boundary.",
+        "Makes explicit that circumstance shapes the field of possible action without fully determining response.",
+        "Preserves both agency and circumstance and distinguishes responsibility from unfair blame.",
+        "Uses one concrete example to clarify constraints without turning the answer into a universal causal claim.",
+        "Maintains an epistemic boundary by identifying the response as a general conceptual explanation rather than a formal Living Archive definition."
+      ],
+      "provenance": {
+        "source": "User-provided screenshot of the live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
+        "source_ref": "live visitor-facing production response following PR #1426 composition-floor repair.",
+        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "agency, circumstance, structure and action, constraints, choice, responsibility, blame, individual and collective change",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "agency_within_circumstance_asymmetry",
+        "transferable_discipline": "For substantive questions about agency and conditions, define the relationship directly, show how circumstances shape the field of possible action without fully determining response, use a concrete mechanism when useful, and end with the practical distinction that prevents both unfair blame and the erasure of agency.",
+        "abstention_boundary": "Do not treat constraints as destiny, agency as unlimited freedom, or this general conceptual explanation as a formal canonical definition without source support."
+      },
+      "reasoning_family": "agency_within_circumstance_asymmetry",
+      "transferable_lesson": "Circumstances shape the field of possible action without fully determining response; strong conceptual explanations preserve that asymmetry and connect it to responsibility without blame.",
+      "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, financial-pressure example, claims, or continuation.",
+      "user_approved_at": "2026-11-15"
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
