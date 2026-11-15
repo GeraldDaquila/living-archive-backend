@@ -327,6 +327,7 @@ def test_agency_and_circumstance_have_three_paragraph_provider_exhaustion_recove
     assert all(len(p.split()) >= 35 for p in paragraphs)
     assert "Agency is a person’s capacity to choose and act" in paragraphs[0]
     assert "financial pressure" in paragraphs[1]
+    assert "responsibility from blame" in paragraphs[2]
     assert "not a claim that the Living Archive defines" in paragraphs[2]
     assert guide._conceptual_relationship_recovery(
         "What is the relationship between accountability and trust?"
