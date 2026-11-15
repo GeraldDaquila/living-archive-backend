@@ -4666,6 +4666,58 @@
       ],
       "user_approved_at": "2026-11-15",
       "observed_doorway_title": "Unraveling Stress: How the System Responds and Why It Loops"
+    },
+    {
+      "benchmark_id": "general-guide-systems-explanation-vs-everything-connected-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "gold_star_number": 81,
+      "query": "How should The Guide distinguish a systems explanation from a simplistic 'everything is connected' claim?",
+      "expected_response": "A systems explanation is not established simply by saying that everything is connected. Connection is a starting observation; explanation begins when the relationships that matter can be identified and their consequences made intelligible. Ask what is influencing what, through which mechanisms, over what period of time, and with what evidence.\n\nThe Guide should therefore distinguish a meaningful relationship from a decorative one. A systems explanation identifies patterns of interaction: feedback, incentives, constraints, delays, dependencies, or changes in one condition that alter another. It should also show boundaries and limits. Not every factor is equally important, and not every apparent connection is causal. A useful explanation makes clear what can reasonably be inferred and what remains uncertain.\n\nMost importantly, systems thinking should sharpen judgment rather than dissolve everything into complexity. The question is not whether everything is connected, but which relationships are consequential enough to change how a person or institution understands a condition and acts within it. The Guide's task is to make those relationships visible while keeping responsibility, evidence, and the limits of explanation in view.",
+      "expected_doorway": {
+        "title": "Why Everything Feels Connected (And What That Actually Means)",
+        "url": "/why-everything-feels-connected-and-what-that-actually-means/"
+      },
+      "doorway_status": "CANONICAL_MATCH_APPROVED",
+      "rating_out_of_10": 9.5,
+      "approval_state": "User reviewed the live visitor-facing response and explicitly approved elevation on 2026-11-15.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User instruction on 2026-11-15: 'elevate'.",
+      "assertions": [
+        "Connection alone does not constitute a systems explanation.",
+        "Systems explanations identify consequential relationships, mechanisms, timescales, and evidence.",
+        "Patterns such as feedback, incentives, constraints, delays, and dependencies must be distinguished from decorative or merely apparent connections.",
+        "Systems explanations should state boundaries, causal uncertainty, and limits of inference.",
+        "Systems thinking should sharpen judgment while keeping responsibility and evidence visible."
+      ],
+      "provenance": {
+        "source": "User-provided live Guide screenshot reviewed on 2026-11-15.",
+        "source_ref": "visitor-facing production response.",
+        "evidence_boundary": "The response and observed continuation title were reviewed directly by the user. The canonical doorway URL is recorded only as the corresponding normalized Living Archive path for the observed title."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "systems thinking, explanation, causality, feedback, mechanisms, evidence, boundaries, responsibility, complexity",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "consequential_systems_explanation",
+        "transferable_discipline": "Do not treat connection as explanation. Identify consequential relationships, mechanisms, timescales, evidence, boundaries, and uncertainty; distinguish causal structure from decorative complexity; then use the analysis to sharpen judgment without obscuring responsibility.",
+        "abstention_boundary": "Do not imply that every apparent relationship is causal, that all connected factors are equally important, or that systems complexity removes the need to identify who can act and what evidence supports the explanation."
+      },
+      "reasoning_family": "consequential_systems_explanation",
+      "transferable_lesson": "A useful systems explanation makes consequential relationships intelligible while stating boundaries, evidence, uncertainty, and limits rather than treating interconnectedness itself as an explanation.",
+      "transfer_boundary": "Transfer this discipline to analogous questions about complex systems, institutions, organizations, and social conditions; do not infer causation solely from connection or use systems language to evade responsibility.",
+      "related_question_variants": [
+        "What makes a systems explanation rigorous?",
+        "Why is 'everything is connected' not enough?",
+        "How do you distinguish causation from apparent connection in a complex system?",
+        "When does systems thinking become vague complexity?"
+      ],
+      "user_approved_at": "2026-11-15"
     }
   ],
   "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-15: 71 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory. 16 now carry explicit Gold Star numbers, including #75 for the user-reviewed open-question exemplar. Historical numbering remains incomplete for other approved records and must not be inferred without provenance evidence.",
