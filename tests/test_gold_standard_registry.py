@@ -737,3 +737,4 @@ def test_stewardship_gold_star_orients_meaning_practice_and_boundaries():
     assert "stewardship follows understanding" in response
     assert "receive what matters with care, understand what depends on it, and act with its future in mind" in response
     assert "Stewardship is neither control nor unlimited self-sacrifice" in response
+
