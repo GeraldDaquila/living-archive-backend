@@ -8,6 +8,12 @@ STEWARDSHIP_FIXTURE_PATH = (
     ROOT / "tests" / "fixtures" / "general_guide_stewardship_gold_standard.json"
 )
 
+
+
+ETHICAL_TRADEOFF_FIXTURE_PATH = (
+    ROOT / "tests" / "fixtures" / "general_guide_ethical_tradeoff_gold_standard.json"
+)
+
 VALID_STATUSES = {
     "FROZEN_REFERENCE_ONLY",
     "RECOVERED_HISTORICAL_RESPONSE",
@@ -787,3 +793,20 @@ def test_incomplete_evidence_records_are_not_counted_as_gold_stars():
     registry = _registry()
     incomplete = [r for r in registry["records"] if r.get("fixture_state") == "PENDING_EXACT_FIXTURE"]
     assert all(r["status"] != "USER_APPROVED_GOLD_STANDARD" for r in incomplete)
+
+
+def test_frozen_ethical_tradeoff_record_matches_authoritative_fixture_exactly():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-ethical-tradeoff-2026-10"
+    )
+    fixture = json.loads(ETHICAL_TRADEOFF_FIXTURE_PATH.read_text(encoding="utf-8"))
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == fixture["query"]
+    assert record["expected_response"] == fixture["expected_response"]
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
+    assert record["runtime_transfer"] is True
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
