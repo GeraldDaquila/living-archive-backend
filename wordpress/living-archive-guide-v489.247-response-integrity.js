@@ -48,7 +48,7 @@ var USE_TRANSPORT_TIMEOUT_MS = 30000;
 var HRN_PAGE_URL =
   'https://geralddaquila.com/understanding-human-systems-behavior-pressure-and-decision-making/';
 
-var USE_FRONTEND_BUILD = 'v489.247-response-integrity';
+var USE_FRONTEND_BUILD = 'v489.319-canonical-doorway-fallback';
 var USE_FRONTEND_AUTHORITY = 'guide-woody-scoped-controller';
 var USE_HRN_HANDOFF_CONTRACT = 'relationship-v2-browser-entrance';
 
@@ -1303,12 +1303,24 @@ function renderAuthoritativeRecommendation(data) {
   var responseText = document.getElementById('archive-response-text');
   var container = document.getElementById('archive-recommendation');
 
+  /*
+   * recommendation and canonical_doorway are one backend contract. Prefer the
+   * stable recommendation field, but accept the canonical alias at the browser
+   * boundary so a presentation adapter can never erase a verified doorway by
+   * translating only one of the two fields.
+   */
   var recommendation =
     data &&
     data.recommendation &&
     typeof data.recommendation === 'object'
       ? data.recommendation
-      : null;
+      : (
+          data &&
+          data.canonical_doorway &&
+          typeof data.canonical_doorway === 'object'
+            ? data.canonical_doorway
+            : null
+        );
 
   var title = recommendation && typeof recommendation.title === 'string'
     ? recommendation.title.trim()

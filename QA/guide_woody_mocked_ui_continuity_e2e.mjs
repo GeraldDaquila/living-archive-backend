@@ -380,3 +380,4 @@ try {
 // repository copy of a separately deployed WordPress media artifact. The live
 // controller itself is exercised above; keep repository-only static checks out
 // of this browser acceptance contract.
+
