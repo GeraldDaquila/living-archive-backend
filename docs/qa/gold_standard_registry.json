@@ -2745,7 +2745,7 @@
       "expected_response": "The Living Archive exists in response to a problem of fragmentation: knowledge can be abundant while understanding remains scattered. Information is often separated from the larger conditions that give it meaning, and people can accumulate facts, opinions, and expertise without gaining a clearer sense of how the pieces relate or what responsibility follows from seeing them together. The problem is not simply a lack of information; it is the difficulty of finding orientation within an abundance of it.\n\nThe Archive therefore tries to make relationships visible across questions that are too often treated in isolation—between people and institutions, knowledge and judgment, history and the present, individual experience and larger systems. Its purpose is not to supply one final explanation or tell visitors what to think. It is to create a place where ideas, patterns, and perspectives can be held in relation so that a question becomes more intelligible before a conclusion is rushed.\n\nWhat the Archive ultimately addresses is the gap between having more knowledge and knowing how to live, decide, and act responsibly with it. Orientation matters when certainty is unavailable and no single discipline can see the whole of a problem. The Archive's contribution is therefore to help people notice the relationships that matter, preserve questions that should not be simplified away, and recover the possibility of more conscious judgment and stewardship.",
       "expected_doorway": {
         "title": "When Knowledge Is Everywhere",
-        "url": "https://geralddaquila.com/when-knowledge-is-everywhere/"
+        "url": "https://geralddaquila.com/when-knowledge-is-everywhere"
       },
       "assertions": [
         "Exactly three substantive paragraphs.",
@@ -2764,15 +2764,13 @@
         "What problem is the Archive trying to solve?"
       ],
       "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
         "exact_answer_authority": true,
         "active_quality_contributor": true,
         "deterministic_fallback_eligible": true,
-        "generation_class": "deterministic_curated_recovery_exemplar",
-        "reasoning_family": "archive_purpose_orientation_from_fragmentation",
-        "transferable_discipline": "Distinguish information abundance from orientation; make the relationships that give knowledge meaning visible without claiming one final explanation, then orient the visitor toward more conscious judgment and stewardship.",
-        "abstention_boundary": "Do not invent a total doctrine for the Archive, reduce fragmentation to a single cause, claim that the Archive can resolve every question, or replace orientation with prescriptive advice.",
-        "primary_response_source": "deterministic fallback via _archive_purpose_recovery()",
-        "llm_origin": false
+        "reasoning_family": "orientation_within_abundance_relational_sensemaking",
+        "transferable_discipline": "When information is abundant but understanding is fragmented, do not answer by adding more information or forcing premature conclusions. Restore orientation by making relationships, conditions, perspectives, and consequential unanswered questions visible so judgment can become more responsible.",
+        "abstention_boundary": "Do not treat information abundance itself as understanding; do not force a single final explanation where plurality or uncertainty matters; do not transfer the When Knowledge Is Everywhere doorway to unrelated questions."
       },
       "runtime_transfer": true,
       "provenance": {
@@ -2785,7 +2783,17 @@
       },
       "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "rating_out_of_10": 9.7,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the live visitor-facing response with its visible canonical doorway and explicitly authorized Gold Star elevation and merge on 2026-11-15.",
+      "elevation_approval_evidence": "User instruction on 2026-11-15: 'elevate. merge'.",
+      "user_approved_at": "2026-11-15",
+      "gold_star_number": 71,
+      "reasoning_family": "orientation_within_abundance_relational_sensemaking",
+      "transferable_lesson": "Strong relational sensemaking responds to fragmentation by holding ideas and conditions in relationship, preserving questions that resist simplification, and creating orientation for responsible judgment without pretending to resolve the whole problem.",
+      "transfer_boundary": "Transfer the orientation and relational sensemaking discipline, not the exemplar-specific claims about the Archive, wording, or doorway."
     },
     {
       "benchmark_id": "general-guide-modes-of-knowing-dialogue-gold-star-2026-11-13",
@@ -4383,54 +4391,6 @@
         "Includes the knowledge of people who will carry consequences in the assessment.",
         "Makes reasoning and limits visible while preserving accountability with legitimate decision-makers.",
         "Completes the visitor journey with one visible canonical continuation: Codex of Regenerative Economies."
-      ],
-      "provenance": {
-        "source_date": "2026-11-15",
-        "source": "User-provided screenshot of the live Guide response.",
-        "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
-        "approval_evidence": "User instruction: 'elevate. merge'.",
-        "evidence_boundary": "Screenshot establishes the reviewed response and visible doorway; elevation records the user-approved live exemplar."
-      }
-    },
-    {
-      "benchmark_id": "general-guide-archive-purpose-fragmentation-orientation-gold-standard-2026-11-15",
-      "status": "USER_APPROVED_GOLD_STANDARD",
-      "subsystem": "general-purpose-guide",
-      "query": "What problem does the Archive exist to address?",
-      "expected_response": "The Living Archive exists in response to a problem of fragmentation: knowledge can be abundant while understanding remains scattered. Information is often separated from the larger conditions that give it meaning, and people can accumulate facts, opinions, and expertise without gaining a clearer sense of how the pieces relate or what responsibility follows from seeing them together. The problem is not simply a lack of information; it is the difficulty of finding orientation within an abundance of it.\n\nThe Archive therefore tries to make relationships visible across questions that are too often treated in isolation—between people and institutions, knowledge and judgment, history and the present, individual experience and larger systems. Its purpose is not to supply one final explanation or tell visitors what to think. It is to create a place where ideas, patterns, and perspectives can be held in relation so that a question becomes more intelligible before a conclusion is rushed.\n\nWhat the Archive ultimately addresses is the gap between having more knowledge and knowing how to live, decide, and act responsibly with it. Orientation matters when certainty is unavailable and no single discipline can see the whole of a problem. The Archive's contribution is therefore to help people notice the relationships that matter, preserve questions that should not be simplified away, and recover the possibility of more conscious judgment and stewardship.",
-      "expected_doorway": {
-        "title": "When Knowledge Is Everywhere",
-        "url": "https://geralddaquila.com/when-knowledge-is-everywhere"
-      },
-      "rating_out_of_10": 9.7,
-      "user_reviewed_response": true,
-      "explicit_user_elevation_approval": true,
-      "approval_state": "User reviewed the live visitor-facing response with its visible canonical doorway and explicitly authorized Gold Star elevation and merge on 2026-11-15.",
-      "elevation_approval_evidence": "User instruction on 2026-11-15: 'elevate. merge'.",
-      "freeze_policy": "immutable_user_approved_gold_standard",
-      "known_theme": "Living Archive purpose, fragmentation, knowledge abundance, orientation, relational sensemaking, responsible judgment, stewardship",
-      "runtime_transfer": true,
-      "gold_star_capabilities": {
-        "generation_class": "user_approved_live_exemplar",
-        "exact_answer_authority": true,
-        "active_quality_contributor": true,
-        "deterministic_fallback_eligible": true,
-        "reasoning_family": "orientation_within_abundance_relational_sensemaking",
-        "transferable_discipline": "When information is abundant but understanding is fragmented, do not answer by adding more information or forcing premature conclusions. Restore orientation by making relationships, conditions, perspectives, and consequential unanswered questions visible so judgment can become more responsible.",
-        "abstention_boundary": "Do not treat information abundance itself as understanding; do not force a single final explanation where plurality or uncertainty matters; do not transfer the When Knowledge Is Everywhere doorway to unrelated questions."
-      },
-      "reasoning_family": "orientation_within_abundance_relational_sensemaking",
-      "transferable_lesson": "Strong relational sensemaking responds to fragmentation by holding ideas and conditions in relationship, preserving questions that resist simplification, and creating orientation for responsible judgment without pretending to resolve the whole problem.",
-      "transfer_boundary": "Transfer the orientation and relational sensemaking discipline, not the exemplar-specific claims about the Archive, wording, or doorway.",
-      "user_approved_at": "2026-11-15",
-      "gold_star_number": 71,
-      "assertions": [
-        "Identifies fragmentation rather than information scarcity as the underlying problem.",
-        "Distinguishes abundant knowledge from integrated understanding and orientation.",
-        "Makes relationships visible across people, institutions, knowledge, judgment, history, experience, and larger systems.",
-        "Avoids supplying one final explanation or telling the visitor what to think.",
-        "Connects orientation to responsible judgment and stewardship under uncertainty.",
-        "Completes the visitor journey with one visible canonical continuation: When Knowledge Is Everywhere."
       ],
       "provenance": {
         "source_date": "2026-11-15",
