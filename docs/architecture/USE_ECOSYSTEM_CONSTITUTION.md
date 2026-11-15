@@ -29,6 +29,8 @@
 - Historical repositories or mirrors are evidence-only unless explicitly promoted through a documented migration.
 - Canonical storage does not imply runtime learning. Only records explicitly approved for runtime transfer may contribute.
 - Registry integrity must be validated before merge; production startup is the final guard, never the first schema test.
+- There is exactly one canonical approved Gold Star inventory: records with status `USER_APPROVED_GOLD_STANDARD`. Fixture or provenance incompleteness is evidence metadata, not a second approved directory, ledger, or competing count.
+- No new parallel approved-status bucket may be introduced without an explicit constitutional amendment and migration of the canonical inventory.
 
 ## 5. Mandatory change protocol
 Before changing production-affecting material:
