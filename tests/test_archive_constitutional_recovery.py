@@ -44,7 +44,7 @@ def test_provider_exhaustion_uses_verified_constitutional_register_evidence(monk
 
     result = guide.compose(
         use_core=None,
-        query="What is constitutional reasoning in the Archive's sense?",
+        query="How should an Archive reader distinguish evidence from interpretation?",
         context_data={},
     )
 
@@ -77,7 +77,7 @@ def test_constitutional_recovery_prevents_unrelated_provider_fallback_without_re
 
     result = guide.compose(
         use_core=None,
-        query="What is constitutional reasoning in the Archive's sense?",
+        query="How should an Archive reader distinguish evidence from interpretation?",
         context_data={},
     )
 
