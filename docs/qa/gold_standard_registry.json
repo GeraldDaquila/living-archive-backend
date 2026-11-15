@@ -4200,6 +4200,39 @@
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
       "user_approved_at": "2026-11-15",
       "gold_star_number": 66
+    },
+    {
+      "benchmark_id": "general-guide-growth-within-living-limits-gold-standard-2026-11-15",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "Why can growth become destructive when detached from ecological and social limits?",
+      "expected_response": "Growth becomes destructive when expansion is treated as an end in itself and is allowed to outrun the ecological and social conditions that make continued life possible. Ecosystems can regenerate resources and absorb disruption only within limits, while communities depend on trust, care, fair participation, and capacities that cannot simply be expanded on demand. When growth ignores those conditions, it can increase output in the short term by weakening the very systems that sustain it.\n\nThis often happens when the benefits of expansion are counted in one place while its costs are pushed elsewhere or into the future. A business, city, or institution may grow by extracting resources faster than they can renew, concentrating pollution or risk on particular communities, or demanding more from people while relationships and public capacity deteriorate. What looks like success from a narrow measure can therefore transfer damage to the wider system.\n\nThe problem is not growth by itself, nor does respecting limits mean that nothing should change or develop. The question is what is growing, for whose benefit, at whose cost, and whether the relationships and living systems supporting that growth remain viable. Growth becomes regenerative only when it remains accountable to those conditions rather than consuming them as if they were external to the system.",
+      "expected_doorway": {
+        "title": "ARC III: Growth doesn’t break systems. It reveals the limits of the structure holding them.",
+        "url": "https://geralddaquila.com/arc-iii-growth-doesnt-break-systems-it-reveals-the-limits-of-the-structure-holding-them/"
+      },
+      "rating_out_of_10": 9.7,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the corrected live visitor-facing response and explicitly authorized Gold Star elevation and merge on 2026-11-15.",
+      "elevation_approval_evidence": "User instruction on 2026-11-15: 'elevate to gold star. merge'.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "growth, ecological limits, social limits, extraction, externalities, viability, regeneration",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "growth_within_living_limits",
+        "transferable_discipline": "Explain the mechanism by which expansion outruns ecological and social capacity; show how benefits and costs can become separated; distinguish growth from extractive expansion; return to the conditions required for long-term viability.",
+        "abstention_boundary": "Do not treat all growth as destructive or equate limits with opposition to development; do not transfer exemplar-specific wording or ARC III doorway to unrelated questions."
+      },
+      "reasoning_family": "growth_within_living_limits",
+      "transferable_lesson": "Strong explanations of destructive growth connect expansion to the living conditions it depends upon, reveal displaced costs, and preserve the distinction between development and extractive overreach.",
+      "transfer_boundary": "Transfer the reasoning discipline, not the exemplar-specific wording, examples, claims, or continuation.",
+      "user_approved_at": "2026-11-15",
+      "gold_star_number": 67
     }
   ],
   "last_reconciliation_note": "Gold Star registry reconciled on 2026-11-15: constitutional reasoning exemplar elevated as immutable user-approved Gold Standard; canonical record count 91.",
