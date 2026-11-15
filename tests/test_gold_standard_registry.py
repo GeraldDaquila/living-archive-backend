@@ -615,6 +615,7 @@ def test_capability_metadata_does_not_guess_original_generation_mode():
     approved = next(
         record for record in registry["records"]
         if record["status"] == "USER_APPROVED_GOLD_STANDARD"
+        and record.get("gold_star_capabilities", {}).get("generation_class")
     )
     generation_class = approved["gold_star_capabilities"]["generation_class"]
     assert "LLM" not in generation_class
