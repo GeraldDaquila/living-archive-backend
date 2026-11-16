@@ -49,3 +49,15 @@ def test_recovery_is_three_paragraphs_and_covers_epistemic_distinctions():
     assert len(response.split("\n\n")) == 3
     for term in ("historical", "philosophical", "empirical", "spiritual experience"):
         assert term in response.lower()
+
+
+def test_verified_doorway_matches_comparative_inquiry_and_is_public_archive_asset():
+    doorway = contract.verified_doorway(QUESTION)
+    assert doorway == {
+        "title": "At the Edge of Explanation",
+        "url": "https://geralddaquila.com/2026/07/20/at-the-edge-of-explanation/",
+    }
+
+
+def test_verified_doorway_fails_closed_for_unrelated_questions():
+    assert contract.verified_doorway("How should an organisation redesign governance?") is None
