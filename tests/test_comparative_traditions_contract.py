@@ -102,3 +102,30 @@ def test_governance_control_still_fails_closed():
     question = "How should an organisation assign responsibilities and consequences when redesigning its governance process?"
     assert not contract.is_comparative_traditions_question(question)
     assert contract.verified_doorway(question) is None
+
+
+def test_detects_reductive_universal_claims_and_repairs_them():
+    response = "All three religions teach compassion and share a focus on the afterlife. Their differences are mainly cultural."
+    assert contract.response_flattens_traditions(QUESTION, response)
+    assert contract.response_requires_quality_repair(QUESTION, response)
+
+
+def test_gold_star_recovery_preserves_internal_diversity_and_epistemic_fit():
+    response = contract.recovery_response()
+    assert len(response.split("\n\n")) == 3
+    for phrase in ("internal differences", "historical evidence", "philosophical and theological", "false equivalence", "practitioners"):
+        assert phrase in response.lower()
+    assert not contract.response_requires_quality_repair(QUESTION, response)
+
+
+def test_quality_repair_does_not_trigger_on_unrelated_governance_question():
+    question = "How should an organisation compare governance options?"
+    response = "All three governance options share a focus on accountability."
+    assert not contract.response_requires_quality_repair(question, response)
+
+
+def test_recovery_never_claims_all_traditions_share_one_doctrine():
+    response = contract.recovery_response().lower()
+    assert "all traditions believe" not in response
+    assert "all three religions" not in response
+    assert "false equivalence" in response
