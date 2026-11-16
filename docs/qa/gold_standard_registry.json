@@ -5134,8 +5134,8 @@
     "approved_gold_star_count": 80,
     "registry_record_count": 117,
     "review_reconciliation": "Canonical inventory reconciled against the current registry before merge: 80 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative Gold Star inventory. Historical and superseded records remain outside that count.",
-    "numbered_gold_star_record_count": 27,
-    "highest_assigned_gold_star_number": 88,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-16 confirms 27 explicitly numbered USER_APPROVED_GOLD_STANDARD records, spanning #60 through #88, with no duplicate numbers. #85 and #86 are unassigned provenance gaps and are not backfilled or inferred."
+    "numbered_gold_star_record_count": 28,
+    "highest_assigned_gold_star_number": 89,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-16 confirms 28 explicitly numbered USER_APPROVED_GOLD_STANDARD records, with no duplicate numbers. Gold Star #89 was allocated through an explicit user-authorized numbering migration; existing provenance gaps are not inferred or backfilled."
   }
 }
