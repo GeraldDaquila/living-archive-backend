@@ -79,6 +79,7 @@ from general_guide_gold_standards import (
 )
 from guide_fuzzy_relevance import score_resource_fit as _score_guide_fuzzy_relevance_shadow
 from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery, is_harm_repair_question
+from gold_star_lessons import apply_deterministic_fallback_guidance as _apply_deterministic_fallback_guidance
 from deterministic_relational_fractal import compose_relational_fractal
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
 from safety_utility import classify_safety, safety_utility_snapshot
@@ -6906,7 +6907,10 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if _final_doorway_title:
         title = _final_doorway_title
     return {
-        "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
+        "response": _apply_deterministic_fallback_guidance(
+            query,
+            "\\n\\n".join(part for part in (opening, explanation, closing) if part),
+        ),
         "doorway_title": title if recommendation_available else "",
         "doorway_url": (
             _final_recommendation.get("url") or ""
