@@ -71,16 +71,14 @@ class GoldStarRegistryIntegrityError(RuntimeError):
     """Raised when the canonical Gold Star ledger violates a hard invariant."""
 
 
-def validate_registry_integrity(
+def validate_learning_integrity(
     records: List[Dict[str, Any]],
     review_entries: List[Dict[str, Any]],
-    numbering_gap_register: Optional[List[Dict[str, Any]]] = None,
-    numbering_policy: Optional[Dict[str, Any]] = None,
 ) -> None:
-    """Enforce the canonical accounting contract before Gold Stars become active.
+    """Validate learning identity, approvals, and transfer-review integrity only.
 
-    This validator is deliberately fail-closed: an inconsistent approved ledger
-    must not silently degrade into partial or ambiguous runtime quality guidance.
+    Display serials are intentionally excluded: they are editorial inventory metadata,
+    not adaptive-learning identities or eligibility criteria.
     """
     # The Constitution defines one approved inventory by status, not by
     # subsystem label. Subsystem names are descriptive metadata and must not
@@ -142,6 +140,80 @@ def validate_registry_integrity(
             f"missing_reviews={missing}; orphan_reviews={orphaned}."
         )
 
+
+    for record in approved:
+        benchmark_id = str(record["benchmark_id"]).strip()
+        if not str(record.get("query") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} is missing query."
+            )
+        if not str(record.get("expected_response") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} is missing expected_response."
+            )
+        if not str(record.get("known_theme") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} is missing known_theme."
+            )
+        if not isinstance(record.get("runtime_transfer"), bool):
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} must explicitly declare runtime_transfer."
+            )
+        legacy = record.get("legacy_approval_grandfathered") is True
+        if not legacy:
+            if record.get("user_reviewed_response") is not True:
+                raise GoldStarRegistryIntegrityError(
+                    f"Approved Gold Star {benchmark_id} lacks evidence that the user reviewed the actual response."
+                )
+            if record.get("explicit_user_elevation_approval") is not True:
+                raise GoldStarRegistryIntegrityError(
+                    f"Approved Gold Star {benchmark_id} lacks explicit user authorization for elevation."
+                )
+            if not str(record.get("elevation_approval_evidence") or "").strip():
+                raise GoldStarRegistryIntegrityError(
+                    f"Approved Gold Star {benchmark_id} lacks recorded elevation approval evidence."
+                )
+        elif not str(record.get("legacy_approval_grandfathered_reason") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} has an undocumented legacy approval exemption."
+            )
+        if not str(record.get("freeze_policy") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} is missing freeze_policy."
+            )
+        if "expected_doorway" not in record:
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} is missing explicit expected_doorway state."
+            )
+        doorway = record.get("expected_doorway")
+        if doorway is None:
+            doorway_status = str(record.get("doorway_status") or "").strip()
+            if doorway_status not in {
+                "INTENTIONALLY_NONE_APPROVED",
+                "LEGACY_INCOMPLETE_NOT_APPROVED",
+                "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+                "TITLE_OBSERVED_URL_NOT_CAPTURED",
+            }:
+                raise GoldStarRegistryIntegrityError(
+                    f"Approved Gold Star {benchmark_id} has no recognized explicit doorway state."
+                )
+        elif not isinstance(doorway, dict) or not str(doorway.get("title") or "").strip() or not str(doorway.get("url") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} has an incomplete expected_doorway."
+            )
+
+
+
+def validate_numbering_integrity(
+    records: List[Dict[str, Any]],
+    numbering_gap_register: Optional[List[Dict[str, Any]]],
+    numbering_policy: Optional[Dict[str, Any]],
+) -> None:
+    """Validate display-serial accounting independently from adaptive learning."""
+    approved = [
+        r for r in records
+        if isinstance(r, dict) and r.get("status") in _ALLOWED_STATUSES
+    ]
     # Display serials are not learning identities. Every approved record must
     # declare whether it has one, and unassigned records must explain why.
     # Adaptive selection remains keyed exclusively by benchmark_id.
@@ -221,66 +293,17 @@ def validate_registry_integrity(
             f"Gold Star numbering gaps do not reconcile: expected={sorted(expected_gaps)} actual={sorted(actual_gaps)}."
         )
 
-    for record in approved:
-        benchmark_id = str(record["benchmark_id"]).strip()
-        if not str(record.get("query") or "").strip():
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} is missing query."
-            )
-        if not str(record.get("expected_response") or "").strip():
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} is missing expected_response."
-            )
-        if not str(record.get("known_theme") or "").strip():
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} is missing known_theme."
-            )
-        if not isinstance(record.get("runtime_transfer"), bool):
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} must explicitly declare runtime_transfer."
-            )
-        legacy = record.get("legacy_approval_grandfathered") is True
-        if not legacy:
-            if record.get("user_reviewed_response") is not True:
-                raise GoldStarRegistryIntegrityError(
-                    f"Approved Gold Star {benchmark_id} lacks evidence that the user reviewed the actual response."
-                )
-            if record.get("explicit_user_elevation_approval") is not True:
-                raise GoldStarRegistryIntegrityError(
-                    f"Approved Gold Star {benchmark_id} lacks explicit user authorization for elevation."
-                )
-            if not str(record.get("elevation_approval_evidence") or "").strip():
-                raise GoldStarRegistryIntegrityError(
-                    f"Approved Gold Star {benchmark_id} lacks recorded elevation approval evidence."
-                )
-        elif not str(record.get("legacy_approval_grandfathered_reason") or "").strip():
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} has an undocumented legacy approval exemption."
-            )
-        if not str(record.get("freeze_policy") or "").strip():
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} is missing freeze_policy."
-            )
-        if "expected_doorway" not in record:
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} is missing explicit expected_doorway state."
-            )
-        doorway = record.get("expected_doorway")
-        if doorway is None:
-            doorway_status = str(record.get("doorway_status") or "").strip()
-            if doorway_status not in {
-                "INTENTIONALLY_NONE_APPROVED",
-                "LEGACY_INCOMPLETE_NOT_APPROVED",
-                "NOT_APPROVED_CONCEPTUAL_MISMATCH",
-                "TITLE_OBSERVED_URL_NOT_CAPTURED",
-            }:
-                raise GoldStarRegistryIntegrityError(
-                    f"Approved Gold Star {benchmark_id} has no recognized explicit doorway state."
-                )
-        elif not isinstance(doorway, dict) or not str(doorway.get("title") or "").strip() or not str(doorway.get("url") or "").strip():
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} has an incomplete expected_doorway."
-            )
+
+
+def validate_registry_integrity(
+    records: List[Dict[str, Any]],
+    review_entries: List[Dict[str, Any]],
+    numbering_gap_register: Optional[List[Dict[str, Any]]] = None,
+    numbering_policy: Optional[Dict[str, Any]] = None,
+) -> None:
+    """Run both independent validators for full registry/CI integrity checks."""
+    validate_learning_integrity(records, review_entries)
+    validate_numbering_integrity(records, numbering_gap_register, numbering_policy)
 
 
 def _load_transfer_review() -> Dict[str, Dict[str, Any]]:
@@ -314,7 +337,9 @@ def _load_lessons() -> List[Dict[str, Any]]:
         raise GoldStarRegistryIntegrityError(
             "Canonical Gold Star registry or qualitative review has an invalid top-level schema."
         )
-    validate_registry_integrity(records, review_entries, registry_payload.get("numbering_gap_register"), registry_payload.get("numbering_policy"))
+    # Runtime learning is keyed by benchmark_id and must remain available even
+    # when display-serial bookkeeping is being repaired or independently audited.
+    validate_learning_integrity(records, review_entries)
     transfer_review = {
         str(entry.get("benchmark_id") or "").strip(): entry
         for entry in review_entries
