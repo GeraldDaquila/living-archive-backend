@@ -66,6 +66,7 @@ from provider_bank import (
 )
 from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_attribute_phrase, direct_attribute_supported as _direct_attribute_supported, direct_attribute_evidence_missing as _direct_attribute_evidence_missing, select_authoritative_doorway as _select_direct_attribute_doorway, archive_limitation_response as _archive_limitation_response
 import general_guide_composition
+import comparative_traditions_contract
 import archive_crosslink
 from pinecone_retrieval_budget import install_pinecone_retrieval_budget, PineconeRequestBudgetMiddleware
 from guide_request_budget import (
@@ -5386,6 +5387,28 @@ def _guide_finalize_visitor_payload(payload, query):
         return safe
 
     response_text = str(payload.get("response") or "")
+    # A plural-traditions inquiry must not be answered through an institutional
+    # decision/governance template. Enforce this at the final visitor boundary,
+    # after every provider and fallback route has composed its candidate answer.
+    if comparative_traditions_contract.response_substitutes_institutional_frame(
+        query, response_text
+    ):
+        safe = dict(payload)
+        safe["response"] = comparative_traditions_contract.recovery_response()
+        # No doorway is attached here: this recovery has no query-specific,
+        # evidence-verified canonical destination.
+        safe["recommendation"] = None
+        safe["canonical_doorway"] = None
+        safe["doorway_title"] = None
+        safe["doorway_url"] = None
+        safe["processing"] = "final_visitor_boundary_comparative_traditions_recovery"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        print(
+            "The Guide final visitor boundary: corrected comparative-traditions "
+            "intent substitution."
+        )
+        return safe
     # Epistemic provenance questions are not decision problems. They require a
     # clear distinction between direct Archive evidence, cross-Archive synthesis,
     # and the Guide's own orienting frame.
