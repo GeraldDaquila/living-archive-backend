@@ -113,8 +113,6 @@ def validate_numbering_metadata(registry, records):
     if not isinstance(gap_entries, list):
         fail("numbering_gap_register must be an array")
     gap_numbers = []
-    active_gap_numbers = []
-    assigned_by_number = {r.get("gold_star_number"): r for r in approved if r.get("gold_star_number") is not None}
     for gap in gap_entries:
         if not isinstance(gap, dict):
             fail("numbering_gap_register contains a non-object entry")
@@ -144,29 +142,15 @@ def validate_numbering_metadata(registry, records):
         if not str(gap.get("disposition") or "").strip():
             fail(f"#{number} gap lacks a disposition")
         gap_numbers.append(number)
-        if number in assigned:
-            # Preserve the original released-gap evidence after allocation.
-            # A released historical gap is no longer an active gap only when
-            # a newly approved record carries explicit allocation evidence.
-            record = assigned_by_number.get(number, {})
-            migration = record.get("numbering_migration") or {}
-            if (
-                status != "RELEASED_FOR_FUTURE_ALLOCATION"
-                or migration.get("migration_class") != "explicit_user_authorized_future_gap_allocation"
-                or migration.get("previous_numbering_state") != "approved_unnumbered"
-                or migration.get("approved_at") != "2026-11-17"
-                or not str(migration.get("authority") or "").strip()
-            ):
-                fail(f"#{number} released gap is assigned without explicit future-gap allocation evidence")
-        else:
-            active_gap_numbers.append(number)
     if len(gap_numbers) != len(set(gap_numbers)):
         fail("duplicate serial in numbering_gap_register")
-    if set(active_gap_numbers) != expected_gaps:
+    if set(gap_numbers) != expected_gaps:
         fail(
-            "active numbering gaps do not reconcile with assigned serial range; "
-            f"expected {sorted(expected_gaps)}, got {sorted(active_gap_numbers)}"
+            "numbering_gap_register does not exactly match gaps in the assigned "
+            f"serial range; expected {sorted(expected_gaps)}, got {sorted(gap_numbers)}"
         )
+    if set(gap_numbers) & set(assigned):
+        fail("a serial cannot be both assigned and listed as an unassigned gap")
 
 
 def validate_numbering_against_base(current_records, current_registry=None):
@@ -332,45 +316,19 @@ def validate_numbering_against_base(current_records, current_registry=None):
              "without an explicit authorized numbering migration: "
              + ", ".join(unauthorized_migrations))
 
-    # Ordinary new assignments remain contiguous after the current maximum.
-    # The only exception is the previously user-authorized release of #85/#86,
-    # allocated in order to the next newly approved records with explicit evidence.
+    # New assignments must be contiguous after the highest number already
+    # present on main; gaps in historical sequences remain untouched.
     base_max = max(base_numbers.values(), default=0)
-    new_assignment_items = [
-        (benchmark_id, number) for benchmark_id, number in current_numbers.items()
+    new_assignments = sorted(
+        number for benchmark_id, number in current_numbers.items()
         if benchmark_id not in base_numbers and benchmark_id not in recovered_historical_ids
-    ]
-    special_numbers = []
-    ordinary_numbers = []
-    for benchmark_id, number in new_assignment_items:
-        record = current_by_id.get(benchmark_id, {})
-        migration = record.get("numbering_migration") or {}
-        if number in {85, 86}:
-            if (
-                migration.get("migration_class") != "explicit_user_authorized_future_gap_allocation"
-                or migration.get("previous_numbering_state") != "approved_unnumbered"
-                or migration.get("approved_at") != "2026-11-17"
-                or not str(migration.get("authority") or "").strip()
-            ):
-                fail(f"new historical-gap serial #{number} lacks explicit future-gap allocation evidence")
-            special_numbers.append(number)
-        else:
-            ordinary_numbers.append(number)
-    if special_numbers:
-        gap_policy = (current_registry or {}).get("numbering_policy", {}).get("gap_exception_policy", {})
-        authorized = gap_policy.get("authorized_numbers", [])
-        expected_special = [n for n in authorized if n not in base_numbers.values()][:len(special_numbers)]
-        if sorted(special_numbers) != expected_special:
-            fail(
-                "released historical-gap serials must be allocated in the authorized order; "
-                f"expected {expected_special}, got {sorted(special_numbers)}"
-            )
-    if ordinary_numbers:
-        expected = list(range(base_max + 1, base_max + 1 + len(ordinary_numbers)))
-        if sorted(ordinary_numbers) != expected:
+    )
+    if new_assignments:
+        expected = list(range(base_max + 1, base_max + 1 + len(new_assignments)))
+        if new_assignments != expected:
             fail(
                 "new Gold Star numbers must be allocated contiguously after "
-                f"canonical main max #{base_max}; expected {expected}, got {sorted(ordinary_numbers)}"
+                f"canonical main max #{base_max}; expected {expected}, got {new_assignments}"
             )
 
     # Ensure numbers are unique across all current approved records.
