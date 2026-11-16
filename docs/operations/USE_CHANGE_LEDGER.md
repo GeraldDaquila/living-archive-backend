@@ -211,3 +211,14 @@ For each release, record:
 - **Spiritual bypassing:** Explicitly `UNASSIGNED` because PR #1517's proposed #89 allocation was rejected with the PR closed unmerged after its stale branch omitted #88. #89 and #90 are now assigned to other canonical exemplars. Approval and adaptive-learning participation remain active.
 - **Controls:** Canonical JSON declares `ASSIGNED` or `UNASSIGNED` for every approved record, a reason for every unassigned record, source evidence for historical recoveries, and an evidence-backed #85/#86 gap register. Offline and runtime integrity gates reconcile the range from #56 through the maximum.
 - **Boundary:** No Gold Star approval, response, doorway authority, or runtime-transfer permission is added, removed, or changed by this numbering reconciliation.
+
+## 2026-11-16 — Explicit numbering migration: spiritual-bypassing exemplar → Gold Star #91
+
+- **Class:** Registry governance / explicit numbering migration.
+- **Canonical benchmark:** `gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing`.
+- **Baseline state:** Existing `USER_APPROVED_GOLD_STANDARD`, runtime-active, and adaptive-learning-eligible; previously `UNASSIGNED`.
+- **Authority:** User explicitly instructed: “can you assign this to spiritual-bypassing?” in response to the confirmed availability of #91.
+- **Decision:** Allocate **Gold Star #91**, contiguous after canonical #90. The rejected PR #1517 proposal for #89 remains rejected; this migration does not revive or backfill #89.
+- **Migration boundary:** This is a new, explicitly user-authorized record-level numbering migration. The approved response, 9.1/10 rating, intentional no-doorway state, exact-answer authority, runtime-transfer role, and adaptive-learning identity remain unchanged.
+- **Inventory after allocation:** 118 records; 81 approved; 34 numbered; 47 approved records unassigned; highest serial #91; #85 and #86 remain documented historical gaps.
+- **Protection:** The canonical validator must confirm the migration evidence and contiguous #91 allocation against merge-base `main` before merge.
