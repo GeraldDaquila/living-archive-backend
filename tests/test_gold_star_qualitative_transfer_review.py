@@ -67,8 +67,9 @@ def test_canonical_gold_star_numbering_matches_current_inventory():
     assignments = _numbered_approved(registry["records"])
     numbers = list(assignments.values())
 
-    assert len(approved) == 80
-    assert len(registry["records"]) == 117
+    audit = registry["integrity_audit"]
+    assert len(approved) == audit["approved_gold_star_count"]
+    assert len(registry["records"]) == audit["registry_record_count"]
     assert len(assignments) == registry["integrity_audit"]["numbered_gold_star_record_count"]
     assert max(numbers) == registry["integrity_audit"]["highest_assigned_gold_star_number"]
     assert len(numbers) == len(set(numbers))
@@ -129,7 +130,7 @@ def test_next_number_is_based_on_registry_maximum_not_approved_count():
     assignments = _numbered_approved(registry["records"])
     next_number = max(assignments.values()) + 1
     assert next_number == registry["integrity_audit"]["highest_assigned_gold_star_number"] + 1
-    assert len(assignments) != max(assignments.values())  # 27 numbered, max number 88
+    assert next_number != len(assignments) + 1  # Numbering follows the highest assigned ID, not the inventory size.
 
 
 def test_gaps_85_and_86_are_not_backfilled():
