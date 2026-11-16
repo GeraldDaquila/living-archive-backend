@@ -2448,7 +2448,10 @@
         "source_path": "visitor-provided production screenshot",
         "source_ref": "user-provided live response screenshot, 2026-11-15",
         "source_status": "USER_APPROVED_GOLD_STANDARD",
-        "evidence_boundary": "Screenshot establishes the exact observed response and explicit approval for registry elevation. The observed doorway title \"Becoming Fully Human\" does not establish a canonical URL."
+        "evidence_boundary": "Screenshot establishes the exact observed response and explicit approval for registry elevation. The observed doorway title \"Becoming Fully Human\" does not establish a canonical URL.",
+        "source": "visitor-provided production screenshot",
+        "source_date": "2026-11-15",
+        "evidence": "User reviewed the live response and explicitly approved Gold Star #57, contingent on all tests passing."
       },
       "freeze_policy": "Preserve approved expected_response. Change only with explicit user authorization and a separately documented benchmark-version change.",
       "fixture_state": "EXACT_FIXTURE_RECOVERED_AND_APPROVED",
@@ -2472,7 +2475,11 @@
       "approval_state": "Explicit user review completed and explicit Gold Star #57 elevation approval granted on 2026-11-15, contingent on all validation tests passing.",
       "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
-      "elevation_approval_evidence": "User reviewed the live response and explicitly instructed: “this now becomes gold star #57 after merge. elevate, then merge if all tests pass” on 2026-11-15."
+      "elevation_approval_evidence": "User reviewed the live response and explicitly instructed: “this now becomes gold star #57 after merge. elevate, then merge if all tests pass” on 2026-11-15.",
+      "reasoning_family": "developmental_language_descriptive_not_hierarchical",
+      "transferable_lesson": "Answer directly by distinguishing descriptions of capacities from rankings of human worth, showing how labels can dismiss lived perspectives, and restoring developmental frameworks as descriptive and provisional rather than hierarchical.",
+      "transfer_boundary": "Do not use developmental labels to rank human worth, explain away a person's perspective, erase context or situational variation, or present an unverified doorway URL as canonical.",
+      "user_approved_at": "2026-11-15"
     },
     {
       "benchmark_id": "general-guide-civilizational-transition-archive-meaning-gold-star-2026-11-13",
@@ -3804,7 +3811,8 @@
       "provenance": {
         "source": "User-provided screenshot of the live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
         "source_ref": "live visitor-facing production response following PR #1426 composition-floor repair.",
-        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation."
+        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "agency, circumstance, structure and action, constraints, choice, responsibility, blame, individual and collective change",
@@ -3847,7 +3855,8 @@
       "provenance": {
         "source": "User-provided screenshot of the live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
         "source_ref": "live visitor-facing production response.",
-        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation."
+        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "culture, interpretation, attention, value, imagination, agency, inherited assumptions, cross-cultural learning",
@@ -3890,7 +3899,8 @@
       "provenance": {
         "source": "User-provided screenshot of the live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
         "source_ref": "live visitor-facing production response following PR #1431 refinement.",
-        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation."
+        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "transformation, emotional relief, durable change, recurring patterns, changed relationships, continuity over time",
@@ -3933,7 +3943,8 @@
       "provenance": {
         "source": "User-provided screenshot of the live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
         "source_ref": "live visitor-facing production response.",
-        "evidence_boundary": "Screenshot establishes the reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation."
+        "evidence_boundary": "Screenshot establishes the reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "contemplation, empirical evidence, first-person experience, warrant, measurement, meaning",
@@ -3977,7 +3988,8 @@
       "provenance": {
         "source": "User-provided screenshot of the live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
         "source_ref": "live visitor-facing production response.",
-        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation."
+        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "consciousness, civilization, governance, human capacities, institutions, collective life, reciprocity, stewardship",
@@ -4021,7 +4033,8 @@
       "provenance": {
         "source": "User-provided screenshot of the corrected live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
         "source_ref": "live visitor-facing production response after structural fix.",
-        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation."
+        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "orientation, uncertainty, provisional agency, ambiguity, responsible action, human meaning, bearings",
@@ -4119,7 +4132,8 @@
       "provenance": {
         "source": "User-provided screenshot of the corrected live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
         "source_ref": "live visitor-facing production response after PR #1443 deterministic recovery fix.",
-        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit approval; canonical doorway URL is retained only after repository verification."
+        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit approval; canonical doorway URL is retained only after repository verification.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "algorithmic systems, bias, institutional failure, amplification, feedback loops, causation, oversight",
@@ -4498,7 +4512,8 @@
       "provenance": {
         "source": "User-provided live Guide screenshot and explicit correction request on 2026-11-15.",
         "source_ref": "visitor-facing production response review.",
-        "evidence_boundary": "The Gold Star freezes the corrected conceptual distinction approved for this exact visitor question. The doorway is the continuation displayed on the reviewed live response and is recorded as canonical for the exemplar."
+        "evidence_boundary": "The Gold Star freezes the corrected conceptual distinction approved for this exact visitor question. The doorway is the continuation displayed on the reviewed live response and is recorded as canonical for the exemplar.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "stewardship, ownership, control, management, benevolence, responsibility, authority, accountability, relational care",
@@ -4547,7 +4562,8 @@
       "provenance": {
         "source": "User-provided live Guide screenshot reviewed on 2026-11-15.",
         "source_ref": "visitor-facing production response.",
-        "evidence_boundary": "The exemplar freezes the reviewed response with one explicit refinement: repair may confront losses that cannot be fully reversed. The observed continuation title is preserved as provenance only; no URL is fabricated or promoted to canonical doorway authority because the observed continuation was not separately approved as a canonical continuation."
+        "evidence_boundary": "The exemplar freezes the reviewed response with one explicit refinement: repair may confront losses that cannot be fully reversed. The observed continuation title is preserved as provenance only; no URL is fabricated or promoted to canonical doorway authority because the observed continuation was not separately approved as a canonical continuation.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "stewardship failure, repair, accountability, trust, consequences, renewal, responsibility",
@@ -4597,7 +4613,8 @@
       "provenance": {
         "source": "User-provided live Guide screenshot reviewed on 2026-11-15.",
         "source_ref": "visitor-facing production response.",
-        "evidence_boundary": "The observed continuation title 'How Do I Become More Trustworthy?' is retained as review evidence only; it is not promoted to canonical doorway authority because no approved canonical URL was captured and the continuation was judged conceptually narrower than the commons inquiry."
+        "evidence_boundary": "The observed continuation title 'How Do I Become More Trustworthy?' is retained as review evidence only; it is not promoted to canonical doorway authority because no approved canonical URL was captured and the continuation was judged conceptually narrower than the commons inquiry.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "commons, stewardship, shared conditions, collective responsibility, accountability, renewal, participation",
@@ -4646,7 +4663,8 @@
       "provenance": {
         "source": "User-provided live Guide screenshot reviewed on 2026-11-15.",
         "source_ref": "visitor-facing production response.",
-        "evidence_boundary": "The exemplar preserves the reviewed systems-and-human-responsibility discipline, with one explicit calibration refinement: feedback can be received without becoming learning when institutional power or incentives block corrective action. The observed continuation title is retained as provenance only; no URL is fabricated or promoted to canonical doorway authority because it was not separately approved as a conceptually direct continuation."
+        "evidence_boundary": "The exemplar preserves the reviewed systems-and-human-responsibility discipline, with one explicit calibration refinement: feedback can be received without becoming learning when institutional power or incentives block corrective action. The observed continuation title is retained as provenance only; no URL is fabricated or promoted to canonical doorway authority because it was not separately approved as a conceptually direct continuation.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "feedback loops, institutions, systems, consequences, learning, incentives, authority, responsibility",
@@ -4696,7 +4714,8 @@
       "provenance": {
         "source": "User-provided live Guide screenshot reviewed on 2026-11-15.",
         "source_ref": "visitor-facing production response.",
-        "evidence_boundary": "The response and observed continuation title were reviewed directly by the user. The title is retained as provenance only; no canonical doorway URL is invented or promoted to authority without repository-based verification."
+        "evidence_boundary": "The response and observed continuation title were reviewed directly by the user. The title is retained as provenance only; no canonical doorway URL is invented or promoted to authority without repository-based verification.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "systems thinking, explanation, causality, feedback, mechanisms, evidence, boundaries, responsibility, complexity",
@@ -4747,7 +4766,8 @@
       "provenance": {
         "source": "User-provided live Guide screenshot reviewed on 2026-11-15.",
         "source_ref": "visitor-facing production response.",
-        "evidence_boundary": "This reviewed refinement supersedes the earlier canonical exemplar for quality calibration while preserving the original cross-scale discipline. The observed doorway title is retained as provenance only; no URL is fabricated or promoted to canonical doorway authority without repository-based verification."
+        "evidence_boundary": "This reviewed refinement supersedes the earlier canonical exemplar for quality calibration while preserving the original cross-scale discipline. The observed doorway title is retained as provenance only; no URL is fabricated or promoted to canonical doorway authority without repository-based verification.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "cross-scale orientation, structure and agency, civilizational patterns, local action, accumulation, institutions",
@@ -4797,7 +4817,8 @@
       "provenance": {
         "source": "User-provided live Guide screenshot reviewed on 2026-11-15.",
         "source_ref": "visitor-facing production response.",
-        "evidence_boundary": "The observed continuation title is retained as provenance only; no canonical doorway URL is invented or promoted to authority without repository-based verification."
+        "evidence_boundary": "The observed continuation title is retained as provenance only; no canonical doorway URL is invented or promoted to authority without repository-based verification.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "systems maps, representation, evidence, uncertainty, assumptions, feedback, inquiry, false confidence",
@@ -4847,7 +4868,8 @@
       "provenance": {
         "source": "User-provided live Guide screenshot reviewed on 2026-11-15.",
         "source_ref": "visitor-facing production response.",
-        "evidence_boundary": "Observed continuation title is retained as provenance only; no canonical doorway URL is invented or promoted to authority without repository-based verification."
+        "evidence_boundary": "Observed continuation title is retained as provenance only; no canonical doorway URL is invented or promoted to authority without repository-based verification.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "governance, ethical responsibility, accountability, decision-making, affected people, AI",
@@ -4909,7 +4931,12 @@
         "source": "explicit_user_review",
         "evidence": "User reviewed the live response, explicitly requested: “fix structurally and turn this into a gold star,” and subsequently directed alignment of the code with the Gold Star rating on 2026-11-16.",
         "approved_at": "2026-11-16"
-      }
+      },
+      "assertions": [
+        "Distinguish formal authority from actual influence by tracing who shapes options, controls information, and can alter outcomes.",
+        "Use repeated decision patterns, access, dependency, and ability to challenge—not the organization chart alone—to identify where consequential power sits.",
+        "Do not presume informal influence is illegitimate; assess whether it is visible, contestable, and accountable."
+      ]
     },
     {
       "benchmark_id": "general-guide-reflection-vs-therapy-boundary-gold-standard-2026-11-16",
@@ -4948,7 +4975,12 @@
         "source": "explicit_user_review",
         "evidence": "User explicitly requested: 'fix structurally and turn this into gold star' after reviewing the corrected live response and identifying the missing doorway.",
         "approved_at": "2026-11-16"
-      }
+      },
+      "assertions": [
+        "Distinguish reflective orientation from clinical treatment by purpose, depth, professional role, and scope.",
+        "Keep reflection exploratory and non-diagnostic; do not represent journaling, mindfulness, or general orientation as therapy.",
+        "Name the boundary clearly and direct people toward qualified professional care when diagnosis or treatment is needed."
+      ]
     }
   ],
   "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-16: 80 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory; 27 carry explicit Gold Star numbers. The highest assigned number is #88. #85 and #86 remain unassigned because no provenance evidence authorizes retroactive assignment; they are not counted as missing approved records.",
