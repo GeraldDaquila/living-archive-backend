@@ -389,6 +389,13 @@ def _load_lessons() -> List[Dict[str, Any]]:
             "transferable_discipline": transferable_discipline,
             "variants": [str(v).strip() for v in variants if isinstance(v, str) and str(v).strip()],
         })
+        # Precompute matching signatures once at process startup. The
+        # selector should not repeatedly tokenize every approved lesson for
+        # every visitor request as the registry grows.
+        lesson = lessons[-1]
+        lesson["signature_terms"] = _lesson_signature(lesson)
+        lesson["variant_terms"] = _concept_terms(" ".join(lesson["variants"]))
+        lesson["reasoning_terms"] = _concept_terms(lesson["reasoning_family"])
         seen.add(benchmark_id)
     return lessons
 
@@ -431,18 +438,14 @@ def select_lesson(
     if len(query_terms) < 2:
         return None
     ranked = []
+    normalized_query_terms = _concept_terms(query)
     for x in candidates:
-        variant_terms = set().union(*(_tokens(v) for v in x["variants"])) if x["variants"] else set()
-        # Match against the full reviewer-approved structural signature rather
-        # than only the exemplar wording. This lets the system recognize a shared
-        # reasoning family expressed in different visitor language while keeping
-        # all vocabulary inside the approved Gold Star record and transfer review.
-        signature_terms = _lesson_signature(x)
-        normalized_query_terms = _concept_terms(query)
-        shared_signature = normalized_query_terms & signature_terms
-        shared_variant = _concept_terms(" ".join(x["variants"])) & normalized_query_terms
-        reasoning_terms = _concept_terms(x.get("reasoning_family", ""))
-        shared_family = normalized_query_terms & reasoning_terms
+        # All lesson-side signatures are precomputed by _load_lessons().
+        # This keeps per-request work proportional to query length and avoids
+        # repeated tokenization/stemming of the full registry.
+        shared_signature = normalized_query_terms & x.get("signature_terms", set())
+        shared_variant = normalized_query_terms & x.get("variant_terms", set())
+        shared_family = normalized_query_terms & x.get("reasoning_terms", set())
         if len(shared_signature) < 2:
             continue
         coverage = len(shared_signature) / max(1, len(normalized_query_terms))
