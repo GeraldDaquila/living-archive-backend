@@ -5500,6 +5500,54 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not request a display serial. Preserve benchmark_id as the stable identity and keep serial allocation separate."
+    },
+    {
+      "benchmark_id": "gs-2026-11-17-structural-change-vs-ordinary-disruption",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How can one distinguish structural change from ordinary disruption?",
+      "expected_response": "Structural change alters the underlying conditions that reproduce a pattern; ordinary disruption interrupts the pattern's visible operation without necessarily changing those conditions.\n\nTo tell them apart, look for evidence that the system's rules, relationships, incentives, decision rights, or capacities have changed—and whether those changes persist after the immediate pressure eases. A disruption can be severe while leaving those arrangements intact; structural change alters how the system produces outcomes over time.\n\nA practical test is to ask what happens when the immediate pressure lifts. If the previous pattern returns because the same incentives, permissions, dependencies, or limits remain in place, the disruption has not changed the system's structure. If those conditions have shifted, examine whether people now have different options, responsibilities, or capacity to act—and whether those differences endure. This also keeps the judgment fair: constraints are real, but they do not erase agency; agency matters, but it does not make people responsible for conditions they cannot control.",
+      "expected_doorway": null,
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+      "observed_doorway_title": "Why Inner Change Feels Invisible (And What to Do When No One Sees It)",
+      "rating_out_of_10": 9.6,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User explicitly requested structural correction and elevation to a full Gold Star; the user supplied the original live visitor screenshot and accepted the revised composition.",
+      "assertions": [
+        "Opens with the operative distinction between structural change and ordinary disruption.",
+        "Paragraph two identifies observable structural conditions and tests whether changes persist after immediate pressure eases.",
+        "Paragraph three applies a distinct durability test, then clarifies changed agency and the boundary between constraints and responsibility.",
+        "Does not repeat paragraph two's evidence checklist in paragraph three.",
+        "Exactly three purposeful paragraphs; each advances the reasoning.",
+        "The continuation title observed in the screenshot is not treated as an approved doorway because its canonical URL was not independently verified."
+      ],
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "structural_change_disruption_semantic_progression",
+      "transferable_lesson": "For explanatory distinctions, make each paragraph perform a new cognitive operation: (1) state the governing distinction, (2) identify observable evidence or mechanism, and (3) apply a practical test and derive a distinct implication or boundary. Paragraph three must use the evidence established in paragraph two, not restate its checklist in synonyms. Preserve any relevant human boundary, such as the distinction between real constraints and remaining agency.",
+      "transfer_boundary": "Do not force every question into this subject matter or use a mechanical three-paragraph format when the task requires another form. Transfer the progression discipline, not the answer's vocabulary. Do not equate disruption with structural change merely because an event is severe or novel.",
+      "known_theme": "structural change, ordinary disruption, persistence, system conditions, agency, constraints, diagnostic reasoning",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "structural_change_disruption_semantic_progression",
+        "transferable_discipline": "Distinction → evidence → applied diagnostic and boundary; ensure semantic progression without restating the evidence checklist.",
+        "abstention_boundary": "Do not treat severity, novelty, or visible activity as proof of structural change; test whether underlying conditions and the resulting pattern have changed."
+      },
+      "provenance": {
+        "source": "user_supplied_live_visitor_screenshot_and_explicit_elevation_request",
+        "source_ref": "image(20261116-230821).png",
+        "source_date": "2026-11-16",
+        "approval_record": "User supplied the original visitor-facing screenshot and requested that the corrected response be made a full-fledged Gold Star.",
+        "evidence_boundary": "Screenshot establishes the exact question, original live response, and observed continuation title. The canonical URL for that continuation was not independently verified, so no doorway is approved.",
+        "observed_original_response": "The screenshot contains the original three-paragraph response. The registered expected_response is the corrected version approved in this conversation, not a claim that the original screenshot already contained the correction."
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a display serial. Preserve benchmark_id as stable identity; serial allocation is separate from approval and adaptive-learning eligibility."
     }
   ],
   "last_reconciliation_note": "2026-11-16: Added user-approved live Guide exemplar gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship. Preserved exact screenshot response and observed doorway title without inventing a URL. Approved for active structural learning; deterministic fallback is not authorized. No display serial allocated.",
