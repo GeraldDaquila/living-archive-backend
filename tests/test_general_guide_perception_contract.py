@@ -34,9 +34,9 @@ def test_shared_composition_question_intent_fidelity_policy():
 
 
 def test_composition_contract_remains_provider_neutral():
-    assert guide.CONTRACT_VERSION == "v1.42"
+    assert guide.CONTRACT_VERSION == "v1.43"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.42"
+    assert snapshot["contract_version"] == "v1.43"
     assert snapshot["provider_neutral"] is True
 
 
@@ -119,8 +119,8 @@ def test_conceptual_relationships_require_three_paragraph_default():
     assert "does not mean" in compact_parsed
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.42"
-    assert guide.contract_snapshot()["contract_version"] == "v1.42"
+    assert guide.CONTRACT_VERSION == "v1.43"
+    assert guide.contract_snapshot()["contract_version"] == "v1.43"
 
 
 def test_incomplete_comparison_question_clarifies_before_retrieval():
@@ -154,8 +154,8 @@ def test_ordinary_explanatory_question_is_not_interrupted():
 
 
 def test_composition_contract_version_advances_for_clarification_boundary():
-    assert guide.CONTRACT_VERSION == "v1.42"
-    assert guide.contract_snapshot()["contract_version"] == "v1.42"
+    assert guide.CONTRACT_VERSION == "v1.43"
+    assert guide.contract_snapshot()["contract_version"] == "v1.43"
 
 
 def test_plain_stewardship_explanation_rejects_unsolicited_spectrum_list():
