@@ -4909,7 +4909,12 @@
         "source": "explicit_user_review",
         "evidence": "User reviewed the live response, explicitly requested: “fix structurally and turn this into a gold star,” and subsequently directed alignment of the code with the Gold Star rating on 2026-11-16.",
         "approved_at": "2026-11-16"
-      }
+      },
+      "assertions": [
+        "Distinguish formal authority from actual influence by tracing who shapes options, controls information, and can alter outcomes.",
+        "Use repeated decision patterns, access, dependency, and ability to challenge—not the organization chart alone—to identify where consequential power sits.",
+        "Do not presume informal influence is illegitimate; assess whether it is visible, contestable, and accountable."
+      ]
     },
     {
       "benchmark_id": "general-guide-reflection-vs-therapy-boundary-gold-standard-2026-11-16",
@@ -4948,7 +4953,12 @@
         "source": "explicit_user_review",
         "evidence": "User explicitly requested: 'fix structurally and turn this into gold star' after reviewing the corrected live response and identifying the missing doorway.",
         "approved_at": "2026-11-16"
-      }
+      },
+      "assertions": [
+        "Distinguish reflective orientation from clinical treatment by purpose, depth, professional role, and scope.",
+        "Keep reflection exploratory and non-diagnostic; do not represent journaling, mindfulness, or general orientation as therapy.",
+        "Name the boundary clearly and direct people toward qualified professional care when diagnosis or treatment is needed."
+      ]
     }
   ],
   "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-16: 80 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory; 27 carry explicit Gold Star numbers. The highest assigned number is #88. #85 and #86 remain unassigned because no provenance evidence authorizes retroactive assignment; they are not counted as missing approved records.",
