@@ -68,3 +68,11 @@ def test_composer_keeps_active_quality_and_exact_answer_authority_as_separate_bo
     source = Path("general_guide_composition.py").read_text(encoding="utf-8")
     assert 'authority_mode") != "structural_guidance_only"' in source
     assert "registered_standard = None if integrity_recovery else _registered_exact_gold_standard(question)" in source
+
+
+def test_basic_inquiry_deterministic_recovery_applies_gold_star_guidance():
+    source = Path("main.py").read_text(encoding="utf-8")
+    start = source.index("def _basic_inquiry_round1_deterministic_response(")
+    end = source.index("\ndef _guide_html_to_source_text(", start)
+    function_source = source[start:end]
+    assert "_apply_deterministic_fallback_guidance(" in function_source

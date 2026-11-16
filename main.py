@@ -79,6 +79,7 @@ from general_guide_gold_standards import (
 )
 from guide_fuzzy_relevance import score_resource_fit as _score_guide_fuzzy_relevance_shadow
 from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery, is_harm_repair_question
+from gold_star_lessons import apply_deterministic_fallback_guidance as _apply_deterministic_fallback_guidance
 from deterministic_relational_fractal import compose_relational_fractal
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
 from safety_utility import classify_safety, safety_utility_snapshot
@@ -6917,6 +6918,30 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         "provider": _final_provider,
         "model": "",
     }
+
+
+# Apply the deterministic Gold Star adapter outside the question-preserving
+# recovery implementation so every early-return and terminal-return variant
+# receives the same explicit capability gate.
+_unadapted_basic_inquiry_round1_deterministic_response = _basic_inquiry_round1_deterministic_response
+
+
+def _basic_inquiry_round1_deterministic_response(
+    query, interpretation, context_data, *, recommendation_available=False
+):
+    result = _unadapted_basic_inquiry_round1_deterministic_response(
+        query,
+        interpretation,
+        context_data,
+        recommendation_available=recommendation_available,
+    )
+    if isinstance(result, dict):
+        result = dict(result)
+        result["response"] = _apply_deterministic_fallback_guidance(
+            query,
+            str(result.get("response") or ""),
+        )
+    return result
 
 
 
