@@ -73,6 +73,6 @@ def test_composer_keeps_active_quality_and_exact_answer_authority_as_separate_bo
 def test_basic_inquiry_deterministic_recovery_applies_gold_star_guidance():
     source = Path("main.py").read_text(encoding="utf-8")
     start = source.index("def _basic_inquiry_round1_deterministic_response(")
-    end = source.index("\\ndef _guide_html_to_source_text(", start)
+    end = source.index("\ndef _guide_html_to_source_text(", start)
     function_source = source[start:end]
     assert "_apply_deterministic_fallback_guidance(" in function_source
