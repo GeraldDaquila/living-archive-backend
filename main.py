@@ -244,6 +244,12 @@ def _select_verified_doorway_conceptual_family(query):
     ):
         return "regeneration_beyond_restoration"
     if (
+        re.search(r"\b(?:practice|community|feedback)\b", text, re.I)
+        and re.search(r"\bdevelop(?:ment|ing)\b", text, re.I)
+        and sum(bool(re.search(rf"\\b{term}\\b", text, re.I)) for term in ("practice", "community", "feedback")) >= 2
+    ):
+        return "human_development_ecology"
+    if (
         re.search(r"\bgrowth\b", text, re.I)
         and re.search(r"\b(?:destructive|harmful|damage|collapse|break)\b", text, re.I)
         and re.search(r"\b(?:ecological|environmental|social|planetary|living)\b.{0,100}\blimits?\b|\blimits?\b.{0,100}\b(?:ecological|environmental|social|planetary|living)\b", text, re.I)
@@ -259,6 +265,10 @@ def _select_verified_doorway_conceptual_family(query):
 
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
+    "human_development_ecology": {
+        "title": "Becoming Fully Human",
+        "url": "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/",
+    },
     "ai_role_distinction": {
         "title": "Responsible AI Principle",
         "url": "https://geralddaquila.com/responsible-ai-principle/",
