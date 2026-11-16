@@ -8,6 +8,8 @@ on:
       - "general_guide_gold_standards.py"
       - "scripts/validate_gold_star_registry.py"
       - "tests/test_general_guide_intentional_no_doorway.py"
+      - "docs/qa/gold_standard_registry.json"
+      - "docs/qa/gold_star_qualitative_transfer_review.json"
       - ".github/workflows/candidate-test-behavioral-gate.yml"
   push:
     branches:
@@ -17,6 +19,8 @@ on:
       - "general_guide_gold_standards.py"
       - "scripts/validate_gold_star_registry.py"
       - "tests/test_general_guide_intentional_no_doorway.py"
+      - "docs/qa/gold_standard_registry.json"
+      - "docs/qa/gold_star_qualitative_transfer_review.json"
       - ".github/workflows/candidate-test-behavioral-gate.yml"
 
 permissions:
