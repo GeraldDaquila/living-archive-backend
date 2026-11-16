@@ -224,7 +224,7 @@ def test_deterministic_fallback_guidance_is_applied_without_changing_paragraph_c
         item for item in lessons._LESSONS
         if item["runtime_transfer"] and item.get("deterministic_fallback_eligible")
     )
-    response = "First paragraph.\\n\\nSecond paragraph.\\n\\nThird paragraph."
+    response = "First paragraph.\n\nSecond paragraph.\n\nThird paragraph."
     guided = lessons.apply_deterministic_fallback_guidance(target["query"], response)
     assert "A useful structural discipline here:" in guided
     assert target["transferable_discipline"] in guided
