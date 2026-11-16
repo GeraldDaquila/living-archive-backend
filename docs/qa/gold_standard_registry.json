@@ -5681,14 +5681,14 @@
     "gold_star_contract": "Gold Star means one thing only: a fully validated, frozen exemplar that actively contributes to adaptive learning. The canonical registry may retain non-Gold-Star evidence and candidate records, but they are excluded from the Gold Star count and runtime Gold Star authority."
   },
   "integrity_audit": {
-    "last_audit_date": "2026-11-16",
-    "approved_gold_star_count": 85,
-    "registry_record_count": 122,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-16: 85 approved Gold Stars; historical and superseded records remain outside the approved count. Techno-utopian thinking exemplar added under a unique benchmark_id with a matching qualitative-transfer review; no duplicate exact question was present.",
+    "last_audit_date": "2026-11-17",
+    "approved_gold_star_count": 86,
+    "registry_record_count": 123,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 86 approved Gold Stars; historical and superseded records remain outside the approved count. Structural-change vs ordinary-disruption exemplar added with explicit approval evidence and matching qualitative-transfer review; no duplicate exact question was present.",
     "numbered_gold_star_record_count": 35,
     "highest_assigned_gold_star_number": 92,
-    "numbering_reconciliation": "Record-level reconciliation: 85 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 50 approved records explicitly UNASSIGNED with reasons. #85 and #86 remain documented historical gaps.",
-    "unassigned_approved_gold_star_count": 50,
+    "numbering_reconciliation": "Record-level reconciliation: 86 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 51 approved records explicitly UNASSIGNED with reasons. #85 and #86 remain documented historical gaps.",
+    "unassigned_approved_gold_star_count": 51,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {
