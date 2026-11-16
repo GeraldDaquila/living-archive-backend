@@ -5387,27 +5387,32 @@ def _guide_finalize_visitor_payload(payload, query):
         return safe
 
     response_text = str(payload.get("response") or "")
-    # A plural-traditions inquiry must not be answered through an institutional
-    # decision/governance template. Enforce this at the final visitor boundary,
-    # after every provider and fallback route has composed its candidate answer.
-    if comparative_traditions_contract.response_substitutes_institutional_frame(
-        query, response_text
-    ):
+    # Comparative-traditions intent owns its canonical continuation regardless
+    # of whether the generated prose itself needs recovery. Do not let a
+    # semantically adjacent retrieval candidate overwrite this query-family
+    # doorway merely because the answer text passed the substitution check.
+    if comparative_traditions_contract.is_comparative_traditions_question(query):
         safe = dict(payload)
-        safe["response"] = comparative_traditions_contract.recovery_response()
-        # Attach only the narrowly verified continuation approved by the
-        # comparative-traditions contract. All doorway aliases stay synchronized.
+        substituted = comparative_traditions_contract.response_substitutes_institutional_frame(
+            query, response_text
+        )
+        if substituted:
+            safe["response"] = comparative_traditions_contract.recovery_response()
         doorway = comparative_traditions_contract.verified_doorway(query)
         safe["recommendation"] = dict(doorway) if doorway else None
         safe["canonical_doorway"] = dict(doorway) if doorway else None
         safe["doorway_title"] = doorway["title"] if doorway else None
         safe["doorway_url"] = doorway["url"] if doorway else None
-        safe["processing"] = "final_visitor_boundary_comparative_traditions_recovery"
+        safe["processing"] = (
+            "final_visitor_boundary_comparative_traditions_recovery"
+            if substituted
+            else "final_visitor_boundary_comparative_traditions_doorway"
+        )
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
         print(
-            "The Guide final visitor boundary: corrected comparative-traditions "
-            "intent substitution."
+            "The Guide final visitor boundary: comparative-traditions "
+            f"doorway enforced; response_recovery={substituted}."
         )
         return safe
     # Epistemic provenance questions are not decision problems. They require a

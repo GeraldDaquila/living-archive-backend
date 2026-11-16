@@ -61,3 +61,18 @@ def test_verified_doorway_matches_comparative_inquiry_and_is_public_archive_asse
 
 def test_verified_doorway_fails_closed_for_unrelated_questions():
     assert contract.verified_doorway("How should an organisation redesign governance?") is None
+
+def test_valid_comparative_answer_still_has_verified_doorway():
+    response = (
+        "Approach each tradition on its own terms, attending to its history, "
+        "practitioners, sources, beliefs, and practices.\n\n"
+        "Distinguish historical, philosophical, empirical, and experiential "
+        "claims, and examine each with methods suited to the claim.\n\n"
+        "Compare carefully without flattening differences, and acknowledge "
+        "uncertainty and the limits of your own standpoint."
+    )
+    assert not contract.response_substitutes_institutional_frame(QUESTION, response)
+    assert contract.verified_doorway(QUESTION) == {
+        "title": "At the Edge of Explanation",
+        "url": "https://geralddaquila.com/2026/07/20/at-the-edge-of-explanation/",
+    }
