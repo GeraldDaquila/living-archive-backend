@@ -5345,9 +5345,65 @@
         "evidence_boundary": "The screenshot establishes the rendered answer and doorway. The revised answer is the frozen Gold Star standard; production acceptance must verify deterministic quality repair and doorway."
       },
       "numbering_status": "ASSIGNED"
+    },
+    {
+      "benchmark_id": "gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How can communities preserve wisdom without treating tradition as infallible?",
+      "expected_response": "The inquiry begins by making the situation itself visible: communities preserve wisdom without treating tradition as infallible. What outcome is the organisation trying to achieve, what responsibilities does it carry, and who will live with the consequences? Those questions bring operations, governance, human development, ethics, and stewardship into the same frame without pretending they are separate problems.\n\nFrom there, compare the real options rather than assuming that the proposed course is the only one. Look at what each option makes possible, what it may damage, who bears the costs, and what evidence would justify changing direction. The knowledge of people affected by the decision belongs in that assessment, especially where they will carry consequences they did not choose.\n\nThe point is not to make the decision for the organisation, but to make the grounds for acting clearer. Choose deliberately, make the reasoning and limits visible, and remain accountable for what follows. AI may inform that work, but it cannot take responsibility for a decision away from the people who have the authority to make it. A useful way to examine this is: Approach traditions on their own terms, preserve internal diversity, distinguish kinds of claims and their appropriate methods, and compare without false equivalence. The limit to keep in view is: Do not generalize shared doctrines across traditions without evidence, erase internal diversity, conflate historical, theological, empirical, and experiential claims, or mistake comparison for equivalence.",
+      "expected_doorway": null,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "observed_doorway_title": "VSM-002 — Value Stream Mapping the Prototype Community: Circulating Wealth Without Central Debt",
+      "rating_out_of_10": 9,
+      "approval_state": "User reviewed the live visitor-facing response in the supplied screenshot and explicitly instructed 'elevate' on 2026-11-16.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User instruction on 2026-11-16: 'elevate'.",
+      "assertions": [
+        "Make the community's purpose, responsibilities, and affected people visible before evaluating tradition or change.",
+        "Compare real options, their possible benefits and harms, who bears the costs, and what evidence could justify changing direction.",
+        "Include the knowledge of people affected by decisions, especially those who bear consequences they did not choose.",
+        "Preserve human authority and accountability; AI may inform but cannot assume responsibility for decisions.",
+        "Approach traditions on their own terms, preserve internal diversity, distinguish kinds of claims and appropriate methods, and avoid false equivalence.",
+        "Do not generalize shared doctrines across traditions without evidence or conflate historical, theological, empirical, and experiential claims."
+      ],
+      "provenance": {
+        "source": "User-provided live Guide screenshot reviewed on 2026-11-16.",
+        "source_ref": "visitor-facing production response.",
+        "source_date": "2026-11-16",
+        "approval_record": "User explicitly instructed 'elevate' on 2026-11-16 after reviewing the live response.",
+        "evidence_boundary": "The screenshot establishes the exact rendered question, answer, and observed continuation title. The continuation title is recorded as provenance only; its canonical URL was not captured or independently verified, so no approved doorway is asserted."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "community wisdom, tradition, epistemic humility, internal diversity, comparative methods, stewardship, governance, human accountability",
+      "runtime_transfer": true,
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "integrative_stewardship_epistemic_humility_human_accountability",
+        "transferable_discipline": "Integrate operations, governance, human development, ethics, and stewardship in one decision frame; compare real options and consequences; include the knowledge of affected people; preserve human authority and accountability; approach traditions on their own terms while distinguishing kinds of claims and appropriate methods and avoiding false equivalence.",
+        "abstention_boundary": "Do not treat tradition as infallible or disposable; do not generalize doctrines across diverse communities, erase internal differences, conflate historical, theological, empirical, and experiential claims, or let AI substitute for accountable human judgment.",
+        "intake_note": "Approved for bounded adaptive structural guidance. Deterministic fallback eligibility is intentionally false; elevation does not authorize deterministic answer reproduction or transfer of the screenshot's doorway."
+      },
+      "reasoning_family": "integrative_stewardship_epistemic_humility_human_accountability",
+      "transferable_lesson": "Preserve the wisdom a tradition may carry without treating it as infallible: make purpose and consequences visible, compare alternatives, include affected people, distinguish kinds of claims, and keep responsibility with accountable humans.",
+      "transfer_boundary": "Do not treat tradition as infallible or disposable; do not generalize doctrines across diverse communities, erase internal differences, conflate historical, theological, empirical, and experiential claims, or let AI substitute for accountable human judgment.",
+      "related_question_variants": [
+        "How can a community respect its traditions while remaining open to correction?",
+        "How should communities distinguish inherited wisdom from unquestioned authority?",
+        "How can cultural continuity coexist with critical inquiry?",
+        "How can communities preserve inherited practices without treating them as beyond criticism?"
+      ],
+      "user_approved_at": "2026-11-16",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user explicitly approved Gold Star elevation but did not request a display-serial allocation. Preserve the benchmark_id as its identity and leave serial allocation separate."
     }
   ],
-  "last_reconciliation_note": "Gold Star registry reconciled 2026-11-16: user reaffirmed the existing sacred-language-and-power Gold Star under its original benchmark_id. Its exact response and bounded transfer discipline were updated from the newly reviewed screenshot; no duplicate identity or serial allocation was created. Inventory remains 82 approved, 35 numbered, highest serial #92, 47 unnumbered; #85 and #86 remain documented historical gaps.",
+  "last_reconciliation_note": "2026-11-16: Added user-approved live Guide exemplar gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship. Preserved exact screenshot response and observed doorway title without inventing a URL. Approved for active structural learning; deterministic fallback is not authorized. No display serial allocated.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -5477,13 +5533,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-16",
-    "approved_gold_star_count": 82,
-    "registry_record_count": 119,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-16: 82 approved Gold Stars; historical and superseded records remain outside the approved count. The sacred-language response was reaffirmed under its existing benchmark_id; no duplicate was added.",
+    "approved_gold_star_count": 83,
+    "registry_record_count": 120,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-16: 83 approved Gold Stars; historical and superseded records remain outside the approved count. New community-wisdom exemplar added under a unique benchmark_id with matching qualitative-transfer review; no duplicate exact question was present.",
     "numbered_gold_star_record_count": 35,
     "highest_assigned_gold_star_number": 92,
-    "numbering_reconciliation": "Record-level reconciliation: 82 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 47 approved records explicitly UNASSIGNED with reasons. #85 and #86 remain documented historical gaps.",
-    "unassigned_approved_gold_star_count": 47,
+    "numbering_reconciliation": "Record-level reconciliation: 83 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 48 approved records explicitly UNASSIGNED with reasons. #85 and #86 remain documented historical gaps.",
+    "unassigned_approved_gold_star_count": 48,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {

@@ -736,6 +736,15 @@
       "qualifying_context": "Questions about approaching, comparing, understanding, or engaging multiple spiritual, religious, philosophical, or contemplative traditions with respect and intellectual discipline.",
       "abstention_boundary": "Do not generalize shared doctrines across traditions without evidence, erase internal diversity, conflate historical, theological, empirical, and experiential claims, or mistake comparison for equivalence.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship",
+      "question": "How can communities preserve wisdom without treating tradition as infallible?",
+      "reasoning_family": "integrative_stewardship_epistemic_humility_human_accountability",
+      "transferable_discipline": "Integrate operations, governance, human development, ethics, and stewardship in one decision frame; compare real options and consequences; include the knowledge of affected people; preserve human authority and accountability; approach traditions on their own terms while distinguishing kinds of claims and appropriate methods and avoiding false equivalence.",
+      "qualifying_context": "Questions about community traditions, cultural continuity, inherited wisdom, governance, stewardship, institutional change, or how to evaluate practices without treating tradition as infallible or disposable.",
+      "abstention_boundary": "Do not treat tradition as infallible or disposable; do not generalize doctrines across diverse communities, erase internal differences, conflate historical, theological, empirical, and experiential claims, or let AI substitute for accountable human judgment.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
