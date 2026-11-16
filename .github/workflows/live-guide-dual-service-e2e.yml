@@ -35,10 +35,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Wait for both production services and verify the live clarification boundary
         run: |
-          # The E2E workflow itself does not change the running application. For
-          # workflow-only commits, wait for the most recent commit that changed a
-          # runtime source file instead of requiring Render to deploy a no-op commit.
-          export EXPECTED_RUNTIME_SHA="$(git log -1 --format=%H -- main.py general_guide_composition.py)"
+          # Render auto-deploys every commit on main, including registry- and
+          # workflow-only changes. The running service reports RENDER_GIT_COMMIT,
+          # so compare it with this workflow's exact triggering commit. Runtime
+          # source parity is checked separately using source_sha256 below.
+          export EXPECTED_RUNTIME_SHA="$GITHUB_SHA"
           python - <<'PY'
           import json
           import os
