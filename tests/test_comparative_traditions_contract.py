@@ -76,3 +76,29 @@ def test_valid_comparative_answer_still_has_verified_doorway():
         "title": "At the Edge of Explanation",
         "url": "https://geralddaquila.com/2026/07/20/at-the-edge-of-explanation/",
     }
+
+
+def test_detects_named_religions_in_explicit_similarity_difference_question():
+    question = "What are the similarities and differences between Buddhism, Christianity and Islam?"
+    assert contract.is_comparative_traditions_question(question)
+    assert contract.verified_doorway(question) == {
+        "title": "At the Edge of Explanation",
+        "url": "https://geralddaquila.com/2026/07/20/at-the-edge-of-explanation/",
+    }
+
+
+def test_detects_named_religions_in_comparison_wording():
+    question = "Compare Buddhism, Christianity and Islam as spiritual paths."
+    assert contract.is_comparative_traditions_question(question)
+
+
+def test_named_religions_without_plural_comparison_intent_do_not_trigger():
+    question = "What is the history of Buddhism?"
+    assert not contract.is_comparative_traditions_question(question)
+    assert contract.verified_doorway(question) is None
+
+
+def test_governance_control_still_fails_closed():
+    question = "How should an organisation assign responsibilities and consequences when redesigning its governance process?"
+    assert not contract.is_comparative_traditions_question(question)
+    assert contract.verified_doorway(question) is None
