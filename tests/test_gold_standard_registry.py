@@ -740,12 +740,21 @@ def test_sacred_language_exact_gold_star_resolves_browser_query():
     assert result["expected_response"].startswith("Sacred language can clarify experience when it gives people words")
 
 
-def test_sacred_language_gold_star_has_valid_doorway_url():
+def test_sacred_language_gold_star_preserves_observed_title_without_unverified_doorway():
     from general_guide_gold_standards import resolve_exact_gold_standard
     result = resolve_exact_gold_standard("How can sacred language clarify experience, and how can it obscure power relations?")
     assert result is not None
-    assert result["doorway_title"] == "The Power of Language & Symbol"
-    assert result["doorway_url"].startswith("https://")
+    # The screenshot establishes the visible title, not a canonical destination URL.
+    # Runtime must therefore withhold the handoff rather than invent or infer a URL.
+    assert result["doorway_title"] == ""
+    assert result["doorway_url"] == ""
+    record = next(
+        item for item in _registry()["records"]
+        if item["benchmark_id"] == "gs-2026-11-14-sacred-language-clarity-power-live-candidate"
+    )
+    assert record["observed_doorway_title"] == "The Power of Language & Symbol"
+    assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
+    assert record["expected_doorway"] is None
 
 
 def test_methods_comparison_gold_star_orients_method_choice_without_collapsing_distinctions():
