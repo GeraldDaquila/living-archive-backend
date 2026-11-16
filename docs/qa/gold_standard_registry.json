@@ -5002,11 +5002,9 @@
     },
     {
       "benchmark_id": "gs-2026-11-16-meaning-making-factual-explanation",
-      "question": "What is the difference between meaning-making and factual explanation?",
-      "approved_response": "Meaning-making and factual explanation answer different questions. A factual explanation asks what happened, how something works, or what evidence supports a claim. Meaning-making asks how an event, experience, or fact signifies for the people involved—how it is understood, connected to a larger story, or related to purpose and value.\n\nThey can inform one another, but neither replaces the other. Facts can constrain meaning-making by correcting what did or did not happen, while people can understand the same well-established facts differently because those facts carry different implications in different lives, communities, or situations.\n\nThe useful distinction is therefore not between objective facts and arbitrary meanings. A careful inquiry can ask both what is true and what that truth means. Keeping those questions distinct helps prevent interpretation from being mistaken for evidence, while also recognizing that evidence alone does not settle every question of significance, purpose, or implication.",
       "expected_doorway": {
         "title": "Making Sense of Life Without Oversimplifying It",
-        "canonical_url": "https://geralddaquila.com/2026/04/08/making-sense-of-life-without-oversimplifying-it/"
+        "url": "https://geralddaquila.com/2026/04/08/making-sense-of-life-without-oversimplifying-it/"
       },
       "status": "USER_APPROVED_GOLD_STANDARD",
       "gold_star_number": 90,
@@ -5017,13 +5015,39 @@
         "elevation_evidence": "User reviewed the live visitor-facing result and explicitly instructed 'elevate' on 2026-11-16.",
         "source": "visitor-facing acceptance review"
       },
-      "numbering_migration": null,
       "doorway_verification": {
         "source": "Living Archive WordPress canonical search",
         "verified_at": "2026-11-16",
         "content_id": 45267,
         "canonical_title": "Making Sense of Life Without Oversimplifying It"
-      }
+      },
+      "subsystem": "guide_epistemic_orientation",
+      "query": "What is the difference between meaning-making and factual explanation?",
+      "expected_response": "Meaning-making and factual explanation answer different questions. A factual explanation asks what happened, how something works, or what evidence supports a claim. Meaning-making asks how an event, experience, or fact signifies for the people involved—how it is understood, connected to a larger story, or related to purpose and value.\n\nThey can inform one another, but neither replaces the other. Facts can constrain meaning-making by correcting what did or did not happen, while people can understand the same well-established facts differently because those facts carry different implications in different lives, communities, or situations.\n\nThe useful distinction is therefore not between objective facts and arbitrary meanings. A careful inquiry can ask both what is true and what that truth means. Keeping those questions distinct helps prevent interpretation from being mistaken for evidence, while also recognizing that evidence alone does not settle every question of significance, purpose, or implication.",
+      "doorway_title": "Making Sense of Life Without Oversimplifying It",
+      "doorway_status": "VERIFIED_CANONICAL_APPROVED",
+      "rating_out_of_10": 9.7,
+      "approval_state": "User explicitly approved full Gold Star elevation on 2026-11-16 after reviewing the live visitor-facing response and verified canonical doorway.",
+      "assertions": [
+        "Distinguish factual explanation from meaning-making without treating either as inherently invalid.",
+        "Explain how facts constrain interpretation while interpretation addresses significance beyond factual description.",
+        "Preserve the epistemic boundary between evidence and interpretation.",
+        "Avoid collapsing meaning into arbitrariness or facts into a complete account of significance.",
+        "Offer a canonical doorway only when it genuinely extends the question."
+      ],
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "gold_star_capabilities": {
+        "generation_class": "epistemic_orientation",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "fact-meaning-distinction-question",
+        "transferable_discipline": "Separate what happened and what evidence supports from questions of significance, then reconnect them without allowing interpretation to impersonate evidence.",
+        "abstention_boundary": "Do not present subjective interpretation as factual proof or imply that evidence alone settles questions of meaning.",
+        "generation_mode_note": "Eligibility records the transferable deterministic recovery contract and does not assert the original live response was generated deterministically."
+      },
+      "runtime_transfer": true,
+      "known_theme": "fact-meaning-distinction-question"
     }
   ],
   "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-16: 80 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory; 27 carry explicit Gold Star numbers. The highest assigned number is #88. #85 and #86 remain unassigned because no provenance evidence authorizes retroactive assignment; they are not counted as missing approved records.",
