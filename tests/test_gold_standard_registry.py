@@ -913,3 +913,10 @@ def test_verified_doorway_fallback_uses_registry_declared_terms_for_development_
     assert "def _select_guide_node_fallback_doorway(query):" in source
     assert '" ".join(node.get("semantic_hints") or [])' in source
     assert "str(node.get(\"purpose\") or \"\")" in source
+
+
+def test_verified_human_development_ecology_doorway_for_practice_community_feedback():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    assert '"human_development_ecology"' in source
+    assert '"Becoming Fully Human"' in source
+    assert "the-architecture-of-human-development" in source
