@@ -203,8 +203,9 @@ For each release, record:
 
 - **Class:** Registry governance / adaptive-learning integrity.
 - **Canonical inventory:** 118 total records; 81 approved Gold Stars; 81 matching qualitative-transfer reviews; 33 assigned serials; 48 approved records explicitly unassigned; highest serial #90.
+- **Unassigned classification:** 47 of the 48 unnumbered approved records are legacy-grandfathered approvals with no canonical serial allocation; the remaining record is the spiritual-bypassing exemplar, whose proposed #89 was rejected in PR #1517. All remain approved and runtime-active.
 - **Recovered assignments:** #56 agency/circumstance (PR #1428 plus the immediately following explicit #57 allocation in PR #1430); #57 developmental language (PR #1430); #58 culture (PR #1432); #59 transformation/temporary relief (PR #1434). Each recovered record stores its source PR, merge commit, prior state, and recovery basis.
-- **Numbering sequence:** Starts at #56. The canonical assigned range is #56–#84 and #87–#90. #85 and #86 are the only gaps in this range.
+- **Numbering sequence:** Starts at #56. The canonical assigned range is #56–#84 and #87–#90. #85 and #86 are the only gaps in this range. The 55 approvals present before PR #1428 are legacy records; do not infer #1–#55 from array order.
 - **#85:** No canonical Gold Star assignment record recovered; PR #85 is an unrelated v340 code PR. Keep as a historical gap.
 - **#86:** No canonical number assignment recovered. Commit `7a036632323b7c09003d1fce637a7b49128a27bf` misleadingly says “Gold Star 86,” but its diff only adds a provenance date to the agency/circumstance exemplar, which is now recovered as #56. PR #1428 did not assign #86; PR #86 is an unrelated v340 code PR. Keep #86 as a gap.
 - **Spiritual bypassing:** Explicitly `UNASSIGNED` because PR #1517's proposed #89 allocation was rejected with the PR closed unmerged after its stale branch omitted #88. #89 and #90 are now assigned to other canonical exemplars. Approval and adaptive-learning participation remain active.
