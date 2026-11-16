@@ -49,6 +49,8 @@ def main():
         "check paragraph function as well as paragraph count",
         "do not let a general relational explanation stand in for Archive-specific substance",
         "Make conceptual answers operational",
+        "SEMANTIC PROGRESSION CONTRACT (system-wide, including recovery paths)",
+        "Paragraph three must build on paragraph two rather than repeat its checklist",
         "evidence-to-doorway relevance check",
         "Separate three things explicitly when needed",
         "Archive-scoped meaning answer is circular meta-definition, not a substantive definition",
