@@ -146,3 +146,14 @@ For each release, record:
 - **Corrective control on a separate branch:** Compare proposed registry against the merge-base version of canonical `main`; reject removal/demotion of existing approved records, any change/removal of existing assigned numbers, retroactive numbering of existing unnumbered records, non-contiguous new numbering after the canonical main maximum, duplicate IDs/numbers, and audit metadata that disagrees with record-level facts. The workflow fetches full history so the merge-base comparison is reliable.
 - **PR #1517 disposition:** Closed unmerged after audit. Its stale branch contained 116 total records / 79 approved, omitted current #88, and assigned #89 to the spiritual-bypassing exemplar. This is the exact failure mode now covered by the merge-base regression.
 - **Release boundary:** The validator/workflow fix is isolated on `fix-gold-star-numbering-authority`; it has not been merged, tested offline or in TEST, or deployed. No production state is changed by this entry.
+
+
+## 2026-11-16 — Explicit numbering migration: development doorway exemplar → Gold Star #89
+
+- **Class:** Registry governance / explicit numbering migration
+- **Canonical benchmark:** `gs-2026-11-14-practice-community-feedback-development`.
+- **Baseline state:** Existing user-approved exemplar, active for runtime transfer, but historically unnumbered.
+- **Authority:** User explicitly reviewed the corrected live response with its verified canonical doorway and instructed **“elevate.”**
+- **Decision:** Allocate **Gold Star #89**, the next contiguous number after canonical main maximum #88.
+- **Migration boundary:** This is an explicit, record-level numbering migration—not an inferred backfill. The frozen approved response, exact-answer authority, runtime-transfer role, and canonical doorway remain unchanged.
+- **Protection:** The validator permits retroactive numbering only when the record declares an explicit user-authorized migration with prior state, authority, reason, and approval date; inferred retroactive numbering remains fail-closed.
