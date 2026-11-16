@@ -61,3 +61,95 @@ def test_numbered_spiritual_bypassing_gold_star_remains_adaptive_learning_eligib
     selected = lessons.select_lesson("What is spiritual bypassing, and why does it matter?")
     assert selected and selected["exact"] is True
     assert selected["benchmark_id"] == record["benchmark_id"]
+
+
+
+def test_unnumbered_approved_gold_stars_remain_loadable_and_selectable():
+    import json
+    from pathlib import Path
+
+    registry_path = Path(lessons.__file__).resolve().parent / "docs" / "qa" / "gold_standard_registry.json"
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    unnumbered = next(
+        record for record in registry["records"]
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        and record.get("gold_star_number") is None
+        and record.get("runtime_transfer") is True
+    )
+    assert unnumbered["benchmark_id"] in {item["id"] for item in lessons._LESSONS}
+    selected = lessons.select_lesson(unnumbered["query"])
+    assert selected and selected["exact"] is True
+    assert selected["benchmark_id"] == unnumbered["benchmark_id"]
+
+
+def test_numbering_corruption_does_not_disable_adaptive_learning(tmp_path, monkeypatch):
+    import json
+    from pathlib import Path
+    import pytest
+
+    registry_path = Path(lessons.__file__).resolve().parent / "docs" / "qa" / "gold_standard_registry.json"
+    review_path = Path(lessons.__file__).resolve().parent / "docs" / "qa" / "gold_star_qualitative_transfer_review.json"
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    review = json.loads(review_path.read_text(encoding="utf-8"))
+    damaged = next(
+        record for record in registry["records"]
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        and isinstance(record.get("gold_star_number"), int)
+    )
+    damaged["gold_star_number"] = "SERIAL-METADATA-CORRUPTED"
+    damaged["numbering_status"] = "ASSIGNED"
+    bad_registry_path = tmp_path / "gold_standard_registry.json"
+    review_copy_path = tmp_path / "gold_star_qualitative_transfer_review.json"
+    bad_registry_path.write_text(json.dumps(registry), encoding="utf-8")
+    review_copy_path.write_text(json.dumps(review), encoding="utf-8")
+    monkeypatch.setattr(lessons, "_REGISTRY_PATH", bad_registry_path)
+    monkeypatch.setattr(lessons, "_TRANSFER_REVIEW_PATH", review_copy_path)
+
+    loaded = lessons._load_lessons()
+    assert len(loaded) == sum(
+        record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        for record in registry["records"]
+    )
+    assert any(item["id"] == damaged["benchmark_id"] for item in loaded)
+    with pytest.raises(lessons.GoldStarRegistryIntegrityError):
+        lessons.validate_numbering_integrity(
+            registry["records"],
+            registry.get("numbering_gap_register"),
+            registry.get("numbering_policy"),
+        )
+
+
+def test_combined_registry_integrity_still_enforces_numbering():
+    import json
+    from pathlib import Path
+    import pytest
+
+    registry_path = Path(lessons.__file__).resolve().parent / "docs" / "qa" / "gold_standard_registry.json"
+    review_path = Path(lessons.__file__).resolve().parent / "docs" / "qa" / "gold_star_qualitative_transfer_review.json"
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    review = json.loads(review_path.read_text(encoding="utf-8"))
+    damaged = next(
+        record for record in registry["records"]
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        and isinstance(record.get("gold_star_number"), int)
+    )
+    damaged["gold_star_number"] = "SERIAL-METADATA-CORRUPTED"
+    with pytest.raises(lessons.GoldStarRegistryIntegrityError):
+        lessons.validate_registry_integrity(
+            registry["records"],
+            review["entries"],
+            registry.get("numbering_gap_register"),
+            registry.get("numbering_policy"),
+        )
+
+
+def test_active_quality_contribution_exposes_only_bounded_structural_guidance():
+    result = lessons.active_quality_contribution(
+        "What is spiritual bypassing, and why does it matter?"
+    )
+    assert result
+    assert result["authority_mode"] == "structural_guidance_only"
+    assert result["discipline"]
+    assert result["abstention_boundary"]
+    assert "expected_response" not in result
+    assert "doorway" not in result
