@@ -29,8 +29,9 @@ _INSTITUTIONAL_MARKERS = re.compile(
     r"consequences|costs|decision|decisions|accountability|institutional|"
     r"stakeholders|operating)\b", re.I
 )
+# Match the actual non-answer lead, not generic phrases that could appear in a sound answer.
 _ARCHIVE_NONANSWER_MARKERS = re.compile(
-    r"\b(?:i can\x27t define .{0,100} reliably|cannot define .{0,100} reliably|the information available in this response alone)\b", re.I
+    r"\b(?:i can\x27t define .{0,100} reliably|cannot define .{0,100} reliably)\b", re.I
 )
 
 _FLATTENING_MARKERS = re.compile(
