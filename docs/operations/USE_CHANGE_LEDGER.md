@@ -222,3 +222,14 @@ For each release, record:
 - **Migration boundary:** This is a new, explicitly user-authorized record-level numbering migration. The approved response, 9.1/10 rating, intentional no-doorway state, exact-answer authority, runtime-transfer role, and adaptive-learning identity remain unchanged.
 - **Inventory after allocation:** 118 records; 81 approved; 34 numbered; 47 approved records unassigned; highest serial #91; #85 and #86 remain documented historical gaps.
 - **Protection:** The canonical validator must confirm the migration evidence and contiguous #91 allocation against merge-base `main` before merge.
+
+
+## 2026-11-16 — Gold Star deterministic-fallback capability boundary
+
+- **Class:** Adaptive-learning runtime boundary / fallback safety.
+- **Finding:** Gold Star structural discipline is injected into provider-composed responses through the normal composition prompt. Deterministic recovery responses are separately authored, bounded contracts and do not consume adaptive guidance.
+- **Correction:** The runtime loader now treats `deterministic_fallback_eligible` as an explicit capability declaration only; it is no longer inferred from `active_quality_contributor` or qualitative-review activation.
+- **Authority boundary:** Cross-question Gold Stars continue to contribute structural guidance only. They do not acquire deterministic answer authority, and the fallback capability flag is not currently an operative runtime role.
+- **Future activation gate:** A deterministic adaptation mechanism must be explicitly designed, reviewed against each recovery family, and covered by tests proving that it preserves the recovery's subject, evidence boundary, and abstention contract. Until then, deterministic recoveries remain independently authored.
+- **Regression coverage:** Added tests for explicit capability gating and for the prohibition on treating a cross-question structural contribution as deterministic answer authority.
+- **Production status:** This entry records the code change proposed in PR; it is not a production release claim until CI, merge, and deployment verification complete.
