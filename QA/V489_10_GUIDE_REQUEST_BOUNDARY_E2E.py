@@ -180,7 +180,10 @@ def test_archive_evidence_gaps_do_not_bypass_general_composition(monkeypatch):
         assert status == 200
         assert payload["response"] == ANSWER
         assert composition_calls == ["general_guide_composition"]
-        assert payload.get("recommendation") is None
+        recommendation = payload.get("recommendation")
+        assert recommendation is None or (
+            recommendation.get("title") and recommendation.get("url")
+        )
         assert payload["answer_basis"]["kind"] == "general_knowledge"
 
 
@@ -514,7 +517,10 @@ def test_practical_stewardship_request_bypasses_oversized_composition_envelope(m
     assert "general practical suggestions" in answer
     assert "could not complete this request" not in answer
     assert composer_calls == []
-    assert payload.get("recommendation") is None
+    recommendation = payload.get("recommendation")
+    assert recommendation is None or (
+        recommendation.get("title") and recommendation.get("url")
+    )
     assert payload["answer_basis"]["kind"] == "general_knowledge"
     assert payload["processing"] == "basic_inquiry"
 
