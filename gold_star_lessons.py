@@ -546,15 +546,15 @@ def apply_deterministic_fallback_guidance(query: str, response: str) -> str:
         contribution = deterministic_fallback_contribution(query)
     except Exception:
         return text
-    if not contribution or "A useful structural discipline here:" in text:
+    if not contribution or "A useful way to examine this is:" in text:
         return text
     paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", text) if part.strip()]
     if not paragraphs:
         return text
     paragraphs[-1] += (
-        " A useful structural discipline here: "
+        " A useful way to examine this is: "
         + str(contribution["discipline"]).strip()
-        + " Keep its limit in view: "
+        + " The limit to keep in view is: "
         + str(contribution["abstention_boundary"]).strip()
     )
     return "\n\n".join(paragraphs)
