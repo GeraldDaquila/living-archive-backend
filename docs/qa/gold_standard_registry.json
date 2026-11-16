@@ -3811,7 +3811,8 @@
       "provenance": {
         "source": "User-provided screenshot of the live Guide response reviewed and explicitly approved for Gold Star elevation on 2026-11-15.",
         "source_ref": "live visitor-facing production response following PR #1426 composition-floor repair.",
-        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation."
+        "evidence_boundary": "Screenshot establishes the exact reviewed response and explicit user approval. The displayed continuation title is not treated as a canonical doorway because no verified URL was captured at elevation.",
+        "source_date": "2026-11-15"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "known_theme": "agency, circumstance, structure and action, constraints, choice, responsibility, blame, individual and collective change",
