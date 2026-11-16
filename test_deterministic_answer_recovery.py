@@ -256,3 +256,24 @@ def test_modes_of_knowing_dialogue_recovery_preserves_distinctions():
     assert answer.index("Different modes of knowing") < answer.index("Only then should the conversation move toward a decision")
     doorway = registered_recovery_recommendation(q)
     assert doorway["title"] == "Being in the Driver's Seat (Without Pretending You Control the Road)"
+
+
+def test_provider_exhaustion_recovery_consumes_explicit_gold_star_guidance(monkeypatch):
+    import gold_star_lessons
+    guidance = {
+        "benchmark_id": "test-approved-guidance",
+        "score": 1.0,
+        "reasoning_family": "test_family",
+        "discipline": "Keep the distinction between evidence and interpretation visible.",
+        "abstention_boundary": "Do not present interpretation as established fact.",
+        "authority_mode": "deterministic_structural_guidance_only",
+    }
+    monkeypatch.setattr(
+        gold_star_lessons,
+        "deterministic_fallback_contribution",
+        lambda query: guidance,
+    )
+    answer = compose_recovery("What is a useful way to understand a difficult situation?")
+    assert guidance["discipline"] in answer
+    assert guidance["abstention_boundary"] in answer
+    assert len([p for p in answer.split("\\n\\n") if p.strip()]) == 3
