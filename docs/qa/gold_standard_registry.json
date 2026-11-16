@@ -5496,12 +5496,27 @@
     "sequence_start": 56,
     "sequence_start_basis": "The recoverable numbered serial sequence begins at #56: PR #1427 recorded 55 approved legacy records; PR #1428 merged the next approved exemplar as the 56th; PR #1430 then explicitly designated the next exemplar as #57. The 55 pre-existing records are not retroactively assigned #1–#55 without individual canonical evidence.",
     "historical_recovery_rule": "A missing serial field may be restored only when a merged PR and user-approval/sequence evidence establish the original assignment. Record the source PR, merge commit, prior registry state, recovery class, and evidence basis. Historical recovery is distinct from allocating a new serial; new allocations still begin after the current maximum.",
-    "legacy_approval_rule": "Legacy-grandfathered approved records remain approved and adaptive-learning-eligible. They are UNASSIGNED unless an individual historical allocation is supported by canonical record-level or recoverable merged-PR evidence. Do not assign #1–#55 merely by ordering the 55 legacy approvals; the recorded serial sequence begins at #56."
+    "legacy_approval_rule": "Legacy-grandfathered approved records remain approved and adaptive-learning-eligible. They are UNASSIGNED unless an individual historical allocation is supported by canonical record-level or recoverable merged-PR evidence. Do not assign #1–#55 merely by ordering the 55 legacy approvals; the recorded serial sequence begins at #56.",
+    "gap_exception_policy": {
+      "exception_type": "TWO_EXPLICITLY_AUTHORIZED_HISTORICAL_GAP_RELEASES",
+      "authorized_numbers": [
+        85,
+        86
+      ],
+      "authorized_at": "2026-11-16",
+      "authority": "User explicitly agreed to release both #85 and #86 as two exceptions in the conversation on 2026-11-16.",
+      "order": [
+        85,
+        86
+      ],
+      "allocation_rule": "These two released numbers may be allocated only to the next two newly approved Gold Star records, in ascending order. Each allocation requires explicit user approval, a new unique benchmark_id, and record-level numbering evidence. No existing approved record may be retroactively assigned either number. All other historical gaps remain unavailable and immutable.",
+      "does_not_change_adaptive_learning_identity": true
+    }
   },
   "numbering_gap_register": [
     {
       "number": 85,
-      "status": "UNASSIGNED_HISTORICAL_GAP",
+      "status": "RELEASED_FOR_FUTURE_ALLOCATION",
       "reason_code": "NO_CANONICAL_ALLOCATION_RECORD",
       "reason": "No approved Gold Star record or canonical assignment event for serial #85 was recovered in the canonical registry or reviewed Gold Star PR/commit evidence. GitHub PR #85 is a September 2026 v340 topical-doorway code change, not a Gold Star assignment.",
       "evidence_checked": [
@@ -5509,11 +5524,19 @@
         "Gold Star registry commit history",
         "GitHub PR #85: v340 topical doorway question-alignment repair"
       ],
-      "disposition": "Keep as a documented historical gap. Do not infer a Gold Star record or backfill this serial."
+      "disposition": "Historical gap retained as evidence; serial #85 is released solely for the next new, explicitly approved Gold Star allocation under the two-number exception. No existing record is renumbered or backfilled.",
+      "release_authorization": {
+        "authorization_type": "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE",
+        "approved_by": "user",
+        "approved_at": "2026-11-16",
+        "authority": "User explicitly agreed to release both #85 and #86 as two exceptions in the conversation on 2026-11-16.",
+        "allocation_rule": "Reserve #85 for the next newly approved Gold Star, then #86 for the following newly approved Gold Star. Allocation requires a new unique benchmark_id, explicit user approval of Gold Star elevation, and a record-level gold_star_number assignment. Do not assign either number to an existing approved record or infer an exemplar.",
+        "historical_evidence_preserved": true
+      }
     },
     {
       "number": 86,
-      "status": "UNASSIGNED_HISTORICAL_GAP",
+      "status": "RELEASED_FOR_FUTURE_ALLOCATION",
       "reason_code": "MISLEADING_COMMIT_SUBJECT_NO_ALLOCATION",
       "reason": "No canonical Gold Star assignment event for serial #86 was recovered. Commit 7a036632323b7c09003d1fce637a7b49128a27bf is titled 'Complete provenance date for Gold Star 86', but its diff only adds provenance.source_date to general-guide-agency-circumstance-gold-standard-2026-11-15. That same record is historically recovered as Gold Star #56 from merged PR #1428 and the immediately following explicit #57 allocation in PR #1430. The commit subject's '#86' is therefore a mislabel, not a second assignment. GitHub PR #86 is a September 2026 v340 grief-versus-death-topic code change, not a Gold Star assignment.",
       "evidence_checked": [
@@ -5523,7 +5546,15 @@
         "GitHub PR #1430 explicit user-authorized #57 allocation",
         "GitHub PR #86: v340 grief/death-topic classification repair"
       ],
-      "disposition": "Keep as a documented historical gap. Treat the commit subject as a mislabel; do not retroactively assign #86."
+      "disposition": "Historical gap retained as evidence; serial #86 is released solely for the next new, explicitly approved Gold Star allocation under the two-number exception. No existing record is renumbered or backfilled.",
+      "release_authorization": {
+        "authorization_type": "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE",
+        "approved_by": "user",
+        "approved_at": "2026-11-16",
+        "authority": "User explicitly agreed to release both #85 and #86 as two exceptions in the conversation on 2026-11-16.",
+        "allocation_rule": "Reserve #85 for the next newly approved Gold Star, then #86 for the following newly approved Gold Star. Allocation requires a new unique benchmark_id, explicit user approval of Gold Star elevation, and a record-level gold_star_number assignment. Do not assign either number to an existing approved record or infer an exemplar.",
+        "historical_evidence_preserved": true
+      }
     }
   ]
 }
