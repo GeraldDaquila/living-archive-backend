@@ -543,7 +543,7 @@ def apply_deterministic_fallback_guidance(query: str, response: str) -> str:
         return text
     if not contribution or "A useful structural discipline here:" in text:
         return text
-    paragraphs = [part.strip() for part in re.split(r"\\n\\s*\\n+", text) if part.strip()]
+    paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", text) if part.strip()]
     if not paragraphs:
         return text
     paragraphs[-1] += (
@@ -552,4 +552,4 @@ def apply_deterministic_fallback_guidance(query: str, response: str) -> str:
         + " Keep its limit in view: "
         + str(contribution["abstention_boundary"]).strip()
     )
-    return "\\n\\n".join(paragraphs)
+    return "\n\n".join(paragraphs)
