@@ -1020,8 +1020,41 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     assert [g["number"] for g in gaps] == [85, 86]
     assert "7a036632323b7c09003d1fce637a7b49128a27bf" in gaps[1]["reason"]
     assert "does not set gold_star_number" in gaps[1]["reason"]
+    assert "recovered as Gold Star #56" in gaps[1]["reason"]
+    assert registry["numbering_policy"]["sequence_start"] == 56
     assert registry["integrity_audit"]["approved_gold_star_count"] == 81
-    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 29
+    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 33
     assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 90
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 52
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 48
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
+
+
+
+def test_historically_assigned_gold_stars_56_to_59_are_recovered_from_merged_prs():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    expected = {
+        "general-guide-agency-circumstance-gold-standard-2026-11-15": (56, 1428),
+        "general-guide-developmental-language-gold-star-2026-11-09": (57, 1430),
+        "general-guide-culture-notice-value-imagine-gold-standard-2026-11-15": (58, 1432),
+        "general-guide-transformation-temporary-relief-gold-standard-2026-11-15": (59, 1434),
+    }
+    by_id = {r["benchmark_id"]: r for r in registry["records"]}
+    for benchmark_id, (number, source_pr) in expected.items():
+        record = by_id[benchmark_id]
+        recovery = record["numbering_recovery"]
+        assert record["gold_star_number"] == number
+        assert record["numbering_status"] == "ASSIGNED"
+        assert recovery["recovered_number"] == number
+        assert recovery["source_pr"] == source_pr
+        assert recovery["source_merge_commit"]
+        assert recovery["authority_basis"]
+
+
+def test_unmerged_developmental_language_56_proposal_is_not_the_canonical_assignment():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    record = next(r for r in registry["records"] if r["benchmark_id"] == "general-guide-developmental-language-gold-star-2026-11-09")
+    assert record["gold_star_number"] == 57
+    assert record["numbering_recovery"]["source_pr"] == 1430
+    assert "PR #1429" not in record["numbering_recovery"]["authority_basis"]
