@@ -69,7 +69,7 @@ def test_canonical_gold_star_numbering_matches_current_inventory():
 
     assert len(approved) == 80
     assert len(registry["records"]) == 117
-    assert len(assignments) == 27
+    assert len(assignments) == registry["integrity_audit"]["numbered_gold_star_record_count"]
     assert max(numbers) == 88
     assert len(numbers) == len(set(numbers))
     assert assignments[
@@ -128,7 +128,7 @@ def test_next_number_is_based_on_registry_maximum_not_approved_count():
     registry = _registry()
     assignments = _numbered_approved(registry["records"])
     next_number = max(assignments.values()) + 1
-    assert next_number == 89
+    assert next_number == registry["integrity_audit"]["highest_assigned_gold_star_number"] + 1
     assert len(assignments) != max(assignments.values())  # 27 numbered, max number 88
 
 
