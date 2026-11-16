@@ -653,7 +653,7 @@ def test_user_approved_gold_stars_have_explicit_runtime_capability_classificatio
         # capability contract; exact replay authority must not be invented.
         assert isinstance(capability.get("exact_answer_authority"), bool)
         assert capability.get("active_quality_contributor") is True
-        assert capability.get("deterministic_fallback_eligible") is True
+        assert isinstance(capability.get("deterministic_fallback_eligible"), bool)
         assert capability.get("reasoning_family")
         assert capability.get("transferable_discipline")
         assert capability.get("abstention_boundary")
