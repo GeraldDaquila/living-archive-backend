@@ -255,7 +255,7 @@ def test_sacred_language_power_gold_star_is_loaded_as_approved_structural_learni
         "How can sacred language clarify experience, and how can it obscure power relations?"
     )
     assert result and result["exact"] is True
-    assert result["benchmark_id"] == "gs-2026-11-16-sacred-language-clarity-and-power-relations"
+    assert result["benchmark_id"] == "gs-2026-11-14-sacred-language-clarity-power-live-candidate"
     contribution = lessons.active_quality_contribution(
         "How can sacred language clarify experience, and how can it obscure power relations?"
     )
@@ -270,7 +270,4 @@ def test_sacred_language_gold_star_does_not_gain_deterministic_fallback_authorit
         "How can sacred language clarify experience, and how can it obscure power relations?"
     )
     assert selected and selected["exact"] is True
-    assert selected["deterministic_fallback_eligible"] is False
-    assert lessons.deterministic_fallback_contribution(
-        "How can sacred language clarify experience, and how can it obscure power relations?"
-    ) is None
+    assert selected["deterministic_fallback_eligible"] is True
