@@ -373,7 +373,7 @@ def test_provider_exhaustion_fallback_opens_with_direct_structural_distinction()
     response = recovery.compose_recovery(
         "How can one distinguish structural change from ordinary disruption?"
     )
-    opening = response.split("\\n\\n", 1)[0]
+    opening = response.split("\n\n", 1)[0]
 
     assert opening == (
         "Structural change alters the underlying conditions that reproduce a pattern; "
