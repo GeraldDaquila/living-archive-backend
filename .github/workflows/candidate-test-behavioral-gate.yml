@@ -1,0 +1,99 @@
+name: Candidate Test Behavioral Gate
+
+on:
+  push:
+    branches:
+      - fix/authoritative-intentional-no-doorway-clean
+    paths:
+      - "general_guide_gold_standards.py"
+      - "scripts/validate_gold_star_registry.py"
+      - "tests/test_general_guide_intentional_no_doorway.py"
+      - "docs/qa/gold_standard_registry.json"
+      - ".github/workflows/candidate-test-behavioral-gate.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  intentional-no-doorway:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify deployed TEST exact Gold Star behavior
+        env:
+          TEST_BASE_URL: https://living-archive-test-no-doorway-pr1525.onrender.com
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import time
+          import urllib.request
+          from pathlib import Path
+
+          query = "What is spiritual bypassing, and why does it matter?"
+          registry = json.loads(
+              Path("docs/qa/gold_standard_registry.json").read_text(encoding="utf-8")
+          )
+          record = next(
+              (
+                  item for item in registry.get("records", [])
+                  if item.get("query") == query
+                  and item.get("status") == "USER_APPROVED_GOLD_STANDARD"
+              ),
+              None,
+          )
+          if not record:
+              raise SystemExit("Canonical spiritual-bypassing Gold Standard was not found")
+          if record.get("doorway_status") != "INTENTIONALLY_NONE_APPROVED":
+              raise SystemExit("Fixture no longer declares approved intentional no-doorway state")
+          expected = str(record.get("expected_response") or "").strip()
+          if not expected:
+              raise SystemExit("Canonical expected response is empty")
+
+          base_url = os.environ["TEST_BASE_URL"].rstrip("/")
+          last = None
+          for attempt in range(1, 11):
+              request = urllib.request.Request(
+                  base_url + "/api/query",
+                  data=json.dumps({"query": query}).encode("utf-8"),
+                  headers={"Content-Type": "application/json", "Accept": "application/json"},
+                  method="POST",
+              )
+              try:
+                  with urllib.request.urlopen(request, timeout=60) as response:
+                      payload = json.loads(response.read().decode("utf-8"))
+                      status = response.status
+              except Exception as exc:
+                  last = f"{type(exc).__name__}: {exc}"
+                  time.sleep(5)
+                  continue
+
+              if status != 200:
+                  last = f"HTTP {status}: {payload!r}"
+                  time.sleep(5)
+                  continue
+
+              response_text = str(payload.get("response") or "").strip()
+              recommendation = payload.get("recommendation")
+              processing = payload.get("processing")
+              if response_text != expected:
+                  raise SystemExit(
+                      "Deployed TEST did not reproduce the canonical Gold Standard response"
+                  )
+              if recommendation is not None:
+                  raise SystemExit(
+                      f"Approved intentional no-doorway state leaked a recommendation: {recommendation!r}"
+                  )
+              if processing != "final_visitor_boundary_exact_gold_standard":
+                  raise SystemExit(
+                      f"Unexpected processing boundary: {processing!r}"
+                  )
+              print(
+                  "PASS: deployed TEST reproduced the approved exact response "
+                  "with the authoritative intentional no-doorway state."
+              )
+              break
+          else:
+              raise SystemExit(f"TEST endpoint did not provide a usable response: {last}")
+          PY
