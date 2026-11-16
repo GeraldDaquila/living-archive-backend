@@ -9,11 +9,12 @@
 - Test entrypoint: `test-main.py`
 
 ## Current release record
-- Canonical commit: **record after coordinated verification**
-- Build/version/fingerprint: **record after coordinated verification**
-- Primary deployment state: **record after coordinated verification**
-- USE2-Mirror deployment state: **record after coordinated verification**
-- Last coordinated release gate: **record result and timestamp**
+- Canonical commit: **a67500ab6c5645f467082940ccf8e73954a058ed** — merged PR #1529, 2026-11-16.
+- Build/version/fingerprint: **v489.311** / `USE-v489.311-source-derived`.
+- Primary deployment state: **LIVE** on canonical commit `a67500ab6c5645f467082940ccf8e73954a058ed` (Render service `srv-da98sm2jnfac73d2ki5g`, deployment `dep-dbt6iok9v7es73clgr7g`).
+- USE2-Mirror deployment state: **LIVE** on the same canonical commit `a67500ab6c5645f467082940ccf8e73954a058ed` (Render service `srv-db2s2bid0e5s73e7gt9g`, deployment `dep-dbt6iok9v7es73clgqrg`).
+- Last coordinated release gate: **PASS** — both servers report the same commit and live deployment; candidate TEST exact-answer/no-doorway and positive-doorway controls passed; seven candidate CI workflows passed. Verified 2026-11-16 10:26 +08.
+- Temporary provider condition: Pinecone unavailable during candidate verification; configured fallback active. Provider-lane and broader two-server acceptance beyond matching deployment identity are not claimed here.
 
 ## Active architecture
 - Two-server topology: Primary + USE2-Mirror
