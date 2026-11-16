@@ -182,7 +182,7 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
         answer = compose_recovery(question)
         self.assertTrue(answer.startswith("An institution can recognize the gap between its formal structure and its actual power structure"))
         self.assertNotIn("For a question like", answer)
-        self.assertIn("What outcome is the organisation trying to achieve", answer)
+        self.assertIn("who sets the available options", answer)
         self.assertEqual(len([p for p in answer.split("\n\n") if p.strip()]), 3)
 
     def test_complex_institutional_approach_uses_integrated_prose_not_generic_action_template(self):
