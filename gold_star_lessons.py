@@ -389,7 +389,7 @@ def _load_lessons() -> List[Dict[str, Any]]:
             "transferable_discipline": transferable_discipline,
             "variants": [str(v).strip() for v in variants if isinstance(v, str) and str(v).strip()],
         })
-        # Build immutable matching signatures once at process startup. The
+        # Precompute matching signatures once at process startup. The
         # selector should not repeatedly tokenize every approved lesson for
         # every visitor request as the registry grows.
         lesson = lessons[-1]
