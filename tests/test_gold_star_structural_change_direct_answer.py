@@ -32,8 +32,9 @@ def test_structural_change_gold_star_exact_answer_and_number_are_canonical():
     record = next(r for r in REGISTRY["records"] if r["benchmark_id"] == BENCHMARK_ID)
     resolved = resolve_exact_gold_standard(QUESTION)
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
-    assert record["gold_star_number"] == 85
-    assert record["numbering_status"] == "ASSIGNED"
+    assert record.get("gold_star_number") is None
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["numbering_unassigned_reason_code"] == "NO_SERIAL_ALLOCATION_REQUESTED"
     assert record["expected_response"] == EXPECTED
     assert resolved["benchmark_id"] == BENCHMARK_ID
     assert resolved["expected_response"] == EXPECTED
