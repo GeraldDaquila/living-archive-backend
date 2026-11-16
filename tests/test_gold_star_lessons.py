@@ -171,7 +171,6 @@ def test_deterministic_fallback_eligibility_is_explicit_not_inferred_from_adapti
     )
     target.setdefault("gold_star_capabilities", {})["active_quality_contributor"] = True
     target["gold_star_capabilities"]["deterministic_fallback_eligible"] = False
-    target_query = target["query"]
     target_id = target["benchmark_id"]
     bad_registry_path = tmp_path / "gold_standard_registry.json"
     review_copy_path = tmp_path / "gold_star_qualitative_transfer_review.json"
