@@ -21,28 +21,12 @@ _ELIGIBLE_STATUSES = {
 
 
 def _normalize_question(value: Any) -> str:
-    # Browsers, keyboards, and text pipelines can change typographic apostrophes
-    # without changing the visitor's question. Canonicalize those variants so
-    # exact approved standards still apply, while keeping matching non-fuzzy.
     text = str(value or "").translate(str.maketrans({
-        # Normalize browser/editor dash variants so an exact visitor question
-        # cannot bypass an approved release review merely because typography
-        # changed in transit.
-        "\u2010": "-",  # hyphen
-        "\u2011": "-",  # non-breaking hyphen
-        "\u2012": "-",  # figure dash
-        "\u2013": "-",  # en dash
-        "\u2014": "-",  # em dash
-        "\u2212": "-",  # minus sign
-        "\u2018": "'",
-        "\u2019": "'",
-        "\u02bc": "'",
-        "\uff07": "'",
+        "\u2010": "-", "\u2011": "-", "\u2012": "-", "\u2013": "-",
+        "\u2014": "-", "\u2212": "-", "\u2018": "'", "\u2019": "'",
+        "\u02bc": "'", "\uff07": "'",
     }))
     normalized = re.sub(r"\s+", " ", text).strip().casefold()
-    # Some browser and transport paths retain harmless terminal whitespace or
-    # punctuation variants. Remove terminal punctuation and collapse any
-    # whitespace exposed by that removal before exact registry lookup.
     normalized = re.sub(r"[?.!]+$", "", normalized).strip()
     return normalized
 
@@ -65,9 +49,16 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
         answer = str(record.get("expected_response") or "").strip()
         if not question or not answer:
             continue
-        doorway = record.get("expected_doorway") or {}
+        raw_doorway = record.get("expected_doorway")
+        doorway_status = str(record.get("doorway_status") or "").strip()
+        intentionally_none = doorway_status == "INTENTIONALLY_NONE_APPROVED"
+        if intentionally_none and raw_doorway is not None:
+            raise ValueError(
+                "An intentionally-none Gold Standard cannot also declare an expected doorway."
+            )
+        doorway = raw_doorway or {}
         assertions = record.get("assertions") or []
-        no_handoff = any(
+        no_handoff = intentionally_none or any(
             "forbids direct page handoff" in str(assertion).casefold()
             for assertion in assertions
         ) or bool(re.search(r"\bdo not send me to another page\b", question))
@@ -100,7 +91,6 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
 
 
 def resolve_exact_gold_standard(question: str) -> Optional[Dict[str, str]]:
-    """Resolve only an exact normalized question; never fuzzy-match a benchmark."""
     normalized = _normalize_question(question)
     if not normalized:
         return None
@@ -108,21 +98,11 @@ def resolve_exact_gold_standard(question: str) -> Optional[Dict[str, str]]:
 
 
 def find_cross_question_standard_response(question: str, response: str) -> Optional[Dict[str, str]]:
-    """Find an approved answer reused for a different question.
-
-    This is a final-boundary integrity check, not a fuzzy answer matcher. It
-    only flags exact approved answer text and only when the incoming question
-    is not that record's exact normalized question.
-    """
     normalized_question = _normalize_question(question)
     normalized_response = str(response or "").strip()
     if not normalized_question or not normalized_response:
         return None
     for standard_question, record in load_approved_standards().items():
-        # Frozen reference-only answers are reusable as deliberate exact-query
-        # fixtures, but are not all formally approved as universal cross-query
-        # sentinels. Only explicitly user-approved Gold Standards participate
-        # in this leakage detector.
         if record.get("status") != "USER_APPROVED_GOLD_STANDARD":
             continue
         if standard_question == normalized_question:
