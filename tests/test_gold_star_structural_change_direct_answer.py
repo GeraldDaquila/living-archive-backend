@@ -12,7 +12,7 @@ QUESTION = "How can one distinguish structural change from ordinary disruption?"
 
 def test_structural_change_answer_is_retained_as_candidate_not_gold_star():
     record = next(r for r in REGISTRY["records"] if r["benchmark_id"] == BENCHMARK_ID)
-    paragraphs = record["expected_response"].split("\\n\\n")
+    paragraphs = record["expected_response"].split("\n\n")
     assert record["status"] == "WITHDRAWN_PENDING_DOORWAY"
     assert record["numbering_status"] == "UNASSIGNED"
     assert len(paragraphs) == 3
