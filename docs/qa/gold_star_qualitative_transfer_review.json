@@ -762,6 +762,15 @@
       "qualifying_context": "Questions about technological solutionism, digital transformation, public-sector technology, innovation claims, or assumptions that technical progress by itself resolves institutional, political, or social problems.",
       "abstention_boundary": "Do not frame criticism of techno-utopian assumptions as opposition to technology itself. Do not assume technical tools alone resolve unequal access, institutional incentives, power, accountability, democratic choice, or harmful outcomes.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-17-structural-change-vs-ordinary-disruption",
+      "question": "How can one distinguish structural change from ordinary disruption?",
+      "reasoning_family": "structural_change_disruption_semantic_progression",
+      "transferable_discipline": "For explanatory distinctions, make each paragraph perform a new cognitive operation: state the governing distinction; identify observable evidence or mechanism; then apply a practical test and derive a distinct implication or boundary. Paragraph three must build on paragraph two rather than restate its checklist in synonyms. Transfer the progression discipline, not subject-specific vocabulary.",
+      "qualifying_context": "Questions asking how to distinguish structural change from disruption, temporary interruption from durable change, surface events from underlying conditions, or similar conceptual contrasts that benefit from an evidence-to-diagnostic progression.",
+      "abstention_boundary": "Do not equate severity, novelty, or visible activity with structural change. Do not force unrelated tasks into three paragraphs; use the progression only when it fits the visitor's intent. Preserve the distinction between real constraints and remaining agency without assigning blame for conditions outside a person's control.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
