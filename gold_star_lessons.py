@@ -71,16 +71,16 @@ class GoldStarRegistryIntegrityError(RuntimeError):
     """Raised when the canonical Gold Star ledger violates a hard invariant."""
 
 
-def validate_registry_integrity(
+def validate_learning_integrity(
     records: List[Dict[str, Any]],
     review_entries: List[Dict[str, Any]],
     numbering_gap_register: Optional[List[Dict[str, Any]]] = None,
     numbering_policy: Optional[Dict[str, Any]] = None,
 ) -> None:
-    """Enforce the canonical accounting contract before Gold Stars become active.
+    """Validate learning identity, approvals, and transfer-review integrity only.
 
-    This validator is deliberately fail-closed: an inconsistent approved ledger
-    must not silently degrade into partial or ambiguous runtime quality guidance.
+    Display serials are intentionally excluded: they are editorial inventory metadata,
+    not adaptive-learning identities or eligibility criteria.
     """
     # The Constitution defines one approved inventory by status, not by
     # subsystem label. Subsystem names are descriptive metadata and must not
@@ -142,6 +142,260 @@ def validate_registry_integrity(
             f"missing_reviews={missing}; orphan_reviews={orphaned}."
         )
 
+
+    for record in approved:
+        benchmark_id = str(record["benchmark_id"]).strip()
+        if not str(record.get("query") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} is missing query."
+            )
+        if not str(record.get("expected_response") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} is missing expected_response."
+            )
+        if not str(record.get("known_theme") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} is missing known_theme."
+            )
+        if not isinstance(record.get("runtime_transfer"), bool):
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} must explicitly declare runtime_transfer."
+            )
+        legacy = record.get("legacy_approval_grandfathered") is True
+        if not legacy:
+            if record.get("user_reviewed_response") is not True:
+                raise GoldStarRegistryIntegrityError(
+                    f"Approved Gold Star {benchmark_id} lacks evidence that the user reviewed the actual response."
+                )
+            if record.get("explicit_user_elevation_approval") is not True:
+                raise GoldStarRegistryIntegrityError(
+                    f"Approved Gold Star {benchmark_id} lacks explicit user authorization for elevation."
+                )
+            if not str(record.get("elevation_approval_evidence") or "").strip():
+                raise GoldStarRegistryIntegrityError(
+                    f"Approved Gold Star {benchmark_id} lacks recorded elevation approval evidence."
+                )
+        elif not str(record.get("legacy_approval_grandfathered_reason") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} has an undocumented legacy approval exemption."
+            )
+        if not str(record.get("freeze_policy") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} is missing freeze_policy."
+            )
+        if "expected_doorway" not in record:
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} is missing explicit expected_doorway state."
+            )
+        doorway = record.get("expected_doorway")
+        if doorway is None:
+            doorway_status = str(record.get("doorway_status") or "").strip()
+            if doorway_status not in {
+                "INTENTIONALLY_NONE_APPROVED",
+                "LEGACY_INCOMPLETE_NOT_APPROVED",
+                "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+                "TITLE_OBSERVED_URL_NOT_CAPTURED",
+            }:
+                raise GoldStarRegistryIntegrityError(
+                    f"Approved Gold Star {benchmark_id} has no recognized explicit doorway state."
+                )
+        elif not isinstance(doorway, dict) or not str(doorway.get("title") or "").strip() or not str(doorway.get("url") or "").strip():
+            raise GoldStarRegistryIntegrityError(
+                f"Approved Gold Star {benchmark_id} has an incomplete expected_doorway."
+            )
+
+
+def _load_transfer_review() -> Dict[str, Dict[str, Any]]:
+    """Load qualitative transfer governance keyed by approved benchmark id."""
+    try:
+        entries = json.loads(_TRANSFER_REVIEW_PATH.read_text(encoding="utf-8")).get("entries", [])
+    except (OSError, ValueError, TypeError):
+        return {}
+    if not isinstance(entries, list):
+        return {}
+    review = {}
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        benchmark_id = str(entry.get("benchmark_id") or "").strip()
+        if benchmark_id:
+            review[benchmark_id] = entry
+    return review
+
+def _load_lessons() -> List[Dict[str, Any]]:
+    try:
+        registry_payload = json.loads(_REGISTRY_PATH.read_text(encoding="utf-8"))
+        review_payload = json.loads(_TRANSFER_REVIEW_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError) as exc:
+        raise GoldStarRegistryIntegrityError(
+            "Canonical Gold Star registry or qualitative review cannot be read."
+        ) from exc
+    records = registry_payload.get("records", [])
+    review_entries = review_payload.get("entries", [])
+    if not isinstance(records, list) or not isinstance(review_entries, list):
+        raise GoldStarRegistryIntegrityError(
+            "Canonical Gold Star registry or qualitative review has an invalid top-level schema."
+        )
+    # Runtime learning is keyed by benchmark_id and must remain available even
+    # when display-serial bookkeeping is being repaired or independently audited.
+    validate_learning_integrity(records, review_entries)
+    transfer_review = {
+        str(entry.get("benchmark_id") or "").strip(): entry
+        for entry in review_entries
+        if isinstance(entry, dict) and str(entry.get("benchmark_id") or "").strip()
+    }
+    lessons, seen = [], set()
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        if record.get("status") not in _ALLOWED_STATUSES:
+            continue
+        # All explicitly approved Gold Stars belong to the one constitutional
+        # inventory. Relevance and abstention rules, not subsystem labels,
+        # govern whether a lesson contributes to a particular visitor question.
+        benchmark_id = str(record.get("benchmark_id") or "").strip()
+        query = str(record.get("query") or "").strip()
+        if not benchmark_id or not query or benchmark_id in seen:
+            continue
+        variants = record.get("related_question_variants") or []
+        if not isinstance(variants, list):
+            variants = []
+        assertions = [str(x).strip() for x in (record.get("assertions") or [])
+                      if isinstance(x, str) and str(x).strip()][:5]
+        review = transfer_review.get(benchmark_id, {})
+        capabilities = record.get("gold_star_capabilities") or {}
+        active_candidate = bool(capabilities.get("active_quality_contributor")) or review.get("activation") in {"active_quality_contributor", "shadow_candidate"}
+        qualifying_context = str(review.get("qualifying_context") or "")
+        transferable_discipline = str(review.get("transferable_discipline") or "")
+        lessons.append({
+            "id": benchmark_id,
+            "query": query,
+            "known_theme": str(record.get("known_theme") or "").strip(),
+            "assertions": assertions,
+            "terms": _tokens(query + " " + str(record.get("known_theme") or "")
+                             + " " + " ".join(str(v) for v in variants if isinstance(v, str))),
+            # Cross-question eligibility is governed by the qualitative review.
+            "runtime_transfer": bool(record.get("runtime_transfer")) or active_candidate,
+            "deterministic_fallback_eligible": bool(capabilities.get("deterministic_fallback_eligible")) or active_candidate,
+            "reasoning_family": str(review.get("reasoning_family") or "").strip(),
+            "abstention_boundary": str(review.get("abstention_boundary") or "").strip(),
+            "qualifying_context": qualifying_context,
+            "transferable_discipline": transferable_discipline,
+            "variants": [str(v).strip() for v in variants if isinstance(v, str) and str(v).strip()],
+        })
+        seen.add(benchmark_id)
+    return lessons
+
+_LESSONS = _load_lessons()
+
+def select_lesson(query: str) -> Optional[Dict[str, Any]]:
+    """Select one explicitly transferable structural analogue, else abstain."""
+    normalized = _normalized_phrase(query)
+    if not normalized:
+        return None
+    exact = [x for x in _LESSONS if _normalized_phrase(x["query"]) == normalized]
+    if len(exact) == 1:
+        x = exact[0]
+        return {"benchmark_id": x["id"], "score": 1.0, "exact": True,
+                "runtime_transfer": bool(x["runtime_transfer"]),
+                "query": x["query"], "known_theme": x["known_theme"],
+                "assertions": x["assertions"],
+                "reasoning_family": x.get("reasoning_family", ""),
+                "transferable_discipline": x.get("transferable_discipline", ""),
+                "abstention_boundary": x.get("abstention_boundary", "")}
+    candidates = [x for x in _LESSONS if x["runtime_transfer"]]
+    query_terms = _tokens(query)
+    if len(query_terms) < 2:
+        return None
+    ranked = []
+    for x in candidates:
+        variant_terms = set().union(*(_tokens(v) for v in x["variants"])) if x["variants"] else set()
+        # Match against the full reviewer-approved structural signature rather
+        # than only the exemplar wording. This lets the system recognize a shared
+        # reasoning family expressed in different visitor language while keeping
+        # all vocabulary inside the approved Gold Star record and transfer review.
+        signature_terms = _lesson_signature(x)
+        normalized_query_terms = _concept_terms(query)
+        shared_signature = normalized_query_terms & signature_terms
+        shared_variant = _concept_terms(" ".join(x["variants"])) & normalized_query_terms
+        reasoning_terms = _concept_terms(x.get("reasoning_family", ""))
+        shared_family = normalized_query_terms & reasoning_terms
+        if len(shared_signature) < 2:
+            continue
+        coverage = len(shared_signature) / max(1, len(normalized_query_terms))
+        if coverage < 0.20:
+            continue
+        # Reasoning-family overlap is a stronger signal than incidental topic
+        # overlap; variants provide a modest bonus. Keep the score below exact
+        # authority and abstain rather than forcing weak analogues.
+        score = min(
+            0.94,
+            0.42
+            + 0.08 * len(shared_signature)
+            + 0.08 * len(shared_family)
+            + 0.04 * len(shared_variant)
+            + 0.12 * coverage,
+        )
+        ranked.append((score, len(shared_signature), x["id"], x))
+    if not ranked:
+        return None
+    ranked.sort(key=lambda item: (-item[0], -item[1], item[2]))
+    score, _, _, x = ranked[0]
+    return {"benchmark_id": x["id"], "score": round(score, 3), "exact": False,
+            "runtime_transfer": True, "query": x["query"],
+            "known_theme": x["known_theme"], "assertions": x["assertions"],
+            "reasoning_family": x.get("reasoning_family", ""),
+            "transferable_discipline": x.get("transferable_discipline", ""),
+            "abstention_boundary": x.get("abstention_boundary", "")}
+
+def shadow_observation(query: str) -> Tuple[Optional[str], Optional[float]]:
+    """Return minimal non-content metadata and emit a structured shadow event.
+
+    Query text and Gold Star answer content are deliberately excluded from
+    telemetry. This function remains observation-only and cannot affect
+    visitor-facing composition.
+    """
+    selected = select_lesson(query)
+    if not selected:
+        message = "gold_star_shadow match=abstain"
+        print(message, flush=True)
+        _TELEMETRY_LOG.info(message)
+        return None, None
+    benchmark_id = str(selected["benchmark_id"])
+    score = float(selected["score"])
+    match_kind = "exact" if bool(selected.get("exact")) else "cross_question"
+    message = (
+        f"gold_star_shadow match=matched benchmark_id={benchmark_id} "
+        f"score={score:.3f} kind={match_kind}"
+    )
+    print(message, flush=True)
+    _TELEMETRY_LOG.info(message)
+    return benchmark_id, score
+
+
+def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
+    """Return bounded structural guidance for real-time composition."""
+    selected = select_lesson(query)
+    if not selected or not selected.get("runtime_transfer"):
+        return None
+    discipline = str(selected.get("transferable_discipline") or "").strip()
+    if not discipline:
+        return None
+    contribution = {"benchmark_id": str(selected.get("benchmark_id") or ""), "reasoning_family": str(selected.get("reasoning_family") or ""), "discipline": discipline, "abstention_boundary": str(selected.get("abstention_boundary") or ""), "score": float(selected.get("score") or 0.0), "exact": bool(selected.get("exact")), "authority_mode": "structural_guidance_only"}
+    print(f"gold_star_quality active benchmark_id={contribution['benchmark_id']} score={contribution['score']:.3f}", flush=True)
+    return contribution
+
+
+def validate_numbering_integrity(
+    records: List[Dict[str, Any]],
+    numbering_gap_register: Optional[List[Dict[str, Any]]],
+    numbering_policy: Optional[Dict[str, Any]],
+) -> None:
+    """Validate display-serial accounting independently from adaptive learning."""
+    approved = [
+        r for r in records
+        if isinstance(r, dict) and r.get("status") in _ALLOWED_STATUSES
+    ]
     # Display serials are not learning identities. Every approved record must
     # declare whether it has one, and unassigned records must explain why.
     # Adaptive selection remains keyed exclusively by benchmark_id.
@@ -221,66 +475,17 @@ def validate_registry_integrity(
             f"Gold Star numbering gaps do not reconcile: expected={sorted(expected_gaps)} actual={sorted(actual_gaps)}."
         )
 
-    for record in approved:
-        benchmark_id = str(record["benchmark_id"]).strip()
-        if not str(record.get("query") or "").strip():
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} is missing query."
-            )
-        if not str(record.get("expected_response") or "").strip():
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} is missing expected_response."
-            )
-        if not str(record.get("known_theme") or "").strip():
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} is missing known_theme."
-            )
-        if not isinstance(record.get("runtime_transfer"), bool):
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} must explicitly declare runtime_transfer."
-            )
-        legacy = record.get("legacy_approval_grandfathered") is True
-        if not legacy:
-            if record.get("user_reviewed_response") is not True:
-                raise GoldStarRegistryIntegrityError(
-                    f"Approved Gold Star {benchmark_id} lacks evidence that the user reviewed the actual response."
-                )
-            if record.get("explicit_user_elevation_approval") is not True:
-                raise GoldStarRegistryIntegrityError(
-                    f"Approved Gold Star {benchmark_id} lacks explicit user authorization for elevation."
-                )
-            if not str(record.get("elevation_approval_evidence") or "").strip():
-                raise GoldStarRegistryIntegrityError(
-                    f"Approved Gold Star {benchmark_id} lacks recorded elevation approval evidence."
-                )
-        elif not str(record.get("legacy_approval_grandfathered_reason") or "").strip():
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} has an undocumented legacy approval exemption."
-            )
-        if not str(record.get("freeze_policy") or "").strip():
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} is missing freeze_policy."
-            )
-        if "expected_doorway" not in record:
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} is missing explicit expected_doorway state."
-            )
-        doorway = record.get("expected_doorway")
-        if doorway is None:
-            doorway_status = str(record.get("doorway_status") or "").strip()
-            if doorway_status not in {
-                "INTENTIONALLY_NONE_APPROVED",
-                "LEGACY_INCOMPLETE_NOT_APPROVED",
-                "NOT_APPROVED_CONCEPTUAL_MISMATCH",
-                "TITLE_OBSERVED_URL_NOT_CAPTURED",
-            }:
-                raise GoldStarRegistryIntegrityError(
-                    f"Approved Gold Star {benchmark_id} has no recognized explicit doorway state."
-                )
-        elif not isinstance(doorway, dict) or not str(doorway.get("title") or "").strip() or not str(doorway.get("url") or "").strip():
-            raise GoldStarRegistryIntegrityError(
-                f"Approved Gold Star {benchmark_id} has an incomplete expected_doorway."
-            )
+
+
+def validate_registry_integrity(
+    records: List[Dict[str, Any]],
+    review_entries: List[Dict[str, Any]],
+    numbering_gap_register: Optional[List[Dict[str, Any]]] = None,
+    numbering_policy: Optional[Dict[str, Any]] = None,
+) -> None:
+    """Run both independent validators for full registry/CI integrity checks."""
+    validate_learning_integrity(records, review_entries)
+    validate_numbering_integrity(records, numbering_gap_register, numbering_policy)
 
 
 def _load_transfer_review() -> Dict[str, Dict[str, Any]]:
