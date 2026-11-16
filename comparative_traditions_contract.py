@@ -1,14 +1,8 @@
-"""Final-boundary protection for comparative spiritual-tradition inquiries.
-
-This contract prevents an institutional decision template from displacing a
-visitor's request for comparative understanding. It does not rank traditions
-or make tradition-specific factual claims. It may return one narrowly approved
-public Archive continuation when the visitor's question clearly fits it.
+"""Final-boundary protection and quality standard for comparative-traditions inquiries.
+The contract preserves internal diversity, epistemic distinctions, and fair comparison.
 """
 from __future__ import annotations
-
 import re
-
 
 _TRADITION_TERMS = re.compile(
     r"\b(?:spiritual|religious|religion|religions|faith|faiths|theological|"
@@ -35,68 +29,66 @@ _INSTITUTIONAL_MARKERS = re.compile(
     r"consequences|costs|decision|decisions|accountability|institutional|"
     r"stakeholders|operating)\b", re.I
 )
-
+_FLATTENING_MARKERS = re.compile(
+    r"\b(?:all (?:three|four|five|six|these) (?:religions|faiths|traditions)|"
+    r"all traditions (?:believe|teach|share)|they all (?:believe|teach|share)|"
+    r"every religion (?:believes|teaches|shares)|"
+    r"(?:a|the) (?:shared|common) focus on the afterlife)\b", re.I
+)
 
 def is_comparative_traditions_question(question: str) -> bool:
-    """Recognize questions about approaching or comparing plural traditions."""
     text = str(question or "").strip()
-    return bool(
-        text
-        and _TRADITION_TERMS.search(text)
-        and _PLURAL_TERMS.search(text)
-        and _APPROACH_TERMS.search(text)
-    )
-
+    return bool(text and _TRADITION_TERMS.search(text)
+                and _PLURAL_TERMS.search(text) and _APPROACH_TERMS.search(text))
 
 def response_substitutes_institutional_frame(question: str, response: str) -> bool:
-    """Detect a governance/decision answer that omits comparative substance."""
     if not is_comparative_traditions_question(question):
         return False
     text = str(response or "")
-    domain_count = len(_DOMAIN_MARKERS.findall(text))
-    institutional_count = len(_INSTITUTIONAL_MARKERS.findall(text))
-    return institutional_count >= 3 and domain_count < 5
+    return (len(_INSTITUTIONAL_MARKERS.findall(text)) >= 3
+            and len(_DOMAIN_MARKERS.findall(text)) < 5)
 
+def response_flattens_traditions(question: str, response: str) -> bool:
+    if not is_comparative_traditions_question(question):
+        return False
+    return bool(_FLATTENING_MARKERS.search(str(response or "")))
+
+def response_requires_quality_repair(question: str, response: str) -> bool:
+    return (response_substitutes_institutional_frame(question, response)
+            or response_flattens_traditions(question, response))
 
 def recovery_response() -> str:
-    """Return a bounded, general answer when the composer misses the inquiry."""
     return (
-        "Multiple spiritual traditions can be approached with respect by first "
-        "trying to understand each on its own terms. Attend to its history, "
-        "language, practices, sources of authority, and the ways its practitioners "
-        "describe their own experience. Respect does not require agreement, and "
-        "understanding does not require suspending critical thought.\n\n"
-        "Intellectual discipline begins by distinguishing kinds of claims. "
-        "Historical claims call for historical evidence; philosophical claims "
-        "call for careful examination of their reasoning; empirical claims call "
-        "for appropriate evidence; and claims about spiritual experience call "
-        "for attention to how that experience is described and interpreted "
-        "within its tradition. Apply standards of clarity and fairness "
-        "consistently without assuming that all traditions are saying the same "
-        "thing or that they cannot be compared.\n\n"
-        "A careful comparison therefore combines openness with discernment. "
-        "Let each tradition speak in its own vocabulary, notice where its ideas "
-        "genuinely differ, and be honest about what is established, what remains "
-        "interpretive, and what cannot be independently verified. The aim is "
-        "neither to rank traditions prematurely nor to erase their differences, "
-        "but to learn without misrepresenting them."
+        "Begin by trying to understand each tradition on its own terms. Attend to "
+        "its histories, sources, languages, practices, and the ways practitioners "
+        "describe their own commitments and experiences. No single text, leader, "
+        "or representative can stand for every community within a tradition; "
+        "internal differences and changing historical contexts matter. Respect "
+        "does not require agreement, and careful inquiry does not require "
+        "suspending criticism.\n\n"
+        "Then distinguish the kinds of claims being made. Historical claims call "
+        "for historical evidence; philosophical and theological claims require "
+        "careful attention to concepts and reasoning; empirical claims need "
+        "evidence suited to what they assert; and accounts of spiritual experience "
+        "need to be understood in their own interpretive and communal settings. "
+        "Do not use one method as if it could settle every kind of question, and "
+        "be clear about what is established, contested, interpreted, or not "
+        "independently verifiable.\n\n"
+        "Comparison can reveal genuine affinities, but similarity is not proof "
+        "that traditions mean the same thing. Nor should differences be turned "
+        "into caricatures or rankings. Let each tradition's own vocabulary and "
+        "internal diversity remain visible, compare like with like where possible, "
+        "and revise your account when practitioners, sources, or stronger evidence "
+        "complicate it. The aim is understanding without appropriation, false "
+        "equivalence, or premature judgment."
     )
-
 
 _VERIFIED_DOORWAY = {
     "title": "At the Edge of Explanation",
     "url": "https://geralddaquila.com/2026/07/20/at-the-edge-of-explanation/",
 }
 
-
 def verified_doorway(question: str) -> dict[str, str] | None:
-    """Return the approved public continuation for plural-tradition inquiry.
-
-    The destination is grounded in the published essay's explicit treatment of
-    science, philosophy, spirituality, distinct ways of knowing, and the risk of
-    reducing one domain to another. Keep the trigger bounded to this inquiry
-    family; otherwise fail closed rather than attach a merely adjacent essay.
-    """
     if not is_comparative_traditions_question(question):
         return None
     return dict(_VERIFIED_DOORWAY)

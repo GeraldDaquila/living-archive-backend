@@ -728,6 +728,14 @@
       "abstention_boundary": "Do not present subjective interpretation as factual proof or imply that evidence alone settles questions of meaning.",
       "activation": "active_quality_contributor",
       "reasoning_family": "fact-meaning-distinction-question"
+    },
+    {
+      "benchmark_id": "general-guide-comparative-traditions-respectful-intellectual-discipline-gold-star-2026-11-16",
+      "reasoning_family": "comparative_traditions_epistemic_fairness_internal_diversity",
+      "transferable_discipline": "Approach traditions on their own terms, preserve internal diversity, distinguish kinds of claims and their appropriate methods, and compare without false equivalence.",
+      "qualifying_context": "Questions about approaching, comparing, understanding, or engaging multiple spiritual, religious, philosophical, or contemplative traditions with respect and intellectual discipline.",
+      "abstention_boundary": "Do not generalize shared doctrines across traditions without evidence, erase internal diversity, conflate historical, theological, empirical, and experiential claims, or mistake comparison for equivalence.",
+      "activation": "active_quality_contributor"
     }
   ]
 }

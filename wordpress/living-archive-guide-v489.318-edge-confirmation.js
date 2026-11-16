@@ -1369,16 +1369,44 @@ function renderAuthoritativeRecommendation(data) {
   var block = document.createElement('div');
   block.className = 'archive-inline-recommendation';
   block.setAttribute('aria-live', 'polite');
+  block.setAttribute('role', 'group');
+  block.setAttribute('aria-label', 'Canonical Living Archive continuation');
+  block.style.cssText = [
+    'margin:20px 0 4px',
+    'padding:14px 16px',
+    'border-left:3px solid #b99a55',
+    'border-radius:8px',
+    'background:#f7f5ef',
+    'text-align:left'
+  ].join(';');
 
   var label = document.createElement('p');
   label.className = 'archive-recommendation-label';
-  label.textContent = 'A useful place to continue:';
+  label.textContent = 'Continue exploring';
+  label.style.cssText = [
+    'margin:0 0 6px',
+    'font-size:11px',
+    'font-weight:600',
+    'letter-spacing:.06em',
+    'line-height:1.4',
+    'text-transform:uppercase',
+    'color:#625b4d'
+  ].join(';');
 
   var link = document.createElement('a');
   link.className = 'archive-recommendation-link';
   link.href = url;
   link.textContent = title;
   link.setAttribute('aria-label', 'Explore ' + title + ' in the Living Archive');
+  link.style.cssText = [
+    'display:inline-block',
+    'font-size:14px',
+    'font-weight:650',
+    'line-height:1.5',
+    'color:#71562a',
+    'text-decoration:underline',
+    'text-underline-offset:3px'
+  ].join(';');
 
   block.appendChild(label);
   block.appendChild(link);
