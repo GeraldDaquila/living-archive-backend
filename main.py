@@ -5395,12 +5395,13 @@ def _guide_finalize_visitor_payload(payload, query):
     ):
         safe = dict(payload)
         safe["response"] = comparative_traditions_contract.recovery_response()
-        # No doorway is attached here: this recovery has no query-specific,
-        # evidence-verified canonical destination.
-        safe["recommendation"] = None
-        safe["canonical_doorway"] = None
-        safe["doorway_title"] = None
-        safe["doorway_url"] = None
+        # Attach only the narrowly verified continuation approved by the
+        # comparative-traditions contract. All doorway aliases stay synchronized.
+        doorway = comparative_traditions_contract.verified_doorway(query)
+        safe["recommendation"] = dict(doorway) if doorway else None
+        safe["canonical_doorway"] = dict(doorway) if doorway else None
+        safe["doorway_title"] = doorway["title"] if doorway else None
+        safe["doorway_url"] = doorway["url"] if doorway else None
         safe["processing"] = "final_visitor_boundary_comparative_traditions_recovery"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
