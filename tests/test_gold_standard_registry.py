@@ -229,12 +229,12 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["active_runtime_gold_star_count"] == len(active)
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
-    assert report["numbered_gold_star_count"] == len(numbered) == 34
+    assert report["numbered_gold_star_count"] == len(numbered) == 35
     assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 47
-    assert report["highest_assigned_gold_star_number"] == 91
+    assert report["highest_assigned_gold_star_number"] == 92
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
-    assert len(report["number_assignments"]) == 34
+    assert len(report["number_assignments"]) == 35
     assert len(report["unassigned_benchmark_ids"]) == 47
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
@@ -1005,7 +1005,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 81
+    assert len(approved) == 82
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1045,9 +1045,9 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     assert "only adds provenance.source_date" in gaps[1]["reason"]
     assert "recovered as Gold Star #56" in gaps[1]["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 81
-    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 34
-    assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 91
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 82
+    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 35
+    assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 92
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 47
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
 
@@ -1081,3 +1081,13 @@ def test_unmerged_developmental_language_56_proposal_is_not_the_canonical_assign
     assert record["gold_star_number"] == 57
     assert record["numbering_recovery"]["source_pr"] == 1430
     assert "PR #1429" not in record["numbering_recovery"]["authority_basis"]
+
+
+def test_comparative_traditions_gold_star_92_has_verified_canonical_doorway():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    record = next(r for r in registry["records"] if r["benchmark_id"] == "general-guide-comparative-traditions-respectful-intellectual-discipline-gold-star-2026-11-16")
+    assert record["gold_star_number"] == 92
+    assert record["numbering_status"] == "ASSIGNED"
+    assert record["expected_doorway"]["title"] == "At the Edge of Explanation"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/07/20/at-the-edge-of-explanation/"
