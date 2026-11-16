@@ -213,12 +213,19 @@ def main():
         provenance = record.get("provenance")
         if not isinstance(provenance, dict):
             fail(f"{record['benchmark_id']} lacks a provenance object")
-        if not str(provenance.get("source") or "").strip():
-            fail(f"{record['benchmark_id']} lacks provenance.source")
-        if not str(provenance.get("source_date") or provenance.get("approved_at") or "").strip():
-            fail(f"{record['benchmark_id']} lacks provenance date")
-        if not str(provenance.get("evidence_boundary") or record.get("transfer_boundary") or "").strip():
-            fail(f"{record['benchmark_id']} lacks a provenance/evidence boundary")
+        if legacy:
+            # Older records may not contain the later structured source fields.
+            # Their documented legacy approval reason is the explicit exemption;
+            # do not fabricate source dates or reviewer evidence.
+            if not str(provenance.get("source") or provenance.get("evidence") or record.get("legacy_approval_grandfathered_reason") or "").strip():
+                fail(f"{record['benchmark_id']} lacks legacy provenance evidence")
+        else:
+            if not str(provenance.get("source") or "").strip():
+                fail(f"{record['benchmark_id']} lacks provenance.source")
+            if not str(provenance.get("source_date") or provenance.get("approved_at") or "").strip():
+                fail(f"{record['benchmark_id']} lacks provenance date")
+            if not str(provenance.get("evidence_boundary") or record.get("transfer_boundary") or "").strip():
+                fail(f"{record['benchmark_id']} lacks a provenance/evidence boundary")
 
         assertions = record.get("assertions")
         if not isinstance(assertions, list) or not assertions or any(not str(x).strip() for x in assertions):
