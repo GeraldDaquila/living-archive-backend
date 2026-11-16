@@ -763,5 +763,16 @@
       "abstention_boundary": "Do not frame criticism of techno-utopian assumptions as opposition to technology itself. Do not assume technical tools alone resolve unequal access, institutional incentives, power, accountability, democratic choice, or harmful outcomes.",
       "activation": "active_quality_contributor"
     }
+  ],
+  "records": [
+    {
+      "benchmark_id": "gs-2026-11-17-structural-change-vs-disruption",
+      "question": "How can one distinguish structural change from ordinary disruption?",
+      "reasoning_family": "structural_change_vs_ordinary_disruption",
+      "transferable_discipline": "Compose in three distinct moves: define the difference; explain how disruption may expose or trigger change without being identical to it; then give a post-event test of whether altered arrangements govern ordinary operations.",
+      "qualifying_context": "Questions distinguishing structural change from disruption, organizational transformation, institutional reform, systemic shocks, crisis response, resilience, or claims that a major event has changed a system.",
+      "abstention_boundary": "Do not infer structural change from scale, duration, novelty, or intensity alone. A disruption can expose or trigger structural change without itself producing it; require durable operational evidence after exceptional conditions end.",
+      "activation": "active_quality_contributor"
+    }
   ]
 }
