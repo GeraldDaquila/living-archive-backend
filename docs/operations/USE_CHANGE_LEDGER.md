@@ -167,3 +167,16 @@ For each release, record:
 - **Number:** #90, contiguous after live canonical #89.
 - **Doorway verification:** `Making Sense of Life Without Oversimplifying It` verified against the Living Archive WordPress canonical content record (ID 45267), with its canonical URL recorded in the registry.
 - **Protection:** Exact answer, number, and canonical doorway receive regression coverage before merge.
+
+
+## 2026-11-16 — Authoritative intentional no-doorway runtime contract
+
+- **Class:** Runtime / registry governance / release integrity.
+- **Intent:** Make the canonical `INTENTIONALLY_NONE_APPROVED` doorway state authoritative at the exact-answer runtime boundary, rather than relying on assertion wording or query phrasing.
+- **Canonical benchmark:** `gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing`; approved answer remains self-contained and intentionally has no doorway.
+- **Changes:** Runtime resolver now honors `doorway_status: INTENTIONALLY_NONE_APPROVED`; contradictory records that also declare any `expected_doorway` fail closed; exact runtime regression coverage added; candidate integrity workflow now triggers on relevant Gold Star registry and qualitative-transfer governance changes.
+- **Candidate validation:** PR #1529 candidate commit `ee4728c69b7b8f0913aa8abbbdb917818aba0bb3`; seven CI workflows passed. Deployed candidate TEST verified HTTP 200 for the exact spiritual-bypassing question with exact approved response, `recommendation=null`, and `canonical_doorway=null`. Positive control (“What is the difference between meaning-making and factual explanation?”) returned its approved canonical doorway, **Making Sense of Life Without Oversimplifying It**. Candidate fingerprint: `USE-v489.311-source-derived`.
+- **Production release:** PR #1529 merged as `a67500ab6c5645f467082940ccf8e73954a058ed`. Primary and USE2-Mirror both reached LIVE on that exact commit; coordinated identity verification passed on 2026-11-16 10:26 +08.
+- **Provider boundary:** Pinecone was unavailable during candidate verification; configured fallback was active. This entry does not claim provider-lane or broader two-server acceptance beyond the checks stated above.
+- **Rollback point:** Parent canonical commit `f6b08f2da06d4776d3bfbcaa16e2068c9813c433`.
+- **Final gate:** PASS for the intentional no-doorway contract and matching Primary/Mirror release identity. No doorway was added to the spiritual-bypassing exemplar; no Gold Star number was created or changed.
