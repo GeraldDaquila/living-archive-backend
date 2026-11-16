@@ -5692,9 +5692,9 @@
     "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 86 approved Gold Stars; historical and superseded records remain outside the approved count. The structural-change-versus-disruption exemplar was added under a unique benchmark_id with a matching qualitative-transfer review and explicit allocation of released serial #85; no duplicate exact question was present.",
     "numbered_gold_star_record_count": 36,
     "highest_assigned_gold_star_number": 92,
-    "numbering_reconciliation": "Record-level reconciliation: 86 approved Gold Stars; 36 assigned display serials, including the explicitly released #85 plus the existing #56–#84 and #87–#92 sequence; 50 approved records explicitly UNASSIGNED with reasons. The #85 release is allocated and its historical evidence retained; #86 remains the sole active released gap.",
+    "numbering_reconciliation": "Record-level reconciliation: 86 approved Gold Stars; 36 assigned display serials, including the explicitly released #85 plus the existing #56–#84 and #87–#92 sequence; 50 approved records explicitly UNASSIGNED with reasons. The #85 release is allocated and its historical evidence retained; #86 remains the sole active released gap. Two historical release records remain documented.",
     "unassigned_approved_gold_star_count": 50,
-    "documented_numbering_gap_count": 1
+    "documented_numbering_gap_count": 2
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
