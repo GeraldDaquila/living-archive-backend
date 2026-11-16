@@ -5585,13 +5585,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-16",
-    "approved_gold_star_count": 83,
-    "registry_record_count": 120,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-16: 83 approved Gold Stars; historical and superseded records remain outside the approved count. New community-wisdom exemplar added under a unique benchmark_id with matching qualitative-transfer review; no duplicate exact question was present.",
+    "approved_gold_star_count": 84,
+    "registry_record_count": 121,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-16: 84 approved Gold Stars; historical and superseded records remain outside the approved count. Techno-utopian thinking exemplar added under a unique benchmark_id with matching qualitative-transfer review; no duplicate exact question was present.",
     "numbered_gold_star_record_count": 35,
     "highest_assigned_gold_star_number": 92,
-    "numbering_reconciliation": "Record-level reconciliation: 83 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 48 approved records explicitly UNASSIGNED with reasons. #85 and #86 remain documented historical gaps.",
-    "unassigned_approved_gold_star_count": 48,
+    "numbering_reconciliation": "Record-level reconciliation: 84 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 49 approved records explicitly UNASSIGNED with reasons. #85 and #86 remain documented historical gaps.",
+    "unassigned_approved_gold_star_count": 49,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {
