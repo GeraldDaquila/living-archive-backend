@@ -2552,9 +2552,18 @@
       "transferable_lesson": "Answer directly by distinguishing descriptions of capacities from rankings of human worth, showing how labels can dismiss lived perspectives, and restoring developmental frameworks as descriptive and provisional rather than hierarchical.",
       "transfer_boundary": "Do not use developmental labels to rank human worth, explain away a person's perspective, erase context or situational variation, or present an unverified doorway URL as canonical.",
       "user_approved_at": "2026-11-15",
-      "numbering_status": "UNASSIGNED",
-      "numbering_unassigned_reason_code": "NO_CANONICAL_ALLOCATION_RECORD",
-      "numbering_unassigned_reason": "No canonical gold_star_number allocation is recorded for this approved benchmark. Its stable identity is benchmark_id; approval and adaptive-learning eligibility are unaffected. Do not infer a serial from registry order, a GitHub PR number, a commit subject, or a date."
+      "numbering_status": "ASSIGNED",
+      "gold_star_number": 57,
+      "numbering_recovery": {
+        "recovery_class": "HISTORICAL_EXPLICIT_ASSIGNMENT_RECOVERY",
+        "recovered_number": 57,
+        "source_pr": 1430,
+        "source_pr_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/1430",
+        "source_merge_commit": "4aecd25169b41aeda905f74aab70cdcbc8b0b560",
+        "previous_registry_state": "USER_APPROVED_GOLD_STANDARD without gold_star_number field",
+        "authority_basis": "Merged PR #1430 explicitly records the user's instruction that this reviewed developmental-language response becomes Gold Star #57 after merge; the record's elevation_approval_evidence preserves the exact user instruction. The PR merged successfully.",
+        "recovered_at": "2026-11-16"
+      }
     },
     {
       "benchmark_id": "general-guide-civilizational-transition-archive-meaning-gold-star-2026-11-13",
@@ -4001,9 +4010,18 @@
       "transferable_lesson": "Circumstances shape the field of possible action without fully determining response; strong conceptual explanations preserve that asymmetry and connect it to responsibility without blame.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, financial-pressure example, claims, or continuation.",
       "user_approved_at": "2026-11-15",
-      "numbering_status": "UNASSIGNED",
-      "numbering_unassigned_reason_code": "NO_CANONICAL_ALLOCATION_RECORD",
-      "numbering_unassigned_reason": "No canonical gold_star_number allocation is recorded for this approved benchmark. Its stable identity is benchmark_id; approval and adaptive-learning eligibility are unaffected. Do not infer a serial from registry order, a GitHub PR number, a commit subject, or a date."
+      "numbering_status": "ASSIGNED",
+      "gold_star_number": 56,
+      "numbering_recovery": {
+        "recovery_class": "HISTORICAL_SEQUENCE_ASSIGNMENT_RECOVERY",
+        "recovered_number": 56,
+        "source_pr": 1428,
+        "source_pr_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/1428",
+        "source_merge_commit": "2a91b951a24bc2e7929a65fc728aa8a67e83c5a3",
+        "previous_registry_state": "USER_APPROVED_GOLD_STANDARD without gold_star_number field",
+        "authority_basis": "PR #1427 established 55 approved legacy records. PR #1428 then merged this agency-and-circumstance exemplar as the 56th approved record, raising the canonical count to 56. Immediately afterward, the user explicitly designated the next developmental-language exemplar as Gold Star #57 in PR #1430. The adjacent merged sequence therefore identifies this PR #1428 exemplar as #56. This is a historical sequence recovery, not a new allocation. The later commit subject mentioning #86 is contradicted by the actual diff and this merge sequence.",
+        "recovered_at": "2026-11-16"
+      }
     },
     {
       "benchmark_id": "general-guide-culture-notice-value-imagine-gold-standard-2026-11-15",
@@ -4048,9 +4066,18 @@
       "transferable_lesson": "Culture shapes the interpretive field in which people notice, value, and imagine; strong explanations preserve both that formative influence and the capacity to question, revise, and widen inherited horizons.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
       "user_approved_at": "2026-11-15",
-      "numbering_status": "UNASSIGNED",
-      "numbering_unassigned_reason_code": "NO_CANONICAL_ALLOCATION_RECORD",
-      "numbering_unassigned_reason": "No canonical gold_star_number allocation is recorded for this approved benchmark. Its stable identity is benchmark_id; approval and adaptive-learning eligibility are unaffected. Do not infer a serial from registry order, a GitHub PR number, a commit subject, or a date."
+      "numbering_status": "ASSIGNED",
+      "gold_star_number": 58,
+      "numbering_recovery": {
+        "recovery_class": "HISTORICAL_EXPLICIT_ASSIGNMENT_RECOVERY",
+        "recovered_number": 58,
+        "source_pr": 1432,
+        "source_pr_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/1432",
+        "source_merge_commit": "330618c1991fbd41f50b265755b7c29c950e3ad8",
+        "previous_registry_state": "USER_APPROVED_GOLD_STANDARD without gold_star_number field",
+        "authority_basis": "Merged PR #1432 is titled 'Elevate reviewed culture response to Gold Star #58'; its PR body states that the user explicitly authorized elevation as #58 and that the PR promotes the culture exemplar. The merge commit confirms the approved record and qualitative-transfer review were added.",
+        "recovered_at": "2026-11-16"
+      }
     },
     {
       "benchmark_id": "general-guide-transformation-temporary-relief-gold-standard-2026-11-15",
@@ -4095,9 +4122,18 @@
       "transferable_lesson": "A durable transformation is best distinguished from temporary relief by what remains different when the immediate feeling passes and a familiar pattern or situation returns.",
       "transfer_boundary": "Transfer the structural distinction and diagnostic discipline, not the exemplar-specific wording, examples, or continuation title.",
       "user_approved_at": "2026-11-15",
-      "numbering_status": "UNASSIGNED",
-      "numbering_unassigned_reason_code": "NO_CANONICAL_ALLOCATION_RECORD",
-      "numbering_unassigned_reason": "No canonical gold_star_number allocation is recorded for this approved benchmark. Its stable identity is benchmark_id; approval and adaptive-learning eligibility are unaffected. Do not infer a serial from registry order, a GitHub PR number, a commit subject, or a date."
+      "numbering_status": "ASSIGNED",
+      "gold_star_number": 59,
+      "numbering_recovery": {
+        "recovery_class": "HISTORICAL_EXPLICIT_ASSIGNMENT_RECOVERY",
+        "recovered_number": 59,
+        "source_pr": 1434,
+        "source_pr_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/1434",
+        "source_merge_commit": "ae932120a4155178303bf06efcb75151fbc920b8",
+        "previous_registry_state": "USER_APPROVED_GOLD_STANDARD without gold_star_number field",
+        "authority_basis": "Merged PR #1434 is titled 'Elevate transformation and temporary relief response as Gold Star #59'; its PR body states that the reviewed elevation is #59 and records the approved exemplar and transfer review. The merge commit confirms the addition.",
+        "recovered_at": "2026-11-16"
+      }
     },
     {
       "benchmark_id": "general-guide-contemplative-insight-empirical-evidence-gold-standard-2026-11-15",
@@ -5240,7 +5276,7 @@
       "numbering_status": "ASSIGNED"
     }
   ],
-  "last_reconciliation_note": "Gold Star registry numbering reconciled on 2026-11-16: 118 total records; 81 approved and runtime-active Gold Stars; 81 matching qualitative-transfer reviews; 29 approved records explicitly numbered through #90; 52 approved records explicitly marked UNASSIGNED with a reason. #85 and #86 are documented historical sequence gaps, not records or PR numbers. The agency/circumstance commit subject mentioning #86 is not a record-level allocation. The spiritual-bypassing exemplar remains approved and adaptive-learning-active but unnumbered because its proposed #89 allocation in rejected PR #1517 was never merged; #89 and #90 are now occupied by other canonical exemplars.",
+  "last_reconciliation_note": "Gold Star registry numbering reconciled on 2026-11-16: 118 total records; 81 approved Gold Stars; 81 matching qualitative-transfer reviews; 33 canonical serial assignments (#56–#84 and #87–#90); 48 approved records explicitly marked UNASSIGNED with reasons. Historical assignments #56–#59 were recovered from merged PRs #1428, #1430, #1432 and #1434; their canonical records had omitted the serial field. #85 and #86 are the only gaps in the serial range. The #86 commit subject is a mislabel on the #56 agency/circumstance exemplar. The spiritual-bypassing exemplar remains approved and adaptive-learning-active but unnumbered because its proposed #89 allocation in rejected PR #1517 was never merged; #89 and #90 are now occupied by other canonical exemplars.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -5373,10 +5409,10 @@
     "approved_gold_star_count": 81,
     "registry_record_count": 118,
     "review_reconciliation": "Canonical inventory reconciled against the current registry on 2026-11-16: 81 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative Gold Star inventory. Historical and superseded records remain outside that count.",
-    "numbered_gold_star_record_count": 29,
+    "numbered_gold_star_record_count": 33,
     "highest_assigned_gold_star_number": 90,
-    "numbering_reconciliation": "Record-level audit on 2026-11-16: 81 approved Gold Stars; 29 assigned display serials, #60–#84 and #87–#90; 52 approved records explicitly UNASSIGNED with reason metadata. #85 and #86 are the only gaps within the assigned serial range. #85 has no canonical allocation evidence. #86 has a misleading commit subject but no record-level number assignment. PR #1517's proposed #89 for spiritual bypassing was closed unmerged after omitting #88; #89 was later allocated to the development-doorway exemplar and #90 to the meaning-making exemplar.",
-    "unassigned_approved_gold_star_count": 52,
+    "numbering_reconciliation": "Record-level and historical-PR audit on 2026-11-16: 81 approved Gold Stars; 33 assigned display serials #56–#84 and #87–#90; 48 approved records explicitly UNASSIGNED with reasons. PR #1427 established 55 approved legacy records; PR #1428 added the 56th approved exemplar (agency/circumstance), PR #1430 explicitly assigned #57 to developmental language, PR #1432 explicitly assigned #58 to culture, and PR #1434 explicitly assigned #59 to transformation/relief. These four historical serials were omitted from their canonical record fields and are now recovered with source PR/merge provenance. #85 and #86 are the only gaps in the serial range. The #86 commit subject is a mislabel on the #56 agency/circumstance record; its diff does not assign #86. PR #1517's proposed #89 for spiritual bypassing was closed unmerged after omitting #88; #89 was later assigned to the development-doorway exemplar and #90 to the meaning-making exemplar.",
+    "unassigned_approved_gold_star_count": 48,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {
@@ -5385,7 +5421,10 @@
     "meaning": "A Gold Star number is an optional human-facing serial label, not the identity of the benchmark and not a prerequisite for Gold Star approval or adaptive-learning participation.",
     "adaptive_learning_rule": "Load every USER_APPROVED_GOLD_STANDARD with runtime_transfer=true and a matching qualitative-transfer review by benchmark_id. Never filter, rank, or exclude a Gold Star because its display serial is unassigned.",
     "assignment_rule": "New serial allocations require explicit user authorization, a canonical record-level assignment, uniqueness, and contiguous allocation after the current maximum. Existing assignments are immutable. Existing historical gaps are not backfilled by inference.",
-    "unassigned_rule": "Every approved record without gold_star_number must declare numbering_status=UNASSIGNED and a non-empty numbering_unassigned_reason_code and numbering_unassigned_reason. Every numbered approved record must declare numbering_status=ASSIGNED."
+    "unassigned_rule": "Every approved record without gold_star_number must declare numbering_status=UNASSIGNED and a non-empty numbering_unassigned_reason_code and numbering_unassigned_reason. Every numbered approved record must declare numbering_status=ASSIGNED.",
+    "sequence_start": 56,
+    "sequence_start_basis": "The recoverable numbered serial sequence begins at #56: PR #1427 recorded 55 approved legacy records; PR #1428 merged the next approved exemplar as the 56th; PR #1430 then explicitly designated the next exemplar as #57. The 55 pre-existing records are not retroactively assigned #1–#55 without individual canonical evidence.",
+    "historical_recovery_rule": "A missing serial field may be restored only when a merged PR and user-approval/sequence evidence establish the original assignment. Record the source PR, merge commit, prior registry state, recovery class, and evidence basis. Historical recovery is distinct from allocating a new serial; new allocations still begin after the current maximum."
   },
   "numbering_gap_register": [
     {
@@ -5403,15 +5442,16 @@
     {
       "number": 86,
       "status": "UNASSIGNED_HISTORICAL_GAP",
-      "reason_code": "NO_CANONICAL_ALLOCATION_RECORD_MISLEADING_COMMIT_SUBJECT",
-      "reason": "No canonical record-level assignment event for serial #86 was recovered. Commit 7a036632323b7c09003d1fce637a7b49128a27bf is titled 'Complete provenance date for Gold Star 86', but its actual diff only adds provenance.source_date to general-guide-agency-circumstance-gold-standard-2026-11-15; it does not set gold_star_number. The originating elevation PR #1428 also contains no number assignment. GitHub PR #86 is a September 2026 v340 grief-versus-death-topic code change, not a Gold Star assignment. The commit subject is non-authoritative and must not be treated as allocation evidence.",
+      "reason_code": "MISLEADING_COMMIT_SUBJECT_NO_ALLOCATION",
+      "reason": "No canonical Gold Star assignment event for serial #86 was recovered. Commit 7a036632323b7c09003d1fce637a7b49128a27bf is titled 'Complete provenance date for Gold Star 86', but its diff only adds provenance.source_date to general-guide-agency-circumstance-gold-standard-2026-11-15. That same record is historically recovered as Gold Star #56 from merged PR #1428 and the immediately following explicit #57 allocation in PR #1430. The commit subject's '#86' is therefore a mislabel, not a second assignment. GitHub PR #86 is a September 2026 v340 grief-versus-death-topic code change, not a Gold Star assignment.",
       "evidence_checked": [
         "Canonical registry record-level assignments on main",
         "Commit 7a036632323b7c09003d1fce637a7b49128a27bf diff",
-        "GitHub PR #1428 elevation diff",
+        "GitHub PR #1428 merge and 56th-approved-record count transition",
+        "GitHub PR #1430 explicit user-authorized #57 allocation",
         "GitHub PR #86: v340 grief/death-topic classification repair"
       ],
-      "disposition": "Keep as a documented historical gap. Treat the commit subject as a misleading/non-authoritative label; do not retroactively assign #86."
+      "disposition": "Keep as a documented historical gap. Treat the commit subject as a mislabel; do not retroactively assign #86."
     }
   ]
 }
