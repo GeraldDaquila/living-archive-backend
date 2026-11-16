@@ -905,3 +905,18 @@ def test_terminal_visitor_boundary_restores_verified_doorway_for_ordinary_answer
     assert 'safe["doorway_title"] = doorway.get("title") if doorway else None' in source
     assert 'safe["doorway_url"] = doorway.get("url") if doorway else None' in source
     assert "return _guide_restore_verified_doorway(payload, query)" in source
+
+
+def test_verified_doorway_fallback_uses_registry_declared_terms_for_development_query():
+    """Regression: central development questions must reach a declared registry doorway."""
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    assert "def _select_guide_node_fallback_doorway(query):" in source
+    assert '" ".join(node.get("semantic_hints") or [])' in source
+    assert "str(node.get(\"purpose\") or \"\")" in source
+
+
+def test_verified_human_development_ecology_doorway_for_practice_community_feedback():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    assert '"human_development_ecology"' in source
+    assert '"Becoming Fully Human"' in source
+    assert "the-architecture-of-human-development" in source
