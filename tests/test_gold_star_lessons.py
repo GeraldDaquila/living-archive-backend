@@ -229,7 +229,7 @@ def test_deterministic_fallback_guidance_is_applied_without_changing_paragraph_c
     assert "A useful structural discipline here:" in guided
     assert target["transferable_discipline"] in guided
     assert target["abstention_boundary"] in guided
-    assert len([p for p in guided.split("\\n\\n") if p.strip()]) == 3
+    assert len([p for p in guided.split("\n\n") if p.strip()]) == 3
     assert lessons.apply_deterministic_fallback_guidance(target["query"], guided) == guided
 
 
