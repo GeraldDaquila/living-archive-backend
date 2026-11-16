@@ -1,0 +1,44 @@
+name: Candidate Test Behavioral Gate
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "general_guide_gold_standards.py"
+      - "scripts/validate_gold_star_registry.py"
+      - "tests/test_general_guide_intentional_no_doorway.py"
+      - ".github/workflows/candidate-test-behavioral-gate.yml"
+  push:
+    branches:
+      - fix/authoritative-intentional-no-doorway-reconciled
+    paths:
+      - "general_guide_gold_standards.py"
+      - "scripts/validate_gold_star_registry.py"
+      - "tests/test_general_guide_intentional_no_doorway.py"
+      - ".github/workflows/candidate-test-behavioral-gate.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  intentional-no-doorway:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check pytest
+      - name: Validate canonical Gold Star registry
+        run: python scripts/validate_gold_star_registry.py
+      - name: Test authoritative intentional no-doorway behavior
+        run: python -m pytest -q tests/test_general_guide_intentional_no_doorway.py
+
+# Deployment note:
+# This workflow deliberately does not call a shared or hard-coded Render URL.
+# A deployed TEST result is admissible only after the candidate branch's exact
+# commit is confirmed on its dedicated TEST service. A response from another
+# PR's service is not evidence for this candidate and must never satisfy CI.
