@@ -165,9 +165,13 @@ def test_approved_gold_stars_have_complete_provenance_and_quality_contract():
         assert record.get("query", "").strip(), record["benchmark_id"]
         assert record.get("expected_response", "").strip(), record["benchmark_id"]
         assert record.get("known_theme", "").strip(), record["benchmark_id"]
-        freeze_policy = record.get("freeze_policy", "")
+        freeze_policy = record.get("freeze_policy")
         if record.get("legacy_approval_grandfathered") is True:
-            assert freeze_policy.strip(), record["benchmark_id"]
+            if isinstance(freeze_policy, dict):
+                assert freeze_policy.get("status") in {"FROZEN_AFTER_APPROVAL", "FROZEN_REFERENCE_ONLY"}, record["benchmark_id"]
+                assert freeze_policy.get("change_requires"), record["benchmark_id"]
+            else:
+                assert isinstance(freeze_policy, str) and freeze_policy.strip(), record["benchmark_id"]
         else:
             assert freeze_policy in {
                 "immutable_user_approved_gold_standard",
