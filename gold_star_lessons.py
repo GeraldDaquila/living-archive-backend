@@ -1,9 +1,12 @@
 """Governed structural lessons derived from explicitly approved Gold Stars.
 
-Approved Gold Stars may actively contribute transferable response discipline to
-new answers. Registry answers, factual claims, examples, citations, and doorways
-are never transferred across questions; only reviewed structural guidance may
-enter composition. Exact approved questions retain their separate answer authority.
+Approved Gold Stars contribute reviewed structural discipline to provider-composed
+answers. Registry answers, factual claims, examples, citations, and doorways are
+never transferred across questions. Deterministic recoveries are separately
+authored contracts and do not consume adaptive guidance: the registry's
+deterministic_fallback_eligible flag is reserved metadata until a reviewed,
+deterministic adaptation mechanism exists. Exact approved questions retain their
+separate answer authority.
 """
 from __future__ import annotations
 
@@ -377,7 +380,10 @@ def _load_lessons() -> List[Dict[str, Any]]:
                              + " " + " ".join(str(v) for v in variants if isinstance(v, str))),
             # Cross-question eligibility is governed by the qualitative review.
             "runtime_transfer": bool(record.get("runtime_transfer")) or active_candidate,
-            "deterministic_fallback_eligible": bool(capabilities.get("deterministic_fallback_eligible")) or active_candidate,
+            # This is an explicit capability declaration, never inferred from
+            # general adaptive-learning activation. Current deterministic
+            # recovery functions remain separately authored and do not consume it.
+            "deterministic_fallback_eligible": bool(capabilities.get("deterministic_fallback_eligible")),
             "reasoning_family": str(review.get("reasoning_family") or "").strip(),
             "abstention_boundary": str(review.get("abstention_boundary") or "").strip(),
             "qualifying_context": qualifying_context,
@@ -399,6 +405,7 @@ def select_lesson(query: str) -> Optional[Dict[str, Any]]:
         x = exact[0]
         return {"benchmark_id": x["id"], "score": 1.0, "exact": True,
                 "runtime_transfer": bool(x["runtime_transfer"]),
+                "deterministic_fallback_eligible": bool(x.get("deterministic_fallback_eligible")),
                 "query": x["query"], "known_theme": x["known_theme"],
                 "assertions": x["assertions"],
                 "reasoning_family": x.get("reasoning_family", ""),
@@ -443,7 +450,9 @@ def select_lesson(query: str) -> Optional[Dict[str, Any]]:
     ranked.sort(key=lambda item: (-item[0], -item[1], item[2]))
     score, _, _, x = ranked[0]
     return {"benchmark_id": x["id"], "score": round(score, 3), "exact": False,
-            "runtime_transfer": True, "query": x["query"],
+            "runtime_transfer": True,
+            "deterministic_fallback_eligible": bool(x.get("deterministic_fallback_eligible")),
+            "query": x["query"],
             "known_theme": x["known_theme"], "assertions": x["assertions"],
             "reasoning_family": x.get("reasoning_family", ""),
             "transferable_discipline": x.get("transferable_discipline", ""),
