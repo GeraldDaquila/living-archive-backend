@@ -34,9 +34,9 @@ def test_shared_composition_question_intent_fidelity_policy():
 
 
 def test_composition_contract_remains_provider_neutral():
-    assert guide.CONTRACT_VERSION == "v1.42"
+    assert guide.CONTRACT_VERSION == "v1.43"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.42"
+    assert snapshot["contract_version"] == "v1.43"
     assert snapshot["provider_neutral"] is True
 
 
@@ -119,8 +119,8 @@ def test_conceptual_relationships_require_three_paragraph_default():
     assert "does not mean" in compact_parsed
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.42"
-    assert guide.contract_snapshot()["contract_version"] == "v1.42"
+    assert guide.CONTRACT_VERSION == "v1.43"
+    assert guide.contract_snapshot()["contract_version"] == "v1.43"
 
 
 def test_incomplete_comparison_question_clarifies_before_retrieval():
@@ -154,8 +154,8 @@ def test_ordinary_explanatory_question_is_not_interrupted():
 
 
 def test_composition_contract_version_advances_for_clarification_boundary():
-    assert guide.CONTRACT_VERSION == "v1.42"
-    assert guide.contract_snapshot()["contract_version"] == "v1.42"
+    assert guide.CONTRACT_VERSION == "v1.43"
+    assert guide.contract_snapshot()["contract_version"] == "v1.43"
 
 
 def test_plain_stewardship_explanation_rejects_unsolicited_spectrum_list():
@@ -355,3 +355,12 @@ def test_transformation_relief_recovery_distinguishes_state_change_from_pattern_
     assert "relief alone is not evidence of transformation" in paragraphs[2]
     assert "survives beyond the feeling of the moment" in paragraphs[2]
     assert "not a claim that the Living Archive defines" in paragraphs[2]
+
+def test_compact_composer_requires_direct_answer_opening():
+    assert "Do not announce the act of answering" in guide._GENERAL_GUIDE_SYSTEM_COMPACT
+    assert "Begin with the substantive answer itself" in guide._GENERAL_GUIDE_SYSTEM_COMPACT
+
+
+def test_full_composer_requires_operational_first_sentence():
+    assert "The opening sentence must perform the requested intellectual work" in guide._GENERAL_GUIDE_SYSTEM
+    assert "state the operative difference in the first sentence" in guide._GENERAL_GUIDE_SYSTEM
