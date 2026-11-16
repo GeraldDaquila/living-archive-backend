@@ -3571,7 +3571,7 @@
       "provenance": {
         "source": "Original user calibration review (2026-11-14), reaffirmed by user-reviewed live visitor-facing screenshot (2026-11-16)",
         "source_date": "2026-11-16",
-        "evidence_boundary": "The screenshot establishes the exact four-paragraph response and visible doorway title “The Power of Language & Symbol”. It does not expose a canonical destination URL. Earlier legacy provenance is retained in the canonical benchmark history; no URL is inferred."
+        "evidence_boundary": "The visitor-facing screenshot establishes the displayed doorway title. The published WordPress page was independently recovered by exact title/slug and inspected through Cowboy MCP: page ID 22982, status publish, permalink https://geralddaquila.com/the-power-of-language-symbol/. The canonical destination is therefore verified."
       },
       "expected_response": "Sacred language can clarify experience when it gives people words for realities that ordinary, technical, or purely instrumental language does not easily hold. It can name shared values, obligations, loss, dignity, mystery, or forms of relationship that help people understand what matters and why.\n\nThe same language can obscure power when its authority becomes difficult to question. Words presented as sacred can make existing arrangements appear natural, inevitable, or beyond criticism—especially when it is unclear who interprets them, whose interests they serve, and who bears the consequences.\n\nThe useful distinction is not between sacred and secular language, but between language that deepens understanding and language that closes inquiry. Ask what the language makes visible, who has authority to define its meaning, whose experience it includes or excludes, and whether those affected can question its use without penalty.\n\nUsed with humility, sacred language can widen moral attention and make responsibility more visible. Used without accountability, it can conceal judgment behind reverence. The task is therefore to preserve the meaning such language can carry while keeping interpretation, authority, and consequences open to examination.",
       "freeze_policy": {
@@ -3586,8 +3586,11 @@
         "Do not presume sacred language is inherently oppressive or beyond criticism; assess its use and effects in context."
       ],
       "runtime_transfer": true,
-      "expected_doorway": null,
-      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "expected_doorway": {
+        "title": "The Power of Language & Symbol",
+        "url": "https://geralddaquila.com/the-power-of-language-symbol/"
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
       "activation_note": "Activated so every user-approved Gold Star is available to the Guide's relevance-selected qualitative learning layer.",
       "legacy_approval_grandfathered": true,
       "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
