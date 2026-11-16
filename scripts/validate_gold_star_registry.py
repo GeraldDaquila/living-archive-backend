@@ -221,8 +221,8 @@ def validate_numbering_against_base(current_records, current_registry=None):
                      + ", ".join(f"#{number}" for number in sorted(changed_gaps)))
         base_policy = base_registry.get("numbering_policy")
         current_policy = current_registry.get("numbering_policy")
-        if isinstance(base_policy, dict) and isinstance(current_policy, dict):
-            if current_policy.get("sequence_start") != base_policy.get("sequence_start"):
+        if isinstance(base_policy, dict):
+            if not isinstance(current_policy, dict) or current_policy.get("sequence_start") != base_policy.get("sequence_start"):
                 fail("numbering sequence_start is immutable once established on canonical main")
 
     # Existing unnumbered approved records cannot receive inferred numbers.
