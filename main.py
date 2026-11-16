@@ -246,7 +246,7 @@ def _select_verified_doorway_conceptual_family(query):
     if (
         re.search(r"\b(?:practice|community|feedback)\b", text, re.I)
         and re.search(r"\bdevelop(?:ment|ing)\b", text, re.I)
-        and sum(bool(re.search(rf"\\b{term}\\b", text, re.I)) for term in ("practice", "community", "feedback")) >= 2
+        and sum(bool(re.search(rf"\b{re.escape(term)}\b", text, re.I)) for term in ("practice", "community", "feedback")) >= 2
     ):
         return "human_development_ecology"
     if (
