@@ -282,7 +282,7 @@ def validate_numbering_integrity(
         number = gap.get("number")
         if (
             isinstance(number, bool) or not isinstance(number, int) or number <= 0
-            or gap.get("status") != "UNASSIGNED_HISTORICAL_GAP"
+            or gap.get("status") not in {"UNASSIGNED_HISTORICAL_GAP", "RELEASED_FOR_FUTURE_ALLOCATION"}
             or not str(gap.get("reason_code") or "").strip()
             or not str(gap.get("reason") or "").strip()
             or not isinstance(gap.get("evidence_checked"), list) or not gap.get("evidence_checked")
