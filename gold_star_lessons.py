@@ -75,6 +75,7 @@ def validate_registry_integrity(
     records: List[Dict[str, Any]],
     review_entries: List[Dict[str, Any]],
     numbering_gap_register: Optional[List[Dict[str, Any]]] = None,
+    numbering_policy: Optional[Dict[str, Any]] = None,
 ) -> None:
     """Enforce the canonical accounting contract before Gold Stars become active.
 
