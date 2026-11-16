@@ -948,3 +948,15 @@ def test_practice_community_feedback_gold_star_has_verified_runtime_doorway():
     doorway = record["expected_doorway"]
     assert doorway["title"] == "Becoming Fully Human"
     assert doorway["url"] == "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/"
+
+
+def test_practice_community_feedback_gold_star_is_assigned_next_canonical_number():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    record = next(
+        item for item in registry["records"]
+        if item.get("benchmark_id") == "gs-2026-11-14-practice-community-feedback-development"
+    )
+    assert record["gold_star_number"] == 89
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["expected_doorway"]["title"] == "Becoming Fully Human"
