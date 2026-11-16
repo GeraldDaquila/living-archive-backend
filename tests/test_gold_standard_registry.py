@@ -980,4 +980,4 @@ def test_meaning_making_gold_star_90_has_verified_canonical_doorway():
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     record = next(r for r in registry["records"] if r["benchmark_id"] == "gs-2026-11-16-meaning-making-factual-explanation")
     assert record["gold_star_number"] == 90
-    assert record["expected_doorway"]["canonical_url"] == "https://geralddaquila.com/2026/04/08/making-sense-of-life-without-oversimplifying-it/"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/04/08/making-sense-of-life-without-oversimplifying-it/"
