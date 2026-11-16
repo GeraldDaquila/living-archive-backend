@@ -5464,11 +5464,11 @@
   "integrity_audit": {
     "last_audit_date": "2026-11-16",
     "approved_gold_star_count": 82,
-    "registry_record_count": 118,
-    "review_reconciliation": "Canonical inventory reconciled against the current registry on 2026-11-16: 81 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative Gold Star inventory. Historical and superseded records remain outside that count.",
+    "registry_record_count": 119,
+    "review_reconciliation": "Canonical inventory reconciled against the current registry on 2026-11-16: 82 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative Gold Star inventory. Historical and superseded records remain outside that count.",
     "numbered_gold_star_record_count": 34,
     "highest_assigned_gold_star_number": 91,
-    "numbering_reconciliation": "Record-level and historical-PR audit on 2026-11-16: 81 approved Gold Stars; 33 assigned display serials #56–#84 and #87–#90; 48 approved records explicitly UNASSIGNED with reasons. PR #1427 established 55 approved legacy records; PR #1428 added the 56th approved exemplar (agency/circumstance), PR #1430 explicitly assigned #57 to developmental language, PR #1432 explicitly assigned #58 to culture, and PR #1434 explicitly assigned #59 to transformation/relief. These four historical serials were omitted from their canonical record fields and are now recovered with source PR/merge provenance. #85 and #86 are the only gaps in the serial range. The #86 commit subject is a mislabel on the #56 agency/circumstance record; its diff does not assign #86. PR #1517's proposed #89 for spiritual bypassing was closed unmerged after omitting #88; #89 was later assigned to the development-doorway exemplar and #90 to the meaning-making exemplar.",
+    "numbering_reconciliation": "Record-level and historical-PR audit on 2026-11-16: 82 approved Gold Stars; 34 assigned display serials #56–#84 and #87–#91; 48 approved records explicitly UNASSIGNED with reasons. #85 and #86 remain documented historical gaps.",
     "unassigned_approved_gold_star_count": 48,
     "documented_numbering_gap_count": 2
   },
