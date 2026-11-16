@@ -6953,10 +6953,19 @@ def _basic_inquiry_round1_deterministic_response(
     )
     if isinstance(result, dict):
         result = dict(result)
-        result["response"] = _apply_deterministic_fallback_guidance(
-            query,
-            str(result.get("response") or ""),
-        )
+        # Exact approved Gold Star responses are immutable runtime fixtures.
+        # They already carry their approved transferable lesson in the registry;
+        # do not append the adaptive guidance block to the visitor-facing answer.
+        _exact_gold_star = _resolve_exact_guide_gold_standard(query)
+        if not (
+            _exact_gold_star
+            and str(result.get("provider") or "")
+            == "gold_standard_registry_deterministic_fallback"
+        ):
+            result["response"] = _apply_deterministic_fallback_guidance(
+                query,
+                str(result.get("response") or ""),
+            )
     return result
 
 
