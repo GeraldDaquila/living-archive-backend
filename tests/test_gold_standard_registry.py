@@ -966,3 +966,10 @@ def test_explicit_numbering_migration_is_required_for_existing_unnumbered_approv
     source = (ROOT / "scripts" / "validate_gold_star_registry.py").read_text(encoding="utf-8")
     assert "explicit_user_authorized_numbering_migration" in source
     assert "previous_numbering_state" in source
+
+
+def test_integrity_audit_numbered_count_matches_registry_records():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    numbered = sum(isinstance(r.get("gold_star_number"), int) for r in registry["records"])
+    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == numbered
