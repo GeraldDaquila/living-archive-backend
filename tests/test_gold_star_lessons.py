@@ -290,3 +290,19 @@ def test_community_wisdom_gold_star_is_active_structural_learning_not_determinis
     # A previously approved analogue may contribute its own bounded structure,
     # but this new Gold Star itself is not deterministic-fallback eligible.
     assert deterministic is None or deterministic["benchmark_id"] != result["benchmark_id"]
+
+
+
+def test_collapse_adaptation_regeneration_gold_star_is_active_structural_learning_not_deterministic_fallback():
+    query = "What is the relationship between collapse, adaptation, and regeneration?"
+    result = lessons.select_lesson(query)
+    assert result and result["exact"] is True
+    assert result["benchmark_id"] == "gs-2026-11-16-collapse-adaptation-regeneration"
+    assert result["runtime_transfer"] is True
+    assert result["deterministic_fallback_eligible"] is False
+    contribution = lessons.active_quality_contribution(query)
+    assert contribution
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert contribution["reasoning_family"] == "collapse_adaptation_regeneration_distinction"
+    assert "expected_response" not in contribution and "doorway" not in contribution
+    assert lessons.deterministic_fallback_contribution(query) is None
