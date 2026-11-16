@@ -22,7 +22,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.43"
+CONTRACT_VERSION = "v1.44"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
@@ -130,7 +130,7 @@ def _remove_visitor_meta_commentary(text: str) -> str:
 # common free-provider admission envelope.
 _GENERAL_GUIDE_SYSTEM_COMPACT = """You are the all-purpose composition layer of The Guide, the public-facing general utility of the Living Archive.
 
-Answer the visitor's actual question directly and use ordinary, clear language. Do not announce the act of answering or narrate an inquiry's opening (for example, “The inquiry begins by…”, “To understand this…”, or “The first step is…”). Begin with the substantive answer itself: define the distinction, name the mechanism, or state the conclusion the question asks for. The Living Archive exists to help people regain bearings, not merely accumulate information. For substantive explanatory or conceptual questions, normally write three connected paragraphs: answer directly; develop the most useful distinction, consequence, or example; then clarify why it matters, a limit, or the practical meaning. Each paragraph must add understanding. Ensure semantic progression: paragraph three must apply or extend the evidence developed in paragraph two, not repeat its criteria in synonyms. For distinction questions, prefer distinction → observable evidence → applied diagnostic and boundary.
+Answer the visitor's actual question directly and use ordinary, clear language. Do not announce the act of answering or narrate an inquiry's opening (for example, “The inquiry begins by…”, “To understand this…”, or “The first step is…”). Begin with the substantive answer itself: define the distinction, name the mechanism, or state the conclusion the question asks for. The Living Archive exists to help people regain bearings, not merely accumulate information. For substantive explanatory or conceptual questions, normally write three connected paragraphs: answer directly; develop the most useful distinction, consequence, or example; then clarify why it matters, a limit, or the practical meaning. Each paragraph must perform a distinct cognitive operation and add understanding. For distinction questions, use three moves: (1) state the governing difference; (2) explain the mechanism or relationship that makes the difference meaningful; (3) apply it through a concrete test, consequence, or boundary. Paragraph three must use what paragraph two established; it must not restate paragraph one's definition, repeat paragraph two's indicators, or paraphrase the same persistence criterion. If the conclusion does not add a new application or implication, rewrite it.
 
 Use supplied Archive material as grounding when it is genuinely relevant. Synthesize it into an original answer; never paste metadata, snippets, titles, SEO text, source annotations, or retrieval debris. Do not invent Archive-specific claims, quotations, sources, titles, URLs, tools, or recommendations. When Archive material is insufficient for an ordinary answerable question, answer responsibly from reliable general knowledge rather than refusing because retrieval was weak. State a limitation only when the specific claim genuinely requires unavailable evidence.
 
@@ -1065,6 +1065,42 @@ def is_verification_abstention_for_known_concept(query: str, response: str) -> b
     )
 
 
+def _paragraph_three_reopens_comparison(query: str, paragraphs: List[str]) -> bool:
+    """Reject a conclusion that reopens the same named comparison instead of advancing it.
+
+    This is intentionally narrow: it applies to explicit 'distinguish X from Y'
+    questions when paragraph three starts by restating the test/difference and
+    repeats both named sides. The visitor already received the governing
+    distinction in paragraph one and evidence in paragraph two; paragraph three
+    must apply that evidence or establish a genuinely new boundary.
+    """
+    if len(paragraphs) != 3:
+        return False
+    question = _normalize_space(query).casefold()
+    match = re.search(
+        r"\b(?:distinguish|differentiate|tell)\s+(.+?)\s+from\s+(.+?)[?!.]*$",
+        question,
+        re.I,
+    )
+    if not match:
+        return False
+
+    def phrase_present(phrase: str, text: str) -> bool:
+        words = [w for w in re.findall(r"[a-z0-9]+", phrase) if w not in {"the", "a", "an", "ordinary"}]
+        if not words:
+            return False
+        normalized = _normalize_space(text).casefold()
+        return all(re.search(r"\b" + re.escape(word) + r"\b", normalized) for word in words)
+
+    conclusion = paragraphs[2]
+    reopens = bool(re.match(
+        r"^(?:the test is|the distinction is|the difference is|in other words|put simply|to tell them apart)\b",
+        _normalize_space(conclusion),
+        re.I,
+    ))
+    return reopens and phrase_present(match.group(1), conclusion) and phrase_present(match.group(2), conclusion)
+
+
 def is_generic_nonanswer(query: str, response: str) -> bool:
     """Reject generic composition filler and off-task openings even when formatted well."""
     text = _normalize_space(response).casefold()
@@ -1091,6 +1127,8 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
             return True
         normalized = [_normalize_space(p).casefold() for p in paragraphs]
         if len(set(normalized)) != 3:
+            return True
+        if _paragraph_three_reopens_comparison(query, paragraphs):
             return True
         # Reject answers whose paragraphs are mostly abstract metadiscourse.
         meta_sentences = sum(

@@ -79,7 +79,6 @@ from general_guide_gold_standards import (
 )
 from guide_fuzzy_relevance import score_resource_fit as _score_guide_fuzzy_relevance_shadow
 from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery, is_harm_repair_question
-from gold_star_lessons import apply_deterministic_fallback_guidance as _apply_deterministic_fallback_guidance
 from deterministic_relational_fractal import compose_relational_fractal
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
 from safety_utility import classify_safety, safety_utility_snapshot
@@ -6936,40 +6935,6 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     }
 
 
-# Apply the deterministic Gold Star adapter outside the question-preserving
-# recovery implementation so every early-return and terminal-return variant
-# receives the same explicit capability gate.
-_unadapted_basic_inquiry_round1_deterministic_response = _basic_inquiry_round1_deterministic_response
-
-
-def _basic_inquiry_round1_deterministic_response(
-    query, interpretation, context_data, *, recommendation_available=False
-):
-    result = _unadapted_basic_inquiry_round1_deterministic_response(
-        query,
-        interpretation,
-        context_data,
-        recommendation_available=recommendation_available,
-    )
-    if isinstance(result, dict):
-        result = dict(result)
-        # Exact approved Gold Star responses are immutable runtime fixtures.
-        # They already carry their approved transferable lesson in the registry;
-        # do not append the adaptive guidance block to the visitor-facing answer.
-        _exact_gold_star = _resolve_exact_guide_gold_standard(query)
-        if not (
-            _exact_gold_star
-            and str(result.get("provider") or "")
-            == "gold_standard_registry_deterministic_fallback"
-        ):
-            result["response"] = _apply_deterministic_fallback_guidance(
-                query,
-                str(result.get("response") or ""),
-            )
-    return result
-
-
-
 def _guide_html_to_source_text(raw_html):
     """Preserve WordPress block boundaries and omit only standalone author bylines."""
     from html.parser import HTMLParser
@@ -11373,7 +11338,7 @@ def _v48894_general_guide_composition_self_audit():
     if not callable(getattr(general_guide_composition, "compose", None)):
         raise RuntimeError("General Guide composition boundary is missing.")
     snapshot = general_guide_composition.contract_snapshot()
-    if snapshot.get("contract_version") != "v1.43":
+    if snapshot.get("contract_version") != "v1.44":
         raise RuntimeError("General Guide composition contract version drift.")
     if snapshot.get("provider_neutral") is not True:
         raise RuntimeError("General Guide composition lost provider neutrality.")
