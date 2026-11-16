@@ -22,6 +22,9 @@ on:
     branches: [main]
     paths:
       - "docs/qa/gold_standard_registry.json"
+      - "gold_star_lessons.py"
+      - "scripts/validate_gold_star_registry.py"
+      - "tests/test_gold_star_lessons.py"
       - "docs/qa/GOLD_STANDARD_REGISTRY.md"
       - "scripts/qa/report_gold_standard_registry.py"
       - "scripts/qa/capture_live_guide_gold_standard_candidate.py"
@@ -65,6 +68,8 @@ jobs:
     steps:
       - name: Check out exact tested revision
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
