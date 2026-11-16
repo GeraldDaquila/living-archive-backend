@@ -139,7 +139,7 @@ def validate_numbering_metadata(registry, records):
         fail("a serial cannot be both assigned and listed as an unassigned gap")
 
 
-def validate_numbering_against_base(current_records):
+def validate_numbering_against_base(current_records, current_registry=None):
     """Compare the PR registry with its merge-base version from canonical main."""
     try:
         merge_base = subprocess.run(
@@ -189,6 +189,41 @@ def validate_numbering_against_base(current_records):
             )
     if changed:
         fail("existing Gold Star number assignment changed: " + "; ".join(changed))
+
+    # Once merged, historical recovery evidence and gap dispositions are
+    # immutable. A future branch may add a new gap only through a separate,
+    # evidence-backed migration; it may not silently rewrite existing history.
+    base_by_id = {r.get("benchmark_id"): r for r in base_records}
+    current_by_id_for_history = {r.get("benchmark_id"): r for r in current_records}
+    changed_recoveries = []
+    for benchmark_id, base_record in base_by_id.items():
+        base_recovery = base_record.get("numbering_recovery")
+        if base_recovery is None:
+            continue
+        current_record = current_by_id_for_history.get(benchmark_id, {})
+        if current_record.get("numbering_recovery") != base_recovery:
+            changed_recoveries.append(benchmark_id)
+    if changed_recoveries:
+        fail("historical numbering recovery evidence is immutable: " + ", ".join(sorted(changed_recoveries)))
+
+    if current_registry is not None:
+        base_gaps = base_registry.get("numbering_gap_register")
+        current_gaps = current_registry.get("numbering_gap_register")
+        if isinstance(base_gaps, list):
+            base_gap_map = {item.get("number"): item for item in base_gaps if isinstance(item, dict)}
+            current_gap_map = {item.get("number"): item for item in (current_gaps or []) if isinstance(item, dict)}
+            changed_gaps = [
+                number for number, base_gap in base_gap_map.items()
+                if current_gap_map.get(number) != base_gap
+            ]
+            if changed_gaps:
+                fail("historical numbering gap evidence/disposition is immutable: "
+                     + ", ".join(f"#{number}" for number in sorted(changed_gaps)))
+        base_policy = base_registry.get("numbering_policy")
+        current_policy = current_registry.get("numbering_policy")
+        if isinstance(base_policy, dict) and isinstance(current_policy, dict):
+            if current_policy.get("sequence_start") != base_policy.get("sequence_start"):
+                fail("numbering sequence_start is immutable once established on canonical main")
 
     # Existing unnumbered approved records cannot receive inferred numbers.
     # A numbered migration is permitted only when the record carries explicit,
@@ -426,7 +461,7 @@ def main():
         fail("not every user-approved Gold Star is active for runtime transfer")
 
     validate_numbering_metadata(registry, records)
-    base_numbers, current_numbers = validate_numbering_against_base(records)
+    base_numbers, current_numbers = validate_numbering_against_base(records, registry)
 
     # Audit metadata is descriptive only. When present, it must match the
     # record-level inventory; it is never consulted to select a number.
