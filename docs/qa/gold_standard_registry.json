@@ -5503,28 +5503,28 @@
     },
     {
       "benchmark_id": "gs-2026-11-17-structural-change-vs-disruption",
-      "status": "USER_APPROVED_GOLD_STANDARD",
+      "status": "WITHDRAWN_PENDING_DOORWAY",
       "subsystem": "general-purpose-guide",
       "query": "How can one distinguish structural change from ordinary disruption?",
       "expected_response": "Structural change reorganizes the arrangements that shape how a system works; ordinary disruption interrupts or unsettles its activity without necessarily changing those arrangements.\n\nA disruption can expose weaknesses, interrupt routines, or create pressure for reform. It may even trigger structural change, but the event itself is not the change: the decisive shift occurs only when the response alters how authority, incentives, dependencies, resources, or capabilities are organized. A dramatic or prolonged interruption can leave those arrangements untouched.\n\nTo assess a claimed change, look at ordinary operations after emergency measures and exceptional support have ended. Compare who can make decisions, how resources move, and which dependencies shape routine work before and after. If those differences continue to govern everyday choices, the system has been structurally changed; if operations return to their previous pattern once the disturbance passes, the disruption has ended without durable reorganization.",
       "expected_doorway": null,
-      "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+      "doorway_status": "WITHDRAWN_PENDING_VERIFIED_CANONICAL_DOORWAY",
       "observed_doorway_title": "Why Inner Change Feels Invisible (And What to Do When No One Sees It)",
       "rating_out_of_10": 9.7,
       "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
-      "approval_state": "User reviewed the live visitor-facing response, instructed structural repair, and explicitly approved Gold Star elevation on 2026-11-17; the answer was structurally revised again to remove semantic overlap between paragraph functions.",
-      "freeze_policy": "immutable_user_approved_gold_standard",
-      "runtime_transfer": true,
+      "approval_state": "Gold Star approval withdrawn by user on 2026-11-17 pending a verified, conceptually coherent Living Archive doorway; answer retained as a candidate, not active authority.",
+      "freeze_policy": "candidate_not_approved_pending_verified_doorway",
+      "runtime_transfer": false,
       "reasoning_family": "structural_change_vs_ordinary_disruption",
       "transferable_lesson": "Distinguish an interruption or destabilizing event from a durable reorganization of the arrangements that shape system behavior. Separate the event that creates pressure from the institutional or operational changes that follow, then test whether the new arrangements govern ordinary activity after exceptional conditions end.",
       "transfer_boundary": "Do not infer structural change from an event's scale, duration, novelty, or intensity alone. A disruption may expose or trigger structural change without itself producing it. Require observable changes to decision authority, incentives, dependencies, resource flows, or capacities that continue to shape ordinary operations.",
       "known_theme": "structural change, disruption, systemic transformation, organizational change, institutional arrangements, durable reorganization",
       "gold_star_capabilities": {
-        "generation_class": "user_approved_corrected_exemplar",
-        "exact_answer_authority": true,
-        "active_quality_contributor": true,
-        "deterministic_fallback_eligible": true,
+        "generation_class": "candidate_pending_verified_doorway",
+        "exact_answer_authority": false,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": false,
         "reasoning_family": "structural_change_vs_ordinary_disruption",
         "transferable_discipline": "Compose in three distinct moves: define the difference; explain how disruption may expose or trigger change without being identical to it; then give a post-event test of whether altered arrangements govern ordinary operations.",
         "abstention_boundary": "Do not infer structural change from scale, duration, novelty, or intensity alone. A disruption can expose or trigger structural change without itself producing it; require durable operational evidence."
@@ -5537,7 +5537,7 @@
         "Give paragraph three a distinct applied function: test ordinary operations after emergency measures and exceptional support have ended.",
         "Do not repeat paragraph one's distinction or paragraph two's causal explanation in the conclusion.",
         "Do not infer structural change merely from scale, duration, novelty, or intensity.",
-        "Do not attach the observed continuation title as a canonical doorway; no destination was verified."
+        "Gold Star approval is withheld until a relevant Living Archive destination is verified and can be presented as a coherent continuation doorway."
       ],
       "user_approved_at": "2026-11-17",
       "elevation_approval_evidence": "User explicitly instructed structural repair and Gold Star elevation on 2026-11-17; subsequent review identified semantic repetition in paragraph three and required a distinct applied conclusion.",
@@ -5549,7 +5549,12 @@
       },
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable identity and keep serial allocation separate."
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable identity and keep serial allocation separate.",
+      "withdrawal": {
+        "withdrawn_by_user": true,
+        "withdrawn_at": "2026-11-17",
+        "reason": "The live answer lacked a coherent Living Archive doorway. A doorway is a required part of the Guide's Gold Star experience unless it demonstrably adds no value; this candidate must not contribute to exact-answer authority, adaptive learning, or deterministic fallback until a relevant canonical destination and visitor-facing rationale are verified."
+      }
     }
   ],
   "last_reconciliation_note": "2026-11-16: Added user-approved live Guide exemplar gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship. Preserved exact screenshot response and observed doorway title without inventing a URL. Approved for active structural learning; deterministic fallback is not authorized. No display serial allocated.",
@@ -5682,13 +5687,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-17",
-    "approved_gold_star_count": 86,
+    "approved_gold_star_count": 85,
     "registry_record_count": 123,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 86 approved Gold Stars; historical and superseded records remain outside the approved count. The structural-change-versus-disruption exemplar was added under a unique benchmark_id with a matching qualitative-transfer review. Its display serial remains UNASSIGNED because Gold Star elevation did not separately authorize a serial allocation.",
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 85 approved Gold Stars; historical and withdrawn candidate records remain outside the approved count and runtime authority. The structural-change-versus-disruption answer is retained as a withdrawn candidate pending a verified, conceptually coherent Living Archive doorway.",
     "numbered_gold_star_record_count": 35,
     "highest_assigned_gold_star_number": 92,
-    "numbering_reconciliation": "Record-level reconciliation: 86 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 51 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
-    "unassigned_approved_gold_star_count": 51,
+    "numbering_reconciliation": "Record-level reconciliation: 85 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 50 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
+    "unassigned_approved_gold_star_count": 50,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {
