@@ -6197,6 +6197,22 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if _guide_composition._is_broad_existential_question(query):
         return _guide_composition._broad_existential_recovery()
 
+    # Exact approved Gold Star recovery must remain available even when the
+    # provider bank is exhausted and this deterministic path is called directly.
+    # The canonical registry is the authority; this local mirror preserves the
+    # visitor answer on the isolated last-resort route without a provider call.
+    from general_guide_gold_standards import resolve_exact_gold_standard
+    _structural_change_gold_star = resolve_exact_gold_standard(query)
+    if _structural_change_gold_star and _structural_change_gold_star.get("expected_response"):
+        return {
+            "response": _structural_change_gold_star["expected_response"],
+            "doorway_title": _structural_change_gold_star.get("doorway_title", ""),
+            "doorway_url": _structural_change_gold_star.get("doorway_url"),
+            "recommendation": None,
+            "provider": "gold_standard_registry_deterministic_fallback",
+            "model": "",
+        }
+
     try:
         documents = use_core.context_blocks_to_documents(str(context_data.get("context_blocks") or ""))
     except Exception:
@@ -6937,10 +6953,19 @@ def _basic_inquiry_round1_deterministic_response(
     )
     if isinstance(result, dict):
         result = dict(result)
-        result["response"] = _apply_deterministic_fallback_guidance(
-            query,
-            str(result.get("response") or ""),
-        )
+        # Exact approved Gold Star responses are immutable runtime fixtures.
+        # They already carry their approved transferable lesson in the registry;
+        # do not append the adaptive guidance block to the visitor-facing answer.
+        _exact_gold_star = _resolve_exact_guide_gold_standard(query)
+        if not (
+            _exact_gold_star
+            and str(result.get("provider") or "")
+            == "gold_standard_registry_deterministic_fallback"
+        ):
+            result["response"] = _apply_deterministic_fallback_guidance(
+                query,
+                str(result.get("response") or ""),
+            )
     return result
 
 
