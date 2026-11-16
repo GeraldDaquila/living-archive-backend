@@ -981,3 +981,47 @@ def test_meaning_making_gold_star_90_has_verified_canonical_doorway():
     record = next(r for r in registry["records"] if r["benchmark_id"] == "gs-2026-11-16-meaning-making-factual-explanation")
     assert record["gold_star_number"] == 90
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/04/08/making-sense-of-life-without-oversimplifying-it/"
+
+
+
+def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
+    assert len(approved) == 81
+    for record in approved:
+        if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
+            assert record.get("numbering_status") == "ASSIGNED"
+            assert not record.get("numbering_unassigned_reason")
+        else:
+            assert record.get("numbering_status") == "UNASSIGNED"
+            assert record.get("numbering_unassigned_reason_code")
+            assert record.get("numbering_unassigned_reason")
+
+
+def test_spiritual_bypassing_gold_star_unassigned_reason_records_rejected_89_allocation():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    record = next(r for r in registry["records"] if r["benchmark_id"] == "gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing")
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["runtime_transfer"] is True
+    assert record.get("gold_star_number") is None
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["numbering_unassigned_reason_code"] == "PR_1517_ALLOCATION_REJECTED"
+    assert "PR #1517" in record["numbering_unassigned_reason"]
+    assert "omitted the existing #88" in record["numbering_unassigned_reason"]
+    assert "#89 was subsequently assigned" in record["numbering_unassigned_reason"]
+
+
+def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignment():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    gaps = registry["numbering_gap_register"]
+    assert [g["number"] for g in gaps] == [85, 86]
+    assert "7a036632323b7c09003d1fce637a7b49128a27bf" in gaps[1]["reason"]
+    assert "does not set gold_star_number" in gaps[1]["reason"]
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 81
+    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 29
+    assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 90
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 52
+    assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
