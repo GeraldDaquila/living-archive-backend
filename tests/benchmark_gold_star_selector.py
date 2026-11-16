@@ -6,7 +6,12 @@ No timing threshold is asserted because shared CI runners are noisy.
 from __future__ import annotations
 
 import statistics
+import sys
 import time
+from pathlib import Path
+
+# Direct script execution sets sys.path[0] to tests/, not the repository root.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import gold_star_lessons as lessons
 
