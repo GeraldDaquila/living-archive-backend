@@ -6201,7 +6201,8 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     # provider bank is exhausted and this deterministic path is called directly.
     # The canonical registry is the authority; this local mirror preserves the
     # visitor answer on the isolated last-resort route without a provider call.
-    _structural_change_gold_star = _guide_composition._registered_exact_gold_standard(query)
+    from general_guide_gold_standards import resolve_exact_gold_standard
+    _structural_change_gold_star = resolve_exact_gold_standard(query)
     if _structural_change_gold_star and _structural_change_gold_star.get("expected_response"):
         return {
             "response": _structural_change_gold_star["expected_response"],
