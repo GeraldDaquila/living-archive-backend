@@ -1141,3 +1141,26 @@ def test_user_elevated_community_wisdom_gold_star_preserves_exact_live_response(
     assert "historical, theological, empirical, and experiential claims" in record["expected_response"]
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+
+
+
+def test_techno_utopian_thinking_gold_star_preserves_approved_live_answer_and_doorway_boundary():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "gs-2026-11-16-techno-utopian-thinking"
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "What is the danger of techno-utopian thinking?"
+    assert record["rating_out_of_10"] == 9.1
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
+    assert "substitute for judgment, institutions, relationships, and democratic choice" in record["expected_response"]
+    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
+    assert record["observed_doorway_title"] == "Living Glossary"
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is True
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
+    assert record["runtime_transfer"] is True
+    assert "destination URL was not independently verified" in record["provenance"]["evidence_boundary"]
