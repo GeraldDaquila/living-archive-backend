@@ -1,5 +1,20 @@
 # Living Archive Gold-Standard Registry
 
+## Current Gold Star numbering authority — 2026-11-16
+
+- **Canonical inventory:** 118 records total; 81 approved Gold Stars; 81 matching qualitative-transfer reviews.
+- **Serial inventory:** 29 approved records carry display serials, currently through #90. 52 approved records are explicitly `UNASSIGNED`.
+- **Identity:** `benchmark_id` is the stable identity used by adaptive learning. `gold_star_number` is an optional human-facing serial, not an eligibility condition.
+- **#85:** No canonical Gold Star allocation record recovered. GitHub PR #85 is an unrelated v340 topical-doorway code PR.
+- **#86:** No canonical record-level allocation recovered. Commit `7a036632323b7c09003d1fce637a7b49128a27bf` has a misleading subject mentioning “Gold Star 86,” but its diff only adds a provenance date to the agency/circumstance record; PR #1428 has no number assignment. GitHub PR #86 is an unrelated v340 grief/death-topic code PR.
+- **Spiritual-bypassing exemplar:** `gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing` remains approved and adaptive-learning-active, but `numbering_status=UNASSIGNED`. PR #1517's proposed #89 allocation was rejected when the stale branch omitted #88; PR #1517 closed unmerged. #89 and #90 were later allocated to other exemplars.
+- **Allocation rule:** Do not backfill #85/#86 by inference. New allocations require explicit user authorization and must be contiguous after #90. Unassigned status never excludes an approved record from adaptive learning.
+
+**Authority:** The machine-readable source of truth is `docs/qa/gold_standard_registry.json` on `main`. The qualitative-transfer review is linked by `benchmark_id`. This companion is explanatory only.
+
+---
+
+
 **Status:** Initial recovery inventory — incomplete  
 **Authority:** Git-tracked source of truth. Render QA should execute a pinned registry revision and publish reports, not serve as the sole authority.  
 **Rule:** A question is not an approved gold standard merely because it was tested once. Preserve exact approved text when available; otherwise mark it NEEDS_SOURCE_RECOVERY. Never reconstruct missing approved wording from memory.
