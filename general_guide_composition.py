@@ -1078,7 +1078,7 @@ def _paragraph_three_reopens_comparison(query: str, paragraphs: List[str]) -> bo
         return False
     question = _normalize_space(query).casefold()
     match = re.search(
-        r"\\b(?:distinguish|differentiate|tell)\\s+(.+?)\\s+from\\s+(.+?)[?!.]*$",
+        r"\b(?:distinguish|differentiate|tell)\s+(.+?)\s+from\s+(.+?)[?!.]*$",
         question,
         re.I,
     )
@@ -1090,11 +1090,11 @@ def _paragraph_three_reopens_comparison(query: str, paragraphs: List[str]) -> bo
         if not words:
             return False
         normalized = _normalize_space(text).casefold()
-        return all(re.search(r"\\b" + re.escape(word) + r"\\b", normalized) for word in words)
+        return all(re.search(r"\b" + re.escape(word) + r"\b", normalized) for word in words)
 
     conclusion = paragraphs[2]
     reopens = bool(re.match(
-        r"^(?:the test is|the distinction is|the difference is|in other words|put simply|to tell them apart)\\b",
+        r"^(?:the test is|the distinction is|the difference is|in other words|put simply|to tell them apart)\b",
         _normalize_space(conclusion),
         re.I,
     ))
