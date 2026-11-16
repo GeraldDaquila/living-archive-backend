@@ -271,3 +271,19 @@ def test_sacred_language_gold_star_preserves_existing_explicit_deterministic_cap
     )
     assert selected and selected["exact"] is True
     assert selected["deterministic_fallback_eligible"] is True
+
+
+
+def test_community_wisdom_gold_star_is_active_structural_learning_not_deterministic_fallback():
+    query = "How can communities preserve wisdom without treating tradition as infallible?"
+    result = lessons.select_lesson(query)
+    assert result and result["exact"] is True
+    assert result["benchmark_id"] == "gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship"
+    assert result["runtime_transfer"] is True
+    assert result["deterministic_fallback_eligible"] is False
+    contribution = lessons.active_quality_contribution(query)
+    assert contribution
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert contribution["reasoning_family"] == "integrative_stewardship_epistemic_humility_human_accountability"
+    assert "expected_response" not in contribution and "doorway" not in contribution
+    assert lessons.deterministic_fallback_contribution(query) is None
