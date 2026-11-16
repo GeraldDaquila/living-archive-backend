@@ -32,6 +32,7 @@ jobs:
           if not record or record.get("doorway_status") != "INTENTIONALLY_NONE_APPROVED":
               raise SystemExit("Canonical intentional no-doorway fixture not found")
           expected = str(record.get("expected_response") or "").strip()
+          # Candidate service must be deployed from this exact branch before behavior is trusted.
           request = urllib.request.Request(
               os.environ["TEST_BASE_URL"].rstrip("/") + "/api/query",
               data=json.dumps({"query": query}).encode(),
