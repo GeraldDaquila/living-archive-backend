@@ -24,8 +24,8 @@ def test_select_lesson_uses_precomputed_structural_signatures(monkeypatch):
                 "signature_terms": {
                     "institution", "account", "govern", "review", "author"
                 },
-                "variant_terms": {"institution", "remain", "account"},
-                "reasoning_terms": {"institution", "govern"},
+                "variant_terms": {"institutional", "remain", "accountabil"},
+                "reasoning_terms": {"institutional", "governance"},
             }
         ],
     )
@@ -82,7 +82,7 @@ def test_precomputed_selector_handles_82_to_1000_lessons(monkeypatch):
         "abstention_boundary": "Do not assume misconduct without evidence.",
         "qualifying_context": "Institutional accountability and governance.",
         "variants": [],
-        "signature_terms": {"institution", "account", "govern", "review"},
+        "signature_terms": {"institutional", "accountabil", "governance", "review"},
         "variant_terms": set(),
         "reasoning_terms": {"institution", "govern"},
     }
