@@ -266,19 +266,27 @@ def main():
         if "expected_doorway" not in record:
             fail(f"{record['benchmark_id']} lacks explicit doorway state")
         doorway = record.get("expected_doorway")
+        doorway_status = str(record.get("doorway_status") or "").strip()
+        withheld_states = {
+            "INTENTIONALLY_NONE_APPROVED",
+            "LEGACY_INCOMPLETE_NOT_APPROVED",
+            "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+        }
         if doorway is None:
-            if record.get("doorway_status") not in {
-                "INTENTIONALLY_NONE_APPROVED",
-                "LEGACY_INCOMPLETE_NOT_APPROVED",
-                "NOT_APPROVED_CONCEPTUAL_MISMATCH",
-            }:
+            if doorway_status not in withheld_states:
                 fail(f"{record['benchmark_id']} has no explicit approved/withheld doorway state")
-        elif (
-            not isinstance(doorway, dict)
-            or not str(doorway.get("title") or "").strip()
-            or not str(doorway.get("url") or "").strip()
-        ):
-            fail(f"{record['benchmark_id']} has an incomplete expected_doorway")
+        else:
+            if doorway_status == "INTENTIONALLY_NONE_APPROVED":
+                fail(
+                    f"{record['benchmark_id']} declares INTENTIONALLY_NONE_APPROVED "
+                    "but also contains an expected_doorway"
+                )
+            if (
+                not isinstance(doorway, dict)
+                or not str(doorway.get("title") or "").strip()
+                or not str(doorway.get("url") or "").strip()
+            ):
+                fail(f"{record['benchmark_id']} has an incomplete expected_doorway")
 
     active_ids = {r["benchmark_id"] for r in active}
     review_set = set(review_ids)
