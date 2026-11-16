@@ -3485,9 +3485,15 @@
       "expected_doorway": null,
       "legacy_approval_grandfathered": true,
       "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
-      "numbering_status": "UNASSIGNED",
-      "numbering_unassigned_reason_code": "PR_1517_ALLOCATION_REJECTED",
-      "numbering_unassigned_reason": "PR #1517 proposed Gold Star #89 for this already-approved exemplar, but the PR was closed unmerged because its stale branch omitted the existing #88 reflection/therapy record. The proposed #89 was never a canonical assignment; #89 was subsequently assigned to gs-2026-11-14-practice-community-feedback-development and #90 to gs-2026-11-16-meaning-making-factual-explanation. This exemplar remains USER_APPROVED_GOLD_STANDARD and runtime-active; only its optional display serial is unassigned. Any future allocation requires separate explicit authorization and must follow the current maximum (#90), not backfill #85 or #86."
+      "numbering_status": "ASSIGNED",
+      "gold_star_number": 91,
+      "numbering_migration": {
+        "authority": "explicit user authorization in the ChatGPT conversation on 2026-11-16: assign the next available Gold Star serial #91 to the existing spiritual-bypassing exemplar.",
+        "approved_at": "2026-11-16",
+        "reason": "The user explicitly authorized allocating #91 to this already-approved, runtime-active spiritual-bypassing exemplar. Its prior proposed #89 was rejected and remains unassigned historically; this is a new contiguous allocation after canonical #90, not a backfill or restoration of #89.",
+        "previous_numbering_state": "approved_unnumbered",
+        "migration_class": "explicit_user_authorized_numbering_migration"
+      }
     },
     {
       "benchmark_id": "gs-2026-11-14-practice-community-feedback-development",
@@ -5276,7 +5282,7 @@
       "numbering_status": "ASSIGNED"
     }
   ],
-  "last_reconciliation_note": "Gold Star registry numbering reconciled on 2026-11-16: 118 total records; 81 approved Gold Stars; 81 matching qualitative-transfer reviews; 33 canonical serial assignments (#56–#84 and #87–#90); 48 approved records explicitly marked UNASSIGNED with reasons. Historical assignments #56–#59 were recovered from merged PRs #1428, #1430, #1432 and #1434; their canonical records had omitted the serial field. #85 and #86 are the only gaps in the serial range. The #86 commit subject is a mislabel on the #56 agency/circumstance exemplar. The spiritual-bypassing exemplar remains approved and adaptive-learning-active but unnumbered because its proposed #89 allocation in rejected PR #1517 was never merged; #89 and #90 are now occupied by other canonical exemplars.",
+  "last_reconciliation_note": "Gold Star registry numbering updated on 2026-11-16: 118 total records; 81 approved Gold Stars; 81 matching qualitative-transfer reviews; 34 canonical serial assignments (#56–#84 and #87–#91); 47 approved records explicitly marked UNASSIGNED with reasons. Historical assignments #56–#59 remain evidence-backed recoveries. #85 and #86 remain documented historical gaps. The spiritual-bypassing exemplar gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing is now assigned #91 by explicit user authorization; its rejected #89 proposal was not revived or backfilled.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -5409,10 +5415,10 @@
     "approved_gold_star_count": 81,
     "registry_record_count": 118,
     "review_reconciliation": "Canonical inventory reconciled against the current registry on 2026-11-16: 81 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative Gold Star inventory. Historical and superseded records remain outside that count.",
-    "numbered_gold_star_record_count": 33,
-    "highest_assigned_gold_star_number": 90,
-    "numbering_reconciliation": "Record-level and historical-PR audit on 2026-11-16: 81 approved Gold Stars; 33 assigned display serials #56–#84 and #87–#90; 48 approved records explicitly UNASSIGNED with reasons. PR #1427 established 55 approved legacy records; PR #1428 added the 56th approved exemplar (agency/circumstance), PR #1430 explicitly assigned #57 to developmental language, PR #1432 explicitly assigned #58 to culture, and PR #1434 explicitly assigned #59 to transformation/relief. These four historical serials were omitted from their canonical record fields and are now recovered with source PR/merge provenance. #85 and #86 are the only gaps in the serial range. The #86 commit subject is a mislabel on the #56 agency/circumstance record; its diff does not assign #86. PR #1517's proposed #89 for spiritual bypassing was closed unmerged after omitting #88; #89 was later assigned to the development-doorway exemplar and #90 to the meaning-making exemplar.",
-    "unassigned_approved_gold_star_count": 48,
+    "numbered_gold_star_record_count": 34,
+    "highest_assigned_gold_star_number": 91,
+    "numbering_reconciliation": "Record-level and historical-PR audit on 2026-11-16: 81 approved Gold Stars; 34 assigned display serials #56–#84 and #87–#91; 47 approved records explicitly UNASSIGNED with reasons. Historical assignments #56–#59 were recovered from merged PRs #1428, #1430, #1432 and #1434. #85 and #86 remain the only gaps in the serial range. The spiritual-bypassing exemplar is now explicitly allocated #91 by user authorization; its rejected #89 proposal remains rejected and is not reused.",
+    "unassigned_approved_gold_star_count": 47,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {

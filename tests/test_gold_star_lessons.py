@@ -46,7 +46,7 @@ def test_constitutional_reasoning_exact_gold_star_is_loaded():
 
 
 
-def test_unassigned_spiritual_bypassing_gold_star_remains_adaptive_learning_eligible():
+def test_numbered_spiritual_bypassing_gold_star_remains_adaptive_learning_eligible():
     import json
     from pathlib import Path
     registry_path = Path(lessons.__file__).resolve().parent / "docs" / "qa" / "gold_standard_registry.json"
@@ -55,7 +55,8 @@ def test_unassigned_spiritual_bypassing_gold_star_remains_adaptive_learning_elig
         r for r in registry["records"]
         if r["benchmark_id"] == "gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing"
     )
-    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["numbering_status"] == "ASSIGNED"
+    assert record["gold_star_number"] == 91
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     selected = lessons.select_lesson("What is spiritual bypassing, and why does it matter?")
     assert selected and selected["exact"] is True

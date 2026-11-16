@@ -229,13 +229,13 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["active_runtime_gold_star_count"] == len(active)
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
-    assert report["numbered_gold_star_count"] == len(numbered) == 33
-    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 48
-    assert report["highest_assigned_gold_star_number"] == 90
+    assert report["numbered_gold_star_count"] == len(numbered) == 34
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 47
+    assert report["highest_assigned_gold_star_number"] == 91
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
-    assert len(report["number_assignments"]) == 33
-    assert len(report["unassigned_benchmark_ids"]) == 48
+    assert len(report["number_assignments"]) == 34
+    assert len(report["unassigned_benchmark_ids"]) == 47
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
@@ -1019,18 +1019,21 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
                 assert record.get("numbering_unassigned_reason_code") == "LEGACY_APPROVED_NO_SERIAL_ALLOCATION"
 
 
-def test_spiritual_bypassing_gold_star_unassigned_reason_records_rejected_89_allocation():
+def test_spiritual_bypassing_gold_star_is_explicitly_migrated_to_91_without_reviving_89():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     record = next(r for r in registry["records"] if r["benchmark_id"] == "gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing")
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["runtime_transfer"] is True
-    assert record.get("gold_star_number") is None
-    assert record["numbering_status"] == "UNASSIGNED"
-    assert record["numbering_unassigned_reason_code"] == "PR_1517_ALLOCATION_REJECTED"
-    assert "PR #1517" in record["numbering_unassigned_reason"]
-    assert "omitted the existing #88" in record["numbering_unassigned_reason"]
-    assert "#89 was subsequently assigned" in record["numbering_unassigned_reason"]
+    assert record["gold_star_number"] == 91
+    assert record["numbering_status"] == "ASSIGNED"
+    assert "numbering_unassigned_reason" not in record
+    migration = record["numbering_migration"]
+    assert migration["migration_class"] == "explicit_user_authorized_numbering_migration"
+    assert migration["previous_numbering_state"] == "approved_unnumbered"
+    assert migration["approved_at"] == "2026-11-16"
+    assert "explicit user authorization" in migration["authority"]
+    assert "not a backfill" in migration["reason"]
 
 
 def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignment():
@@ -1043,9 +1046,9 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     assert "recovered as Gold Star #56" in gaps[1]["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
     assert registry["integrity_audit"]["approved_gold_star_count"] == 81
-    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 33
-    assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 90
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 48
+    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 34
+    assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 91
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 47
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
 
 
