@@ -5449,7 +5449,8 @@
       },
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "The user explicitly approved Gold Star elevation but did not request a display-serial allocation. Preserve benchmark_id as identity and keep serial allocation separate."
+      "numbering_unassigned_reason": "The user explicitly approved Gold Star elevation but did not request a display-serial allocation. Preserve benchmark_id as identity and keep serial allocation separate.",
+      "user_approved_at": "2026-11-16"
     }
   ],
   "last_reconciliation_note": "2026-11-16: Added user-approved live Guide exemplar gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship. Preserved exact screenshot response and observed doorway title without inventing a URL. Approved for active structural learning; deterministic fallback is not authorized. No display serial allocated.",
