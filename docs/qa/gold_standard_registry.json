@@ -5500,6 +5500,61 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not request a display serial. Preserve benchmark_id as the stable identity and keep serial allocation separate."
+    },
+    {
+      "benchmark_id": "gs-2026-11-17-structural-change-vs-disruption",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "gold_star_number": 85,
+      "query": "How can one distinguish structural change from ordinary disruption?",
+      "expected_response": "Structural change alters the underlying arrangements that shape how a system works; ordinary disruption interrupts or unsettles the system without necessarily changing those arrangements.\n\nA disruption may interrupt services, delay operations, unsettle routines, or create temporary instability. Structural change goes deeper: it changes the rules, incentives, relationships, distribution of authority, resource flows, or capacities that determine how the system operates. A disruption can expose structural weaknesses or trigger structural change, but it does not become structural simply because it is dramatic, widespread, or prolonged.\n\nThe distinction becomes clear by asking what remains different after the immediate disturbance passes. Have decision rights, incentives, dependencies, or resource allocations changed? Are new patterns sustained by altered arrangements rather than temporary effort? Who gains authority, who carries the costs, and what evidence shows the new pattern will persist? If the underlying conditions remain intact, the event is disruption; if those conditions are durably reorganized, structural change has occurred.",
+      "expected_doorway": null,
+      "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH",
+      "observed_doorway_title": "Why Inner Change Feels Invisible (And What to Do When No One Sees It)",
+      "rating_out_of_10": 9.5,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the live visitor-facing response, instructed structural repair, and explicitly approved Gold Star elevation on 2026-11-17.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "structural_change_vs_ordinary_disruption",
+      "transferable_lesson": "Distinguish an interruption or destabilizing event from a durable reorganization of the underlying arrangements that shape system behavior. Examine changes to rules, incentives, authority, relationships, dependencies, resource flows, and capacities; assess whether the new pattern persists beyond the immediate disturbance.",
+      "transfer_boundary": "Do not infer structural change from an event's scale, duration, novelty, or intensity alone. A disruption may expose or trigger structural change without itself changing underlying arrangements. Require evidence of durable changes to the conditions that reproduce system behavior.",
+      "known_theme": "structural change, disruption, systemic transformation, organizational change, institutional arrangements, durable reorganization",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_corrected_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "structural_change_vs_ordinary_disruption",
+        "transferable_discipline": "Answer the distinction directly: disruption interrupts or destabilizes activity; structural change reorganizes the underlying arrangements that shape system behavior. Test for durable changes in rules, incentives, authority, relationships, dependencies, resource flows, and capacities.",
+        "abstention_boundary": "Do not infer structural change from scale, duration, novelty, or intensity alone. A disruption can expose or trigger structural change without itself producing it; look for evidence that underlying arrangements have changed and that the new pattern persists."
+      },
+      "assertions": [
+        "Open with the substantive distinction; do not announce the inquiry or narrate the act of answering.",
+        "Distinguish interruption or destabilization from durable reorganization of underlying system arrangements.",
+        "Explain that disruption can expose structural weaknesses or trigger structural change without automatically becoming structural change.",
+        "Identify observable dimensions of structural change: rules, incentives, relationships, authority, dependencies, resource flows, and capacities.",
+        "Use persistence beyond the immediate disturbance as one diagnostic, alongside evidence of changed arrangements.",
+        "Do not infer structural change merely from scale, duration, novelty, or intensity.",
+        "Do not attach the observed continuation title as a canonical doorway; no destination was verified."
+      ],
+      "user_approved_at": "2026-11-17",
+      "elevation_approval_evidence": "User explicitly instructed: 'fix structurally and turn this into gold star' on 2026-11-17 after reviewing the live visitor-facing response.",
+      "provenance": {
+        "source": "user_reviewed_live_visitor_response_screenshot",
+        "source_date": "2026-11-17",
+        "evidence_boundary": "The screenshot establishes the exact question, original visitor-facing answer, and observed continuation title. The revised expected_response is the corrected Gold Star exemplar authorized by the user. The continuation destination is not approved because its conceptual relevance and canonical URL were not verified.",
+        "observed_doorway_title": "Why Inner Change Feels Invisible (And What to Do When No One Sees It)"
+      },
+      "numbering_status": "ASSIGNED",
+      "numbering_migration": {
+        "authority": "Previously recorded explicit user authorization released #85 and #86 for the next two newly approved Gold Star records. This is the next newly approved record and receives #85 under that allocation rule.",
+        "approved_at": "2026-11-17",
+        "migration_class": "explicit_user_authorized_future_gap_allocation",
+        "previous_numbering_state": "approved_unnumbered",
+        "historical_evidence_preserved": true
+      }
     }
   ],
   "last_reconciliation_note": "2026-11-16: Added user-approved live Guide exemplar gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship. Preserved exact screenshot response and observed doorway title without inventing a URL. Approved for active structural learning; deterministic fallback is not authorized. No display serial allocated.",
