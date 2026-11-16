@@ -380,8 +380,8 @@ def _load_lessons() -> List[Dict[str, Any]]:
             # Cross-question eligibility is governed by the qualitative review.
             "runtime_transfer": bool(record.get("runtime_transfer")) or active_candidate,
             # This is an explicit capability declaration, never inferred from
-            # general adaptive-learning activation. Current deterministic
-            # recovery functions remain separately authored and do not consume it.
+            # general adaptive-learning activation. Deterministic recovery consumes
+            # it only through deterministic_fallback_contribution().
             "deterministic_fallback_eligible": bool(capabilities.get("deterministic_fallback_eligible")),
             "reasoning_family": str(review.get("reasoning_family") or "").strip(),
             "abstention_boundary": str(review.get("abstention_boundary") or "").strip(),
