@@ -894,3 +894,14 @@ def test_reflection_vs_therapy_gold_star_preserves_verified_doorway_through_fina
     assert 'safe["canonical_doorway"] = exact_doorway' in exact_boundary
     assert 'safe["doorway_title"] = exact_title' in exact_boundary
     assert 'safe["doorway_url"] = exact_url' in exact_boundary
+
+
+def test_terminal_visitor_boundary_restores_verified_doorway_for_ordinary_answers():
+    """Regression: ordinary answers may not bypass the verified doorway contract."""
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    assert "def _guide_restore_verified_doorway(payload, query):" in source
+    assert "_select_guide_node_fallback_doorway(query)" in source
+    assert 'safe["canonical_doorway"] = doorway' in source
+    assert 'safe["doorway_title"] = doorway.get("title") if doorway else None' in source
+    assert 'safe["doorway_url"] = doorway.get("url") if doorway else None' in source
+    assert "return _guide_restore_verified_doorway(payload, query)" in source
