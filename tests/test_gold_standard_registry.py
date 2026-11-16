@@ -1033,7 +1033,7 @@ def test_spiritual_bypassing_gold_star_is_explicitly_migrated_to_91_without_revi
     assert migration["previous_numbering_state"] == "approved_unnumbered"
     assert migration["approved_at"] == "2026-11-16"
     assert "explicit user authorization" in migration["authority"]
-    assert "not a revival" in migration["reason"]
+    assert "not a backfill" in migration["reason"]
 
 
 def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignment():
