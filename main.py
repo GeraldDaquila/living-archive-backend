@@ -6907,10 +6907,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     if _final_doorway_title:
         title = _final_doorway_title
     return {
-        "response": _apply_deterministic_fallback_guidance(
-            query,
-            "\n\n".join(part for part in (opening, explanation, closing) if part),
-        ),
+        "response": "\n\n".join(part for part in (opening, explanation, closing) if part),
         "doorway_title": title if recommendation_available else "",
         "doorway_url": (
             _final_recommendation.get("url") or ""
@@ -6921,6 +6918,30 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         "provider": _final_provider,
         "model": "",
     }
+
+
+# Apply the deterministic Gold Star adapter outside the question-preserving
+# recovery implementation so every early-return and terminal-return variant
+# receives the same explicit capability gate.
+_unadapted_basic_inquiry_round1_deterministic_response = _basic_inquiry_round1_deterministic_response
+
+
+def _basic_inquiry_round1_deterministic_response(
+    query, interpretation, context_data, *, recommendation_available=False
+):
+    result = _unadapted_basic_inquiry_round1_deterministic_response(
+        query,
+        interpretation,
+        context_data,
+        recommendation_available=recommendation_available,
+    )
+    if isinstance(result, dict):
+        result = dict(result)
+        result["response"] = _apply_deterministic_fallback_guidance(
+            query,
+            str(result.get("response") or ""),
+        )
+    return result
 
 
 
