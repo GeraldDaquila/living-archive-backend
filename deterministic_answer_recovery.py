@@ -991,7 +991,7 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = (
             "A company considering AI to reduce staffing costs should assess not only the projected savings but how the change redistributes work, authority, risk, and opportunity. "
             "The decision needs to be examined through operations, governance, human development, ethics, and stewardship together, because a financial gain can conceal costs shifted onto workers, customers, or the institution itself.\n\n"
-            "Compare the real options: redesigning tasks, augmenting work, reducing hours, retraining, redeploying people, or reducing roles. "
+            "Next, compare the real options: redesigning tasks, augmenting work, reducing hours, retraining, redeploying people, or reducing roles. "
             "For each option, test the evidence behind expected savings, the quality and reliability of the system, the effect on service and working conditions, who carries transition costs, and whether affected people have meaningful voice and recourse.\n\n"
             "AI may inform that work, but it cannot take responsibility for the decision away from the people who have the authority to make it. "
             "A defensible decision makes its criteria visible, protects rights and dignity, assigns accountability for errors, and reviews actual outcomes rather than treating projected efficiency as proof of success."
