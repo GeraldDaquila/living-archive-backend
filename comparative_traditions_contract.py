@@ -1,8 +1,9 @@
 """Final-boundary protection for comparative spiritual-tradition inquiries.
 
 This contract prevents an institutional decision template from displacing a
-visitor's request for comparative understanding. It does not rank traditions,
-make tradition-specific factual claims, or select Archive doorways.
+visitor's request for comparative understanding. It does not rank traditions
+or make tradition-specific factual claims. It may return one narrowly approved
+public Archive continuation when the visitor's question clearly fits it.
 """
 from __future__ import annotations
 
@@ -77,3 +78,22 @@ def recovery_response() -> str:
         "neither to rank traditions prematurely nor to erase their differences, "
         "but to learn without misrepresenting them."
     )
+
+
+_VERIFIED_DOORWAY = {
+    "title": "At the Edge of Explanation",
+    "url": "https://geralddaquila.com/2026/07/20/at-the-edge-of-explanation/",
+}
+
+
+def verified_doorway(question: str) -> dict[str, str] | None:
+    """Return the approved public continuation for plural-tradition inquiry.
+
+    The destination is grounded in the published essay's explicit treatment of
+    science, philosophy, spirituality, distinct ways of knowing, and the risk of
+    reducing one domain to another. Keep the trigger bounded to this inquiry
+    family; otherwise fail closed rather than attach a merely adjacent essay.
+    """
+    if not is_comparative_traditions_question(question):
+        return None
+    return dict(_VERIFIED_DOORWAY)
