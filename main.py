@@ -6909,7 +6909,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     return {
         "response": _apply_deterministic_fallback_guidance(
             query,
-            "\\n\\n".join(part for part in (opening, explanation, closing) if part),
+            "\n\n".join(part for part in (opening, explanation, closing) if part),
         ),
         "doorway_title": title if recommendation_available else "",
         "doorway_url": (
