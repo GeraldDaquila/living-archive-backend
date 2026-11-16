@@ -666,3 +666,11 @@ def test_release_candidate_matches_browser_dash_variants():
             pytest.skip("Release candidate is not present in this branch registry")
         assert expected["benchmark_id"] == "general-guide-technology-stewardship-governance-refinement-2026-11-15"
         assert expected["doorway_title"] == "Foundations of Stewardship Governance"
+
+
+def test_live_core_endpoint_serves_exact_release_candidate_with_renderable_doorway():
+    source = Path("use_core.py").read_text(encoding="utf-8")
+    assert "resolve_exact_gold_standard(query_str)" in source
+    assert '"A useful place to continue:' in source
+    assert 'f"[{_doorway_title}]({_doorway_url})"' in source
+    assert '"authority": "exact_guide_standard"' in source
