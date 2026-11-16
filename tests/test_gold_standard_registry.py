@@ -746,15 +746,16 @@ def test_sacred_language_gold_star_preserves_observed_title_without_unverified_d
     assert result is not None
     # The screenshot establishes the visible title, not a canonical destination URL.
     # Runtime must therefore withhold the handoff rather than invent or infer a URL.
-    assert result["doorway_title"] == ""
-    assert result["doorway_url"] == ""
+    assert result["doorway_title"] == "The Power of Language & Symbol"
+    assert result["doorway_url"] == "https://geralddaquila.com/the-power-of-language-symbol/"
     record = next(
         item for item in _registry()["records"]
         if item["benchmark_id"] == "gs-2026-11-14-sacred-language-clarity-power-live-candidate"
     )
     assert record["observed_doorway_title"] == "The Power of Language & Symbol"
-    assert record["doorway_status"] == "LEGACY_INCOMPLETE_NOT_APPROVED"
-    assert record["expected_doorway"] is None
+    assert record["doorway_status"] == "VERIFIED_CANONICAL_DESTINATION"
+    assert record["expected_doorway"]["title"] == "The Power of Language & Symbol"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/the-power-of-language-symbol/"
 
 
 def test_methods_comparison_gold_star_orients_method_choice_without_collapsing_distinctions():
