@@ -46,6 +46,6 @@ def test_does_not_trigger_for_institutional_question():
 
 def test_recovery_is_three_paragraphs_and_covers_epistemic_distinctions():
     response = contract.recovery_response()
-    assert len(response.split("\\n\\n")) == 3
+    assert len(response.split("\n\n")) == 3
     for term in ("historical", "philosophical", "empirical", "spiritual experience"):
         assert term in response.lower()
