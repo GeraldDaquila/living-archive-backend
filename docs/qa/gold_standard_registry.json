@@ -5547,7 +5547,8 @@
       },
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a display serial. Preserve benchmark_id as stable identity; serial allocation is separate from approval and adaptive-learning eligibility."
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not request a display serial. Preserve benchmark_id as stable identity; serial allocation is separate from approval and adaptive-learning eligibility.",
+      "elevation_approval_evidence": "User explicitly requested: “fix structurally the awkward repetition in the 3rd paragraph, and turn this into a full fledged gold star”; then supplied the original live screenshot to establish exact question and provenance."
     }
   ],
   "last_reconciliation_note": "2026-11-16: Added user-approved live Guide exemplar gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship. Preserved exact screenshot response and observed doorway title without inventing a URL. Approved for active structural learning; deterministic fallback is not authorized. No display serial allocated.",
