@@ -5393,7 +5393,7 @@ def _guide_finalize_visitor_payload(payload, query):
     # doorway merely because the answer text passed the substitution check.
     if comparative_traditions_contract.is_comparative_traditions_question(query):
         safe = dict(payload)
-        substituted = comparative_traditions_contract.response_substitutes_institutional_frame(
+        substituted = comparative_traditions_contract.response_requires_quality_repair(
             query, response_text
         )
         if substituted:
