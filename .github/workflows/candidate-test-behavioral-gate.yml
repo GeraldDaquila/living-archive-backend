@@ -12,6 +12,7 @@ on:
   push:
     branches:
       - fix/authoritative-intentional-no-doorway-reconciled
+      - fix/authoritative-intentional-no-doorway-after-gs90
     paths:
       - "general_guide_gold_standards.py"
       - "scripts/validate_gold_star_registry.py"
