@@ -745,6 +745,14 @@
       "qualifying_context": "Questions about community traditions, cultural continuity, inherited wisdom, governance, stewardship, institutional change, or how to evaluate practices without treating tradition as infallible or disposable.",
       "abstention_boundary": "Do not treat tradition as infallible or disposable; do not generalize doctrines across diverse communities, erase internal differences, conflate historical, theological, empirical, and experiential claims, or let AI substitute for accountable human judgment.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-16-techno-utopian-thinking",
+      "reasoning_family": "techno_utopianism_technology_as_substitute_for_governance",
+      "transferable_discipline": "Identify the assumption that technological progress automatically resolves human problems; test it against access, institutional incentives, power, accountability, democratic choice, and distribution of costs and harms.",
+      "qualifying_context": "Questions about technological solutionism, digital transformation, public-sector technology, innovation claims, or assumptions that technical progress by itself resolves institutional, political, or social problems.",
+      "abstention_boundary": "Do not frame criticism of techno-utopian assumptions as opposition to technology itself. Do not assume technical tools alone resolve unequal access, institutional incentives, power, accountability, democratic choice, or harmful outcomes.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
