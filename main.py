@@ -5298,6 +5298,38 @@ def _archive_claim_authoritative_doorway(query, doorway):
         return None
     return {"title": node_title, "url": node_url}
 
+def _guide_restore_verified_doorway(payload, query):
+    """Restore one verified canonical doorway at the terminal visitor boundary.
+
+    Ordinary answer routes may complete without a recommendation even when the
+    canonical Guide-node registry can verify a directly relevant continuation.
+    This helper makes navigation a shared terminal contract: preserve a valid
+    earned doorway first, otherwise attempt the bounded verified fallback, and
+    synchronize every public doorway alias. It never invents a destination.
+    """
+    safe = dict(payload) if isinstance(payload, dict) else {}
+    doorway = _normalize_authoritative_recommendation(safe.get("recommendation"))
+    if not doorway:
+        doorway = _normalize_authoritative_recommendation(
+            {
+                "title": safe.get("doorway_title"),
+                "url": safe.get("doorway_url"),
+            }
+        )
+    if not doorway:
+        try:
+            candidate = _select_guide_node_fallback_doorway(query)
+        except Exception:
+            candidate = None
+        doorway = _normalize_authoritative_recommendation(candidate)
+
+    safe["recommendation"] = doorway
+    safe["canonical_doorway"] = doorway
+    safe["doorway_title"] = doorway.get("title") if doorway else None
+    safe["doorway_url"] = doorway.get("url") if doorway else None
+    return safe
+
+
 def _guide_finalize_visitor_payload(payload, query):
     """Apply shared visitor-facing quality and contamination boundaries to every route."""
     if not isinstance(payload, dict):
@@ -5803,7 +5835,7 @@ def _guide_finalize_visitor_payload(payload, query):
         not _basic_inquiry_has_internal_annotation(response_text)
         and not _basic_inquiry_has_source_dump(response_text)
     ):
-        return payload
+        return _guide_restore_verified_doorway(payload, query)
 
     # If executable/template text escaped into the answer, bypass the same
     # composition path and use the dedicated safe recovery for the visitor's query.
