@@ -5013,7 +5013,8 @@
       "user_approved_at": "2026-11-16",
       "provenance": {
         "elevation_evidence": "User reviewed the live visitor-facing result and explicitly instructed 'elevate' on 2026-11-16.",
-        "source": "visitor-facing acceptance review"
+        "source": "visitor-facing acceptance review",
+        "source_date": "2026-11-16"
       },
       "doorway_verification": {
         "source": "Living Archive WordPress canonical search",
@@ -5047,7 +5048,11 @@
         "generation_mode_note": "Eligibility records the transferable deterministic recovery contract and does not assert the original live response was generated deterministically."
       },
       "runtime_transfer": true,
-      "known_theme": "fact-meaning-distinction-question"
+      "known_theme": "fact-meaning-distinction-question",
+      "reasoning_family": "fact-meaning-distinction-question",
+      "transferable_lesson": "Separate factual explanation from meaning-making, then reconnect them without allowing interpretation to impersonate evidence.",
+      "transfer_boundary": "Do not transfer this pattern by treating evidence as a complete answer to questions of significance or treating interpretation as factual proof.",
+      "elevation_approval_evidence": "User reviewed the live visitor-facing result with the verified canonical doorway and explicitly instructed 'elevate' on 2026-11-16."
     }
   ],
   "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-16: 80 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory; 27 carry explicit Gold Star numbers. The highest assigned number is #88. #85 and #86 remain unassigned because no provenance evidence authorizes retroactive assignment; they are not counted as missing approved records.",
