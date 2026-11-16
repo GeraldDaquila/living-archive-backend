@@ -96,23 +96,30 @@ def test_canonical_audit_metadata_is_derived_not_independent():
 
 
 def test_numbering_guard_rejects_stale_branch_that_drops_latest_gold_star(monkeypatch):
-    # Exercise the production comparison against the actual main registry.
-    # No subprocess patching: load the real base from Git and simulate a stale
-    # proposed registry that has dropped the #88 holder.
+    # Exercise the same invariant the CI validator uses: compare the proposed
+    # registry against the exact merge-base registry, not a stale branch count.
     from scripts import validate_gold_star_registry as validator
 
-    main_text = subprocess.run(
-        ["git", "show", "origin/main:docs/qa/gold_standard_registry.json"],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
-    base_records = json.loads(main_text)["records"]
+    base_records = _registry()["records"]
     stale_records = [
         record for record in base_records
         if record.get("benchmark_id")
         != "general-guide-reflection-vs-therapy-boundary-gold-standard-2026-11-16"
     ]
+
+    def fake_run(command, **kwargs):
+        if command[:3] == ["git", "merge-base", "HEAD"]:
+            return type("Result", (), {"stdout": "fake-base", "returncode": 0})()
+        if command[:2] == ["git", "show"]:
+            return type(
+                "Result", (), {
+                    "stdout": json.dumps({"records": base_records}),
+                    "returncode": 0,
+                }
+            )()
+        raise AssertionError(f"Unexpected command: {command}")
+
+    monkeypatch.setattr(validator.subprocess, "run", fake_run)
     with pytest.raises(SystemExit, match="removed/demoted"):
         validator.validate_numbering_against_base(stale_records)
 
