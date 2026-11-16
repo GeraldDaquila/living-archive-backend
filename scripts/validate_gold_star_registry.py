@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "docs/qa/gold_standard_registry.json"
 REVIEWS = ROOT / "docs/qa/gold_star_qualitative_transfer_review.json"
 APPROVED_STATUS = "USER_APPROVED_GOLD_STANDARD"
+BASELINE_REF = "refs/remotes/origin/main"
 
 
 def fail(message):
@@ -60,7 +61,7 @@ def validate_numbering_against_base(current_records):
     """Compare the PR registry with its merge-base version from canonical main."""
     try:
         merge_base = subprocess.run(
-            ["git", "merge-base", "HEAD", "origin/main"],
+            ["git", "merge-base", "HEAD", BASELINE_REF],
             cwd=ROOT, check=True, capture_output=True, text=True,
         ).stdout.strip()
         if not merge_base:
