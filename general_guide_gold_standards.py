@@ -65,9 +65,16 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
         answer = str(record.get("expected_response") or "").strip()
         if not question or not answer:
             continue
-        doorway = record.get("expected_doorway") or {}
+        raw_doorway = record.get("expected_doorway")
+        doorway_status = str(record.get("doorway_status") or "").strip()
+        intentionally_none = doorway_status == "INTENTIONALLY_NONE_APPROVED"
+        if intentionally_none and raw_doorway is not None:
+            raise ValueError(
+                "An intentionally-none Gold Standard cannot also declare an expected doorway."
+            )
+        doorway = raw_doorway or {}
         assertions = record.get("assertions") or []
-        no_handoff = any(
+        no_handoff = intentionally_none or any(
             "forbids direct page handoff" in str(assertion).casefold()
             for assertion in assertions
         ) or bool(re.search(r"\bdo not send me to another page\b", question))
