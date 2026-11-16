@@ -248,3 +248,29 @@ def test_deterministic_fallback_guidance_ignores_unflagged_analogues():
         assert lessons.apply_deterministic_fallback_guidance(target["query"], response) == response
     finally:
         lessons._LESSONS = original
+
+
+def test_sacred_language_power_gold_star_is_loaded_as_approved_structural_learning():
+    result = lessons.select_lesson(
+        "How can sacred language clarify experience, and how can it obscure power relations?"
+    )
+    assert result and result["exact"] is True
+    assert result["benchmark_id"] == "gs-2026-11-16-sacred-language-clarity-and-power-relations"
+    contribution = lessons.active_quality_contribution(
+        "How can sacred language clarify experience, and how can it obscure power relations?"
+    )
+    assert contribution
+    assert contribution["reasoning_family"] == "sacred_language_and_power"
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert "expected_response" not in contribution and "doorway" not in contribution
+
+
+def test_sacred_language_gold_star_does_not_gain_deterministic_fallback_authority_by_default():
+    selected = lessons.select_lesson(
+        "How can sacred language clarify experience, and how can it obscure power relations?"
+    )
+    assert selected and selected["exact"] is True
+    assert selected["deterministic_fallback_eligible"] is False
+    assert lessons.deterministic_fallback_contribution(
+        "How can sacred language clarify experience, and how can it obscure power relations?"
+    ) is None
