@@ -57,7 +57,89 @@ def load_json(path, label):
         fail(f"cannot read {label}: {exc}")
 
 
-def validate_numbering_against_base(current_records):
+
+def validate_numbering_metadata(registry, records):
+    """Require explicit serial state for every approved record and explain every gap."""
+    approved = [r for r in records if r.get("status") == APPROVED_STATUS]
+    assigned = []
+    for record in approved:
+        benchmark_id = str(record.get("benchmark_id") or "<missing-id>")
+        number = record.get("gold_star_number")
+        state = record.get("numbering_status")
+        reason_code = str(record.get("numbering_unassigned_reason_code") or "").strip()
+        reason = str(record.get("numbering_unassigned_reason") or "").strip()
+        if number is None:
+            if state != "UNASSIGNED" or not reason_code or not reason:
+                fail(f"{benchmark_id} is unnumbered but lacks explicit UNASSIGNED state/reason")
+            continue
+        if isinstance(number, bool) or not isinstance(number, int) or number <= 0:
+            fail(f"{benchmark_id} gold_star_number must be a positive integer")
+        if state != "ASSIGNED":
+            fail(f"{benchmark_id} has gold_star_number #{number} but numbering_status is not ASSIGNED")
+        if reason_code or reason:
+            fail(f"{benchmark_id} is ASSIGNED but also carries an unassigned reason")
+        recovery = record.get("numbering_recovery")
+        if recovery is not None:
+            required_recovery = {
+                "recovery_class", "recovered_number", "source_pr", "source_pr_url",
+                "source_merge_commit", "previous_registry_state", "authority_basis",
+                "recovered_at",
+            }
+            if not isinstance(recovery, dict) or any(
+                not str(recovery.get(key) or "").strip() for key in required_recovery
+            ):
+                fail(f"{benchmark_id} has incomplete historical numbering recovery evidence")
+            if recovery.get("recovered_number") != number:
+                fail(f"{benchmark_id} recovered number does not match gold_star_number")
+            if recovery.get("recovery_class") not in {
+                "HISTORICAL_SEQUENCE_ASSIGNMENT_RECOVERY",
+                "HISTORICAL_EXPLICIT_ASSIGNMENT_RECOVERY",
+            }:
+                fail(f"{benchmark_id} has an unrecognized numbering recovery class")
+            if isinstance(recovery.get("source_pr"), bool) or not isinstance(recovery.get("source_pr"), int):
+                fail(f"{benchmark_id} numbering recovery source_pr must be an integer")
+        assigned.append(number)
+
+    if not assigned:
+        fail("no assigned Gold Star serials exist; cannot reconcile sequence gaps")
+    numbering_policy = registry.get("numbering_policy")
+    sequence_start = numbering_policy.get("sequence_start") if isinstance(numbering_policy, dict) else None
+    if isinstance(sequence_start, bool) or not isinstance(sequence_start, int) or sequence_start <= 0:
+        fail("numbering_policy.sequence_start must be a positive integer")
+    if min(assigned) != sequence_start:
+        fail(f"numbering sequence_start #{sequence_start} does not match lowest assigned serial #{min(assigned)}")
+    expected_gaps = set(range(sequence_start, max(assigned) + 1)) - set(assigned)
+    gap_entries = registry.get("numbering_gap_register")
+    if not isinstance(gap_entries, list):
+        fail("numbering_gap_register must be an array")
+    gap_numbers = []
+    for gap in gap_entries:
+        if not isinstance(gap, dict):
+            fail("numbering_gap_register contains a non-object entry")
+        number = gap.get("number")
+        if isinstance(number, bool) or not isinstance(number, int) or number <= 0:
+            fail("numbering gap must have a positive integer number")
+        if gap.get("status") != "UNASSIGNED_HISTORICAL_GAP":
+            fail(f"#{number} gap must declare UNASSIGNED_HISTORICAL_GAP")
+        if not str(gap.get("reason_code") or "").strip() or not str(gap.get("reason") or "").strip():
+            fail(f"#{number} gap lacks a reason code or explanation")
+        if not isinstance(gap.get("evidence_checked"), list) or not gap["evidence_checked"]:
+            fail(f"#{number} gap lacks an evidence-check record")
+        if not str(gap.get("disposition") or "").strip():
+            fail(f"#{number} gap lacks a disposition")
+        gap_numbers.append(number)
+    if len(gap_numbers) != len(set(gap_numbers)):
+        fail("duplicate serial in numbering_gap_register")
+    if set(gap_numbers) != expected_gaps:
+        fail(
+            "numbering_gap_register does not exactly match gaps in the assigned "
+            f"serial range; expected {sorted(expected_gaps)}, got {sorted(gap_numbers)}"
+        )
+    if set(gap_numbers) & set(assigned):
+        fail("a serial cannot be both assigned and listed as an unassigned gap")
+
+
+def validate_numbering_against_base(current_records, current_registry=None):
     """Compare the PR registry with its merge-base version from canonical main."""
     try:
         merge_base = subprocess.run(
@@ -108,6 +190,41 @@ def validate_numbering_against_base(current_records):
     if changed:
         fail("existing Gold Star number assignment changed: " + "; ".join(changed))
 
+    # Once merged, historical recovery evidence and gap dispositions are
+    # immutable. A future branch may add a new gap only through a separate,
+    # evidence-backed migration; it may not silently rewrite existing history.
+    base_by_id = {r.get("benchmark_id"): r for r in base_records}
+    current_by_id_for_history = {r.get("benchmark_id"): r for r in current_records}
+    changed_recoveries = []
+    for benchmark_id, base_record in base_by_id.items():
+        base_recovery = base_record.get("numbering_recovery")
+        if base_recovery is None:
+            continue
+        current_record = current_by_id_for_history.get(benchmark_id, {})
+        if current_record.get("numbering_recovery") != base_recovery:
+            changed_recoveries.append(benchmark_id)
+    if changed_recoveries:
+        fail("historical numbering recovery evidence is immutable: " + ", ".join(sorted(changed_recoveries)))
+
+    if current_registry is not None:
+        base_gaps = base_registry.get("numbering_gap_register")
+        current_gaps = current_registry.get("numbering_gap_register")
+        if isinstance(base_gaps, list):
+            base_gap_map = {item.get("number"): item for item in base_gaps if isinstance(item, dict)}
+            current_gap_map = {item.get("number"): item for item in (current_gaps or []) if isinstance(item, dict)}
+            changed_gaps = [
+                number for number, base_gap in base_gap_map.items()
+                if current_gap_map.get(number) != base_gap
+            ]
+            if changed_gaps:
+                fail("historical numbering gap evidence/disposition is immutable: "
+                     + ", ".join(f"#{number}" for number in sorted(changed_gaps)))
+        base_policy = base_registry.get("numbering_policy")
+        current_policy = current_registry.get("numbering_policy")
+        if isinstance(base_policy, dict):
+            if not isinstance(current_policy, dict) or current_policy.get("sequence_start") != base_policy.get("sequence_start"):
+                fail("numbering sequence_start is immutable once established on canonical main")
+
     # Existing unnumbered approved records cannot receive inferred numbers.
     # A numbered migration is permitted only when the record carries explicit,
     # user-authorized migration evidence and the allocation remains contiguous.
@@ -117,8 +234,32 @@ def validate_numbering_against_base(current_records):
         if benchmark_id in base_ids and benchmark_id not in base_numbers
     )
     unauthorized_migrations = []
+    recovered_historical_ids = set()
     for benchmark_id in retroactive:
         record = current_by_id.get(benchmark_id, {})
+        recovery = record.get("numbering_recovery")
+        if isinstance(recovery, dict):
+            required_recovery = {
+                "recovery_class", "recovered_number", "source_pr", "source_pr_url",
+                "source_merge_commit", "previous_registry_state", "authority_basis",
+                "recovered_at",
+            }
+            missing = [key for key in sorted(required_recovery) if not str(recovery.get(key) or "").strip()]
+            if (
+                recovery.get("recovery_class") not in {
+                    "HISTORICAL_SEQUENCE_ASSIGNMENT_RECOVERY",
+                    "HISTORICAL_EXPLICIT_ASSIGNMENT_RECOVERY",
+                }
+                or recovery.get("recovered_number") != current_numbers[benchmark_id]
+                or recovery.get("previous_registry_state") != "USER_APPROVED_GOLD_STANDARD without gold_star_number field"
+                or isinstance(recovery.get("source_pr"), bool)
+                or not isinstance(recovery.get("source_pr"), int)
+                or missing
+            ):
+                unauthorized_migrations.append(benchmark_id)
+            else:
+                recovered_historical_ids.add(benchmark_id)
+            continue
         migration = record.get("numbering_migration")
         if not isinstance(migration, dict):
             unauthorized_migrations.append(benchmark_id)
@@ -144,7 +285,7 @@ def validate_numbering_against_base(current_records):
     base_max = max(base_numbers.values(), default=0)
     new_assignments = sorted(
         number for benchmark_id, number in current_numbers.items()
-        if benchmark_id not in base_numbers
+        if benchmark_id not in base_numbers and benchmark_id not in recovered_historical_ids
     )
     if new_assignments:
         expected = list(range(base_max + 1, base_max + 1 + len(new_assignments)))
@@ -319,7 +460,8 @@ def main():
     if len(active) != len(approved):
         fail("not every user-approved Gold Star is active for runtime transfer")
 
-    base_numbers, current_numbers = validate_numbering_against_base(records)
+    validate_numbering_metadata(registry, records)
+    base_numbers, current_numbers = validate_numbering_against_base(records, registry)
 
     # Audit metadata is descriptive only. When present, it must match the
     # record-level inventory; it is never consulted to select a number.
@@ -329,6 +471,8 @@ def main():
         "registry_record_count": len(records),
         "numbered_gold_star_record_count": len(current_numbers),
         "highest_assigned_gold_star_number": max(current_numbers.values(), default=0),
+        "unassigned_approved_gold_star_count": sum(1 for r in approved if r.get("gold_star_number") is None),
+        "documented_numbering_gap_count": len(registry.get("numbering_gap_register") or []),
     }
     for key, actual in expected_audit.items():
         declared = audit.get(key)

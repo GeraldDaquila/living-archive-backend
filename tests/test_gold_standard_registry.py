@@ -227,6 +227,15 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     ]
     assert report["authoritative_gold_star_count"] == len(approved)
     assert report["active_runtime_gold_star_count"] == len(active)
+    numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
+    unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
+    assert report["numbered_gold_star_count"] == len(numbered) == 33
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 48
+    assert report["highest_assigned_gold_star_number"] == 90
+    assert report["numbering_sequence_start"] == 56
+    assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
+    assert len(report["number_assignments"]) == 33
+    assert len(report["unassigned_benchmark_ids"]) == 48
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
@@ -962,6 +971,14 @@ def test_practice_community_feedback_gold_star_is_assigned_next_canonical_number
     assert record["expected_doorway"]["title"] == "Becoming Fully Human"
 
 
+def test_recovered_serial_provenance_and_gap_register_are_immutable_after_merge():
+    validator = (ROOT / "scripts" / "validate_gold_star_registry.py").read_text(encoding="utf-8")
+    assert "historical numbering recovery evidence is immutable" in validator
+    assert "historical numbering gap evidence/disposition is immutable" in validator
+    assert "numbering sequence_start is immutable once established" in validator
+    assert "validate_numbering_against_base(records, registry)" in validator
+
+
 def test_explicit_numbering_migration_is_required_for_existing_unnumbered_approval():
     source = (ROOT / "scripts" / "validate_gold_star_registry.py").read_text(encoding="utf-8")
     assert "explicit_user_authorized_numbering_migration" in source
@@ -981,3 +998,83 @@ def test_meaning_making_gold_star_90_has_verified_canonical_doorway():
     record = next(r for r in registry["records"] if r["benchmark_id"] == "gs-2026-11-16-meaning-making-factual-explanation")
     assert record["gold_star_number"] == 90
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/04/08/making-sense-of-life-without-oversimplifying-it/"
+
+
+
+def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
+    assert len(approved) == 81
+    for record in approved:
+        if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
+            assert record.get("numbering_status") == "ASSIGNED"
+            assert not record.get("numbering_unassigned_reason")
+        else:
+            assert record.get("numbering_status") == "UNASSIGNED"
+            assert record.get("numbering_unassigned_reason_code")
+            assert record.get("numbering_unassigned_reason")
+            if record["benchmark_id"] != "gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing":
+                assert record.get("legacy_approval_grandfathered") is True
+                assert record.get("numbering_unassigned_reason_code") == "LEGACY_APPROVED_NO_SERIAL_ALLOCATION"
+
+
+def test_spiritual_bypassing_gold_star_unassigned_reason_records_rejected_89_allocation():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    record = next(r for r in registry["records"] if r["benchmark_id"] == "gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing")
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["runtime_transfer"] is True
+    assert record.get("gold_star_number") is None
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["numbering_unassigned_reason_code"] == "PR_1517_ALLOCATION_REJECTED"
+    assert "PR #1517" in record["numbering_unassigned_reason"]
+    assert "omitted the existing #88" in record["numbering_unassigned_reason"]
+    assert "#89 was subsequently assigned" in record["numbering_unassigned_reason"]
+
+
+def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignment():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    gaps = registry["numbering_gap_register"]
+    assert [g["number"] for g in gaps] == [85, 86]
+    assert "7a036632323b7c09003d1fce637a7b49128a27bf" in gaps[1]["reason"]
+    assert "only adds provenance.source_date" in gaps[1]["reason"]
+    assert "recovered as Gold Star #56" in gaps[1]["reason"]
+    assert registry["numbering_policy"]["sequence_start"] == 56
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 81
+    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 33
+    assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 90
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 48
+    assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
+
+
+
+def test_historically_assigned_gold_stars_56_to_59_are_recovered_from_merged_prs():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    expected = {
+        "general-guide-agency-circumstance-gold-standard-2026-11-15": (56, 1428),
+        "general-guide-developmental-language-gold-star-2026-11-09": (57, 1430),
+        "general-guide-culture-notice-value-imagine-gold-standard-2026-11-15": (58, 1432),
+        "general-guide-transformation-temporary-relief-gold-standard-2026-11-15": (59, 1434),
+    }
+    by_id = {r["benchmark_id"]: r for r in registry["records"]}
+    for benchmark_id, (number, source_pr) in expected.items():
+        record = by_id[benchmark_id]
+        recovery = record["numbering_recovery"]
+        assert record["gold_star_number"] == number
+        assert record["numbering_status"] == "ASSIGNED"
+        assert recovery["recovered_number"] == number
+        assert recovery["source_pr"] == source_pr
+        assert recovery["source_merge_commit"]
+        assert recovery["authority_basis"]
+
+
+def test_unmerged_developmental_language_56_proposal_is_not_the_canonical_assignment():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    record = next(r for r in registry["records"] if r["benchmark_id"] == "general-guide-developmental-language-gold-star-2026-11-09")
+    assert record["gold_star_number"] == 57
+    assert record["numbering_recovery"]["source_pr"] == 1430
+    assert "PR #1429" not in record["numbering_recovery"]["authority_basis"]

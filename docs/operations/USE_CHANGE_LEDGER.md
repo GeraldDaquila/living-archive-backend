@@ -137,16 +137,20 @@ For each release, record:
 ## Registry governance: immutable Gold Star numbering and provenance
 
 - **Class:** Registry governance / pre-merge integrity
-- **Intent:** Prevent any subsequent elevation from colliding with an already assigned Gold Star number or silently deleting the record that occupies it.
+- **Intent:** Prevent subsequent elevations from colliding with assigned serials or silently deleting the records that occupy them.
 - **Canonical authority:** `docs/qa/gold_standard_registry.json` on `main`.
-- **Verified main inventory at audit:** 117 total records; 80 `USER_APPROVED_GOLD_STANDARD`; 27 explicitly numbered; maximum #88; no duplicate numbers.
-- **Existing assignments:** #87 is the formal/actual power exemplar; #88 is the reflection/therapy boundary exemplar.
-- **Provenance gaps:** #85 and #86 remain explicitly unassigned. Repository history search confirmed GitHub PRs #85 and #86 are unrelated September 2026 code PRs for v340 doorway/grief behavior, not Gold Star exemplars. No authoritative Gold Star source record for #85/#86 was recovered. Do not fill the gaps by inference.
-- **Failure analysis:** The previous validator checked duplicate numbers only within the proposed branch. A stale branch could omit a current approved record and re-use its number without producing an intra-branch duplicate. Registry audit metadata was descriptive and did not protect identity/number continuity against the merge base.
-- **Corrective control on a separate branch:** Compare proposed registry against the merge-base version of canonical `main`; reject removal/demotion of existing approved records, any change/removal of existing assigned numbers, retroactive numbering of existing unnumbered records, non-contiguous new numbering after the canonical main maximum, duplicate IDs/numbers, and audit metadata that disagrees with record-level facts. The workflow fetches full history so the merge-base comparison is reliable.
-- **PR #1517 disposition:** Closed unmerged after audit. Its stale branch contained 116 total records / 79 approved, omitted current #88, and assigned #89 to the spiritual-bypassing exemplar. This is the exact failure mode now covered by the merge-base regression.
-- **Release boundary:** The validator/workflow fix is isolated on `fix-gold-star-numbering-authority`; it has not been merged, tested offline or in TEST, or deployed. No production state is changed by this entry.
-
+- **Verified main inventory before this reconciliation:** 118 total records; 81 `USER_APPROVED_GOLD_STANDARD`; 81 matching qualitative-transfer reviews; 29 explicitly numbered; maximum #90; no duplicate assigned numbers. The 29-number count was incomplete because four historically assigned serials were absent from their canonical records.
+- **Numbering model:** `benchmark_id` is the stable identity used by adaptive learning. `gold_star_number` is an optional human-facing serial and is not required for approval or learning eligibility. Every approved record must explicitly declare `numbering_status`; an unnumbered record must carry a reason.
+- **Recovered #56:** PR #1427 recorded 55 approved legacy records. PR #1428 merged `general-guide-agency-circumstance-gold-standard-2026-11-15` as the 56th approved record, taking the count to 56. Immediately afterward, the user explicitly designated the next exemplar as #57 in PR #1430. This adjacent merged sequence recovers the agency/circumstance exemplar as #56. Commit `7a036632323b7c09003d1fce637a7b49128a27bf` later used “Gold Star 86” in its subject while only adding a provenance date; that subject is a mislabel, not an allocation of #86.
+- **Recovered #57:** `general-guide-developmental-language-gold-star-2026-11-09`, explicitly designated by the user in merged PR #1430. PR #1429 was an earlier unmerged proposal to call the same exemplar #56; it was closed on 2026-11-16 as superseded by the merged #57 allocation in PR #1430.
+- **Recovered #58:** `general-guide-culture-notice-value-imagine-gold-standard-2026-11-15`, explicitly identified as #58 in merged PR #1432 and its approval record.
+- **Recovered #59:** `general-guide-transformation-temporary-relief-gold-standard-2026-11-15`, explicitly identified as #59 in merged PR #1434 and its approval record.
+- **#85 gap:** No canonical Gold Star assignment record/event was recovered. GitHub PR #85 is the unrelated September 2026 v340 topical-doorway code PR, not a Gold Star.
+- **#86 gap:** No canonical record-level assignment was recovered. The only notable #86 evidence is the mislabelled subject on commit `7a036632323b7c09003d1fce637a7b49128a27bf`; its diff changes provenance only, and the affected record is recovered as #56 from PR #1428/#1430 sequence evidence. GitHub PR #86 is the unrelated September 2026 v340 grief/death-topic code PR.
+- **Spiritual-bypassing exemplar:** `gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing` remains approved and runtime-active, but is explicitly `UNASSIGNED`. PR #1517 proposed #89 on a stale branch that omitted #88 and was closed unmerged. That proposal never became a canonical allocation; #89 was later assigned to the development-doorway exemplar and #90 to the meaning-making exemplar. This is an allocation-history issue, not an approval or adaptive-learning exclusion.
+- **Failure analysis:** Before PR #1518, the validator checked duplicate numbers only within a proposed branch. A stale branch could omit a current approved record and reuse its number without an intra-branch duplicate. Registry audit metadata was descriptive and did not protect identity/number continuity against merge-base `main`.
+- **Corrective control already merged:** PR #1518 (`39df03f35ef45d30748bab1f6d8296be4cb6b196`) merged the merge-base numbering guard. It rejects removal/demotion of approved records, changes to assigned numbers, unauthorized retroactive numbering, non-contiguous new allocations, duplicate IDs/numbers, and stale audit totals. This control is present in canonical `main`; the earlier ledger statement that it remained on an unmerged branch was stale.
+- **Disposition:** The canonical serial range begins at #56. #85 and #86 remain documented historical gaps and are not to be backfilled. New allocations start after #90 and require explicit authorization plus a canonical record-level migration.
 
 ## 2026-11-16 — Explicit numbering migration: development doorway exemplar → Gold Star #89
 
@@ -180,3 +184,30 @@ For each release, record:
 - **Provider boundary:** Pinecone was unavailable during candidate verification; configured fallback was active. This entry does not claim provider-lane or broader two-server acceptance beyond the checks stated above.
 - **Rollback point:** Parent canonical commit `f6b08f2da06d4776d3bfbcaa16e2068c9813c433`.
 - **Final gate:** PASS for the intentional no-doorway contract and matching Primary/Mirror release identity. No doorway was added to the spiritual-bypassing exemplar; no Gold Star number was created or changed.
+
+
+
+## 2026-11-16 — Full Gold Star numbering and adaptive-learning reconciliation
+
+- **Class:** Registry governance / adaptive-learning integrity.
+- **Canonical inventory:** 118 total records; 81 approved Gold Stars; 81 matching qualitative-transfer reviews; 29 assigned serials; 52 approved records explicitly unassigned; highest serial #90.
+- **Identity rule:** The adaptive-learning module loads approved records by `USER_APPROVED_GOLD_STANDARD`, `runtime_transfer`, and `benchmark_id`/review linkage. Serial numbers are display labels only; an unassigned approved Gold Star remains fully eligible for exact-answer authority and bounded structural learning.
+- **#85:** No canonical Gold Star assignment record recovered; PR #85 is an unrelated v340 code PR. Keep as a historical gap.
+- **#86:** No canonical number assignment recovered. Commit `7a036632323b7c09003d1fce637a7b49128a27bf` misleadingly mentions “Gold Star 86” in its subject, but its diff only adds a provenance date to the agency/circumstance record; PR #1428 has no number assignment. PR #86 is an unrelated v340 code PR. Keep as a historical gap and do not treat the commit subject as authority.
+- **Spiritual bypassing:** Explicitly `UNASSIGNED` because PR #1517's proposed #89 allocation was rejected with the PR closed unmerged after its stale branch omitted #88. #89 and #90 are now assigned to other canonical exemplars. Approval and adaptive-learning participation remain active.
+- **Controls:** Canonical JSON now declares `ASSIGNED` or `UNASSIGNED` for every approved record, a reason for every unassigned record, and an evidence-backed #85/#86 gap register. Offline and runtime integrity gates require these fields and reconcile the gap register against the assigned serial range.
+- **Boundary:** No Gold Star approval, response, doorway, or runtime-transfer authority is added, removed, or altered by this numbering reconciliation.
+
+
+## 2026-11-16 — Full Gold Star numbering and adaptive-learning reconciliation
+
+- **Class:** Registry governance / adaptive-learning integrity.
+- **Canonical inventory:** 118 total records; 81 approved Gold Stars; 81 matching qualitative-transfer reviews; 33 assigned serials; 48 approved records explicitly unassigned; highest serial #90.
+- **Unassigned classification:** 47 of the 48 unnumbered approved records are legacy-grandfathered approvals with no canonical serial allocation; the remaining record is the spiritual-bypassing exemplar, whose proposed #89 was rejected in PR #1517. All remain approved and runtime-active.
+- **Recovered assignments:** #56 agency/circumstance (PR #1428 plus the immediately following explicit #57 allocation in PR #1430); #57 developmental language (PR #1430); #58 culture (PR #1432); #59 transformation/temporary relief (PR #1434). Each recovered record stores its source PR, merge commit, prior state, and recovery basis.
+- **Numbering sequence:** Starts at #56. The canonical assigned range is #56–#84 and #87–#90. #85 and #86 are the only gaps in this range. The 55 approvals present before PR #1428 are legacy records; do not infer #1–#55 from array order.
+- **#85:** No canonical Gold Star assignment record recovered; PR #85 is an unrelated v340 code PR. Keep as a historical gap.
+- **#86:** No canonical number assignment recovered. Commit `7a036632323b7c09003d1fce637a7b49128a27bf` misleadingly says “Gold Star 86,” but its diff only adds a provenance date to the agency/circumstance exemplar, which is now recovered as #56. PR #1428 did not assign #86; PR #86 is an unrelated v340 code PR. Keep #86 as a gap.
+- **Spiritual bypassing:** Explicitly `UNASSIGNED` because PR #1517's proposed #89 allocation was rejected with the PR closed unmerged after its stale branch omitted #88. #89 and #90 are now assigned to other canonical exemplars. Approval and adaptive-learning participation remain active.
+- **Controls:** Canonical JSON declares `ASSIGNED` or `UNASSIGNED` for every approved record, a reason for every unassigned record, source evidence for historical recoveries, and an evidence-backed #85/#86 gap register. Offline and runtime integrity gates reconcile the range from #56 through the maximum.
+- **Boundary:** No Gold Star approval, response, doorway authority, or runtime-transfer permission is added, removed, or changed by this numbering reconciliation.

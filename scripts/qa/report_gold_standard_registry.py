@@ -53,6 +53,15 @@ def main() -> int:
         item for item in approved_gold_stars
         if item.get("runtime_transfer") is True
     ]
+    numbered_gold_stars = [
+        item for item in approved_gold_stars
+        if isinstance(item.get("gold_star_number"), int)
+        and not isinstance(item.get("gold_star_number"), bool)
+    ]
+    unassigned_gold_stars = [
+        item for item in approved_gold_stars
+        if item.get("gold_star_number") is None
+    ]
     report = {
         "report_schema_version": "1.0.0",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -70,6 +79,21 @@ def main() -> int:
         # time and must never split the approved inventory.
         "authoritative_gold_star_count": len(approved_gold_stars),
         "active_runtime_gold_star_count": len(active_runtime_gold_stars),
+        "numbered_gold_star_count": len(numbered_gold_stars),
+        "unassigned_approved_gold_star_count": len(unassigned_gold_stars),
+        "highest_assigned_gold_star_number": max(
+            (item["gold_star_number"] for item in numbered_gold_stars),
+            default=None,
+        ),
+        "numbering_sequence_start": registry.get("numbering_policy", {}).get("sequence_start"),
+        "numbering_gap_register": registry.get("numbering_gap_register", []),
+        "number_assignments": {
+            item["benchmark_id"]: item["gold_star_number"]
+            for item in numbered_gold_stars
+        },
+        "unassigned_benchmark_ids": [
+            item["benchmark_id"] for item in unassigned_gold_stars
+        ],
         "benchmark_ids": [item["benchmark_id"] for item in registry["records"]],
         "application_commit": args.application_commit,
         "runtime_identity": args.runtime_identity,

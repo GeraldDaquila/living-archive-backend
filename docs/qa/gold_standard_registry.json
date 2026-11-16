@@ -248,7 +248,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "gold_star_candidate_state": "NOT_GOLD_STAR_UNTIL_FULLY_VALIDATED",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-responsibility-boundary-2026-10",
@@ -1457,7 +1460,10 @@
       "known_theme": "humane orientation",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-water-boiling-point-failure-control-2026-10-24",
@@ -1529,7 +1535,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-living-archive-cosmology-gold-standard-2026-10-25",
@@ -1572,7 +1581,10 @@
       "known_theme": "scope and worldview",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-first-principles-gold-standard-2026-10-25",
@@ -1620,7 +1632,10 @@
       "known_theme": "concept then source",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-living-archive-definition-gold-standard-2026-10-25",
@@ -1662,7 +1677,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-methods-comparison-gold-standard-2026-10-25",
@@ -1704,7 +1722,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-cosmology-generalization-standards-gold-standard-2026-10-25",
@@ -1745,7 +1766,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-stewardship-living-archive-meaning-gold-standard-2026-10-25",
@@ -1788,7 +1812,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-identifying-what-is-held-in-trust-gold-standard-2026-10-25",
@@ -1835,7 +1862,10 @@
       "rating_out_of_10": 9.8,
       "approval_state": "USER_AUTHORIZED_STRUCTURAL_GOLD_STAR_REVISION_2026-11-15",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-faithful-stewardship-values-conflict-gold-standard-2026-10-25",
@@ -1879,7 +1909,10 @@
       "doorway_status": "VERIFIED_CANONICAL_RECONCILED",
       "doorway_note": "Live Guide continuation matched a verified public asset in the canonical archive crosslink snapshot.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-intergenerational-stewardship-gold-standard-2026-10-25",
@@ -1918,7 +1951,10 @@
       "rating_out_of_10": 9.6,
       "approval_state": "User explicitly approved Gold Star elevation on 2026-11-15 after final review of the validated live response.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-system-vs-separate-problems-gold-standard-2026-10-25",
@@ -1958,7 +1994,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-leverage-point-misuse-gold-standard-2026-10-26",
@@ -2004,7 +2043,10 @@
       "doorway_status": "VERIFIED_CANONICAL_SELECTED",
       "doorway_note": "Selected from the complete canonical archive crosslink snapshot because the case study directly extends the response's concern with leverage, hidden influence, dependency, and accountable use of power.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-complexity-and-uncertainty-gold-standard-2026-10-26",
@@ -2051,7 +2093,10 @@
       "doorway_status": "VERIFIED_CANONICAL_RECONCILED",
       "doorway_note": "Live Guide continuation matched a verified public asset in the canonical archive crosslink snapshot.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-fragmented-knowledge-wise-action-gold-standard-2026-10-26",
@@ -2099,7 +2144,10 @@
       "doorway_note": "The Gold Star freezes the substantive live response. No canonical doorway URL is inferred or invented; doorway metadata remains non-authoritative until separately recovered and approved.",
       "rating_out_of_10": 9.6,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-leadership-vs-positional-authority-gold-standard-2026-10-26",
@@ -2138,7 +2186,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-operational-discipline-humane-leadership-gold-standard-2026-10-26",
@@ -2180,7 +2231,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "Visible doorway label is preserved in assertions/provenance, but no complete canonical title-and-URL doorway pair is inferred or invented.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-competing-stakeholder-obligations-gold-standard-2026-10-26",
@@ -2220,7 +2274,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-governance-beyond-administration-gold-standard-2026-10-26",
@@ -2261,7 +2318,10 @@
       "known_theme": "governance architecture",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-charisma-constitutional-restraint-gold-standard-2026-10-26",
@@ -2301,7 +2361,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-governance-redesign-preaction-questions-gold-standard-2026-10-26",
@@ -2340,7 +2403,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-institutional-memory-gold-standard-2026-10-26",
@@ -2378,7 +2444,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-conflicting-information-discernment-gold-star-2026-11-07",
@@ -2427,7 +2496,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "Visible doorway label is preserved in assertions/provenance, but no complete canonical title-and-URL doorway pair is inferred or invented.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-developmental-language-gold-star-2026-11-09",
@@ -2479,7 +2551,19 @@
       "reasoning_family": "developmental_language_descriptive_not_hierarchical",
       "transferable_lesson": "Answer directly by distinguishing descriptions of capacities from rankings of human worth, showing how labels can dismiss lived perspectives, and restoring developmental frameworks as descriptive and provisional rather than hierarchical.",
       "transfer_boundary": "Do not use developmental labels to rank human worth, explain away a person's perspective, erase context or situational variation, or present an unverified doorway URL as canonical.",
-      "user_approved_at": "2026-11-15"
+      "user_approved_at": "2026-11-15",
+      "numbering_status": "ASSIGNED",
+      "gold_star_number": 57,
+      "numbering_recovery": {
+        "recovery_class": "HISTORICAL_EXPLICIT_ASSIGNMENT_RECOVERY",
+        "recovered_number": 57,
+        "source_pr": 1430,
+        "source_pr_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/1430",
+        "source_merge_commit": "4aecd25169b41aeda905f74aab70cdcbc8b0b560",
+        "previous_registry_state": "USER_APPROVED_GOLD_STANDARD without gold_star_number field",
+        "authority_basis": "Merged PR #1430 explicitly records the user's instruction that this reviewed developmental-language response becomes Gold Star #57 after merge; the record's elevation_approval_evidence preserves the exact user instruction. The PR merged successfully.",
+        "recovered_at": "2026-11-16"
+      }
     },
     {
       "benchmark_id": "general-guide-civilizational-transition-archive-meaning-gold-star-2026-11-13",
@@ -2520,7 +2604,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13",
@@ -2561,7 +2648,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "Legacy record contained incomplete doorway metadata; no canonical URL is inferred or invented. Doorway is explicitly non-authoritative until separately recovered and approved.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-reflective-decline-without-romanticizing-gold-star-2026-11-13",
@@ -2605,7 +2695,10 @@
       },
       "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-systems-intelligibility-without-monocausal-reduction-gold-star-2026-11-13",
@@ -2644,7 +2737,10 @@
       },
       "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-contextual-synthesis-across-different-values-gold-star-2026-11-13",
@@ -2693,7 +2789,10 @@
       },
       "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-2026-11-13",
@@ -2743,7 +2842,10 @@
       },
       "freeze_policy": "Frozen approved response and doorway are immutable reference artifacts; future changes require a new approval record rather than silent mutation.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-living-archive-purpose-orientation-gold-star-2026-11-13",
@@ -2800,7 +2902,8 @@
       "gold_star_number": 71,
       "reasoning_family": "orientation_within_abundance_relational_sensemaking",
       "transferable_lesson": "Strong relational sensemaking responds to fragmentation by holding ideas and conditions in relationship, preserving questions that resist simplification, and creating orientation for responsible judgment without pretending to resolve the whole problem.",
-      "transfer_boundary": "Transfer the orientation and relational sensemaking discipline, not the exemplar-specific claims about the Archive, wording, or doorway."
+      "transfer_boundary": "Transfer the orientation and relational sensemaking discipline, not the exemplar-specific claims about the Archive, wording, or doorway.",
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-modes-of-knowing-dialogue-gold-star-2026-11-13",
@@ -2856,7 +2959,8 @@
       "explicit_user_elevation_approval": true,
       "elevation_approval_evidence": "User instruction on 2026-11-15: 'elevate'. Reconciled as a reapproval of the existing exact exemplar rather than a duplicate exact-question record.",
       "approval_state": "Original exemplar approved on 2026-11-13 and explicitly reapproved by the user on 2026-11-15 after live review.",
-      "user_approved_at": "2026-11-15"
+      "user_approved_at": "2026-11-15",
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-archive-claim-synthesis-boundary-gold-star-2026-11-13",
@@ -2912,7 +3016,8 @@
       "transferable_lesson": "Strong Archive guidance preserves epistemic integrity by distinguishing what a source says, what a synthesis infers across sources, and what orientation offers as a way of continuing thought.",
       "transfer_boundary": "Transfer the three-layer epistemic discipline, not the exemplar-specific wording, claims, or doorway.",
       "user_approved_at": "2026-11-15",
-      "gold_star_number": 72
+      "gold_star_number": 72,
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-open-question-orientation-gold-star-2026-11-13",
@@ -2960,7 +3065,8 @@
       "legacy_approval_grandfathered": true,
       "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
       "gold_star_number": 75,
-      "numbering_reconciliation_note": "Explicitly numbered #75 on 2026-11-15 following user review and reconciliation. The exemplar was already canonical and approved; this change reconciles its visible Gold Star sequence without duplicating the record."
+      "numbering_reconciliation_note": "Explicitly numbered #75 on 2026-11-15 following user review and reconciliation. The exemplar was already canonical and approved; this change reconciles its visible Gold Star sequence without duplicating the record.",
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-delegated-judgment-moral-limits-gold-star-2026-11-13",
@@ -3007,7 +3113,8 @@
       "doorway_status": "NOT_APPROVED_CONCEPTUAL_MISMATCH",
       "legacy_approval_grandfathered": true,
       "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
-      "gold_star_number": 77
+      "gold_star_number": 77,
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "gs-2026-11-13-04-migrated-canonical-ledger",
@@ -3048,7 +3155,10 @@
       "legacy_approval_grandfathered": true,
       "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
       "superseded_exact_authority_by": "general-guide-systems-map-useful-false-confidence-gold-standard-2026-11-15",
-      "supersession_reason": "A later user-reviewed Gold Star #83 explicitly approved a refined answer for the same exact question. The migrated exemplar remains canonical historical and qualitative evidence but is no longer eligible as competing exact runtime answer authority."
+      "supersession_reason": "A later user-reviewed Gold Star #83 explicitly approved a refined answer for the same exact question. The migrated exemplar remains canonical historical and qualitative evidence but is no longer eligible as competing exact runtime answer authority.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "gs-2026-11-13-03-cross-scale-orientation-canonical-continuation",
@@ -3123,7 +3233,10 @@
       "known_theme": "humane performance, organizational dignity, responsible relationships, standards and accountability",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "gs-2026-11-14-stewardship-leadership-decline-crisis",
@@ -3162,7 +3275,10 @@
       "known_theme": "stewardship, leadership, decline, crisis, responsibility, trust, recovery, renewal, accountability",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "gs-2026-11-14-organizational-culture-ethical-behavior",
@@ -3199,7 +3315,10 @@
       "known_theme": "organizational culture, ethics, operating norms, incentives, leadership signals, accountability, principled dissent",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "gs-2026-11-14-organizational-learning-from-failure",
@@ -3240,7 +3359,10 @@
       "known_theme": "organizational learning, failure, mistakes, candor, accountability, blame, correction, institutional memory",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "gs-2026-11-14-governance-leadership-management-distinction",
@@ -3280,7 +3402,10 @@
       "known_theme": "governance, leadership, management, authority, accountability, institutional conditions",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "gs-2026-11-14-inner-development-external-systems-feedback-loop",
@@ -3319,7 +3444,10 @@
       },
       "activation_note": "Activated so every user-approved Gold Star is available to the Guide's relevance-selected qualitative learning layer.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing",
@@ -3356,7 +3484,10 @@
       "known_theme": "recognized-concept-without-archive-specific-evidence",
       "expected_doorway": null,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "PR_1517_ALLOCATION_REJECTED",
+      "numbering_unassigned_reason": "PR #1517 proposed Gold Star #89 for this already-approved exemplar, but the PR was closed unmerged because its stale branch omitted the existing #88 reflection/therapy record. The proposed #89 was never a canonical assignment; #89 was subsequently assigned to gs-2026-11-14-practice-community-feedback-development and #90 to gs-2026-11-16-meaning-making-factual-explanation. This exemplar remains USER_APPROVED_GOLD_STANDARD and runtime-active; only its optional display serial is unassigned. Any future allocation requires separate explicit authorization and must follow the current maximum (#90), not backfill #85 or #86."
     },
     {
       "benchmark_id": "gs-2026-11-14-practice-community-feedback-development",
@@ -3414,7 +3545,8 @@
         "reason": "The exemplar was canonically approved before the registry's strict immutable numbering gate and remained approved but unnumbered; successful live doorway acceptance triggered formal numbered elevation.",
         "previous_numbering_state": "approved_unnumbered",
         "migration_class": "explicit_user_authorized_numbering_migration"
-      }
+      },
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "gs-2026-11-14-sacred-language-clarity-power-live-candidate",
@@ -3454,7 +3586,10 @@
       "doorway_status": "CANONICAL_URL_VALIDATED",
       "activation_note": "Activated so every user-approved Gold Star is available to the Guide's relevance-selected qualitative learning layer.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "gs-2026-11-14-technical-capability-legitimate-authority",
@@ -3493,7 +3628,10 @@
       "known_theme": "technical capability, legitimate authority, expertise, mandate, accountability, legitimacy, power",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "gs-2026-11-14-tools-and-purposes-distinction",
@@ -3530,7 +3668,10 @@
       },
       "doorway_status": "CANONICAL_URL_VALIDATED",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "gs-2026-11-15-ecological-systems-extractive-economics",
@@ -3566,7 +3707,10 @@
       "known_theme": "ecological systems, extractive economics, extraction, maintenance, resilience, ecosystem services, systems change",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "gs-2026-11-15-accountable-retrieval",
@@ -3602,7 +3746,10 @@
       "known_theme": "accountable retrieval, source grounding, evidence, interpretation, uncertainty, traceability, answerability",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "gs-2026-11-15-confident-synthesis-fabricated-coherence",
@@ -3639,7 +3786,10 @@
       "known_theme": "confident synthesis, fabricated coherence, uncertainty, alternatives, accountability, evidence, consequences, judgment, decision authority",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "gs-2026-11-15-regenerative-design-organizational-level",
@@ -3678,7 +3828,10 @@
       "known_theme": "regenerative design, organizational purpose, system health, renewal, resilience, consequences, adaptation, sustainability, governance",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "gs-candidate-2026-11-15-circularity-regeneration",
@@ -3723,7 +3876,10 @@
       "transferable_lesson": "Answer the governing distinction directly, explain why one related practice can contribute without being sufficient, then connect the distinction to consequences and a meaningful next inquiry.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific claims, wording, or doorway; use the doorway only for the exact approved query.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "gs-2026-11-15-constitutional-reasoning-archives-sense",
@@ -3762,7 +3918,10 @@
       "known_theme": "constitutional reasoning, Living Archive, recovery, constitutional relationships, interpretation, inference, canonical architecture, Constitutional Register",
       "runtime_transfer": true,
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-human-development-archive-framework-gold-standard-2026-11-15",
@@ -3803,7 +3962,10 @@
       "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
       "doorway_note": "The observed doorway title is not treated as authoritative until its canonical destination is separately verified and approved.",
       "legacy_approval_grandfathered": true,
-      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
+      "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
     },
     {
       "benchmark_id": "general-guide-agency-circumstance-gold-standard-2026-11-15",
@@ -3847,7 +4009,19 @@
       "reasoning_family": "agency_within_circumstance_asymmetry",
       "transferable_lesson": "Circumstances shape the field of possible action without fully determining response; strong conceptual explanations preserve that asymmetry and connect it to responsibility without blame.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, financial-pressure example, claims, or continuation.",
-      "user_approved_at": "2026-11-15"
+      "user_approved_at": "2026-11-15",
+      "numbering_status": "ASSIGNED",
+      "gold_star_number": 56,
+      "numbering_recovery": {
+        "recovery_class": "HISTORICAL_SEQUENCE_ASSIGNMENT_RECOVERY",
+        "recovered_number": 56,
+        "source_pr": 1428,
+        "source_pr_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/1428",
+        "source_merge_commit": "2a91b951a24bc2e7929a65fc728aa8a67e83c5a3",
+        "previous_registry_state": "USER_APPROVED_GOLD_STANDARD without gold_star_number field",
+        "authority_basis": "PR #1427 established 55 approved legacy records. PR #1428 then merged this agency-and-circumstance exemplar as the 56th approved record, raising the canonical count to 56. Immediately afterward, the user explicitly designated the next developmental-language exemplar as Gold Star #57 in PR #1430. The adjacent merged sequence therefore identifies this PR #1428 exemplar as #56. This is a historical sequence recovery, not a new allocation. The later commit subject mentioning #86 is contradicted by the actual diff and this merge sequence.",
+        "recovered_at": "2026-11-16"
+      }
     },
     {
       "benchmark_id": "general-guide-culture-notice-value-imagine-gold-standard-2026-11-15",
@@ -3891,7 +4065,19 @@
       "reasoning_family": "culture_as_interpretive_field_with_agency",
       "transferable_lesson": "Culture shapes the interpretive field in which people notice, value, and imagine; strong explanations preserve both that formative influence and the capacity to question, revise, and widen inherited horizons.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
-      "user_approved_at": "2026-11-15"
+      "user_approved_at": "2026-11-15",
+      "numbering_status": "ASSIGNED",
+      "gold_star_number": 58,
+      "numbering_recovery": {
+        "recovery_class": "HISTORICAL_EXPLICIT_ASSIGNMENT_RECOVERY",
+        "recovered_number": 58,
+        "source_pr": 1432,
+        "source_pr_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/1432",
+        "source_merge_commit": "330618c1991fbd41f50b265755b7c29c950e3ad8",
+        "previous_registry_state": "USER_APPROVED_GOLD_STANDARD without gold_star_number field",
+        "authority_basis": "Merged PR #1432 is titled 'Elevate reviewed culture response to Gold Star #58'; its PR body states that the user explicitly authorized elevation as #58 and that the PR promotes the culture exemplar. The merge commit confirms the approved record and qualitative-transfer review were added.",
+        "recovered_at": "2026-11-16"
+      }
     },
     {
       "benchmark_id": "general-guide-transformation-temporary-relief-gold-standard-2026-11-15",
@@ -3935,7 +4121,19 @@
       "reasoning_family": "durable_pattern_change_vs_immediate_state_change",
       "transferable_lesson": "A durable transformation is best distinguished from temporary relief by what remains different when the immediate feeling passes and a familiar pattern or situation returns.",
       "transfer_boundary": "Transfer the structural distinction and diagnostic discipline, not the exemplar-specific wording, examples, or continuation title.",
-      "user_approved_at": "2026-11-15"
+      "user_approved_at": "2026-11-15",
+      "numbering_status": "ASSIGNED",
+      "gold_star_number": 59,
+      "numbering_recovery": {
+        "recovery_class": "HISTORICAL_EXPLICIT_ASSIGNMENT_RECOVERY",
+        "recovered_number": 59,
+        "source_pr": 1434,
+        "source_pr_url": "https://github.com/GeraldDaquila/living-archive-backend/pull/1434",
+        "source_merge_commit": "ae932120a4155178303bf06efcb75151fbc920b8",
+        "previous_registry_state": "USER_APPROVED_GOLD_STANDARD without gold_star_number field",
+        "authority_basis": "Merged PR #1434 is titled 'Elevate transformation and temporary relief response as Gold Star #59'; its PR body states that the reviewed elevation is #59 and records the approved exemplar and transfer review. The merge commit confirms the addition.",
+        "recovered_at": "2026-11-16"
+      }
     },
     {
       "benchmark_id": "general-guide-contemplative-insight-empirical-evidence-gold-standard-2026-11-15",
@@ -3980,7 +4178,8 @@
       "transferable_lesson": "Strong explanations of different epistemic modes clarify what each can establish, where its authority ends, and how the modes can remain distinct without becoming enemies.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
       "user_approved_at": "2026-11-15",
-      "gold_star_number": 60
+      "gold_star_number": 60,
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-consciousness-civilization-gold-standard-2026-11-15",
@@ -4025,7 +4224,8 @@
       "transferable_lesson": "Civilizations embody assumptions about human capacities, while collective systems also shape the conditions in which those capacities develop; strong explanations preserve this reciprocal relationship.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
       "user_approved_at": "2026-11-15",
-      "gold_star_number": 61
+      "gold_star_number": 61,
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-recover-orientation-uncertainty-gold-standard-2026-11-15",
@@ -4070,7 +4270,8 @@
       "transferable_lesson": "Evidence boundaries should constrain attribution, not erase ordinary human meaning; strong orientation restores enough context for a responsible next step while uncertainty remains unfinished.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
       "user_approved_at": "2026-11-15",
-      "gold_star_number": 62
+      "gold_star_number": 62,
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-technology-stewardship-governance-refinement-2026-11-15",
@@ -4123,7 +4324,8 @@
       "transferable_lesson": "Technology can extend capacity without supplying legitimate social direction; strong stewardship explanations distinguish what systems can do from the human judgment required to decide what ought to matter, who bears consequences, and what capacities should be sustained.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or doorway.",
       "user_approved_at": "2026-11-15",
-      "gold_star_number": 64
+      "gold_star_number": 64,
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-algorithmic-amplification-institutional-failure-gold-standard-2026-11-15",
@@ -4169,7 +4371,8 @@
       "transferable_lesson": "Strong systems explanations answer the mechanism actually named by the visitor before widening to the larger system, preserving the distinction between what amplifies a condition and what originally produced it.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
       "user_approved_at": "2026-11-15",
-      "gold_star_number": 63
+      "gold_star_number": 63,
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-ai-interpreter-vs-authority-gold-standard-2026-11-15",
@@ -4217,7 +4420,8 @@
       "transferable_lesson": "Strong explanations of AI's role separate the ability to clarify a decision landscape from the legitimate authority to decide within it, preserving accountability and making the system's contribution open to inspection and challenge.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
       "user_approved_at": "2026-11-15",
-      "gold_star_number": 65
+      "gold_star_number": 65,
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-regeneration-beyond-environmental-restoration-gold-standard-2026-11-15",
@@ -4264,7 +4468,8 @@
       "transferable_lesson": "Strong systems explanations of regeneration move from repair to the conditions of continued renewal, while preserving limits, consequences, and the visitor's concrete question.",
       "transfer_boundary": "Transfer the structural discipline, not the exemplar-specific wording, examples, claims, or continuation.",
       "user_approved_at": "2026-11-15",
-      "gold_star_number": 66
+      "gold_star_number": 66,
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-growth-within-living-limits-gold-standard-2026-11-15",
@@ -4311,7 +4516,8 @@
         "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
         "approval_evidence": "User instruction: 'elevate to gold star. merge'.",
         "evidence_boundary": "Screenshot establishes the exact reviewed response, visible doorway, rating basis, and explicit approval."
-      }
+      },
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-archive-grounded-guidance-knowledge-sensemaking-gold-standard-2026-11-15",
@@ -4359,7 +4565,8 @@
         "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
         "approval_evidence": "User instruction: 'elevate. merge'.",
         "evidence_boundary": "Screenshot establishes the exact reviewed response, the visible canonical doorway, and explicit approval. The doorway was validated through the structural regression and live deployment sequence before visitor-facing acceptance."
-      }
+      },
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-local-action-systemic-ecological-transformation-gold-standard-2026-11-15",
@@ -4407,7 +4614,8 @@
         "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
         "approval_evidence": "User instruction: 'elevate. merge'.",
         "evidence_boundary": "Screenshot establishes the reviewed response and visible doorway; elevation records the user-approved live exemplar."
-      }
+      },
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-regenerative-claims-substance-branding-gold-standard-2026-11-15",
@@ -4455,7 +4663,8 @@
         "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
         "approval_evidence": "User instruction: 'elevate. merge'.",
         "evidence_boundary": "Screenshot establishes the reviewed response and visible doorway; elevation records the user-approved live exemplar."
-      }
+      },
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-care-commons-economic-recognition-gold-standard-2026-11-15",
@@ -4502,7 +4711,8 @@
         "live_surface": "https://geralddaquila.com/the-guide-find-your-way2/",
         "approval_evidence": "User instruction: 'elevate. merge'.",
         "evidence_boundary": "Screenshot establishes the exact reviewed live response, visible doorway, rating basis, and explicit approval."
-      }
+      },
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-stewardship-distinction-ownership-control-management-benevolence-gold-standard-2026-11-15",
@@ -4554,7 +4764,8 @@
         "How does stewardship differ from management?",
         "Is stewardship just benevolence or good intentions?"
       ],
-      "user_approved_at": "2026-11-15"
+      "user_approved_at": "2026-11-15",
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-stewardship-repair-after-failure-gold-standard-2026-11-15",
@@ -4605,7 +4816,8 @@
         "What should change after an institution causes harm?"
       ],
       "user_approved_at": "2026-11-15",
-      "observed_doorway_title": "How Do I Become More Trustworthy?"
+      "observed_doorway_title": "How Do I Become More Trustworthy?",
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-care-for-the-commons-gold-standard-2026-11-15",
@@ -4655,7 +4867,8 @@
         "Does collective care remove individual accountability?",
         "How should institutions steward what people share?"
       ],
-      "user_approved_at": "2026-11-15"
+      "user_approved_at": "2026-11-15",
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-feedback-loops-human-institutions-gold-standard-2026-11-15",
@@ -4706,7 +4919,8 @@
         "Why doesn't receiving information always lead to change?"
       ],
       "user_approved_at": "2026-11-15",
-      "observed_doorway_title": "Unraveling Stress: How the System Responds and Why It Loops"
+      "observed_doorway_title": "Unraveling Stress: How the System Responds and Why It Loops",
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-systems-explanation-vs-everything-connected-gold-standard-2026-11-15",
@@ -4757,7 +4971,8 @@
         "When does systems thinking become vague complexity?"
       ],
       "user_approved_at": "2026-11-15",
-      "observed_doorway_title": "Why Everything Feels Connected (And What That Actually Means)"
+      "observed_doorway_title": "Why Everything Feels Connected (And What That Actually Means)",
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-cross-scale-orientation-refined-gold-standard-2026-11-15",
@@ -4808,7 +5023,8 @@
         "How do small actions accumulate into systemic change?",
         "How should we connect personal agency with historical conditions?"
       ],
-      "user_approved_at": "2026-11-15"
+      "user_approved_at": "2026-11-15",
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-systems-map-useful-false-confidence-gold-standard-2026-11-15",
@@ -4859,7 +5075,8 @@
         "What is the difference between a systems map and evidence?",
         "How do you test whether a systems model is wrong?"
       ],
-      "user_approved_at": "2026-11-15"
+      "user_approved_at": "2026-11-15",
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-actionable-ethical-responsibility-gold-standard-2026-11-15",
@@ -4910,7 +5127,8 @@
         "How should leaders include people affected by a decision?",
         "Can AI make governance decisions without replacing human responsibility?"
       ],
-      "user_approved_at": "2026-11-15"
+      "user_approved_at": "2026-11-15",
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-formal-actual-power-structure-gold-standard-2026-11-16",
@@ -4954,7 +5172,8 @@
         "Distinguish formal authority from actual influence by tracing who shapes options, controls information, and can alter outcomes.",
         "Use repeated decision patterns, access, dependency, and ability to challenge—not the organization chart alone—to identify where consequential power sits.",
         "Do not presume informal influence is illegitimate; assess whether it is visible, contestable, and accountable."
-      ]
+      ],
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "general-guide-reflection-vs-therapy-boundary-gold-standard-2026-11-16",
@@ -4998,7 +5217,8 @@
         "Distinguish reflective orientation from clinical treatment by purpose, depth, professional role, and scope.",
         "Keep reflection exploratory and non-diagnostic; do not represent journaling, mindfulness, or general orientation as therapy.",
         "Name the boundary clearly and direct people toward qualified professional care when diagnosis or treatment is needed."
-      ]
+      ],
+      "numbering_status": "ASSIGNED"
     },
     {
       "benchmark_id": "gs-2026-11-16-meaning-making-factual-explanation",
@@ -5052,10 +5272,11 @@
       "reasoning_family": "fact-meaning-distinction-question",
       "transferable_lesson": "Separate factual explanation from meaning-making, then reconnect them without allowing interpretation to impersonate evidence.",
       "transfer_boundary": "Do not transfer this pattern by treating evidence as a complete answer to questions of significance or treating interpretation as factual proof.",
-      "elevation_approval_evidence": "User reviewed the live visitor-facing result with the verified canonical doorway and explicitly instructed 'elevate' on 2026-11-16."
+      "elevation_approval_evidence": "User reviewed the live visitor-facing result with the verified canonical doorway and explicitly instructed 'elevate' on 2026-11-16.",
+      "numbering_status": "ASSIGNED"
     }
   ],
-  "last_reconciliation_note": "Gold Star inventory reconciled on 2026-11-16: 80 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative inventory; 27 carry explicit Gold Star numbers. The highest assigned number is #88. #85 and #86 remain unassigned because no provenance evidence authorizes retroactive assignment; they are not counted as missing approved records.",
+  "last_reconciliation_note": "Gold Star registry numbering reconciled on 2026-11-16: 118 total records; 81 approved Gold Stars; 81 matching qualitative-transfer reviews; 33 canonical serial assignments (#56–#84 and #87–#90); 48 approved records explicitly marked UNASSIGNED with reasons. Historical assignments #56–#59 were recovered from merged PRs #1428, #1430, #1432 and #1434; their canonical records had omitted the serial field. #85 and #86 are the only gaps in the serial range. The #86 commit subject is a mislabel on the #56 agency/circumstance exemplar. The spiritual-bypassing exemplar remains approved and adaptive-learning-active but unnumbered because its proposed #89 allocation in rejected PR #1517 was never merged; #89 and #90 are now occupied by other canonical exemplars.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -5168,7 +5389,7 @@
     ],
     "runtime_integration_note": "Runtime composition must invoke active_quality_contribution() for eligible unseen questions before composition and pass only structural guidance—not exemplar answer text, factual claims, examples, citations, or doorways—into the response process. Exact-match enforcement remains separate.",
     "registry_authority": "SOLE_CANONICAL_SOURCE",
-    "last_reconciled": "2026-11-13"
+    "last_reconciled": "2026-11-16"
   },
   "canonical_storage": {
     "authority": "docs/qa/gold_standard_registry.json on the living-archive-backend main branch is the sole authoritative, additive Gold Star ledger.",
@@ -5188,8 +5409,50 @@
     "approved_gold_star_count": 81,
     "registry_record_count": 118,
     "review_reconciliation": "Canonical inventory reconciled against the current registry on 2026-11-16: 81 records carry USER_APPROVED_GOLD_STANDARD and remain the sole authoritative Gold Star inventory. Historical and superseded records remain outside that count.",
-    "numbered_gold_star_record_count": 29,
+    "numbered_gold_star_record_count": 33,
     "highest_assigned_gold_star_number": 90,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-16 confirms 29 explicitly numbered USER_APPROVED_GOLD_STANDARD records, with no duplicate numbers. Gold Star #89 and #90 were allocated through explicit user-authorized elevation/migration records; existing provenance gaps are not inferred or backfilled."
-  }
+    "numbering_reconciliation": "Record-level and historical-PR audit on 2026-11-16: 81 approved Gold Stars; 33 assigned display serials #56–#84 and #87–#90; 48 approved records explicitly UNASSIGNED with reasons. PR #1427 established 55 approved legacy records; PR #1428 added the 56th approved exemplar (agency/circumstance), PR #1430 explicitly assigned #57 to developmental language, PR #1432 explicitly assigned #58 to culture, and PR #1434 explicitly assigned #59 to transformation/relief. These four historical serials were omitted from their canonical record fields and are now recovered with source PR/merge provenance. #85 and #86 are the only gaps in the serial range. The #86 commit subject is a mislabel on the #56 agency/circumstance record; its diff does not assign #86. PR #1517's proposed #89 for spiritual bypassing was closed unmerged after omitting #88; #89 was later assigned to the development-doorway exemplar and #90 to the meaning-making exemplar.",
+    "unassigned_approved_gold_star_count": 48,
+    "documented_numbering_gap_count": 2
+  },
+  "numbering_policy": {
+    "identity_key": "benchmark_id",
+    "optional_display_serial_field": "gold_star_number",
+    "meaning": "A Gold Star number is an optional human-facing serial label, not the identity of the benchmark and not a prerequisite for Gold Star approval or adaptive-learning participation.",
+    "adaptive_learning_rule": "Load every USER_APPROVED_GOLD_STANDARD with runtime_transfer=true and a matching qualitative-transfer review by benchmark_id. Never filter, rank, or exclude a Gold Star because its display serial is unassigned.",
+    "assignment_rule": "New serial allocations require explicit user authorization, a canonical record-level assignment, uniqueness, and contiguous allocation after the current maximum. Existing assignments are immutable. Existing historical gaps are not backfilled by inference.",
+    "unassigned_rule": "Every approved record without gold_star_number must declare numbering_status=UNASSIGNED and a non-empty numbering_unassigned_reason_code and numbering_unassigned_reason. Every numbered approved record must declare numbering_status=ASSIGNED.",
+    "sequence_start": 56,
+    "sequence_start_basis": "The recoverable numbered serial sequence begins at #56: PR #1427 recorded 55 approved legacy records; PR #1428 merged the next approved exemplar as the 56th; PR #1430 then explicitly designated the next exemplar as #57. The 55 pre-existing records are not retroactively assigned #1–#55 without individual canonical evidence.",
+    "historical_recovery_rule": "A missing serial field may be restored only when a merged PR and user-approval/sequence evidence establish the original assignment. Record the source PR, merge commit, prior registry state, recovery class, and evidence basis. Historical recovery is distinct from allocating a new serial; new allocations still begin after the current maximum.",
+    "legacy_approval_rule": "Legacy-grandfathered approved records remain approved and adaptive-learning-eligible. They are UNASSIGNED unless an individual historical allocation is supported by canonical record-level or recoverable merged-PR evidence. Do not assign #1–#55 merely by ordering the 55 legacy approvals; the recorded serial sequence begins at #56."
+  },
+  "numbering_gap_register": [
+    {
+      "number": 85,
+      "status": "UNASSIGNED_HISTORICAL_GAP",
+      "reason_code": "NO_CANONICAL_ALLOCATION_RECORD",
+      "reason": "No approved Gold Star record or canonical assignment event for serial #85 was recovered in the canonical registry or reviewed Gold Star PR/commit evidence. GitHub PR #85 is a September 2026 v340 topical-doorway code change, not a Gold Star assignment.",
+      "evidence_checked": [
+        "Canonical registry record-level assignments on main",
+        "Gold Star registry commit history",
+        "GitHub PR #85: v340 topical doorway question-alignment repair"
+      ],
+      "disposition": "Keep as a documented historical gap. Do not infer a Gold Star record or backfill this serial."
+    },
+    {
+      "number": 86,
+      "status": "UNASSIGNED_HISTORICAL_GAP",
+      "reason_code": "MISLEADING_COMMIT_SUBJECT_NO_ALLOCATION",
+      "reason": "No canonical Gold Star assignment event for serial #86 was recovered. Commit 7a036632323b7c09003d1fce637a7b49128a27bf is titled 'Complete provenance date for Gold Star 86', but its diff only adds provenance.source_date to general-guide-agency-circumstance-gold-standard-2026-11-15. That same record is historically recovered as Gold Star #56 from merged PR #1428 and the immediately following explicit #57 allocation in PR #1430. The commit subject's '#86' is therefore a mislabel, not a second assignment. GitHub PR #86 is a September 2026 v340 grief-versus-death-topic code change, not a Gold Star assignment.",
+      "evidence_checked": [
+        "Canonical registry record-level assignments on main",
+        "Commit 7a036632323b7c09003d1fce637a7b49128a27bf diff",
+        "GitHub PR #1428 merge and 56th-approved-record count transition",
+        "GitHub PR #1430 explicit user-authorized #57 allocation",
+        "GitHub PR #86: v340 grief/death-topic classification repair"
+      ],
+      "disposition": "Keep as a documented historical gap. Treat the commit subject as a mislabel; do not retroactively assign #86."
+    }
+  ]
 }
