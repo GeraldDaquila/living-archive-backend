@@ -176,23 +176,49 @@ def main():
     ]
 
     for record in active:
-        missing = sorted(k for k in {
-            "benchmark_id", "subsystem", "status", "runtime_transfer",
-            "query", "expected_response", "known_theme", "freeze_policy",
-        } if not record.get(k))
+        required_text = {
+            "benchmark_id", "subsystem", "query", "expected_response",
+            "known_theme", "freeze_policy", "approval_state",
+            "elevation_approval_evidence", "reasoning_family",
+            "transferable_lesson", "transfer_boundary",
+        }
+        missing = sorted(k for k in required_text if not str(record.get(k) or "").strip())
         if missing:
-            fail(f"{record.get('benchmark_id')} missing: {', '.join(missing)}")
-
+            fail(f"{record.get('benchmark_id')} missing required Gold Star metadata: {', '.join(missing)}")
+        if not isinstance(record.get("rating_out_of_10"), (int, float)) or isinstance(record.get("rating_out_of_10"), bool):
+            fail(f"{record['benchmark_id']} lacks a numeric rating_out_of_10")
+        if not record.get("user_approved_at"):
+            fail(f"{record['benchmark_id']} lacks user_approved_at provenance")
+        provenance = record.get("provenance")
+        if not isinstance(provenance, dict):
+            fail(f"{record['benchmark_id']} lacks a provenance object")
+        if not str(provenance.get("source") or "").strip():
+            fail(f"{record['benchmark_id']} lacks provenance.source")
+        if not str(provenance.get("source_date") or "").strip():
+            fail(f"{record['benchmark_id']} lacks provenance.source_date")
+        if not str(provenance.get("evidence_boundary") or "").strip():
+            fail(f"{record['benchmark_id']} lacks provenance.evidence_boundary")
+        assertions = record.get("assertions")
+        if not isinstance(assertions, list) or not assertions or any(not str(x).strip() for x in assertions):
+            fail(f"{record['benchmark_id']} lacks non-empty acceptance assertions")
+        capabilities = record.get("gold_star_capabilities")
+        if not isinstance(capabilities, dict) or capabilities.get("active_quality_contributor") is not True:
+            fail(f"{record['benchmark_id']} lacks active quality-contributor authority")
+        if capabilities.get("exact_answer_authority") is not True and not record.get("reasoning_family"):
+            fail(f"{record['benchmark_id']} lacks a reasoning family for structural transfer")
         legacy = record.get("legacy_approval_grandfathered") is True
-        if not legacy:
+        if legacy:
+            if not str(record.get("legacy_approval_grandfathered_reason") or "").strip():
+                fail(f"{record['benchmark_id']} has an undocumented legacy approval exemption")
+        else:
             if record.get("user_reviewed_response") is not True:
                 fail(f"{record['benchmark_id']} lacks explicit evidence that the user reviewed the actual response")
             if record.get("explicit_user_elevation_approval") is not True:
                 fail(f"{record['benchmark_id']} lacks explicit user authorization for Gold Star elevation")
             if not str(record.get("elevation_approval_evidence") or "").strip():
                 fail(f"{record['benchmark_id']} lacks recorded elevation approval evidence")
-        elif not str(record.get("legacy_approval_grandfathered_reason") or "").strip():
-            fail(f"{record['benchmark_id']} has an undocumented legacy approval exemption")
+        if record.get("freeze_policy") != "immutable_user_approved_gold_standard":
+            fail(f"{record['benchmark_id']} is not frozen under the canonical approval policy")
 
         if "expected_doorway" not in record:
             fail(f"{record['benchmark_id']} lacks explicit doorway state")
