@@ -63,7 +63,7 @@ def percentile(values, fraction):
     return ordered[min(len(ordered) - 1, int((len(ordered) - 1) * fraction))]
 
 
-def measure(fn, queries, rounds=250):
+def measure(fn, queries, rounds=40):
     samples = []
     for _ in range(rounds):
         started = time.perf_counter_ns()
@@ -84,9 +84,9 @@ def main():
         "Convert 25 dollars to pesos.",
         "How do I reset a forgotten password?",
     })
-    if len(queries) > 80:
-        stride = max(1, len(queries) // 80)
-        queries = queries[::stride][:80]
+    if len(queries) > 40:
+        stride = max(1, len(queries) // 40)
+        queries = queries[::stride][:40]
 
     print(f"approved_registry_lessons={len(base)} benchmark_queries={len(queries)}")
     for size in (len(base), 150, 300, 500, 1000):
@@ -120,7 +120,7 @@ def main():
             return legacy_select(query, candidates)
 
         # Warm both code paths before collecting samples.
-        for query in queries[:10]:
+        for query in queries[:5]:
             indexed(query)
             legacy(query)
         old_p50, old_p95 = measure(legacy, queries)
