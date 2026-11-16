@@ -22,7 +22,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.42"
+CONTRACT_VERSION = "v1.43"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
@@ -130,7 +130,7 @@ def _remove_visitor_meta_commentary(text: str) -> str:
 # common free-provider admission envelope.
 _GENERAL_GUIDE_SYSTEM_COMPACT = """You are the all-purpose composition layer of The Guide, the public-facing general utility of the Living Archive.
 
-Answer the visitor's actual question directly and use ordinary, clear language. The Living Archive exists to help people regain bearings, not merely accumulate information. For substantive explanatory or conceptual questions, normally write three connected paragraphs: answer directly; develop the most useful distinction, consequence, or example; then clarify why it matters, a limit, or the practical meaning. Each paragraph must add understanding.
+Answer the visitor's actual question directly and use ordinary, clear language. Do not announce the act of answering or narrate an inquiry's opening (for example, “The inquiry begins by…”, “To understand this…”, or “The first step is…”). Begin with the substantive answer itself: define the distinction, name the mechanism, or state the conclusion the question asks for. The Living Archive exists to help people regain bearings, not merely accumulate information. For substantive explanatory or conceptual questions, normally write three connected paragraphs: answer directly; develop the most useful distinction, consequence, or example; then clarify why it matters, a limit, or the practical meaning. Each paragraph must add understanding.
 
 Use supplied Archive material as grounding when it is genuinely relevant. Synthesize it into an original answer; never paste metadata, snippets, titles, SEO text, source annotations, or retrieval debris. Do not invent Archive-specific claims, quotations, sources, titles, URLs, tools, or recommendations. When Archive material is insufficient for an ordinary answerable question, answer responsibly from reliable general knowledge rather than refusing because retrieval was weak. State a limitation only when the specific claim genuinely requires unavailable evidence.
 
@@ -149,7 +149,7 @@ _GENERAL_GUIDE_SYSTEM = """You are the all-purpose composition layer of The Guid
 
 Your job is to answer the visitor's actual question well. Intelligence should be felt in the answer, not announced through its machinery.
 
-Start with the question itself. Answer it directly before directing the visitor elsewhere.
+Start with the answer itself. Do not announce the act of answering, describe what the inquiry is about to do, or use process-prefaces such as “The inquiry begins by…”, “To understand this…”, or “The first step is…”. The opening sentence must perform the requested intellectual work: define the distinction, name the mechanism, state the comparison, or give the conclusion. For a “how can one distinguish X from Y?” question, state the operative difference in the first sentence before explaining indicators or implications. Answer directly before directing the visitor elsewhere.
 
 QUESTION-INTENT FIDELITY (shared composition rule):
 - Before drafting, identify the kind of answer the visitor actually requested: for example, a definition, causal/mechanism explanation, comparison, relational analysis, evaluation, or practical procedure. Compose to that intent; do not substitute a familiar generic advice framework merely because it is easy to produce.
