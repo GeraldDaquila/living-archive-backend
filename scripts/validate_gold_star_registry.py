@@ -119,10 +119,24 @@ def validate_numbering_metadata(registry, records):
         number = gap.get("number")
         if isinstance(number, bool) or not isinstance(number, int) or number <= 0:
             fail("numbering gap must have a positive integer number")
-        if gap.get("status") != "UNASSIGNED_HISTORICAL_GAP":
-            fail(f"#{number} gap must declare UNASSIGNED_HISTORICAL_GAP")
+        status = gap.get("status")
+        if status not in {"UNASSIGNED_HISTORICAL_GAP", "RELEASED_FOR_FUTURE_ALLOCATION"}:
+            fail(f"#{number} gap must declare a recognized historical-gap status")
         if not str(gap.get("reason_code") or "").strip() or not str(gap.get("reason") or "").strip():
             fail(f"#{number} gap lacks a reason code or explanation")
+        if status == "RELEASED_FOR_FUTURE_ALLOCATION":
+            authorization = gap.get("release_authorization")
+            if (
+                number not in {85, 86}
+                or not isinstance(authorization, dict)
+                or authorization.get("authorization_type") != "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE"
+                or authorization.get("approved_by") != "user"
+                or authorization.get("approved_at") != "2026-11-16"
+                or not str(authorization.get("authority") or "").strip()
+                or not str(authorization.get("allocation_rule") or "").strip()
+                or authorization.get("historical_evidence_preserved") is not True
+            ):
+                fail(f"#{number} released gap lacks the narrowly authorized #85/#86 exception record")
         if not isinstance(gap.get("evidence_checked"), list) or not gap["evidence_checked"]:
             fail(f"#{number} gap lacks an evidence-check record")
         if not str(gap.get("disposition") or "").strip():
@@ -212,12 +226,34 @@ def validate_numbering_against_base(current_records, current_registry=None):
         if isinstance(base_gaps, list):
             base_gap_map = {item.get("number"): item for item in base_gaps if isinstance(item, dict)}
             current_gap_map = {item.get("number"): item for item in (current_gaps or []) if isinstance(item, dict)}
-            changed_gaps = [
-                number for number, base_gap in base_gap_map.items()
-                if current_gap_map.get(number) != base_gap
-            ]
+            changed_gaps = []
+            for number, base_gap in base_gap_map.items():
+                current_gap = current_gap_map.get(number)
+                if current_gap == base_gap:
+                    continue
+                # The only permitted historical-gap mutation is the explicit,
+                # user-authorized release of #85 and #86. Preserve all original
+                # evidence fields; add only the release authorization and its
+                # resulting status/disposition.
+                allowed = (
+                    number in {85, 86}
+                    and isinstance(current_gap, dict)
+                    and current_gap.get("status") == "RELEASED_FOR_FUTURE_ALLOCATION"
+                    and current_gap.get("reason_code") == base_gap.get("reason_code")
+                    and current_gap.get("reason") == base_gap.get("reason")
+                    and current_gap.get("evidence_checked") == base_gap.get("evidence_checked")
+                    and isinstance(current_gap.get("disposition"), str)
+                    and isinstance(current_gap.get("release_authorization"), dict)
+                    and current_gap.get("release_authorization", {}).get("authorization_type")
+                        == "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE"
+                    and current_gap.get("release_authorization", {}).get("approved_by") == "user"
+                    and current_gap.get("release_authorization", {}).get("approved_at") == "2026-11-16"
+                    and current_gap.get("release_authorization", {}).get("historical_evidence_preserved") is True
+                )
+                if not allowed:
+                    changed_gaps.append(number)
             if changed_gaps:
-                fail("historical numbering gap evidence/disposition is immutable: "
+                fail("historical numbering gap evidence/disposition is immutable except for the explicit #85/#86 release: "
                      + ", ".join(f"#{number}" for number in sorted(changed_gaps)))
         base_policy = base_registry.get("numbering_policy")
         current_policy = current_registry.get("numbering_policy")
