@@ -736,6 +736,15 @@
       "qualifying_context": "Questions about approaching, comparing, understanding, or engaging multiple spiritual, religious, philosophical, or contemplative traditions with respect and intellectual discipline.",
       "abstention_boundary": "Do not generalize shared doctrines across traditions without evidence, erase internal diversity, conflate historical, theological, empirical, and experiential claims, or mistake comparison for equivalence.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-16-sacred-language-clarity-and-power-relations",
+      "question": "How can sacred language clarify experience, and how can it obscure power relations?",
+      "reasoning_family": "sacred_language_and_power",
+      "transferable_discipline": "Preserve the meaning-giving and relational functions of sacred language while examining how interpretive authority, unequal power, institutional interests, and consequences can make that language resistant to scrutiny.",
+      "qualifying_context": "Questions about sacred, religious, cultural, or institutional language that carries meaning or moral authority, especially where interpretation, legitimacy, power, inclusion, or accountability are at issue.",
+      "abstention_boundary": "Do not presume sacred language is inherently oppressive, manipulative, or beyond criticism. Distinguish its actual use and effects in context.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
