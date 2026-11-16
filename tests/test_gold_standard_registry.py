@@ -1006,6 +1006,9 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
             assert record.get("numbering_status") == "UNASSIGNED"
             assert record.get("numbering_unassigned_reason_code")
             assert record.get("numbering_unassigned_reason")
+            if record["benchmark_id"] != "gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing":
+                assert record.get("legacy_approval_grandfathered") is True
+                assert record.get("numbering_unassigned_reason_code") == "LEGACY_APPROVED_NO_SERIAL_ALLOCATION"
 
 
 def test_spiritual_bypassing_gold_star_unassigned_reason_records_rejected_89_allocation():
