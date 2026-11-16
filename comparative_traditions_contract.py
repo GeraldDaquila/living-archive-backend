@@ -11,15 +11,18 @@ import re
 
 
 _TRADITION_TERMS = re.compile(
-    r"\b(?:spiritual|religious|religion|faith|theological|philosophical|"
-    r"contemplative|indigenous)\b", re.I
+    r"\b(?:spiritual|religious|religion|religions|faith|faiths|theological|"
+    r"philosophical|contemplative|indigenous|buddhis(?:m|t)|christianity|"
+    r"christian|islam|muslim|hinduism|hindu|judaism|jewish|sikhism|sikh|"
+    r"taoism|daoism|shinto|jainism|zoroastrianism)\b", re.I
 )
 _PLURAL_TERMS = re.compile(
-    r"\b(?:multiple|different|various|comparative|between|across|traditions?)\b", re.I
+    r"\b(?:multiple|different|various|comparative|between|across|traditions?|"
+    r"similarities|differences|compare|comparison)\b", re.I
 )
 _APPROACH_TERMS = re.compile(
-    r"\b(?:approach|understand|engage|compare|study|learn|respect|"
-    r"intellectual discipline)\b", re.I
+    r"\b(?:approach|understand|engage|compare|comparison|similarit(?:y|ies)|"
+    r"differ(?:ence|ences)|contrast|study|learn|respect|intellectual discipline)\b", re.I
 )
 _DOMAIN_MARKERS = re.compile(
     r"\b(?:tradition|traditions|practitioners|sources|texts|history|historical|"
