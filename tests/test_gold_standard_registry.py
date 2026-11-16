@@ -230,7 +230,7 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
     assert report["numbered_gold_star_count"] == len(numbered) == 35
-    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 51
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 50
     assert report["highest_assigned_gold_star_number"] == 92
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
