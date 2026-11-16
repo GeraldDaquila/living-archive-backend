@@ -286,4 +286,7 @@ def test_community_wisdom_gold_star_is_active_structural_learning_not_determinis
     assert contribution["authority_mode"] == "structural_guidance_only"
     assert contribution["reasoning_family"] == "integrative_stewardship_epistemic_humility_human_accountability"
     assert "expected_response" not in contribution and "doorway" not in contribution
-    assert lessons.deterministic_fallback_contribution(query) is None
+    deterministic = lessons.deterministic_fallback_contribution(query)
+    # A previously approved analogue may contribute its own bounded structure,
+    # but this new Gold Star itself is not deterministic-fallback eligible.
+    assert deterministic is None or deterministic["benchmark_id"] != result["benchmark_id"]
