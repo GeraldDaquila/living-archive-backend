@@ -3488,7 +3488,7 @@
       "numbering_status": "ASSIGNED",
       "gold_star_number": 91,
       "numbering_migration": {
-        "authority": "Explicit user authorization in the ChatGPT conversation on 2026-11-16: assign the next available Gold Star serial #91 to the existing spiritual-bypassing exemplar.",
+        "authority": "explicit user authorization in the ChatGPT conversation on 2026-11-16: assign the next available Gold Star serial #91 to the existing spiritual-bypassing exemplar.",
         "approved_at": "2026-11-16",
         "reason": "The user explicitly authorized allocating #91 to this already-approved, runtime-active spiritual-bypassing exemplar. Its prior proposed #89 was rejected and remains unassigned historically; this is a new contiguous allocation after canonical #90, not a backfill or restoration of #89.",
         "previous_numbering_state": "approved_unnumbered",
