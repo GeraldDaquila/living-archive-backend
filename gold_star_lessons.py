@@ -282,31 +282,15 @@ def validate_numbering_integrity(
         number = gap.get("number")
         if (
             isinstance(number, bool) or not isinstance(number, int) or number <= 0
-            or gap.get("status") not in {"UNASSIGNED_HISTORICAL_GAP", "RELEASED_FOR_FUTURE_ALLOCATION"}
+            or gap.get("status") != "UNASSIGNED_HISTORICAL_GAP"
             or not str(gap.get("reason_code") or "").strip()
             or not str(gap.get("reason") or "").strip()
             or not isinstance(gap.get("evidence_checked"), list) or not gap.get("evidence_checked")
             or not str(gap.get("disposition") or "").strip()
         ):
             raise GoldStarRegistryIntegrityError("Gold Star numbering gap entry is incomplete.")
-        if number in assigned_numbers:
-            assigned_record = next(
-                (r for r in records if r.get("status") in _ALLOWED_STATUSES and r.get("gold_star_number") == number),
-                {},
-            )
-            migration = assigned_record.get("numbering_migration") or {}
-            if (
-                gap.get("status") != "RELEASED_FOR_FUTURE_ALLOCATION"
-                or migration.get("migration_class") != "explicit_user_authorized_future_gap_allocation"
-                or migration.get("previous_numbering_state") != "approved_unnumbered"
-                or not str(migration.get("authority") or "").strip()
-            ):
-                raise GoldStarRegistryIntegrityError(
-                    f"Released historical gap #{number} was assigned without explicit allocation evidence."
-                )
-        else:
-            actual_gaps.add(number)
-    if len({gap.get("number") for gap in numbering_gap_register if isinstance(gap, dict)}) != len(numbering_gap_register) or actual_gaps != expected_gaps:
+        actual_gaps.add(number)
+    if len(actual_gaps) != len(numbering_gap_register) or actual_gaps != expected_gaps:
         raise GoldStarRegistryIntegrityError(
             f"Gold Star numbering gaps do not reconcile: expected={sorted(expected_gaps)} actual={sorted(actual_gaps)}."
         )
