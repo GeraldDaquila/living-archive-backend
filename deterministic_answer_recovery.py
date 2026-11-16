@@ -947,9 +947,23 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "That is where a discussion of decline can become an inquiry into responsibility rather than a contest between nostalgia and optimism.\n\n"
             "If you want to continue this inquiry, **What Changed That I Haven’t Been Able to Name?** offers a related doorway into recognizing and naming changes that are real before deciding what they mean: https://geralddaquila.com/what-changed-that-i-havent-been-able-to-name"
         )
-    elif re.search(r"\b(?:how|steps|approach|what can i do|what should we do|how to)\b", lower):
+    elif (
+        re.search(r"\\bhow can (?:one|we|you) distinguish\\b", lower)
+        and re.search(r"\\bstructural change\\b", lower)
+        and re.search(r"\\bordinary disruption\\b", lower)
+    ):
+        # Direct-answer recovery for the structural-change/disruption distinction.
+        # This is deliberately part of the provider-exhaustion composer: the
+        # visitor must receive the substantive distinction even when every
+        # provider candidate is rejected or unavailable.
         answer = (
-            f"The inquiry begins by making the situation itself visible: {subject}. "
+            "Structural change alters the underlying conditions that reproduce a pattern; ordinary disruption interrupts the pattern's visible operation without necessarily changing those conditions.\\n\\n"
+            "To tell them apart, look for evidence that the system's rules, relationships, incentives, decision rights, or capacities have changed—and whether those changes persist after the immediate pressure eases. A disruption can be severe while leaving those arrangements intact; structural change alters how the system produces outcomes over time.\\n\\n"
+            "The test is not simply whether something new happened. Ask what now works differently, whose options or responsibilities have changed, what makes the old pattern less likely to recur, and what evidence would show that the change has held. If the old pattern returns as soon as the disturbance passes, the event was more likely disruption than structural change."
+        )
+    elif re.search(r"\\b(?:how|steps|approach|what can i do|what should we do|how to)\\b", lower):
+        answer = (
+            f"Make the intended outcome, the responsibilities involved, and the people who will live with the consequences explicit before choosing a course of action. "
             "What outcome is the organisation trying to achieve, what responsibilities does it carry, and who will live with the consequences? "
             "Those questions bring operations, governance, human development, ethics, and stewardship into the same frame without pretending they are separate problems.\n\n"
             "From there, compare the real options rather than assuming that the proposed course is the only one. "
