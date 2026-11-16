@@ -404,9 +404,11 @@ def select_lesson(
     if not normalized:
         return None
     def eligible(item: Dict[str, Any]) -> bool:
-        if not item.get("runtime_transfer"):
-            return False
-        return not required_capability or bool(item.get(required_capability))
+        # Preserve the original exact-match semantics for ordinary adaptive
+        # selection. A required capability is a stricter, independent gate.
+        return not required_capability or (
+            bool(item.get("runtime_transfer")) and bool(item.get(required_capability))
+        )
     exact = [
         x for x in _LESSONS
         if _normalized_phrase(x["query"]) == normalized and eligible(x)
@@ -421,7 +423,10 @@ def select_lesson(
                 "reasoning_family": x.get("reasoning_family", ""),
                 "transferable_discipline": x.get("transferable_discipline", ""),
                 "abstention_boundary": x.get("abstention_boundary", "")}
-    candidates = [x for x in _LESSONS if eligible(x)]
+    candidates = [
+        x for x in _LESSONS
+        if x["runtime_transfer"] and eligible(x)
+    ]
     query_terms = _tokens(query)
     if len(query_terms) < 2:
         return None
