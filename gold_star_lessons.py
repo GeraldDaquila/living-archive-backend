@@ -1,12 +1,11 @@
 """Governed structural lessons derived from explicitly approved Gold Stars.
 
 Approved Gold Stars contribute reviewed structural discipline to provider-composed
-answers. Registry answers, factual claims, examples, citations, and doorways are
-never transferred across questions. Deterministic recoveries are separately
-authored contracts and do not consume adaptive guidance: the registry's
-deterministic_fallback_eligible flag is reserved metadata until a reviewed,
-deterministic adaptation mechanism exists. Exact approved questions retain their
-separate answer authority.
+answers and, when explicitly eligible, to deterministic recovery through a
+separate bounded adaptation adapter. Registry answers, factual claims, examples,
+citations, and doorways are never transferred across questions. Deterministic
+eligibility is explicit and never inferred from general adaptive activation.
+Exact approved questions retain their separate answer authority.
 """
 from __future__ import annotations
 
@@ -395,12 +394,23 @@ def _load_lessons() -> List[Dict[str, Any]]:
 
 _LESSONS = _load_lessons()
 
-def select_lesson(query: str) -> Optional[Dict[str, Any]]:
-    """Select one explicitly transferable structural analogue, else abstain."""
+def select_lesson(
+    query: str,
+    *,
+    required_capability: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """Select one approved structural analogue, optionally capability-gated."""
     normalized = _normalized_phrase(query)
     if not normalized:
         return None
-    exact = [x for x in _LESSONS if _normalized_phrase(x["query"]) == normalized]
+    def eligible(item: Dict[str, Any]) -> bool:
+        if not item.get("runtime_transfer"):
+            return False
+        return not required_capability or bool(item.get(required_capability))
+    exact = [
+        x for x in _LESSONS
+        if _normalized_phrase(x["query"]) == normalized and eligible(x)
+    ]
     if len(exact) == 1:
         x = exact[0]
         return {"benchmark_id": x["id"], "score": 1.0, "exact": True,
@@ -411,7 +421,7 @@ def select_lesson(query: str) -> Optional[Dict[str, Any]]:
                 "reasoning_family": x.get("reasoning_family", ""),
                 "transferable_discipline": x.get("transferable_discipline", ""),
                 "abstention_boundary": x.get("abstention_boundary", "")}
-    candidates = [x for x in _LESSONS if x["runtime_transfer"]]
+    candidates = [x for x in _LESSONS if eligible(x)]
     query_terms = _tokens(query)
     if len(query_terms) < 2:
         return None
@@ -494,3 +504,52 @@ def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
     contribution = {"benchmark_id": str(selected.get("benchmark_id") or ""), "reasoning_family": str(selected.get("reasoning_family") or ""), "discipline": discipline, "abstention_boundary": str(selected.get("abstention_boundary") or ""), "score": float(selected.get("score") or 0.0), "exact": bool(selected.get("exact")), "authority_mode": "structural_guidance_only"}
     print(f"gold_star_quality active benchmark_id={contribution['benchmark_id']} score={contribution['score']:.3f}", flush=True)
     return contribution
+
+
+def deterministic_fallback_contribution(query: str) -> Optional[Dict[str, Any]]:
+    """Return reviewed guidance only when the Gold Star explicitly permits deterministic use.
+
+    Exact matches are accepted; cross-question analogues require a stronger
+    confidence floor. Only structural discipline and its boundary are returned.
+    """
+    selected = select_lesson(query, required_capability="deterministic_fallback_eligible")
+    if not selected:
+        return None
+    score = float(selected.get("score") or 0.0)
+    if not selected.get("exact") and score < 0.65:
+        return None
+    discipline = str(selected.get("transferable_discipline") or "").strip()
+    boundary = str(selected.get("abstention_boundary") or "").strip()
+    if not discipline or not boundary:
+        return None
+    return {
+        "benchmark_id": str(selected.get("benchmark_id") or ""),
+        "score": score,
+        "reasoning_family": str(selected.get("reasoning_family") or ""),
+        "discipline": discipline,
+        "abstention_boundary": boundary,
+        "authority_mode": "deterministic_structural_guidance_only",
+    }
+
+
+def apply_deterministic_fallback_guidance(query: str, response: str) -> str:
+    """Apply eligible structural guidance without transferring an exemplar answer."""
+    text = str(response or "").strip()
+    if not text:
+        return text
+    try:
+        contribution = deterministic_fallback_contribution(query)
+    except Exception:
+        return text
+    if not contribution or "A useful structural discipline here:" in text:
+        return text
+    paragraphs = [part.strip() for part in re.split(r"\\n\\s*\\n+", text) if part.strip()]
+    if not paragraphs:
+        return text
+    paragraphs[-1] += (
+        " A useful structural discipline here: "
+        + str(contribution["discipline"]).strip()
+        + " Keep its limit in view: "
+        + str(contribution["abstention_boundary"]).strip()
+    )
+    return "\\n\\n".join(paragraphs)
