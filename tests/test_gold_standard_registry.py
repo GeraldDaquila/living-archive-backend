@@ -971,6 +971,14 @@ def test_practice_community_feedback_gold_star_is_assigned_next_canonical_number
     assert record["expected_doorway"]["title"] == "Becoming Fully Human"
 
 
+def test_recovered_serial_provenance_and_gap_register_are_immutable_after_merge():
+    validator = (ROOT / "scripts" / "validate_gold_star_registry.py").read_text(encoding="utf-8")
+    assert "historical numbering recovery evidence is immutable" in validator
+    assert "historical numbering gap evidence/disposition is immutable" in validator
+    assert "numbering sequence_start is immutable once established" in validator
+    assert "validate_numbering_against_base(records, registry)" in validator
+
+
 def test_explicit_numbering_migration_is_required_for_existing_unnumbered_approval():
     source = (ROOT / "scripts" / "validate_gold_star_registry.py").read_text(encoding="utf-8")
     assert "explicit_user_authorized_numbering_migration" in source
