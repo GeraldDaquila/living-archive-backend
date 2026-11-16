@@ -113,6 +113,8 @@ def validate_numbering_metadata(registry, records):
     if not isinstance(gap_entries, list):
         fail("numbering_gap_register must be an array")
     gap_numbers = []
+    active_gap_numbers = []
+    assigned_by_number = {r.get("gold_star_number"): r for r in approved if r.get("gold_star_number") is not None}
     for gap in gap_entries:
         if not isinstance(gap, dict):
             fail("numbering_gap_register contains a non-object entry")
@@ -142,15 +144,29 @@ def validate_numbering_metadata(registry, records):
         if not str(gap.get("disposition") or "").strip():
             fail(f"#{number} gap lacks a disposition")
         gap_numbers.append(number)
+        if number in assigned:
+            # Preserve the original released-gap evidence after allocation.
+            # A released historical gap is no longer an active gap only when
+            # a newly approved record carries explicit allocation evidence.
+            record = assigned_by_number.get(number, {})
+            migration = record.get("numbering_migration") or {}
+            if (
+                status != "RELEASED_FOR_FUTURE_ALLOCATION"
+                or migration.get("migration_class") != "explicit_user_authorized_future_gap_allocation"
+                or migration.get("previous_numbering_state") != "approved_unnumbered"
+                or migration.get("approved_at") != "2026-11-17"
+                or not str(migration.get("authority") or "").strip()
+            ):
+                fail(f"#{number} released gap is assigned without explicit future-gap allocation evidence")
+        else:
+            active_gap_numbers.append(number)
     if len(gap_numbers) != len(set(gap_numbers)):
         fail("duplicate serial in numbering_gap_register")
-    if set(gap_numbers) != expected_gaps:
+    if set(active_gap_numbers) != expected_gaps:
         fail(
-            "numbering_gap_register does not exactly match gaps in the assigned "
-            f"serial range; expected {sorted(expected_gaps)}, got {sorted(gap_numbers)}"
+            "active numbering gaps do not reconcile with assigned serial range; "
+            f"expected {sorted(expected_gaps)}, got {sorted(active_gap_numbers)}"
         )
-    if set(gap_numbers) & set(assigned):
-        fail("a serial cannot be both assigned and listed as an unassigned gap")
 
 
 def validate_numbering_against_base(current_records, current_registry=None):
