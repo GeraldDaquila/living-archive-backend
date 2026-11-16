@@ -1,0 +1,20 @@
+{
+  "benchmark_id": "general-guide-comparative-traditions-respectful-intellectual-discipline-gold-star-2026-11-16",
+  "query": "How can multiple spiritual traditions be approached with respect and intellectual discipline?",
+  "expected_response": "Begin by trying to understand each tradition on its own terms. Attend to its histories, sources, languages, practices, and the ways practitioners describe their own commitments and experiences. No single text, leader, or representative can stand for every community within a tradition; internal differences and changing historical contexts matter. Respect does not require agreement, and careful inquiry does not require suspending criticism.\n\nThen distinguish the kinds of claims being made. Historical claims call for historical evidence; philosophical and theological claims require careful attention to concepts and reasoning; empirical claims need evidence suited to what they assert; and accounts of spiritual experience need to be understood in their own interpretive and communal settings. Do not use one method as if it could settle every kind of question, and be clear about what is established, contested, interpreted, or not independently verifiable.\n\nComparison can reveal genuine affinities, but similarity is not proof that traditions mean the same thing. Nor should differences be turned into caricatures or rankings. Let each tradition's own vocabulary and internal diversity remain visible, compare like with like where possible, and revise your account when practitioners, sources, or stronger evidence complicate it. The aim is understanding without appropriation, false equivalence, or premature judgment.",
+  "expected_doorway": {
+    "title": "At the Edge of Explanation",
+    "url": "https://geralddaquila.com/2026/07/20/at-the-edge-of-explanation/"
+  },
+  "assertions": [
+    "Understand each tradition through its own histories, sources, language, practices, and practitioners.",
+    "Preserve internal diversity; no single text, leader, or representative speaks for every community.",
+    "Distinguish historical, philosophical, theological, empirical, and experiential claims and use methods appropriate to each.",
+    "Identify what is established, contested, interpreted, and not independently verifiable.",
+    "Recognize affinities without assuming equivalence; preserve genuine differences without caricature or ranking.",
+    "Offer the verified canonical continuation only when the inquiry falls within this bounded comparative-traditions family."
+  ],
+  "reasoning_family": "comparative_traditions_epistemic_fairness_internal_diversity",
+  "transferable_lesson": "Approach traditions on their own terms, preserve internal diversity, match methods to kinds of claims, and compare affinities without erasing meaningful differences or overstating what can be known.",
+  "transfer_boundary": "Transfer the method of epistemic fairness to genuine comparative inquiries; do not assume all traditions share doctrines, treat one representative as speaking for an entire tradition, rank traditions prematurely, or apply one evidentiary method to every claim."
+}
