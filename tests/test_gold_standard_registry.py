@@ -1050,6 +1050,10 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     gaps = registry["numbering_gap_register"]
     assert [g["number"] for g in gaps] == [85, 86]
+    assert all(g["status"] == "RELEASED_FOR_FUTURE_ALLOCATION" for g in gaps)
+    assert all(g["release_authorization"]["authorization_type"] == "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE" for g in gaps)
+    assert all(g["release_authorization"]["historical_evidence_preserved"] is True for g in gaps)
+    assert gaps[0]["release_authorization"]["allocation_rule"].find("#85") >= 0
     assert "7a036632323b7c09003d1fce637a7b49128a27bf" in gaps[1]["reason"]
     assert "only adds provenance.source_date" in gaps[1]["reason"]
     assert "recovered as Gold Star #56" in gaps[1]["reason"]
@@ -1100,3 +1104,19 @@ def test_comparative_traditions_gold_star_92_has_verified_canonical_doorway():
     assert record["numbering_status"] == "ASSIGNED"
     assert record["expected_doorway"]["title"] == "At the Edge of Explanation"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/07/20/at-the-edge-of-explanation/"
+
+
+def test_only_two_explicit_historical_gap_releases_are_authorized_for_future_new_approvals():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    policy = registry["numbering_policy"]["gap_exception_policy"]
+    assert policy["authorized_numbers"] == [85, 86]
+    assert policy["order"] == [85, 86]
+    assert "next two newly approved Gold Star records" in policy["allocation_rule"]
+    assert "No existing approved record" in policy["allocation_rule"]
+    assert policy["does_not_change_adaptive_learning_identity"] is True
+    gaps = {g["number"]: g for g in registry["numbering_gap_register"]}
+    assert set(gaps) == {85, 86}
+    assert all(gaps[n]["status"] == "RELEASED_FOR_FUTURE_ALLOCATION" for n in (85, 86))
+    assert all(gaps[n]["release_authorization"]["approved_by"] == "user" for n in (85, 86))
+    assert len([r for r in registry["records"] if r.get("gold_star_number") in {85, 86}]) == 0
