@@ -37,3 +37,134 @@ def test_every_approved_gold_star_has_a_complete_or_explicitly_withheld_doorway(
             assert isinstance(doorway,dict), record["benchmark_id"]
             assert doorway.get("title","").strip(), record["benchmark_id"]
             assert doorway.get("url","").strip(), record["benchmark_id"]
+
+
+import json
+import subprocess
+from pathlib import Path
+
+
+def _registry():
+    return json.loads(Path("docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+
+
+def _numbered_approved(records):
+    return {
+        record["benchmark_id"]: record["gold_star_number"]
+        for record in records
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        and record.get("gold_star_number") is not None
+    }
+
+
+def test_canonical_gold_star_numbering_matches_current_inventory():
+    registry = _registry()
+    approved = [
+        record for record in registry["records"]
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+    ]
+    assignments = _numbered_approved(registry["records"])
+    numbers = list(assignments.values())
+
+    assert len(approved) == 80
+    assert len(registry["records"]) == 117
+    assert len(assignments) == 27
+    assert max(numbers) == 88
+    assert len(numbers) == len(set(numbers))
+    assert assignments[
+        "general-guide-formal-actual-power-structure-gold-standard-2026-11-16"
+    ] == 87
+    assert assignments[
+        "general-guide-reflection-vs-therapy-boundary-gold-standard-2026-11-16"
+    ] == 88
+
+
+def test_canonical_audit_metadata_is_derived_not_independent():
+    registry = _registry()
+    approved = [
+        record for record in registry["records"]
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+    ]
+    assignments = _numbered_approved(registry["records"])
+    audit = registry["integrity_audit"]
+
+    assert audit["approved_gold_star_count"] == len(approved)
+    assert audit["registry_record_count"] == len(registry["records"])
+    assert audit["numbered_gold_star_record_count"] == len(assignments)
+    assert audit["highest_assigned_gold_star_number"] == max(assignments.values())
+
+
+def test_numbering_guard_rejects_stale_branch_that_drops_latest_gold_star(monkeypatch):
+    # The validator must compare the proposed registry to canonical main's
+    # merge-base inventory; this protects against stale branches where the
+    # record occupying a number has disappeared and a collision is hidden.
+    from scripts import validate_gold_star_registry as validator
+
+    stale_records = [
+        record for record in _registry()["records"]
+        if record.get("benchmark_id")
+        != "general-guide-reflection-vs-therapy-boundary-gold-standard-2026-11-16"
+    ]
+    monkeypatch.setattr(
+        validator.subprocess,
+        "run",
+        lambda *args, **kwargs: type(
+            "Result", (), {"stdout": "fake-merge-base", "returncode": 0}
+        )(),
+    )
+    monkeypatch.setattr(
+        validator.subprocess,
+        "run",
+        lambda command, **kwargs: type(
+            "Result", (), {
+                "stdout": (
+                    subprocess.run(
+                        ["git", "show", "HEAD:docs/qa/gold_standard_registry.json"],
+                        capture_output=True, text=True, check=True
+                    ).stdout
+                    if command[1] == "show"
+                    else "fake-merge-base"
+                ),
+                "returncode": 0
+            }
+        )(),
+    )
+    # Directly exercise the invariant: removing an already approved record
+    # must fail before any new number can be accepted.
+    try:
+        validator.validate_numbering_against_base(stale_records)
+    except SystemExit as exc:
+        assert "removed/demoted" in str(exc)
+    else:
+        raise AssertionError("stale branch dropping Gold Star #88 was accepted")
+
+
+def test_next_number_is_based_on_registry_maximum_not_approved_count():
+    registry = _registry()
+    assignments = _numbered_approved(registry["records"])
+    next_number = max(assignments.values()) + 1
+    assert next_number == 89
+    assert len(assignments) != max(assignments.values())  # 27 numbered, max number 88
+
+
+def test_gaps_85_and_86_are_not_backfilled():
+    registry = _registry()
+    assignments = _numbered_approved(registry["records"])
+    assert 85 not in assignments.values()
+    assert 86 not in assignments.values()
+
+
+def test_qualitative_transfer_reviews_remain_aligned():
+    registry = _registry()
+    reviews = json.loads(
+        Path("docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8")
+    )
+    active = {
+        r["benchmark_id"]
+        for r in registry["records"]
+        if r.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        and r.get("runtime_transfer") is True
+    }
+    reviewed = {r["benchmark_id"] for r in reviews["entries"]}
+    assert active == reviewed
+    assert len(reviews["entries"]) == len(reviewed)
