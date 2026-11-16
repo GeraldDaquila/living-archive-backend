@@ -762,9 +762,7 @@
       "qualifying_context": "Questions about technological solutionism, digital transformation, public-sector technology, innovation claims, or assumptions that technical progress by itself resolves institutional, political, or social problems.",
       "abstention_boundary": "Do not frame criticism of techno-utopian assumptions as opposition to technology itself. Do not assume technical tools alone resolve unequal access, institutional incentives, power, accountability, democratic choice, or harmful outcomes.",
       "activation": "active_quality_contributor"
-    }
-  ],
-  "records": [
+    },
     {
       "benchmark_id": "gs-2026-11-17-structural-change-vs-disruption",
       "question": "How can one distinguish structural change from ordinary disruption?",
