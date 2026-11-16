@@ -132,3 +132,17 @@ For each release, record:
 - **Numbering:** **27** approved records carry explicit Gold Star numbers. The highest assigned number is **#88**; there are no duplicate numbers. **#85 and #86 are unassigned provenance gaps**, not inferred missing Gold Stars.
 - **Decision:** Reconciled descriptive audit metadata and the canonical reconciliation note to the actual record-level inventory. No approval was added or removed, no historical number was invented, and no response, doorway, runtime-transfer authority, or routing behavior changed.
 - **Release boundary:** This reconciliation makes the registry's declared inventory agree with the records that the machine-checkable validator treats as authoritative before merge.
+
+
+## Registry governance: immutable Gold Star numbering and provenance
+
+- **Class:** Registry governance / pre-merge integrity
+- **Intent:** Prevent any subsequent elevation from colliding with an already assigned Gold Star number or silently deleting the record that occupies it.
+- **Canonical authority:** `docs/qa/gold_standard_registry.json` on `main`.
+- **Verified main inventory at audit:** 117 total records; 80 `USER_APPROVED_GOLD_STANDARD`; 27 explicitly numbered; maximum #88; no duplicate numbers.
+- **Existing assignments:** #87 is the formal/actual power exemplar; #88 is the reflection/therapy boundary exemplar.
+- **Provenance gaps:** #85 and #86 remain explicitly unassigned. Repository history search confirmed GitHub PRs #85 and #86 are unrelated September 2026 code PRs for v340 doorway/grief behavior, not Gold Star exemplars. No authoritative Gold Star source record for #85/#86 was recovered. Do not fill the gaps by inference.
+- **Failure analysis:** The previous validator checked duplicate numbers only within the proposed branch. A stale branch could omit a current approved record and re-use its number without producing an intra-branch duplicate. Registry audit metadata was descriptive and did not protect identity/number continuity against the merge base.
+- **Corrective control on a separate branch:** Compare proposed registry against the merge-base version of canonical `main`; reject removal/demotion of existing approved records, any change/removal of existing assigned numbers, retroactive numbering of existing unnumbered records, non-contiguous new numbering after the canonical main maximum, duplicate IDs/numbers, and audit metadata that disagrees with record-level facts. The workflow fetches full history so the merge-base comparison is reliable.
+- **PR #1517 disposition:** Closed unmerged after audit. Its stale branch contained 116 total records / 79 approved, omitted current #88, and assigned #89 to the spiritual-bypassing exemplar. This is the exact failure mode now covered by the merge-base regression.
+- **Release boundary:** The validator/workflow fix is isolated on `fix-gold-star-numbering-authority`; it has not been merged, tested offline or in TEST, or deployed. No production state is changed by this entry.
