@@ -133,27 +133,6 @@ def test_registry_has_unique_ids_and_provenance_for_every_record():
 
 
 
-def test_structural_change_gold_star_is_registered_with_semantic_progression():
-    registry = _registry()
-    record = next(
-        item for item in registry["records"]
-        if item["benchmark_id"] == "gs-2026-11-17-structural-change-vs-ordinary-disruption"
-    )
-    paragraphs = record["expected_response"].split(chr(10) * 2)
-    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
-    assert record["query"] == "How can one distinguish structural change from ordinary disruption?"
-    assert record["runtime_transfer"] is True
-    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
-    assert record["numbering_status"] == "UNASSIGNED"
-    assert record["expected_doorway"] is None
-    assert len(paragraphs) == 3
-    assert paragraphs[0].startswith("Structural change alters the underlying conditions")
-    assert "rules, relationships, incentives, decision rights, or capacities" in paragraphs[1]
-    assert "A practical test is to ask what happens when the immediate pressure lifts." in paragraphs[2]
-    assert "constraints are real, but they do not erase agency" in paragraphs[2]
-    assert "Screenshot establishes" in record["provenance"]["evidence_boundary"]
-
-
 def test_user_approved_conflicting_information_gold_star_is_registered_exactly():
     registry = _registry()
     record = next(
@@ -1036,7 +1015,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 86
+    assert len(approved) == 85
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1082,10 +1061,10 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     assert "only adds provenance.source_date" in gaps[1]["reason"]
     assert "recovered as Gold Star #56" in gaps[1]["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 86
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 85
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 35
     assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 92
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 51
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 50
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
 
 
