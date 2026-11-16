@@ -1065,6 +1065,42 @@ def is_verification_abstention_for_known_concept(query: str, response: str) -> b
     )
 
 
+def _paragraph_three_reopens_comparison(query: str, paragraphs: List[str]) -> bool:
+    """Reject a conclusion that reopens the same named comparison instead of advancing it.
+
+    This is intentionally narrow: it applies to explicit 'distinguish X from Y'
+    questions when paragraph three starts by restating the test/difference and
+    repeats both named sides. The visitor already received the governing
+    distinction in paragraph one and evidence in paragraph two; paragraph three
+    must apply that evidence or establish a genuinely new boundary.
+    """
+    if len(paragraphs) != 3:
+        return False
+    question = _normalize_space(query).casefold()
+    match = re.search(
+        r"\\b(?:distinguish|differentiate|tell)\\s+(.+?)\\s+from\\s+(.+?)[?!.]*$",
+        question,
+        re.I,
+    )
+    if not match:
+        return False
+
+    def phrase_present(phrase: str, text: str) -> bool:
+        words = [w for w in re.findall(r"[a-z0-9]+", phrase) if w not in {"the", "a", "an", "ordinary"}]
+        if not words:
+            return False
+        normalized = _normalize_space(text).casefold()
+        return all(re.search(r"\\b" + re.escape(word) + r"\\b", normalized) for word in words)
+
+    conclusion = paragraphs[2]
+    reopens = bool(re.match(
+        r"^(?:the test is|the distinction is|the difference is|in other words|put simply|to tell them apart)\\b",
+        _normalize_space(conclusion),
+        re.I,
+    ))
+    return reopens and phrase_present(match.group(1), conclusion) and phrase_present(match.group(2), conclusion)
+
+
 def is_generic_nonanswer(query: str, response: str) -> bool:
     """Reject generic composition filler and off-task openings even when formatted well."""
     text = _normalize_space(response).casefold()
@@ -1091,6 +1127,8 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
             return True
         normalized = [_normalize_space(p).casefold() for p in paragraphs]
         if len(set(normalized)) != 3:
+            return True
+        if _paragraph_three_reopens_comparison(query, paragraphs):
             return True
         # Reject answers whose paragraphs are mostly abstract metadiscourse.
         meta_sentences = sum(
