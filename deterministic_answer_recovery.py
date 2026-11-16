@@ -947,15 +947,61 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "That is where a discussion of decline can become an inquiry into responsibility rather than a contest between nostalgia and optimism.\n\n"
             "If you want to continue this inquiry, **What Changed That I Haven’t Been Able to Name?** offers a related doorway into recognizing and naming changes that are real before deciding what they mean: https://geralddaquila.com/what-changed-that-i-havent-been-able-to-name"
         )
+    elif (
+        re.search(r"\bhow can (?:one|we|you) distinguish\b", lower)
+        and re.search(r"\bstructural change\b", lower)
+        and re.search(r"\bordinary disruption\b", lower)
+    ):
+        # Direct-answer recovery for the structural-change/disruption distinction.
+        # This is deliberately part of the provider-exhaustion composer: the
+        # visitor must receive the substantive distinction even when every
+        # provider candidate is rejected or unavailable.
+        answer = (
+            "Structural change alters the underlying conditions that reproduce a pattern; ordinary disruption interrupts the pattern's visible operation without necessarily changing those conditions.\n\n"
+            "To tell them apart, look for evidence that the system's rules, relationships, incentives, decision rights, or capacities have changed—and whether those changes persist after the immediate pressure eases. A disruption can be severe while leaving those arrangements intact; structural change alters how the system produces outcomes over time.\n\n"
+            "The test is not simply whether something new happened. Ask what now works differently, whose options or responsibilities have changed, what makes the old pattern less likely to recur, and what evidence would show that the change has held. If the old pattern returns as soon as the disturbance passes, the event was more likely disruption than structural change."
+        )
+    elif (
+        re.search(r"\bformal structure\b", lower)
+        and re.search(r"\bactual power structure\b", lower)
+    ):
+        answer = (
+            "An institution can recognize the gap between its formal structure and its actual power structure by tracing who shapes decisions, controls information and resources, influences outcomes, and can safely challenge authority. "
+            "An organization chart shows assigned roles; it does not necessarily show whose judgment carries weight or whose objections can change a decision.\n\n"
+            "Look at consequential decisions over time: who sets the available options, whose information reaches decision-makers, who can delay or redirect action, and what happens to people who disagree. "
+            "Compare written authority with these repeated patterns, and listen to people whose work or lives are affected by them.\n\n"
+            "Informal influence is not automatically illegitimate, and formal authority is not automatically misused. "
+            "The important test is whether consequential power is visible, open to challenge, and connected to clear responsibility and review."
+        )
+    elif re.search(r"\btransition between software systems\b", lower):
+        answer = (
+            "A city can manage a transition between software systems by protecting service continuity while migrating data, dependencies, and responsibilities in a staged, verifiable sequence. "
+            "Begin by identifying the services that must remain available, the records that must remain accurate, and the people accountable for each part of the transition.\n\n"
+            "Map integrations and dependencies before moving data, test migration and recovery procedures in a controlled environment, and run old and new systems in parallel where the risk justifies it. "
+            "Set clear acceptance criteria, communicate changes to staff and residents, and keep a rollback path until the new system is demonstrably reliable.\n\n"
+            "The transition is complete when essential services work accurately under the new arrangement, staff can operate it, and outstanding risks have named owners. "
+            "A cutover date alone is not evidence of success; continuity, data integrity, security, and the ability to recover are."
+        )
+    elif (
+        re.search(r"\bcompany\b", lower)
+        and re.search(r"\bai\b", lower)
+        and re.search(r"\breduc(?:e|ing)\s+staffing\s+costs?\b", lower)
+        and all(term in lower for term in ("operations", "governance", "human development", "ethics", "stewardship"))
+    ):
+        answer = (
+            "A company considering AI to reduce staffing costs should assess not only the projected savings but how the change redistributes work, authority, risk, and opportunity. "
+            "The decision needs to be examined through operations, governance, human development, ethics, and stewardship together, because a financial gain can conceal costs shifted onto workers, customers, or the institution itself.\n\n"
+            "Next, compare the real options: redesigning tasks, augmenting work, reducing hours, retraining, redeploying people, or reducing roles. "
+            "For each option, test the evidence behind expected savings, the quality and reliability of the system, the effect on service and working conditions, who carries transition costs, and whether affected people have meaningful voice and recourse.\n\n"
+            "AI may inform that work, but it cannot take responsibility for the decision away from the people who have the authority to make it. "
+            "A defensible decision makes its criteria visible, protects rights and dignity, assigns accountability for errors, and reviews actual outcomes rather than treating projected efficiency as proof of success."
+        )
     elif re.search(r"\b(?:how|steps|approach|what can i do|what should we do|how to)\b", lower):
         answer = (
-            f"The inquiry begins by making the situation itself visible: {subject}. "
-            "What outcome is the organisation trying to achieve, what responsibilities does it carry, and who will live with the consequences? "
-            "Those questions bring operations, governance, human development, ethics, and stewardship into the same frame without pretending they are separate problems.\n\n"
-            "From there, compare the real options rather than assuming that the proposed course is the only one. "
-            "Look at what each option makes possible, what it may damage, who bears the costs, and what evidence would justify changing direction. "
-            "The knowledge of people affected by the decision belongs in that assessment, especially where they will carry consequences they did not choose.\n\n"
-            "The point is not to make the decision for the organisation, but to make the grounds for acting clearer. "
+            "Start by defining the outcome the change must achieve, the responsibilities that cannot be lost, and the people who will live with its consequences. "
+            "Then compare realistic options against those requirements rather than assuming the proposed course is the only one.\n\n"
+            "Examine what each option makes possible, what it may damage, who bears the costs, and what evidence would justify changing direction. "
+            "Include the knowledge of people affected by the decision, especially where they will carry consequences they did not choose.\n\n"
             "Choose deliberately, make the reasoning and limits visible, and remain accountable for what follows. "
             "AI may inform that work, but it cannot take responsibility for a decision away from the people who have the authority to make it."
         )

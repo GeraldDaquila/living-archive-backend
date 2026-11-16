@@ -364,3 +364,34 @@ def test_compact_composer_requires_direct_answer_opening():
 def test_full_composer_requires_operational_first_sentence():
     assert "The opening sentence must perform the requested intellectual work" in guide._GENERAL_GUIDE_SYSTEM
     assert "state the operative difference in the first sentence" in guide._GENERAL_GUIDE_SYSTEM
+
+
+
+def test_provider_exhaustion_fallback_opens_with_direct_structural_distinction():
+    import deterministic_answer_recovery as recovery
+
+    response = recovery.compose_recovery(
+        "How can one distinguish structural change from ordinary disruption?"
+    )
+    opening = response.split("\n\n", 1)[0]
+
+    assert opening == (
+        "Structural change alters the underlying conditions that reproduce a pattern; "
+        "ordinary disruption interrupts the pattern's visible operation without "
+        "necessarily changing those conditions."
+    )
+    assert "The inquiry begins" not in response
+
+
+def test_generic_how_fallback_avoids_process_announcement():
+    import deterministic_answer_recovery as recovery
+
+    response = recovery.compose_recovery(
+        "How can an organization make a consequential change responsibly?"
+    )
+
+    assert not response.startswith("The inquiry begins")
+    assert response.startswith(
+        "Start by defining the outcome the change must achieve, the responsibilities "
+        "that cannot be lost"
+    )
