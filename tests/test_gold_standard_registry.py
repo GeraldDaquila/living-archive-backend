@@ -960,3 +960,9 @@ def test_practice_community_feedback_gold_star_is_assigned_next_canonical_number
     assert record["gold_star_number"] == 89
     assert record["explicit_user_elevation_approval"] is True
     assert record["expected_doorway"]["title"] == "Becoming Fully Human"
+
+
+def test_explicit_numbering_migration_is_required_for_existing_unnumbered_approval():
+    source = (ROOT / "scripts" / "validate_gold_star_registry.py").read_text(encoding="utf-8")
+    assert "explicit_user_authorized_numbering_migration" in source
+    assert "previous_numbering_state" in source
