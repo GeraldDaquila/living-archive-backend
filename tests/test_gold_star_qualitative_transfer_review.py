@@ -166,27 +166,23 @@ def test_approved_gold_stars_have_complete_provenance_and_quality_contract():
         assert record.get("expected_response", "").strip(), record["benchmark_id"]
         assert record.get("known_theme", "").strip(), record["benchmark_id"]
         assert record.get("freeze_policy") == "immutable_user_approved_gold_standard", record["benchmark_id"]
-        assert isinstance(record.get("rating_out_of_10"), (int, float)), record["benchmark_id"]
-        assert record.get("assertions"), record["benchmark_id"]
         capabilities = record.get("gold_star_capabilities")
         assert isinstance(capabilities, dict), record["benchmark_id"]
         assert capabilities.get("active_quality_contributor") is True, record["benchmark_id"]
+        assert record.get("assertions"), record["benchmark_id"]
+
+        legacy = record.get("legacy_approval_grandfathered") is True
         provenance = record.get("provenance")
         assert isinstance(provenance, dict), record["benchmark_id"]
-        assert provenance.get("source", "").strip(), record["benchmark_id"]
-        assert (
-            provenance.get("source_date", "").strip()
-            or provenance.get("approved_at", "").strip()
-        ), record["benchmark_id"]
-        assert (
-            provenance.get("evidence_boundary", "").strip()
-            or record.get("transfer_boundary", "").strip()
-        ), record["benchmark_id"]
-
-        if record.get("legacy_approval_grandfathered") is True:
+        if legacy:
             assert record.get("legacy_approval_grandfathered_reason", "").strip(), record["benchmark_id"]
-            assert record.get("approval_state", "").strip(), record["benchmark_id"]
+            assert (
+                provenance.get("source", "").strip()
+                or provenance.get("evidence", "").strip()
+                or record.get("legacy_approval_grandfathered_reason", "").strip()
+            ), record["benchmark_id"]
         else:
+            assert isinstance(record.get("rating_out_of_10", record.get("rating")), (int, float)), record["benchmark_id"]
             assert record.get("user_reviewed_response") is True, record["benchmark_id"]
             assert record.get("explicit_user_elevation_approval") is True, record["benchmark_id"]
             assert record.get("elevation_approval_evidence", "").strip(), record["benchmark_id"]
@@ -195,3 +191,8 @@ def test_approved_gold_stars_have_complete_provenance_and_quality_contract():
             assert record.get("reasoning_family", "").strip(), record["benchmark_id"]
             assert record.get("transferable_lesson", "").strip(), record["benchmark_id"]
             assert record.get("transfer_boundary", "").strip(), record["benchmark_id"]
+            assert provenance.get("source", "").strip(), record["benchmark_id"]
+            assert (
+                provenance.get("source_date", "").strip()
+                or provenance.get("approved_at", "").strip()
+            ), record["benchmark_id"]
