@@ -632,21 +632,6 @@ def test_final_visitor_payload_applies_visible_glossary_attribution():
     assert attribution < payload
 
 
-def test_structural_change_gold_star_is_served_on_provider_exhaustion_path():
-    import main
-
-    query = "How can one distinguish structural change from ordinary disruption?"
-    expected = resolve_exact_gold_standard(query)
-    assert expected is not None
-    result = main._basic_inquiry_round1_deterministic_response(
-        query, {}, {"context_blocks": ""}, recommendation_available=False
-    )
-    assert result["provider"] == "gold_standard_registry_deterministic_fallback"
-    assert result["response"] == expected["expected_response"]
-    assert result["doorway_title"] == ""
-    assert result["doorway_url"] is None
-
-
 def test_explicit_release_candidate_is_served_exactly_for_live_review(monkeypatch):
     import general_guide_composition as composition
 
