@@ -70,7 +70,7 @@ def test_canonical_gold_star_numbering_matches_current_inventory():
     assert len(approved) == 80
     assert len(registry["records"]) == 117
     assert len(assignments) == registry["integrity_audit"]["numbered_gold_star_record_count"]
-    assert max(numbers) == 88
+    assert max(numbers) == registry["integrity_audit"]["highest_assigned_gold_star_number"]
     assert len(numbers) == len(set(numbers))
     assert assignments[
         "general-guide-formal-actual-power-structure-gold-standard-2026-11-16"
