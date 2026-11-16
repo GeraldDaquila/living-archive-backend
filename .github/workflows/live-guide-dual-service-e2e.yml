@@ -1,4 +1,4 @@
-name: Live Guide Dual-Service E2E
+name: Live Guide Dual-Service Runtime Smoke
 
 on:
   push:
@@ -10,12 +10,7 @@ on:
       - "general_guide_gold_standards.py"
       - "docs/qa/gold_standard_registry.json"
       - "deterministic_answer_recovery.py"
-      - "tests/test_archive_constitutional_recovery.py"
       - "provider_bank.py"
-      - "tests/test_cross_question_gold_standard_integrity.py"
-      - "tests/test_general_guide_perception_contract.py"
-      - "tests/test_operational_discipline_humane_leadership_gold_standard.py"
-      - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
       - ".github/workflows/live-guide-dual-service-e2e.yml"
   workflow_dispatch:
 
@@ -24,719 +19,100 @@ permissions:
 
 concurrency:
   group: live-guide-dual-service-e2e
-  # Preserve an in-flight production acceptance check; a newer push may queue behind it, but must not erase its evidence.
   cancel-in-progress: false
 
 jobs:
-  production-e2e:
+  production-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Wait for both production services and verify the live clarification boundary
+      - name: Verify both production runtimes with inexpensive audit reads
+        env:
+          EXPECTED_RUNTIME_SHA: ${{ github.sha }}
         run: |
-          # Render auto-deploys every commit on main, including registry- and
-          # workflow-only changes. The running service reports RENDER_GIT_COMMIT,
-          # so compare it with this workflow's exact triggering commit. Runtime
-          # source parity is checked separately using source_sha256 below.
-          export EXPECTED_RUNTIME_SHA="$GITHUB_SHA"
           python - <<'PY'
           import json
-          import os
-
           import re
           import time
-          import urllib.error
-          import urllib.parse
           import urllib.request
           from pathlib import Path
 
           source = Path("main.py").read_text(encoding="utf-8")
           match = re.search(r'APP_VERSION = "(v[0-9.]+)"', source)
           if not match:
-              raise SystemExit("Cannot determine expected production version from main.py")
+              raise SystemExit("Cannot determine expected version from main.py")
           expected_version = match.group(1)
+          expected_commit = __import__("os").environ["EXPECTED_RUNTIME_SHA"]
 
-          # Runtime source SHA-256 is computed by each service at startup. Verify
-          # both live instances report the same deployed source, then verify that
-          # each visitor-facing response reports that same hash. This is robust to
-          # workflow-only commits, which do not require rebuilding the app.
-
-          # The release gate verifies both active production services. A successful
-          # primary-only response is not sufficient evidence of ecosystem resilience.
           services = {
               "primary": "https://living-archive-backend.onrender.com",
               "mirror": "https://living-archive-backend-mirror.onrender.com",
           }
+          observations = {}
 
-          def post_query(base_url, query, timeout=90):
-              # Semantic contracts are valid only for a positively identified
-              # runtime. Never allow an unset expected SHA to turn a stale
-              # deployment into an accepted visitor response.
-              expected_commit = (os.environ.get("EXPECTED_RUNTIME_SHA") or "").strip()
-              if not expected_commit:
-                  raise SystemExit("EXPECTED_RUNTIME_SHA is required before any live semantic query")
-              last_result = (0, {})
+          # This release smoke test intentionally uses only the inexpensive
+          # integration-audit GET endpoint. It does not call /api/query,
+          # /api/query-stream, LLM providers, or Pinecone. Registry/selector
+          # correctness is covered by offline PR checks; this confirms both
+          # deployed instances have reached the expected commit and share
+          # the same runtime source fingerprint.
+          for name, base_url in services.items():
+              last = None
+              stable_reads = 0
               for attempt in range(1, 31):
                   request = urllib.request.Request(
-                      base_url + "/api/query",
-                      data=json.dumps({"query": query}).encode("utf-8"),
-                      headers={"Content-Type": "application/json", "Accept": "application/json"},
-                      method="POST",
+                      base_url + "/api/integration-audit",
+                      headers={"Accept": "application/json"},
+                      method="GET",
                   )
                   try:
-                      with urllib.request.urlopen(request, timeout=timeout) as response:
-                          status = response.status
-                          payload = json.loads(response.read().decode("utf-8"))
-                  except urllib.error.HTTPError as exc:
-                      body = exc.read().decode("utf-8", "replace")
-                      try:
-                          payload = json.loads(body)
-                      except Exception:
-                          payload = {"raw": body[:500]}
-                      return exc.code, payload
-                  last_result = (status, payload)
-                  if (
-                      status != 200
-                      or payload.get("deployment_commit_sha") == expected_commit
-                  ):
-                      return status, payload
-                  print(
-                      f"Retrying {query!r}: response came from stale deployment "
-                      f"{payload.get('deployment_commit_sha')!r}, expected {expected_commit!r} "
-                      f"(attempt {attempt}/30)."
-                  )
-                  time.sleep(2)
-              # Never let a stale response enter a semantic contract check.
-              if expected_commit and last_result[1].get("deployment_commit_sha") != expected_commit:
-                  raise SystemExit(
-                      f"deployment did not stabilize on expected runtime {expected_commit!r}; "
-                      f"last observed {last_result[1].get('deployment_commit_sha')!r}"
-                  )
-              return last_result
-
-          clarification_query = "Can you compare two ways of understanding this problem?"
-          ready = set()
-          last_state = {}
-
-          # Render deployments can briefly expose successive commits from a burst
-          # of pushes. Wait for the exact commit and require it to remain stable
-          # across two consecutive audit reads before exercising visitor contracts.
-          _stable_commit_reads = {name: 0 for name in services}
-          _last_commit_seen = {name: None for name in services}
-
-          for attempt in range(1, 37):
-              for name, base_url in services.items():
-                  if name in ready:
-                      continue
-                  try:
-                      # This cheap audit endpoint exposes Render's deployed commit
-                      # SHA; after it matches, verify the visitor-facing clarification
-                      # boundary and ensure both responses share the same source hash.
-                      request = urllib.request.Request(
-                          base_url + "/api/integration-audit",
-                          headers={"Accept": "application/json"},
-                          method="GET",
-                      )
                       with urllib.request.urlopen(request, timeout=10) as response:
                           status = response.status
                           payload = json.loads(response.read().decode("utf-8"))
-                      last_state[name] = {
+                      state = {
                           "status": status,
                           "version": payload.get("version"),
                           "fingerprint": payload.get("fingerprint"),
                           "deployment_commit_sha": payload.get("deployment_commit_sha"),
                           "source_sha256": payload.get("source_sha256"),
                       }
-                      _commit = payload.get("deployment_commit_sha")
-                      if _commit == os.environ.get("EXPECTED_RUNTIME_SHA"):
-                          if _last_commit_seen[name] == _commit:
-                              _stable_commit_reads[name] += 1
-                          else:
-                              _stable_commit_reads[name] = 1
-                              _last_commit_seen[name] = _commit
-                      else:
-                          _stable_commit_reads[name] = 0
-                          _last_commit_seen[name] = _commit
-
                       if (
                           status == 200
-                          and payload.get("version") == expected_version
-                          and _commit == os.environ.get("EXPECTED_RUNTIME_SHA")
-                          and _stable_commit_reads[name] >= 2
-                          and str(payload.get("fingerprint") or "").startswith(f"USE-{expected_version}-")
-                          and bool(payload.get("source_sha256"))
+                          and state["version"] == expected_version
+                          and state["deployment_commit_sha"] == expected_commit
+                          and str(state["fingerprint"] or "").startswith(f"USE-{expected_version}-")
+                          and state["source_sha256"]
                       ):
-                          boundary_status, boundary_payload = post_query(
-                              base_url, clarification_query, timeout=25
-                          )
-                          if (
-                              boundary_status == 200
-                              and boundary_payload.get("version") == expected_version
-                              and boundary_payload.get("source_sha256") == payload.get("source_sha256")
-                              and boundary_payload.get("intent") == "CLARIFICATION_REQUIRED"
-                              and boundary_payload.get("recommendation") is None
-                              and boundary_payload.get("clarification", {}).get("required") is True
-                          ):
-                              ready.add(name)
-                              print(
-                                  f"{name}: runtime source and clarification boundary PASS; "
-                                  f"version={expected_version}; source_sha256={payload.get('source_sha256')}"
-                              )
+                          stable_reads = stable_reads + 1 if last == state else 1
+                          last = state
+                          if stable_reads >= 2:
+                              observations[name] = state
+                              print(f"{name}: runtime identity PASS: {state}")
+                              break
+                      else:
+                          last = state
+                          stable_reads = 0
+                          print(f"{name}: awaiting expected runtime (attempt {attempt}/30): {state}")
                   except Exception as exc:
-                      last_state[name] = {"error": f"{type(exc).__name__}: {str(exc)[:180]}"}
-              if len(ready) == len(services):
-                  break
-              print(f"Waiting for expected release {expected_version}: attempt={attempt}, state={last_state}")
-              time.sleep(10)
+                      last = {"error": f"{type(exc).__name__}: {str(exc)[:160]}"}
+                      stable_reads = 0
+                      print(f"{name}: audit read unavailable (attempt {attempt}/30): {last}")
+                  time.sleep(10)
+              else:
+                  raise SystemExit(
+                      f"{name}: expected runtime did not stabilize; last observation={last}"
+                  )
 
-          if len(ready) != len(services):
+          primary = observations["primary"]
+          mirror = observations["mirror"]
+          if primary["source_sha256"] != mirror["source_sha256"]:
               raise SystemExit(
-                  f"All production services did not reach {expected_version} with the clarification contract. "
-                  f"Last state: {last_state}"
+                  "Primary/mirror source mismatch: "
+                  f"{primary['source_sha256']} != {mirror['source_sha256']}"
               )
-          primary_source = last_state.get("primary", {}).get("source_sha256")
-          mirror_source = last_state.get("mirror", {}).get("source_sha256")
-          if not primary_source or not mirror_source:
-              raise SystemExit("Production runtime source hash is missing")
-          if primary_source != mirror_source:
-              raise SystemExit(
-                  f"Primary/mirror runtime source mismatch: {primary_source!r} != {mirror_source!r}"
-              )
-          print(f"Dual-service runtime source identity PASS: {primary_source}")
-
-          # Exact regression for the general-fact fallback reported by the visitor.
-          # This runs against both production services after release identity matches.
-          water_query = "What is the boiling point of water at sea level?"
-          water_results = {}
-          for name, base_url in services.items():
-              status, payload = post_query(base_url, water_query, timeout=60)
-              if status != 200 or payload.get("version") != expected_version:
-                  raise SystemExit(
-                      f"{name}: water-boiling general-fact request failed: "
-                      f"status={status}, version={payload.get('version')}"
-                  )
-              response = str(payload.get("response") or "")
-              basis = payload.get("answer_basis") or {}
-              if not re.search(r"100\s*°?C", response, re.I):
-                  raise SystemExit(f"{name}: water answer missing 100°C: {response!r}")
-              if not re.search(r"212\s*°?F", response, re.I):
-                  raise SystemExit(f"{name}: water answer missing 212°F: {response!r}")
-              if not re.search(r"standard atmospheric pressure", response, re.I):
-                  raise SystemExit(f"{name}: water answer omitted pressure qualification: {response!r}")
-              if basis.get("kind") != "general_knowledge":
-                  raise SystemExit(f"{name}: water answer provenance is not general_knowledge: {basis!r}")
-              if payload.get("recommendation") is not None:
-                  raise SystemExit(f"{name}: water answer invented an Archive doorway: {payload.get('recommendation')!r}")
-              if re.search(r"i haven.t found enough support|rather than fill the gap with outside knowledge", response, re.I):
-                  raise SystemExit(f"{name}: water answer retained the Archive-only refusal: {response!r}")
-              water_results[name] = (response, basis.get("kind"), payload.get("recommendation"))
-              print(f"{name}: water-boiling general-fact boundary PASS; chars={len(response)}; basis={basis.get('kind')}")
-
-                    # Exact regression for the provider-exhaustion definition/significance failure.
-          # This exercises the real visitor API, not just the deterministic helper.
-          institutional_memory_query = "What is institutional memory, and why does it matter?"
-          for name, base_url in services.items():
-              status, payload = post_query(base_url, institutional_memory_query, timeout=90)
-              if status != 200 or payload.get("version") != expected_version:
-                  raise SystemExit(
-                      f"{name}: institutional-memory request failed: "
-                      f"status={status}, version={payload.get('version')}"
-                  )
-              response = str(payload.get("response") or "").strip()
-              # Preserve the exact live artifact for forensic diagnosis before
-              # applying semantic assertions. This prevents another cycle based
-              # only on an assertion label.
-              print(
-                  f"{name}: constitutional forensic artifact; "
-                  f"commit={payload.get('deployment_commit_sha')}; "
-                  f"response={response!r}",
-                  flush=True,
-              )
-              paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-              processing = payload.get("processing")
-              # This question is itself a USER_APPROVED_GOLD_STANDARD. Either the
-              # ordinary General Guide composition path or the exact approved-answer
-              # boundary is valid, but the latter must reproduce the canonical
-              # reference rather than merely bypassing composition.
-              if processing not in {
-                  "basic_inquiry",
-                  "final_visitor_boundary_exact_gold_standard",
-              }:
-                  raise SystemExit(
-                      f"{name}: institutional-memory question used an invalid processing boundary: "
-                      f"{processing!r}"
-                  )
-              if processing == "final_visitor_boundary_exact_gold_standard":
-                  registry = json.loads(
-                      Path("docs/qa/gold_standard_registry.json").read_text(encoding="utf-8")
-                  )
-                  standard = next(
-                      (
-                          item for item in registry.get("records", [])
-                          if item.get("query") == institutional_memory_query
-                          and item.get("status") == "USER_APPROVED_GOLD_STANDARD"
-                      ),
-                      None,
-                  )
-                  expected_response = str((standard or {}).get("expected_response") or "").strip()
-                  if not expected_response or response != expected_response:
-                      raise SystemExit(
-                          f"{name}: exact Gold Standard boundary did not reproduce the approved "
-                          "institutional-memory reference"
-                      )
-              if len(paragraphs) != 3 or len(response) < 300:
-                  raise SystemExit(
-                      f"{name}: institutional-memory response did not meet the three-paragraph depth contract; "
-                      f"paragraphs={len(paragraphs)}; chars={len(response)}"
-                  )
-              if not re.search(r"\binstitutional memory\b", paragraphs[0], re.I) or not re.search(
-                  r"\b(?:is|means|refers to|describes|understood as)\b", paragraphs[0], re.I
-              ):
-                  raise SystemExit(
-                      f"{name}: institutional-memory answer is not definition-first: {paragraphs[0]!r}"
-                  )
-              if not re.search(r"\b(?:for example|for instance|one example)\b", paragraphs[1], re.I) or not re.search(
-                  r"\b(?:organization|organisation|institution|team|records?|decisions?|policy|experience|knowledge)\b",
-                  paragraphs[1],
-                  re.I,
-              ):
-                  raise SystemExit(
-                      f"{name}: institutional-memory answer lacks a concrete operational example: {paragraphs[1]!r}"
-                  )
-              if not re.search(
-                  r"\b(?:matters?|important|significance|supports?|enables?|continuity|learning|because)\b",
-                  paragraphs[2],
-                  re.I,
-              ):
-                  raise SystemExit(
-                      f"{name}: institutional-memory answer lacks a substantive significance paragraph: {paragraphs[2]!r}"
-                  )
-              if re.search(
-                  r"i can.t define|couldn.t verify a reliable answer|most useful explanation for why|"
-                  r"this question can be approached by first identifying",
-                  response,
-                  re.I,
-              ):
-                  raise SystemExit(
-                      f"{name}: institutional-memory response regressed to generic recovery: {response!r}"
-                  )
-              print(
-                  f"{name}: exact institutional-memory definition/significance regression PASS; "
-                  f"paragraphs={len(paragraphs)}; response_chars={len(response)}"
-              )
-
-          # Verify that the guard did not replace the ordinary composition path.
-          # This established calibration question exercises explanatory depth,
-          # readable paragraph structure, and the separate canonical doorway.
-          golden_query = "What is stewardship and why does it matter now more than ever?"
-          for name, base_url in services.items():
-              status, payload = post_query(base_url, golden_query, timeout=120)
-              if status != 200 or payload.get("version") != expected_version:
-                  raise SystemExit(f"{name}: golden composition request failed: status={status}, payload={payload}")
-              response = str(payload.get("response") or "").strip()
-              paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-              if payload.get("processing") != "basic_inquiry":
-                  raise SystemExit(f"{name}: ordinary explanatory question left General Guide composition: {payload.get('intent')}")
-              if payload.get("intent") == "GLOSSARY_HANDOFF" or payload.get("handoff") == "glossary":
-                  raise SystemExit(f"{name}: compound explanatory question was misrouted to Glossary")
-              if len(paragraphs) < 3 or len(response) < 250:
-                  raise SystemExit(f"{name}: explanatory composition lost depth or paragraph structure")
-              # Internal labels remain case-insensitive, but the product acronym
-              # USE is reserved for uppercase; the ordinary verb "use" is valid prose.
-              if (
-                  re.search(
-                      r"\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\b",
-                      response,
-                      re.I,
-                  )
-                  or re.search(r"\bUSE\b", response)
-              ):
-                  raise SystemExit(f"{name}: internal implementation language leaked into visitor prose")
-              recommendation = payload.get("recommendation")
-              if not isinstance(recommendation, dict):
-                  raise SystemExit(f"{name}: independent canonical recommendation is missing")
-              url = str(recommendation.get("url") or "")
-              title = str(recommendation.get("title") or "").strip()
-              if not title or not url.startswith("https://geralddaquila.com/"):
-                  raise SystemExit(f"{name}: canonical recommendation failed domain/title validation")
-              print(
-                  f"{name}: golden composition PASS; version={expected_version}; "
-                  f"paragraphs={len(paragraphs)}; response_chars={len(response)}; "
-                  f"recommendation={title}; url={url}"
-              )
-
-          # Exact visitor-reported regression: operational discipline must resolve
-          # to the approved substantive Gold Standard, not a three-paragraph meta-answer.
-          discipline_query = "What is the role of operational discipline in humane leadership?"
-          registry = json.loads(Path("docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
-          discipline_standard = next(
-              (
-                  item for item in registry.get("records", [])
-                  if item.get("query") == discipline_query
-                  and item.get("status") == "USER_APPROVED_GOLD_STANDARD"
-              ),
-              None,
+          print(
+              "Dual-service runtime identity PASS: "
+              f"commit={expected_commit}; source_sha256={primary['source_sha256']}"
           )
-          if not discipline_standard:
-              raise SystemExit("Operational-discipline Gold Standard is missing from the approved registry")
-          expected_discipline_answer = str(discipline_standard.get("expected_response") or "").strip()
-          discipline_assertions = discipline_standard.get("assertions") or []
-          discipline_forbids_doorway = any(
-              "forbids direct page handoff" in str(assertion).casefold()
-              for assertion in discipline_assertions
-          ) or bool(re.search(r"\bdo not send me to another page\b", discipline_query))
-          for name, base_url in services.items():
-              status, payload = post_query(base_url, discipline_query, timeout=120)
-              if status != 200 or payload.get("version") != expected_version:
-                  raise SystemExit(
-                      f"{name}: operational-discipline request failed: "
-                      f"status={status}, version={payload.get('version')}"
-                  )
-              response = str(payload.get("response") or "").strip()
-              paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-              if response != expected_discipline_answer:
-                  raise SystemExit(
-                      f"{name}: operational-discipline response diverged from its approved Gold Standard: "
-                      f"chars={len(response)}, expected_chars={len(expected_discipline_answer)}"
-                  )
-              if len(paragraphs) != 3:
-                  raise SystemExit(f"{name}: operational-discipline Gold Standard requires exactly three paragraphs")
-              if re.search(
-                  r"(?i)please try again shortly|the guide should either provide|"
-                  r"complete response should address your actual question|"
-                  r"that explanation has not been produced reliably",
-                  response,
-              ):
-                  raise SystemExit(f"{name}: operational-discipline answer regressed to meta-answer/failure text")
-              recommendation = payload.get("recommendation")
-              if discipline_forbids_doorway:
-                  if recommendation is not None:
-                      raise SystemExit(
-                          f"{name}: this Gold Standard explicitly forbids a doorway but received one"
-                      )
-              elif recommendation is not None:
-                  if (
-                      not isinstance(recommendation, dict)
-                      or not recommendation.get("title")
-                      or not str(recommendation.get("url") or "").startswith("https://geralddaquila.com/")
-                  ):
-                      raise SystemExit(
-                          f"{name}: default Gold Standard doorway is not a valid canonical Archive destination"
-                      )
-              print(
-                  f"{name}: operational-discipline Gold Standard PASS; "
-                  f"paragraphs={len(paragraphs)}; response_chars={len(response)}"
-              )
-
-          # Exact visitor-reported regression: the intergenerational relationship
-          # must retain the three-paragraph Gold Standard at the final API boundary.
-          intergenerational_query = "How does stewardship relate to intergenerational responsibility?"
-          for name, base_url in services.items():
-              status, payload = post_query(base_url, intergenerational_query, timeout=120)
-              if status != 200 or payload.get("version") != expected_version:
-                  raise SystemExit(
-                      f"{name}: intergenerational stewardship request failed: "
-                      f"status={status}, version={payload.get('version')}"
-                  )
-              response = str(payload.get("response") or "").strip()
-              paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-              if len(paragraphs) != 3:
-                  raise SystemExit(
-                      f"{name}: intergenerational Gold Standard must have exactly 3 paragraphs; "
-                      f"got {len(paragraphs)}: {response!r}"
-                  )
-              registry = json.loads(
-                  Path("docs/qa/gold_standard_registry.json").read_text(encoding="utf-8")
-              )
-              standard = next(
-                  (
-                      item for item in registry.get("records", [])
-                      if item.get("query") == intergenerational_query
-                      and item.get("status") == "USER_APPROVED_GOLD_STANDARD"
-                  ),
-                  None,
-              )
-              expected_response = str((standard or {}).get("expected_response") or "").strip()
-              if not expected_response:
-                  raise SystemExit(
-                      f"{name}: intergenerational Gold Standard is missing from the canonical registry"
-                  )
-              if response != expected_response:
-                  raise SystemExit(
-                      f"{name}: intergenerational response does not reproduce the approved "
-                      f"Gold Standard reference: {response!r}"
-                  )
-              if re.search(r"(?i)think of a shared garden|trust helps people in a community rely on one another", response):
-                  raise SystemExit(f"{name}: visitor-reported generic garden fallback was not replaced")
-              if re.search(r"(?i)\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\b|\bUSE\b", response):
-                  raise SystemExit(f"{name}: internal implementation language leaked into intergenerational answer")
-              print(
-                  f"{name}: intergenerational Gold Standard PASS; "
-                  f"paragraphs={len(paragraphs)}; response_chars={len(response)}"
-              )
-
-          # Production integrity-recovery regression: a constitutional-reasoning
-          # question must not receive the approved Living Archive definition answer.
-          # This directly exercises the provider-backed recovery path on both services.
-          constitutional_query = "What is constitutional reasoning in the Archive's sense?"
-          for name, base_url in services.items():
-              status, payload = post_query(base_url, constitutional_query, timeout=120)
-              if status != 200 or payload.get("version") != expected_version:
-                  raise SystemExit(
-                      f"{name}: constitutional-reasoning request failed: "
-                      f"status={status}, version={payload.get('version')}"
-                  )
-              response = str(payload.get("response") or "").strip()
-              paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-              processing = payload.get("processing")
-              if processing not in {"basic_inquiry", "final_visitor_boundary_exact_gold_standard"}:
-                  raise SystemExit(
-                      f"{name}: constitutional reasoning used an invalid processing boundary: "
-                      f"{processing!r}/{payload.get('intent')!r}"
-                  )
-              if processing == "final_visitor_boundary_exact_gold_standard":
-                  registry = json.loads(
-                      Path("docs/qa/gold_standard_registry.json").read_text(encoding="utf-8")
-                  )
-                  standard = next(
-                      (
-                          item for item in registry.get("records", [])
-                          if item.get("query") == constitutional_query
-                          and item.get("status") == "USER_APPROVED_GOLD_STANDARD"
-                      ),
-                      None,
-                  )
-                  expected_response = str((standard or {}).get("expected_response") or "").strip()
-                  if not expected_response or response != expected_response:
-                      raise SystemExit(
-                          f"{name}: constitutional reasoning exact Gold Standard boundary did not "
-                          "reproduce the approved reference"
-                      )
-              if payload.get("intent") == "GLOSSARY_HANDOFF" or payload.get("handoff") == "glossary":
-                  raise SystemExit(f"{name}: constitutional reasoning was misrouted to Glossary")
-              if len(paragraphs) < 3 or len(response) < 300:
-                  raise SystemExit(
-                      f"{name}: constitutional-reasoning response lacks explanatory depth: "
-                      f"chars={len(response)}, paragraphs={len(paragraphs)}"
-                  )
-              if re.search(
-                  r"(?i)the living archive is a public knowledge commons and an orientation ecosystem|"
-                  r"it is not a chatbot that treats every question",
-                  response,
-              ):
-                  raise SystemExit(
-                      f"{name}: institutional-definition Gold Standard leaked into constitutional reasoning"
-                  )
-              if not re.search(r"(?i)constitutional reasoning", response):
-                  raise SystemExit(f"{name}: response did not explain constitutional reasoning directly")
-              if not re.search(r"(?i)governing relationships|relationships among concepts|relationships between concepts", response):
-                  raise SystemExit(f"{name}: response omitted constitutional governing relationships")
-              if not re.search(r"(?i)recovered constitutional architecture|constitutional architecture", response):
-                  raise SystemExit(f"{name}: response omitted the recovered constitutional architecture")
-              if not re.search(r"(?i)later interpretation|subsequent interpretation|interpretive layer", response):
-                  raise SystemExit(f"{name}: response omitted the distinction from later interpretation")
-              if not re.search(r"(?i)recovery before translation|recover.*before.*translat", response):
-                  raise SystemExit(f"{name}: response omitted the Archive's recovery-before-translation order")
-              if (
-                  re.search(
-                      r"\b(?:provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer)\b",
-                      response,
-                      re.I,
-                  )
-                  or re.search(r"\bUSE\b", response)
-              ):
-                  raise SystemExit(f"{name}: internal implementation language leaked into constitutional response")
-              recommendation = payload.get("recommendation")
-              if not isinstance(recommendation, dict):
-                  raise SystemExit(f"{name}: constitutional reasoning lacks a separate canonical doorway")
-              url = str(recommendation.get("url") or "")
-              title = str(recommendation.get("title") or "").strip()
-              if not title or not url.startswith("https://geralddaquila.com/"):
-                  raise SystemExit(f"{name}: constitutional canonical doorway failed validation")
-              print(
-                  f"{name}: constitutional-reasoning integrity-recovery PASS; "
-                  f"chars={len(response)}; paragraphs={len(paragraphs)}; "
-                  f"recommendation={title}; url={url}"
-              )
-
-          # Reproduce the visitor's reported failure exactly. This must remain
-          # an answer-first interaction even when every model provider is down.
-          explicit_explanation = "Explain stewardship, but do not send me to another page yet."
-          for name, base_url in services.items():
-              status, payload = post_query(base_url, explicit_explanation, timeout=120)
-              if status != 200 or payload.get("version") != expected_version:
-                  raise SystemExit(f"{name}: explicit explanation request failed: status={status}, payload={payload}")
-              response = str(payload.get("response") or "").strip()
-              paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-              if payload.get("processing") != "basic_inquiry":
-                  raise SystemExit(f"{name}: explicit explanation left General Guide composition")
-              if len(paragraphs) < 3 or len(response) < 300:
-                  raise SystemExit(f"{name}: explicit stewardship explanation is too thin: chars={len(response)}, paragraphs={len(paragraphs)}")
-              # Directness is semantic, not a mandated opening phrase. A visitor
-              # may receive a clear definition such as "Stewardship is..." or
-              # "At its simplest, stewardship means..." without using one exact
-              # string. Keep the answer-first contract while avoiding a brittle
-              # stylistic false negative.
-              first_paragraph = paragraphs[0] if paragraphs else ""
-              direct_definition = re.search(
-                  r"(?i)\bstewardship\b.{0,120}\b(?:means|is|involves|refers to)\b",
-                  first_paragraph,
-              )
-              if not direct_definition:
-                  raise SystemExit(
-                      f"{name}: explicit stewardship request was not answered directly: "
-                      f"{first_paragraph!r}"
-                  )
-              if (
-                  re.search(
-                      r"(?i)couldn't verify a reliable answer|won't present a guess as fact|separately selected Archive resource|provider bank|canonical evidence|retrieval layer|synthesis layer|processing layer",
-                      response,
-                  )
-                  or re.search(r"\bUSE\b", response)
-              ):
-                  raise SystemExit(f"{name}: limitation-only or machine-facing fallback leaked into visitor prose")
-              if re.search(r"(?m)^\s*(?:[-*+]\s+|\d+[.)]\s+)", response):
-                  raise SystemExit(f"{name}: plain stewardship explanation used an unsolicited list")
-              # An everyday anchor is a meaning contract, not a closed list of
-              # stock examples. Accept ordinary-life contexts or explicit example
-              # language so new, equally valid formulations are not rejected.
-              everyday_anchor = re.search(
-                  r"(?i)\b(?:for example|for instance|in practice|everyday|daily life|"
-                  r"home|work|family|community|team|promise|shared|maintain|"
-                  r"care for|responsible use|resources?)\b",
-                  response,
-              )
-              if not everyday_anchor:
-                  raise SystemExit(f"{name}: stewardship answer lacks a recognizable everyday anchor")
-              # Care-versus-control is a conceptual boundary, not a mandatory
-              # sentence in every introductory explanation. The checks above already
-              # require a direct definition, adequate substance, and an everyday
-              # anchor. Do not reject a coherent introduction solely because it does
-              # not introduce the control distinction unprompted.
-              if re.search(r"https?://|\[[^\]]+\]\(", response):
-                  raise SystemExit(f"{name}: navigation was embedded in answer prose despite the visitor's instruction")
-              recommendation = payload.get("recommendation")
-              if recommendation is not None and not isinstance(recommendation, dict):
-                  raise SystemExit(f"{name}: recommendation field has invalid shape")
-              print(f"{name}: explicit stewardship/no-navigation answer PASS; chars={len(response)}; paragraphs={len(paragraphs)}; recommendation remains separate")
-
-          # Verify the browser-facing SSE path is actually live, emits a
-          # keep-alive-capable stream, and preserves the complete response
-          # envelope (including the separately selected Archive recommendation).
-          stream_query = "Explain stewardship, but do not send me to another page yet."
-          for name, base_url in services.items():
-              request = urllib.request.Request(
-                  base_url + "/api/query-stream",
-                  data=json.dumps({"query": stream_query}).encode("utf-8"),
-                  headers={"Content-Type": "application/json", "Accept": "text/event-stream"},
-                  method="POST",
-              )
-              with urllib.request.urlopen(request, timeout=90) as response:
-                  content_type = response.headers.get("Content-Type", "")
-                  stream_body = response.read().decode("utf-8", "replace")
-              if "text/event-stream" not in content_type:
-                  raise SystemExit(f"{name}: stream content type is wrong: {content_type}")
-              events = {}
-              current_event = None
-              for line in stream_body.splitlines():
-                  if line.startswith("event:"):
-                      current_event = line[6:].strip()
-                  elif line.startswith("data:") and current_event:
-                      try:
-                          events[current_event] = json.loads(line[5:].strip())
-                      except Exception:
-                          raise SystemExit(f"{name}: invalid SSE JSON for event {current_event}")
-              if "stream_start" not in events or "response_text" not in events or "response_complete" not in events:
-                  raise SystemExit(f"{name}: SSE stream omitted required lifecycle events: {sorted(events)}")
-              final_payload = events["response_complete"].get("payload")
-              if not isinstance(final_payload, dict):
-                  raise SystemExit(f"{name}: SSE completion omitted the authoritative response payload")
-              answer = str(final_payload.get("response") or "").strip()
-              paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", answer) if part.strip()]
-              if len(paragraphs) < 3 or len(answer) < 300:
-                  raise SystemExit(f"{name}: SSE answer failed composition floor: chars={len(answer)}, paragraphs={len(paragraphs)}")
-              if re.search(r"(?m)^\s*(?:[-*+]\s+|\d+[.)]\s+)", answer):
-                  raise SystemExit(f"{name}: SSE stewardship answer used an unsolicited list")
-              # SSE is another transport path for the same visitor answer.
-              # Apply the same composition floor without duplicating retired
-              # phrase-based stewardship heuristics here. Semantic content is
-              # already covered by the non-streaming response contract.
-              streamed_recommendation = events["response_complete"].get("recommendation")
-              if streamed_recommendation != final_payload.get("recommendation"):
-                  raise SystemExit(
-                      f"{name}: SSE completion recommendation diverged from the authoritative payload: "
-                      f"{streamed_recommendation!r} != {final_payload.get('recommendation')!r}"
-                  )
-              if streamed_recommendation is not None and not isinstance(streamed_recommendation, dict):
-                  raise SystemExit(f"{name}: SSE recommendation field has an invalid shape")
-              if isinstance(streamed_recommendation, dict) and (
-                  not streamed_recommendation.get("title") or not streamed_recommendation.get("url")
-              ):
-                  raise SystemExit(f"{name}: SSE recommendation is missing its canonical title or URL")
-              print(
-                  f"{name}: SSE delivery PASS; chars={len(answer)}; paragraphs={len(paragraphs)}; "
-                  f"canonical recommendation preserved={streamed_recommendation is not None}"
-              )
-
-          # The Guide resource-discovery regression now respects the native Catalogue boundary.
-          # A resource-finding question must cross into the Catalogue's own search surface;
-          # USE must preserve the visitor's exact query instead of substituting a generic
-          # page recommendation or duplicating Catalogue retrieval.
-          discovery_query = "Where can I find material about institutional responsibility?"
-          expected_catalogue_url = (
-              "https://geralddaquila.com/explore-the-stewardship-catalogue/"
-              + "?catalogue_query="
-              + urllib.parse.quote(discovery_query, safe="")
-          )
-          discovery_results = {}
-          for name, base_url in services.items():
-              status, payload = post_query(base_url, discovery_query, timeout=120)
-              if status != 200 or payload.get("version") != expected_version:
-                  raise SystemExit(
-            f"{name}: discovery parity request failed: status={status}, "
-            f"version={payload.get('version')}, expected={expected_version}"
-                  )
-              if payload.get("intent") != "CATALOGUE_HANDOFF":
-                  raise SystemExit(
-            f"{name}: resource discovery did not use the native Catalogue boundary: "
-            f"intent={payload.get('intent')!r}"
-                  )
-              if (
-                  payload.get("handoff") != "catalogue"
-                  or payload.get("handoff_mode") != "direct"
-                  or payload.get("handoff_pending") is not True
-                  or payload.get("return_mode") != "native_catalogue_search"
-              ):
-                  raise SystemExit(
-            f"{name}: Catalogue handoff contract is incomplete: "
-            f"handoff={payload.get('handoff')!r}, mode={payload.get('handoff_mode')!r}, "
-            f"pending={payload.get('handoff_pending')!r}, return_mode={payload.get('return_mode')!r}"
-                  )
-              if payload.get("catalogue_query") != discovery_query:
-                  raise SystemExit(
-            f"{name}: original resource query was not preserved across Catalogue handoff: "
-            f"{payload.get('catalogue_query')!r}"
-                  )
-              actual_url = str(payload.get("catalogue_url") or "")
-              if actual_url != expected_catalogue_url:
-                  raise SystemExit(
-            f"{name}: native Catalogue destination mismatch: {actual_url!r}; "
-            f"expected {expected_catalogue_url!r}"
-                  )
-              if payload.get("recommendation") is not None:
-                  raise SystemExit(
-            f"{name}: Catalogue handoff duplicated native Catalogue retrieval with a separate recommendation"
-                  )
-              discovery_results[name] = (
-                  payload.get("intent"),
-                  payload.get("handoff"),
-                  payload.get("catalogue_query"),
-                  actual_url,
-              )
-              print(
-                  f"{name}: institutional-responsibility Catalogue handoff PASS; "
-                  f"query preserved; url={actual_url}"
-              )
-
           PY
