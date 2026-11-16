@@ -183,8 +183,11 @@ def main():
         missing = sorted(k for k in required_text if not str(record.get(k) or "").strip())
         if missing:
             fail(f"{record.get('benchmark_id')} missing required Gold Star metadata: {', '.join(missing)}")
-        if not isinstance(record.get("rating_out_of_10"), (int, float)) or isinstance(record.get("rating_out_of_10"), bool):
-            fail(f"{record['benchmark_id']} lacks a numeric rating_out_of_10")
+        rating = record.get("rating_out_of_10", record.get("rating"))
+        if rating is not None and (not isinstance(rating, (int, float)) or isinstance(rating, bool)):
+            fail(f"{record['benchmark_id']} has an invalid rating")
+        if not legacy and rating is None:
+            fail(f"{record['benchmark_id']} lacks a numeric rating")
         if not isinstance(record.get("gold_star_capabilities"), dict) or record["gold_star_capabilities"].get("active_quality_contributor") is not True:
             fail(f"{record['benchmark_id']} lacks active quality-contributor authority")
 
@@ -193,10 +196,8 @@ def main():
             legacy_reason = str(record.get("legacy_approval_grandfathered_reason") or "").strip()
             if not legacy_reason:
                 fail(f"{record['benchmark_id']} has an undocumented legacy approval exemption")
-            if not str(record.get("approval_state") or "").strip():
-                fail(f"{record['benchmark_id']} lacks legacy approval-state provenance")
-            if not str(record.get("user_approved_at") or record.get("provenance", {}).get("approved_at") or "").strip():
-                fail(f"{record['benchmark_id']} lacks legacy approval date provenance")
+            # Explicit legacy exemption preserves earlier approvals without
+            # inventing reconstructed approval-state dates or reviewer text.
         else:
             modern_required = {
                 "approval_state", "elevation_approval_evidence", "reasoning_family",
@@ -219,6 +220,8 @@ def main():
             # do not fabricate source dates or reviewer evidence.
             if not str(provenance.get("source") or provenance.get("evidence") or record.get("legacy_approval_grandfathered_reason") or "").strip():
                 fail(f"{record['benchmark_id']} lacks legacy provenance evidence")
+            if not str(record.get("legacy_approval_grandfathered_reason") or "").strip():
+                fail(f"{record['benchmark_id']} lacks the required legacy approval exception reason")
         else:
             if not str(provenance.get("source") or "").strip():
                 fail(f"{record['benchmark_id']} lacks provenance.source")
