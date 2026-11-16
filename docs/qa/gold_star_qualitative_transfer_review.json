@@ -721,6 +721,13 @@
       "qualifying_context": "Questions about the boundary between reflection, self-inquiry, orientation, therapy, professional care, or the Guide's role when psychological needs are involved.",
       "abstention_boundary": "Do not diagnose, treat, or imply clinical authority; when deeper psychological distress or therapeutic needs are central, preserve the distinction between reflective guidance and qualified care.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-16-meaning-making-factual-explanation",
+      "transferable_discipline": "Separate what happened and what evidence supports from questions of significance, then reconnect them without allowing interpretation to impersonate evidence.",
+      "abstention_boundary": "Do not present subjective interpretation as factual proof or imply that evidence alone settles questions of meaning.",
+      "activation": "active_quality_contributor",
+      "reasoning_family": "fact-meaning-distinction-question"
     }
   ]
 }

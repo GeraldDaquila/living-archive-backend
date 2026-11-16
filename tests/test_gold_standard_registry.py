@@ -973,3 +973,11 @@ def test_integrity_audit_numbered_count_matches_registry_records():
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     numbered = sum(isinstance(r.get("gold_star_number"), int) for r in registry["records"])
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == numbered
+
+
+def test_meaning_making_gold_star_90_has_verified_canonical_doorway():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    record = next(r for r in registry["records"] if r["benchmark_id"] == "gs-2026-11-16-meaning-making-factual-explanation")
+    assert record["gold_star_number"] == 90
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/04/08/making-sense-of-life-without-oversimplifying-it/"
