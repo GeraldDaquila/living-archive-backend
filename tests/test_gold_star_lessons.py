@@ -226,7 +226,7 @@ def test_deterministic_fallback_guidance_is_applied_without_changing_paragraph_c
     )
     response = "First paragraph.\n\nSecond paragraph.\n\nThird paragraph."
     guided = lessons.apply_deterministic_fallback_guidance(target["query"], response)
-    assert "A useful structural discipline here:" in guided
+    assert "A useful way to examine this is:" in guided
     assert target["transferable_discipline"] in guided
     assert target["abstention_boundary"] in guided
     assert len([p for p in guided.split("\n\n") if p.strip()]) == 3
