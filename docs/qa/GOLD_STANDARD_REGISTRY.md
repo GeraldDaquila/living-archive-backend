@@ -12,6 +12,8 @@
 - **Allocation rule:** The recorded serial sequence begins at #56. Do not backfill #85/#86 by inference. New allocations require explicit user authorization and must be contiguous after #90. Unassigned status never excludes an approved record from adaptive learning.
 
 **Authority:** The machine-readable source of truth is `docs/qa/gold_standard_registry.json` on `main`. The qualitative-transfer review is linked by `benchmark_id`. This companion is explanatory only.
+
+**Historical-note boundary:** The material below this current authority section preserves earlier recovery notes and snapshots. Any older inventory counts, numbering descriptions, or status summaries are historical and are superseded by the current machine-readable registry and the reconciliation above.
 ---
 
 
