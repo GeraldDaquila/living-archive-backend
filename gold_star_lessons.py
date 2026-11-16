@@ -167,6 +167,27 @@ def validate_registry_integrity(
                 raise GoldStarRegistryIntegrityError(
                     f"Assigned Gold Star {benchmark_id} also carries an unassigned reason."
                 )
+            recovery = record.get("numbering_recovery")
+            if recovery is not None:
+                required_recovery = (
+                    "recovery_class", "recovered_number", "source_pr", "source_pr_url",
+                    "source_merge_commit", "previous_registry_state", "authority_basis",
+                    "recovered_at",
+                )
+                if (
+                    not isinstance(recovery, dict)
+                    or any(not str(recovery.get(key) or "").strip() for key in required_recovery)
+                    or recovery.get("recovered_number") != number
+                    or recovery.get("recovery_class") not in {
+                        "HISTORICAL_SEQUENCE_ASSIGNMENT_RECOVERY",
+                        "HISTORICAL_EXPLICIT_ASSIGNMENT_RECOVERY",
+                    }
+                    or isinstance(recovery.get("source_pr"), bool)
+                    or not isinstance(recovery.get("source_pr"), int)
+                ):
+                    raise GoldStarRegistryIntegrityError(
+                        f"Approved Gold Star {benchmark_id} has incomplete historical numbering recovery evidence."
+                    )
             assigned_numbers.append(number)
 
     if numbering_gap_register is None or not isinstance(numbering_gap_register, list):
@@ -175,7 +196,10 @@ def validate_registry_integrity(
         )
     if not assigned_numbers:
         raise GoldStarRegistryIntegrityError("No assigned Gold Star serials exist.")
-    expected_gaps = set(range(min(assigned_numbers), max(assigned_numbers) + 1)) - set(assigned_numbers)
+    sequence_start = numbering_policy.get("sequence_start") if isinstance(numbering_policy, dict) else None
+    if isinstance(sequence_start, bool) or not isinstance(sequence_start, int) or sequence_start <= 0 or min(assigned_numbers) != sequence_start:
+        raise GoldStarRegistryIntegrityError("Gold Star numbering_policy.sequence_start does not match the lowest assigned serial.")
+    expected_gaps = set(range(sequence_start, max(assigned_numbers) + 1)) - set(assigned_numbers)
     actual_gaps = set()
     for gap in numbering_gap_register:
         if not isinstance(gap, dict):
@@ -289,7 +313,7 @@ def _load_lessons() -> List[Dict[str, Any]]:
         raise GoldStarRegistryIntegrityError(
             "Canonical Gold Star registry or qualitative review has an invalid top-level schema."
         )
-    validate_registry_integrity(records, review_entries, registry_payload.get("numbering_gap_register"))
+    validate_registry_integrity(records, review_entries, registry_payload.get("numbering_gap_register"), registry_payload.get("numbering_policy"))
     transfer_review = {
         str(entry.get("benchmark_id") or "").strip(): entry
         for entry in review_entries
