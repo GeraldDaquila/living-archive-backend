@@ -355,3 +355,12 @@ def test_transformation_relief_recovery_distinguishes_state_change_from_pattern_
     assert "relief alone is not evidence of transformation" in paragraphs[2]
     assert "survives beyond the feeling of the moment" in paragraphs[2]
     assert "not a claim that the Living Archive defines" in paragraphs[2]
+
+def test_compact_composer_requires_direct_answer_opening():
+    assert "Do not announce the act of answering" in guide._GENERAL_GUIDE_SYSTEM_COMPACT
+    assert "Begin with the substantive answer itself" in guide._GENERAL_GUIDE_SYSTEM_COMPACT
+
+
+def test_full_composer_requires_operational_first_sentence():
+    assert "The opening sentence must perform the requested intellectual work" in guide._GENERAL_GUIDE_SYSTEM
+    assert "state the operative difference in the first sentence" in guide._GENERAL_GUIDE_SYSTEM
