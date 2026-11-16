@@ -10,26 +10,26 @@ import re
 
 
 _TRADITION_TERMS = re.compile(
-    r"\\b(?:spiritual|religious|religion|faith|theological|philosophical|"
-    r"contemplative|indigenous)\\b", re.I
+    r"\b(?:spiritual|religious|religion|faith|theological|philosophical|"
+    r"contemplative|indigenous)\b", re.I
 )
 _PLURAL_TERMS = re.compile(
-    r"\\b(?:multiple|different|various|comparative|between|across|traditions?)\\b", re.I
+    r"\b(?:multiple|different|various|comparative|between|across|traditions?)\b", re.I
 )
 _APPROACH_TERMS = re.compile(
-    r"\\b(?:approach|understand|engage|compare|study|learn|respect|"
-    r"intellectual discipline)\\b", re.I
+    r"\b(?:approach|understand|engage|compare|study|learn|respect|"
+    r"intellectual discipline)\b", re.I
 )
 _DOMAIN_MARKERS = re.compile(
-    r"\\b(?:tradition|traditions|practitioners|sources|texts|history|historical|"
+    r"\b(?:tradition|traditions|practitioners|sources|texts|history|historical|"
     r"context|contexts|claims|evidence|interpretation|interpretations|"
     r"differences|distinctions|beliefs|practices|experience|experiences|"
-    r"epistemic|uncertainty|standpoint|criticism|critical|compare|comparison)\\b", re.I
+    r"epistemic|uncertainty|standpoint|criticism|critical|compare|comparison)\b", re.I
 )
 _INSTITUTIONAL_MARKERS = re.compile(
-    r"\\b(?:organisation|organization|governance|responsibilit(?:y|ies)|"
+    r"\b(?:organisation|organization|governance|responsibilit(?:y|ies)|"
     r"consequences|costs|decision|decisions|accountability|institutional|"
-    r"stakeholders|operating)\\b", re.I
+    r"stakeholders|operating)\b", re.I
 )
 
 
