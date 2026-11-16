@@ -986,6 +986,13 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     # A generic clarifier is not an acceptable default ending for a question
     # that reached recovery with a concrete subject. The separate request-boundary
     # classifier remains responsible for genuinely missing subjects.
+    # Deterministic recovery consumes only explicitly eligible Gold Star
+    # structural guidance; exemplar answer content is never transferred.
+    try:
+        from gold_star_lessons import apply_deterministic_fallback_guidance
+        answer = apply_deterministic_fallback_guidance(q, answer)
+    except Exception:
+        pass
     return answer
 
 
