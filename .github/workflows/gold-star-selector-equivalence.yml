@@ -1,0 +1,42 @@
+name: Gold Star Selector Equivalence
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "gold_star_lessons.py"
+      - "tests/test_gold_star_precomputed_index.py"
+      - "tests/test_gold_star_selector_equivalence.py"
+      - "docs/qa/gold_standard_registry.json"
+      - "docs/qa/gold_star_qualitative_transfer_review.json"
+      - ".github/workflows/gold-star-selector-equivalence.yml"
+  push:
+    branches: [main]
+    paths:
+      - "gold_star_lessons.py"
+      - "tests/test_gold_star_precomputed_index.py"
+      - "tests/test_gold_star_selector_equivalence.py"
+      - "docs/qa/gold_standard_registry.json"
+      - "docs/qa/gold_star_qualitative_transfer_review.json"
+      - ".github/workflows/gold-star-selector-equivalence.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  selector-equivalence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact tested revision
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test runner
+        run: python -m pip install pytest
+      - name: Compile Gold Star selector
+        run: python -m py_compile gold_star_lessons.py
+      - name: Run selector equivalence and scale regressions
+        run: python -m pytest -q tests/test_gold_star_precomputed_index.py tests/test_gold_star_selector_equivalence.py
