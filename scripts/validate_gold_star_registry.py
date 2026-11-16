@@ -332,19 +332,45 @@ def validate_numbering_against_base(current_records, current_registry=None):
              "without an explicit authorized numbering migration: "
              + ", ".join(unauthorized_migrations))
 
-    # New assignments must be contiguous after the highest number already
-    # present on main; gaps in historical sequences remain untouched.
+    # Ordinary new assignments remain contiguous after the current maximum.
+    # The only exception is the previously user-authorized release of #85/#86,
+    # allocated in order to the next newly approved records with explicit evidence.
     base_max = max(base_numbers.values(), default=0)
-    new_assignments = sorted(
-        number for benchmark_id, number in current_numbers.items()
+    new_assignment_items = [
+        (benchmark_id, number) for benchmark_id, number in current_numbers.items()
         if benchmark_id not in base_numbers and benchmark_id not in recovered_historical_ids
-    )
-    if new_assignments:
-        expected = list(range(base_max + 1, base_max + 1 + len(new_assignments)))
-        if new_assignments != expected:
+    ]
+    special_numbers = []
+    ordinary_numbers = []
+    for benchmark_id, number in new_assignment_items:
+        record = current_by_id.get(benchmark_id, {})
+        migration = record.get("numbering_migration") or {}
+        if number in {85, 86}:
+            if (
+                migration.get("migration_class") != "explicit_user_authorized_future_gap_allocation"
+                or migration.get("previous_numbering_state") != "approved_unnumbered"
+                or migration.get("approved_at") != "2026-11-17"
+                or not str(migration.get("authority") or "").strip()
+            ):
+                fail(f"new historical-gap serial #{number} lacks explicit future-gap allocation evidence")
+            special_numbers.append(number)
+        else:
+            ordinary_numbers.append(number)
+    if special_numbers:
+        gap_policy = (current_registry or {}).get("numbering_policy", {}).get("gap_exception_policy", {})
+        authorized = gap_policy.get("authorized_numbers", [])
+        expected_special = [n for n in authorized if n not in base_numbers.values()][:len(special_numbers)]
+        if sorted(special_numbers) != expected_special:
+            fail(
+                "released historical-gap serials must be allocated in the authorized order; "
+                f"expected {expected_special}, got {sorted(special_numbers)}"
+            )
+    if ordinary_numbers:
+        expected = list(range(base_max + 1, base_max + 1 + len(ordinary_numbers)))
+        if sorted(ordinary_numbers) != expected:
             fail(
                 "new Gold Star numbers must be allocated contiguously after "
-                f"canonical main max #{base_max}; expected {expected}, got {new_assignments}"
+                f"canonical main max #{base_max}; expected {expected}, got {sorted(ordinary_numbers)}"
             )
 
     # Ensure numbers are unique across all current approved records.
