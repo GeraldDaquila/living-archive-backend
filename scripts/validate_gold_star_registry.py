@@ -57,6 +57,62 @@ def load_json(path, label):
         fail(f"cannot read {label}: {exc}")
 
 
+
+def validate_numbering_metadata(registry, records):
+    """Require explicit serial state for every approved record and explain every gap."""
+    approved = [r for r in records if r.get("status") == APPROVED_STATUS]
+    assigned = []
+    for record in approved:
+        benchmark_id = str(record.get("benchmark_id") or "<missing-id>")
+        number = record.get("gold_star_number")
+        state = record.get("numbering_status")
+        reason_code = str(record.get("numbering_unassigned_reason_code") or "").strip()
+        reason = str(record.get("numbering_unassigned_reason") or "").strip()
+        if number is None:
+            if state != "UNASSIGNED" or not reason_code or not reason:
+                fail(f"{benchmark_id} is unnumbered but lacks explicit UNASSIGNED state/reason")
+            continue
+        if isinstance(number, bool) or not isinstance(number, int) or number <= 0:
+            fail(f"{benchmark_id} gold_star_number must be a positive integer")
+        if state != "ASSIGNED":
+            fail(f"{benchmark_id} has gold_star_number #{number} but numbering_status is not ASSIGNED")
+        if reason_code or reason:
+            fail(f"{benchmark_id} is ASSIGNED but also carries an unassigned reason")
+        assigned.append(number)
+
+    if not assigned:
+        fail("no assigned Gold Star serials exist; cannot reconcile sequence gaps")
+    expected_gaps = set(range(min(assigned), max(assigned) + 1)) - set(assigned)
+    gap_entries = registry.get("numbering_gap_register")
+    if not isinstance(gap_entries, list):
+        fail("numbering_gap_register must be an array")
+    gap_numbers = []
+    for gap in gap_entries:
+        if not isinstance(gap, dict):
+            fail("numbering_gap_register contains a non-object entry")
+        number = gap.get("number")
+        if isinstance(number, bool) or not isinstance(number, int) or number <= 0:
+            fail("numbering gap must have a positive integer number")
+        if gap.get("status") != "UNASSIGNED_HISTORICAL_GAP":
+            fail(f"#{number} gap must declare UNASSIGNED_HISTORICAL_GAP")
+        if not str(gap.get("reason_code") or "").strip() or not str(gap.get("reason") or "").strip():
+            fail(f"#{number} gap lacks a reason code or explanation")
+        if not isinstance(gap.get("evidence_checked"), list) or not gap["evidence_checked"]:
+            fail(f"#{number} gap lacks an evidence-check record")
+        if not str(gap.get("disposition") or "").strip():
+            fail(f"#{number} gap lacks a disposition")
+        gap_numbers.append(number)
+    if len(gap_numbers) != len(set(gap_numbers)):
+        fail("duplicate serial in numbering_gap_register")
+    if set(gap_numbers) != expected_gaps:
+        fail(
+            "numbering_gap_register does not exactly match gaps in the assigned "
+            f"serial range; expected {sorted(expected_gaps)}, got {sorted(gap_numbers)}"
+        )
+    if set(gap_numbers) & set(assigned):
+        fail("a serial cannot be both assigned and listed as an unassigned gap")
+
+
 def validate_numbering_against_base(current_records):
     """Compare the PR registry with its merge-base version from canonical main."""
     try:
@@ -319,6 +375,7 @@ def main():
     if len(active) != len(approved):
         fail("not every user-approved Gold Star is active for runtime transfer")
 
+    validate_numbering_metadata(registry, records)
     base_numbers, current_numbers = validate_numbering_against_base(records)
 
     # Audit metadata is descriptive only. When present, it must match the
@@ -329,6 +386,8 @@ def main():
         "registry_record_count": len(records),
         "numbered_gold_star_record_count": len(current_numbers),
         "highest_assigned_gold_star_number": max(current_numbers.values(), default=0),
+        "unassigned_approved_gold_star_count": sum(1 for r in approved if r.get("gold_star_number") is None),
+        "documented_numbering_gap_count": len(registry.get("numbering_gap_register") or []),
     }
     for key, actual in expected_audit.items():
         declared = audit.get(key)
