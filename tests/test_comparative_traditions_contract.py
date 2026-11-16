@@ -140,3 +140,27 @@ def test_detects_all_three_teach_claim_in_named_religion_comparison():
     assert contract.is_comparative_traditions_question(question)
     assert contract.response_flattens_traditions(question, response)
     assert contract.response_requires_quality_repair(question, response)
+
+
+def test_repairs_archive_verification_nonanswer_for_named_tradition_comparison():
+    question = "What are the similarities and differences between Buddhism, Christianity and Islam?"
+    response = (
+        "I can\x27t define The similarities and differences between Buddhism, Christianity and Islam "
+        "reliably from the information available in this response alone. I don\x27t want to invent a definition."
+    )
+    assert contract.is_comparative_traditions_question(question)
+    assert contract.response_is_archive_nonanswer(response)
+    assert contract.response_requires_quality_repair(question, response)
+    assert "false equivalence" in contract.recovery_response()
+
+
+def test_archive_nonanswer_does_not_trigger_for_unrelated_query():
+    question = "How should an organisation assign responsibilities and consequences when redesigning its governance process?"
+    response = "I cannot define this reliably from the information available in this response alone."
+    assert not contract.response_requires_quality_repair(question, response)
+
+
+def test_valid_comparative_answer_is_not_replaced_as_nonanswer():
+    response = contract.recovery_response()
+    assert not contract.response_is_archive_nonanswer(response)
+    assert not contract.response_requires_quality_repair(QUESTION, response)

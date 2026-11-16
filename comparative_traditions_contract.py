@@ -29,6 +29,11 @@ _INSTITUTIONAL_MARKERS = re.compile(
     r"consequences|costs|decision|decisions|accountability|institutional|"
     r"stakeholders|operating)\b", re.I
 )
+# Match the actual non-answer lead, not generic phrases that could appear in a sound answer.
+_ARCHIVE_NONANSWER_MARKERS = re.compile(
+    r"\b(?:i can\x27t define .{0,100} reliably|cannot define .{0,100} reliably)\b", re.I
+)
+
 _FLATTENING_MARKERS = re.compile(
     r"\b(?:all (?:three|four|five|six|these) (?:religions|faiths|traditions)|"
     r"all traditions (?:believe|teach|share)|they all (?:believe|teach|share)|"
@@ -54,9 +59,15 @@ def response_flattens_traditions(question: str, response: str) -> bool:
         return False
     return bool(_FLATTENING_MARKERS.search(str(response or "")))
 
+def response_is_archive_nonanswer(response: str) -> bool:
+    """Recognize the generic archive-verification non-answer that blocks a valid comparative inquiry."""
+    return bool(_ARCHIVE_NONANSWER_MARKERS.search(str(response or "")))
+
 def response_requires_quality_repair(question: str, response: str) -> bool:
     return (response_substitutes_institutional_frame(question, response)
-            or response_flattens_traditions(question, response))
+            or response_flattens_traditions(question, response)
+            or (is_comparative_traditions_question(question)
+                and response_is_archive_nonanswer(response)))
 
 def recovery_response() -> str:
     return (
