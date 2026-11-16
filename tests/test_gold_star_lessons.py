@@ -153,3 +153,45 @@ def test_active_quality_contribution_exposes_only_bounded_structural_guidance():
     assert result["abstention_boundary"]
     assert "expected_response" not in result
     assert "doorway" not in result
+
+
+
+def test_deterministic_fallback_eligibility_is_explicit_not_inferred_from_adaptive_activation(tmp_path, monkeypatch):
+    import json
+    from pathlib import Path
+
+    registry_path = Path(lessons.__file__).resolve().parent / "docs" / "qa" / "gold_standard_registry.json"
+    review_path = Path(lessons.__file__).resolve().parent / "docs" / "qa" / "gold_star_qualitative_transfer_review.json"
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    review = json.loads(review_path.read_text(encoding="utf-8"))
+    target = next(
+        record for record in registry["records"]
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+        and record.get("runtime_transfer") is True
+    )
+    target.setdefault("gold_star_capabilities", {})["active_quality_contributor"] = True
+    target["gold_star_capabilities"]["deterministic_fallback_eligible"] = False
+    target_query = target["query"]
+    target_id = target["benchmark_id"]
+    bad_registry_path = tmp_path / "gold_standard_registry.json"
+    review_copy_path = tmp_path / "gold_star_qualitative_transfer_review.json"
+    bad_registry_path.write_text(json.dumps(registry), encoding="utf-8")
+    review_copy_path.write_text(json.dumps(review), encoding="utf-8")
+    monkeypatch.setattr(lessons, "_REGISTRY_PATH", bad_registry_path)
+    monkeypatch.setattr(lessons, "_TRANSFER_REVIEW_PATH", review_copy_path)
+
+    loaded = lessons._load_lessons()
+    item = next(record for record in loaded if record["id"] == target_id)
+    assert item["runtime_transfer"] is True
+    assert item["deterministic_fallback_eligible"] is False
+
+
+def test_cross_question_gold_star_contribution_cannot_claim_deterministic_answer_authority():
+    result = lessons.active_quality_contribution(
+        "How do local choices relate to wider institutional and social circumstances?"
+    )
+    assert result
+    assert result["exact"] is False
+    assert result["authority_mode"] == "structural_guidance_only"
+    assert "expected_response" not in result
+    assert "deterministic_fallback_eligible" not in result
