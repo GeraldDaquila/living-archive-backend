@@ -265,7 +265,7 @@ def test_sacred_language_power_gold_star_is_loaded_as_approved_structural_learni
     assert "expected_response" not in contribution and "doorway" not in contribution
 
 
-def test_sacred_language_gold_star_does_not_gain_deterministic_fallback_authority_by_default():
+def test_sacred_language_gold_star_preserves_existing_explicit_deterministic_capability():
     selected = lessons.select_lesson(
         "How can sacred language clarify experience, and how can it obscure power relations?"
     )
