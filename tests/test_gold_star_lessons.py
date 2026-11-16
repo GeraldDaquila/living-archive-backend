@@ -194,3 +194,57 @@ def test_cross_question_gold_star_contribution_cannot_claim_deterministic_answer
     assert result["authority_mode"] == "structural_guidance_only"
     assert "expected_response" not in result
     assert "deterministic_fallback_eligible" not in result
+
+
+def test_deterministic_fallback_contribution_requires_explicit_capability():
+    import copy
+    target = next(
+        item for item in lessons._LESSONS
+        if item["runtime_transfer"] and item.get("deterministic_fallback_eligible")
+    )
+    eligible = copy.deepcopy(target)
+    ineligible = copy.deepcopy(target)
+    ineligible["deterministic_fallback_eligible"] = False
+    original = lessons._LESSONS
+    try:
+        lessons._LESSONS = [ineligible]
+        assert lessons.deterministic_fallback_contribution(target["query"]) is None
+        lessons._LESSONS = [eligible]
+        contribution = lessons.deterministic_fallback_contribution(target["query"])
+        assert contribution
+        assert contribution["authority_mode"] == "deterministic_structural_guidance_only"
+        assert contribution["discipline"] and contribution["abstention_boundary"]
+        assert "expected_response" not in contribution and "doorway" not in contribution
+    finally:
+        lessons._LESSONS = original
+
+
+def test_deterministic_fallback_guidance_is_applied_without_changing_paragraph_count():
+    target = next(
+        item for item in lessons._LESSONS
+        if item["runtime_transfer"] and item.get("deterministic_fallback_eligible")
+    )
+    response = "First paragraph.\\n\\nSecond paragraph.\\n\\nThird paragraph."
+    guided = lessons.apply_deterministic_fallback_guidance(target["query"], response)
+    assert "A useful structural discipline here:" in guided
+    assert target["transferable_discipline"] in guided
+    assert target["abstention_boundary"] in guided
+    assert len([p for p in guided.split("\\n\\n") if p.strip()]) == 3
+    assert lessons.apply_deterministic_fallback_guidance(target["query"], guided) == guided
+
+
+def test_deterministic_fallback_guidance_ignores_unflagged_analogues():
+    import copy
+    target = next(
+        item for item in lessons._LESSONS
+        if item["runtime_transfer"] and item.get("deterministic_fallback_eligible")
+    )
+    unflagged = copy.deepcopy(target)
+    unflagged["deterministic_fallback_eligible"] = False
+    original = lessons._LESSONS
+    try:
+        lessons._LESSONS = [unflagged]
+        response = "A bounded deterministic answer."
+        assert lessons.apply_deterministic_fallback_guidance(target["query"], response) == response
+    finally:
+        lessons._LESSONS = original
