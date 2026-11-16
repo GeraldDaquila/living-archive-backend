@@ -176,6 +176,7 @@ def main():
     ]
 
     for record in active:
+        legacy = record.get("legacy_approval_grandfathered") is True
         required_text = {
             "benchmark_id", "subsystem", "query", "expected_response",
             "known_theme", "freeze_policy",
@@ -191,7 +192,6 @@ def main():
         if not isinstance(record.get("gold_star_capabilities"), dict) or record["gold_star_capabilities"].get("active_quality_contributor") is not True:
             fail(f"{record['benchmark_id']} lacks active quality-contributor authority")
 
-        legacy = record.get("legacy_approval_grandfathered") is True
         if legacy:
             legacy_reason = str(record.get("legacy_approval_grandfathered_reason") or "").strip()
             if not legacy_reason:
