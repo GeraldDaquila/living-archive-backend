@@ -78,11 +78,37 @@ def validate_numbering_metadata(registry, records):
             fail(f"{benchmark_id} has gold_star_number #{number} but numbering_status is not ASSIGNED")
         if reason_code or reason:
             fail(f"{benchmark_id} is ASSIGNED but also carries an unassigned reason")
+        recovery = record.get("numbering_recovery")
+        if recovery is not None:
+            required_recovery = {
+                "recovery_class", "recovered_number", "source_pr", "source_pr_url",
+                "source_merge_commit", "previous_registry_state", "authority_basis",
+                "recovered_at",
+            }
+            if not isinstance(recovery, dict) or any(
+                not str(recovery.get(key) or "").strip() for key in required_recovery
+            ):
+                fail(f"{benchmark_id} has incomplete historical numbering recovery evidence")
+            if recovery.get("recovered_number") != number:
+                fail(f"{benchmark_id} recovered number does not match gold_star_number")
+            if recovery.get("recovery_class") not in {
+                "HISTORICAL_SEQUENCE_ASSIGNMENT_RECOVERY",
+                "HISTORICAL_EXPLICIT_ASSIGNMENT_RECOVERY",
+            }:
+                fail(f"{benchmark_id} has an unrecognized numbering recovery class")
+            if isinstance(recovery.get("source_pr"), bool) or not isinstance(recovery.get("source_pr"), int):
+                fail(f"{benchmark_id} numbering recovery source_pr must be an integer")
         assigned.append(number)
 
     if not assigned:
         fail("no assigned Gold Star serials exist; cannot reconcile sequence gaps")
-    expected_gaps = set(range(min(assigned), max(assigned) + 1)) - set(assigned)
+    numbering_policy = registry.get("numbering_policy")
+    sequence_start = numbering_policy.get("sequence_start") if isinstance(numbering_policy, dict) else None
+    if isinstance(sequence_start, bool) or not isinstance(sequence_start, int) or sequence_start <= 0:
+        fail("numbering_policy.sequence_start must be a positive integer")
+    if min(assigned) != sequence_start:
+        fail(f"numbering sequence_start #{sequence_start} does not match lowest assigned serial #{min(assigned)}")
+    expected_gaps = set(range(sequence_start, max(assigned) + 1)) - set(assigned)
     gap_entries = registry.get("numbering_gap_register")
     if not isinstance(gap_entries, list):
         fail("numbering_gap_register must be an array")
@@ -173,8 +199,32 @@ def validate_numbering_against_base(current_records):
         if benchmark_id in base_ids and benchmark_id not in base_numbers
     )
     unauthorized_migrations = []
+    recovered_historical_ids = set()
     for benchmark_id in retroactive:
         record = current_by_id.get(benchmark_id, {})
+        recovery = record.get("numbering_recovery")
+        if isinstance(recovery, dict):
+            required_recovery = {
+                "recovery_class", "recovered_number", "source_pr", "source_pr_url",
+                "source_merge_commit", "previous_registry_state", "authority_basis",
+                "recovered_at",
+            }
+            missing = [key for key in sorted(required_recovery) if not str(recovery.get(key) or "").strip()]
+            if (
+                recovery.get("recovery_class") not in {
+                    "HISTORICAL_SEQUENCE_ASSIGNMENT_RECOVERY",
+                    "HISTORICAL_EXPLICIT_ASSIGNMENT_RECOVERY",
+                }
+                or recovery.get("recovered_number") != current_numbers[benchmark_id]
+                or recovery.get("previous_registry_state") != "USER_APPROVED_GOLD_STANDARD without gold_star_number field"
+                or isinstance(recovery.get("source_pr"), bool)
+                or not isinstance(recovery.get("source_pr"), int)
+                or missing
+            ):
+                unauthorized_migrations.append(benchmark_id)
+            else:
+                recovered_historical_ids.add(benchmark_id)
+            continue
         migration = record.get("numbering_migration")
         if not isinstance(migration, dict):
             unauthorized_migrations.append(benchmark_id)
@@ -200,7 +250,7 @@ def validate_numbering_against_base(current_records):
     base_max = max(base_numbers.values(), default=0)
     new_assignments = sorted(
         number for benchmark_id, number in current_numbers.items()
-        if benchmark_id not in base_numbers
+        if benchmark_id not in base_numbers and benchmark_id not in recovered_historical_ids
     )
     if new_assignments:
         expected = list(range(base_max + 1, base_max + 1 + len(new_assignments)))
