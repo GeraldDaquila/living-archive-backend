@@ -22,13 +22,13 @@ VALID_APPLIED_CONCLUSION = (
 
 
 def test_screenshot_style_conclusion_that_reopens_both_sides_is_rejected():
-    paragraphs = [part.strip() for part in SCREENSHOT_RESPONSE.split("\\n\\n") if part.strip()]
+    paragraphs = [part.strip() for part in SCREENSHOT_RESPONSE.split("\n\n") if part.strip()]
     assert composition._paragraph_three_reopens_comparison(QUERY, paragraphs)
     assert composition.is_generic_nonanswer(QUERY, SCREENSHOT_RESPONSE)
 
 
 def test_applied_conclusion_that_derives_a_new_post_event_test_is_preserved():
-    paragraphs = [part.strip() for part in VALID_APPLIED_CONCLUSION.split("\\n\\n") if part.strip()]
+    paragraphs = [part.strip() for part in VALID_APPLIED_CONCLUSION.split("\n\n") if part.strip()]
     assert not composition._paragraph_three_reopens_comparison(QUERY, paragraphs)
     assert not composition.is_generic_nonanswer(QUERY, VALID_APPLIED_CONCLUSION)
 
