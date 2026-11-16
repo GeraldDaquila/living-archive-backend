@@ -1028,7 +1028,7 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     gaps = registry["numbering_gap_register"]
     assert [g["number"] for g in gaps] == [85, 86]
     assert "7a036632323b7c09003d1fce637a7b49128a27bf" in gaps[1]["reason"]
-    assert "diff only adds a provenance date" in gaps[1]["reason"]
+    assert "only adds provenance.source_date" in gaps[1]["reason"]
     assert "recovered as Gold Star #56" in gaps[1]["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
     assert registry["integrity_audit"]["approved_gold_star_count"] == 81
