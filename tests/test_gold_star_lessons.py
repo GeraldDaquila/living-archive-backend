@@ -305,4 +305,7 @@ def test_collapse_adaptation_regeneration_gold_star_is_active_structural_learnin
     assert contribution["authority_mode"] == "structural_guidance_only"
     assert contribution["reasoning_family"] == "collapse_adaptation_regeneration_distinction"
     assert "expected_response" not in contribution and "doorway" not in contribution
-    assert lessons.deterministic_fallback_contribution(query) is None
+    deterministic = lessons.deterministic_fallback_contribution(query)
+    # Another previously approved analogue may qualify independently; this
+    # exemplar itself remains explicitly ineligible for deterministic fallback.
+    assert deterministic is None or deterministic["benchmark_id"] != result["benchmark_id"]
