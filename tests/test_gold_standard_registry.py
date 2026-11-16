@@ -133,6 +133,27 @@ def test_registry_has_unique_ids_and_provenance_for_every_record():
 
 
 
+def test_structural_change_gold_star_is_registered_with_semantic_progression():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "gs-2026-11-17-structural-change-vs-ordinary-disruption"
+    )
+    paragraphs = record["expected_response"].split(chr(10) * 2)
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "How can one distinguish structural change from ordinary disruption?"
+    assert record["runtime_transfer"] is True
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["expected_doorway"] is None
+    assert len(paragraphs) == 3
+    assert paragraphs[0].startswith("Structural change alters the underlying conditions")
+    assert "rules, relationships, incentives, decision rights, or capacities" in paragraphs[1]
+    assert "A practical test is to ask what happens when the immediate pressure lifts." in paragraphs[2]
+    assert "constraints are real, but they do not erase agency" in paragraphs[2]
+    assert "The screenshot establishes" in record["provenance"]["evidence_boundary"]
+
+
 def test_user_approved_conflicting_information_gold_star_is_registered_exactly():
     registry = _registry()
     record = next(
