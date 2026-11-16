@@ -5404,6 +5404,53 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user explicitly approved Gold Star elevation but did not request a display-serial allocation. Preserve the benchmark_id as its identity and leave serial allocation separate."
+    },
+    {
+      "benchmark_id": "gs-2026-11-16-collapse-adaptation-regeneration",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the relationship between collapse, adaptation, and regeneration?",
+      "expected_response": "The relationship can be understood as a movement between disruption, adjustment, and renewal. Collapse disrupts arrangements that can no longer sustain their essential functions; adaptation changes how a system responds to the new conditions; regeneration renews the capacities and relationships from which lasting viability can emerge. These processes can interact or occur in sequence, but they are not a fixed three-step formula.\n\nAdaptation is not automatically regeneration. A system can adjust its use of resources, reorganize itself, or absorb pressure and still preserve conditions that remain fundamentally damaged. Regeneration asks the deeper question: what must be restored, renewed, or newly created so that people, communities, and ecosystems can sustain themselves over time? Adaptation may soften or prevent collapse, while regenerative work can turn a period of disruption into an opening for a more viable form of life.\n\nTheir relationship therefore depends on what is changing and at what scale. Collapse can expose the limits of an existing arrangement and create pressure for adaptation; adaptation can create the space in which regeneration becomes possible; and regenerative capacities can make future disruption less destructive. The essential distinction is between surviving disruption, adjusting to changed conditions, and renewing the underlying conditions from which resilience can grow.",
+      "expected_doorway": null,
+      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "observed_doorway_title": "Collapse or Transformation? How Societies Interpret Periods of Instability",
+      "rating_out_of_10": 9.4,
+      "approval_state": "User reviewed the live visitor-facing response and explicitly instructed 'elevate' on 2026-11-16.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User instruction on 2026-11-16: 'elevate'.",
+      "assertions": [
+        "Distinguish collapse as disruption, adaptation as adjustment, and regeneration as renewal of underlying capacities and relationships.",
+        "Make explicit that adaptation is not automatically regeneration; systems can adjust while preserving fundamentally damaged conditions.",
+        "Explain how collapse can expose limits, adaptation can create space for renewal, and regenerative capacities can reduce the destructiveness of future disruption.",
+        "Preserve contingency and scale; do not impose a fixed three-stage sequence."
+      ],
+      "provenance": {
+        "source": "User-provided live Guide screenshot reviewed on 2026-11-16.",
+        "source_ref": "visitor-facing production response.",
+        "source_date": "2026-11-16",
+        "approval_record": "User explicitly instructed 'elevate' on 2026-11-16 after reviewing the live response.",
+        "evidence_boundary": "The screenshot establishes the exact rendered question and answer, plus an observed continuation title. The canonical destination URL was not captured or independently verified, so no doorway URL is approved."
+      },
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "known_theme": "collapse, adaptation, regeneration, resilience, disruption, renewal, systems viability, ecological and social systems",
+      "runtime_transfer": true,
+      "reasoning_family": "collapse_adaptation_regeneration_distinction",
+      "transferable_lesson": "Distinguish disruption, adjustment, and renewal; test whether adaptation changes only a system's response or also restores the underlying conditions required for long-term viability.",
+      "transfer_boundary": "Do not present collapse, adaptation, and regeneration as an inevitable fixed sequence; do not equate successful adjustment or survival with restoration of damaged underlying conditions.",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "collapse_adaptation_regeneration_distinction",
+        "transferable_discipline": "Distinguish disruption, adjustment, and renewal; explain why adaptation may preserve damaged conditions; examine what must be restored for long-term viability; preserve contingency and scale.",
+        "abstention_boundary": "Do not impose a fixed three-stage sequence or equate survival and adjustment with regeneration."
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user explicitly approved Gold Star elevation but did not request a display-serial allocation. Preserve benchmark_id as identity and keep serial allocation separate.",
+      "user_approved_at": "2026-11-16"
     }
   ],
   "last_reconciliation_note": "2026-11-16: Added user-approved live Guide exemplar gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship. Preserved exact screenshot response and observed doorway title without inventing a URL. Approved for active structural learning; deterministic fallback is not authorized. No display serial allocated.",
@@ -5536,13 +5583,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-16",
-    "approved_gold_star_count": 83,
-    "registry_record_count": 120,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-16: 83 approved Gold Stars; historical and superseded records remain outside the approved count. New community-wisdom exemplar added under a unique benchmark_id with matching qualitative-transfer review; no duplicate exact question was present.",
+    "approved_gold_star_count": 84,
+    "registry_record_count": 121,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-16: 84 approved Gold Stars; historical and superseded records remain outside the approved count. The collapse-adaptation-regeneration exemplar was added under a unique benchmark_id with a matching qualitative-transfer review; no duplicate exact question was present.",
     "numbered_gold_star_record_count": 35,
     "highest_assigned_gold_star_number": 92,
-    "numbering_reconciliation": "Record-level reconciliation: 83 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 48 approved records explicitly UNASSIGNED with reasons. #85 and #86 remain documented historical gaps.",
-    "unassigned_approved_gold_star_count": 48,
+    "numbering_reconciliation": "Record-level reconciliation: 84 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 49 approved records explicitly UNASSIGNED with reasons. #85 and #86 remain documented historical gaps.",
+    "unassigned_approved_gold_star_count": 49,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {

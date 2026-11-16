@@ -745,6 +745,15 @@
       "qualifying_context": "Questions about community traditions, cultural continuity, inherited wisdom, governance, stewardship, institutional change, or how to evaluate practices without treating tradition as infallible or disposable.",
       "abstention_boundary": "Do not treat tradition as infallible or disposable; do not generalize doctrines across diverse communities, erase internal differences, conflate historical, theological, empirical, and experiential claims, or let AI substitute for accountable human judgment.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-16-collapse-adaptation-regeneration",
+      "question": "What is the relationship between collapse, adaptation, and regeneration?",
+      "reasoning_family": "collapse_adaptation_regeneration_distinction",
+      "transferable_discipline": "Distinguish collapse as disruption, adaptation as adjustment, and regeneration as renewal; explain why adaptation may preserve damaged conditions and examine what must be restored for long-term viability, while preserving contingency and scale.",
+      "qualifying_context": "Questions about systemic disruption, collapse, resilience, adaptation, ecological or social renewal, and the conditions required for long-term viability.",
+      "abstention_boundary": "Do not impose a fixed three-stage sequence or equate survival, reorganization, or efficiency with regeneration; distinguish adjustment from restoration of underlying conditions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
