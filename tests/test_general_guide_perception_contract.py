@@ -392,6 +392,6 @@ def test_generic_how_fallback_avoids_process_announcement():
 
     assert not response.startswith("The inquiry begins")
     assert response.startswith(
-        "Make the intended outcome, the responsibilities involved, and the people "
-        "who will live with the consequences explicit"
+        "Start by defining the outcome the change must achieve, the responsibilities "
+        "that cannot be lost"
     )
