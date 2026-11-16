@@ -2,12 +2,12 @@
 
 ## Current Gold Star numbering authority — 2026-11-16
 
-- **Canonical inventory:** 118 records total; 81 approved Gold Stars; 81 matching qualitative-transfer reviews.
-- **Serial inventory:** 34 approved records carry display serials, #56–#84 and #87–#91. 47 approved records are explicitly `UNASSIGNED`; all 47 are legacy-grandfathered approvals without an individual canonical serial allocation.
+- **Canonical inventory:** 120 records total; 83 approved Gold Stars; 83 matching qualitative-transfer reviews.
+- **Serial inventory:** 35 approved records carry display serials, #56–#84 and #87–#92. 48 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity.
 - **Identity:** `benchmark_id` is the stable identity used by adaptive learning. `gold_star_number` is an optional human-facing serial, not an eligibility condition.
 - **Recovered #56–#59:** #56 agency/circumstance (PR #1428 plus the immediately following explicit #57 allocation in PR #1430); #57 developmental language (PR #1430); #58 culture (PR #1432); #59 transformation/temporary relief (PR #1434). The canonical records carry historical recovery provenance.
-- **#85:** No canonical Gold Star allocation record recovered. GitHub PR #85 is an unrelated v340 topical-doorway code PR.
-- **#86:** No canonical record-level allocation recovered. Commit `7a036632323b7c09003d1fce637a7b49128a27bf` has a misleading subject mentioning “Gold Star 86,” but its diff only adds a provenance date to the agency/circumstance record, which is recovered as #56. PR #86 is an unrelated v340 grief/death-topic code PR.
+- **#85:** Historical allocation record not recovered; explicitly released for a future new, user-authorized allocation under the recorded exception.
+- **#86:** Historical allocation record not recovered. Commit `7a036632323b7c09003d1fce637a7b49128a27bf` has a misleading subject mentioning “Gold Star 86,” but its diff only adds a provenance date to the agency/circumstance record, recovered as #56. #86 remains separately released for a future new, user-authorized allocation.
 - **Spiritual-bypassing exemplar — #91:** `gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing` is assigned **#91** by explicit user authorization on 2026-11-16. Its rejected #89 proposal in PR #1517 remains rejected; #91 is a new contiguous allocation after #90, not a revival of #89. Its approved response, intentional no-doorway state, runtime-transfer authority, and adaptive-learning eligibility are unchanged.
 - **Allocation rule:** The recorded serial sequence begins at #56. The 55 approvals that predated PR #1428 are legacy records; do not infer #1–#55 from their array order. Do not backfill #85/#86 by inference. New allocations require explicit user authorization and must be contiguous after the current maximum. Unassigned status never excludes an approved record from adaptive learning.
 
