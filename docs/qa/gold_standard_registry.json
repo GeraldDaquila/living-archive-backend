@@ -5557,7 +5557,7 @@
       }
     }
   ],
-  "last_reconciliation_note": "2026-11-16: Added user-approved live Guide exemplar gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship. Preserved exact screenshot response and observed doorway title without inventing a URL. Approved for active structural learning; deterministic fallback is not authorized. No display serial allocated.",
+  "last_reconciliation_note": "2026-11-17: Allocated explicitly released serial #85 to the newly user-approved structural-change-versus-disruption Gold Star. The #85 gap is closed by a record-level assignment; #86 remains released for the next newly approved record. No historical record was renumbered.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -5719,31 +5719,11 @@
         85,
         86
       ],
-      "allocation_rule": "These two released numbers may be allocated only to the next two newly approved Gold Star records, in ascending order. Each allocation requires explicit user approval, a new unique benchmark_id, and record-level numbering evidence. No existing approved record may be retroactively assigned either number. All other historical gaps remain unavailable and immutable.",
+      "allocation_rule": "Serial #85 has been allocated to the next newly approved Gold Star under the explicit authorization. Serial #86 remains released for the following newly approved Gold Star. Each allocation requires explicit user approval, a new unique benchmark_id, and record-level numbering evidence. No existing approved record may be retroactively assigned either number. All other historical gaps remain unavailable and immutable.",
       "does_not_change_adaptive_learning_identity": true
     }
   },
   "numbering_gap_register": [
-    {
-      "number": 85,
-      "status": "RELEASED_FOR_FUTURE_ALLOCATION",
-      "reason_code": "NO_CANONICAL_ALLOCATION_RECORD",
-      "reason": "No approved Gold Star record or canonical assignment event for serial #85 was recovered in the canonical registry or reviewed Gold Star PR/commit evidence. GitHub PR #85 is a September 2026 v340 topical-doorway code change, not a Gold Star assignment.",
-      "evidence_checked": [
-        "Canonical registry record-level assignments on main",
-        "Gold Star registry commit history",
-        "GitHub PR #85: v340 topical doorway question-alignment repair"
-      ],
-      "disposition": "Historical gap retained as evidence; serial #85 is released solely for the next new, explicitly approved Gold Star allocation under the two-number exception. No existing record is renumbered or backfilled.",
-      "release_authorization": {
-        "authorization_type": "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE",
-        "approved_by": "user",
-        "approved_at": "2026-11-16",
-        "authority": "User explicitly agreed to release both #85 and #86 as two exceptions in the conversation on 2026-11-16.",
-        "allocation_rule": "Reserve #85 for the next newly approved Gold Star, then #86 for the following newly approved Gold Star. Allocation requires a new unique benchmark_id, explicit user approval of Gold Star elevation, and a record-level gold_star_number assignment. Do not assign either number to an existing approved record or infer an exemplar.",
-        "historical_evidence_preserved": true
-      }
-    },
     {
       "number": 86,
       "status": "RELEASED_FOR_FUTURE_ALLOCATION",
