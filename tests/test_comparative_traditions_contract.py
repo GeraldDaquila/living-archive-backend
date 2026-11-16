@@ -46,7 +46,7 @@ def test_does_not_trigger_for_institutional_question():
 
 def test_recovery_is_three_paragraphs_and_covers_epistemic_distinctions():
     response = contract.recovery_response()
-    assert len(response.split("\\n\\n")) == 3
+    assert len(response.split("\n\n")) == 3
     for term in ("historical", "philosophical", "empirical", "spiritual experience"):
         assert term in response.lower()
 
@@ -112,7 +112,7 @@ def test_detects_reductive_universal_claims_and_repairs_them():
 
 def test_gold_star_recovery_preserves_internal_diversity_and_epistemic_fit():
     response = contract.recovery_response()
-    assert len(response.split("\\n\\n")) == 3
+    assert len(response.split("\n\n")) == 3
     for phrase in ("internal differences", "historical evidence", "philosophical and theological", "false equivalence", "practitioners"):
         assert phrase in response.lower()
     assert not contract.response_requires_quality_repair(QUESTION, response)
