@@ -936,3 +936,15 @@ def test_human_development_family_matcher_executes_for_live_regression_query():
     assert namespace["_select_verified_doorway_conceptual_family"](
         "What roles do practice, community, and feedback play in development?"
     ) == "human_development_ecology"
+
+
+def test_practice_community_feedback_gold_star_has_verified_runtime_doorway():
+    import json
+    registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
+    record = next(
+        item for item in registry["records"]
+        if item.get("benchmark_id") == "gs-2026-11-14-practice-community-feedback-development"
+    )
+    doorway = record["expected_doorway"]
+    assert doorway["title"] == "Becoming Fully Human"
+    assert doorway["url"] == "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/"

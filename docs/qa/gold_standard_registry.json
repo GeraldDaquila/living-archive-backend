@@ -3364,8 +3364,8 @@
       "subsystem": "guide_integrative_development_orientation",
       "query": "What roles do practice, community, and feedback play in development?",
       "expected_response": "Practice, community, and feedback shape development by doing different work together. Practice builds capability through repeated effort; community provides the relationships and shared context in which that capability can be tested and sustained; feedback makes learning visible by showing what is working, where adjustment is needed, and what cannot be seen from one perspective alone.\n\nTheir value lies in the interaction. Practice without community can become isolated. Community without practice can remain aspirational. Feedback without trust can feel corrective rather than developmental. Together, they create a cycle in which people try, learn with others, see the effects of what they are doing, and adjust.\n\nIn practice, development becomes more durable when those elements are built into a regular rhythm: intentional practice, relationships that provide support and challenge, and feedback that is specific enough to guide the next step.",
-      "doorway_title": "ARK-004: Post-Flat Trade — The Community Ledger SOP",
-      "doorway_status": "LEGACY_INCOMPLETE_NOT_APPROVED",
+      "doorway_title": "Becoming Fully Human",
+      "doorway_status": "VERIFIED_CANONICAL_APPROVED",
       "rating_out_of_10": 9.3,
       "approval_state": "User explicitly approved structural refinement and full Gold Star elevation on 2026-11-14.",
       "assertions": [
@@ -3391,10 +3391,14 @@
         "source_date": "2026-11-14",
         "source": "Live Guide response reviewed by user; structurally tightened into canonical exemplar.",
         "evidence_boundary": "Integrative orientation based on the response pattern; canonical doorway retained from live response.",
-        "doorway_boundary": "Legacy continuation title is preserved for provenance, but no canonical URL was verified in the repository during contract reconciliation; runtime doorway authority is withheld rather than inventing a URL."
+        "doorway_boundary": "Canonical continuation verified against the Living Archive authority: Becoming Fully Human / The Architecture of Human Development. The superseded legacy continuation remains historical provenance only and is not runtime authority.",
+        "canonical_doorway_reconciled_on": "2026-11-16"
       },
       "known_theme": "multi-element-development-question",
-      "expected_doorway": null,
+      "expected_doorway": {
+        "title": "Becoming Fully Human",
+        "url": "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/"
+      },
       "legacy_approval_grandfathered": true,
       "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence."
     },
