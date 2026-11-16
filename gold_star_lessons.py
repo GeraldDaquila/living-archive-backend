@@ -74,6 +74,7 @@ class GoldStarRegistryIntegrityError(RuntimeError):
 def validate_registry_integrity(
     records: List[Dict[str, Any]],
     review_entries: List[Dict[str, Any]],
+    numbering_gap_register: Optional[List[Dict[str, Any]]] = None,
 ) -> None:
     """Enforce the canonical accounting contract before Gold Stars become active.
 
@@ -138,6 +139,61 @@ def validate_registry_integrity(
         raise GoldStarRegistryIntegrityError(
             f"Gold Star/review reconciliation failed: "
             f"missing_reviews={missing}; orphan_reviews={orphaned}."
+        )
+
+    # Display serials are not learning identities. Every approved record must
+    # declare whether it has one, and unassigned records must explain why.
+    # Adaptive selection remains keyed exclusively by benchmark_id.
+    assigned_numbers = []
+    for record in approved:
+        benchmark_id = str(record.get("benchmark_id") or "<missing-id>").strip()
+        number = record.get("gold_star_number")
+        state = record.get("numbering_status")
+        if number is None:
+            if state != "UNASSIGNED":
+                raise GoldStarRegistryIntegrityError(
+                    f"Approved Gold Star {benchmark_id} lacks explicit UNASSIGNED numbering state."
+                )
+            if not str(record.get("numbering_unassigned_reason_code") or "").strip() or not str(record.get("numbering_unassigned_reason") or "").strip():
+                raise GoldStarRegistryIntegrityError(
+                    f"Approved Gold Star {benchmark_id} lacks its unassigned numbering reason."
+                )
+        else:
+            if isinstance(number, bool) or not isinstance(number, int) or number <= 0 or state != "ASSIGNED":
+                raise GoldStarRegistryIntegrityError(
+                    f"Approved Gold Star {benchmark_id} has invalid assigned-number metadata."
+                )
+            if record.get("numbering_unassigned_reason_code") or record.get("numbering_unassigned_reason"):
+                raise GoldStarRegistryIntegrityError(
+                    f"Assigned Gold Star {benchmark_id} also carries an unassigned reason."
+                )
+            assigned_numbers.append(number)
+
+    if numbering_gap_register is None or not isinstance(numbering_gap_register, list):
+        raise GoldStarRegistryIntegrityError(
+            "Canonical Gold Star registry is missing numbering_gap_register."
+        )
+    if not assigned_numbers:
+        raise GoldStarRegistryIntegrityError("No assigned Gold Star serials exist.")
+    expected_gaps = set(range(min(assigned_numbers), max(assigned_numbers) + 1)) - set(assigned_numbers)
+    actual_gaps = set()
+    for gap in numbering_gap_register:
+        if not isinstance(gap, dict):
+            raise GoldStarRegistryIntegrityError("Gold Star numbering gap entry is not an object.")
+        number = gap.get("number")
+        if (
+            isinstance(number, bool) or not isinstance(number, int) or number <= 0
+            or gap.get("status") != "UNASSIGNED_HISTORICAL_GAP"
+            or not str(gap.get("reason_code") or "").strip()
+            or not str(gap.get("reason") or "").strip()
+            or not isinstance(gap.get("evidence_checked"), list) or not gap.get("evidence_checked")
+            or not str(gap.get("disposition") or "").strip()
+        ):
+            raise GoldStarRegistryIntegrityError("Gold Star numbering gap entry is incomplete.")
+        actual_gaps.add(number)
+    if len(actual_gaps) != len(numbering_gap_register) or actual_gaps != expected_gaps:
+        raise GoldStarRegistryIntegrityError(
+            f"Gold Star numbering gaps do not reconcile: expected={sorted(expected_gaps)} actual={sorted(actual_gaps)}."
         )
 
     for record in approved:
@@ -233,7 +289,7 @@ def _load_lessons() -> List[Dict[str, Any]]:
         raise GoldStarRegistryIntegrityError(
             "Canonical Gold Star registry or qualitative review has an invalid top-level schema."
         )
-    validate_registry_integrity(records, review_entries)
+    validate_registry_integrity(records, review_entries, registry_payload.get("numbering_gap_register"))
     transfer_review = {
         str(entry.get("benchmark_id") or "").strip(): entry
         for entry in review_entries
