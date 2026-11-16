@@ -920,3 +920,19 @@ def test_verified_human_development_ecology_doorway_for_practice_community_feedb
     assert '"human_development_ecology"' in source
     assert '"Becoming Fully Human"' in source
     assert "the-architecture-of-human-development" in source
+
+
+def test_human_development_family_matcher_executes_for_live_regression_query():
+    import ast
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    namespace = {"re": __import__("re")}
+    fn = next(
+        node for node in tree.body
+        if isinstance(node, ast.FunctionDef)
+        and node.name == "_select_verified_doorway_conceptual_family"
+    )
+    exec(compile(ast.Module(body=[fn], type_ignores=[]), "<family>", "exec"), namespace)
+    assert namespace["_select_verified_doorway_conceptual_family"](
+        "What roles do practice, community, and feedback play in development?"
+    ) == "human_development_ecology"
