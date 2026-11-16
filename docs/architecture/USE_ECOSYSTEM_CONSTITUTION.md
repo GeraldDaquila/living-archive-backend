@@ -74,3 +74,19 @@ A **Gold Star** has one constitutional meaning only: a fully evidenced exemplar 
 - Historical approvals, recovered provenance, candidate lessons, incomplete fixtures, observers, and pending evidence records are **not Gold Stars** and must not be counted or treated as Gold Star learning authority.
 - There is one canonical registry, one Gold Star definition, one authoritative count, and one active Gold Star learning set: the validated records carrying `USER_APPROVED_GOLD_STANDARD`.
 - Any record that ceases to satisfy the full contract must be reclassified out of Gold Star status until the missing validation is completed.
+
+## 8. Proportionate QA and resource stewardship
+
+QA effort must be proportionate to the change's blast radius and the marginal confidence each test adds. The smallest test that establishes the required confidence is preferred. Additional tests require a concrete risk-based justification.
+
+- Content-only Gold Star and registry additions use schema/integrity checks, targeted offline tests, and ordinary CI. Do not routinely issue visitor-facing production queries or compare Primary and Mirror after each such change.
+- Runtime or provider-bank changes receive focused unit/contract tests and only the integration checks needed to validate the changed boundary.
+- Routing, failover, shared-state, deployment-topology, or cross-server protocol changes require targeted Primary/Mirror integration verification.
+- Retrieval changes require offline snapshot/fixture tests first; production retrieval tests are reserved for unresolved risks that cannot be established offline.
+- Production smoke checks must be minimal, purposeful, and non-redundant. A health check, deployment identity check, and live query are distinct forms of evidence; do not run all three by habit.
+- Prefer local fixtures, mocks, cached/versioned snapshots, and CI over Render requests, provider calls, or Pinecone operations when they provide equivalent evidence.
+- Do not perform routine dual-service polling, broad production E2E suites, repeated log harvesting, or Pinecone enumeration for content-only changes.
+- A coordinated release still must satisfy the two-server production contract. This standard changes the verification method for low-risk changes, not the required release identity: use the deployment system's existing evidence and escalate to direct parity checks only when a concrete discrepancy or integration risk exists.
+- Record the reason whenever an expensive production check is retained, and state which uncertainty it resolves.
+
+The detailed operating matrix is maintained in `docs/operations/SMALL_IS_BEAUTIFUL_QA_STANDARD.md`.
