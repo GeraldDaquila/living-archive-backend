@@ -754,6 +754,14 @@
       "qualifying_context": "Questions about systemic disruption, collapse, resilience, adaptation, ecological or social renewal, and the conditions required for long-term viability.",
       "abstention_boundary": "Do not impose a fixed three-stage sequence or equate survival, reorganization, or efficiency with regeneration; distinguish adjustment from restoration of underlying conditions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-16-techno-utopian-thinking",
+      "reasoning_family": "techno_utopianism_technology_as_substitute_for_governance",
+      "transferable_discipline": "Identify the assumption that technological progress automatically resolves human problems; test it against access, institutional incentives, power, accountability, democratic choice, and distribution of costs and harms.",
+      "qualifying_context": "Questions about technological solutionism, digital transformation, public-sector technology, innovation claims, or assumptions that technical progress by itself resolves institutional, political, or social problems.",
+      "abstention_boundary": "Do not frame criticism of techno-utopian assumptions as opposition to technology itself. Do not assume technical tools alone resolve unequal access, institutional incentives, power, accountability, democratic choice, or harmful outcomes.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
