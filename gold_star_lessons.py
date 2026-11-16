@@ -74,8 +74,6 @@ class GoldStarRegistryIntegrityError(RuntimeError):
 def validate_learning_integrity(
     records: List[Dict[str, Any]],
     review_entries: List[Dict[str, Any]],
-    numbering_gap_register: Optional[List[Dict[str, Any]]] = None,
-    numbering_policy: Optional[Dict[str, Any]] = None,
 ) -> None:
     """Validate learning identity, approvals, and transfer-review integrity only.
 
