@@ -108,16 +108,36 @@ def validate_numbering_against_base(current_records):
     if changed:
         fail("existing Gold Star number assignment changed: " + "; ".join(changed))
 
-    # A newly numbered record must itself be new relative to main. Existing
-    # unnumbered approved records cannot be retroactively numbered by a PR
-    # without a separately reviewed migration.
+    # Existing unnumbered approved records cannot receive inferred numbers.
+    # A numbered migration is permitted only when the record carries explicit,
+    # user-authorized migration evidence and the allocation remains contiguous.
+    current_by_id = {r.get("benchmark_id"): r for r in current_records}
     retroactive = sorted(
         benchmark_id for benchmark_id in current_numbers
         if benchmark_id in base_ids and benchmark_id not in base_numbers
     )
-    if retroactive:
-        fail("existing approved records cannot receive inferred/retroactive numbers: "
-             + ", ".join(retroactive))
+    unauthorized_migrations = []
+    for benchmark_id in retroactive:
+        record = current_by_id.get(benchmark_id, {})
+        migration = record.get("numbering_migration")
+        if not isinstance(migration, dict):
+            unauthorized_migrations.append(benchmark_id)
+            continue
+        required = {
+            "authority", "approved_at", "reason",
+            "previous_numbering_state", "migration_class",
+        }
+        missing = [key for key in sorted(required) if not str(migration.get(key) or "").strip()]
+        if (
+            migration.get("migration_class") != "explicit_user_authorized_numbering_migration"
+            or migration.get("previous_numbering_state") != "approved_unnumbered"
+            or missing
+        ):
+            unauthorized_migrations.append(benchmark_id)
+    if unauthorized_migrations:
+        fail("existing approved records cannot receive inferred/retroactive numbers "
+             "without an explicit authorized numbering migration: "
+             + ", ".join(unauthorized_migrations))
 
     # New assignments must be contiguous after the highest number already
     # present on main; gaps in historical sequences remain untouched.
