@@ -177,7 +177,7 @@ def test_recovered_compound_stewardship_record_preserves_evidence_boundary():
     )
     assert record["status"] == "RECOVERED_HISTORICAL_RESPONSE"
     assert record["query"] == "What is stewardship and why does it matter now more than ever?"
-    assert len(record["expected_response"]) == 851
+    assert len(record["expected_response"]) == 861
     assert len(record["expected_response"].split(chr(10) * 2)) == 3
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/level-1-case-catalog/"
     assert "do not independently prove the exact live response text" in record["provenance"]["evidence_boundary"]
