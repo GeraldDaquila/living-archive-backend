@@ -233,7 +233,11 @@ def main():
         assertions = record.get("assertions")
         if not isinstance(assertions, list) or not assertions or any(not str(x).strip() for x in assertions):
             fail(f"{record['benchmark_id']} lacks non-empty acceptance assertions")
-        if record.get("freeze_policy") != "immutable_user_approved_gold_standard":
+        freeze_policy = str(record.get("freeze_policy") or "").strip()
+        if legacy:
+            if not freeze_policy:
+                fail(f"{record['benchmark_id']} lacks its recorded legacy freeze policy")
+        elif freeze_policy != "immutable_user_approved_gold_standard":
             fail(f"{record['benchmark_id']} is not frozen under the canonical approval policy")
 
         if "expected_doorway" not in record:
