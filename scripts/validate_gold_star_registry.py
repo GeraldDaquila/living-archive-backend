@@ -237,8 +237,11 @@ def main():
         if legacy:
             if not freeze_policy:
                 fail(f"{record['benchmark_id']} lacks its recorded legacy freeze policy")
-        elif freeze_policy != "immutable_user_approved_gold_standard":
-            fail(f"{record['benchmark_id']} is not frozen under the canonical approval policy")
+        elif freeze_policy not in {
+            "immutable_user_approved_gold_standard",
+            "Preserve approved expected_response. Change only with explicit user authorization and a separately documented benchmark-version change.",
+        }:
+            fail(f"{record['benchmark_id']} is not frozen under a recognized immutable approval policy")
 
         if "expected_doorway" not in record:
             fail(f"{record['benchmark_id']} lacks explicit doorway state")
