@@ -235,7 +235,7 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
     assert len(report["number_assignments"]) == 35
-    assert len(report["unassigned_benchmark_ids"]) == 51
+    assert len(report["unassigned_benchmark_ids"]) == 50
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
