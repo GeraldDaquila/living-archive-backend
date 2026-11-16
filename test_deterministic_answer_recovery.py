@@ -276,4 +276,4 @@ def test_provider_exhaustion_recovery_consumes_explicit_gold_star_guidance(monke
     answer = compose_recovery("What is a useful way to understand a difficult situation?")
     assert guidance["discipline"] in answer
     assert guidance["abstention_boundary"] in answer
-    assert len([p for p in answer.split("\\n\\n") if p.strip()]) == 3
+    assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
