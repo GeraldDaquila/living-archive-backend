@@ -32,6 +32,7 @@ _INSTITUTIONAL_MARKERS = re.compile(
 _FLATTENING_MARKERS = re.compile(
     r"\b(?:all (?:three|four|five|six|these) (?:religions|faiths|traditions)|"
     r"all traditions (?:believe|teach|share)|they all (?:believe|teach|share)|"
+    r"all three (?:teach|share|believe)|"
     r"every religion (?:believes|teaches|shares)|"
     r"(?:a|the) (?:shared|common) focus on the afterlife)\b", re.I
 )

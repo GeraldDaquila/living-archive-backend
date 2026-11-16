@@ -129,3 +129,14 @@ def test_recovery_never_claims_all_traditions_share_one_doctrine():
     assert "all traditions believe" not in response
     assert "all three religions" not in response
     assert "false equivalence" in response
+
+
+def test_detects_all_three_teach_claim_in_named_religion_comparison():
+    question = "What are the similarities and differences between Buddhism, Christianity and Islam?"
+    response = (
+        "All three teach compassion and encourage followers to live ethically. "
+        "They also share a focus on the afterlife."
+    )
+    assert contract.is_comparative_traditions_question(question)
+    assert contract.response_flattens_traditions(question, response)
+    assert contract.response_requires_quality_repair(question, response)
