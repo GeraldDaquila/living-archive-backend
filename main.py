@@ -433,6 +433,12 @@ def _select_guide_node_fallback_doorway(query):
     cannot erase a stronger canonical continuation.
     """
     normalized = str(query or "").casefold()
+    from deterministic_answer_recovery import (
+        is_guide_personal_decision_agency_question,
+        registered_recovery_recommendation,
+    )
+    if is_guide_personal_decision_agency_question(query):
+        return registered_recovery_recommendation(query)
     family = _select_verified_doorway_conceptual_family(query)
     verified_family_doorway = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     if verified_family_doorway:
@@ -5494,6 +5500,31 @@ def _archive_claim_authoritative_doorway(query, doorway):
         return None
     return {"title": node_title, "url": node_url}
 
+def _gold_star_doorway_omission_is_justified(gold_standard):
+    """Only an explicit no-doorway flag with a visitor-experience reason permits omission."""
+    if not isinstance(gold_standard, dict) or not bool(gold_standard.get("forbids_doorway")):
+        return False
+    reason = str(
+        gold_standard.get("doorway_omission_exception_reason")
+        or gold_standard.get("doorway_omission_reason")
+        or ""
+    ).strip()
+    return bool(reason)
+
+
+# Gold Star visitor contract: a doorway is the default; omission requires a reasoned exception.
+def _gold_star_default_doorway():
+    """Return the approved broad Archive continuation when a Gold Star has no narrower doorway.
+
+    The caller must first preserve a question-specific or independently selected
+    canonical destination; this Compass is the last-resort Gold Star continuation.
+    """
+    return {
+        "title": "Sovereign Sensemaking Compass",
+        "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass/",
+        "rationale": "The Sovereign Sensemaking Compass offers a broad continuation for developing clarity and agency when a question has no narrower verified Archive destination. It is an invitation to explore the Archive's orientation framework, not a claim that one framework settles every question.",
+    }
+
 def _guide_restore_verified_doorway(payload, query):
     """Restore one verified canonical doorway at the terminal visitor boundary.
 
@@ -5545,7 +5576,7 @@ def _guide_finalize_visitor_payload(payload, query):
             safe["response"] = exact_answer
             if "answer" in safe:
                 safe["answer"] = exact_answer
-        if not bool(exact_standard.get("forbids_doorway")):
+        if not _gold_star_doorway_omission_is_justified(exact_standard):
             exact_title = str(exact_standard.get("doorway_title") or "").strip()
             exact_url = str(exact_standard.get("doorway_url") or "").strip()
             if exact_title and re.match(r"^https://\S+$", exact_url, re.I):
@@ -5583,13 +5614,22 @@ def _guide_finalize_visitor_payload(payload, query):
                 safe["doorway_url"] = exact_url
                 safe["doorway_rationale"] = exact_rationale or None
             else:
-                # Fail closed: an exact standard with no verified doorway must
-                # not inherit stale navigation from an upstream payload.
-                safe["recommendation"] = None
-                safe["canonical_doorway"] = None
-                safe["doorway_title"] = None
-                safe["doorway_url"] = None
-                safe["doorway_rationale"] = None
+                # A Gold Star carries a doorway by default. Preserve an independently
+                # selected canonical destination before resolving a new fallback.
+                fallback_doorway = _normalize_authoritative_recommendation(safe.get("recommendation"))
+                if not fallback_doorway:
+                    try:
+                        fallback_candidate = _select_guide_node_fallback_doorway(query)
+                    except Exception:
+                        fallback_candidate = None
+                    fallback_doorway = _normalize_authoritative_recommendation(fallback_candidate)
+                if not fallback_doorway:
+                    fallback_doorway = _normalize_authoritative_recommendation(_gold_star_default_doorway())
+                safe["recommendation"] = fallback_doorway
+                safe["canonical_doorway"] = fallback_doorway
+                safe["doorway_title"] = fallback_doorway.get("title") if fallback_doorway else None
+                safe["doorway_url"] = fallback_doorway.get("url") if fallback_doorway else None
+                safe["doorway_rationale"] = fallback_doorway.get("rationale") if fallback_doorway else None
         else:
             safe["recommendation"] = None
             safe["canonical_doorway"] = None
@@ -5597,6 +5637,28 @@ def _guide_finalize_visitor_payload(payload, query):
             safe["doorway_url"] = None
             safe["doorway_rationale"] = None
         safe["processing"] = "final_visitor_boundary_exact_gold_standard"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
+    # Personal-decision questions about the Guide's role have one shared
+    # answer-and-doorway contract. Enforce it here so provider/LLM and
+    # deterministic routes cannot diverge or leak the question into a subject slot.
+    from deterministic_answer_recovery import (
+        is_guide_personal_decision_agency_question,
+        _guide_personal_decision_agency_recovery,
+        registered_recovery_recommendation as _registered_recovery_doorway,
+    )
+    if is_guide_personal_decision_agency_question(query):
+        safe = dict(payload)
+        safe["response"] = _guide_personal_decision_agency_recovery()
+        doorway = _normalize_authoritative_recommendation(_registered_recovery_doorway(query))
+        safe["recommendation"] = doorway
+        safe["canonical_doorway"] = doorway
+        safe["doorway_title"] = doorway.get("title") if doorway else None
+        safe["doorway_url"] = doorway.get("url") if doorway else None
+        safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
+        safe["processing"] = "final_visitor_boundary_personal_decision_agency"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
@@ -8206,7 +8268,7 @@ def _apply_registered_gold_standard_doorway(doorway, gold_standard):
     must never replace a separately selected, validated doorway. If no valid
     independent doorway exists, the public response carries no recommendation.
     """
-    if gold_standard is not None and bool(gold_standard.get("forbids_doorway")):
+    if _gold_star_doorway_omission_is_justified(gold_standard):
         return None
 
     title = str((gold_standard or {}).get("doorway_title") or "").strip()
@@ -8220,9 +8282,12 @@ def _apply_registered_gold_standard_doorway(doorway, gold_standard):
             if rationale:
                 return {**approved_pair, "rationale": rationale}
             return approved_pair
-    # Incomplete/unverified Gold Standard metadata has no authority to invent
-    # a doorway. Keep only an independently selected, canonical, valid pair.
-    return _normalize_authoritative_recommendation(doorway)
+    # Gold Star doorway is the default; preserve a selected canonical
+    # destination before using the broad Compass continuation.
+    return (
+        _normalize_authoritative_recommendation(doorway)
+        or _normalize_authoritative_recommendation(_gold_star_default_doorway())
+    )
 
 
 def _enforce_registered_gold_standard_doorway(doorway, gold_standard, query=""):
@@ -8233,9 +8298,14 @@ def _enforce_registered_gold_standard_doorway(doorway, gold_standard, query=""):
     selected doorway has already passed the canonical relevance and URL gates.
     Only an explicit no-handoff assertion overrides that default.
     """
-    if gold_standard is not None and bool(gold_standard.get("forbids_doorway")):
+    if gold_standard is None:
+        return _normalize_authoritative_recommendation(doorway)
+    if _gold_star_doorway_omission_is_justified(gold_standard):
         return None
-    return doorway
+    return (
+        _normalize_authoritative_recommendation(doorway)
+        or _normalize_authoritative_recommendation(_gold_star_default_doorway())
+    )
 
 
 
@@ -11112,7 +11182,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         response = _final_gold_standard["expected_response"]
         _gold_title = str(_final_gold_standard.get("doorway_title") or "").strip()
         _gold_url = str(_final_gold_standard.get("doorway_url") or "").strip()
-        _gold_forbids_doorway = bool(_final_gold_standard.get("forbids_doorway"))
+        _gold_forbids_doorway = _gold_star_doorway_omission_is_justified(_final_gold_standard)
         authoritative_doorway = _apply_registered_gold_standard_doorway(
             authoritative_doorway, _final_gold_standard
         )
@@ -11618,7 +11688,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         and _final_conceptual_family
         and not (
             _final_gold_standard is not None
-            and bool(_final_gold_standard.get("forbids_doorway"))
+            and _gold_star_doorway_omission_is_justified(_final_gold_standard)
         )
     ):
         try:
@@ -11643,7 +11713,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     authoritative_doorway = _enforce_registered_gold_standard_doorway(
         authoritative_doorway, _final_gold_standard, query
     )
-    if _final_gold_standard is not None and bool(_final_gold_standard.get("forbids_doorway")):
+    if _final_gold_standard is not None and _gold_star_doorway_omission_is_justified(_final_gold_standard):
         composition_context.pop("authoritative_doorway", None)
         composition_context.pop("authoritative_doorway_title", None)
 
@@ -11656,7 +11726,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         and not authoritative_doorway
         and not (
             _final_gold_standard is not None
-            and bool(_final_gold_standard.get("forbids_doorway"))
+            and _gold_star_doorway_omission_is_justified(_final_gold_standard)
         )
         and isinstance(composition_result, dict)
     ):
@@ -11892,7 +11962,7 @@ def _apply_exact_gold_standard_authority_to_payload(payload):
         payload["response"] = answer
         if "answer" in payload:
             payload["answer"] = answer
-    if not bool(standard.get("forbids_doorway")):
+    if not _gold_star_doorway_omission_is_justified(standard):
         title = str(standard.get("doorway_title") or "").strip()
         url = str(standard.get("doorway_url") or "").strip()
         rationale = str(standard.get("doorway_rationale") or "").strip()
@@ -11905,6 +11975,19 @@ def _apply_exact_gold_standard_authority_to_payload(payload):
             payload["doorway_title"] = title
             payload["doorway_url"] = url
             payload["doorway_rationale"] = rationale or None
+        else:
+            candidate = _normalize_authoritative_recommendation(payload.get("recommendation"))
+            if not candidate:
+                try:
+                    candidate = _normalize_authoritative_recommendation(_select_guide_node_fallback_doorway(query))
+                except Exception:
+                    candidate = None
+            doorway = candidate or _normalize_authoritative_recommendation(_gold_star_default_doorway())
+            payload["recommendation"] = doorway
+            payload["canonical_doorway"] = doorway
+            payload["doorway_title"] = doorway.get("title") if doorway else None
+            payload["doorway_url"] = doorway.get("url") if doorway else None
+            payload["doorway_rationale"] = doorway.get("rationale") if doorway else None
     return payload
 
 async def _use_send_json(send, payload, status_code=200):
@@ -11951,7 +12034,7 @@ async def _use_send_json(send, payload, status_code=200):
                 # route omitted the key so the public contract remains uniform.
                 if "response" not in payload and "answer" not in payload:
                     payload["response"] = _boundary_answer
-            if not bool(_boundary_standard.get("forbids_doorway")):
+            if not _gold_star_doorway_omission_is_justified(_boundary_standard):
                 _boundary_title = str(_boundary_standard.get("doorway_title") or "").strip()
                 _boundary_url = str(_boundary_standard.get("doorway_url") or "").strip()
                 _boundary_rationale = str(_boundary_standard.get("doorway_rationale") or "").strip()
@@ -11964,6 +12047,25 @@ async def _use_send_json(send, payload, status_code=200):
                     payload["doorway_title"] = _boundary_title
                     payload["doorway_url"] = _boundary_url
                     payload["doorway_rationale"] = _boundary_rationale or None
+        if (
+            _boundary_standard is not None
+            and not _gold_star_doorway_omission_is_justified(_boundary_standard)
+            and not isinstance(payload.get("recommendation"), dict)
+        ):
+            try:
+                _gold_star_candidate = _select_guide_node_fallback_doorway(_boundary_query)
+            except Exception:
+                _gold_star_candidate = None
+            _gold_star_doorway = (
+                _normalize_authoritative_recommendation(_gold_star_candidate)
+                or _normalize_authoritative_recommendation(_gold_star_default_doorway())
+            )
+            payload["recommendation"] = _gold_star_doorway
+            payload["canonical_doorway"] = _gold_star_doorway
+            payload["doorway_title"] = _gold_star_doorway.get("title") if _gold_star_doorway else None
+            payload["doorway_url"] = _gold_star_doorway.get("url") if _gold_star_doorway else None
+            payload["doorway_rationale"] = _gold_star_doorway.get("rationale") if _gold_star_doorway else None
+
         # Archive-claim provenance answers own a stricter navigation contract than
         # generic recovery. Once the final visitor boundary has rejected a doorway,
         # no later sender-level fallback may repopulate it from an unrelated
@@ -11972,7 +12074,7 @@ async def _use_send_json(send, payload, status_code=200):
             str(payload.get("processing") or "")
             == "final_visitor_boundary_archive_claim_provenance"
         )
-        if _boundary_standard is not None and bool(_boundary_standard.get("forbids_doorway")):
+        if _gold_star_doorway_omission_is_justified(_boundary_standard):
             payload["recommendation"] = None
         elif (
             not _archive_claim_final
@@ -12019,7 +12121,7 @@ async def _use_send_json(send, payload, status_code=200):
             )
         )
         _boundary_standard_forbids_doorway = bool(
-            _boundary_standard and _boundary_standard.get("forbids_doorway")
+            _gold_star_doorway_omission_is_justified(_boundary_standard)
         )
         if (
             not _archive_claim_final
