@@ -2,10 +2,11 @@
 
 ## Current Gold Star numbering authority — 2026-11-17
 
-- **Canonical inventory:** 123 records total; 86 approved Gold Stars; 86 matching qualitative-transfer reviews.
-- **Serial inventory:** 35 approved records carry display serials, #56–#84 and #87–#92. 51 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity.
+- **Canonical inventory:** 124 records total; 87 approved Gold Stars; 87 matching qualitative-transfer reviews.
+- **Serial inventory:** 35 approved records carry display serials, #56–#84 and #87–#92. 52 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity.
 - **Restored 2026-11-17:** `gs-2026-11-17-structural-change-vs-disruption` retains its original three-paragraph answer and unassigned serial. Its doorway is now verified as Systems, Governance, and Organizational Design — https://geralddaquila.com/systems-structure/ — with a visitor-facing relevance rationale.
 - **Overwritten 2026-11-17:** The same benchmark now has one canonical current answer version: three distinct moves (distinction; disruption's causal role; post-event operational test), with the opening clause boundary corrected. The verified doorway, active exact/adaptive/deterministic capabilities, provenance, and `UNASSIGNED` serial are preserved. See `revision_history` in the machine-readable record.
+- **Newly elevated 2026-11-17:** `gs-2026-11-17-consequential-action-under-uncertainty` preserves the exact three-paragraph visitor answer and the verified **The Sovereign Sensemaking Compass** doorway, including its relevance rationale. It is an active structural-learning contributor; its display serial remains `UNASSIGNED`.
 - **Identity:** `benchmark_id` is the stable identity used by adaptive learning. `gold_star_number` is an optional human-facing serial, not an eligibility condition.
 - **Recovered #56–#59:** #56 agency/circumstance (PR #1428 plus the immediately following explicit #57 allocation in PR #1430); #57 developmental language (PR #1430); #58 culture (PR #1432); #59 transformation/temporary relief (PR #1434). The canonical records carry historical recovery provenance.
 - **#85:** Historical allocation record not recovered; explicitly released for a future new, user-authorized allocation under the recorded exception.
@@ -685,3 +686,18 @@ These entries preserve their live-production provenance and qualitative transfer
 **Gold Star discipline:** Distinguish disruption, adjustment, and renewal; explain why adaptation may preserve damaged conditions; examine what must be restored for long-term viability; preserve contingency and scale.  
 **Doorway:** The screenshot displayed “Collapse or Transformation? How Societies Interpret Periods of Instability,” but no canonical URL was captured or independently verified. The doorway remains withheld.  
 **Numbering:** `UNASSIGNED`; serial allocation was not requested and is independent of adaptive-learning identity.
+
+
+### GS-GUIDE-013 — Consequential action under uncertainty
+- **Benchmark ID:** \`gs-2026-11-17-consequential-action-under-uncertainty\`
+- **Status:** \`USER_APPROVED_GOLD_STANDARD\`
+- **Rating:** 9.5/10
+- **Exact question:** “How should people act when the future is uncertain but consequential?”
+- **Approved response:** The exact three-paragraph visitor-facing answer is frozen in \`docs/qa/gold_standard_registry.json\` under the benchmark ID above.
+- **Expected contract:** Paragraph 1 calibrates action to what is known and unknown while identifying what must be protected, who will be affected, and which responsibilities cannot be deferred. Paragraph 2 compares realistic options by what they make possible, what they may damage, who carries the costs, and what evidence would change the assessment, giving weight to people with the least influence. Paragraph 3 advances to a correctable course, clear review signals, accountable observation, and willingness to change direction.
+- **Doorway:** **The Sovereign Sensemaking Compass** — https://geralddaquila.com/the-sovereign-sensemaking-compass/ . The approved visitor-facing rationale is preserved verbatim in the canonical JSON record.
+- **Adaptive-learning boundary:** Transfer only the structural discipline of proportionate action, consequential option comparison, and correctable accountability. Do not transfer answer text, factual claims, examples, or the doorway; do not impose this framework on low-stakes or purely descriptive questions.
+- **Deterministic fallback:** \`deterministic_fallback_eligible=false\`. Exact-answer authority and structural learning are approved; this metadata does not independently authorize deterministic fallback reuse.
+- **Numbering:** \`UNASSIGNED\`; no display serial was requested. Adaptive-learning identity is the stable \`benchmark_id\`.
+- **Provenance:** User-reviewed live visitor-facing screenshot dated 2026-11-17; explicit user approval to elevate. The canonical Compass page and permalink were independently verified.
+- **Freeze policy:** Preserve the exact approved response and doorway rationale. Changes require explicit user authorization and a separately documented benchmark-version change.
