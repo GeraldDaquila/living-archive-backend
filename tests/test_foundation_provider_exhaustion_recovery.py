@@ -128,10 +128,9 @@ def test_algorithmic_bias_question_uses_mechanism_first_recovery():
     assert "not mean an algorithm is always the original cause" in lowered
     assert answer.count("\n\n") == 2
 
-    @patch("main._basic_inquiry_round1_deterministic_response")
-    def test_consequential_action_question_survives_full_provider_exhaustion_boundary(
-        self, deterministic_response
-    ):
+
+def test_consequential_action_question_survives_full_provider_exhaustion_boundary():
+    with patch("main._basic_inquiry_round1_deterministic_response") as deterministic_response:
         deterministic_response.return_value = {
             "response": "I couldn't verify a reliable answer from the material available.",
             "doorway_title": "",
@@ -146,13 +145,13 @@ def test_algorithmic_bias_question_uses_mechanism_first_recovery():
             recommendation_available=False,
         )
 
-        answer = result["response"]
-        self.assertEqual(result["provider"], "bounded_provider_exhaustion_recovery")
-        self.assertEqual(len(answer.split("\\n\\n")), 3)
-        self.assertTrue(answer.startswith("When a decision has serious consequences"))
-        self.assertIn("preserves room to learn and correct", answer)
-        self.assertIn("signals for review", answer)
-        self.assertIn("accountable", answer)
-        self.assertNotIn("AI", answer)
-        self.assertNotIn("civilizational", answer.casefold())
-        self.assertNotIn("Distinguish strain and transition", answer)
+    answer = result["response"]
+    assert result["provider"] == "bounded_provider_exhaustion_recovery"
+    assert len(answer.split("\n\n")) == 3
+    assert answer.startswith("When a decision has serious consequences")
+    assert "preserves room to learn and correct" in answer
+    assert "signals for review" in answer
+    assert "accountable" in answer
+    assert "AI" not in answer
+    assert "civilizational" not in answer.casefold()
+    assert "Distinguish strain and transition" not in answer
