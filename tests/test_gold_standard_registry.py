@@ -1029,7 +1029,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 94
+    assert len(approved) == 95
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1078,10 +1078,10 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     assert "only adds provenance.source_date" in gaps[1]["reason"]
     assert "recovered as Gold Star #56" in gaps[1]["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 94
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 95
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 36
     assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 93
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 58
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 59
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
 
 
@@ -1382,3 +1382,75 @@ def test_personal_decision_agency_gold_star_93_has_active_transfer_review():
     assert entry["reasoning_family"] == "personal_decision_agency_without_substituted_judgment"
     assert "person's values and responsibilities" in entry["transferable_discipline"]
     assert "Do not make the person's life decision" in entry["abstention_boundary"]
+
+
+def test_public_commons_stewardship_gold_star_preserves_answer_and_verified_doorway_across_both_paths():
+    from deterministic_answer_recovery import compose_recovery
+    from general_guide_composition import compose
+    from general_guide_gold_standards import resolve_exact_gold_standard
+    import main
+
+    fixture = json.loads(
+        (ROOT / "tests" / "fixtures" / "general_guide_public_commons_stewardship_gold_standard.json").read_text(encoding="utf-8")
+    )
+    query = fixture["query"]
+    expected = fixture["expected_response"]
+    record = next(
+        item for item in _registry()["records"]
+        if item["benchmark_id"] == "general-guide-public-commons-stewardship-gold-star-2026-11-17"
+    )
+
+    assert record["status"] == fixture["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record.get("gold_star_number") is None
+    assert record["rating_out_of_10"] == fixture["rating_out_of_10"] == 9.7
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["runtime_transfer"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is True
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
+    assert len(expected.split(chr(10) * 2)) == 3
+    assert record["expected_response"] == expected
+    assert record["expected_doorway"] == {
+        "title": fixture["expected_doorway_title"],
+        "url": fixture["expected_doorway_url"],
+        "rationale": fixture["expected_doorway_rationale"],
+    }
+
+    resolved = resolve_exact_gold_standard(query)
+    assert resolved is not None
+    assert resolved["benchmark_id"] == record["benchmark_id"]
+    assert resolved["expected_response"] == expected
+    assert resolved["doorway_title"] == fixture["expected_doorway_title"]
+    assert resolved["doorway_url"] == fixture["expected_doorway_url"]
+    assert resolved["doorway_rationale"] == fixture["expected_doorway_rationale"]
+
+    provider_contract = compose(use_core=None, query=query, context_data={})
+    assert provider_contract["response"] == expected
+    assert provider_contract["doorway_title"] == fixture["expected_doorway_title"]
+    assert provider_contract["doorway_url"] == fixture["expected_doorway_url"]
+
+    assert compose_recovery(query) == expected
+    deterministic_contract = main._basic_inquiry_round1_deterministic_response(
+        query, {}, {}, recommendation_available=False
+    )
+    assert deterministic_contract["response"] == expected
+    assert deterministic_contract["doorway_title"] == fixture["expected_doorway_title"]
+    assert deterministic_contract["recommendation"]["url"] == fixture["expected_doorway_url"]
+
+    assert resolve_exact_gold_standard("How should a guide steward a shared public knowledge resource?") is None
+
+
+def test_public_commons_stewardship_gold_star_has_active_transfer_review():
+    review = json.loads(
+        (ROOT / "docs" / "qa" / "gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8")
+    )
+    entry = next(
+        item for item in review["entries"]
+        if item["benchmark_id"] == "general-guide-public-commons-stewardship-gold-star-2026-11-17"
+    )
+    assert entry["activation"] == "active_quality_contributor"
+    assert entry["reasoning_family"] == "public_knowledge_commons_stewardship_and_provenance"
+    assert "distinguish access classes" in entry["transferable_discipline"]
+    assert "preserve disagreement" in entry["transferable_discipline"]
