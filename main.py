@@ -10770,6 +10770,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "label": "Archive evidence not found",
             "explanation": "The available Archive material did not establish the requested attribute.",
         }
+    elif composition_context.get("answer_basis") == "general_conceptual_orientation":
+        # A separately relevant doorway is navigation, not evidence that the
+        # Archive establishes every claim in a general conceptual explanation.
+        answer_basis = {
+            "kind": "general_knowledge",
+            "label": "General conceptual orientation",
+            "explanation": "This explanation uses general conceptual knowledge rather than claiming that the Living Archive establishes the full answer. The separate Archive doorway offers a related continuation.",
+        }
 
     # Doorway selection is handled by the canonical relevance gate above.
     # Preserve its result here: absence of an optional provenance flag must not
