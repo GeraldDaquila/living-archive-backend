@@ -8,6 +8,7 @@ on:
       - "guide_direct_attribute_evidence.py"
       - "tests/test_direct_attribute_evidence_boundary.py"
       - "general_guide_composition.py"
+      - "tests/test_general_guide_answer_first_hard_boundary.py"
       - "tests/test_archive_passage_contrast_contract.py"
       - "comparative_traditions_contract.py"
       - "tests/test_comparative_traditions_contract.py"
@@ -86,7 +87,7 @@ jobs:
       - name: Compile Guide runtime modules
         run: python -m compileall -q main.py guide_direct_attribute_evidence.py general_guide_composition.py general_guide_gold_standards.py comparative_traditions_contract.py deterministic_answer_recovery.py streaming_transport.py
       - name: Run composition regression tests
-        run: python -m pytest -q tests/test_archive_passage_contrast_contract.py tests/test_comparative_traditions_contract.py tests/test_general_guide_comparative_traditions_composition.py tests/test_general_guide_perception_contract.py tests/test_general_guide_preference_clarification.py test_deterministic_answer_recovery.py tests/test_direct_attribute_evidence_boundary.py tests/test_visitor_meta_commentary_boundary.py tests/test_shared_definition_exhaustion_recovery.py tests/test_provider_exhaustion_regex_contract.py tests/test_spiritual_community_accountability_contract.py
+        run: python -m pytest -q tests/test_general_guide_answer_first_hard_boundary.py tests/test_archive_passage_contrast_contract.py tests/test_comparative_traditions_contract.py tests/test_general_guide_comparative_traditions_composition.py tests/test_general_guide_perception_contract.py tests/test_general_guide_preference_clarification.py test_deterministic_answer_recovery.py tests/test_direct_attribute_evidence_boundary.py tests/test_visitor_meta_commentary_boundary.py tests/test_shared_definition_exhaustion_recovery.py tests/test_provider_exhaustion_regex_contract.py tests/test_spiritual_community_accountability_contract.py
       - name: Run formal and informal institutional dynamics contract
         run: python -m pytest -q tests/test_formal_informal_institutional_dynamics.py
       - name: Run system-wide three-paragraph default and fragmented-knowledge regression
