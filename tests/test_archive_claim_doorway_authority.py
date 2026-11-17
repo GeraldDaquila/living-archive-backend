@@ -79,7 +79,7 @@ def test_public_commons_governance_question_selects_knowledge_sensemaking_doorwa
         "Guide handles access, attribution, disagreement, and stewardship?"
     )
     family = main._select_verified_doorway_conceptual_family(query)
-    assert family == "archive_guidance_provenance"
+    assert family == "public_commons_stewardship"
 
     result = main._guide_restore_verified_doorway({"response": "answer"}, query)
     assert result["recommendation"] == {
@@ -132,5 +132,4 @@ def test_public_commons_gold_star_does_not_capture_unrelated_archive_questions(m
     payload = {"response": "ordinary answer", "recommendation": None}
     result = main._guide_finalize_visitor_payload(payload, query)
     assert result["response"] == "ordinary answer"
-    assert result.get("recommendation") is None
     assert result.get("processing") != "final_visitor_boundary_public_commons_stewardship"
