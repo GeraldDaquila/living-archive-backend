@@ -303,9 +303,9 @@ def _select_verified_doorway_conceptual_family(query):
     # Match only when the question joins public authority, a predictive/automated
     # system, and a constitutional or human-rights adoption boundary.
     if (
-        re.search(r"\\b(?:government|public services?|public sector|state|municipal|city government|agency)\\b", text, re.I)
-        and re.search(r"\\b(?:predictive system|predictive model|algorithmic system|automated decision|ai system|automated system)\\b", text, re.I)
-        and re.search(r"\\b(?:constitutional|rights?|due process|human questions?|human consequences?|dignity|adoption|precede)\\b", text, re.I)
+        re.search(r"\b(?:government|public services?|public sector|state|municipal|city government|agency)\b", text, re.I)
+        and re.search(r"\b(?:predictive system|predictive model|algorithmic system|automated decision|ai system|automated system)\b", text, re.I)
+        and re.search(r"\b(?:constitutional|rights?|due process|human questions?|human consequences?|dignity|adoption|precede)\b", text, re.I)
     ):
         return "public_predictive_systems"
 
