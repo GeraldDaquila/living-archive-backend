@@ -38,7 +38,7 @@ def test_quoted_context_gold_star_contributes_bounded_transfer_discipline():
     assert contribution is not None
     assert contribution["benchmark_id"] == BENCHMARK_ID
     assert contribution["authority_mode"] == "structural_guidance_only"
-    assert "preceding and following paragraphs" in contribution["discipline"].lower()
+    assert "adjacent paragraphs" in contribution["discipline"].lower()
     assert "analyze only afterward" in contribution["discipline"].lower()
     assert "expected_response" not in contribution
     assert "doorway" not in contribution
