@@ -22,4 +22,4 @@ def test_basic_inquiry_deterministic_recovery_answers_before_navigating():
     assert "stewardship is responsibility" in paragraphs[0]
     assert "source of authority" in paragraphs[2]
     assert "time horizon" in paragraphs[2]
-    assert result["provider"] == "bounded_conceptual_relationship_recovery"
+    assert result["provider"] == "gold_standard_registry_deterministic_fallback"
