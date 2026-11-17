@@ -32,7 +32,7 @@ def test_classifier_does_not_capture_unrelated_or_single_layer_questions():
 def test_recovery_explains_distinction_interaction_and_diagnostic_method():
     answer = composition._formal_informal_institutional_dynamics_recovery()
     assert composition._has_formal_informal_institutional_dynamics_explanation(answer)
-    assert len(answer.split("\\n\\n")) == 3
+    assert len(answer.split("\n\n")) == 3
     assert "official roles" in answer
     assert "social influence" in answer
     assert "selectively" in answer
