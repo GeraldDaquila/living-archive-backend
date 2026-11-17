@@ -63,7 +63,8 @@ def test_final_visitor_boundary_uses_shared_gold_standard_recovery_instead_of_ge
     boundary = source[boundary_start:boundary_start + 4000]
     assert "_compose_provider_exhaustion_recovery(query)" in boundary
     assert "len(_systemwide_paragraphs) >= 3" in boundary
-    assert "authoritative_doorway = None" in boundary
+    assert "Preserve an already verified doorway" in boundary
+    assert "authoritative_doorway = None" not in boundary
     assert '"kind": "general_knowledge"' in boundary
     assert "I couldn’t produce a reliable answer to that question just now." in boundary
 
