@@ -5338,6 +5338,7 @@ def _guide_restore_verified_doorway(payload, query):
     safe["canonical_doorway"] = doorway
     safe["doorway_title"] = doorway.get("title") if doorway else None
     safe["doorway_url"] = doorway.get("url") if doorway else None
+    safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
     return safe
 
 
@@ -5364,11 +5365,15 @@ def _guide_finalize_visitor_payload(payload, query):
                 # every supported doorway representation so no presentation
                 # adapter can lose a verified continuation by reading a legacy
                 # alias instead of recommendation.
+                exact_rationale = str(exact_standard.get("doorway_rationale") or "").strip()
                 exact_doorway = {"title": exact_title, "url": exact_url}
+                if exact_rationale:
+                    exact_doorway["rationale"] = exact_rationale
                 safe["recommendation"] = exact_doorway
                 safe["canonical_doorway"] = exact_doorway
                 safe["doorway_title"] = exact_title
                 safe["doorway_url"] = exact_url
+                safe["doorway_rationale"] = exact_rationale or None
             else:
                 # Fail closed: an exact standard with no verified doorway must
                 # not inherit stale navigation from an upstream payload.
@@ -5376,11 +5381,13 @@ def _guide_finalize_visitor_payload(payload, query):
                 safe["canonical_doorway"] = None
                 safe["doorway_title"] = None
                 safe["doorway_url"] = None
+                safe["doorway_rationale"] = None
         else:
             safe["recommendation"] = None
             safe["canonical_doorway"] = None
             safe["doorway_title"] = None
             safe["doorway_url"] = None
+            safe["doorway_rationale"] = None
         safe["processing"] = "final_visitor_boundary_exact_gold_standard"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
@@ -6207,6 +6214,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "response": _structural_change_gold_star["expected_response"],
             "doorway_title": _structural_change_gold_star.get("doorway_title", ""),
             "doorway_url": _structural_change_gold_star.get("doorway_url"),
+            "doorway_rationale": _structural_change_gold_star.get("doorway_rationale"),
             "recommendation": None,
             "provider": "gold_standard_registry_deterministic_fallback",
             "model": "",
@@ -7833,6 +7841,9 @@ def _apply_registered_gold_standard_doorway(doorway, gold_standard):
             {"title": title, "url": url}
         )
         if approved_pair is not None:
+            rationale = str((gold_standard or {}).get("doorway_rationale") or "").strip()
+            if rationale:
+                return {**approved_pair, "rationale": rationale}
             return approved_pair
     # Incomplete/unverified Gold Standard metadata has no authority to invent
     # a doorway. Keep only an independently selected, canonical, valid pair.
