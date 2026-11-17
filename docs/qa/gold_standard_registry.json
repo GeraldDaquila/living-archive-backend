@@ -5706,9 +5706,69 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request allocation of a display serial. Preserve benchmark_id as the stable identity."
+    },
+    {
+      "benchmark_id": "gs-2026-11-17-community-continuity-harmful-inherited-patterns",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How can communities preserve continuity while revising harmful inherited patterns?",
+      "expected_response": "Communities preserve continuity by distinguishing the inheritance they want to carry forward from practices that have survived mainly through repetition. Shared memory, language, relationships, place, and commitments can remain sources of belonging even when rules, customs, or arrangements of power that cause harm are changed. Continuity does not require every inherited form to remain untouched.\n\nThat distinction should be made with the people who live with the effects. A community can examine a practice's history and original purpose, hear from those harmed or excluded, identify what value it once served, and decide what should be retained, transformed, or ended. This avoids two errors: romanticizing the past as if inheritance made every practice legitimate, and treating everything inherited as disposable without understanding what it has carried.\n\nContinuity is measured not by whether old forms remain unchanged, but by whether the community can carry forward what is worth preserving while becoming more just and capable of correction. Record why changes are made, preserve the knowledge and relationships that matter, assign responsibility for reviewing their effects, and revisit decisions as evidence and lived experience develop.",
+      "expected_doorway": {
+        "title": "From Awakening to Stewardship",
+        "url": "https://geralddaquila.com/from-awakening-to-stewardship/",
+        "rationale": "This essay explores how personal development can mature into stewardship: taking responsibility for the relationships, institutions, and shared conditions that support human flourishing. It offers a wider perspective on community continuity by asking what people must build and sustain together, rather than prescribing how a particular inherited practice should be changed."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_APPROVED",
+      "rating_out_of_10": 9.6,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "The user reviewed the live visitor-facing response and its corrected doorway rationale, approved the complete experience, and explicitly instructed 'elevate' on 2026-11-17. The exact three-paragraph answer and doorway are frozen as the approved exemplar.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "continuity_without_preserving_harmful_inheritance",
+      "transferable_lesson": "Preserve continuity by distinguishing the relationships, memory, knowledge, place, and commitments worth carrying forward from inherited practices that cause harm. Make revision with affected people, understand a practice's history and original purpose, decide what to retain, transform, or end, and establish accountability for reviewing consequences.",
+      "transfer_boundary": "Do not romanticize inherited practices as legitimate merely because they are longstanding. Do not treat all inheritance as disposable. Do not impose a prescriptive judgment about a specific community or practice without context; center the people who live with the effects and preserve what remains valuable.",
+      "known_theme": "community continuity, inherited patterns, harmful traditions, collective memory, belonging, institutional change, correction, stewardship, intergenerational responsibility",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_corrected_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "continuity_without_preserving_harmful_inheritance",
+        "transferable_discipline": "Compose in three distinct moves: distinguish meaningful inheritance from harmful inherited practices; explain a participatory method for examining history, purpose, harm, and what to retain or change; then define continuity through accountable practices of documentation, review, and correction.",
+        "abstention_boundary": "Do not romanticize tradition or indiscriminately reject inheritance. Do not prescribe changes to a particular community without understanding its history and hearing from those affected. Keep the answer focused on the visitor's question."
+      },
+      "assertions": [
+        "Answer the question directly by distinguishing the inheritance a community wants to carry forward from practices that persist mainly through repetition and cause harm.",
+        "Recognize shared memory, language, relationships, place, and commitments as possible sources of continuity even when harmful rules, customs, or power arrangements change.",
+        "Explain that revision should involve people who live with the effects, including those harmed or excluded; examine history and original purpose, identify value, and decide what to retain, transform, or end.",
+        "Avoid both romanticizing the past and treating everything inherited as disposable.",
+        "Give paragraph three a distinct operational function: define continuity through accountable documentation, responsibility, review, and correction.",
+        "Do not repeat the opening distinction or the participatory examination method in the conclusion.",
+        "Preserve the verified From Awakening to Stewardship doorway and explain its wider developmental relevance accurately; do not claim that the essay directly prescribes how inherited harmful practices should be revised."
+      ],
+      "user_approved_at": "2026-11-17",
+      "elevation_approval_evidence": "The user reviewed the live screenshot showing the exact three-paragraph answer and corrected From Awakening to Stewardship doorway rationale, approved the complete experience (rating 9.6/10), and explicitly instructed 'elevate' on 2026-11-17.",
+      "provenance": {
+        "source": "user_reviewed_live_visitor_response_screenshot",
+        "source_date": "2026-11-17",
+        "evidence_boundary": "The screenshot establishes the exact question, three-paragraph answer, displayed doorway card, and corrected visitor-facing rationale. The destination's canonical title, published status, and URL were independently verified against the Living Archive WordPress post record. The numeric rating is an editorial assessment, not a user-supplied score.",
+        "doorway_verification": {
+          "source": "Living Archive WordPress canonical post record via Cowboy MCP",
+          "post_id": 57009,
+          "post_status": "publish",
+          "canonical_title": "From Awakening to Stewardship",
+          "canonical_url": "https://geralddaquila.com/from-awakening-to-stewardship/",
+          "verification_date": "2026-11-17",
+          "conceptual_fit": "The published essay concerns the maturation of personal development into stewardship and responsibility for the relationships, institutions, and shared conditions that support human flourishing. Its relevance to community continuity is developmental and adjacent, not a direct treatment of inherited harmful practices."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial. Preserve benchmark_id as the stable identity and keep serial allocation separate."
     }
   ],
-  "last_reconciliation_note": "2026-11-17: Added gs-2026-11-17-consequential-action-under-uncertainty as a user-approved Gold Star after review of the live answer and verified Sovereign Sensemaking Compass doorway. Preserved the exact screenshot response and doorway rationale; kept the display serial UNASSIGNED. 2026-11-17: Added gs-2026-11-17-hope-disciplined-rather-than-naive as an exact Gold Star response with a published, subject-matched Spirituality Without Escapism doorway; serial remains UNASSIGNED.",
+  "last_reconciliation_note": "2026-11-17: Added user-approved Gold Star benchmark gs-2026-11-17-community-continuity-harmful-inherited-patterns. Exact answer and corrected, verified From Awakening to Stewardship doorway are frozen; the answer's transferable discipline is active for relevant questions only. Display serial remains unassigned.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
