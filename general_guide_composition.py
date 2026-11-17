@@ -1125,6 +1125,24 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
     # existing retry/recovery machinery before it reaches the visitor.
     if _is_archive_voice_abstention(query, response):
         return True
+    # A retrieval disclaimer is not an answer to an ordinary explanatory
+    # question. Preserve it only when the visitor explicitly asked what the
+    # Archive itself establishes; otherwise require conceptual orientation.
+    explicit_archive_authority_request = bool(re.search(
+        r"\\b(?:according to|within|inside)\\s+(?:the\\s+)?living archive\\b|"
+        r"\\bwhat does (?:the\\s+)?(?:living\\s+)?archive say\\b|"
+        r"\\bwhat is established in (?:the\\s+)?(?:living\\s+)?archive\\b",
+        _normalize_space(query),
+        re.I,
+    ))
+    retrieval_only_disclaimer = bool(re.search(
+        r"\\bi (?:do not|don't) have enough grounded material\\b|"
+        r"\\bnot enough grounded material\\b.{0,120}\\b(?:specific|archive[- ]based) answer\\b",
+        text,
+        re.I,
+    ))
+    if _question_shape(query) == "explanatory" and retrieval_only_disclaimer and not explicit_archive_authority_request:
+        return True
     if not _has_direct_definition_for_subject(query, response):
         return True
     if any(re.search(pattern, text, re.I) for pattern in _GENERIC_NONANSWER_PATTERNS):
