@@ -8,26 +8,31 @@
     related: 'CONTINUE EXPLORING'
   };
 
-  function normalize(item) {
-    if (!item || typeof item !== 'object') return null;
-    var title = typeof item.title === 'string' ? item.title.trim() : '';
-    var rationale = typeof item.rationale === 'string' ? item.rationale.trim() : '';
-    var rawUrl = typeof item.url === 'string' ? item.url.trim() : '';
-    if (!title || title.length > 180 || !rationale || rationale.length > 600 || !rawUrl || rawUrl.length > 2048) return null;
-
+  function normalizeUrl(rawUrl) {
+    if (typeof rawUrl !== 'string' || !rawUrl.trim() || rawUrl.length > 2048) return null;
     var url;
-    try { url = new URL(rawUrl, window.location.origin); } catch (_) { return null; }
+    try { url = new URL(rawUrl.trim(), window.location.origin); } catch (_) { return null; }
     if (url.protocol !== 'https:' ||
         url.hostname.toLowerCase() !== ALLOWED_HOST ||
         (url.port && url.port !== '443') ||
         url.username || url.password ||
         !url.pathname || url.pathname.charAt(0) !== '/' ||
         url.search || url.hash) return null;
+    return url.href;
+  }
+
+  function normalize(item) {
+    if (!item || typeof item !== 'object') return null;
+    var title = typeof item.title === 'string' ? item.title.trim() : '';
+    var rationale = typeof item.rationale === 'string' ? item.rationale.trim() : '';
+    var rawUrl = typeof item.url === 'string' ? item.url.trim() : '';
+    var safeUrl = normalizeUrl(rawUrl);
+    if (!title || title.length > 180 || !rationale || rationale.length > 600 || !safeUrl) return null;
 
     return {
       title: title,
       rationale: rationale,
-      url: url.href,
+      url: safeUrl,
       label: LABELS[item.kind] || LABELS.continue
     };
   }
@@ -93,6 +98,7 @@
   window.LivingArchiveAnswerDoorway = Object.freeze({
     version: '1.0.0',
     normalize: normalize,
+    normalizeUrl: normalizeUrl,
     render: render,
     renderMany: renderMany
   });
