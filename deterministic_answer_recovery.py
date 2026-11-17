@@ -302,7 +302,7 @@ def _is_public_predictive_system_question(question):
         q,
     ))
     predictive_system = bool(re.search(
-        r"\b(?:predictive system|predictive model|algorithmic system|automated decision|ai system|automated system)\b",
+        r"\b(?:predictive system|predictive model|algorithmic system|automated decision(?:[- ]making)?|ai system|automated system|automated (?:eligibility|benefit|risk|screening|assessment|scoring) (?:model|system|tool)|algorithmic (?:eligibility|risk|screening|assessment|scoring)|risk[- ]scoring (?:model|system|tool)|machine[- ]learning model)\b",
         q,
     ))
     constitutional_human = bool(re.search(
