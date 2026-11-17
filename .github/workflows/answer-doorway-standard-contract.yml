@@ -1,0 +1,65 @@
+name: Answer + Doorway Standard Contract
+
+on:
+  pull_request:
+    paths:
+      - "wordpress/living-archive-answer-doorway-standard/**"
+      - "wordpress/guide/**"
+      - "wordpress/spe/**"
+      - "wordpress/public-living-archive-navigator/**"
+      - "wordpress/mini-use/**"
+      - "plugins/human-relational-navigator/**"
+      - "integrations/wordpress/living-archive-fsd-proxy/**"
+      - "fsd_episode_api.py"
+      - "fsd_episode_report_contract.py"
+      - "test_fsd_episode_report_contract.py"
+      - "tests/test_answer_doorway_standard_contract.py"
+      - ".github/workflows/answer-doorway-standard-contract.yml"
+  push:
+    branches: [main]
+    paths:
+      - "wordpress/living-archive-answer-doorway-standard/**"
+      - "wordpress/guide/**"
+      - "wordpress/spe/**"
+      - "plugins/human-relational-navigator/**"
+      - "integrations/wordpress/living-archive-fsd-proxy/**"
+      - "fsd_episode_api.py"
+      - "fsd_episode_report_contract.py"
+      - "test_fsd_episode_report_contract.py"
+      - "tests/test_answer_doorway_standard_contract.py"
+      - ".github/workflows/answer-doorway-standard-contract.yml"
+
+jobs:
+  doorway-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+      - run: python -m pip install pytest
+      - run: python -m pytest -q tests/test_answer_doorway_standard_contract.py test_fsd_episode_report_contract.py
+      - run: php -l wordpress/living-archive-answer-doorway-standard/living-archive-answer-doorway-standard.php
+      - run: php -l integrations/wordpress/living-archive-fsd-proxy/living-archive-fsd-proxy.php
+      - run: php -l plugins/human-relational-navigator/human-relational-navigator.php
+      - run: php -l wordpress/spe/stewardship-pathway-engine.php
+      - run: php -l wordpress/spe/class-spe-engine.php
+      - run: php -l wordpress/public-living-archive-navigator/living-archive-navigator.php
+      - run: php -l wordpress/public-living-archive-navigator/class-lan-engine.php
+      - run: php -l wordpress/mini-use/mini-use.php
+      - run: php -l wordpress/mini-use/class-api.php
+      - run: node --check wordpress/living-archive-answer-doorway-standard/assets/answer-doorway.js
+      - run: node tests/answer_doorway_runtime_test.js
+      - run: node --check wordpress/living-archive-guide-v489.324-answer-doorway-standard.js
+      - run: node --check wordpress/living-archive-answer-doorway-standard/assets/guide-controller-v489.324.js
+      - run: node --check integrations/wordpress/living-archive-fsd-proxy/assets/fsd-app.js
+      - run: node --check plugins/human-relational-navigator/assets/relational-navigator.js
+      - run: node --check wordpress/spe/03-JavaScript.js
+      - run: node --check wordpress/public-living-archive-navigator/03-JavaScript.js
+      - run: node --check wordpress/mini-use/mini-use.js
