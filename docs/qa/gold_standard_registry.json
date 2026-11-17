@@ -5646,9 +5646,69 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable adaptive-learning identity; serial allocation remains independent."
+    },
+    {
+      "benchmark_id": "gs-2026-11-17-hope-disciplined-rather-than-naive",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How can hope remain disciplined rather than naïve?",
+      "expected_response": "Hope remains disciplined when it treats possibility as a reason to act, not as evidence that success is assured. It faces reality as it is—including constraints, losses, and uncertainty—without mistaking present limitations for proof that nothing can change.\n\nIts discipline is tested when circumstances disappoint. New evidence must be allowed to revise expectations; setbacks must be allowed to change methods, timing, or even the goal. Naïveté protects a desired outcome from correction. Disciplined hope protects the capacity to respond: it lets reality correct the plan without prematurely closing the future.\n\nHope, then, is neither a prediction nor a promise. It is a considered commitment to what may still become possible, held together with honest attention to what is happening now. Its practical test is whether it can acknowledge obstacles, learn from contrary evidence, and still identify a responsible next step. When it can, hope remains grounded without surrendering possibility. When it cannot, hope risks becoming wishful thinking.",
+      "expected_doorway": {
+        "title": "Spirituality Without Escapism: Staying Human During Awakening Narratives",
+        "url": "https://geralddaquila.com/2026/11/10/spirituality-without-escapism-staying-human-during-awakening-narratives/",
+        "rationale": "This essay examines how the search for meaning and hope can help people engage uncertainty, while also showing how certainty-seeking and spiritual narratives can become ways of avoiding reality and responsibility. It extends the question by exploring how possibility can remain meaningful without becoming an escape from the conditions of everyday life."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_APPROVED",
+      "rating_out_of_10": 9.7,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "The user explicitly instructed 'elevate', reviewed the exact corrected response and its doorway rationale in the subsequent assistant turn, and instructed 'continue' to proceed with implementation. Live production acceptance remains subject to regression and deployment verification.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "disciplined_hope_reality_responsibility_correctability",
+      "transferable_lesson": "Treat hope as a grounded orientation toward possibility rather than a prediction of success. Preserve contact with present conditions, allow evidence and setbacks to revise expectations and methods, and test hope by whether it sustains responsible action without denying uncertainty.",
+      "transfer_boundary": "Do not equate hope with optimism, certainty, or guaranteed success. Do not treat realism as proof that change is impossible. Transfer the discipline of remaining answerable to evidence and correction, not this exact answer or its doorway, to unrelated questions.",
+      "known_theme": "hope, uncertainty, realism, possibility, responsibility, correction, meaning, spiritual escapism",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_corrected_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "disciplined_hope_reality_responsibility_correctability",
+        "transferable_discipline": "Compose in three distinct moves: establish hope as openness to possibility without a guarantee; explain how evidence and setbacks must be allowed to correct expectations and methods; then give a practical test of responsible action that neither denies obstacles nor closes the future.",
+        "abstention_boundary": "Do not introduce unrelated AI, technology, civilizational, therapeutic, or governance framing. Do not imply that hope guarantees success or that acknowledging reality requires abandoning possibility."
+      },
+      "assertions": [
+        "Answer the visitor's question directly; do not introduce unrelated subjects.",
+        "Paragraph one distinguishes possibility from guaranteed success and establishes honest contact with present reality.",
+        "Paragraph two explains correction: evidence and setbacks may revise expectations, methods, timing, or goals.",
+        "Paragraph three adds a practical test of responsible action and the capacity to remain open to possibility without denying obstacles.",
+        "Keep all three paragraph functions distinct; do not repeat the opening definition or the correction mechanism in the conclusion.",
+        "Do not equate hope with prediction, promise, certainty, or wishful thinking.",
+        "Preserve the approved public doorway and explain its conceptual relevance separately from the answer."
+      ],
+      "user_approved_at": "2026-11-17",
+      "elevation_approval_evidence": "User instruction: 'elevate', followed by review of the exact proposed response and doorway rationale, then 'continue' to proceed with implementation.",
+      "provenance": {
+        "source": "user-authorized Gold Star elevation in the current conversation",
+        "source_date": "2026-11-17",
+        "evidence_boundary": "The user saw the exact proposed response and doorway rationale in the assistant turn following the elevation instruction, then directed implementation to continue. The doorway title, published status, canonical permalink, and subject fit were verified against the live WordPress post record (post ID 57009). The numeric rating is an editorial assessment, not a user-supplied score.",
+        "doorway_verification": {
+          "source": "Living Archive WordPress canonical post record via Cowboy MCP",
+          "post_id": 57009,
+          "post_status": "publish",
+          "canonical_title": "Spirituality Without Escapism: Staying Human During Awakening Narratives",
+          "canonical_url": "https://geralddaquila.com/2026/11/10/spirituality-without-escapism-staying-human-during-awakening-narratives/",
+          "verification_date": "2026-11-17",
+          "conceptual_fit": "The published essay explicitly addresses meaning during uncertainty, the difference between engaging uncertainty and eliminating it through certainty, spiritual escapism, and retaining contact with responsibility and everyday reality."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request allocation of a display serial. Preserve benchmark_id as the stable identity."
     }
   ],
-  "last_reconciliation_note": "2026-11-17: Added gs-2026-11-17-consequential-action-under-uncertainty as a user-approved Gold Star after review of the live answer and verified Sovereign Sensemaking Compass doorway. Preserved the exact screenshot response and doorway rationale; kept the display serial UNASSIGNED.",
+  "last_reconciliation_note": "2026-11-17: Added gs-2026-11-17-consequential-action-under-uncertainty as a user-approved Gold Star after review of the live answer and verified Sovereign Sensemaking Compass doorway. Preserved the exact screenshot response and doorway rationale; kept the display serial UNASSIGNED. 2026-11-17: Added gs-2026-11-17-hope-disciplined-rather-than-naive as an exact Gold Star response with a published, subject-matched Spirituality Without Escapism doorway; serial remains UNASSIGNED.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -5778,13 +5838,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-17",
-    "approved_gold_star_count": 87,
-    "registry_record_count": 124,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 87 approved Gold Stars; historical and withdrawn candidate records remain outside active authority. The consequential-action-under-uncertainty exemplar is approved with its verified Sovereign Sensemaking Compass doorway.",
+    "approved_gold_star_count": 88,
+    "registry_record_count": 125,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 88 approved Gold Stars; historical and withdrawn candidate records remain outside active authority. The consequential-action-under-uncertainty and disciplined-hope exemplars are approved with verified, question-relevant public doorways.",
     "numbered_gold_star_record_count": 35,
     "highest_assigned_gold_star_number": 92,
-    "numbering_reconciliation": "Record-level reconciliation: 87 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 52 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
-    "unassigned_approved_gold_star_count": 52,
+    "numbering_reconciliation": "Record-level reconciliation: 88 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 53 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
+    "unassigned_approved_gold_star_count": 53,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {

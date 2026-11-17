@@ -79,3 +79,61 @@ def test_final_visitor_boundary_adds_doorway_without_rewriting_answer(monkeypatc
     assert result["doorway_url"] == _approved_node()["canonical_url"]
     assert result["doorway_rationale"] == _approved_node()["purpose"]
     assert result["processing"] == "final_visitor_boundary_reflective_balance_doorway"
+
+def test_hope_gold_star_is_exact_answer_authority_with_verified_doorway():
+    standard = main._resolve_exact_guide_gold_standard(
+        "How can hope remain disciplined rather than naïve?"
+    )
+
+    assert standard is not None
+    assert standard["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert standard["forbids_doorway"] is False
+    assert standard["doorway_title"] == (
+        "Spirituality Without Escapism: Staying Human During Awakening Narratives"
+    )
+    assert standard["doorway_url"] == (
+        "https://geralddaquila.com/2026/11/10/"
+        "spirituality-without-escapism-staying-human-during-awakening-narratives/"
+    )
+    assert standard["doorway_rationale"].startswith(
+        "This essay examines how the search for meaning and hope"
+    )
+    paragraphs = standard["expected_response"].split("\n\n")
+    assert len(paragraphs) == 3
+    assert "possibility" in paragraphs[0].lower()
+    assert "revise expectations" in paragraphs[1].lower()
+    assert "responsible next step" in paragraphs[2].lower()
+    assert "artificial intelligence" not in standard["expected_response"].lower()
+
+
+def test_exact_hope_gold_star_overrides_stale_answer_and_doorway_at_final_boundary():
+    standard = main._resolve_exact_guide_gold_standard(
+        "How can hope remain disciplined rather than naïve?"
+    )
+    assert standard is not None
+
+    result = main._guide_finalize_visitor_payload(
+        {
+            "ok": True,
+            "response": "A stale or provider-generated answer that does not meet the approved standard.",
+            "recommendation": {
+                "title": "Unrelated destination",
+                "url": "https://geralddaquila.com/unrelated/",
+                "rationale": "This is not the approved continuation.",
+            },
+        },
+        "How can hope remain disciplined rather than naïve?",
+    )
+
+    assert result["response"] == standard["expected_response"]
+    assert result["recommendation"] == {
+        "title": standard["doorway_title"],
+        "url": standard["doorway_url"],
+        "rationale": standard["doorway_rationale"],
+    }
+    assert result["canonical_doorway"] == result["recommendation"]
+    assert result["doorway_title"] == standard["doorway_title"]
+    assert result["doorway_url"] == standard["doorway_url"]
+    assert result["doorway_rationale"] == standard["doorway_rationale"]
+    assert result["processing"] == "final_visitor_boundary_exact_gold_standard"
+
