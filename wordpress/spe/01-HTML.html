@@ -1,0 +1,53 @@
+<div id="stewardship-pathway" class="sp-shell" data-sp-version="v3.4.2">
+  <section class="sp-panel sp-intro" data-state="intro">
+    <div class="sp-kicker">Steward Access</div>
+    <h1>Welcome.</h1>
+    <p>By choosing Steward Access, you have crossed a threshold. The wider body of Stewardship work is now open to you—not as something you need to master all at once, but as a place you can return to as your questions deepen.</p>
+    <p>You may already have a question in mind. Or you may simply have a feeling that there is more here for you to explore. You may be looking for a way to understand something you are carrying, to become more capable in an area that matters, or to see more clearly what the next part of your journey might ask of you.</p>
+    <p>This tool is here to help you find a place to begin. It listens to the situation you bring, looks for the deeper question within it, and helps you enter the work where it may speak most directly to what you are living now.</p>
+    <p>There is no right way to arrive. Take your time. Begin with whatever is most alive for you.</p>
+    <button class="sp-button" type="button" data-action="begin">Begin</button>
+  </section>
+
+  <section class="sp-panel sp-question" data-state="orientation" hidden>
+    <h2>What brings you here now?</h2>
+    <div class="sp-options" role="group" aria-label="What brings you here now?">
+      <button type="button" class="sp-option" data-choice="changing">Something in my life or work is changing</button>
+      <button type="button" class="sp-option" data-choice="carrying">I am carrying a new responsibility</button>
+      <button type="button" class="sp-option" data-choice="understanding">I am trying to make sense of something</button>
+      <button type="button" class="sp-option" data-choice="preparing">I want to prepare for what comes next</button>
+      <button type="button" class="sp-option" data-choice="capable">I want to become more capable in an area that matters</button>
+      <button type="button" class="sp-option" data-choice="unsure">I don’t quite know yet. I just know I want to look more deeply.</button>
+      <button type="button" class="sp-option" data-choice="other">Something else</button>
+    </div>
+  </section>
+
+  <section class="sp-panel sp-question" data-state="situation" hidden>
+    <h2>Tell me what is happening, in your own words.</h2>
+    <p class="sp-prompt">What has made this important to you now?</p>
+    <textarea id="sp-situation" rows="6" maxlength="3000" placeholder="Write in your own words."></textarea>
+    <div class="sp-actions">
+      <button class="sp-button" type="button" data-action="continue-situation">Continue</button>
+    </div>
+  </section>
+
+  <section class="sp-panel sp-question sp-possibility" data-state="possibility" hidden>
+    <h2>If this began to move in a good direction, what would you hope becomes possible?</h2>
+    <textarea id="sp-possibility" rows="5" maxlength="2000" placeholder="You do not need a finished answer. Just describe what you hope might change."></textarea>
+    <div class="sp-actions">
+      <button class="sp-button" type="button" data-action="listen">Continue</button>
+    </div>
+  </section>
+
+  <section class="sp-panel sp-listening" data-state="listening" hidden aria-live="polite">
+    <div class="sp-spinner" role="status" aria-label="Working"></div>
+  </section>
+
+  <section class="sp-panel sp-result" data-state="result" hidden aria-live="polite">
+    <div id="sp-reflection"></div>
+    <div id="sp-doors"></div>
+    <div class="sp-actions">
+      <button class="sp-button sp-button-secondary" type="button" data-action="restart">Begin again</button>
+    </div>
+  </section>
+</div>
