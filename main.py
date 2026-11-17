@@ -9870,15 +9870,16 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 for _doc in _batch:
                     if not isinstance(_doc, dict):
                         continue
-                    _url = str(_doc.get("url") or _doc.get("canonical_url") or "").rstrip("/").casefold()
+                    _url_raw = str(_doc.get("url") or _doc.get("canonical_url") or "").strip()
+                    _url = _url_raw.rstrip("/").casefold()
                     _title = str(_doc.get("title") or "").strip()
                     _body = str(_doc.get("text") or _doc.get("content") or _doc.get("excerpt") or "").strip()
                     if not _url or not _title or len(_body) < 250 or _url in _contrast_seen:
                         continue
-                    if not re.match(r"^https://geralddaquila\\.com/\\S+$", _url, re.I):
+                    if not re.match(r"^https://geralddaquila\.com/\S+$", _url_raw, re.I):
                         continue
                     _contrast_seen.add(_url)
-                    _contrast_pool.append({"title": _title, "url": _url, "text": _body[:6000]})
+                    _contrast_pool.append({"title": _title, "url": _url_raw, "text": _body[:6000]})
             if len(_contrast_pool) >= 2:
                 composition_context["generation_authority_protected_docs"] = _contrast_pool[:12]
                 composition_context["_archive_passage_contrast_candidate_pool"] = True
