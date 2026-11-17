@@ -317,6 +317,10 @@ def _select_verified_doorway_conceptual_family(query):
     ):
         return "community_continuity_revision"
 
+    # Formal rules and informal norms jointly shape organizational behavior.
+    if general_guide_composition._requires_formal_informal_institutional_dynamics(text):
+        return "formal_informal_institutional_dynamics"
+
     # Community-project economic accounts need a wider lens when they report
     # returns or volunteer inputs but omit benefit distribution and shared-asset
     # maintenance. This is distinct from a full project trade-off assessment.
@@ -422,6 +426,11 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
         "title": "Knowledge Stewardship in the AI Era: From Information to Wisdom",
         "url": "https://geralddaquila.com/2026/09/14/knowledge-stewardship-in-the-ai-era-from-information-to-wisdom/",
         "rationale": "This Archive essay includes a section on knowledge as a commons and explains why shared knowledge depends on responsible preservation, interpretation, transparency, accountability, and thoughtful participation. It is a direct continuation into the stewardship of the knowledge conditions the Guide must help preserve.",
+    },
+    "formal_informal_institutional_dynamics": {
+        "title": "Institutional Consciousness",
+        "url": "https://geralddaquila.com/institutional-consciousness/",
+        "rationale": "Institutional Consciousness examines how organizations become aware of their own assumptions, blind spots, and patterns of behavior. It is a relevant continuation for examining the gap between declared structures and the lived norms through which an institution actually operates; it does not diagnose this particular organization.",
     },
     "community_project_economic_dimensions": {
         "title": "Local Resilience Economies",
@@ -6004,6 +6013,28 @@ def _guide_finalize_visitor_payload(payload, query):
         )
         return safe
 
+
+    # Formal/informal institutional dynamics are a shared visitor contract:
+    # provider/LLM and deterministic paths must explain both the distinction and
+    # their interaction, then restore the verified Institutional Consciousness doorway.
+    if general_guide_composition._requires_formal_informal_institutional_dynamics(query):
+        safe = dict(payload)
+        if not general_guide_composition._has_formal_informal_institutional_dynamics_explanation(response_text):
+            safe["response"] = _sanitize_basic_inquiry_response(
+                general_guide_composition._formal_informal_institutional_dynamics_recovery()
+            )
+        _institutional_dynamics_doorway = _normalize_authoritative_recommendation(
+            _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get("formal_informal_institutional_dynamics")
+        )
+        safe["recommendation"] = _institutional_dynamics_doorway
+        safe["canonical_doorway"] = _institutional_dynamics_doorway
+        safe["doorway_title"] = _institutional_dynamics_doorway.get("title") if _institutional_dynamics_doorway else None
+        safe["doorway_url"] = _institutional_dynamics_doorway.get("url") if _institutional_dynamics_doorway else None
+        safe["doorway_rationale"] = _institutional_dynamics_doorway.get("rationale") if _institutional_dynamics_doorway else None
+        safe["processing"] = "final_visitor_boundary_formal_informal_institutional_dynamics"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
 
     # Community-project economic accounting is a shared visitor contract:
     # provider/LLM and deterministic paths must surface distribution, sustaining
