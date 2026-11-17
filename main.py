@@ -289,6 +289,17 @@ def _select_verified_doorway_conceptual_family(query):
     ):
         return "reflective_conceptual_balance"
 
+    # Workforce restructuring through AI is a distinct organizational
+    # decision family. Require the technology, workforce impact, organizational
+    # setting, and a change/cost motive together; "AI" alone is not enough.
+    if (
+        re.search(r"\b(?:ai|artificial intelligence|automation|automated systems)\b", text, re.I)
+        and re.search(r"\b(?:staff(?:ing)?|workforce|employees?|labor|jobs?|headcount|layoffs?)\b", text, re.I)
+        and re.search(r"\b(?:company|companies|business|businesses|organization|organisation|employer|enterprise|workplace|firm)\b", text, re.I)
+        and re.search(r"\b(?:costs?|reduce|reduc\w*|cut|lower|efficien\w*|replace|displac\w*|restructur\w*|automat\w*)\b", text, re.I)
+    ):
+        return "ai_workforce_restructuring"
+
     # Consequential action under uncertainty is a distinct sensemaking use case.
     # The visitor's wording must express all three elements; broad uncertainty
     # language alone is not sufficient to select this doorway.
@@ -309,6 +320,11 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "ai_role_distinction": {
         "title": "Responsible AI Principle",
         "url": "https://geralddaquila.com/responsible-ai-principle/",
+    },
+    "ai_workforce_restructuring": {
+        "title": "Agentic Systems and the End of Passive Labor",
+        "url": "https://geralddaquila.com/2026/05/06/agentic-systems-and-the-end-of-passive-labor/",
+        "rationale": "This essay examines how AI changes work beyond task automation: it traces the shift across execution, coordination, and governance, and considers how human responsibility, oversight, and stewardship should evolve. It provides a relevant continuation for assessing workforce reductions as a redesign of work and accountability, not only a cost-saving exercise.",
     },
     "regeneration_beyond_restoration": {
         "title": "Regenerative Governance: What Comes After Extraction-Based Systems?",
@@ -11713,12 +11729,13 @@ async def _use_send_json(send, payload, status_code=200):
             except Exception:
                 # Navigation must never turn a valid answer into a service error.
                 pass
-        # Conceptual-family fallback is the final visitor-facing doorway seam.
-        # It covers ordinary successful answers that bypass composition-level
-        # navigation recovery, while remaining opt-in to verified families.
+        # Shared final doorway restoration is applied to every ordinary response
+        # path, regardless of whether the answer came from a provider or a
+        # deterministic recovery. A reviewed conceptual family takes precedence
+        # over an adjacent upstream recommendation, and all public aliases plus
+        # the grounded rationale are synchronized for the frontend renderer.
         if (
             not _archive_claim_final
-            and not isinstance(payload.get("recommendation"), dict)
             and _boundary_query
             and _boundary_standard is None
         ):
@@ -11727,24 +11744,9 @@ async def _use_send_json(send, payload, status_code=200):
                     _boundary_query
                 )
                 if _boundary_family:
-                    _boundary_fallback = _select_guide_node_fallback_doorway(
-                        _boundary_query
+                    payload = _guide_restore_verified_doorway(
+                        payload, _boundary_query
                     )
-                    if isinstance(_boundary_fallback, dict):
-                        _boundary_title = str(
-                            _boundary_fallback.get("title") or ""
-                        ).strip()
-                        _boundary_url = str(
-                            _boundary_fallback.get("url") or ""
-                        ).strip()
-                        if _boundary_title and re.match(
-                            r"^https://\S+$", _boundary_url, re.I
-                        ):
-                            payload["recommendation"] = {
-                                "title": _boundary_title,
-                                "url": _boundary_url,
-                            }
-                            payload["canonical_doorway"] = payload["recommendation"]
             except Exception:
                 # Navigation fallback must never interrupt a valid answer.
                 pass
