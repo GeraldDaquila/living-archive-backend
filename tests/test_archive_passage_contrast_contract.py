@@ -14,7 +14,7 @@ QUESTION = (
     "How should the Guide represent each passage before attempting any synthesis?"
 )
 
-TOPIC_QUESTION = TOPIC_QUESTION
+TOPIC_QUESTION = QUESTION.replace("relevant Archive passages", "Archive passages about stewardship")
 
 SOURCES = [
     {"title": "Passage Alpha", "url": "https://geralddaquila.com/alpha/", "text": "A" * 120},
