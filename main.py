@@ -317,6 +317,18 @@ def _select_verified_doorway_conceptual_family(query):
     ):
         return "community_continuity_revision"
 
+    # Stewardship, management, leadership, and ownership are distinct roles.
+    # Route this exact comparison family to its reviewed canonical essay rather
+    # than relying on lexical doorway selection, which may omit the rationale.
+    if (
+        re.search(r"\\bstewardship\\b", text, re.I)
+        and re.search(r"\\bmanagement\\b", text, re.I)
+        and re.search(r"\\bleadership\\b", text, re.I)
+        and re.search(r"\\bownership\\b", text, re.I)
+        and re.search(r"\\b(?:differ|difference|distinction|compare|comparison)\\w*\\b", text, re.I)
+    ):
+        return "stewardship_management_leadership_ownership"
+
     # Formal rules and informal norms jointly shape organizational behavior.
     if general_guide_composition._requires_formal_informal_institutional_dynamics(text):
         return "formal_informal_institutional_dynamics"
@@ -426,6 +438,11 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
         "title": "Knowledge Stewardship in the AI Era: From Information to Wisdom",
         "url": "https://geralddaquila.com/2026/09/14/knowledge-stewardship-in-the-ai-era-from-information-to-wisdom/",
         "rationale": "This Archive essay includes a section on knowledge as a commons and explains why shared knowledge depends on responsible preservation, interpretation, transparency, accountability, and thoughtful participation. It is a direct continuation into the stewardship of the knowledge conditions the Guide must help preserve.",
+    },
+    "stewardship_management_leadership_ownership": {
+        "title": "Stewardship vs Management vs Leadership",
+        "url": "https://geralddaquila.com/2026/05/22/stewardship-vs-management-vs-leadership/",
+        "rationale": "This essay distinguishes leadership as direction and mobilization, management as execution and operational stability, and stewardship as long-term responsibility for system health and ethical governance. It directly compares those three roles. Ownership is not one of its stated categories, so ownership should be examined separately rather than treated as interchangeable with stewardship.",
     },
     "formal_informal_institutional_dynamics": {
         "title": "Institutional Consciousness",
