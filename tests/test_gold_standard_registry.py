@@ -1152,16 +1152,18 @@ def test_only_two_explicit_historical_gap_releases_are_authorized_for_future_new
     assert "next two newly approved Gold Star records" in policy["allocation_rule"]
     assert "No existing approved record" in policy["allocation_rule"]
     assert policy["does_not_change_adaptive_learning_identity"] is True
-    gaps = {g["number"]: g for g in registry["numbering_gap_register"]}
-    assert set(gaps) == {86}
-    assert gaps[86]["status"] == "RELEASED_FOR_FUTURE_ALLOCATION"
-    assert gaps[86]["release_authorization"]["approved_by"] == "user"
-    allocation = next(item for item in registry["numbering_allocation_history"] if item["number"] == 85)
-    assert allocation["benchmark_id"] == "general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18"
-    assert allocation["prior_gap_record"]["status"] == "RELEASED_FOR_FUTURE_ALLOCATION"
-    assert allocation["prior_gap_record"]["release_authorization"]["approved_by"] == "user"
-    assert len([r for r in registry["records"] if r.get("gold_star_number") in {85, 86}]) == 1
-    assert next(r for r in registry["records"] if r.get("gold_star_number") == 85)["benchmark_id"] == "general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18"
+    assert registry["numbering_gap_register"] == []
+    allocation_85 = next(item for item in registry["numbering_allocation_history"] if item["number"] == 85)
+    allocation_86 = next(item for item in registry["numbering_allocation_history"] if item["number"] == 86)
+    assert allocation_85["benchmark_id"] == "general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18"
+    assert allocation_86["benchmark_id"] == "general-guide-archive-examples-evidence-limits-gold-star-2026-11-18"
+    assert allocation_85["prior_gap_record"]["status"] == "RELEASED_FOR_FUTURE_ALLOCATION"
+    assert allocation_86["prior_gap_record"]["status"] == "RELEASED_FOR_FUTURE_ALLOCATION"
+    assert allocation_85["prior_gap_record"]["release_authorization"]["approved_by"] == "user"
+    assert allocation_86["prior_gap_record"]["release_authorization"]["approved_by"] == "user"
+    assert len([r for r in registry["records"] if r.get("gold_star_number") in {85, 86}]) == 2
+    assert next(r for r in registry["records"] if r.get("gold_star_number") == 85)["benchmark_id"] == allocation_85["benchmark_id"]
+    assert next(r for r in registry["records"] if r.get("gold_star_number") == 86)["benchmark_id"] == allocation_86["benchmark_id"]
 
 
 
@@ -1521,7 +1523,7 @@ def test_formal_informal_institutional_dynamics_gold_star_preserves_exact_live_a
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["numbering_status"] == "UNASSIGNED"
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 99
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 98
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 99
     assert registry["integrity_audit"]["registry_record_count"] == 136
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 61
     entry = next(item for item in review["entries"] if item["benchmark_id"] == benchmark_id)
@@ -1580,7 +1582,7 @@ def test_ownership_management_stewardship_gold_star_85_preserves_exact_answer_do
     assert deterministic_contract["doorway_title"] == fixture["expected_doorway_title"]
     assert deterministic_contract["recommendation"]["url"] == fixture["expected_doorway_url"]
 
-    assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 98
+    assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 99
     assert registry["integrity_audit"]["approved_gold_star_count"] == 98
     assert registry["integrity_audit"]["registry_record_count"] == 136
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 38
