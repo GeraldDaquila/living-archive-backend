@@ -1458,3 +1458,18 @@ def test_public_commons_stewardship_gold_star_has_active_transfer_review():
     assert entry["reasoning_family"] == "public_knowledge_commons_stewardship_and_provenance"
     assert "distinguish access classes" in entry["transferable_discipline"]
     assert "preserve disagreement" in entry["transferable_discipline"]
+
+
+def test_gold_star_authoring_template_requires_doorway_or_reasoned_exception():
+    template_path = ROOT / "docs" / "qa" / "gold_star_record_template.json"
+    template = json.loads(template_path.read_text(encoding="utf-8"))
+    assert template["doorway_status"] == "VERIFIED"
+    assert template["expected_doorway"]["title"]
+    assert template["expected_doorway"]["url"].startswith("https://geralddaquila.com/")
+    assert template["expected_doorway"]["rationale"]
+    assert template["doorway_omission_exception_reason"] == ""
+
+    exception = template["approved_omission_example"]
+    assert exception["doorway_status"] == "INTENTIONALLY_NONE_APPROVED"
+    assert exception["expected_doorway"] is None
+    assert exception["doorway_omission_exception_reason"].strip()

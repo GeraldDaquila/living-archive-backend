@@ -45,7 +45,7 @@ def test_stewardship_presentation_is_a_systemwide_explanatory_standard():
     assert "System-wide answer presentation standard" in prompt
     assert "applies to every ordinary Guide topic" in prompt
     assert "A substantive explanatory or conceptual question defaults to three purposeful paragraphs" in prompt
-    assert "complete before an optional Archive doorway appears" in prompt
+    assert "complete before the default Archive doorway appears" in prompt
     assert "not only stewardship or Archive-specific questions" in prompt
     assert "simple, self-contained factual lookup may be one or two sentences" in prompt
     assert "direct navigation request should give a clear destination" in prompt
@@ -234,7 +234,7 @@ def test_gold_standard_is_the_default_general_presentation_contract():
     assert "Lead with the answer, not a description of what an answer should contain" in prompt
     assert "normally three purposeful, readable paragraphs" in prompt
     assert "Do not append a generic clarification prompt merely to prolong the exchange" in prompt
-    assert "place any verified, directly relevant Archive resource in a distinct, clearly labeled doorway section" in prompt
+    assert "Place any verified, directly relevant Archive resource in a distinct, clearly labeled doorway section" in prompt
     assert "For a substantive explanatory, conceptual, educational, social, or Archive-related question, present three connected, readable paragraphs by default" in prompt
 
 
