@@ -9988,8 +9988,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         and not general_guide_composition._archive_passage_contrast_topic_missing(query)
     ):
         try:
+            _contrast_subject = general_guide_composition._archive_passage_contrast_subject(query)
             _contrast_docs = _wordpress_search_canonical_candidates(
-                resource_query, limit=10
+                _contrast_subject, limit=10
             )
             _contrast_docs = [
                 item for item in _contrast_docs
