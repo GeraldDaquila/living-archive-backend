@@ -5487,6 +5487,18 @@ def _archive_claim_authoritative_doorway(query, doorway):
         return None
     return {"title": node_title, "url": node_url}
 
+def _gold_star_doorway_omission_is_justified(gold_standard):
+    """Only an explicit no-doorway flag with a visitor-experience reason permits omission."""
+    if not isinstance(gold_standard, dict) or not bool(gold_standard.get("forbids_doorway")):
+        return False
+    reason = str(
+        gold_standard.get("doorway_omission_exception_reason")
+        or gold_standard.get("doorway_omission_reason")
+        or ""
+    ).strip()
+    return bool(reason)
+
+
 def _gold_star_default_doorway():
     """Return the approved broad Archive continuation when a Gold Star has no narrower doorway."""
     return {
@@ -5546,7 +5558,7 @@ def _guide_finalize_visitor_payload(payload, query):
             safe["response"] = exact_answer
             if "answer" in safe:
                 safe["answer"] = exact_answer
-        if not bool(exact_standard.get("forbids_doorway")):
+        if not _gold_star_doorway_omission_is_justified(exact_standard):
             exact_title = str(exact_standard.get("doorway_title") or "").strip()
             exact_url = str(exact_standard.get("doorway_url") or "").strip()
             if exact_title and re.match(r"^https://\S+$", exact_url, re.I):
