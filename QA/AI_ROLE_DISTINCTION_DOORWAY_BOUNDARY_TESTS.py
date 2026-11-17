@@ -108,7 +108,7 @@ def test_archive_guidance_provenance_recovers_verified_knowledge_sensemaking_doo
     query = "How should The Guide distinguish archive-grounded guidance from general external knowledge?"
     expected = {
         "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
-        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
     }
     assert runtime._select_verified_doorway_conceptual_family(query) == (
         "archive_guidance_provenance"
@@ -141,7 +141,7 @@ def test_archive_guidance_provenance_final_json_boundary_emits_doorway():
     payload = json.loads(body.decode("utf-8"))
     assert payload["recommendation"] == {
         "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
-        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
     }
 
 def test_archive_guidance_provenance_outer_visitor_boundary_preserves_verified_doorway():
@@ -156,7 +156,7 @@ def test_archive_guidance_provenance_outer_visitor_boundary_preserves_verified_d
     final_payload = runtime._guide_finalize_visitor_payload(payload, query)
     expected = {
         "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
-        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
     }
     assert final_payload["recommendation"] == expected
     assert final_payload["canonical_doorway"] == expected
