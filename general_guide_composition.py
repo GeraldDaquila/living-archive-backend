@@ -15,6 +15,7 @@ from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
 from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard
+import comparative_traditions_contract as _comparative_traditions_contract
 from gold_star_lessons import (shadow_observation as _gold_star_shadow_observation, active_quality_contribution as _gold_star_active_quality_contribution)
 
 from provider_bank import (
@@ -2103,6 +2104,17 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
         # The Gold Standard is an enforceable composition contract, not only a
         # prompt preference. Reject compressed substantive explanatory answers
         # so the provider bank can retry instead of allowing one paragraph through.
+        # Comparative-tradition questions must not accept a fluent answer that
+        # substitutes an unrelated institutional/problem-solving frame, flattens
+        # distinct traditions, or retreats into an Archive-verification non-answer.
+        # Reject at the shared provider parser so the Provider Bank can retry;
+        # the deterministic recovery below is the governed exhaustion path.
+        if _comparative_traditions_contract.response_requires_quality_repair(query, response):
+            raise ValueError(
+                "comparative-traditions answer must preserve each tradition's own terms, "
+                "internal diversity, and claim-specific epistemic standards"
+            )
+
         if _requires_three_paragraph_default(query):
             paragraphs = [
                 part.strip()
@@ -3814,6 +3826,26 @@ def compose(
             path="fallback_recovery",
             openness="continuity_after_provider_exhaustion",
         )
+        # Comparative-traditions inquiries have a dedicated bounded recovery.
+        # Do not let provider exhaustion turn a clear comparison question into
+        # a generic refusal or an unrelated fallback. The recovery preserves
+        # internal diversity and distinguishes claim types before comparison.
+        if _comparative_traditions_contract.is_comparative_traditions_question(question):
+            doorway = _comparative_traditions_contract.verified_doorway(question)
+            _emit_guide_outcome(
+                "provider_exhaustion_fallback",
+                recovery="comparative_traditions",
+                doorway=bool(doorway),
+            )
+            return {
+                "response": _comparative_traditions_contract.recovery_response(),
+                "doorway_title": doorway["title"] if doorway else "",
+                "doorway_url": doorway["url"] if doorway else "",
+                "response_shape": "explanatory",
+                "provider": "bounded_comparative_traditions_recovery",
+                "model": "deterministic-contract-recovery",
+            }
+
         # A verified Archive doorway is navigation evidence, not a failed answer.
         # For institutional meaning questions, preserve that evidence before the
         # provider-exhaustion ladder reaches generic refusal.
