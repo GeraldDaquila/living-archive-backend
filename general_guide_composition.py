@@ -1891,9 +1891,9 @@ def _archive_passage_contrast_subject(question: str) -> str:
     """Extract a bounded subject phrase for canonical Archive body search."""
     normalized = _normalize_space(question)
     match = re.search(
-        r"\\b(?:about|on|concerning|regarding|within|in relation to)\\s+(.+?)"
-        r"(?=\\s+(?:that|which)\\s+(?:disagree|differ|contrast|diverge)|"
-        r"\\s+before\\s+(?:attempting|any)|\\s+how\\s+should\\b|[?.!]|$)",
+        r"\b(?:about|on|concerning|regarding|within|in relation to)r"\s+(.+?)"
+        r"(?=r"\s+(?:that|which)r"\s+(?:disagree|differ|contrast|diverge)|"
+        r"r"\s+beforer"\s+(?:attempting|any)|r"\s+howr"\s+should\b|[?.!]|$)",
         normalized,
         re.I,
     )
@@ -3753,9 +3753,9 @@ def operational_discipline_humane_leadership_recovery(query: str) -> Optional[st
 def _requires_growth_within_limits_explanation(question: str) -> bool:
     q = _normalize_space(question).casefold()
     return (
-        bool(re.search(r"\\bgrowth\\b", q))
-        and bool(re.search(r"\\b(?:ecological|environmental|social)\\b", q))
-        and bool(re.search(r"\\b(?:limit|limits|finite|capacity|carrying|boundary|boundaries)\\b", q))
+        bool(re.search(r"\bgrowth\b", q))
+        and bool(re.search(r"\b(?:ecological|environmental|social)\b", q))
+        and bool(re.search(r"\b(?:limit|limits|finite|capacity|carrying|boundary|boundaries)\b", q))
     )
 
 
