@@ -852,7 +852,12 @@ def test_gold_star_has_one_strict_canonical_definition():
         assert record.get("expected_response"), record["benchmark_id"]
         assert record.get("freeze_policy"), record["benchmark_id"]
         capability = record.get("gold_star_capabilities") or {}
-        if record.get("runtime_transfer") is False:
+        if record.get("superseded_by_benchmark_id"):
+            assert record.get("runtime_transfer") is False, record["benchmark_id"]
+            assert capability.get("exact_answer_authority") is False, record["benchmark_id"]
+            assert capability.get("active_quality_contributor") is False, record["benchmark_id"]
+            assert capability.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
+        elif record.get("runtime_transfer") is False:
             assert capability.get("exact_answer_authority") is True, record["benchmark_id"]
             assert capability.get("active_quality_contributor") is False, record["benchmark_id"]
             assert capability.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
