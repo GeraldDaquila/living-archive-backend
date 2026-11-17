@@ -189,9 +189,30 @@ def validate_numbering_against_base(current_records, current_registry=None):
     }
 
     disappeared = sorted(set(base_approved) - set(current_approved))
-    if disappeared:
-        fail("existing approved Gold Stars removed/demoted from canonical base: "
-             + ", ".join(disappeared))
+    current_by_id_for_withdrawal = {r.get("benchmark_id"): r for r in current_records}
+    unauthorized_withdrawals = []
+    for benchmark_id in disappeared:
+        record = current_by_id_for_withdrawal.get(benchmark_id, {})
+        withdrawal = record.get("withdrawal")
+        capabilities = record.get("gold_star_capabilities")
+        explicitly_withdrawn = (
+            record.get("status") == "WITHDRAWN_PENDING_DOORWAY"
+            and isinstance(withdrawal, dict)
+            and withdrawal.get("withdrawn_by_user") is True
+            and bool(str(withdrawal.get("withdrawn_at") or "").strip())
+            and bool(str(withdrawal.get("reason") or "").strip())
+            and record.get("runtime_transfer") is False
+            and isinstance(capabilities, dict)
+            and capabilities.get("exact_answer_authority") is False
+            and capabilities.get("active_quality_contributor") is False
+            and capabilities.get("deterministic_fallback_eligible") is False
+            and base_approved[benchmark_id].get("gold_star_number") is None
+        )
+        if not explicitly_withdrawn:
+            unauthorized_withdrawals.append(benchmark_id)
+    if unauthorized_withdrawals:
+        fail("existing approved Gold Stars removed/demoted without explicit, fail-closed user withdrawal evidence: "
+             + ", ".join(unauthorized_withdrawals))
 
     changed = []
     for benchmark_id, base_number in base_numbers.items():
