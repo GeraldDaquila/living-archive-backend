@@ -834,6 +834,15 @@
       "qualifying_context": "Questions asking how a guide, advisor, or support system can orient someone facing a personal life decision without taking over their agency, values, consent, or final choice.",
       "abstention_boundary": "Do not make the person's life decision, imply that the Guide knows their circumstances better than they do, or treat all decisions as low-risk and reversible. Preserve the need for trusted human or specialist support when safety, lasting harm, or major obligations are involved. Transfer the discipline, never the exact answer or its doorway.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-public-commons-stewardship-gold-star-2026-11-17",
+      "question": "What does the Archive’s claim to be a public commons require in how the Guide handles access, attribution, disagreement, and stewardship?",
+      "reasoning_family": "public_knowledge_commons_stewardship_and_provenance",
+      "transferable_discipline": "Make public knowledge usable without erasing its boundaries or provenance: distinguish access classes, credit direct sources, label cross-source synthesis and orientation, preserve disagreement, and remain correctable while leaving judgment with the visitor.",
+      "qualifying_context": "Questions about a public knowledge commons, access to shared materials, attribution, source provenance, synthesis across texts, disagreement among sources, or stewardship of shared knowledge.",
+      "abstention_boundary": "Do not equate public-commons status with unrestricted access or reproduction, expose protected material, erase authorship, present synthesis as a source claim, force consensus, or transfer this exemplar's exact answer or doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
