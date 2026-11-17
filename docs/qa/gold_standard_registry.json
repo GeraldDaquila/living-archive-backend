@@ -5810,7 +5810,9 @@
         "source_ref": "User-provided visitor screenshot dated 2026-11-17 and verified WordPress post ID 49212.",
         "source_pr": "PR #1588",
         "verification_context": "User-reviewed exact live visitor-facing answer and verified canonical doorway; explicit user elevation approval recorded 2026-11-17. The original approved predecessor remains preserved as a separate structural-learning exemplar.",
-        "approval_date": "2026-11-17"
+        "approval_date": "2026-11-17",
+        "source": "user_reviewed_live_visitor_response_screenshot",
+        "source_date": "2026-11-17"
       },
       "freeze_policy": "immutable_user_approved_gold_standard",
       "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
