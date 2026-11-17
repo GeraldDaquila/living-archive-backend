@@ -78,7 +78,11 @@ from general_guide_gold_standards import (
     find_cross_question_standard_response as _find_cross_question_standard_response,
 )
 from guide_fuzzy_relevance import score_resource_fit as _score_guide_fuzzy_relevance_shadow
-from deterministic_answer_recovery import compose_recovery as _compose_provider_exhaustion_recovery, is_harm_repair_question
+from deterministic_answer_recovery import (
+    compose_recovery as _compose_provider_exhaustion_recovery,
+    is_harm_repair_question,
+    is_community_continuity_revision_question,
+)
 from deterministic_relational_fractal import compose_relational_fractal
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
 from safety_utility import classify_safety, safety_utility_snapshot
@@ -262,6 +266,18 @@ def _select_verified_doorway_conceptual_family(query):
         and re.search(r"\b(?:distinguish|difference|separate|external)\b", text, re.I)
     ):
         return "archive_guidance_provenance"
+    # Community continuity questions that pair inherited harm with revision
+    # have a separately verified Archive continuation. Match the full tension,
+    # not the broad words "community" or "tradition" alone.
+    if (
+        re.search(r"\b(?:community|communities|institution|institutions|group|groups)\b", text, re.I)
+        and re.search(r"\b(?:preserv|maintain|carry forward|sustain)\w*\b", text, re.I)
+        and re.search(r"\b(?:continuity|inherit(?:ed|ance)|tradition|custom|legacy)\w*\b", text, re.I)
+        and re.search(r"\b(?:revis|chang|reform|renew|transform)\w*\b", text, re.I)
+        and re.search(r"\b(?:harm|exclu|unjust|oppress|discriminat)\w*\b", text, re.I)
+    ):
+        return "community_continuity_revision"
+
     # Reflective balance questions authorize a bounded approved-node lookup.
     # This class does not map to a hard-coded destination; registry evidence
     # must still establish the relevance of the canonical continuation.
@@ -301,6 +317,11 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "archive_guidance_provenance": {
         "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
         "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+    },
+    "community_continuity_revision": {
+        "title": "From Awakening to Stewardship",
+        "url": "https://geralddaquila.com/from-awakening-to-stewardship/",
+        "rationale": "This essay examines how communities and institutions carry wisdom and responsibility across generations while renewing structures and practices that no longer serve human flourishing. It distinguishes preserving what deserves to endure from preserving harmful patterns simply because they are inherited.",
     },
     "growth_within_living_limits": {
         "title": "ARC III: Growth doesn’t break systems. It reveals the limits of the structure holding them.",
@@ -9903,6 +9924,25 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             f"fact_id={general_knowledge_recovery['fact_id']}."
         )
 
+    # If conceptual retrieval missed the answer and ordinary selection found no
+    # destination, recover the independently verified family doorway before the
+    # prose-evidence gates run. Navigation evidence remains separate from answer
+    # attribution; this does not claim that the page proves every part of the answer.
+    if (
+        _is_conceptual_explanatory_request(query)
+        and not authoritative_doorway
+        and not direct_attribute_evidence_missing
+        and _select_verified_doorway_conceptual_family(query) == "community_continuity_revision"
+    ):
+        _community_doorway = _normalize_authoritative_recommendation(
+            _select_guide_node_fallback_doorway(query)
+        )
+        if _community_doorway:
+            authoritative_doorway = _community_doorway
+            composition_context["authoritative_doorway"] = _community_doorway
+            composition_context["authoritative_doorway_title"] = _community_doorway.get("title") or ""
+            print("The Guide conceptual navigation: recovered verified community-continuity doorway independently of answer evidence.")
+
     # Preserve the last independently verified navigation decision before
     # conceptual answer-recovery gates begin rewriting evidence state. Those gates
     # may reject prose attribution; they must not silently destroy a doorway that
@@ -10550,7 +10590,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         )
                         _looks_like_limitation = bool(
                             re.search(
-                                r"\b(?:haven['’]t found enough support|couldn't verify|could not identify|available material.*(?:not|no)\b)",
+                                r"\b(?:haven['’]t found enough support|couldn't verify|could not identify|available material.*(?:not|no)\b|do not have enough grounded material|don't have enough grounded material|not enough grounded material|specific archive-based answer)",
                                 _preserved_general_answer,
                                 re.I,
                             )
@@ -10600,6 +10640,22 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                         composition_context["authoritative_doorway"] = authoritative_doorway
                                         composition_context["authoritative_doorway_title"] = authoritative_doorway.get("title") or ""
                                     print("The Guide conceptual boundary: preserved ordinary-language orientation after evidence miss.")
+                                elif is_community_continuity_revision_question(query):
+                                    # Retrieval failure limits Archive attribution, not the
+                                    # visitor's access to an ordinary conceptual explanation.
+                                    # Use a bounded subject-specific recovery and keep the
+                                    # separately verified doorway in its own response field.
+                                    response = _sanitize_basic_inquiry_response(
+                                        _compose_provider_exhaustion_recovery(query)
+                                    )
+                                    archive_evidence_unavailable = False
+                                    composition_context.pop("evidence_sufficiency_unavailable", None)
+                                    composition_context["answer_basis"] = "general_conceptual_orientation"
+                                    if verified_navigation_available:
+                                        authoritative_doorway = verified_navigation_doorway
+                                        composition_context["authoritative_doorway"] = authoritative_doorway
+                                        composition_context["authoritative_doorway_title"] = authoritative_doorway.get("title") or ""
+                                    print("The Guide conceptual boundary: replaced retrieval-only non-answer with bounded community-continuity explanation and preserved separate verified navigation.")
                                 else:
                                     response = _archive_limitation_response(query)
                                     archive_evidence_unavailable = True
