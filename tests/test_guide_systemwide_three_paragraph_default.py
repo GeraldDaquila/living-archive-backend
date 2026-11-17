@@ -159,3 +159,23 @@ def test_outer_basic_inquiry_exception_path_reuses_terminal_answer_and_navigatio
     assert '"answer_basis": {' in boundary
     assert "_basic_inquiry_round1_deterministic_response(" not in boundary
     assert "str(exc)[:180]" in boundary
+
+
+
+def test_provider_exhaustion_returns_registered_continuity_answer_and_doorway_together():
+    from main import _basic_inquiry_provider_exhaustion_response
+    from deterministic_answer_recovery import registered_recovery_recommendation
+
+    query = "How can communities preserve continuity while revising harmful inherited patterns?"
+    result = _basic_inquiry_provider_exhaustion_response(
+        query,
+        {},
+        {"context_blocks": ""},
+        recommendation_available=True,
+    )
+    doorway = registered_recovery_recommendation(query)
+    assert result["response"].startswith("Communities preserve continuity")
+    assert len([p for p in result["response"].split("\\n\\n") if p.strip()]) == 3
+    assert result["recommendation"] == doorway
+    assert result["doorway_title"] == doorway["title"]
+    assert result["doorway_url"] == doorway["url"]
