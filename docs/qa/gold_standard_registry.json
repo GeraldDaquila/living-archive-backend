@@ -6052,7 +6052,7 @@
         "approval_record": "User explicitly instructed 'elevate to gold star' after reviewing the production visitor-facing response and its canonical doorway.",
         "source": "User-reviewed screenshot of the live visitor-facing Guide response, supplied in the conversation on 2026-11-17."
       },
-      "freeze_policy": "Immutable user-approved Gold Star exemplar. Preserve the approved response and verified doorway; any future wording or doorway change requires a separately versioned benchmark and explicit user approval.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
       "gold_star_capabilities": {
         "generation_class": "runtime_agnostic_curated_exemplar",
         "exact_answer_authority": true,
