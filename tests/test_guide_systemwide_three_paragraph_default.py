@@ -510,6 +510,15 @@ def test_public_predictive_gold_star_successor_is_exact_runtime_authority_and_pr
     assert predecessor["expected_response"].count("reach a responsible human authority.") == 1
     assert predecessor["runtime_exact_query_successor"] == successor["benchmark_id"]
     assert successor["replaces_exact_query_runtime_authority_of"] == predecessor["benchmark_id"]
+    # The predecessor remains the single adaptive-learning contributor.
+    # The successor owns exact-query answer authority only and therefore does
+    # not create a duplicate learning identity or an unreviewed transfer entry.
+    assert predecessor["runtime_transfer"] is True
+    assert predecessor["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert successor["runtime_transfer"] is False
+    assert successor["gold_star_capabilities"]["active_quality_contributor"] is False
+    assert successor["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert successor["gold_star_capabilities"]["exact_answer_authority"] is True
     assert standard is not None
     assert standard["benchmark_id"] == successor["benchmark_id"]
     assert expected_phrase in standard["expected_response"]
