@@ -6,6 +6,8 @@ on:
       - "wordpress/living-archive-answer-doorway-standard/**"
       - "wordpress/guide/**"
       - "wordpress/spe/**"
+      - "wordpress/public-living-archive-navigator/**"
+      - "wordpress/mini-use/**"
       - "plugins/human-relational-navigator/**"
       - "integrations/wordpress/living-archive-fsd-proxy/**"
       - "fsd_episode_api.py"
@@ -44,3 +46,5 @@ jobs:
       - run: node --check integrations/wordpress/living-archive-fsd-proxy/assets/fsd-app.js
       - run: node --check plugins/human-relational-navigator/assets/relational-navigator.js
       - run: node --check wordpress/spe/03-JavaScript.js
+      - run: node --check wordpress/public-living-archive-navigator/03-JavaScript.js
+      - run: node --check wordpress/mini-use/mini-use.js
