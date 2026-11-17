@@ -1584,3 +1584,75 @@ def test_ownership_management_stewardship_gold_star_85_preserves_exact_answer_do
     entry = next(item for item in review["entries"] if item["benchmark_id"] == fixture["benchmark_id"])
     assert entry["activation"] == "active_quality_contributor"
     assert entry["reasoning_family"] == "ownership_management_stewardship_role_distinction"
+
+
+def test_archive_examples_evidence_limits_gold_star_86_preserves_exact_answer_and_doorway():
+    import json
+    from general_guide_composition import compose
+    from general_guide_gold_standards import resolve_exact_gold_standard
+
+    fixture = json.loads(
+        (ROOT / "tests" / "fixtures" / "general_guide_archive_examples_evidence_limits_gold_star.json").read_text(encoding="utf-8")
+    )
+    registry = _registry()
+    record = next(item for item in registry["records"] if item["benchmark_id"] == fixture["benchmark_id"])
+    assert record["status"] == fixture["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["gold_star_number"] == fixture["gold_star_number"] == 86
+    assert record["numbering_status"] == "ASSIGNED"
+    assert record["query"] == fixture["query"]
+    assert record["expected_response"] == fixture["expected_response"]
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
+    expected_doorway = {
+        "title": fixture["expected_doorway_title"],
+        "url": fixture["expected_doorway_url"],
+        "rationale": fixture["expected_doorway_rationale"],
+    }
+    assert record["expected_doorway"] == expected_doorway
+    assert record["rating_out_of_10"] == fixture["rating_out_of_10"] == 9.7
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["runtime_transfer"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is True
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
+
+    resolved = resolve_exact_gold_standard(fixture["query"])
+    assert resolved is not None
+    assert resolved["benchmark_id"] == fixture["benchmark_id"]
+    assert resolved["expected_response"] == fixture["expected_response"]
+    assert resolved["doorway_title"] == fixture["expected_doorway_title"]
+    assert resolved["doorway_url"] == fixture["expected_doorway_url"]
+    assert resolved["doorway_rationale"] == fixture["expected_doorway_rationale"]
+
+    provider_contract = compose(use_core=None, query=fixture["query"], context_data={})
+    assert provider_contract["response"] == fixture["expected_response"]
+    assert provider_contract["doorway_title"] == fixture["expected_doorway_title"]
+    assert provider_contract["doorway_url"] == fixture["expected_doorway_url"]
+
+    import pytest
+    pytest.importorskip("fastapi")
+    import main
+    deterministic_contract = main._basic_inquiry_round1_deterministic_response(
+        fixture["query"], {}, {}, recommendation_available=False
+    )
+    assert deterministic_contract["response"] == fixture["expected_response"]
+    assert deterministic_contract["doorway_title"] == fixture["expected_doorway_title"]
+    assert deterministic_contract["recommendation"]["url"] == fixture["expected_doorway_url"]
+
+    # This is a narrower, distinct evidence-limits benchmark, not a duplicate
+    # of #72's direct-claim / synthesis / orientation contract.
+    prior = resolve_exact_gold_standard("How should The Guide separate direct Archive claims from its own synthesis?")
+    assert prior is not None
+    assert prior["benchmark_id"] == "general-guide-archive-claim-synthesis-boundary-gold-star-2026-11-13"
+    assert prior["benchmark_id"] != fixture["benchmark_id"]
+
+    assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 99
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 99
+    assert registry["integrity_audit"]["registry_record_count"] == 136
+    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 38
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 61
+    assert registry["integrity_audit"]["documented_numbering_gap_count"] == 0
+
+    review = json.loads((ROOT / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    entry = next(item for item in review["entries"] if item["benchmark_id"] == fixture["benchmark_id"])
+    assert entry["activation"] == "active_quality_contributor"
+    assert entry["reasoning_family"] == "archive_examples_evidence_limits"
