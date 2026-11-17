@@ -5790,7 +5790,7 @@
         "Uses a limited, reviewable pilot and explicit outcome measures before wider adoption.",
         "Provides a verified public canonical continuation through Agentic Systems and the End of Passive Labor."
       ],
-      "status": "USER_APPROVED_RELEASE_CANDIDATE",
+      "status": "USER_APPROVED_GOLD_STANDARD",
       "known_theme": "integrated institutional judgment for AI-led workforce restructuring",
       "related_question_variants": [
         "How should an institution assess AI adoption when it affects jobs, governance, and human consequences?",
@@ -5798,9 +5798,9 @@
       ],
       "gold_star_capabilities": {
         "exact_answer_authority": true,
-        "active_quality_contributor": false,
+        "active_quality_contributor": true,
         "deterministic_fallback_eligible": true,
-        "generation_class": "runtime_agnostic_release_candidate",
+        "generation_class": "runtime_agnostic_curated_exemplar",
         "reasoning_family": "integrated_institutional_judgment",
         "transferable_discipline": "Assess AI-led workforce change as a redesign of work and responsibility; compare real options and total costs; distribute gains and burdens ethically; preserve accountable human oversight and correction.",
         "abstention_boundary": "Do not presume AI is inherently beneficial, treat staff reduction as an end in itself, make unsupported legal or labor-market claims, or make the decision for the responsible organization."
@@ -5809,19 +5809,24 @@
       "provenance": {
         "source_ref": "User-provided visitor screenshot dated 2026-11-17 and verified WordPress post ID 49212.",
         "source_pr": "PR #1588",
-        "verification_context": "Governed successor release candidate for exact-query live review; original approved response retained as superseded historical evidence.",
+        "verification_context": "User-reviewed exact live visitor-facing answer and verified canonical doorway; explicit user elevation approval recorded 2026-11-17. The original approved predecessor remains preserved as a separate structural-learning exemplar.",
         "approval_date": "2026-11-17"
       },
-      "freeze_policy": "This release candidate may serve only the exact registered question for live review. It is not a Gold Star or adaptive-learning contributor until explicit subsequent user elevation. The predecessor remains an approved Gold Star structural-learning exemplar, with its exact-query runtime authority delegated to this candidate.",
+      "freeze_policy": "Preserve the exact approved three-paragraph answer and verified doorway title, canonical URL, and rationale. Changes require explicit user authorization and a separately documented benchmark-version change. Transfer only the bounded structural discipline and abstention boundary; never transfer the answer text or doorway to unrelated questions.",
       "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
       "doorway_note": "Canonical published post verified through WordPress post ID 49212; title, URL, and relevance rationale are grounded in the published essay.",
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "No Gold Star display serial is assigned to this release candidate. A serial must not be inferred; consider allocation only if the user later approves Gold Star promotion.",
-      "replaces_exact_query_runtime_authority_of": "general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13"
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable adaptive-learning identity; serial allocation remains independent.",
+      "replaces_exact_query_runtime_authority_of": "general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13",
+      "rating_out_of_10": 9.5,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "Gold Star elevation explicitly approved by the user on 2026-11-17 after review of the exact live visitor-facing answer and its separate verified doorway.",
+      "elevation_approval_evidence": "The user reviewed the exact live visitor-facing answer and doorway screenshot, assessed it as meeting the Gold Star threshold, and explicitly instructed: “elevate” on 2026-11-17."
     }
   ],
-  "last_reconciliation_note": "On 2026-11-17, the legacy AI-staffing Gold Star was preserved without withdrawal or demotion as a structural-learning exemplar. Its exact-query runtime answer authority is delegated to a USER_APPROVED_RELEASE_CANDIDATE with a direct answer and verified canonical doorway; the candidate is excluded from the Gold Star count pending explicit user elevation. The community-continuity Gold Star elevation and community project trade-off answer contract from the latest main branch are preserved.",
+  "last_reconciliation_note": "2026-11-17: Elevated gs-2026-11-17-ai-workforce-restructuring-successor-candidate to USER_APPROVED_GOLD_STANDARD after explicit user approval of the exact live answer and verified Agentic Systems and the End of Passive Labor doorway. The predecessor remains preserved as a distinct approved structural-learning exemplar; no serial was allocated.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -5951,13 +5956,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-17",
-    "approved_gold_star_count": 89,
+    "approved_gold_star_count": 90,
     "registry_record_count": 127,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 89 approved Gold Stars and one exact-query release candidate outside active Gold Star authority. Historical and withdrawn candidate records remain outside active authority. The consequential-action-under-uncertainty, disciplined-hope, and community-continuity exemplars are approved with verified, question-relevant public doorways. The AI-staffing predecessor remains an approved structural-learning exemplar; its exact-query runtime answer authority is delegated to a release candidate pending explicit elevation.",
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 90 approved Gold Stars; historical and withdrawn candidate records remain outside active authority. The AI-workforce restructuring successor is now an approved Gold Star with exact-answer authority, bounded active structural learning, and a verified canonical doorway; its predecessor remains preserved as a separate learning exemplar.",
     "numbered_gold_star_record_count": 35,
     "highest_assigned_gold_star_number": 92,
-    "numbering_reconciliation": "Record-level reconciliation: 89 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 54 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
-    "unassigned_approved_gold_star_count": 54,
+    "numbering_reconciliation": "Record-level reconciliation: 90 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 55 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
+    "unassigned_approved_gold_star_count": 55,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {
