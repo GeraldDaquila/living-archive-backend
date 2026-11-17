@@ -140,3 +140,42 @@ def test_complete_gold_standard_doorway_preserves_registry_authored_rationale():
         "url": "https://geralddaquila.com/systems-structure/",
         "rationale": "This hub explains how structures and incentives shape durable system behavior.",
     }
+
+
+def test_shared_restore_supplies_default_doorway_when_no_specific_candidate_exists(monkeypatch):
+    monkeypatch.setattr(main, "_select_verified_doorway_conceptual_family", lambda query: "")
+    monkeypatch.setattr(main, "_select_guide_node_fallback_doorway", lambda query: None)
+    payload = {"response": "A complete answer."}
+
+    result = main._guide_restore_verified_doorway(payload, "A general explanatory question?")
+
+    assert result["recommendation"]["title"] == "Sovereign Sensemaking Compass"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/the-sovereign-sensemaking-compass/"
+    assert result["canonical_doorway"] == result["recommendation"]
+    assert result["doorway_title"] == result["recommendation"]["title"]
+    assert result["doorway_url"] == result["recommendation"]["url"]
+
+
+def test_outermost_boundary_reapplies_doorway_after_all_inner_early_returns():
+    from pathlib import Path
+
+    source = (Path(main.__file__).resolve().parent / "main.py").read_text(encoding="utf-8")
+    outer = source.index("safe_payload = _guide_finalize_visitor_payload(payload, query)")
+    restore = source.index("safe_payload = _guide_restore_verified_doorway(safe_payload, query)", outer)
+    provenance = source.index('safe_payload.setdefault("build_provenance"', outer)
+    assert outer < restore < provenance
+
+
+def test_reviewed_gold_star_exception_is_the_only_registry_based_suppression():
+    assert main._gold_star_doorway_omission_is_justified({
+        "forbids_doorway": True,
+        "doorway_omission_exception_reason": "A link would interrupt the immediate safety response.",
+    })
+    assert not main._gold_star_doorway_omission_is_justified({
+        "forbids_doorway": True,
+        "doorway_omission_exception_reason": "",
+    })
+    assert not main._gold_star_doorway_omission_is_justified({
+        "forbids_doorway": False,
+        "doorway_omission_exception_reason": "No reason to omit.",
+    })
