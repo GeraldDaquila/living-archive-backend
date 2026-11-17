@@ -20,6 +20,41 @@ def test_qualitative_transfer_review_covers_all_active_gold_standards():
     assert all(e["activation"]=="active_quality_contributor" for e in entries)
 
 
+
+
+def test_exact_question_duplicates_have_explicit_lineage_and_one_active_systems_map_exemplar():
+    import json
+    from pathlib import Path
+    from general_guide_gold_standards import resolve_exact_gold_standard
+
+    root = Path(__file__).resolve().parents[1]
+    registry = json.loads((root / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+    review = json.loads((root / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    records = {item["benchmark_id"]: item for item in registry["records"]}
+    migrated_id = "gs-2026-11-13-04-migrated-canonical-ledger"
+    live_id = "general-guide-systems-map-useful-false-confidence-gold-standard-2026-11-15"
+    migrated = records[migrated_id]
+    live = records[live_id]
+
+    assert migrated["superseded_by_benchmark_id"] == live_id
+    assert migrated["runtime_exact_query_successor"] == live_id
+    assert migrated["runtime_transfer"] is False
+    assert migrated["gold_star_capabilities"]["active_quality_contributor"] is False
+    assert migrated["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert migrated["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert live["replaces_exact_query_runtime_authority_of"] == migrated_id
+    assert live["runtime_transfer"] is True
+    assert live["gold_star_capabilities"]["active_quality_contributor"] is True
+
+    reviewed = {item["benchmark_id"] for item in review["entries"]}
+    assert migrated_id not in reviewed
+    assert live_id in reviewed
+    resolved = resolve_exact_gold_standard(migrated["query"])
+    assert resolved is not None
+    assert resolved["benchmark_id"] == live_id
+    assert resolved["expected_response"] == live["expected_response"]
+
+
 def test_every_approved_gold_star_has_a_complete_or_explicitly_withheld_doorway():
     registry=json.loads(Path("docs/qa/gold_standard_registry.json").read_text())
     allowed_none={
