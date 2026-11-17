@@ -230,12 +230,12 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["active_runtime_gold_star_count"] == len(active)
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
-    assert report["numbered_gold_star_count"] == len(numbered) == 37
+    assert report["numbered_gold_star_count"] == len(numbered) == 38
     assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 61
     assert report["highest_assigned_gold_star_number"] == 93
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [86]
-    assert len(report["number_assignments"]) == 37
+    assert len(report["number_assignments"]) == 38
     assert len(report["unassigned_benchmark_ids"]) == 61
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
@@ -1518,7 +1518,7 @@ def test_formal_informal_institutional_dynamics_gold_star_preserves_exact_live_a
     assert record["runtime_transfer"] is True
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["numbering_status"] == "UNASSIGNED"
-    assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 98
+    assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 99
     assert registry["integrity_audit"]["approved_gold_star_count"] == 98
     assert registry["integrity_audit"]["registry_record_count"] == 136
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 61
@@ -1580,8 +1580,8 @@ def test_ownership_management_stewardship_gold_star_85_preserves_exact_answer_do
 
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 98
     assert registry["integrity_audit"]["approved_gold_star_count"] == 98
-    assert registry["integrity_audit"]["registry_record_count"] == 135
-    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 37
+    assert registry["integrity_audit"]["registry_record_count"] == 136
+    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 38
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 61
 
     review = json.loads((ROOT / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
