@@ -1038,7 +1038,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
             assert record.get("numbering_status") == "UNASSIGNED"
             assert record.get("numbering_unassigned_reason_code")
             assert record.get("numbering_unassigned_reason")
-            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness", "gs-2026-11-17-oversoul-free-will-influence-without-compulsion"}:
+            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness", "gs-2026-11-17-oversoul-free-will-influence-without-compulsion", "general-guide-public-commons-stewardship-gold-star-2026-11-17"}:
                 assert record.get("legacy_approval_grandfathered") is not True
                 assert record.get("numbering_unassigned_reason_code") == "NO_SERIAL_ALLOCATION_REQUESTED"
             elif record["benchmark_id"] not in {"gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing", "gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship", "gs-2026-11-16-collapse-adaptation-regeneration", "gs-2026-11-16-techno-utopian-thinking"}:
@@ -1388,7 +1388,6 @@ def test_public_commons_stewardship_gold_star_preserves_answer_and_verified_door
     from deterministic_answer_recovery import compose_recovery
     from general_guide_composition import compose
     from general_guide_gold_standards import resolve_exact_gold_standard
-    import main
 
     fixture = json.loads(
         (ROOT / "tests" / "fixtures" / "general_guide_public_commons_stewardship_gold_standard.json").read_text(encoding="utf-8")
@@ -1432,6 +1431,13 @@ def test_public_commons_stewardship_gold_star_preserves_answer_and_verified_door
     assert provider_contract["doorway_url"] == fixture["expected_doorway_url"]
 
     assert compose_recovery(query) == expected
+    # The isolated main.py route imports FastAPI, which is intentionally absent
+    # from the lightweight registry-contract job. Exercise it whenever the
+    # runtime dependency set is installed; the provider-neutral and deterministic
+    # contracts above remain mandatory in every test environment.
+    import pytest
+    pytest.importorskip("fastapi")
+    import main
     deterministic_contract = main._basic_inquiry_round1_deterministic_response(
         query, {}, {}, recommendation_available=False
     )
