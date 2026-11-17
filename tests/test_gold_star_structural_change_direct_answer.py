@@ -28,7 +28,8 @@ def test_structural_change_answer_is_restored_with_verified_canonical_doorway():
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/systems-structure/"
     assert record["expected_doorway"]["rationale"]
     assert record["expected_response"].startswith("Structural change reorganizes the arrangements")
-    assert "The test is not simply whether something new happened" in record["expected_response"]
+    assert paragraphs[2].startswith("To assess a claimed change, look at ordinary operations after emergency measures")
+    assert "If those differences continue to govern everyday choices" in paragraphs[2]
     assert record["withdrawal"]["resolved_at"] == "2026-11-17"
     assert record["reinstatement"]["destination_post_id"] == 41615
 
