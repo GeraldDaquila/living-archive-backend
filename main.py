@@ -5885,13 +5885,24 @@ def _guide_finalize_visitor_payload(payload, query):
         )
         safe["provider"] = _archive_passage_contrast.get("provider") or "bounded_archive_passage_contrast_final_boundary"
         safe["model"] = _archive_passage_contrast.get("model") or "deterministic-evidence-boundary"
-        # The two source links are the doorway when evidence is sufficient.
-        # When it is not, preserve an existing verified Libraries continuation.
+        # Completed comparisons use their two source links as the doorway.
+        # A topicless clarification has no subject from which to infer a
+        # narrower destination, so it must receive the approved Compass.
         if "Passage 1 — [" in safe["response"] and "Passage 2 — [" in safe["response"]:
             safe["recommendation"] = None
             safe["canonical_doorway"] = None
             safe["doorway_title"] = None
             safe["doorway_url"] = None
+            safe["doorway_rationale"] = None
+        elif safe.get("model") == "deterministic-topic-clarification":
+            default_doorway = _normalize_authoritative_recommendation(
+                _gold_star_default_doorway()
+            )
+            safe["recommendation"] = default_doorway
+            safe["canonical_doorway"] = default_doorway
+            safe["doorway_title"] = default_doorway.get("title") if default_doorway else None
+            safe["doorway_url"] = default_doorway.get("url") if default_doorway else None
+            safe["doorway_rationale"] = default_doorway.get("rationale") if default_doorway else None
         else:
             safe["recommendation"] = _normalize_authoritative_recommendation(
                 safe.get("recommendation")
