@@ -869,6 +869,15 @@
       "transferable_discipline": "Separate source-specific evidence from the Guide's synthesis; test whether examples are representative and whether other materials qualify or contradict them; state the exact boundary of what is established, what remains open, and what further evidence would be needed.",
       "abstention_boundary": "Do not generalize from illustrative examples without evidence of representativeness. Do not present synthesis as a direct Archive claim or treat suggestive examples as proof of a broader proposition. Do not turn missing evidence into a confident conclusion; name what remains unresolved.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-symmetric-source-representation-before-synthesis-gold-star-2026-11-18",
+      "question": "Find two relevant Archive passages that disagree in emphasis. How should the Guide represent each passage before attempting any synthesis?",
+      "reasoning_family": "symmetric_source_representation_before_synthesis",
+      "transferable_discipline": "Before interpreting or synthesizing differently emphasized Archive passages, represent each source separately using the same fields in the same order: exact source, central concern in its own terms, scope, qualifications, and intended audience. Then compare emphases, distinguish contradiction from complementary focus, preserve unresolved tension, and synthesize only after both representations are complete.",
+      "qualifying_context": "Questions asking how The Guide should compare multiple Archive passages, especially where they differ in emphasis, appear to disagree, or may support a synthesis without losing source-specific meaning.",
+      "abstention_boundary": "Do not claim what an unseen passage says, translate one source into another's vocabulary, infer contradiction from emphasis alone, force synthesis where the available text cannot resolve the tension, or erase source-specific scope, qualifications, and audience. Transfer the representation discipline, not this answer or doorway.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
