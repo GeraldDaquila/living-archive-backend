@@ -498,6 +498,13 @@ def test_public_predictive_gold_star_successor_is_exact_runtime_authority_and_pr
         (Path(__file__).resolve().parents[1] / "docs" / "qa" / "gold_standard_registry.json")
         .read_text(encoding="utf-8")
     )
+    transfer_review = json.loads(
+        (Path(__file__).resolve().parents[1] / "docs" / "qa" / "gold_star_qualitative_transfer_review.json")
+        .read_text(encoding="utf-8")
+    )
+    from gold_star_lessons import validate_learning_integrity
+    validate_learning_integrity(registry["records"], transfer_review["entries"])
+
     predecessor = next(
         item for item in registry["records"]
         if item["benchmark_id"] == "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-2026-11-13"
@@ -510,6 +517,15 @@ def test_public_predictive_gold_star_successor_is_exact_runtime_authority_and_pr
     assert predecessor["expected_response"].count("reach a responsible human authority.") == 1
     assert predecessor["runtime_exact_query_successor"] == successor["benchmark_id"]
     assert successor["replaces_exact_query_runtime_authority_of"] == predecessor["benchmark_id"]
+    # The predecessor remains the single adaptive-learning contributor.
+    # The successor owns exact-query answer authority only and therefore does
+    # not create a duplicate learning identity or an unreviewed transfer entry.
+    assert predecessor["runtime_transfer"] is True
+    assert predecessor["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert successor["runtime_transfer"] is False
+    assert successor["gold_star_capabilities"]["active_quality_contributor"] is False
+    assert successor["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert successor["gold_star_capabilities"]["exact_answer_authority"] is True
     assert standard is not None
     assert standard["benchmark_id"] == successor["benchmark_id"]
     assert expected_phrase in standard["expected_response"]
