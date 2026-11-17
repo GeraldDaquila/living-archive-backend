@@ -825,6 +825,15 @@
       "qualifying_context": "Questions that explicitly invoke the Oversoul or a comparable spiritual framework and ask how spiritual influence, guidance, or purpose can coexist with personal choice or free will.",
       "abstention_boundary": "Do not assert that an Oversoul or other metaphysical entity objectively exists, controls choices, or determines outcomes. Do not treat intuition as proof of metaphysical communication, universalize one spiritual framework across traditions, or impose this reasoning family on ordinary questions about influence or free will without the visitor's spiritual premise. Transfer the distinction and epistemic discipline, never this answer text or its doorway.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-spiritual-community-accountability-gold-star-2026-11-17",
+      "question": "A spiritual community has charismatic leadership and weak accountability. How should the Guide identify the risks without dismissing spiritual practice itself?",
+      "reasoning_family": "spiritual_practice_and_governance_accountability",
+      "transferable_discipline": "Distinguish a community's spiritual practice from the governance of authority; assess observable patterns rather than treating charisma or disagreement alone as evidence of harm; protect dissent, independent review, transparent decisions, freedom to decline or leave, and proportionate repair.",
+      "qualifying_context": "Questions about spiritual or religious communities where charismatic leadership, concentrated influence, weak accountability, coercion, dependency, safeguarding, or protected dissent are material concerns, while the visitor also wants spiritual practice itself treated respectfully.",
+      "abstention_boundary": "Do not presume abuse from charisma, belief, ritual, or a single disagreement; do not dismiss spiritual practice; do not infer allegations or facts not supplied; do not transfer this question-specific doorway or exact answer to unrelated inquiries.",
+      "activation": "active_quality_contributor"
     }
   ]
 }

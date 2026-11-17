@@ -231,12 +231,12 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
     assert report["numbered_gold_star_count"] == len(numbered) == 35
-    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 58
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 59
     assert report["highest_assigned_gold_star_number"] == 92
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
     assert len(report["number_assignments"]) == 35
-    assert len(report["unassigned_benchmark_ids"]) == 58
+    assert len(report["unassigned_benchmark_ids"]) == 59
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
@@ -1029,7 +1029,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 93
+    assert len(approved) == 94
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1038,7 +1038,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
             assert record.get("numbering_status") == "UNASSIGNED"
             assert record.get("numbering_unassigned_reason_code")
             assert record.get("numbering_unassigned_reason")
-            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness", "gs-2026-11-17-oversoul-free-will-influence-without-compulsion"}:
+            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness", "gs-2026-11-17-oversoul-free-will-influence-without-compulsion", "general-guide-spiritual-community-accountability-gold-star-2026-11-17"}:
                 assert record.get("legacy_approval_grandfathered") is not True
                 assert record.get("numbering_unassigned_reason_code") == "NO_SERIAL_ALLOCATION_REQUESTED"
             elif record["benchmark_id"] not in {"gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing", "gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship", "gs-2026-11-16-collapse-adaptation-regeneration", "gs-2026-11-16-techno-utopian-thinking"}:
@@ -1078,10 +1078,10 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     assert "only adds provenance.source_date" in gaps[1]["reason"]
     assert "recovered as Gold Star #56" in gaps[1]["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 93
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 94
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 35
     assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 92
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 58
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 59
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
 
 
@@ -1330,3 +1330,36 @@ def test_complex_future_scenario_readiness_gold_star_preserves_exact_answer_and_
     assert resolved["doorway_rationale"] == record["expected_doorway"]["rationale"]
     assert compose_recovery(record["query"]) == expected
     assert resolve_exact_gold_standard("How can we prepare for an uncertain future?") is None
+
+
+def test_spiritual_community_accountability_gold_star_is_approved_and_exactly_resolvable():
+    from general_guide_gold_standards import resolve_exact_gold_standard
+
+    query = (
+        "A spiritual community has charismatic leadership and weak accountability. "
+        "How should the Guide identify the risks without dismissing spiritual practice itself?"
+    )
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-spiritual-community-accountability-gold-star-2026-11-17"
+    )
+
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert "gold_star_number" not in record
+    assert record["numbering_unassigned_reason_code"] == "NO_SERIAL_ALLOCATION_REQUESTED"
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["rating_out_of_10"] == 9.5
+    assert len(record["expected_response"].split("\n\n")) == 3
+    assert record["expected_doorway"]["title"] == "Community Accountability Systems"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/05/16/community-accountability-systems/"
+    assert record["doorway_status"] == "VERIFIED_CANONICAL_SELECTED"
+
+    exact = resolve_exact_gold_standard(query)
+    assert exact is not None
+    assert exact["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert exact["expected_response"] == record["expected_response"]
+    assert exact["doorway_title"] == record["expected_doorway"]["title"]
+    assert exact["doorway_url"] == record["expected_doorway"]["url"]
+    assert exact["doorway_rationale"] == record["expected_doorway"]["rationale"]
