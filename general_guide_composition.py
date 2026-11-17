@@ -1897,7 +1897,7 @@ def _archive_passage_contrast_topic_missing(question: str) -> bool:
         "guide", "represent", "represents", "representing", "each", "before", "after",
         "attempting", "attempt", "synthesis", "synthesize", "synthesise", "the", "a",
         "an", "in", "on", "of", "for", "with", "and", "or", "to", "what", "where",
-        "can", "could", "would", "please", "show", "me", "about",
+        "can", "could", "would", "please", "show", "me", "about", "any",
     }
     return not (tokens - generic)
 
