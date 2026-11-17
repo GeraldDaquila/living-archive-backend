@@ -116,7 +116,7 @@ def test_public_commons_doorway_survives_terminal_archive_claim_boundary(monkeyp
     }
     assert result["processing"] == "final_visitor_boundary_archive_claim_provenance"
     assert result["response"] == main._archive_claim_boundary_recovery()
-    assert result["response"].count("\\n\\n") == 2
+    assert result["response"].count("\n\n") == 2
     assert result["recommendation"]["title"] == expected["title"]
     assert result["recommendation"]["url"] == expected["url"]
     assert result["canonical_doorway"] == result["recommendation"]
