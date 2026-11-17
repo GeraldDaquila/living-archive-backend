@@ -5,7 +5,8 @@ const vm = require('node:vm');
 
 const context = {
   window: { location: { origin: 'https://geralddaquila.com' } },
-  document: {}
+  document: {},
+  URL: URL
 };
 vm.runInNewContext(
   fs.readFileSync('wordpress/living-archive-answer-doorway-standard/assets/answer-doorway.js', 'utf8'),
