@@ -26,7 +26,9 @@ def test_explicit_two_passage_contrast_request_is_recognized():
     assert _requires_archive_passage_contrast(QUESTION)
     assert not _requires_archive_passage_contrast("What is a passage in the Living Archive?")
     assert __import__("general_guide_composition")._archive_passage_contrast_topic_missing(QUESTION)
-    assert not __import__("general_guide_composition")._archive_passage_contrast_topic_missing(TOPIC_QUESTION)
+    module = __import__("general_guide_composition")
+    assert not module._archive_passage_contrast_topic_missing(TOPIC_QUESTION)
+    assert module._archive_passage_contrast_subject(TOPIC_QUESTION) == "stewardship"
 
 
 def test_only_two_distinct_canonical_passages_with_text_are_eligible():
