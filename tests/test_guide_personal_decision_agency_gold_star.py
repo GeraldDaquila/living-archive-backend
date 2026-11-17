@@ -83,7 +83,7 @@ def test_gold_star_without_specific_doorway_gets_default_compass_unless_explicit
     monkeypatch.setattr(
         main,
         "_resolve_exact_guide_gold_standard",
-        lambda _query: {"expected_response": "Frozen Gold Star answer.", "forbids_doorway": True},
+        lambda _query: {"expected_response": "Frozen Gold Star answer.", "forbids_doorway": True, "doorway_omission_exception_reason": "The answer addresses an immediate, sensitive situation where an additional link would interrupt the needed response."},
     )
     omitted = main._guide_finalize_visitor_payload({"response": "Provider answer."}, "An open-ended inquiry")
     assert omitted["recommendation"] is None
