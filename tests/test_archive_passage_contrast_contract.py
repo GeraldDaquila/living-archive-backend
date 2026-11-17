@@ -111,12 +111,13 @@ def test_terminal_provider_exhaustion_states_evidence_limit_instead_of_generic_f
         QUESTION, Core(), {"context_blocks": "one retrieved archive passage"}
     )
     assert recovered is not None
-    assert "could not verify two distinct" in recovered["response"]
+    assert "Which subject or question" in recovered["response"]
     assert "I couldn't produce a reliable answer" not in recovered["response"]
 
 
 def test_final_boundary_preserves_already_validated_deterministic_recovery_without_context():
-    recovered = _archive_passage_contrast_recovery(QUESTION, SOURCES)
+    topic_question = QUESTION.replace("relevant Archive passages", "Archive passages about stewardship")
+    recovered = _archive_passage_contrast_recovery(topic_question, SOURCES)
     assert recovered is not None
     assert is_preserved_archive_passage_contrast_recovery(recovered)
 
@@ -145,10 +146,11 @@ def test_provider_exhaustion_recovery_preserves_both_sources_without_premature_s
 
 
 def test_provider_exhaustion_without_two_sources_states_specific_limit():
-    recovered = _archive_passage_contrast_recovery(QUESTION, SOURCES[:1])
+    topic_question = QUESTION.replace("relevant Archive passages", "Archive passages about stewardship")
+    recovered = _archive_passage_contrast_recovery(topic_question, SOURCES[:1])
     assert recovered is not None
     assert "could not verify two distinct" in recovered["response"]
-    assert "Libraries" in recovered["response"]
+    assert "on that subject" in recovered["response"]
     assert "Passage Alpha" not in recovered["response"]
 
 
@@ -178,3 +180,17 @@ def test_final_visitor_boundary_enforces_passage_contrast_after_route_dispatch()
     assert boundary.index("archive_passage_contrast_recovery_from_context") < boundary.index(
         "is_comparative_traditions_question"
     )
+
+
+
+def test_missing_subject_requests_clarification_instead_of_claiming_retrieval_failure():
+    recovered = _archive_passage_contrast_recovery(QUESTION, [])
+    assert recovered is not None
+    assert recovered["model"] == "deterministic-topic-clarification"
+    assert "Which subject or question" in recovered["response"]
+    assert "could not verify two distinct" not in recovered["response"]
+
+
+def test_topicful_passage_contrast_request_is_not_misclassified_as_missing_subject():
+    topic_question = QUESTION.replace("relevant Archive passages", "Archive passages about stewardship")
+    assert not __import__("general_guide_composition")._archive_passage_contrast_topic_missing(topic_question)
