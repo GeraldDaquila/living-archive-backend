@@ -16,7 +16,7 @@
 
   function normalizeUrl(rawUrl) {
     if (typeof rawUrl !== 'string' || !rawUrl.trim() || rawUrl.length > 2048) return null;
-    if (!/^https:\/\/geralddaquila\\.com(?:\/|$)/i.test(rawUrl.trim())) return null;
+    if (!/^https:\/\/geralddaquila\.com(?:\/|$)/i.test(rawUrl.trim())) return null;
     var url;
     try { url = new URL(rawUrl.trim(), window.location.origin); } catch (_) { return null; }
     if (url.protocol !== 'https:' ||
