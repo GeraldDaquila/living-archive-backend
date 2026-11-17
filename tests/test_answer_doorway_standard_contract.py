@@ -32,6 +32,8 @@ def main():
     hrn = read("plugins/human-relational-navigator/assets/relational-navigator.js")
     spe = read("wordpress/spe/03-JavaScript.js")
     spe_php = read("wordpress/spe/stewardship-pathway-engine.php")
+    spe_engine = read("wordpress/spe/class-spe-engine.php")
+    lan_engine = read("wordpress/public-living-archive-navigator/class-lan-engine.php")
     lan_php = read("wordpress/public-living-archive-navigator/living-archive-navigator.php")
     mini_api = read("wordpress/mini-use/class-api.php")
     guide = read("wordpress/guide/woody-snippet-76926-universal.html")
@@ -51,6 +53,9 @@ def main():
     assert "la-answer-doorway-standard" in spe_php
     assert "la-answer-doorway-standard" in lan_php
     assert "la-answer-doorway-standard" in mini_api
+    assert "$safe_why[$id] = !empty($why_each[$id]) ? $why_each[$id] : '';" in spe_engine
+    assert "'reason' => ''," in spe_engine
+    assert "if (!isset($why_each[$id]) || $why_each[$id] === '') $why_each[$id] = '';" in lan_engine
     assert "helper.renderMany(d,items)" in lan
     assert "innerHTML" not in lan
     assert "helper.renderMany(doorContainer, items)" in mini
