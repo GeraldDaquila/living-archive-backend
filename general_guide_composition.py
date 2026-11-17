@@ -1955,6 +1955,37 @@ def _archive_passage_contrast_recovery(question: str, documents: List[Dict[str, 
     }
 
 
+def is_preserved_archive_passage_contrast_recovery(payload: Any) -> bool:
+    """Recognize the already-validated deterministic two-source recovery at the final boundary.
+
+    This is deliberately narrower than general answer validation: only the exact
+    deterministic recovery producer may carry its validated evidence contract
+    across the final boundary. Provider prose cannot self-certify its citations.
+    """
+    if not isinstance(payload, dict):
+        return False
+    if (
+        payload.get("provider") != "bounded_archive_passage_contrast_recovery"
+        or payload.get("model") != "extractive-deterministic"
+    ):
+        return False
+    response = str(payload.get("response") or "")
+    matches = re.findall(
+        r"(?m)^Passage ([12]) — \\[([^\\]\\n]+)\\]\\((https://geralddaquila\\.com/[^\\s)]+)\\)",
+        response,
+    )
+    if len(matches) != 2 or [item[0] for item in matches] != ["1", "2"]:
+        return False
+    urls = [item[2].rstrip("/").casefold() for item in matches]
+    if len(set(urls)) != 2:
+        return False
+    if response.casefold().count("retrieved passage text:") != 2:
+        return False
+    if "not yet a synthesis" not in response.casefold():
+        return False
+    return True
+
+
 def archive_passage_contrast_recovery_from_context(
     question: str, use_core: Any, context_data: Dict[str, Any]
 ) -> Optional[Dict[str, Any]]:
