@@ -2305,7 +2305,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
         if _requires_three_paragraph_default(query):
             if not _has_direct_answer_opening(query, response):
                 raise ValueError(
-                    "Gold Standard opening must answer the visitor's question directly; "
+                    "Gold Standard answer-first opening must answer the visitor's question directly; "
                     "announced comparisons, process prefaces, and echoed questions are not answers"
                 )
             paragraphs = [
