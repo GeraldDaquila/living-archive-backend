@@ -262,6 +262,17 @@ def _select_verified_doorway_conceptual_family(query):
         and re.search(r"\b(?:distinguish|difference|separate|external)\b", text, re.I)
     ):
         return "archive_guidance_provenance"
+    # Reflective balance questions authorize a bounded approved-node lookup.
+    # This class does not map to a hard-coded destination; registry evidence
+    # must still establish the relevance of the canonical continuation.
+    if re.search(
+        r"^\s*how\s+can\s+.+?\b(?:be|remain|stay|become)\b.+?"
+        r"\b(?:rather than|without becoming|without turning into|without being)\b",
+        text,
+        re.I | re.S,
+    ):
+        return "reflective_conceptual_balance"
+
     # Consequential action under uncertainty is a distinct sensemaking use case.
     # The visitor's wording must express all three elements; broad uncertainty
     # language alone is not sufficient to select this doorway.
@@ -10429,12 +10440,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                             r"^https://geralddaquila\\.com/\\S+$", _bridge_url, re.I
                         ):
                             continue
-                        for _bridge_sentence in re.split(r"(?<=[.!?])\\s+", _bridge_body):
-                            _bridge_sentence = re.sub(r"\\s+", " ", _bridge_sentence).strip()
+                        for _bridge_sentence in re.split(r"(?<=[.!?])\s+", _bridge_body):
+                            _bridge_sentence = re.sub(r"\s+", " ", _bridge_sentence).strip()
                             if len(_bridge_sentence) < 45 or len(_bridge_sentence) > 600:
                                 continue
                             if re.search(
-                                r"\\b" + re.escape(_bridge_term) + r"\\b",
+                                r"\b" + re.escape(_bridge_term) + r"\b",
                                 _normalize_query(_bridge_sentence),
                             ):
                                 _candidate = {
@@ -10984,10 +10995,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         _systemwide_recovery = _sanitize_basic_inquiry_response(
                             _compose_provider_exhaustion_recovery(query)
                         )
-                        # Clear any prior navigation inside the final authority
-                        # boundary. This keeps the final visitor state honest if
-                        # all answer authorities are exhausted.
-                        authoritative_doorway = None
+                        # Answer recovery and navigation authority are independent.
+                        # Preserve an already verified doorway while replacing
+                        # only the answer text; an absent or unverified doorway
+                        # remains absent and is handled by the bounded final
+                        # visitor doorway selector below.
                         # If every recovery below also fails, the visitor-facing
                         # boundary explicitly returns: I couldn’t produce a reliable answer to that question just now.
                         _systemwide_paragraphs = [
