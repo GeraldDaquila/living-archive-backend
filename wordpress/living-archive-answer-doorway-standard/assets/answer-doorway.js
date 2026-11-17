@@ -2,6 +2,12 @@
   'use strict';
 
   var ALLOWED_HOST = 'geralddaquila.com';
+  var GENERIC_RATIONALES = [
+    'there is something here worth staying with.',
+    'this gives you a concrete place to continue with the question you are carrying.',
+    'there is something here worth exploring.',
+    'this is a useful place to continue.'
+  ];
   var LABELS = {
     continue: 'CONTINUE EXPLORING',
     conceptual: 'CONTINUE EXPLORING',
@@ -28,6 +34,7 @@
     var rawUrl = typeof item.url === 'string' ? item.url.trim() : '';
     var safeUrl = normalizeUrl(rawUrl);
     if (!title || title.length > 180 || !rationale || rationale.length > 600 || !safeUrl) return null;
+    if (GENERIC_RATIONALES.indexOf(rationale.toLowerCase()) !== -1) return null;
 
     return {
       title: title,
