@@ -231,12 +231,12 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
     assert report["numbered_gold_star_count"] == len(numbered) == 36
-    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 58
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 59
     assert report["highest_assigned_gold_star_number"] == 93
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
     assert len(report["number_assignments"]) == 36
-    assert len(report["unassigned_benchmark_ids"]) == 58
+    assert len(report["unassigned_benchmark_ids"]) == 59
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
