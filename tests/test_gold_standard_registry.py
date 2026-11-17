@@ -1038,7 +1038,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
             assert record.get("numbering_status") == "UNASSIGNED"
             assert record.get("numbering_unassigned_reason_code")
             assert record.get("numbering_unassigned_reason")
-            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness", "gs-2026-11-17-oversoul-free-will-influence-without-compulsion"}:
+            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness", "gs-2026-11-17-oversoul-free-will-influence-without-compulsion", "general-guide-spiritual-community-accountability-gold-star-2026-11-17"}:
                 assert record.get("legacy_approval_grandfathered") is not True
                 assert record.get("numbering_unassigned_reason_code") == "NO_SERIAL_ALLOCATION_REQUESTED"
             elif record["benchmark_id"] not in {"gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing", "gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship", "gs-2026-11-16-collapse-adaptation-regeneration", "gs-2026-11-16-techno-utopian-thinking"}:
@@ -1348,7 +1348,7 @@ def test_spiritual_community_accountability_gold_star_is_approved_and_exactly_re
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["numbering_status"] == "UNASSIGNED"
     assert "gold_star_number" not in record
-    assert record["numbering_unassigned_reason_code"] == "USER_APPROVED_NO_SERIAL_ALLOCATION"
+    assert record["numbering_unassigned_reason_code"] == "NO_SERIAL_ALLOCATION_REQUESTED"
     assert record["explicit_user_elevation_approval"] is True
     assert record["rating_out_of_10"] == 9.5
     assert len(record["expected_response"].split("\n\n")) == 3
