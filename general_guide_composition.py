@@ -1918,7 +1918,7 @@ def _archive_passage_contrast_recovery(question: str, documents: List[Dict[str, 
     """Provide a source-faithful two-passage display when provider composition is unavailable."""
     if not _requires_archive_passage_contrast(question):
         return None
-    sources = _archive_passage_sources(documents, response)
+    sources = _archive_passage_sources(documents)
     if len(sources) < 2:
         return {
             "response": (
