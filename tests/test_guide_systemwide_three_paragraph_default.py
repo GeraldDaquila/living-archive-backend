@@ -498,6 +498,13 @@ def test_public_predictive_gold_star_successor_is_exact_runtime_authority_and_pr
         (Path(__file__).resolve().parents[1] / "docs" / "qa" / "gold_standard_registry.json")
         .read_text(encoding="utf-8")
     )
+    transfer_review = json.loads(
+        (Path(__file__).resolve().parents[1] / "docs" / "qa" / "gold_star_qualitative_transfer_review.json")
+        .read_text(encoding="utf-8")
+    )
+    from gold_star_lessons import validate_learning_integrity
+    validate_learning_integrity(registry["records"], transfer_review["entries"])
+
     predecessor = next(
         item for item in registry["records"]
         if item["benchmark_id"] == "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-2026-11-13"
