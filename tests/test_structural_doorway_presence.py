@@ -273,3 +273,46 @@ def test_legacy_exact_standard_keeps_approved_answer_but_recovers_missing_verifi
     assert payload["doorway_url"] == expected["url"]
     assert payload["doorway_rationale"] == expected["rationale"]
 
+def test_provider_and_deterministic_variants_share_workforce_gold_star_quality_floor():
+    import asyncio
+    import json
+    from ai_workforce_restructuring_contract import recovery_response
+
+    query = (
+        "Our company is considering AI automation to lower employee headcount costs. "
+        "What should we evaluate before making the change?"
+    )
+    assert main._resolve_exact_guide_gold_standard(query) is None
+    assert main._select_verified_doorway_conceptual_family(query) == "ai_workforce_restructuring"
+    weak_answer = (
+        "For a question like this, the first task is to make the decision visible. "
+        "What outcome is the organisation trying to achieve, what responsibilities does it carry, "
+        "and who will live with the consequences?\n\n"
+        "From there, compare the real options rather than assuming that the proposed course is the only one. "
+        "Look at what each option makes possible, what it may damage, who bears the costs, and what evidence "
+        "would justify changing direction.\n\n"
+        "The point is not to make the decision for the organisation, but to make the grounds for acting clearer. "
+        "Choose deliberately, make the reasoning and limits visible, and remain accountable for what follows."
+    )
+
+    async def send_payload(provider):
+        events = []
+
+        async def send(event):
+            events.append(event)
+
+        payload = {"ok": True, "query": query, "response": weak_answer, "provider": provider}
+        await main._use_send_json(send, payload)
+        body = next(event["body"] for event in events if event["type"] == "http.response.body")
+        return json.loads(body.decode("utf-8"))
+
+    expected_answer = recovery_response()
+    expected_doorway = main._select_guide_node_fallback_doorway(query)
+    for provider in ("llm-provider", "deterministic-recovery"):
+        payload = asyncio.run(send_payload(provider))
+        assert payload["response"] == expected_answer
+        assert payload["answer_quality_contract"] == "ai_workforce_restructuring_gold_star_v1"
+        assert payload["recommendation"] == expected_doorway
+        assert payload["canonical_doorway"] == expected_doorway
+        assert payload["doorway_rationale"] == expected_doorway["rationale"]
+
