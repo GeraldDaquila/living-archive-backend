@@ -1027,6 +1027,19 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         )
     elif (reflective_answer := _reflective_conceptual_recovery(q)) is not None:
         answer = reflective_answer
+    elif (
+        re.search(r"\b(?:how|should|act|decide|decision|choose)\b", lower)
+        and re.search(r"\b(?:uncertain|uncertainty|unknown|unpredictable)\b", lower)
+        and re.search(r"\b(?:consequential|consequences|stakes|high\s+stakes|serious)\b", lower)
+    ):
+        answer = (
+            "When a decision has serious consequences and the future is uncertain, act in proportion to what is known rather than waiting for certainty or pretending to have it. "
+            "Begin by identifying what must be protected, who will be affected, which responsibilities cannot be deferred, and which parts of the situation remain unknown.\n\n"
+            "Compare realistic options by looking at what each makes possible, what it could damage, who carries the costs, and what evidence would change the assessment. "
+            "Give particular weight to people who will live with the consequences, including those with the least influence over the decision.\n\n"
+            "Then choose a course that preserves room to learn and correct where possible. Set clear signals for review, name who is accountable for watching the effects, and change direction when evidence or conditions warrant it. "
+            "A decision can be necessary without being certain; its quality depends partly on whether it remains answerable to the people and realities it affects."
+        )
     elif re.search(r"\b(?:how|steps|approach|what can i do|what should we do|how to)\b", lower):
         answer = (
             "Start by defining the outcome the change must achieve, the responsibilities that cannot be lost, and the people who will live with its consequences. "
