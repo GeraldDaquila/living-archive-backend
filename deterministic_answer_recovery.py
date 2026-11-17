@@ -590,6 +590,7 @@ def registered_recovery_recommendation(question):
         return {
             "title": "From Awakening to Stewardship",
             "url": "https://geralddaquila.com/from-awakening-to-stewardship/",
+            "rationale": "This essay explores how personal development can mature into stewardship: taking responsibility for the relationships, institutions, and shared conditions that support human flourishing. It offers a wider perspective on community continuity by asking what people must build and sustain together, rather than prescribing how a particular inherited practice should be changed.",
         }
     if _is_public_predictive_system_question(question):
         return {
