@@ -6087,13 +6087,13 @@
       "expected_doorway": {
         "title": "Knowledge Stewardship in the AI Era: From Information to Wisdom",
         "url": "https://geralddaquila.com/2026/09/14/knowledge-stewardship-in-the-ai-era-from-information-to-wisdom/",
-        "rationale": "This Archive essay includes a section on knowledge as a commons and explains why shared knowledge depends on responsible preservation, interpretation, transparency, accountability, and thoughtful participation. It is a direct continuation into the stewardship of the knowledge conditions the Guide must help preserve."
+        "rationale": "This Archive essay includes a section on knowledge as a commons and explains why shared knowledge depends on responsible preservation, interpretation, transparency, accountability, and thoughtful participation. A Guide must help preserve the conditions that make shared knowledge trustworthy."
       },
       "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
       "rating_out_of_10": 9.7,
       "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
-      "approval_state": "User reviewed the live visitor-facing response and explicitly instructed structural correction and Gold Star elevation on 2026-11-17.",
+      "approval_state": "User reviewed the live visitor-facing answer and the rendered Continue Exploring doorway, then explicitly instructed: 'elevate to gold star' on 2026-11-17.",
       "freeze_policy": "immutable_user_approved_gold_standard",
       "runtime_transfer": true,
       "reasoning_family": "public_knowledge_commons_stewardship_and_provenance",
@@ -6117,21 +6117,22 @@
         "Preserves disagreement and source plurality rather than silently harmonizing different positions.",
         "Requires provenance, context, authorship, access boundaries, fair representation, and correction.",
         "The answer is complete before one visible canonical doorway to Knowledge Stewardship in the AI Era: From Information to Wisdom.",
-        "The doorway extends the inquiry into the stewardship of shared knowledge; it does not substitute for the answer."
+        "The doorway extends the inquiry into the conditions that make shared knowledge trustworthy; it does not substitute for the answer."
       ],
       "user_approved_at": "2026-11-17",
-      "elevation_approval_evidence": "User supplied the live Guide screenshot and instructed: 'fix structurally and turn this into a gold star' on 2026-11-17. The screenshot establishes the reviewed answer shape and its missing continuation; the registered answer is the structurally corrected Gold Star version with a separately verified canonical doorway.",
+      "elevation_approval_evidence": "User reviewed the live Guide screenshot showing the complete three-paragraph answer followed by the visible Continue Exploring panel linking to Knowledge Stewardship in the AI Era: From Information to Wisdom, then explicitly instructed 'elevate to gold star' on 2026-11-17.",
       "provenance": {
         "source": "User-provided live visitor-facing Guide screenshot and explicit structural-correction/Gold-Star instruction in the conversation.",
         "source_date": "2026-11-17",
         "live_surface": "The Guide visitor-facing search response",
-        "evidence_boundary": "The screenshot establishes the original three-layer answer and absence of a doorway. The registered answer is an explicitly authorized structural correction, not a verbatim transcript of the screenshot. The doorway destination and its relevance were independently verified against the published Archive resource.",
+        "evidence_boundary": "The screenshot establishes the reviewed live answer and the visible, correctly linked Continue Exploring doorway. The doorway rationale is the final user-approved wording that explicitly states the Guide must help preserve the conditions that make shared knowledge trustworthy. The destination was independently verified against the published Archive resource.",
         "doorway_verification": {
           "title": "Knowledge Stewardship in the AI Era: From Information to Wisdom",
           "url": "https://geralddaquila.com/2026/09/14/knowledge-stewardship-in-the-ai-era-from-information-to-wisdom/",
           "source_post_id": 58509,
           "source_status": "publish",
-          "verified_by": "Cowboy MCP WordPress post record; section titled 'Knowledge as a Commons'."
+          "verified_by": "Cowboy MCP WordPress post record; section titled 'Knowledge as a Commons'.",
+          "rationale": "This Archive essay includes a section on knowledge as a commons and explains why shared knowledge depends on responsible preservation, interpretation, transparency, accountability, and thoughtful participation. A Guide must help preserve the conditions that make shared knowledge trustworthy."
         }
       },
       "numbering_status": "UNASSIGNED",
