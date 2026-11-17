@@ -334,7 +334,7 @@ def _select_guide_node_fallback_doorway(query):
             continue
         title = str(node.get("title") or "").strip()
         url = str(node.get("url") or node.get("canonical_url") or node.get("permalink") or "").strip()
-        if not title or not re.fullmatch(r"https://geralddaquila\\.com/[^\\s]+", url, re.I):
+        if not title or not re.fullmatch(r"https://geralddaquila\.com/[^\s]+", url, re.I):
             continue
         haystack = " ".join([
             title,
