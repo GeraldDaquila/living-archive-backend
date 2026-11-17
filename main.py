@@ -5844,7 +5844,18 @@ def _guide_finalize_visitor_payload(payload, query):
             # for the one missing retrieval subject. Preserve the default Gold
             # Star doorway rather than turning a necessary clarification into
             # a navigation dead end.
-            safe = _guide_restore_verified_doorway(safe, query)
+            # No subject has been supplied yet, so lexical/conceptual family
+            # selection would be premature. Use the approved broad doorway
+            # explicitly; a subject-specific destination can be selected after
+            # the visitor answers the clarification question.
+            default_doorway = _normalize_authoritative_recommendation(
+                _gold_star_default_doorway()
+            )
+            safe["recommendation"] = default_doorway
+            safe["canonical_doorway"] = default_doorway
+            safe["doorway_title"] = default_doorway.get("title") if default_doorway else None
+            safe["doorway_url"] = default_doorway.get("url") if default_doorway else None
+            safe["doorway_rationale"] = default_doorway.get("rationale") if default_doorway else None
         else:
             # The two verified source links are the doorway for the completed
             # passage comparison; do not append an unrelated general doorway.
