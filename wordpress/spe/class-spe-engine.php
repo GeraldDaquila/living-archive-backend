@@ -170,7 +170,7 @@ final class SPE_Engine {
         $safe_why = [];
         foreach ($selected as $resource) {
             $id = $resource['id'];
-            $safe_why[$id] = !empty($why_each[$id]) ? $why_each[$id] : '';
+            $safe_why[$id] = !empty($why_each[$id]) ? $why_each[$id] : 'There is something here worth staying with.';
         }
 
         return [
@@ -382,7 +382,7 @@ final class SPE_Engine {
         foreach ($ids as $id) {
             $why[] = [
                 'id' => $id,
-                'reason' => '',
+                'reason' => 'This gives you a concrete place to continue with the question you are carrying.',
             ];
         }
         return [
