@@ -11644,9 +11644,16 @@ def _apply_exact_gold_standard_authority_to_payload(payload):
     if not bool(standard.get("forbids_doorway")):
         title = str(standard.get("doorway_title") or "").strip()
         url = str(standard.get("doorway_url") or "").strip()
+        rationale = str(standard.get("doorway_rationale") or "").strip()
         if title and re.match(r"^https://\S+$", url, re.I):
-            payload["recommendation"] = {"title": title, "url": url}
-            payload["canonical_doorway"] = payload["recommendation"]
+            doorway = {"title": title, "url": url}
+            if rationale:
+                doorway["rationale"] = rationale
+            payload["recommendation"] = doorway
+            payload["canonical_doorway"] = doorway
+            payload["doorway_title"] = title
+            payload["doorway_url"] = url
+            payload["doorway_rationale"] = rationale or None
     return payload
 
 async def _use_send_json(send, payload, status_code=200):
@@ -11699,9 +11706,16 @@ async def _use_send_json(send, payload, status_code=200):
             if not bool(_boundary_standard.get("forbids_doorway")):
                 _boundary_title = str(_boundary_standard.get("doorway_title") or "").strip()
                 _boundary_url = str(_boundary_standard.get("doorway_url") or "").strip()
+                _boundary_rationale = str(_boundary_standard.get("doorway_rationale") or "").strip()
                 if _boundary_title and re.match(r"^https://\S+$", _boundary_url, re.I):
-                    payload["recommendation"] = {"title": _boundary_title, "url": _boundary_url}
-                    payload["canonical_doorway"] = payload["recommendation"]
+                    _boundary_doorway = {"title": _boundary_title, "url": _boundary_url}
+                    if _boundary_rationale:
+                        _boundary_doorway["rationale"] = _boundary_rationale
+                    payload["recommendation"] = _boundary_doorway
+                    payload["canonical_doorway"] = _boundary_doorway
+                    payload["doorway_title"] = _boundary_title
+                    payload["doorway_url"] = _boundary_url
+                    payload["doorway_rationale"] = _boundary_rationale or None
         # Archive-claim provenance answers own a stricter navigation contract than
         # generic recovery. Once the final visitor boundary has rejected a doorway,
         # no later sender-level fallback may repopulate it from an unrelated
@@ -11749,10 +11763,23 @@ async def _use_send_json(send, payload, status_code=200):
         # deterministic recovery. A reviewed conceptual family takes precedence
         # over an adjacent upstream recommendation, and all public aliases plus
         # the grounded rationale are synchronized for the frontend renderer.
+        _boundary_standard_has_doorway = bool(
+            _boundary_standard
+            and str(_boundary_standard.get("doorway_title") or "").strip()
+            and re.match(
+                r"^https://\S+$",
+                str(_boundary_standard.get("doorway_url") or "").strip(),
+                re.I,
+            )
+        )
+        _boundary_standard_forbids_doorway = bool(
+            _boundary_standard and _boundary_standard.get("forbids_doorway")
+        )
         if (
             not _archive_claim_final
             and _boundary_query
-            and _boundary_standard is None
+            and not _boundary_standard_forbids_doorway
+            and not _boundary_standard_has_doorway
         ):
             try:
                 _boundary_family = _select_verified_doorway_conceptual_family(
