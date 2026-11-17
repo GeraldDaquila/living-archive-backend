@@ -644,9 +644,9 @@ def is_spiritual_community_accountability_question(question):
         r"religious leader|guru|teacher)\b", q
     ))
     accountability_gap = bool(re.search(
-        r"\b(?:weak|limited|absent|missing|poor|inadequate|lack(?:ing)?)\\b.{0,45}"
-        r"\b(?:accountab(?:ility|le)|oversight|checks and balances|review)\\b|"
-        r"\b(?:accountab(?:ility|le)|oversight|checks and balances|review)\\b.{0,45}"
+        r"\b(?:weak|limited|absent|missing|poor|inadequate|lack(?:ing)?)\b.{0,45}"
+        r"\b(?:accountab(?:ility|le)|oversight|checks and balances|review)\b|"
+        r"\b(?:accountab(?:ility|le)|oversight|checks and balances|review)\b.{0,45}"
         r"\b(?:weak|limited|absent|missing|poor|inadequate|lack(?:ing)?)\b", q
     ))
     asks_for_risk_analysis = bool(re.search(
