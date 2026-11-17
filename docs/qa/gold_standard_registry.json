@@ -6137,6 +6137,64 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve the benchmark_id as the stable learning identity; serial allocation remains independent."
+    },
+    {
+      "benchmark_id": "general-guide-community-project-economic-dimensions-gold-star-2026-11-18",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "A community project reports its financial return and the number of volunteer hours but not who benefits or what common resources are maintained. What additional economic dimensions should the Guide surface?",
+      "expected_response": "The economic contribution should be assessed beyond its financial return and the number of volunteer hours recorded. The first additional dimension is distribution: who receives the project's benefits, who can use what it creates, who makes the consequential decisions, and whether value reaches the people and places carrying the work. An aggregate return can look positive while benefits are concentrated elsewhere or important costs remain uncounted.\n\nThe account should also include the resources and labor required to keep the project functioning. That means the time and opportunity costs of volunteer work, paid and unpaid coordination, upkeep and eventual replacement of shared assets, and ecological effects, and costs transferred to households, public services, or neighboring communities. Common resources are not simply a contribution at the beginning: their condition, access, maintenance responsibility, and future availability are part of the project's economic performance.\n\nFinally, examine how much value remains locally, whether the project builds durable skills and relationships, what dependencies it creates, and whether its benefits continue after initial funding or volunteer energy declines. A stronger account tracks who benefits and who bears costs across the project's life, the condition of the shared resources it depends on, and who is responsible for reviewing and correcting the arrangement. These are dimensions to investigate, not conclusions about this particular project.",
+      "expected_doorway": {
+        "title": "Local Resilience Economies",
+        "url": "https://geralddaquila.com/2026/05/27/local-resilience-economies/",
+        "rationale": "This Archive essay examines how communities sustain local capability, shared infrastructure, cooperative structures, and ecological stewardship. It offers a wider systems lens for examining where value remains, who benefits, and how the resources that support community activity are maintained; it is an orientation doorway, not an assessment of this particular project."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.7,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the live visitor-facing response and explicitly instructed Gold Star elevation on 2026-11-18.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "community_project_economic_accounting_and_shared_resource_stewardship",
+      "transferable_lesson": "Assess community-project economic contribution beyond financial return and volunteer-hour totals: identify who receives benefits and shapes decisions, who contributes paid and unpaid labor and bears opportunity or externalized costs, what shared assets and ecological conditions require lifecycle maintenance, and whether locally retained value and capabilities endure.",
+      "transfer_boundary": "Transfer the accounting discipline, not this answer text or Local Resilience Economies doorway. Do not infer that a particular project is equitable, sustainable, profitable, or harmful without evidence. Do not impose this frame on unrelated project questions that do not concern economic contribution, distribution, shared resources, lifecycle costs, or durability.",
+      "known_theme": "community projects, economic contribution, benefit distribution, volunteer labor, opportunity costs, common resources, shared assets, maintenance, lifecycle costs, ecological effects, local value retention, durability",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "community_project_economic_accounting_and_shared_resource_stewardship",
+        "transferable_discipline": "Make economic accounting distributional and lifecycle-aware: identify beneficiaries and decision power, paid and unpaid contributions, opportunity and externalized costs, shared-asset maintenance and ecological effects, local value retention, and durability.",
+        "abstention_boundary": "Do not claim project-specific outcomes without evidence; do not equate financial return or volunteer hours with total contribution; do not assume benefits or costs are evenly distributed."
+      },
+      "assertions": [
+        "Preserve the reviewed answer as exactly three substantive paragraphs: distribution and decision power; labor, opportunity costs, shared assets, ecological effects, and externalized costs; local value retention, dependencies, durability, and lifecycle accountability.",
+        "Do not infer actual project outcomes; present these as dimensions to investigate.",
+        "Distinguish financial return and volunteer-hour totals from the broader economic contribution.",
+        "Include who benefits, who can use what is created, who makes consequential decisions, and whether value reaches those carrying the work.",
+        "Include volunteer opportunity costs, paid and unpaid coordination, shared-asset upkeep and replacement, ecological effects, and costs transferred to households, public services, or neighboring communities.",
+        "Include condition, access, maintenance responsibility, and future availability of common resources.",
+        "Include local value retention, durable skills and relationships, dependencies, and continuity beyond initial funding or volunteer energy.",
+        "Render one relevant canonical doorway after the complete answer; the doorway extends inquiry and does not assess the particular project."
+      ],
+      "user_approved_at": "2026-11-18",
+      "elevation_approval_evidence": "User reviewed the live visitor-facing Guide screenshot showing the complete three-paragraph economic-dimensions answer and the Local Resilience Economies doorway, then explicitly instructed: 'elevate' on 2026-11-18.",
+      "provenance": {
+        "source": "User-provided live visitor-facing Guide screenshot and explicit Gold Star elevation approval.",
+        "source_date": "2026-11-18",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the reviewed three-paragraph answer, the canonical doorway and its displayed rationale. The exact displayed response is frozen as the approved benchmark. The screenshot does not establish the particular community project's actual economic outcomes.",
+        "doorway_verification": {
+          "title": "Local Resilience Economies",
+          "url": "https://geralddaquila.com/2026/05/27/local-resilience-economies/",
+          "verified_against": "Existing canonical doorway registration in main.py and the preceding merged community-project economic doorway repair (PR #1623)."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve the benchmark_id as the stable learning identity; serial allocation remains independent."
     }
   ],
   "last_reconciliation_note": "Added user-approved public-commons stewardship Gold Star on 2026-11-17. The exact three-paragraph answer and verified Knowledge Stewardship in the AI Era doorway are frozen; transfer is limited to access boundaries, attribution, synthesis, disagreement, provenance, stewardship, and correction. No display serial was allocated; historical gaps #85 and #86 remain untouched. Existing Gold Star exemplars and exact-query successor governance are preserved.",
@@ -6269,13 +6327,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-17",
-    "approved_gold_star_count": 95,
-    "registry_record_count": 132,
+    "approved_gold_star_count": 96,
+    "registry_record_count": 133,
     "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 95 approved Gold Stars across 132 registry records. The complex-future scenario-readiness, Oversoul/free-will, personal-decision agency, and public-commons stewardship exemplars are active structural-learning contributors. The Oversoul exemplar's deterministic fallback eligibility remains false because its bounded recovery contract independently owns exact answer recovery. No display serial was allocated for the public-commons exemplar; prior exact-query successor governance remains unchanged.",
     "numbered_gold_star_record_count": 36,
     "highest_assigned_gold_star_number": 93,
     "numbering_reconciliation": "Record-level reconciliation: 95 approved Gold Stars; 36 assigned display serials #56–#84 and #87–#93; 59 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
-    "unassigned_approved_gold_star_count": 59,
+    "unassigned_approved_gold_star_count": 60,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {
