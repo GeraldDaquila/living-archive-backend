@@ -85,7 +85,7 @@ final class LAN_Engine {
             $question = $this->clean((string)($interpretation['clarifying_question'] ?? ''));
             if ($question === '') $question = 'What part of this question feels most important to understand?';
             return [
-                'version' => '0.3.3', 'clarification_used' => false, 'reflection' => '', 'selected' => [], 'why_each' => [],
+                'version' => '0.3.4', 'clarification_used' => false, 'reflection' => '', 'selected' => [], 'why_each' => [],
                 'door_roles' => [], 'needs_clarification' => true, 'clarifying_question' => $question,
                 'movement_type' => 'continue', 'landscape' => $this->landscape_destinations(),
             ];

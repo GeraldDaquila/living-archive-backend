@@ -58,3 +58,6 @@
 .lah-rn-junction-summary{margin:0 0 1rem;padding:1rem 1.05rem;background:#f1f1f1;border:1px solid #ddd;border-radius:10px;color:#222;line-height:1.65}.lah-rn-unit-label{font-weight:500}.lah-rn-unit-actions{max-width:650px}
 
 .lah-rn-handoff-status{margin:.7rem 0 0;color:#666;font-size:.9rem;line-height:1.5}.lah-rn-handoff-status[hidden]{display:none!important}.lah-rn.is-guide-handoff .lah-rn-input{background:#f7f7f7;color:#444}.lah-rn.is-guide-handoff .lah-rn-submit{min-width:158px}.lah-rn.is-guide-handoff .lah-rn-submit:disabled{opacity:1}.lah-rn.is-guide-handoff .lah-rn-submit .lah-rn-button-label{display:inline}.lah-rn.is-guide-handoff .lah-rn-spinner{display:inline-block;margin-left:.55rem;vertical-align:-2px}.lah-rn.is-guide-handoff .lah-rn-button-label{margin-right:0}
+
+.lah-rn-resource-block{margin-top:.15rem;padding:0}
+.lah-rn-resource-block .la-answer-doorway{margin:0}
