@@ -766,3 +766,66 @@ def test_non_gold_star_responses_do_not_receive_a_forced_generic_doorway():
     import main
 
     assert main._enforce_registered_gold_standard_doorway(None, None, "What is 2 + 2?") is None
+
+
+def test_shared_json_sender_enforces_registered_personal_agency_answer_and_doorway(monkeypatch):
+    import asyncio
+    import main
+    from deterministic_answer_recovery import _guide_personal_decision_agency_recovery
+
+    query = (
+        "A user asks for a personal life decision to be made for them. "
+        "How should the Guide offer orientation while refusing to replace agency?"
+    )
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda _query: None)
+    sent = []
+
+    async def send(message):
+        sent.append(message)
+
+    asyncio.run(main._use_send_json(send, {
+        "ok": True,
+        "query": query,
+        "response": "The decision about A user asks for a personal life decision...",
+        "answer": "Stale answer alias.",
+        "provider": "provider-exhaustion-recovery",
+    }))
+    body = next(item["body"] for item in sent if item["type"] == "http.response.body")
+    result = json.loads(body.decode("utf-8"))
+    expected = _guide_personal_decision_agency_recovery()
+
+    assert result["response"] == expected
+    assert result["answer"] == expected
+    assert "The decision about A user asks" not in result["response"]
+    assert result["processing"] == "sender_boundary_personal_decision_agency"
+    assert result["recommendation"]["title"] == (
+        "Being in the Driver's Seat (Without Pretending You Control the Road)"
+    )
+    assert result["recommendation"]["url"] == (
+        "https://geralddaquila.com/"
+        "being-in-the-drivers-seat-without-pretending-to-control-the-road/"
+    )
+    assert result["canonical_doorway"] == result["recommendation"]
+    assert result["doorway_rationale"]
+
+
+def test_shared_json_sender_does_not_rewrite_unrelated_questions(monkeypatch):
+    import asyncio
+    import main
+
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda _query: None)
+    sent = []
+
+    async def send(message):
+        sent.append(message)
+
+    asyncio.run(main._use_send_json(send, {
+        "ok": True,
+        "query": "What is the difference between authority and power?",
+        "response": "An ordinary answer.",
+    }))
+    body = next(item["body"] for item in sent if item["type"] == "http.response.body")
+    result = json.loads(body.decode("utf-8"))
+
+    assert result["response"] == "An ordinary answer."
+    assert result.get("processing") != "sender_boundary_personal_decision_agency"
