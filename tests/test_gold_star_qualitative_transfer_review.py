@@ -222,7 +222,12 @@ def test_approved_gold_stars_have_complete_provenance_and_quality_contract():
             }, record["benchmark_id"]
         capabilities = record.get("gold_star_capabilities")
         assert isinstance(capabilities, dict), record["benchmark_id"]
-        if record.get("runtime_transfer") is False:
+        if record.get("superseded_by_benchmark_id"):
+            assert record.get("runtime_transfer") is False, record["benchmark_id"]
+            assert capabilities.get("exact_answer_authority") is False, record["benchmark_id"]
+            assert capabilities.get("active_quality_contributor") is False, record["benchmark_id"]
+            assert capabilities.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
+        elif record.get("runtime_transfer") is False:
             # An approved exact-query successor may own the answer without
             # becoming a second adaptive-learning contributor or fallback.
             assert capabilities.get("exact_answer_authority") is True, record["benchmark_id"]
