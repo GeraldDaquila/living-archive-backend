@@ -298,7 +298,7 @@ def _select_verified_doorway_conceptual_family(query):
         r"\b(?:claim|claims|source|sources)\b",
     ))
     if re.search(r"\barchive\b", text, re.I) and archive_commons_terms >= 3:
-        return "archive_guidance_provenance"
+        return "public_commons_stewardship"
     if (
         re.search(r"\barchive(?:-grounded|\s+grounded)?\b", text, re.I)
         and re.search(r"\b(?:guidance|knowledge|evidence|synthesis|orientation)\b", text, re.I)
@@ -411,6 +411,11 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "archive_guidance_provenance": {
         "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
         "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+    },
+    "public_commons_stewardship": {
+        "title": "Knowledge Stewardship in the AI Era: From Information to Wisdom",
+        "url": "https://geralddaquila.com/2026/09/14/knowledge-stewardship-in-the-ai-era-from-information-to-wisdom/",
+        "rationale": "This Archive essay includes a section on knowledge as a commons and explains why shared knowledge depends on responsible preservation, interpretation, transparency, accountability, and thoughtful participation. It is a direct continuation into the stewardship of the knowledge conditions the Guide must help preserve.",
     },
     "community_project_tradeoffs": {
         "title": "Local Resilience Economies",
@@ -5652,6 +5657,38 @@ def _guide_finalize_visitor_payload(payload, query):
             safe["doorway_url"] = None
             safe["doorway_rationale"] = None
         safe["processing"] = "final_visitor_boundary_exact_gold_standard"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
+    # Public-commons governance has one shared, question-specific visitor contract.
+    # Enforce the same complete answer and verified doorway after either provider/LLM
+    # composition or deterministic recovery, so neither route can omit governance
+    # obligations or drift to a merely adjacent destination.
+    public_commons_terms = (
+        re.search(r"\barchive\b", str(query or ""), re.I)
+        and re.search(r"\bpublic\s+commons\b", str(query or ""), re.I)
+        and all(re.search(pattern, str(query or ""), re.I) for pattern in (
+            r"\baccess\b", r"\battribution\b",
+            r"\bdisagreement\b", r"\bstewardship\b",
+        ))
+    )
+    if public_commons_terms:
+        safe = dict(payload)
+        safe["response"] = (
+            "The claim that the Living Archive is a public knowledge commons creates an obligation to make its public materials discoverable and usable, while being honest that not every resource has the same access status. The Guide must distinguish open material from Steward-access or protected texts, respect those boundaries in what it retrieves and reproduces, and never treat the word “commons” as blanket permission to republish material or erase authorship. Public access is an invitation to encounter and learn; it does not mean every layer is unrestricted.\\n\\n"
+            "Attribution and disagreement are part of that access, not extras. When the Guide reports a direct claim, it should identify the particular text that supports it; when it connects several resources, it should say that the connection is its own synthesis; and when it offers an interpretation, it should label it as orientation rather than Archive doctrine. If sources differ, it should name the difference, preserve each source’s context and voice, and explain what remains unresolved instead of quietly blending them into a consensus no source actually states.\\n\\n"
+            "Stewardship is the discipline that holds these practices together: preserve provenance and context, credit authorship, protect access conditions, represent disagreement fairly, and remain correctable when a source or reader reveals an error. The Guide should make the commons easier to navigate without claiming ownership of the knowledge or authority over the people who interpret it. Its measure is not how smoothly it produces one answer, but whether it helps visitors engage the shared body of work responsibly and continue thinking for themselves."
+        )
+        doorway = _normalize_authoritative_recommendation(
+            _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get("public_commons_stewardship")
+        )
+        safe["recommendation"] = doorway
+        safe["canonical_doorway"] = doorway
+        safe["doorway_title"] = doorway.get("title") if doorway else None
+        safe["doorway_url"] = doorway.get("url") if doorway else None
+        safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
+        safe["processing"] = "final_visitor_boundary_public_commons_stewardship"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
