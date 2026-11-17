@@ -567,6 +567,15 @@ def test_oversoul_free_will_question_recovers_answer_and_canonical_doorway_acros
     assert main._select_verified_doorway_conceptual_family(query) == "oversoul_free_will"
     assert main._select_guide_node_fallback_doorway(query) == expected_doorway
 
+    # The deterministic API route must bind answer and doorway before
+    # later composition layers can substitute a generic response.
+    deterministic = main._basic_inquiry_round1_deterministic_response(
+        query, {}, {"context_blocks": ""}, recommendation_available=False
+    )
+    assert deterministic["response"] == answer
+    assert deterministic["recommendation"] == expected_doorway
+    assert deterministic["provider"] == "bounded_oversoul_free_will_recovery"
+
     # A provider-exhaustion event must return the substantive recovery rather
     # than the generic Guide failure message or a broad unrelated compass.
     recovered = main._basic_inquiry_provider_exhaustion_response(
@@ -575,6 +584,13 @@ def test_oversoul_free_will_question_recovers_answer_and_canonical_doorway_acros
     assert recovered["response"] == answer
     assert recovered["recommendation"] == expected_doorway
     assert recovered["provider"] == "bounded_provider_exhaustion_recovery"
+
+    # A provider-generated answer still receives the same verified doorway.
+    finalized_provider = main._guide_finalize_visitor_payload(
+        {"response": "Provider answer.", "recommendation": None}, query
+    )
+    assert finalized_provider["recommendation"] == expected_doorway
+    assert finalized_provider["canonical_doorway"] == expected_doorway
 
     # Do not classify every mention of Oversoul as this particular inquiry.
     assert not is_oversoul_free_will_question("What is an Oversoul?")
