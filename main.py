@@ -5375,6 +5375,36 @@ def _is_explanatory_inquiry(query):
     return sum(bool(re.search(pattern, q, re.I)) for pattern in explanation_signals) >= 1
 
 
+def _is_archive_examples_evidence_limits_inquiry(query):
+    """Recognize when examples are being mistaken for proof of a broader Archive claim."""
+    q = _normalize_query(query)
+    if not q:
+        return False
+    has_archive = bool(re.search(r"\b(?:archive|archive's|archive texts?|archive materials?)\b", q, re.I))
+    has_examples = bool(re.search(r"\b(?:examples?|illustrations?|case studies|passages?)\b", q, re.I))
+    has_answer_gap = bool(re.search(
+        r"\b(?:no|without|lacks?|lack of)\s+(?:a\s+)?(?:direct|explicit|clear)\s+(?:answer|response|support|evidence)\b",
+        q,
+        re.I,
+    ))
+    asks_epistemic_limits = bool(re.search(
+        r"\b(?:what(?:\s+is)?\s+(?:known|established)|what remains (?:open|unresolved|unknown)|"
+        r"what (?:can|cannot) be concluded|known and (?:what )?remains)\b",
+        q,
+        re.I,
+    ))
+    return has_archive and has_examples and has_answer_gap and asks_epistemic_limits
+
+
+def _archive_examples_evidence_limits_recovery():
+    """Keep illustrative examples, supported inference, and unresolved claims separate."""
+    return (
+        "The two examples establish what those particular sources actually say, in the contexts in which they say it. If they support a shared point, the Guide may identify that convergence as a synthesis—but it must name it as an inference from those examples, not as a direct Archive statement or proof of the visitor's broader claim.\n\n"
+        "What remains open is whether the examples are representative, whether other Archive materials qualify or contradict them, and whether they provide evidence for the wider claim at all. The Guide should state exactly where support ends: these examples may suggest a possibility without establishing the broader claim. It should identify missing evidence rather than turn the absence of a direct answer into a confident conclusion.\n\n"
+        "The answer should therefore show three things: what each source establishes, with its source identified; what can reasonably be inferred across the examples, explicitly labelled as synthesis; and what remains unresolved, including what further evidence would narrow or settle the question. If the Archive has not directly addressed the claim, say so plainly. Illustration is useful, but it is not proof."
+    )
+
+
 def _is_archive_claim_boundary_inquiry(query):
     """Recognize questions about the epistemic boundary between Archive evidence and Guide synthesis."""
     q = _normalize_query(query)
@@ -5502,7 +5532,34 @@ def _boundary_canonical_doorway(payload, query):
         # the inquiry. This remains evidence-bounded: no title or URL is ever
         # manufactured.
         recovery_queries = [query]
-        if _is_archive_claim_boundary_inquiry(query):
+        # When a visitor explicitly asks what examples establish and what remains
+    # unresolved, answer the evidence question before broader provenance or
+    # decision-coaching handlers can reinterpret it as a generic decision task.
+    if _is_archive_examples_evidence_limits_inquiry(query):
+        safe = dict(payload)
+        safe["response"] = _archive_examples_evidence_limits_recovery()
+        doorway = {
+            "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+            "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+            "rationale": (
+                "Continue into the Archive's Knowledge & Sensemaking pathway to examine how sources, "
+                "evidence, interpretation, and unresolved questions relate."
+            ),
+        }
+        safe["recommendation"] = dict(doorway)
+        safe["canonical_doorway"] = dict(doorway)
+        safe["doorway_title"] = doorway["title"]
+        safe["doorway_url"] = doorway["url"]
+        safe["doorway_rationale"] = doorway["rationale"]
+        safe["processing"] = "final_visitor_boundary_archive_examples_evidence_limits"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        print(
+            "The Guide final visitor boundary: separated example evidence, synthesis, and unresolved claims."
+        )
+        return safe
+
+    if _is_archive_claim_boundary_inquiry(query):
             recovery_queries.append(
                 query + " source attribution interpretation synthesis provenance judgment"
             )
