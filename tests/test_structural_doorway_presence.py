@@ -102,4 +102,4 @@ def test_community_continuity_recovery_is_registered_and_owns_its_verified_doorw
     }
     answer = compose_recovery(query)
     assert answer.startswith("Communities preserve continuity")
-    assert len([p for p in answer.split("\\n\\n") if p.strip()]) == 3
+    assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
