@@ -6378,8 +6378,6 @@
         }
       },
       "numbering_status": "ASSIGNED",
-      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve the benchmark_id as the stable learning identity; serial allocation remains independent.",
       "gold_star_number": 86,
       "numbering_allocation": {
         "allocated_number": 86,
@@ -6644,7 +6642,8 @@
           "authority": "User explicitly agreed to release both #85 and #86 as two exceptions in the conversation on 2026-11-16.",
           "allocation_rule": "Reserve #85 for the next newly approved Gold Star, then #86 for the following newly approved Gold Star. Allocation requires a new unique benchmark_id, explicit user approval of Gold Star elevation, and a record-level gold_star_number assignment. Do not assign either number to an existing approved record or infer an exemplar.",
           "historical_evidence_preserved": true
-        }
+        },
+        "disposition": "Historical gap retained as evidence; serial #86 is released solely for the next new, explicitly approved Gold Star allocation under the two-number exception. No existing record is renumbered or backfilled."
       },
       "authority": "User explicitly instructed Gold Star elevation on 2026-11-18. The canonical numbering policy reserves #86 for the next newly approved Gold Star after #85 was allocated; this approval completes that authorized allocation."
     }
