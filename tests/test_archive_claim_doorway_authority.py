@@ -165,9 +165,9 @@ def test_archive_examples_without_direct_answer_use_evidence_limits_contract_for
 
     expected_doorway = {
         "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
-        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
         "rationale": (
-            "Continue into the Archive's Knowledge & Sensemaking pathway to examine how sources, "
+            "Continue into the Archive’s Knowledge & Sensemaking pathway to examine how sources, "
             "evidence, interpretation, and unresolved questions relate."
         ),
     }
