@@ -83,6 +83,11 @@ from deterministic_answer_recovery import (
     is_harm_repair_question,
     is_community_continuity_revision_question,
 )
+from ai_workforce_restructuring_contract import (
+    is_ai_workforce_restructuring_question,
+    recovery_response as _ai_workforce_restructuring_recovery,
+    has_gold_star_coverage as _has_ai_workforce_gold_star_coverage,
+)
 from deterministic_relational_fractal import compose_relational_fractal
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
 from safety_utility import classify_safety, safety_utility_snapshot
@@ -294,6 +299,10 @@ def _select_verified_doorway_conceptual_family(query):
     ):
         return "community_project_tradeoffs"
 
+    # Share the bounded workforce-restructuring classifier with the final answer contract.
+    if is_ai_workforce_restructuring_question(text):
+        return "ai_workforce_restructuring"
+
     # Reflective balance questions authorize a bounded approved-node lookup.
     # This class does not map to a hard-coded destination; registry evidence
     # must still establish the relevance of the canonical continuation.
@@ -325,6 +334,11 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "ai_role_distinction": {
         "title": "Responsible AI Principle",
         "url": "https://geralddaquila.com/responsible-ai-principle/",
+    },
+    "ai_workforce_restructuring": {
+        "title": "Agentic Systems and the End of Passive Labor",
+        "url": "https://geralddaquila.com/2026/05/06/agentic-systems-and-the-end-of-passive-labor/",
+        "rationale": "This essay examines how AI changes work beyond task automation: it traces the shift across execution, coordination, and governance, and considers how human responsibility, oversight, and stewardship should evolve. It provides a relevant continuation for assessing workforce reductions as a redesign of work and accountability, not only a cost-saving exercise.",
     },
     "regeneration_beyond_restoration": {
         "title": "Regenerative Governance: What Comes After Extraction-Based Systems?",
@@ -6328,6 +6342,38 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
                         "provider": "rejected_non_substantive_recovery",
                         "model": "quality-gate-rejection",
                     }
+    # Provider-exhaustion responses must carry the same verified doorway
+    # contract as successful provider responses. Preserve explicit no-doorway
+    # safety/repair boundaries and the foundation answer's intentional restraint.
+    _recovery_standard = _resolve_exact_guide_gold_standard(query)
+    if (
+        isinstance(result, dict)
+        and result.get("provider") not in {
+            "bounded_foundation_provider_exhaustion_recovery",
+            "rejected_non_substantive_recovery",
+        }
+        and not is_harm_repair_question(query)
+        and not bool(_recovery_standard and _recovery_standard.get("forbids_doorway"))
+        and str(result.get("processing") or "") != "final_visitor_boundary_archive_claim_provenance"
+    ):
+        try:
+            _standard_title = str((_recovery_standard or {}).get("doorway_title") or "").strip()
+            _standard_url = str((_recovery_standard or {}).get("doorway_url") or "").strip()
+            _standard_rationale = str((_recovery_standard or {}).get("doorway_rationale") or "").strip()
+            if _standard_title and re.match(r"^https://\S+$", _standard_url, re.I):
+                _standard_doorway = {"title": _standard_title, "url": _standard_url}
+                if _standard_rationale:
+                    _standard_doorway["rationale"] = _standard_rationale
+                result["recommendation"] = _standard_doorway
+                result["canonical_doorway"] = _standard_doorway
+                result["doorway_title"] = _standard_title
+                result["doorway_url"] = _standard_url
+                result["doorway_rationale"] = _standard_rationale or None
+            elif _select_verified_doorway_conceptual_family(query):
+                result = _guide_restore_verified_doorway(result, query)
+        except Exception:
+            # Navigation restoration must never invalidate a usable recovery answer.
+            pass
     return result
 
 
@@ -11672,9 +11718,16 @@ def _apply_exact_gold_standard_authority_to_payload(payload):
     if not bool(standard.get("forbids_doorway")):
         title = str(standard.get("doorway_title") or "").strip()
         url = str(standard.get("doorway_url") or "").strip()
+        rationale = str(standard.get("doorway_rationale") or "").strip()
         if title and re.match(r"^https://\S+$", url, re.I):
-            payload["recommendation"] = {"title": title, "url": url}
-            payload["canonical_doorway"] = payload["recommendation"]
+            doorway = {"title": title, "url": url}
+            if rationale:
+                doorway["rationale"] = rationale
+            payload["recommendation"] = doorway
+            payload["canonical_doorway"] = doorway
+            payload["doorway_title"] = title
+            payload["doorway_url"] = url
+            payload["doorway_rationale"] = rationale or None
     return payload
 
 async def _use_send_json(send, payload, status_code=200):
@@ -11693,6 +11746,20 @@ async def _use_send_json(send, payload, status_code=200):
     if isinstance(payload, dict):
         _boundary_query = str(payload.get("query") or "").strip()
         _boundary_standard = _resolve_exact_guide_gold_standard(_boundary_query)
+        # Provider and deterministic routes share one substantive quality floor.
+        # Exact approved/candidate standards remain terminal and are never rewritten.
+        if (
+            _boundary_query
+            and _boundary_standard is None
+            and is_ai_workforce_restructuring_question(_boundary_query)
+        ):
+            _answer = str(payload.get("response") or payload.get("answer") or "")
+            if not _has_ai_workforce_gold_star_coverage(_answer):
+                _recovered_answer = _ai_workforce_restructuring_recovery()
+                payload["response"] = _recovered_answer
+                if "answer" in payload:
+                    payload["answer"] = _recovered_answer
+                payload["answer_quality_contract"] = "ai_workforce_restructuring_gold_star_v1"
         # Absolute exact-authority boundary: no route may return a stale or
         # generic answer when the visitor's normalized question has an approved
         # Gold Star reference. This duplicates the composition-level guard
@@ -11710,9 +11777,16 @@ async def _use_send_json(send, payload, status_code=200):
             if not bool(_boundary_standard.get("forbids_doorway")):
                 _boundary_title = str(_boundary_standard.get("doorway_title") or "").strip()
                 _boundary_url = str(_boundary_standard.get("doorway_url") or "").strip()
+                _boundary_rationale = str(_boundary_standard.get("doorway_rationale") or "").strip()
                 if _boundary_title and re.match(r"^https://\S+$", _boundary_url, re.I):
-                    payload["recommendation"] = {"title": _boundary_title, "url": _boundary_url}
-                    payload["canonical_doorway"] = payload["recommendation"]
+                    _boundary_doorway = {"title": _boundary_title, "url": _boundary_url}
+                    if _boundary_rationale:
+                        _boundary_doorway["rationale"] = _boundary_rationale
+                    payload["recommendation"] = _boundary_doorway
+                    payload["canonical_doorway"] = _boundary_doorway
+                    payload["doorway_title"] = _boundary_title
+                    payload["doorway_url"] = _boundary_url
+                    payload["doorway_rationale"] = _boundary_rationale or None
         # Archive-claim provenance answers own a stricter navigation contract than
         # generic recovery. Once the final visitor boundary has rejected a doorway,
         # no later sender-level fallback may repopulate it from an unrelated
@@ -11755,38 +11829,35 @@ async def _use_send_json(send, payload, status_code=200):
             except Exception:
                 # Navigation must never turn a valid answer into a service error.
                 pass
-        # Conceptual-family fallback is the final visitor-facing doorway seam.
-        # It covers ordinary successful answers that bypass composition-level
-        # navigation recovery, while remaining opt-in to verified families.
+        # Shared final doorway restoration is applied to every ordinary response
+        # path, including exact standards with incomplete legacy doorway metadata.
+        # Explicit no-handoff standards and Archive-claim provenance remain terminal.
+        _boundary_standard_has_doorway = bool(
+            _boundary_standard
+            and str(_boundary_standard.get("doorway_title") or "").strip()
+            and re.match(
+                r"^https://\S+$",
+                str(_boundary_standard.get("doorway_url") or "").strip(),
+                re.I,
+            )
+        )
+        _boundary_standard_forbids_doorway = bool(
+            _boundary_standard and _boundary_standard.get("forbids_doorway")
+        )
         if (
             not _archive_claim_final
-            and not isinstance(payload.get("recommendation"), dict)
             and _boundary_query
-            and _boundary_standard is None
+            and not _boundary_standard_forbids_doorway
+            and not _boundary_standard_has_doorway
         ):
             try:
                 _boundary_family = _select_verified_doorway_conceptual_family(
                     _boundary_query
                 )
                 if _boundary_family:
-                    _boundary_fallback = _select_guide_node_fallback_doorway(
-                        _boundary_query
+                    payload = _guide_restore_verified_doorway(
+                        payload, _boundary_query
                     )
-                    if isinstance(_boundary_fallback, dict):
-                        _boundary_title = str(
-                            _boundary_fallback.get("title") or ""
-                        ).strip()
-                        _boundary_url = str(
-                            _boundary_fallback.get("url") or ""
-                        ).strip()
-                        if _boundary_title and re.match(
-                            r"^https://\S+$", _boundary_url, re.I
-                        ):
-                            payload["recommendation"] = {
-                                "title": _boundary_title,
-                                "url": _boundary_url,
-                            }
-                            payload["canonical_doorway"] = payload["recommendation"]
             except Exception:
                 # Navigation fallback must never interrupt a valid answer.
                 pass
@@ -11798,8 +11869,15 @@ async def _use_send_json(send, payload, status_code=200):
             if _required_title and _required_url:
                 _actual = payload.get("recommendation")
                 if not isinstance(_actual, dict) or _actual.get("title") != _required_title or _actual.get("url") != _required_url:
-                    payload["recommendation"] = {"title": _required_title, "url": _required_url}
-                    payload["canonical_doorway"] = payload["recommendation"]
+                    _required_rationale = str(_boundary_standard.get("doorway_rationale") or "").strip()
+                    _required_doorway = {"title": _required_title, "url": _required_url}
+                    if _required_rationale:
+                        _required_doorway["rationale"] = _required_rationale
+                    payload["recommendation"] = _required_doorway
+                    payload["canonical_doorway"] = _required_doorway
+                    payload["doorway_title"] = _required_title
+                    payload["doorway_url"] = _required_url
+                    payload["doorway_rationale"] = _required_rationale or None
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     await send({"type": "http.response.start", "status": status_code,
                 "headers": [(b"content-type", b"application/json; charset=utf-8"),
