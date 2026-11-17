@@ -3205,6 +3205,10 @@ def _is_conceptual_explanatory_request(query):
     normalized = re.sub(r"\s+", " ", str(query or "").strip().casefold())
     if not normalized:
         return False
+    # A narrow continuity-versus-inherited-harm question is conceptual synthesis,
+    # not a direct attribute request or a generic action-planning prompt.
+    if is_community_continuity_revision_question(normalized):
+        return True
     patterns = (
         r"^what is (?:the )?(?:role|purpose|significance|importance|function|value|contribution|impact|nature|relationship) of\b",
         # Direct cosmology/worldview questions must enter conceptual retrieval.
@@ -3236,6 +3240,7 @@ for _conceptual_glossary_regression in (
     "What is the cosmology of the Living Archive?",
     "What is cosmology, and why does it matter to how people live?",
     "What does regenerative design require at the organizational level?",
+    "How can communities preserve continuity while revising harmful inherited patterns?",
 ):
     if not _is_conceptual_explanatory_request(_conceptual_glossary_regression):
         raise RuntimeError("USE conceptual inquiry routing invariant failed")
