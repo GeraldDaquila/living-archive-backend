@@ -17,7 +17,7 @@ Both paths must preserve these invariants:
 1. **Intent preservation:** answer the visitor's actual question and do not silently replace it with a neighboring topic.
 2. **Evidence honesty:** distinguish Archive-supported claims from general knowledge, interpretation, and uncertainty. Never imply a canonical source supports a claim unless the retrieved evidence is sufficiently relevant.
 3. **Resource relevance:** recommend a canonical resource only when evidence supports a direct relationship to the question. Empty doorway/resource is preferable to an irrelevant recommendation.
-4. **Useful boundedness:** when evidence or provider capacity is insufficient, give a bounded answer if safe and appropriate; otherwise state the limitation and offer a useful next step. Do not promise a response and then issue a generic refusal.
+4. **Useful boundedness:** when evidence or provider capacity is insufficient, give a bounded answer if safe and appropriate; otherwise state the limitation and offer a useful next step. Do not promise a response and then issue a generic refusal. Process commentary that merely tells the visitor to identify the issue, examine facts, or distinguish evidence from inference is not a substantive answer to the subject they asked about.
 5. **No fabricated certainty:** mark hypotheses as hypotheses; do not present plausible mechanisms as verified country-specific facts.
 6. **Question boundaries:** specialist routing and fallback rules must not capture unrelated factual or conversational questions.
 7. **Output integrity:** validate the assembled final response, not only an intermediate model output, because later stages can reattach an unsupported doorway or alter provenance.
