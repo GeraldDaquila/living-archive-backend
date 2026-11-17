@@ -6504,7 +6504,7 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
             "rejected_non_substantive_recovery",
         }
         and not is_harm_repair_question(query)
-        and not bool(_recovery_standard and _recovery_standard.get("forbids_doorway"))
+        and not _gold_star_doorway_omission_is_justified(_recovery_standard)
         and str(result.get("processing") or "") != "final_visitor_boundary_archive_claim_provenance"
     ):
         try:
@@ -8231,7 +8231,7 @@ def _apply_registered_gold_standard_doorway(doorway, gold_standard):
     must never replace a separately selected, validated doorway. If no valid
     independent doorway exists, the public response carries no recommendation.
     """
-    if gold_standard is not None and bool(gold_standard.get("forbids_doorway")):
+    if _gold_star_doorway_omission_is_justified(gold_standard):
         return None
 
     title = str((gold_standard or {}).get("doorway_title") or "").strip()
@@ -8245,9 +8245,13 @@ def _apply_registered_gold_standard_doorway(doorway, gold_standard):
             if rationale:
                 return {**approved_pair, "rationale": rationale}
             return approved_pair
-    # Incomplete/unverified Gold Standard metadata has no authority to invent
-    # a doorway. Keep only an independently selected, canonical, valid pair.
-    return _normalize_authoritative_recommendation(doorway)
+    # A Gold Star doorway is the default. Preserve an independently selected
+    # canonical destination when available; otherwise use the broad verified
+    # Compass continuation. Only a reasoned exception above permits omission.
+    return (
+        _normalize_authoritative_recommendation(doorway)
+        or _normalize_authoritative_recommendation(_gold_star_default_doorway())
+    )
 
 
 def _enforce_registered_gold_standard_doorway(doorway, gold_standard, query=""):
@@ -8258,9 +8262,12 @@ def _enforce_registered_gold_standard_doorway(doorway, gold_standard, query=""):
     selected doorway has already passed the canonical relevance and URL gates.
     Only an explicit no-handoff assertion overrides that default.
     """
-    if gold_standard is not None and bool(gold_standard.get("forbids_doorway")):
+    if _gold_star_doorway_omission_is_justified(gold_standard):
         return None
-    return doorway
+    return (
+        _normalize_authoritative_recommendation(doorway)
+        or _normalize_authoritative_recommendation(_gold_star_default_doorway())
+    )
 
 
 
@@ -11137,7 +11144,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         response = _final_gold_standard["expected_response"]
         _gold_title = str(_final_gold_standard.get("doorway_title") or "").strip()
         _gold_url = str(_final_gold_standard.get("doorway_url") or "").strip()
-        _gold_forbids_doorway = bool(_final_gold_standard.get("forbids_doorway"))
+        _gold_forbids_doorway = _gold_star_doorway_omission_is_justified(_final_gold_standard)
         authoritative_doorway = _apply_registered_gold_standard_doorway(
             authoritative_doorway, _final_gold_standard
         )
@@ -11643,7 +11650,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         and _final_conceptual_family
         and not (
             _final_gold_standard is not None
-            and bool(_final_gold_standard.get("forbids_doorway"))
+            and _gold_star_doorway_omission_is_justified(_final_gold_standard)
         )
     ):
         try:
@@ -11668,7 +11675,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     authoritative_doorway = _enforce_registered_gold_standard_doorway(
         authoritative_doorway, _final_gold_standard, query
     )
-    if _final_gold_standard is not None and bool(_final_gold_standard.get("forbids_doorway")):
+    if _final_gold_standard is not None and _gold_star_doorway_omission_is_justified(_final_gold_standard):
         composition_context.pop("authoritative_doorway", None)
         composition_context.pop("authoritative_doorway_title", None)
 
@@ -11681,7 +11688,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         and not authoritative_doorway
         and not (
             _final_gold_standard is not None
-            and bool(_final_gold_standard.get("forbids_doorway"))
+            and _gold_star_doorway_omission_is_justified(_final_gold_standard)
         )
         and isinstance(composition_result, dict)
     ):
@@ -11917,7 +11924,7 @@ def _apply_exact_gold_standard_authority_to_payload(payload):
         payload["response"] = answer
         if "answer" in payload:
             payload["answer"] = answer
-    if not bool(standard.get("forbids_doorway")):
+    if not _gold_star_doorway_omission_is_justified(standard):
         title = str(standard.get("doorway_title") or "").strip()
         url = str(standard.get("doorway_url") or "").strip()
         rationale = str(standard.get("doorway_rationale") or "").strip()
@@ -11976,7 +11983,7 @@ async def _use_send_json(send, payload, status_code=200):
                 # route omitted the key so the public contract remains uniform.
                 if "response" not in payload and "answer" not in payload:
                     payload["response"] = _boundary_answer
-            if not bool(_boundary_standard.get("forbids_doorway")):
+            if not _gold_star_doorway_omission_is_justified(_boundary_standard):
                 _boundary_title = str(_boundary_standard.get("doorway_title") or "").strip()
                 _boundary_url = str(_boundary_standard.get("doorway_url") or "").strip()
                 _boundary_rationale = str(_boundary_standard.get("doorway_rationale") or "").strip()
@@ -11989,6 +11996,29 @@ async def _use_send_json(send, payload, status_code=200):
                     payload["doorway_title"] = _boundary_title
                     payload["doorway_url"] = _boundary_url
                     payload["doorway_rationale"] = _boundary_rationale or None
+        # Gold Star doorway default at the absolute JSON exit. This covers
+        # provider, deterministic, and specialist routes that bypass an inner
+        # composition boundary. A missing destination is not an omission
+        # instruction; only a reasoned exception may suppress the continuation.
+        if (
+            _boundary_standard is not None
+            and not _gold_star_doorway_omission_is_justified(_boundary_standard)
+            and not isinstance(payload.get("recommendation"), dict)
+        ):
+            try:
+                _gold_star_candidate = _select_guide_node_fallback_doorway(_boundary_query)
+            except Exception:
+                _gold_star_candidate = None
+            _gold_star_doorway = (
+                _normalize_authoritative_recommendation(_gold_star_candidate)
+                or _normalize_authoritative_recommendation(_gold_star_default_doorway())
+            )
+            payload["recommendation"] = _gold_star_doorway
+            payload["canonical_doorway"] = _gold_star_doorway
+            payload["doorway_title"] = _gold_star_doorway.get("title") if _gold_star_doorway else None
+            payload["doorway_url"] = _gold_star_doorway.get("url") if _gold_star_doorway else None
+            payload["doorway_rationale"] = _gold_star_doorway.get("rationale") if _gold_star_doorway else None
+
         # Archive-claim provenance answers own a stricter navigation contract than
         # generic recovery. Once the final visitor boundary has rejected a doorway,
         # no later sender-level fallback may repopulate it from an unrelated
@@ -11997,7 +12027,7 @@ async def _use_send_json(send, payload, status_code=200):
             str(payload.get("processing") or "")
             == "final_visitor_boundary_archive_claim_provenance"
         )
-        if _boundary_standard is not None and bool(_boundary_standard.get("forbids_doorway")):
+        if _boundary_standard is not None and _gold_star_doorway_omission_is_justified(_boundary_standard):
             payload["recommendation"] = None
         elif (
             not _archive_claim_final
@@ -12044,7 +12074,7 @@ async def _use_send_json(send, payload, status_code=200):
             )
         )
         _boundary_standard_forbids_doorway = bool(
-            _boundary_standard and _boundary_standard.get("forbids_doorway")
+            _gold_star_doorway_omission_is_justified(_boundary_standard)
         )
         if (
             not _archive_claim_final
@@ -12065,7 +12095,7 @@ async def _use_send_json(send, payload, status_code=200):
                 pass
         # Exact approved standards with a required canonical continuation must
         # fail visibly in QA rather than silently render as navigational dead ends.
-        if _boundary_standard is not None and not bool(_boundary_standard.get("forbids_doorway")):
+        if _boundary_standard is not None and not _gold_star_doorway_omission_is_justified(_boundary_standard):
             _required_title = str(_boundary_standard.get("doorway_title") or "").strip()
             _required_url = str(_boundary_standard.get("doorway_url") or "").strip()
             if _required_title and _required_url:
