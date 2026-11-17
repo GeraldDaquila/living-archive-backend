@@ -262,6 +262,15 @@ def _select_verified_doorway_conceptual_family(query):
         and re.search(r"\b(?:distinguish|difference|separate|external)\b", text, re.I)
     ):
         return "archive_guidance_provenance"
+    # Consequential action under uncertainty is a distinct sensemaking use case.
+    # The visitor's wording must express all three elements; broad uncertainty
+    # language alone is not sufficient to select this doorway.
+    if (
+        re.search(r"\b(?:act|action|decide|decision|choose|choice)\w*\b", text, re.I)
+        and re.search(r"\b(?:uncertain|uncertainty|unknown|unpredictable)\w*\b", text, re.I)
+        and re.search(r"\b(?:consequential|consequence|stakes|significant|matter)\w*\b", text, re.I)
+    ):
+        return "consequential_action_under_uncertainty"
     return None
 
 
@@ -285,6 +294,11 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "growth_within_living_limits": {
         "title": "ARC III: Growth doesn’t break systems. It reveals the limits of the structure holding them.",
         "url": "https://geralddaquila.com/arc-iii-growth-doesnt-break-systems-it-reveals-the-limits-of-the-structure-holding-them/",
+    },
+    "consequential_action_under_uncertainty": {
+        "title": "Sovereign Sensemaking Compass",
+        "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass/",
+        "rationale": "This is a grounded map for navigating uncertainty without losing clarity or agency, directly supporting the question of how to act when the consequences matter but the future is not settled.",
     },
 }
 
@@ -5312,19 +5326,22 @@ def _archive_claim_authoritative_doorway(query, doorway):
 def _guide_restore_verified_doorway(payload, query):
     """Restore one verified canonical doorway at the terminal visitor boundary.
 
-    Ordinary answer routes may complete without a recommendation even when the
-    canonical Guide-node registry can verify a directly relevant continuation.
-    This helper makes navigation a shared terminal contract: preserve a valid
-    earned doorway first, otherwise attempt the bounded verified fallback, and
-    synchronize every public doorway alias. It never invents a destination.
+    A narrowly reviewed conceptual-family destination takes precedence over a
+    merely adjacent upstream candidate. All public aliases are synchronized,
+    including the rationale required by the shared frontend renderer.
     """
     safe = dict(payload) if isinstance(payload, dict) else {}
-    doorway = _normalize_authoritative_recommendation(safe.get("recommendation"))
+    family = _select_verified_doorway_conceptual_family(query)
+    family_candidate = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
+    doorway = _normalize_authoritative_recommendation(family_candidate) if family_candidate else None
+    if not doorway:
+        doorway = _normalize_authoritative_recommendation(safe.get("recommendation"))
     if not doorway:
         doorway = _normalize_authoritative_recommendation(
             {
                 "title": safe.get("doorway_title"),
                 "url": safe.get("doorway_url"),
+                "rationale": safe.get("doorway_rationale"),
             }
         )
     if not doorway:
@@ -7807,8 +7824,8 @@ def _normalize_authoritative_recommendation(doorway):
     """Return the single public navigation contract, or None if invalid.
 
     Recommendation authority belongs to the Guide, not the composition provider.
-    This helper makes the response envelope deterministic across provider
-    success, provider exhaustion, and conservative recovery.
+    Preserve a bounded, grounded rationale because the shared frontend renderer
+    requires it to explain why a verified destination belongs here.
     """
     if not isinstance(doorway, dict):
         return None
@@ -7820,7 +7837,13 @@ def _normalize_authoritative_recommendation(doorway):
     ).strip()
     if not title or not re.match(r"^https://geralddaquila\.com(?:/.*)?$", url, re.I):
         return None
-    return {"title": title, "url": url}
+    normalized = {"title": title, "url": url}
+    rationale = str(doorway.get("rationale") or doorway.get("doorway_rationale") or "").strip()
+    if rationale:
+        if len(rationale) > 600 or re.search(r"<[^>]+>", rationale) or re.search(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", rationale):
+            return None
+        normalized["rationale"] = rationale
+    return normalized
 
 
 def _apply_registered_gold_standard_doorway(doorway, gold_standard):

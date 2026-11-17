@@ -127,3 +127,30 @@ def test_algorithmic_bias_question_uses_mechanism_first_recovery():
     assert "feedback loops" in lowered
     assert "not mean an algorithm is always the original cause" in lowered
     assert answer.count("\n\n") == 2
+
+def test_consequential_action_question_survives_full_provider_exhaustion_boundary():
+    with patch("main._basic_inquiry_round1_deterministic_response") as deterministic_response:
+        deterministic_response.return_value = {
+            "response": "I couldn't verify a reliable answer from the material available.",
+            "doorway_title": "",
+            "provider": "deterministic_question_preserving_recovery",
+            "model": "",
+        }
+
+        result = main._basic_inquiry_provider_exhaustion_response(
+            "How should people act when the future is uncertain but consequential?",
+            {},
+            {},
+            recommendation_available=False,
+        )
+
+    answer = result["response"]
+    assert result["provider"] == "bounded_provider_exhaustion_recovery"
+    assert len(answer.split("\n\n")) == 3
+    assert answer.startswith("When a decision has serious consequences")
+    assert "preserves room to learn and correct" in answer
+    assert "signals for review" in answer
+    assert "accountable" in answer
+    assert "AI" not in answer
+    assert "civilizational" not in answer.casefold()
+    assert "Distinguish strain and transition" not in answer
