@@ -229,3 +229,46 @@ def test_provider_and_deterministic_payloads_receive_same_final_doorway_contract
         assert payload["doorway_title"] == expected["title"]
         assert payload["doorway_url"] == expected["url"]
         assert payload["doorway_rationale"] == expected["rationale"]
+
+def test_legacy_exact_standard_keeps_approved_answer_but_recovers_missing_verified_doorway(monkeypatch):
+    import asyncio
+    import json
+
+    query = (
+        "A company wants to use AI to reduce staffing costs. How should The Guide "
+        "analyze this through operations, governance, human development, ethics, and stewardship?"
+    )
+    frozen_answer = "The exact approved historical answer remains unchanged."
+    legacy_standard = {
+        "expected_response": frozen_answer,
+        "doorway_title": "",
+        "doorway_url": "",
+        "doorway_rationale": "",
+        "forbids_doorway": False,
+    }
+    monkeypatch.setattr(
+        main,
+        "_resolve_exact_guide_gold_standard",
+        lambda _query: legacy_standard,
+    )
+
+    async def send_payload():
+        events = []
+
+        async def send(event):
+            events.append(event)
+
+        payload = {"ok": True, "query": query, "response": "unapproved provider prose"}
+        await main._use_send_json(send, payload)
+        body = next(event["body"] for event in events if event["type"] == "http.response.body")
+        return json.loads(body.decode("utf-8"))
+
+    payload = asyncio.run(send_payload())
+    expected = main._select_guide_node_fallback_doorway(query)
+    assert payload["response"] == frozen_answer
+    assert payload["recommendation"] == expected
+    assert payload["canonical_doorway"] == expected
+    assert payload["doorway_title"] == expected["title"]
+    assert payload["doorway_url"] == expected["url"]
+    assert payload["doorway_rationale"] == expected["rationale"]
+
