@@ -4094,7 +4094,7 @@ def compose(
                 f"reasoning discipline={item.get('reasoning_family')}: {item.get('discipline')}; "
                 f"boundary={item.get('abstention_boundary')}"
             )
-        candidate_evidence = "\\n".join(candidate_lines)
+        candidate_evidence = "\n".join(candidate_lines)
         gold_star_quality_instruction = (
             "GOLD STAR MULTI-CANDIDATE ADJUDICATION (structural guidance only; never answer authority): "
             "These ranked retrieval candidates are possibilities, not approved selections. Similarity scores "
