@@ -28,7 +28,7 @@ def test_personal_decision_guide_role_question_is_recognized_and_answered_direct
     assert is_guide_personal_decision_agency_question(QUERY)
     assert has_registered_recovery(QUERY)
     answer = compose_recovery(QUERY)
-    paragraphs = [part.strip() for part in re.split(r"\\n\\s*\\n+", answer) if part.strip()]
+    paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", answer) if part.strip()]
     assert len(paragraphs) == 3
     assert answer == _guide_personal_decision_agency_recovery()
     assert paragraphs[0].startswith("The Guide should help a person make their own decision")
