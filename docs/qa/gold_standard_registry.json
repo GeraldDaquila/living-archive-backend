@@ -5587,6 +5587,61 @@
           "approval_basis": "User instruction to overwrite the current Gold Star with the updated reviewed version."
         }
       ]
+    },
+    {
+      "benchmark_id": "general-guide-spiritual-community-accountability-gold-star-2026-11-17",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "A spiritual community has charismatic leadership and weak accountability. How should the Guide identify the risks without dismissing spiritual practice itself?",
+      "expected_response": "Spiritual practice and the way a community governs its authority are different things. Ritual, belief, devotion, and a leader's ability to inspire trust are not, by themselves, evidence of harm. The risk arises when personal influence becomes authority that cannot be questioned and weak accountability leaves important decisions, resources, discipline, or safeguarding in the hands of the same person or inner circle. That is a governance vulnerability, not a verdict on the community's beliefs.\n\nThe relevant warning signs are observable patterns: are questions treated as disloyalty or spiritual failure; can members disagree without humiliation, exclusion, or retaliation; are finances and consequential decisions transparent; are complaints heard by people independent of the leader; and can members refuse requests or leave without threats or coercive penalties? Charisma becomes dangerous when it is used to make a leader's judgment immune from review, or when spiritual language is used to excuse secrecy, dependency, boundary violations, or harm. A single disagreement is not proof of abuse; the concern is a repeated pattern and its effects on people's freedom, safety, and dignity.\n\nSafeguards should strengthen the community's ability to practice freely, not prescribe what its members must believe. Authority can be shared through a genuinely independent council, clear role limits, transparent finances, recorded decisions, conflict-of-interest rules, protected complaint channels, and external review when serious harm is alleged. Members must be able to question, decline, and leave without retaliation, while allegations are assessed fairly and appropriate repair or protection follows. The decisive test is whether spiritual life remains voluntary and whether those who exercise influence remain answerable to the people affected by it.",
+      "expected_doorway": {
+        "title": "Community Accountability Systems",
+        "url": "https://geralddaquila.com/2026/05/16/community-accountability-systems/",
+        "rationale": "This Archive essay examines how communities prevent power from becoming insulated from feedback through transparent, distributed accountability, clear boundaries, protected dissent, and repair. It directly addresses the risks of charismatic leadership and weak accountability without treating spiritual belief or practice itself as the problem."
+      },
+      "assertions": [
+        "Exactly three substantive paragraphs: distinguish spiritual practice from governance; identify observable warning signs without presuming abuse; establish safeguards and a test of accountable authority.",
+        "Does not treat ritual, belief, devotion, charisma, or disagreement as evidence of harm by themselves.",
+        "Identifies observable patterns involving dissent, retaliation, transparency, independent complaints, coercion, dependency, boundaries, and safeguarding.",
+        "Distinguishes a repeated pattern and its effects from a single disagreement or allegation.",
+        "Provides practical safeguards while preserving voluntary spiritual practice and freedom of belief.",
+        "The answer is complete before one relevant canonical doorway to Community Accountability Systems.",
+        "The doorway is a meaningful continuation, not a substitute for the answer."
+      ],
+      "provenance": {
+        "source_path": "visitor-provided live production screenshot",
+        "source_ref": "user-reviewed screenshot and explicit elevation instruction in conversation dated 2026-11-17",
+        "source_status": "USER_APPROVED_GOLD_STANDARD",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the reviewed three-paragraph response and visible Community Accountability Systems doorway. The exact answer text is also the bounded recovery registered in the same implementation change; live screenshot is the user's approval evidence.",
+        "source_date": "2026-11-17",
+        "approval_record": "User explicitly instructed 'elevate to gold star' after reviewing the production visitor-facing response and its canonical doorway."
+      },
+      "freeze_policy": "Immutable user-approved Gold Star exemplar. Preserve the approved response and verified doorway; any future wording or doorway change requires a separately versioned benchmark and explicit user approval.",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "spiritual_practice_and_governance_accountability",
+        "transferable_discipline": "Distinguish the legitimacy of a community's spiritual practice from the governance of authority; assess observable patterns rather than charisma or disagreement alone; protect dissent, independent review, transparent decisions, freedom to decline or leave, and proportionate repair.",
+        "abstention_boundary": "Do not presume abuse from charisma, belief, ritual, or a single disagreement; do not dismiss spiritual practice; do not infer allegations or facts not supplied; do not transfer this question-specific doorway to unrelated inquiries."
+      },
+      "known_theme": "spiritual practice, charismatic authority, accountability, safeguarding, protected dissent, and community governance",
+      "runtime_transfer": true,
+      "doorway_status": "VERIFIED_CANONICAL_SELECTED",
+      "doorway_note": "The visitor-facing continuation is verified against the live Archive post and directly extends the answer's focus on charismatic authority, distributed accountability, boundaries, protected dissent, and repair.",
+      "rating_out_of_10": 9.5,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "elevation_approval_evidence": "User instruction on 2026-11-17: 'elevate to gold star' after reviewing the production screenshot.",
+      "approval_state": "User reviewed the live response and visible canonical doorway, then explicitly authorized Gold Star elevation on 2026-11-17.",
+      "user_approved_at": "2026-11-17",
+      "gold_star_number": 93,
+      "reasoning_family": "spiritual_practice_and_governance_accountability",
+      "transferable_lesson": "Assess the governance of spiritual authority without making spiritual practice itself suspect: distinguish influence from unaccountable power, use observable patterns rather than assumptions, and make dissent, independent oversight, transparency, freedom to leave, and repair real.",
+      "transfer_boundary": "Transfer the diagnostic and safeguarding discipline, not this exemplar's exact wording, specific spiritual-community framing, or Community Accountability Systems doorway to unrelated questions.",
+      "numbering_status": "ASSIGNED"
     }
   ],
   "last_reconciliation_note": "2026-11-17: Restored gs-2026-11-17-structural-change-vs-disruption after verifying the published Systems, Governance, and Organizational Design destination (WordPress post 41615). Preserved the exact approved answer and UNASSIGNED serial; added a visitor-facing doorway rationale.",
