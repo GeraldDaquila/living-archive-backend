@@ -5793,6 +5793,41 @@ def _guide_finalize_visitor_payload(payload, query):
         return safe
 
     response_text = str(payload.get("response") or "")
+    # The passage-contrast contract is an absolute final-boundary invariant.
+    # Provider-exhaustion recovery alone is insufficient because delegated and
+    # legacy routes can bypass that helper and still emit a generic abstention.
+    _archive_passage_contrast = (
+        general_guide_composition.archive_passage_contrast_recovery_from_context(
+            query, use_core, payload if isinstance(payload, dict) else {}
+        )
+    )
+    if _archive_passage_contrast is not None:
+        safe = dict(payload)
+        safe.update(_archive_passage_contrast)
+        safe["response"] = _sanitize_basic_inquiry_response(
+            _archive_passage_contrast.get("response") or ""
+        )
+        safe["provider"] = _archive_passage_contrast.get("provider") or "bounded_archive_passage_contrast_final_boundary"
+        safe["model"] = _archive_passage_contrast.get("model") or "deterministic-evidence-boundary"
+        # The two source links are the doorway when evidence is sufficient.
+        # When it is not, preserve an existing verified Libraries continuation.
+        if "Passage 1 — [" in safe["response"] and "Passage 2 — [" in safe["response"]:
+            safe["recommendation"] = None
+            safe["canonical_doorway"] = None
+            safe["doorway_title"] = None
+            safe["doorway_url"] = None
+        else:
+            safe["recommendation"] = _normalize_authoritative_recommendation(
+                safe.get("recommendation")
+            )
+            safe["canonical_doorway"] = safe["recommendation"]
+        safe["processing"] = "final_visitor_boundary_archive_passage_contrast"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        print(
+            "The Guide final visitor boundary: enforced source-faithful Archive passage contrast."
+        )
+        return safe
     # Comparative-traditions intent owns its canonical continuation regardless
     # of whether the generated prose itself needs recovery. Do not let a
     # semantically adjacent retrieval candidate overwrite this query-family
