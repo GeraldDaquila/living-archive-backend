@@ -231,12 +231,12 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
     assert report["numbered_gold_star_count"] == len(numbered) == 35
-    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 55
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 56
     assert report["highest_assigned_gold_star_number"] == 92
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
     assert len(report["number_assignments"]) == 35
-    assert len(report["unassigned_benchmark_ids"]) == 55
+    assert len(report["unassigned_benchmark_ids"]) == 56
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
@@ -653,7 +653,14 @@ def test_user_approved_gold_stars_have_explicit_runtime_capability_classificatio
         # Some approved records are qualitative-transfer exemplars by explicit
         # capability contract; exact replay authority must not be invented.
         assert isinstance(capability.get("exact_answer_authority"), bool)
-        assert capability.get("active_quality_contributor") is True
+        if record.get("runtime_transfer") is False:
+            assert capability.get("exact_answer_authority") is True
+            assert capability.get("active_quality_contributor") is False
+            assert capability.get("deterministic_fallback_eligible") is False
+            assert record.get("replaces_exact_query_runtime_authority_of")
+        else:
+            assert record.get("runtime_transfer") is True
+            assert capability.get("active_quality_contributor") is True
         assert isinstance(capability.get("deterministic_fallback_eligible"), bool)
         assert capability.get("reasoning_family")
         assert capability.get("transferable_discipline")
@@ -837,9 +844,15 @@ def test_gold_star_has_one_strict_canonical_definition():
     for record in gold:
         assert record.get("expected_response"), record["benchmark_id"]
         assert record.get("freeze_policy"), record["benchmark_id"]
-        assert record.get("runtime_transfer") is True, record["benchmark_id"]
         capability = record.get("gold_star_capabilities") or {}
-        assert capability.get("active_quality_contributor") is True, record["benchmark_id"]
+        if record.get("runtime_transfer") is False:
+            assert capability.get("exact_answer_authority") is True, record["benchmark_id"]
+            assert capability.get("active_quality_contributor") is False, record["benchmark_id"]
+            assert capability.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
+            assert record.get("replaces_exact_query_runtime_authority_of"), record["benchmark_id"]
+        else:
+            assert record.get("runtime_transfer") is True, record["benchmark_id"]
+            assert capability.get("active_quality_contributor") is True, record["benchmark_id"]
         assert isinstance(capability.get("deterministic_fallback_eligible"), bool), record["benchmark_id"]
         assert record.get("fixture_state") != "PENDING_EXACT_FIXTURE", record["benchmark_id"]
 
@@ -1016,7 +1029,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 90
+    assert len(approved) == 91
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1065,10 +1078,10 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     assert "only adds provenance.source_date" in gaps[1]["reason"]
     assert "recovered as Gold Star #56" in gaps[1]["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 90
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 91
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 35
     assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 92
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 55
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 56
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
 
 
