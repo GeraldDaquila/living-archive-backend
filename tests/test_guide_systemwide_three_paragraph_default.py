@@ -196,3 +196,30 @@ def test_community_continuity_doorway_rationale_matches_the_published_essay_and_
     assert family_doorway["url"] == deterministic_doorway["url"] == "https://geralddaquila.com/from-awakening-to-stewardship/"
     assert "carry wisdom and responsibility across generations" not in expected.lower()
     assert "rather than prescribing how a particular inherited practice should be changed" in expected
+
+
+def test_community_continuity_gold_star_registry_and_transfer_entry_are_frozen_and_aligned():
+    import json
+    from pathlib import Path
+
+    benchmark_id = "gs-2026-11-17-community-continuity-harmful-inherited-patterns"
+    root = Path(__file__).resolve().parents[1]
+    registry = json.loads((root / "docs/qa/gold_standard_registry.json").read_text())
+    transfer = json.loads((root / "docs/qa/gold_star_qualitative_transfer_review.json").read_text())
+    records = [item for item in registry["records"] if item["benchmark_id"] == benchmark_id]
+    entries = [item for item in transfer["entries"] if item["benchmark_id"] == benchmark_id]
+
+    assert len(records) == 1
+    assert len(entries) == 1
+    record = records[0]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["freeze_policy"] == "immutable_user_approved_gold_standard"
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
+    assert len([part for part in record["expected_response"].split("\\n\\n") if part.strip()]) == 3
+    assert record["expected_doorway"]["title"] == "From Awakening to Stewardship"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/from-awakening-to-stewardship/"
+    assert record["expected_doorway"]["rationale"] == entries[0]["transferable_discipline"] or record["expected_doorway"]["rationale"]
+    assert entries[0]["activation"] == "active_quality_contributor"
