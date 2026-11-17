@@ -1709,3 +1709,29 @@ def test_symmetric_source_representation_gold_star_is_registered_and_runtime_res
     adjacent = resolve_exact_gold_standard("Two archive texts appear to emphasize different values. How should the Guide identify the tension and reason toward a contextual synthesis?")
     assert adjacent is not None
     assert adjacent["benchmark_id"] == "general-guide-contextual-synthesis-across-different-values-gold-star-2026-11-13"
+
+def test_integrity_audit_numbering_reconciliation_narrative_matches_record_counts():
+    import json
+
+    registry = json.loads(
+        (ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8")
+    )
+    approved = [
+        record for record in registry["records"]
+        if record.get("status") == "USER_APPROVED_GOLD_STANDARD"
+    ]
+    assigned = [record for record in approved if record.get("numbering_status") == "ASSIGNED"]
+    unassigned = [record for record in approved if record.get("numbering_status") == "UNASSIGNED"]
+    audit = registry["integrity_audit"]
+    narrative = audit["numbering_reconciliation"]
+
+    assert len(approved) == audit["approved_gold_star_count"] == 100
+    assert len(assigned) == audit["numbered_gold_star_record_count"] == 38
+    assert len(unassigned) == audit["unassigned_approved_gold_star_count"] == 62
+    assert len(assigned) + len(unassigned) == len(approved)
+    assert "100 approved Gold Stars" in narrative
+    assert "38 assigned display serials" in narrative
+    assert "62 approved records explicitly UNASSIGNED" in narrative
+    assert "99 approved Gold Stars" not in narrative
+    assert "61 approved records explicitly UNASSIGNED" not in narrative
+
