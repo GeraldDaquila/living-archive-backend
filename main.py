@@ -6463,6 +6463,26 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "model": "",
         }
 
+    # Oversoul/free-will questions have an explicit provider-independent
+    # recovery. Keep the answer and its directly named canonical doorway joined
+    # at the deterministic boundary instead of allowing generic retrieval or
+    # uncertainty navigation to replace either one.
+    if is_oversoul_free_will_question(query):
+        from deterministic_answer_recovery import (
+            registered_recovery_recommendation as _oversoul_recommendation,
+        )
+        _oversoul_answer = _compose_provider_exhaustion_recovery(query)
+        _oversoul_doorway = _oversoul_recommendation(query)
+        return {
+            "response": _oversoul_answer,
+            "doorway_title": str((_oversoul_doorway or {}).get("title") or ""),
+            "doorway_url": str((_oversoul_doorway or {}).get("url") or ""),
+            "doorway_rationale": str((_oversoul_doorway or {}).get("rationale") or ""),
+            "recommendation": _oversoul_doorway,
+            "provider": "bounded_oversoul_free_will_recovery",
+            "model": "",
+        }
+
     # Community infrastructure trade-off questions require a substantive
     # cross-domain answer even when provider generation or retrieval is unavailable.
     # Keep the verified local-resilience doorway attached to the same recovery.
