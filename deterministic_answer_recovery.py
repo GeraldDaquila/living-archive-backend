@@ -1320,7 +1320,7 @@ def contract_snapshot():
         "contract_version": "v2",
         "provider_independent": True,
         "does_not_invent_archive_evidence": True,
-        "question_shapes": ["hindsight_accountability", "ethical_tradeoff", "comparison", "causal", "decision", "practical", "definition", "reflective", "general"],
+        "question_shapes": ["spiritual_community_accountability", "hindsight_accountability", "ethical_tradeoff", "comparison", "causal", "decision", "practical", "definition", "reflective", "general"],
     }
 
 
