@@ -179,6 +179,8 @@ def test_final_visitor_boundary_enforces_passage_contrast_after_route_dispatch()
     boundary = boundary_functions[0]
     assert "archive_passage_contrast_recovery_from_context" in boundary
     assert "is_preserved_archive_passage_contrast_recovery" in boundary
+    assert '_guide_restore_verified_doorway(safe, query)' in boundary
+    assert 'deterministic-topic-clarification' in boundary
     assert 'final_visitor_boundary_archive_passage_contrast_preserved' in boundary
     assert boundary.index("is_preserved_archive_passage_contrast_recovery") < boundary.index(
         "archive_passage_contrast_recovery_from_context"
@@ -189,12 +191,19 @@ def test_final_visitor_boundary_enforces_passage_contrast_after_route_dispatch()
 
 
 
-def test_missing_subject_requests_clarification_instead_of_claiming_retrieval_failure():
+def test_missing_subject_answers_method_first_then_requests_one_subject_and_selects_doorway():
     recovered = _archive_passage_contrast_recovery(QUESTION, [])
     assert recovered is not None
     assert recovered["model"] == "deterministic-topic-clarification"
-    assert "Which subject or question" in recovered["response"]
-    assert "could not verify two distinct" not in recovered["response"]
+    assert recovered["response"].startswith("Represent the two passages separately and symmetrically")
+    assert "preserve its scope, qualifications, and intended audience" in recovered["response"]
+    assert "Synthesis comes last" in recovered["response"]
+    assert recovered["response"].rstrip().endswith(
+        "Which subject or question should I search for in the Archive?"
+    )
+    assert recovered["doorway_title"] == "Sovereign Sensemaking Compass"
+    assert recovered["doorway_url"] == "https://geralddaquila.com/the-sovereign-sensemaking-compass/"
+    assert is_preserved_archive_passage_contrast_recovery(recovered)
 
 
 def test_topicful_passage_contrast_request_is_not_misclassified_as_missing_subject():
