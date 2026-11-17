@@ -6324,10 +6324,13 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
     # Provider-exhaustion responses must carry the same verified doorway
     # contract as successful provider responses. Preserve explicit no-doorway
     # safety/repair boundaries and the foundation answer's intentional restraint.
+    _recovery_standard = _resolve_exact_guide_gold_standard(query)
     if (
         isinstance(result, dict)
         and result.get("provider") != "bounded_foundation_provider_exhaustion_recovery"
         and not is_harm_repair_question(query)
+        and not bool(_recovery_standard and _recovery_standard.get("forbids_doorway"))
+        and str(result.get("processing") or "") != "final_visitor_boundary_archive_claim_provenance"
     ):
         try:
             if _select_verified_doorway_conceptual_family(query):
