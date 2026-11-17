@@ -40,6 +40,14 @@ Before announcing or counting a newly approved Gold Star:
 
 This rule is intentionally structural: **an exemplar may have many mirrors, but only one ledger.**
 
+## Gold Star response template — doorway by default
+
+Every newly elevated General Guide Gold Star must freeze the complete visitor-facing contract, not only the answer text. The required default is a separate, verified canonical doorway with title, canonical URL, and a concise visitor-facing rationale. The answer must be complete before the doorway appears.
+
+A doorway may be omitted only when its inclusion would materially interrupt, distract from, or otherwise undermine the quality or safety of that specific response, or when the visitor explicitly declines navigation. In that case, the record must use `doorway_status: INTENTIONALLY_NONE_APPROVED`, set `expected_doorway: null`, and include a concrete `doorway_omission_exception_reason`. A blank title, missing URL, or absent metadata is not an approved omission.
+
+Use `gold_star_record_template.json` as the canonical authoring template. Do not transfer a doorway from one benchmark to another. Runtime selection may choose a more directly relevant verified destination for a non-exact provider response; when no narrower destination is verified, the approved Sovereign Sensemaking Compass is the general continuation. Omission remains a reasoned exception, never the default.
+
 ## Operating rules
 - Apply the repository-wide [System-Wide Orientation and Structural Fix Standard](SYSTEM_WIDE_ORIENTATION_AND_STRUCTURAL_FIX_STANDARD.md) to structural fixes across every specialist and visitor-facing surface.
 - Keep this registry version-controlled in the living-archive-backend repository.
