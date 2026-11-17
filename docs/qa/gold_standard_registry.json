@@ -2622,22 +2622,22 @@
         "Compares real options, harms, costs, affected knowledge, and revisability.",
         "Preserves accountable human authority while allowing AI to inform judgment."
       ],
-      "status": "SUPERSEDED_GOLD_STANDARD",
+      "status": "USER_APPROVED_GOLD_STANDARD",
       "known_theme": "integrated institutional judgment and accountable human authority",
       "related_question_variants": [
         "How should an institution assess AI adoption when it affects jobs, governance, and human consequences?",
         "How can a complex organisational decision be examined without fragmenting it into separate domains?"
       ],
       "gold_star_capabilities": {
-        "exact_answer_authority": false,
-        "active_quality_contributor": false,
-        "deterministic_fallback_eligible": false,
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
         "generation_class": "runtime_agnostic_curated_exemplar",
         "reasoning_family": "integrated_institutional_judgment",
         "transferable_discipline": "Integrate purpose, authority, consequences, affected knowledge, real options, and revisability before prescription.",
         "abstention_boundary": "Do not make decisions for responsible authorities or impose institutional analysis on ordinary practical questions."
       },
-      "runtime_transfer": false,
+      "runtime_transfer": true,
       "provenance": {
         "source_ref": "temporary evidence record: GeraldDaquila/gold-standard-exemplars/GOLD_STAR_REGISTRY.md; reconciled into canonical ledger",
         "source_pr": "PR #1240",
@@ -2652,8 +2652,9 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
       "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects.",
-      "superseded_by": "gs-2026-11-17-ai-workforce-restructuring-successor-candidate",
-      "superseded_reason": "Superseded by a governed exact-query release candidate after the visitor-facing review identified a process-led opening and missing canonical doorway. The original approved response, wording, and legacy doorway metadata are preserved as historical evidence."
+      "runtime_exact_query_successor": "gs-2026-11-17-ai-workforce-restructuring-successor-candidate",
+      "runtime_exact_answer_authority_delegated": true,
+      "runtime_successor_reason": "The original approved response remains preserved as a Gold Star structural-learning exemplar. Its exact-query runtime answer authority is delegated to the governed release candidate while the successor is under live review; this does not withdraw or demote the original Gold Star."
     },
     {
       "benchmark_id": "gs-2026-11-17-ai-workforce-restructuring-successor-candidate",
@@ -2697,13 +2698,13 @@
         "verification_context": "Governed successor release candidate for exact-query live review; original approved response retained as superseded historical evidence.",
         "approval_date": "2026-11-17"
       },
-      "freeze_policy": "This release candidate may serve only the exact registered question for live review. Gold Star promotion and adaptive-learning eligibility require explicit subsequent user approval. The superseded predecessor's original answer is preserved.",
+      "freeze_policy": "This release candidate may serve only the exact registered question for live review. It is not a Gold Star or adaptive-learning contributor until explicit subsequent user elevation. The predecessor remains an approved Gold Star structural-learning exemplar, with its exact-query runtime authority delegated to this candidate.",
       "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
       "doorway_note": "Canonical published post verified through WordPress post ID 49212; title, URL, and relevance rationale are grounded in the published essay.",
-      "supersedes_benchmark_id": "general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13",
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "No Gold Star display serial is assigned to this release candidate. A serial must not be inferred; consider allocation only if the user later approves Gold Star promotion."
+      "numbering_unassigned_reason": "No Gold Star display serial is assigned to this release candidate. A serial must not be inferred; consider allocation only if the user later approves Gold Star promotion.",
+      "replaces_exact_query_runtime_authority_of": "general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13"
     },
     {
       "benchmark_id": "general-guide-reflective-decline-without-romanticizing-gold-star-2026-11-13",
@@ -5760,7 +5761,7 @@
       "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request allocation of a display serial. Preserve benchmark_id as the stable identity."
     }
   ],
-  "last_reconciliation_note": "On 2026-11-17, the legacy AI-staffing exact-answer record was preserved and marked SUPERSEDED_GOLD_STANDARD after visitor review identified a process-led opening and incomplete doorway. Its governed successor is a USER_APPROVED_RELEASE_CANDIDATE with a direct answer and verified canonical doorway; it is not counted as a Gold Star pending explicit user elevation.",
+  "last_reconciliation_note": "On 2026-11-17, the legacy AI-staffing Gold Star was preserved without withdrawal or demotion as a structural-learning exemplar. Its exact-query runtime answer authority is delegated to a USER_APPROVED_RELEASE_CANDIDATE with a direct answer and verified canonical doorway; the candidate is excluded from the Gold Star count pending explicit user elevation.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
