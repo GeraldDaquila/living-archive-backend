@@ -45,6 +45,60 @@
     };
   }
 
+  function sanitizeMarkdown(html) {
+    var template = document.createElement('template');
+    template.innerHTML = String(html == null ? '' : html);
+    var allowed = {
+      P: true, BR: true, EM: true, STRONG: true, B: true, I: true,
+      U: true, S: true, DEL: true, UL: true, OL: true, LI: true,
+      BLOCKQUOTE: true, CODE: true, PRE: true, H1: true, H2: true,
+      H3: true, H4: true, H5: true, H6: true, A: true, HR: true,
+      TABLE: true, THEAD: true, TBODY: true, TR: true, TH: true, TD: true
+    };
+    var removeEntirely = {
+      SCRIPT: true, STYLE: true, IFRAME: true, OBJECT: true, EMBED: true,
+      SVG: true, MATH: true, IMG: true, VIDEO: true, AUDIO: true,
+      SOURCE: true, LINK: true, META: true, BASE: true, FORM: true,
+      INPUT: true, BUTTON: true, TEXTAREA: true, SELECT: true,
+      OPTION: true, CANVAS: true
+    };
+
+    function cleanChildren(parent) {
+      Array.prototype.slice.call(parent.childNodes).forEach(function (node) {
+        if (node.nodeType === 3) return;
+        if (node.nodeType !== 1) {
+          node.remove();
+          return;
+        }
+        var tag = node.tagName.toUpperCase();
+        if (removeEntirely[tag]) {
+          node.remove();
+          return;
+        }
+        cleanChildren(node);
+        if (!allowed[tag]) {
+          while (node.firstChild) parent.insertBefore(node.firstChild, node);
+          node.remove();
+          return;
+        }
+        var safeHref = tag === 'A' ? normalizeUrl(node.getAttribute('href') || '') : null;
+        Array.prototype.slice.call(node.attributes).forEach(function (attribute) {
+          node.removeAttribute(attribute.name);
+        });
+        if (tag === 'A') {
+          if (safeHref) node.setAttribute('href', safeHref);
+          else {
+            while (node.firstChild) parent.insertBefore(node.firstChild, node);
+            node.remove();
+          }
+        }
+      });
+    }
+
+    cleanChildren(template.content);
+    return template.content;
+  }
+
   function build(item) {
     var card = document.createElement('section');
     card.className = 'la-answer-doorway';
@@ -107,6 +161,7 @@
     version: '1.0.0',
     normalize: normalize,
     normalizeUrl: normalizeUrl,
+    sanitizeMarkdown: sanitizeMarkdown,
     render: render,
     renderMany: renderMany
   });
