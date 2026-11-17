@@ -1948,13 +1948,19 @@ def _archive_passage_contrast_recovery(question: str, documents: List[Dict[str, 
     if _archive_passage_contrast_topic_missing(question):
         return {
             "response": (
-                "Which subject or question should the two passages address? "
-                "A topic will let me search the Archive for distinct source texts, "
-                "represent each passage in its own terms, and identify any difference "
-                "in emphasis without assuming that the sources disagree."
+                "Represent the two passages separately and symmetrically before interpreting their relationship. "
+                "For each passage, identify its exact source, state its central concern in its own terms, and preserve "
+                "its scope, qualifications, and intended audience. Do not translate either passage into the other's "
+                "vocabulary or turn a difference in emphasis into a disagreement.\n\n"
+                "Only after both representations are clear should the Guide compare them: name where their emphasis "
+                "differs, distinguish a genuine contradiction from complementary focus, and retain any tension that "
+                "the available text cannot resolve. Synthesis comes last and must not erase distinctions the sources "
+                "themselves preserve.\n\n"
+                "Which subject or question should I search for in the Archive?"
             ),
-            "doorway_title": "",
-            "doorway_url": "",
+            "doorway_title": "Sovereign Sensemaking Compass",
+            "doorway_url": "https://geralddaquila.com/the-sovereign-sensemaking-compass/",
+            "doorway_rationale": "A broad continuation for developing clarity and agency when no narrower subject-specific Archive destination has yet been established.",
             "response_shape": "explanatory",
             "provider": "bounded_archive_passage_contrast_recovery",
             "model": "deterministic-topic-clarification",
@@ -2010,12 +2016,19 @@ def is_preserved_archive_passage_contrast_recovery(payload: Any) -> bool:
     """
     if not isinstance(payload, dict):
         return False
-    if (
-        payload.get("provider") != "bounded_archive_passage_contrast_recovery"
-        or payload.get("model") != "extractive-deterministic"
-    ):
+    if payload.get("provider") != "bounded_archive_passage_contrast_recovery":
         return False
+    model = payload.get("model")
     response = str(payload.get("response") or "")
+    if model == "deterministic-topic-clarification":
+        return (
+            response.startswith("Represent the two passages separately and symmetrically")
+            and "Which subject or question should I search for in the Archive?" in response
+            and payload.get("doorway_title") == "Sovereign Sensemaking Compass"
+            and payload.get("doorway_url") == "https://geralddaquila.com/the-sovereign-sensemaking-compass/"
+        )
+    if model != "extractive-deterministic":
+        return False
     matches = re.findall(
         r"(?m)^Passage ([12]) — \[([^\]\n]+)\]\((https://geralddaquila\.com/[^\s)]+)\)",
         response,
