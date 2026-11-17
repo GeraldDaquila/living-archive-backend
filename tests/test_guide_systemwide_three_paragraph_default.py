@@ -356,3 +356,67 @@ def test_public_predictive_system_doorway_match_does_not_overreach():
     assert main._select_verified_doorway_conceptual_family(
         "What are the constitutional limits of government authority?"
     ) != "public_predictive_systems"
+
+
+def test_exact_gold_standard_preserves_answer_and_enriches_only_matching_doorway_rationale(monkeypatch):
+    import main
+
+    query = (
+        "A government proposes a highly efficient predictive system for public services. "
+        "What constitutional and human questions must precede adoption?"
+    )
+    exact_answer = "Frozen approved Gold Standard answer."
+    exact_standard = {
+        "expected_response": exact_answer,
+        "doorway_title": "AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever",
+        "doorway_url": "https://geralddaquila.com/2026/06/16/ai-vs-human-stewardship-why-conscious-guidance-matters-more-than-ever/",
+        # Legacy exact-query record intentionally has no doorway_rationale.
+    }
+    expected_rationale = "AI vs. Human Stewardship examines why growing technological capability must remain guided by human wisdom, ethical judgment, oversight, agency, and clear accountability. It offers a broader foundation for examining predictive public systems and the responsibilities that must remain with people; it does not evaluate this particular government proposal."
+    monkeypatch.setattr(
+        main,
+        "_resolve_exact_guide_gold_standard",
+        lambda _query: exact_standard,
+    )
+
+    result = main._guide_finalize_visitor_payload(
+        {"response": "Unapproved answer.", "recommendation": None},
+        query,
+    )
+
+    assert result["response"] == exact_answer
+    assert result["recommendation"] == {
+        "title": exact_standard["doorway_title"],
+        "url": exact_standard["doorway_url"],
+        "rationale": expected_rationale,
+    }
+    assert result["canonical_doorway"] == result["recommendation"]
+    assert result["doorway_rationale"] == expected_rationale
+
+
+def test_exact_gold_standard_does_not_borrow_rationale_for_a_different_destination(monkeypatch):
+    import main
+
+    query = (
+        "A government proposes a highly efficient predictive system for public services. "
+        "What constitutional and human questions must precede adoption?"
+    )
+    exact_standard = {
+        "expected_response": "Frozen answer.",
+        "doorway_title": "A Different Canonical Resource",
+        "doorway_url": "https://geralddaquila.com/a-different-canonical-resource/",
+    }
+    monkeypatch.setattr(
+        main,
+        "_resolve_exact_guide_gold_standard",
+        lambda _query: exact_standard,
+    )
+
+    result = main._guide_finalize_visitor_payload({"response": "Provider answer."}, query)
+
+    assert result["response"] == "Frozen answer."
+    assert result["recommendation"] == {
+        "title": "A Different Canonical Resource",
+        "url": "https://geralddaquila.com/a-different-canonical-resource/",
+    }
+    assert "rationale" not in result["recommendation"]
