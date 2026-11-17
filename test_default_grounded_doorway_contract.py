@@ -73,6 +73,10 @@ class DefaultGroundedDoorwayContractTests(unittest.TestCase):
         self.assertIn("and not _is_practical_stewardship_question(query)", SOURCE)
         self.assertIn('and not re.search(r"\\b(?:practice|practicing)\\s+stewardship\\b", query, re.I)', SOURCE)
         self.assertIn(
+            "if not doorway and not (\\n        _is_practical_stewardship_question(query)",
+            SOURCE,
+        )
+        self.assertIn(
             'bool(_final_gold_standard.get("forbids_doorway"))',
             SOURCE,
         )
