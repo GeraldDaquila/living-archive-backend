@@ -635,7 +635,7 @@ def is_oversoul_free_will_question(question):
 def _oversoul_free_will_recovery():
     """Explain spiritual influence and human choice without asserting metaphysical fact."""
     return (
-        "There is no independently verifiable evidence that an Oversoul literally controls a person's choices. Within spiritual frameworks that use the idea, the Oversoul is more often treated as a wider source of orientation, meaning, or purpose than as an authority that dictates each decision. Its 'power' can therefore be understood as influence rather than compulsion: it may inform what a person notices, values, or feels called toward, without making a particular choice inevitable.\n\n"
+        "No independently verifiable evidence establishes that an Oversoul literally controls a person's choices. Within spiritual frameworks that use the idea, the Oversoul is more often treated as a wider source of orientation, meaning, or purpose than as an authority that dictates each decision. Its 'power' can therefore be understood as influence rather than compulsion: it may inform what a person notices, values, or feels called toward, without making a particular choice inevitable.\n\n"
         "That distinction matters because a choice is still made through the person's lived awareness, judgment, relationships, and circumstances. A sense of deeper purpose may clarify possibilities or challenge familiar priorities, but the person must still interpret that experience and decide how to respond. They may accept it, question it, misunderstand it, or choose differently. The influence can be meaningful without replacing the work and responsibility of choosing.\n\n"
         "Free will does not require a person to be untouched by every influence; it requires that influence not be confused with coercive determination. In this interpretation, the Oversoul may orient or invite, while the person participates in shaping what happens through choices made within real conditions and limits. That is a spiritual reading of the relationship, not proof that an Oversoul exists, that every intuition comes from it, or that life outcomes are predetermined."
     )
@@ -684,7 +684,7 @@ def registered_recovery_recommendation(question):
     """Return an evidence-backed doorway for a narrow registered recovery."""
     if is_oversoul_free_will_question(question) or is_oversoul_ego_authority_question(question):
         return {
-            "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
+            "title": "Eternal Oversoul Law – The Immutable Jurisdiction",
             "url": "https://geralddaquila.com/oversoul-law",
             "rationale": "This is the Archive's directly named Oversoul doorway for examining the question of spiritual jurisdiction. It is an invitation to inspect the Archive's own framework, not independent evidence that metaphysical claims are objectively established.",
         }
