@@ -1559,9 +1559,14 @@ async function submitOrdinaryFollowup(panel, input, button, status) {
 
     var responseText = document.getElementById('archive-response-text');
     if (!responseText) throw new Error('The response surface is unavailable.');
-    responseText.innerHTML = (typeof marked !== 'undefined')
+    var answerHtml = (typeof marked !== 'undefined' && marked && typeof marked.parse === 'function')
       ? marked.parse(data.response)
-      : escapeHtml(data.response).replace(/\n/g, '<br>');
+      : '<p>' + escapeHtml(data.response).replace(/\n/g, '<br>') + '</p>';
+    if (window.LivingArchiveAnswerDoorway && typeof window.LivingArchiveAnswerDoorway.sanitizeMarkdown === 'function') {
+      responseText.replaceChildren(window.LivingArchiveAnswerDoorway.sanitizeMarkdown(answerHtml));
+    } else {
+      responseText.textContent = data.response;
+    }
 
     guideConversationHistory.push({ role: 'assistant', content: data.response });
     renderAuthoritativeRecommendation(data);
@@ -2044,7 +2049,11 @@ async function useGuideSubmit(event) {
           .join('');
       }
       if (guideActiveRequestToken === requestToken) {
-        responseText.innerHTML = renderedAnswer;
+        if (window.LivingArchiveAnswerDoorway && typeof window.LivingArchiveAnswerDoorway.sanitizeMarkdown === 'function') {
+          responseText.replaceChildren(window.LivingArchiveAnswerDoorway.sanitizeMarkdown(renderedAnswer));
+        } else {
+          responseText.textContent = responseForPresentation;
+        }
         responseText.dataset.guideRequestToken = String(requestToken);
         responseText.dataset.guideResponseQuery = query;
       }
