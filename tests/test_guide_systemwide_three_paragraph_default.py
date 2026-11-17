@@ -119,3 +119,39 @@ def test_community_continuity_nonanswer_is_replaced_and_doorway_is_recovered():
     assert 'composition_context.get("answer_basis") == "general_conceptual_orientation"' in source
     assert '"label": "General conceptual orientation"' in source
     assert "rather than claiming that the Living Archive establishes the full answer" in source
+
+
+
+def test_retrieval_only_disclaimer_is_rejected_for_ordinary_explanatory_questions():
+    from general_guide_composition import is_generic_nonanswer
+
+    query = "How can communities preserve continuity while revising harmful inherited patterns?"
+    screenshot_style = (
+        "I do not have enough grounded material here to give a specific Archive-based answer, "
+        "but the question can still be approached by making its central tension visible: what is at stake, "
+        "who or what is affected, what responsibilities are involved, and what would change if the situation "
+        "were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\n"
+        "A useful next question is where this distinction matters most: in how the organization makes decisions, "
+        "measures success, or responds to consequences."
+    )
+    assert is_generic_nonanswer(query, screenshot_style)
+
+    archive_specific_query = "How does the Living Archive say communities should preserve continuity while revising harmful inherited patterns?"
+    archive_specific_disclaimer = screenshot_style + "\n\nThe available sources do not establish a more specific canonical prescription."
+    assert not is_generic_nonanswer(archive_specific_query, archive_specific_disclaimer)
+
+
+def test_outer_basic_inquiry_exception_path_reuses_terminal_answer_and_navigation_contracts():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    marker = 'The Guide Basic Inquiry seam failed;'
+    start = source.index(marker)
+    end = source.index('explicit_formation_route =', start)
+    boundary = source[start:end]
+    assert "_basic_inquiry_provider_exhaustion_response(" in boundary
+    assert "general_guide_composition.enforce_response_contracts(" in boundary
+    assert "_terminal_has_registered_recovery(query)" in boundary
+    assert "_terminal_recovery_recommendation(query)" in boundary
+    assert '"canonical_doorway": recovery_recommendation' in boundary
+    assert '"answer_basis": {' in boundary
+    assert "_basic_inquiry_round1_deterministic_response(" not in boundary
+    assert "str(exc)[:180]" in boundary
