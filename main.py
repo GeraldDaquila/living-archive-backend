@@ -245,7 +245,12 @@ def _select_verified_doorway_conceptual_family(query):
     text = str(query or "")
     # Spiritual-agency questions have a direct Archive doorway. Resolve this
     # before generic agency/uncertainty matches can select a broad compass.
-    if is_oversoul_free_will_question(text):
+    if (
+        re.search(r"\\boversoul\\b", text, re.I)
+        and re.search(r"\\b(?:free will|free choice|personal agency|human agency|choices?)\\b", text, re.I)
+        and re.search(r"\\b(?:power|influence|shape|guide|direct|determine|control|override|affect|authority)\\b", text, re.I)
+        and re.search(r"\\b(?:without undermining|without negating|without overriding|while preserving|while retaining|compatible with|undermin\\w*|conflict|tension)\\b", text, re.I)
+    ):
         return "oversoul_free_will"
     if (
         re.search(r"\b(?:ai|artificial intelligence)\b", text, re.I)
