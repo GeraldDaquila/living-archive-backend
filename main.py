@@ -5583,6 +5583,9 @@ def _guide_restore_verified_doorway(payload, query):
         except Exception:
             candidate = None
         doorway = _normalize_authoritative_recommendation(candidate)
+    # A missing topic-specific match is not permission to return a navigation dead end.
+    if not doorway:
+        doorway = _normalize_authoritative_recommendation(_gold_star_default_doorway())
 
     safe["recommendation"] = doorway
     safe["canonical_doorway"] = doorway
@@ -13937,6 +13940,20 @@ async def _use_request_boundary(scope, receive, send):
                 payload = None
 
             safe_payload = _guide_finalize_visitor_payload(payload, query)
+            # Enforce the doorway invariant after every inner early return, not
+            # only on the ordinary provider path. Exact approved exceptions and
+            # an explicit visitor refusal of navigation remain authoritative.
+            exact_doorway_standard = _resolve_exact_guide_gold_standard(query)
+            explicit_no_doorway = bool(re.search(
+                r"\\b(?:do not|don't|without|no)\\b.{0,48}\\b(?:doorway|link|page|resource|handoff|recommendation)\\b",
+                query,
+                re.I,
+            ))
+            reviewed_omission = _gold_star_doorway_omission_is_justified(
+                exact_doorway_standard
+            )
+            if isinstance(safe_payload, dict) and not (reviewed_omission or explicit_no_doorway):
+                safe_payload = _guide_restore_verified_doorway(safe_payload, query)
             # Response provenance is attached at the single outer boundary so
             # every production acceptance result can be traced to its serving
             # build without exposing implementation detail in the visitor UI.
