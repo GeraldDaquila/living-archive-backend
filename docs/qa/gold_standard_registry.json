@@ -6444,9 +6444,68 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve the benchmark_id as the stable learning identity; serial allocation remains independent."
+    },
+    {
+      "benchmark_id": "general-guide-nonprofit-culture-power-care-governance-gold-star-2026-11-18",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "A nonprofit’s founder is widely trusted by donors, beneficiaries, or the wider community while staff experience fear and high turnover; how can the Guide integrate culture, power, leadership, care, and governance without diagnosing individuals from limited evidence?",
+      "expected_response": "A founder can be widely trusted by donors, beneficiaries, or the wider community while staff experience fear and high turnover; those accounts are not automatically mutually exclusive. People encounter the same leader from different positions of dependence, access, and power. The Guide should therefore treat the contrast as a signal to understand the organization, not as proof that the founder is either admirable or harmful. Culture, power, and leadership have to be examined together: stated values matter, but so do the everyday consequences of speaking up, disagreement, decision-making, or challenging a decision.\n\nThe analysis should trace how these conditions interact. Culture is visible in the behaviours that are rewarded, tolerated, or discouraged; power is visible in who controls decisions, information, resources, and opportunities; leadership is visible in repeated practices and the way authority is exercised. Care asks whether workloads, safety, dignity, and staff well-being are treated as real responsibilities rather than slogans. Governance asks whether people have safe ways to raise concerns, whether decisions can be questioned, and whether oversight is sufficiently independent of the person being questioned. For example, a nonprofit may have a trusted public-facing founder and an informal donor-heavy culture, yet staff may learn from repeated retaliation, ignored complaints, or opaque decisions that speaking honestly carries a cost. That pattern warrants investigation; it does not, by itself, establish why any individual acted as they did.\n\nThe Guide should distinguish reported experience, independently corroborated patterns, and explanations that remain hypotheses. It can recommend confidential staff listening, disaggregated turnover and exit data, review of complaint handling and decision records, protection against retaliation, and independent governance oversight. It should compare accounts across roles and time, examine whether concerns recur, and make clear what evidence could confirm or challenge each interpretation. Fear and turnover are serious signals, but they do not prove an individual's motives, character, or culpability; public trust does not disprove staff harm. The responsible conclusion is a testable account of organizational conditions, with safeguards, accountable ownership, and a route to correction—not a diagnosis of a person.",
+      "expected_doorway": {
+        "title": "Building Trust-Centered Organizations",
+        "url": "https://geralddaquila.com/2026/09/07/building-trust-centered-organizations/",
+        "rationale": "This essay examines how leadership signals, shared cultural norms, incentives, trust, and accountability shape organizational life. It offers a relevant continuation from the reported gap between public confidence and staff experience to the conditions that make an organization trustworthy in practice."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.6,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the live visitor-facing response and explicitly instructed Gold Star elevation on 2026-11-18.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "nonprofit_culture_power_care_governance_with_evidence_boundaries",
+      "transferable_lesson": "Analyze apparently conflicting public trust and staff experience as position-dependent organizational signals. Examine culture, power, leadership, care, and governance together; distinguish reported experience, corroborated patterns, and hypotheses; recommend protected, independent evidence-gathering and correctable oversight without diagnosing an individual.",
+      "transfer_boundary": "Transfer the organizational-systems and evidence-discipline method, not this answer text or doorway. Do not infer an individual's motives, character, or culpability from staff fear, turnover, public reputation, or uncorroborated reports. Do not treat public confidence as proof of staff safety, or staff reports as proof of a particular person's intent. Preserve confidentiality, protection against retaliation, independent review, and uncertainty where evidence is incomplete.",
+      "known_theme": "nonprofit organizations, founder reputation, staff fear, turnover, organizational culture, power, leadership, care, governance, psychological safety, retaliation, complaint handling, independent oversight, evidence boundaries",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "nonprofit_culture_power_care_governance_with_evidence_boundaries",
+        "transferable_discipline": "Integrate organizational culture, power, leadership, care, and governance; test how their interactions shape staff experience and public trust; separate reports, corroborated patterns, and hypotheses; make investigation safe, independent, and correctable.",
+        "abstention_boundary": "Do not diagnose an individual or infer motives, character, or culpability from limited evidence. Do not let public trust erase staff harm or let reported harm alone establish individual intent."
+      },
+      "assertions": [
+        "Preserve the exact reviewed answer as three substantive paragraphs: explain how public trust and staff fear can coexist across positions of dependence, access, and power; integrate culture, power, leadership, care, and governance; distinguish reports, corroborated patterns, and hypotheses while recommending protected and independent evidence-gathering.",
+        "Begin with the substantive answer directly; do not announce, preface, or restate the question.",
+        "Treat the contrast between public confidence and staff fear/turnover as an organizational signal, not proof that the founder is either admirable or harmful.",
+        "Examine culture through rewarded, tolerated, and discouraged behavior; power through control of decisions, information, resources, and opportunities; and leadership through repeated practices and exercise of authority.",
+        "Examine care through workloads, safety, dignity, and staff well-being; examine governance through safe reporting, contestable decisions, and sufficiently independent oversight.",
+        "Distinguish reported experience, independently corroborated patterns, and hypotheses; recommend confidential listening, disaggregated turnover and exit data, review of complaint handling and decision records, anti-retaliation protections, and independent governance oversight.",
+        "Do not infer individual motives, character, or culpability from fear or turnover; do not treat public trust as disproof of staff harm.",
+        "End with a testable account of organizational conditions, safeguards, accountable ownership, and a route to correction—not a diagnosis of a person.",
+        "Render the verified Building Trust-Centered Organizations doorway after the complete answer with its specific continuation rationale."
+      ],
+      "user_approved_at": "2026-11-18",
+      "elevation_approval_evidence": "User reviewed the live visitor-facing Guide screenshot showing the exact three-paragraph nonprofit culture, power, leadership, care, and governance answer and the Building Trust-Centered Organizations doorway, then explicitly instructed: 'elevate' on 2026-11-18.",
+      "provenance": {
+        "source": "User-provided live visitor-facing Guide screenshot and explicit Gold Star elevation approval.",
+        "source_date": "2026-11-18",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the exact displayed question, three-paragraph answer, and displayed doorway rationale. The answer is frozen as shown; it recommends investigation and safeguards but does not establish whether any specific allegation is true or diagnose any individual.",
+        "doorway_verification": {
+          "title": "Building Trust-Centered Organizations",
+          "url": "https://geralddaquila.com/2026/09/07/building-trust-centered-organizations/",
+          "verified_against": "Canonical Life.Understood. page published 2026-09-07; title and permalink independently verified."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve the benchmark_id as the stable learning identity; serial allocation remains independent."
     }
   ],
-  "last_reconciliation_note": "Added user-approved symmetric-source-representation Gold Star on 2026-11-18. The exact two-paragraph answer and verified Sovereign Sensemaking Compass doorway are frozen; transfer is limited to independent, symmetric source representation before comparison, distinguishing contradiction from complementary emphasis, preserving unresolved tension, and synthesizing last. No display serial was allocated; existing Gold Star numbering and duplicate lineage remain unchanged.",
+  "last_reconciliation_note": "Added user-approved nonprofit culture, power, care, and governance Gold Star on 2026-11-18. The exact three-paragraph answer and verified Building Trust-Centered Organizations doorway are frozen; transfer is limited to integrated organizational analysis, protected evidence-gathering, independent oversight, and non-diagnostic conclusions. No display serial was allocated; the adjacent organizational-culture-and-ethical-behavior benchmark remains distinct.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -6576,13 +6635,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 100,
-    "registry_record_count": 137,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 100 approved Gold Stars across 137 registry records. 98 are active learning contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. The systems-map duplicate lineage remains governed with one active exemplar. The symmetric-source-representation exemplar is an additional distinct active contributor; it does not duplicate the contextual-values synthesis or source-claim/synthesis-boundary exemplars.",
+    "approved_gold_star_count": 101,
+    "registry_record_count": 138,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 101 approved Gold Stars across 138 registry records. 99 are active learning contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. The nonprofit culture/power/care/governance exemplar is distinct from the broader organizational-culture-and-ethical-behavior exemplar; it addresses conflicting public and staff experiences, evidence-gathering safeguards, and non-diagnostic governance review.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation: 100 approved Gold Stars; 38 assigned display serials #56–#93; 62 approved records explicitly UNASSIGNED with reasons. The two explicitly released historical-gap serials, #85 and #86, are now allocated to new approved records; no open numbering gaps remain. Historical gap evidence for #86 is retained in numbering_allocation_history.",
-    "unassigned_approved_gold_star_count": 62,
+    "numbering_reconciliation": "Record-level reconciliation: 101 approved Gold Stars; 38 assigned display serials #56–#93; 63 approved records explicitly UNASSIGNED with reasons. The two explicitly released historical-gap serials, #85 and #86, remain allocated to their existing approved records; no open numbering gaps remain. No display serial was allocated to the nonprofit culture/power/care/governance exemplar.",
+    "unassigned_approved_gold_star_count": 63,
     "documented_numbering_gap_count": 0
   },
   "numbering_policy": {
