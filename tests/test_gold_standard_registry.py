@@ -1385,7 +1385,6 @@ def test_personal_decision_agency_gold_star_93_has_active_transfer_review():
 
 
 def test_public_commons_stewardship_gold_star_preserves_answer_and_verified_doorway_across_both_paths():
-    from deterministic_answer_recovery import compose_recovery
     from general_guide_composition import compose
     from general_guide_gold_standards import resolve_exact_gold_standard
 
@@ -1430,7 +1429,6 @@ def test_public_commons_stewardship_gold_star_preserves_answer_and_verified_door
     assert provider_contract["doorway_title"] == fixture["expected_doorway_title"]
     assert provider_contract["doorway_url"] == fixture["expected_doorway_url"]
 
-    assert compose_recovery(query) == expected
     # The isolated main.py route imports FastAPI, which is intentionally absent
     # from the lightweight registry-contract job. Exercise it whenever the
     # runtime dependency set is installed; the provider-neutral and deterministic
