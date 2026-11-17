@@ -1295,3 +1295,38 @@ def test_approved_exact_query_only_successor_is_valid_and_cannot_claim_learning_
     successor["replaces_exact_query_runtime_authority_of"] = "missing-predecessor"
     with pytest.raises(SystemExit, match="valid exact-query-only successor"):
         validate_exact_only_successors(mutated, active)
+
+def test_complex_future_scenario_readiness_gold_star_preserves_exact_answer_and_doorway():
+    from deterministic_answer_recovery import compose_recovery
+    from general_guide_gold_standards import resolve_exact_gold_standard
+
+    record = next(
+        item for item in _registry()["records"]
+        if item["benchmark_id"] == "gs-2026-11-17-complex-future-scenario-readiness"
+    )
+    expected = "The Guide should not turn a complex future into one definitive prediction. Outcomes may depend on interacting conditions that change over time, so a single forecast can hide the assumptions on which it rests and make one possibility look settled. Reframe the question from “What will happen?” to “What are several plausible ways this could unfold, and what conditions would make each more or less likely?” Scenarios are not competing prophecies; they are structured possibilities for testing understanding and readiness.\n\nFor each scenario, examine the capacities it would require and the capacities already available: knowledge, skills, resources, relationships, infrastructure, coordination, and legitimate decision-making authority. Identify constraints, dependencies, vulnerabilities, and gaps; ask who can strengthen the capabilities that matter and how long that would take. Do not assume that stronger capacity can eliminate uncertainty. Its purpose is to widen the range of conditions people can meet and reduce avoidable fragility across more than one plausible future.\n\nThen identify observable signals that would make one scenario more or less plausible, what evidence would change the assessment, and which decisions should be revisited if those signals appear. Prefer steps that remain useful across several scenarios, preserve options where possible, and define in advance when to adapt, pause, or change direction. Keep assumptions and confidence limits visible, update the scenarios as conditions change, and never present a scenario as a guaranteed outcome. The aim is not to know the future in advance, but to build the capacity to respond responsibly as it unfolds."
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "A user requests a definitive prediction about a complex future. How should the Guide reframe the request toward scenarios, capacities, and uncertainty?"
+    assert record["expected_response"] == expected
+    assert len(expected.split("\\n\\n")) == 3
+    assert record["rating_out_of_10"] == 9.3
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["doorway_status"] == "VERIFIED_CANONICAL_DESTINATION"
+    assert record["expected_doorway"] == {"title":"Sovereign Sensemaking Compass","url":"https://geralddaquila.com/the-sovereign-sensemaking-compass/","rationale":"The Sovereign Sensemaking Compass offers an orientation framework for navigating uncertainty while retaining clarity and agency. It is a useful next step for examining how to remain oriented and make responsible choices when no single forecast can settle the future; it does not claim to predict specific outcomes."}
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record.get("gold_star_number") is None
+    capabilities = record["gold_star_capabilities"]
+    assert capabilities["exact_answer_authority"] is True
+    assert capabilities["active_quality_contributor"] is True
+    assert capabilities["deterministic_fallback_eligible"] is True
+
+    resolved = resolve_exact_gold_standard(record["query"])
+    assert resolved is not None
+    assert resolved["benchmark_id"] == record["benchmark_id"]
+    assert resolved["expected_response"] == expected
+    assert resolved["doorway_title"] == record["expected_doorway"]["title"]
+    assert resolved["doorway_url"] == record["expected_doorway"]["url"]
+    assert resolved["doorway_rationale"] == record["expected_doorway"]["rationale"]
+    assert compose_recovery(record["query"]) == expected
+    assert resolve_exact_gold_standard("How can we prepare for an uncertain future?") is None

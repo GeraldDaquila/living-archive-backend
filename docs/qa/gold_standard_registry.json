@@ -5899,6 +5899,68 @@
       "transferable_lesson": "Make consequential public technology answerable to legitimate public authority, rights, a human decision-maker empowered to review and correct decisions, historical awareness, reversibility, and independent scrutiny before treating efficiency as decisive.",
       "transfer_boundary": "Transfer this reasoning discipline to consequential public predictive or automated decision systems. Do not presume every predictive tool exercises public power, invent jurisdiction-specific legal requirements, reject technology merely because it is automated, or transfer this exact answer and doorway to unrelated questions.",
       "user_approved_at": "2026-11-17"
+    },
+    {
+      "benchmark_id": "gs-2026-11-17-complex-future-scenario-readiness",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "A user requests a definitive prediction about a complex future. How should the Guide reframe the request toward scenarios, capacities, and uncertainty?",
+      "expected_response": "The Guide should not turn a complex future into one definitive prediction. Outcomes may depend on interacting conditions that change over time, so a single forecast can hide the assumptions on which it rests and make one possibility look settled. Reframe the question from “What will happen?” to “What are several plausible ways this could unfold, and what conditions would make each more or less likely?” Scenarios are not competing prophecies; they are structured possibilities for testing understanding and readiness.\n\nFor each scenario, examine the capacities it would require and the capacities already available: knowledge, skills, resources, relationships, infrastructure, coordination, and legitimate decision-making authority. Identify constraints, dependencies, vulnerabilities, and gaps; ask who can strengthen the capabilities that matter and how long that would take. Do not assume that stronger capacity can eliminate uncertainty. Its purpose is to widen the range of conditions people can meet and reduce avoidable fragility across more than one plausible future.\n\nThen identify observable signals that would make one scenario more or less plausible, what evidence would change the assessment, and which decisions should be revisited if those signals appear. Prefer steps that remain useful across several scenarios, preserve options where possible, and define in advance when to adapt, pause, or change direction. Keep assumptions and confidence limits visible, update the scenarios as conditions change, and never present a scenario as a guaranteed outcome. The aim is not to know the future in advance, but to build the capacity to respond responsibly as it unfolds.",
+      "expected_doorway": {
+        "title": "Sovereign Sensemaking Compass",
+        "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass/",
+        "rationale": "The Sovereign Sensemaking Compass offers an orientation framework for navigating uncertainty while retaining clarity and agency. It is a useful next step for examining how to remain oriented and make responsible choices when no single forecast can settle the future; it does not claim to predict specific outcomes."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.3,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "Gold Star elevation explicitly approved by the user on 2026-11-17 after review of the live visitor-facing answer and its separate continuation doorway.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "complex_future_scenario_planning",
+      "transferable_lesson": "When someone seeks certainty about a complex future, replace a single definitive forecast with several plausible scenarios; assess the capacities, resources, constraints, dependencies, vulnerabilities, and gaps relevant to each; then track observable signals and evidence, preserve options, and define adaptive decision thresholds without claiming that readiness removes uncertainty.",
+      "transfer_boundary": "Apply this discipline only when the visitor explicitly asks how to reframe a definitive prediction about a complex future toward scenarios, capacities, or uncertainty. Do not impose it on ordinary uncertainty, routine forecasts, self-contained factual questions, or unrelated decisions. Do not present scenarios as predictions, imply that capacity eliminates uncertainty, guarantee outcomes, or introduce unrelated AI framing.",
+      "known_theme": "complex futures, scenario planning, capacity readiness, uncertainty, adaptive decisions, observable signals, option preservation, decision thresholds",
+      "gold_star_capabilities": {
+        "generation_class": "deterministic_curated_recovery_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "complex_future_scenario_planning",
+        "transferable_discipline": "Compose in three distinct moves: replace false certainty with multiple plausible futures and their conditions; assess required and available capacities alongside constraints, dependencies, vulnerabilities, and gaps; then identify observable signals, evidence thresholds, adaptive decisions, and option-preserving actions while keeping uncertainty visible.",
+        "abstention_boundary": "Do not transfer the exact answer, examples, or doorway to unrelated questions. Do not apply scenario planning to routine forecasts or ordinary uncertainty questions that do not ask for a complex-future reframe. Never imply certainty, guaranteed outcomes, or that stronger capacity eliminates uncertainty."
+      },
+      "assertions": [
+        "Answer the visitor's actual request: explain how to reframe a demand for a definitive prediction about a complex future.",
+        "Paragraph one rejects false certainty without dismissing forecasting; it introduces several plausible scenarios and the conditions that could make each more or less likely.",
+        "Paragraph two assesses the capacities each scenario would require and those already available: knowledge, skills, resources, relationships, infrastructure, coordination, and legitimate authority.",
+        "Paragraph two identifies constraints, dependencies, vulnerabilities, and capacity gaps, while explicitly stating that stronger capacity cannot eliminate uncertainty.",
+        "Paragraph three identifies observable signals and evidence that could change scenario assessments and trigger review of decisions.",
+        "Paragraph three prioritizes actions useful across multiple scenarios, preservation of options, and explicit thresholds for adapting, pausing, or changing direction.",
+        "Keep assumptions and confidence limits visible; never present a scenario as a guaranteed outcome.",
+        "Keep the answer to three distinct paragraphs with no generic decision checklist and no unsolicited AI or artificial-intelligence framing.",
+        "Present the Sovereign Sensemaking Compass as a separate continuation doorway, accurately describing it as an orientation framework rather than a prediction tool."
+      ],
+      "user_approved_at": "2026-11-17",
+      "elevation_approval_evidence": "The user reviewed the live visitor-facing screenshot containing this exact question, the exact three-paragraph answer, and the separate Sovereign Sensemaking Compass doorway, then explicitly instructed: “elevate to gold star.”",
+      "provenance": {
+        "source": "user_reviewed_live_visitor_response_screenshot",
+        "source_date": "2026-11-17",
+        "evidence_boundary": "The screenshot establishes the exact visitor question, exact three-paragraph answer, displayed doorway title, and visitor-facing relevance rationale. The original generation provider is not asserted. The response text is also the canonical deterministic recovery for this bounded question family.",
+        "doorway_verification": {
+          "source": "Canonical Living Archive destination linked by the live Guide doorway",
+          "canonical_title": "The Sovereign Sensemaking Compass",
+          "canonical_url": "https://geralddaquila.com/the-sovereign-sensemaking-compass/",
+          "verification_date": "2026-11-17",
+          "conceptual_fit": "The destination provides an orientation framework for navigating uncertainty while retaining clarity and agency. It supports the visitor's next step in sensemaking but does not claim to forecast specific outcomes."
+        },
+        "primary_response_provenance": "The exact response is the deterministic recovery contract implemented by _complex_future_scenario_recovery(); provider origin is not asserted.",
+        "llm_origin": false
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user explicitly authorized Gold Star elevation but did not separately authorize allocation of a display serial. Preserve benchmark_id as the stable adaptive-learning identity; serial allocation remains independent."
     }
   ],
   "last_reconciliation_note": "2026-11-17: Elevated gs-2026-11-17-ai-workforce-restructuring-successor-candidate to USER_APPROVED_GOLD_STANDARD after explicit user approval of the exact live answer and verified Agentic Systems and the End of Passive Labor doorway. The predecessor remains preserved as a distinct approved structural-learning exemplar; no serial was allocated.",
@@ -6031,13 +6093,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-17",
-    "approved_gold_star_count": 91,
-    "registry_record_count": 128,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 91 approved Gold Stars across 128 registry records. The AI-workforce restructuring successor is an approved exact-query authority only; its predecessor remains the sole active structural-learning contributor for that question family. The successor does not create a duplicate learning identity or qualitative-transfer review.",
+    "approved_gold_star_count": 92,
+    "registry_record_count": 129,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 92 approved Gold Stars across 129 registry records. The complex-future scenario-readiness exemplar is an active exact-answer and structural-learning contributor, with its approved deterministic recovery and verified Sovereign Sensemaking Compass doorway preserved. It remains unnumbered because serial allocation was not separately requested. Existing AI-workforce and public-predictive successor governance remains unchanged.",
     "numbered_gold_star_record_count": 35,
     "highest_assigned_gold_star_number": 92,
-    "numbering_reconciliation": "Record-level reconciliation: 91 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 56 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
-    "unassigned_approved_gold_star_count": 56,
+    "numbering_reconciliation": "Record-level reconciliation: 92 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 57 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
+    "unassigned_approved_gold_star_count": 57,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {
