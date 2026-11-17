@@ -86,3 +86,25 @@ def test_rejects_unbounded_or_invalid_report_lists():
     candidate["strengths"] = ["x" * 261]
     with pytest.raises(FSDEpisodeReportError):
         validate_episode_report(candidate, episode(), refs())
+
+
+@pytest.mark.parametrize("url", [
+    "javascript:alert(1)",
+    "http://geralddaquila.com/resource/",
+    "https://geralddaquila.com.evil.example/resource/",
+    "https://evil@geralddaquila.com/resource/",
+    "https://geralddaquila.com:8443/resource/",
+    "https://geralddaquila.com/resource/?next=https://evil.example/",
+    "https://geralddaquila.com/resource/#fragment",
+    "https://geralddaquila.com",
+])
+def test_rejects_noncanonical_or_decorated_archive_urls(url):
+    with pytest.raises(FSDEpisodeReportError):
+        validate_episode_report(report(), episode(), [{
+            "reference_id": "A01", "title": "Untrusted", "url": url
+        }])
+
+
+def test_accepts_canonical_first_party_https_url():
+    result = validate_episode_report(report(), episode(), refs())
+    assert result["archive_references"][0]["url"] == "https://geralddaquila.com/foundational-reference"
