@@ -816,6 +816,15 @@
       "qualifying_context": "Questions explicitly asking how to reframe a definitive prediction about a complex, interacting, or nonlinear future toward scenario planning, capacity readiness, or uncertainty-aware preparation.",
       "abstention_boundary": "Do not impose this scenario-readiness discipline on routine forecasts, ordinary uncertainty, factual questions, or unrelated decisions. Do not present scenarios as predictions, imply that capacity removes uncertainty, guarantee outcomes, or introduce unrelated AI framing.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-17-oversoul-free-will-influence-without-compulsion",
+      "question": "What power does the Oversoul have over a person’s choice without undermining free will?",
+      "reasoning_family": "spiritual_influence_without_coercion_epistemic_boundary",
+      "transferable_discipline": "When a spiritual or metaphysical framework is used to explain influence on human choice, distinguish orientation or invitation from coercive determination; preserve the person's role in interpreting experience and choosing; and state clearly which claims are framework-bound interpretations rather than independently verified facts.",
+      "qualifying_context": "Questions that explicitly invoke the Oversoul or a comparable spiritual framework and ask how spiritual influence, guidance, or purpose can coexist with personal choice or free will.",
+      "abstention_boundary": "Do not assert that an Oversoul or other metaphysical entity objectively exists, controls choices, or determines outcomes. Do not treat intuition as proof of metaphysical communication, universalize one spiritual framework across traditions, or impose this reasoning family on ordinary questions about influence or free will without the visitor's spiritual premise. Transfer the distinction and epistemic discipline, never this answer text or its doorway.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
