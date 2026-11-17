@@ -6031,13 +6031,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-17",
-    "approved_gold_star_count": 90,
-    "registry_record_count": 127,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 90 approved Gold Stars; historical and withdrawn candidate records remain outside active authority. The AI-workforce restructuring successor is now an approved Gold Star with exact-answer authority, bounded active structural learning, and a verified canonical doorway; its predecessor remains preserved as a separate learning exemplar.",
+    "approved_gold_star_count": 91,
+    "registry_record_count": 128,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 91 approved Gold Stars across 128 registry records. The AI-workforce restructuring successor is an approved exact-query authority only; its predecessor remains the sole active structural-learning contributor for that question family. The successor does not create a duplicate learning identity or qualitative-transfer review.",
     "numbered_gold_star_record_count": 35,
     "highest_assigned_gold_star_number": 92,
-    "numbering_reconciliation": "Record-level reconciliation: 90 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 55 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
-    "unassigned_approved_gold_star_count": 55,
+    "numbering_reconciliation": "Record-level reconciliation: 91 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 56 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
+    "unassigned_approved_gold_star_count": 56,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {
