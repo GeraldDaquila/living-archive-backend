@@ -1,0 +1,61 @@
+"""Regression tests for quoted-passage context restoration Gold Star."""
+
+from general_guide_gold_standards import resolve_exact_gold_standard
+from gold_star_lessons import active_quality_contribution, select_lesson
+from general_guide_composition import _GENERAL_GUIDE_SYSTEM_COMPACT
+
+QUESTION = (
+    "A retrieved passage is quoted out of context in a user prompt. "
+    "How should the Guide restore the surrounding context before analyzing it?"
+)
+BENCHMARK_ID = "general-guide-quoted-passage-context-restoration-gold-star-2026-11-18"
+
+
+def test_quoted_context_gold_star_is_exactly_resolvable_with_relevant_doorway():
+    standard = resolve_exact_gold_standard(QUESTION)
+    assert standard is not None
+    assert standard["benchmark_id"] == BENCHMARK_ID
+    answer = standard["expected_response"].lower()
+    for required in (
+        "verify the original source", "preceding and following paragraphs",
+        "compare the user's quotation", "what the source explicitly says",
+        "only after that reconstruction", "keep any interpretation provisional",
+    ):
+        assert required in answer
+    assert standard["doorway_title"] == (
+        "The Living Archive Navigator: Volume III – Knowledge & Sensemaking"
+    )
+    assert standard["doorway_url"].endswith("/the-living-archive-navigator-volume-iii/")
+    assert standard["doorway_rationale"]
+
+
+def test_quoted_context_gold_star_contributes_bounded_transfer_discipline():
+    selected = select_lesson(QUESTION)
+    assert selected is not None
+    assert selected["benchmark_id"] == BENCHMARK_ID
+    assert selected["exact"] is True
+    contribution = active_quality_contribution(QUESTION)
+    assert contribution is not None
+    assert contribution["benchmark_id"] == BENCHMARK_ID
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert "preceding and following paragraphs" in contribution["discipline"].lower()
+    assert "analyze only afterward" in contribution["discipline"].lower()
+    assert "expected_response" not in contribution
+    assert "doorway" not in contribution
+
+
+def test_quoted_context_lesson_does_not_capture_unrelated_questions():
+    for question in (
+        "What is the central argument of this book?",
+        "How should two archive passages with different emphases be synthesized?",
+        "What does stewardship mean in everyday life?",
+    ):
+        selected = select_lesson(question)
+        assert selected is None or selected["benchmark_id"] != BENCHMARK_ID
+
+
+def test_compact_prompt_contains_bounded_context_restoration_contract():
+    prompt = _GENERAL_GUIDE_SYSTEM_COMPACT
+    assert "QUOTED-PASSAGE CONTEXT RESTORATION BEFORE INTERPRETATION" in prompt
+    assert "Reconstruct first; analyze only afterward." in prompt
+    assert "Apply this sequence only to genuine quotation-context tasks" in prompt
