@@ -23,6 +23,21 @@ def main():
         assert module in spec
     assert "do not corroborate" in spec
     assert "three selected canonical destinations" in spec
+
+    fsd = read("integrations/wordpress/living-archive-fsd-proxy/assets/fsd-app.js")
+    hrn = read("plugins/human-relational-navigator/assets/relational-navigator.js")
+    spe = read("wordpress/spe/03-JavaScript.js")
+    fsd_contract = read("fsd_episode_report_contract.py")
+
+    assert "doorwayHelper.renderMany" in fsd
+    assert 'ref.role==="conceptual_context_only"' in fsd
+    assert "window.LivingArchiveAnswerDoorway.render(wrap" in hrn
+    assert "helper.renderMany(d,items)!==3" in spe
+    assert "helper.normalizeUrl(x.url)" in spe
+    assert "innerHTML" not in spe
+    assert "is_canonical_archive_url" in fsd_contract
+    assert "parsed.username is None" in fsd_contract
+    assert "not parsed.query" in fsd_contract
     print("ANSWER + DOORWAY STANDARD CONTRACT: PASS")
 
 if __name__ == "__main__":
