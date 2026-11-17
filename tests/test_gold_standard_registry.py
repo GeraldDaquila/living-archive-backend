@@ -236,7 +236,7 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
     assert len(report["number_assignments"]) == 36
-    assert len(report["unassigned_benchmark_ids"]) == 59
+    assert len(report["unassigned_benchmark_ids"]) == 60
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
@@ -1081,7 +1081,7 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     assert registry["integrity_audit"]["approved_gold_star_count"] == 96
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 36
     assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 93
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 59
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 60
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
 
 
