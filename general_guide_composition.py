@@ -1129,15 +1129,15 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
     # question. Preserve it only when the visitor explicitly asked what the
     # Archive itself establishes; otherwise require conceptual orientation.
     explicit_archive_authority_request = bool(re.search(
-        r"\\b(?:according to|within|inside)\\s+(?:the\\s+)?living archive\\b|"
-        r"\\bwhat does (?:the\\s+)?(?:living\\s+)?archive say\\b|"
-        r"\\bwhat is established in (?:the\\s+)?(?:living\\s+)?archive\\b",
+        r"\b(?:according to|within|inside)\s+(?:the\s+)?living archive\b|"
+        r"\bwhat does (?:the\s+)?(?:living\s+)?archive say\b|"
+        r"\bwhat is established in (?:the\s+)?(?:living\s+)?archive\b",
         _normalize_space(query),
         re.I,
     ))
     retrieval_only_disclaimer = bool(re.search(
-        r"\\bi (?:do not|don't) have enough grounded material\\b|"
-        r"\\bnot enough grounded material\\b.{0,120}\\b(?:specific|archive[- ]based) answer\\b",
+        r"\bi (?:do not|don't) have enough grounded material\b|"
+        r"\bnot enough grounded material\b.{0,120}\b(?:specific|archive[- ]based) answer\b",
         text,
         re.I,
     ))
