@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import main
+
 from general_guide_gold_standards import resolve_exact_gold_standard
 from gold_star_lessons import active_quality_contribution, deterministic_fallback_contribution
 
@@ -12,7 +14,7 @@ QUESTION = "How can one distinguish structural change from ordinary disruption?"
 
 def test_structural_change_answer_is_restored_with_verified_canonical_doorway():
     record = next(r for r in REGISTRY["records"] if r["benchmark_id"] == BENCHMARK_ID)
-    paragraphs = record["expected_response"].split("\\n\\n")
+    paragraphs = record["expected_response"].split("\n\n")
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert len(paragraphs) == 3
     assert record["numbering_status"] == "UNASSIGNED"
@@ -57,3 +59,16 @@ def test_frontend_renders_registry_authored_doorway_rationale():
     source = (ROOT / "wordpress" / "living-archive-guide-v489.318-edge-confirmation.js").read_text(encoding="utf-8")
     assert "recommendation.rationale" in source
     assert "archive-recommendation-rationale" in source
+
+
+def test_exact_gold_star_terminal_boundary_returns_doorway_rationale():
+    record = next(r for r in REGISTRY["records"] if r["benchmark_id"] == BENCHMARK_ID)
+    payload = main._guide_finalize_visitor_payload(
+        {"response": "upstream answer", "recommendation": {"title": "stale", "url": "https://geralddaquila.com/stale/"}},
+        QUESTION,
+    )
+    assert payload["response"] == record["expected_response"]
+    assert payload["recommendation"]["title"] == record["expected_doorway"]["title"]
+    assert payload["recommendation"]["url"] == record["expected_doorway"]["url"]
+    assert payload["recommendation"]["rationale"] == record["expected_doorway"]["rationale"]
+    assert payload["doorway_rationale"] == record["expected_doorway"]["rationale"]
