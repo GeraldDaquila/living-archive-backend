@@ -12972,15 +12972,17 @@ async def _use_request_boundary(scope, receive, send):
                     recovery_text = _basic_inquiry_markup_recovery(
                         query, history, context_data.get("intent", "TOPICAL_INQUIRY")
                     )
-                    if not recovery_text:
-                        try:
-                            recovery = _basic_inquiry_round1_deterministic_response(
-                                query, {}, {"context_blocks": ""}
-                            )
-                            recovery_text = str(recovery.get("response") or "").strip()
-                        except Exception:
-                            recovery_text = ""
+                    if not recovery_text and _registered_recovery:
+                        recovery_text = _sanitize_basic_inquiry_response(
+                            _terminal_compose_recovery(query)
+                        )
                 if _basic_inquiry_contains_html_markup(recovery_text):
+                    recovery_text = ""
+                if (
+                    not recovery_text
+                    or general_guide_composition.is_generic_nonanswer(query, recovery_text)
+                    or general_guide_composition.is_meta_answer_failure(recovery_text)
+                ):
                     recovery_text = ""
                 # A deterministic answer recovery has its own provenance. Do not
                 # attach a doorway selected from stale or unrelated request context:
