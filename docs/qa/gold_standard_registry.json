@@ -2651,7 +2651,10 @@
       "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
-      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects.",
+      "runtime_exact_query_successor": "gs-2026-11-17-ai-workforce-restructuring-successor-candidate",
+      "runtime_exact_answer_authority_delegated": true,
+      "runtime_successor_reason": "The original approved response remains preserved as a Gold Star structural-learning exemplar. Its exact-query runtime answer authority is delegated to the governed release candidate while the successor is under live review; this does not withdraw or demote the original Gold Star."
     },
     {
       "benchmark_id": "general-guide-reflective-decline-without-romanticizing-gold-star-2026-11-13",
@@ -5766,9 +5769,59 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial. Preserve benchmark_id as the stable identity and keep serial allocation separate."
+    },
+    {
+      "benchmark_id": "gs-2026-11-17-ai-workforce-restructuring-successor-candidate",
+      "subsystem": "general-purpose-guide",
+      "query": "A company wants to use AI to reduce staffing costs. How should The Guide analyze this through operations, governance, human development, ethics, and stewardship?",
+      "expected_response": "An organization should assess AI-led staffing reductions as a redesign of work and responsibility, not simply as a way to lower payroll. The case is credible only if the company can show which tasks can be automated safely, what work remains or is created, whether service and quality can be maintained, and whether the savings exceed the full costs of adoption.\n\nOperationally, map tasks rather than treating whole roles as interchangeable; measure integration, supervision, error correction, security, maintenance, and transition costs alongside payroll savings. Governance must identify who sets the system's objectives, approves its use, monitors errors and bias, and remains answerable when workers or customers are harmed. Compare layoffs with alternatives such as redesigning roles, reducing repetitive work, retraining, redeployment, or shorter hours.\n\nThe human-development and ethical test is how the gains and burdens are distributed. A stewardship approach treats productivity gains as a responsibility to strengthen the work system and the people within it, not simply as a private saving. Employees should have meaningful notice and a voice in redesign, realistic opportunities to develop new skills, and fair treatment if roles disappear; customers and communities also matter where service quality or local livelihoods are affected. A responsible decision begins with a limited, reviewable pilot and clear measures of productivity, quality, error, workload, and worker outcomes. If benefits depend on hidden human labor, degraded service, or shifting risk onto people with little power, the proposal is not genuine efficiency but cost transfer.",
+      "expected_doorway": {
+        "title": "Agentic Systems and the End of Passive Labor",
+        "url": "https://geralddaquila.com/2026/05/06/agentic-systems-and-the-end-of-passive-labor/",
+        "rationale": "This essay examines how AI changes work beyond task automation: it traces the shift across execution, coordination, and governance, and considers how human responsibility, oversight, and stewardship should evolve. It provides a relevant continuation for assessing workforce reductions as a redesign of work and accountability, not only a cost-saving exercise."
+      },
+      "assertions": [
+        "Opens by directly answering how an organization should assess AI-led staffing reductions.",
+        "Treats workforce reduction as an organizational redesign decision rather than assuming payroll savings establish value.",
+        "Examines task-level automation, service quality, integration, supervision, error correction, security, maintenance, and transition costs.",
+        "Identifies governance ownership, system objectives, approval authority, monitoring, bias, and accountability.",
+        "Compares layoffs with role redesign, retraining, redeployment, and other realistic alternatives.",
+        "Addresses human development, employee voice, fair treatment, community consequences, and stewardship of productivity gains.",
+        "Uses a limited, reviewable pilot and explicit outcome measures before wider adoption.",
+        "Provides a verified public canonical continuation through Agentic Systems and the End of Passive Labor."
+      ],
+      "status": "USER_APPROVED_RELEASE_CANDIDATE",
+      "known_theme": "integrated institutional judgment for AI-led workforce restructuring",
+      "related_question_variants": [
+        "How should an institution assess AI adoption when it affects jobs, governance, and human consequences?",
+        "How can a complex organisational decision be examined without fragmenting it into separate domains?"
+      ],
+      "gold_star_capabilities": {
+        "exact_answer_authority": true,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": true,
+        "generation_class": "runtime_agnostic_release_candidate",
+        "reasoning_family": "integrated_institutional_judgment",
+        "transferable_discipline": "Assess AI-led workforce change as a redesign of work and responsibility; compare real options and total costs; distribute gains and burdens ethically; preserve accountable human oversight and correction.",
+        "abstention_boundary": "Do not presume AI is inherently beneficial, treat staff reduction as an end in itself, make unsupported legal or labor-market claims, or make the decision for the responsible organization."
+      },
+      "runtime_transfer": true,
+      "provenance": {
+        "source_ref": "User-provided visitor screenshot dated 2026-11-17 and verified WordPress post ID 49212.",
+        "source_pr": "PR #1588",
+        "verification_context": "Governed successor release candidate for exact-query live review; original approved response retained as superseded historical evidence.",
+        "approval_date": "2026-11-17"
+      },
+      "freeze_policy": "This release candidate may serve only the exact registered question for live review. It is not a Gold Star or adaptive-learning contributor until explicit subsequent user elevation. The predecessor remains an approved Gold Star structural-learning exemplar, with its exact-query runtime authority delegated to this candidate.",
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "doorway_note": "Canonical published post verified through WordPress post ID 49212; title, URL, and relevance rationale are grounded in the published essay.",
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "No Gold Star display serial is assigned to this release candidate. A serial must not be inferred; consider allocation only if the user later approves Gold Star promotion.",
+      "replaces_exact_query_runtime_authority_of": "general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13"
     }
   ],
-  "last_reconciliation_note": "2026-11-17: Added user-approved Gold Star benchmark gs-2026-11-17-community-continuity-harmful-inherited-patterns. Exact answer and corrected, verified From Awakening to Stewardship doorway are frozen; the answer's transferable discipline is active for relevant questions only. Display serial remains unassigned.",
+  "last_reconciliation_note": "On 2026-11-17, the legacy AI-staffing Gold Star was preserved without withdrawal or demotion as a structural-learning exemplar. Its exact-query runtime answer authority is delegated to a USER_APPROVED_RELEASE_CANDIDATE with a direct answer and verified canonical doorway; the candidate is excluded from the Gold Star count pending explicit user elevation. The community-continuity Gold Star elevation was preserved from PR #1587.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -5899,8 +5952,8 @@
   "integrity_audit": {
     "last_audit_date": "2026-11-17",
     "approved_gold_star_count": 88,
-    "registry_record_count": 125,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 88 approved Gold Stars; historical and withdrawn candidate records remain outside active authority. The consequential-action-under-uncertainty and disciplined-hope exemplars are approved with verified, question-relevant public doorways.",
+    "registry_record_count": 127,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 89 approved Gold Stars and one exact-query release candidate outside active Gold Star authority. Historical and withdrawn candidate records remain outside active authority. The consequential-action-under-uncertainty, disciplined-hope, and community-continuity exemplars are approved with verified, question-relevant public doorways. The AI-staffing predecessor remains an approved structural-learning exemplar; its exact-query runtime answer authority is delegated to a release candidate pending explicit elevation.",
     "numbered_gold_star_record_count": 35,
     "highest_assigned_gold_star_number": 92,
     "numbering_reconciliation": "Record-level reconciliation: 88 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 53 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
