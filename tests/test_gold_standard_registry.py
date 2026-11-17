@@ -231,12 +231,12 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
     assert report["numbered_gold_star_count"] == len(numbered) == 35
-    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 57
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 58
     assert report["highest_assigned_gold_star_number"] == 92
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
     assert len(report["number_assignments"]) == 35
-    assert len(report["unassigned_benchmark_ids"]) == 57
+    assert len(report["unassigned_benchmark_ids"]) == 58
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
@@ -1029,7 +1029,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 92
+    assert len(approved) == 93
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1038,7 +1038,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
             assert record.get("numbering_status") == "UNASSIGNED"
             assert record.get("numbering_unassigned_reason_code")
             assert record.get("numbering_unassigned_reason")
-            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness"}:
+            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness", "gs-2026-11-17-oversoul-free-will-influence-without-compulsion"}:
                 assert record.get("legacy_approval_grandfathered") is not True
                 assert record.get("numbering_unassigned_reason_code") == "NO_SERIAL_ALLOCATION_REQUESTED"
             elif record["benchmark_id"] not in {"gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing", "gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship", "gs-2026-11-16-collapse-adaptation-regeneration", "gs-2026-11-16-techno-utopian-thinking"}:
@@ -1078,10 +1078,10 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     assert "only adds provenance.source_date" in gaps[1]["reason"]
     assert "recovered as Gold Star #56" in gaps[1]["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 92
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 93
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 35
     assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 92
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 57
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 58
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
 
 
