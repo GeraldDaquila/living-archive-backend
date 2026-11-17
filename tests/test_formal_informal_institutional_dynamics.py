@@ -52,9 +52,7 @@ def test_final_visitor_boundary_repairs_generic_or_abstaining_answer_and_emits_d
         },
         QUERY,
     )
-    assert result["processing"] == (
-        "final_visitor_boundary_formal_informal_institutional_dynamics"
-    )
+    assert result["processing"] == "final_visitor_boundary_exact_gold_standard"
     assert composition._has_formal_informal_institutional_dynamics_explanation(
         result["response"]
     )

@@ -852,6 +852,14 @@
       "qualifying_context": "Questions evaluating the economic contribution or viability of community projects, cooperatives, volunteer initiatives, or shared-resource arrangements where financial returns and labor totals omit distribution, common-resource stewardship, lifecycle costs, or long-term local value.",
       "abstention_boundary": "Do not infer project-specific outcomes or fairness without evidence. Do not reduce economic contribution to money or volunteer hours, but also do not assume that all shared resources, ecological effects, or externalized costs are present in every project. Transfer the accounting discipline, never this answer text or its Local Resilience Economies doorway.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-formal-informal-institutional-dynamics-gold-star-2026-11-18",
+      "question": "How should the Guide compare formal institutional rules with informal norms when explaining why an organization behaves as it does?",
+      "abstention_boundary": "Do not assume informal norms are harmful or formal rules effective by default; do not infer organization-specific motives or outcomes without evidence. Transfer the comparison discipline, never the exact answer or Institutional Consciousness doorway.",
+      "reasoning_family": "formal_informal_institutional_dynamics",
+      "transferable_discipline": "explain organizational behavior by comparing declared formal authority and written rules with lived informal expectations, then trace how their alignment or contradiction shapes decisions, incentives, enforcement, power, legitimacy, trust, workarounds, and accountability using evidence",
+      "activation": "active_quality_contributor"
     }
   ]
 }

@@ -6195,9 +6195,66 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve the benchmark_id as the stable learning identity; serial allocation remains independent."
+    },
+    {
+      "benchmark_id": "general-guide-formal-informal-institutional-dynamics-gold-star-2026-11-18",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How should the Guide compare formal institutional rules with informal norms when explaining why an organization behaves as it does?",
+      "expected_response": "Formal rules are the declared institutional architecture of an organization: written policies, official roles, decision rights, procedures, reporting lines, and stated consequences. They specify who is authorized to act and what is supposed to happen. Informal norms are the unwritten expectations people learn through relationships, habits, status, group loyalties, and repeated experience. They shape what is actually acceptable, rewarded, discouraged, or safe to say. The distinction is not simply written versus unwritten; formal rules carry official authority, while informal norms carry social influence and practical expectations.\n\nOrganizational behavior emerges from their interaction. When the two align, informal expectations can reinforce a policy and make coordination easier. When they conflict, people may comply on paper while following a different routine, rely on personal networks, avoid raising problems, or apply rules selectively. Informal norms can fill gaps in unclear procedures, but they can also protect privilege or undermine accountability. To explain the result, examine who has real decision-making power, which incentives and relationships shape choices, how consistently rules are enforced, whose approval matters, and whether people can question or correct decisions. Legitimacy and trust influence whether a rule is treated as reasonable or merely as something to work around.\n\nA sound comparison therefore traces the gap between the official rule and observed everyday practice rather than assuming either one tells the whole story. Identify the stated rule, observe what people actually do, ask what rewards or risks sustain that behavior, and compare the consequences for different groups. Use evidence such as decisions, exceptions, enforcement patterns, informal workarounds, and feedback from people affected. Do not assume every informal norm is harmful or that a formal rule is effective simply because it exists. The explanation should show how the two systems reinforce, modify, or contradict one another—and where the evidence is not sufficient to determine why.",
+      "expected_doorway": {
+        "title": "Institutional Consciousness",
+        "url": "https://geralddaquila.com/institutional-consciousness/",
+        "rationale": "Institutional Consciousness examines how organizations become aware of their own assumptions, blind spots, and patterns of behavior. It is a relevant continuation for examining the gap between declared structures and the lived norms through which an institution actually operates; it does not diagnose this particular organization."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.7,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the live visitor-facing response and explicitly instructed Gold Star elevation on 2026-11-18.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "formal_informal_institutional_dynamics",
+      "transferable_lesson": "Explain organizational behavior by distinguishing declared formal authority from lived informal expectations, then trace how alignment or contradiction shapes decisions, enforcement, incentives, power, legitimacy, trust, workarounds, and accountability using observable evidence.",
+      "transfer_boundary": "Transfer the comparison method, not this exact answer or Institutional Consciousness doorway. Do not assume informal norms are inherently harmful, formal rules are effective merely because they are written, or infer organization-specific motives and outcomes without evidence. Distinguish observation from interpretation and identify where evidence is insufficient.",
+      "known_theme": "formal institutions, informal norms, organizational behavior, institutional rules, decision rights, enforcement, incentives, power, legitimacy, trust, accountability, workarounds",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "formal_informal_institutional_dynamics",
+        "transferable_discipline": "Compare declared rules and authority with observed practice and informal expectations; explain their interaction through evidence about incentives, decision power, enforcement, exceptions, relationships, consequences, and correctability.",
+        "abstention_boundary": "Do not treat all informal norms as harmful or formal rules as effective by default. Do not diagnose a specific organization or attribute motives without evidence; state when the available evidence cannot establish why a pattern occurs."
+      },
+      "assertions": [
+        "Preserve the reviewed answer as exactly three substantive paragraphs: define formal rules and informal norms; explain how their interaction shapes organizational behavior and power; provide an evidence-based comparison method.",
+        "Distinguish formal authority and declared structures from unwritten expectations and practical social influence.",
+        "Explain both alignment and conflict, including reinforcement, workarounds, selective enforcement, privilege, and accountability.",
+        "Examine decision-making power, incentives, relationships, enforcement consistency, approval, legitimacy, trust, and opportunities for correction.",
+        "Use observable evidence and distinguish observations from interpretations; explicitly preserve uncertainty where evidence is insufficient.",
+        "Do not assume informal norms are inherently harmful or written rules are effective merely because they exist.",
+        "Render the canonical Institutional Consciousness doorway after the complete answer as an orientation continuation, not a diagnosis."
+      ],
+      "user_approved_at": "2026-11-18",
+      "elevation_approval_evidence": "User reviewed the live visitor-facing Guide screenshot showing the complete formal-versus-informal institutional dynamics answer and the Institutional Consciousness doorway, then explicitly instructed: 'elevate' on 2026-11-18.",
+      "provenance": {
+        "source": "User-provided live visitor-facing Guide screenshot and explicit Gold Star elevation approval.",
+        "source_date": "2026-11-18",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the reviewed three-paragraph answer and displayed Institutional Consciousness doorway. The benchmark preserves the response's evidence discipline and does not diagnose any particular organization.",
+        "doorway_verification": {
+          "title": "Institutional Consciousness",
+          "url": "https://geralddaquila.com/institutional-consciousness/",
+          "verified_against": "Canonical destination displayed in the user-reviewed live Guide screenshot."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve the benchmark_id as the stable learning identity; serial allocation remains independent."
     }
   ],
-  "last_reconciliation_note": "Added user-approved community-project economic-dimensions Gold Star on 2026-11-18. The exact three-paragraph answer and verified Local Resilience Economies doorway are frozen; transfer is limited to distributional and lifecycle-aware economic accounting, including beneficiaries, decision power, labor and opportunity costs, externalized costs, shared-resource maintenance, local value retention, and durability. No display serial was allocated; historical gaps #85 and #86 remain untouched. Exact-question duplicate check found no existing benchmark.",
+  "last_reconciliation_note": "Added user-approved formal/informal institutional-dynamics Gold Star on 2026-11-18. The exact three-paragraph answer and verified Institutional Consciousness doorway are frozen; transfer is limited to evidence-based comparison of formal authority and informal norms and their interaction in organizational behavior. No display serial was allocated; historical gaps #85 and #86 remain untouched.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -6327,13 +6384,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 96,
-    "registry_record_count": 133,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 96 approved Gold Stars across 133 registry records. The community-project economic-dimensions exemplar joins the active structural-learning contributors under its bounded reasoning family. No display serial was allocated; 60 approved records remain explicitly UNASSIGNED with reasons. Existing assignments and historical gaps #85 and #86 remain unchanged.",
+    "approved_gold_star_count": 97,
+    "registry_record_count": 134,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 97 approved Gold Stars across 134 registry records. The formal/informal institutional-dynamics exemplar joins the active structural-learning contributors under its bounded reasoning family. No display serial was allocated; 61 approved records remain explicitly UNASSIGNED with reasons. Existing assignments and historical gaps #85 and #86 remain unchanged.",
     "numbered_gold_star_record_count": 36,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation: 96 approved Gold Stars; 36 assigned display serials #56–#84 and #87–#93; 60 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
-    "unassigned_approved_gold_star_count": 60,
+    "numbering_reconciliation": "Record-level reconciliation: 97 approved Gold Stars; 36 assigned display serials #56–#84 and #87–#93; 61 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
+    "unassigned_approved_gold_star_count": 61,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {

@@ -231,12 +231,12 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
     assert report["numbered_gold_star_count"] == len(numbered) == 36
-    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 60
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 61
     assert report["highest_assigned_gold_star_number"] == 93
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
     assert len(report["number_assignments"]) == 36
-    assert len(report["unassigned_benchmark_ids"]) == 60
+    assert len(report["unassigned_benchmark_ids"]) == 61
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
@@ -1029,7 +1029,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 96
+    assert len(approved) == 97
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1038,7 +1038,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
             assert record.get("numbering_status") == "UNASSIGNED"
             assert record.get("numbering_unassigned_reason_code")
             assert record.get("numbering_unassigned_reason")
-            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness", "gs-2026-11-17-oversoul-free-will-influence-without-compulsion", "general-guide-public-commons-stewardship-gold-star-2026-11-17", "general-guide-community-project-economic-dimensions-gold-star-2026-11-18"}:
+            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness", "gs-2026-11-17-oversoul-free-will-influence-without-compulsion", "general-guide-public-commons-stewardship-gold-star-2026-11-17", "general-guide-community-project-economic-dimensions-gold-star-2026-11-18", "general-guide-formal-informal-institutional-dynamics-gold-star-2026-11-18"}:
                 assert record.get("legacy_approval_grandfathered") is not True
                 assert record.get("numbering_unassigned_reason_code") == "NO_SERIAL_ALLOCATION_REQUESTED"
             elif record["benchmark_id"] not in {"gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing", "gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship", "gs-2026-11-16-collapse-adaptation-regeneration", "gs-2026-11-16-techno-utopian-thinking"}:
@@ -1078,10 +1078,10 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     assert "only adds provenance.source_date" in gaps[1]["reason"]
     assert "recovered as Gold Star #56" in gaps[1]["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 96
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 97
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 36
     assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 93
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 60
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 61
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
 
 
@@ -1473,3 +1473,30 @@ def test_gold_star_authoring_template_requires_doorway_or_reasoned_exception():
     assert exception["doorway_status"] == "INTENTIONALLY_NONE_APPROVED"
     assert exception["expected_doorway"] is None
     assert exception["doorway_omission_exception_reason"].strip()
+
+
+def test_formal_informal_institutional_dynamics_gold_star_preserves_exact_live_answer_and_doorway():
+    import json
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    registry = json.loads((root / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+    review = json.loads((root / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    benchmark_id = "general-guide-formal-informal-institutional-dynamics-gold-star-2026-11-18"
+    record = next(item for item in registry["records"] if item["benchmark_id"] == benchmark_id)
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "How should the Guide compare formal institutional rules with informal norms when explaining why an organization behaves as it does?"
+    fixture = json.loads((root / "tests/fixtures/general_guide_formal_informal_institutional_dynamics_gold_standard.json").read_text(encoding="utf-8"))
+    assert record["expected_response"] == fixture["expected_response"]
+    assert record["expected_doorway"] == {"title":"Institutional Consciousness","url":"https://geralddaquila.com/institutional-consciousness/","rationale":"Institutional Consciousness examines how organizations become aware of their own assumptions, blind spots, and patterns of behavior. It is a relevant continuation for examining the gap between declared structures and the lived norms through which an institution actually operates; it does not diagnose this particular organization."}
+    assert record["rating_out_of_10"] == 9.7
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["runtime_transfer"] is True
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 97
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 97
+    assert registry["integrity_audit"]["registry_record_count"] == 134
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 61
+    entry = next(item for item in review["entries"] if item["benchmark_id"] == benchmark_id)
+    assert entry["activation"] == "active_quality_contributor"
+    assert entry["reasoning_family"] == "formal_informal_institutional_dynamics"
