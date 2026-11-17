@@ -1,20 +1,6 @@
 (function () {
 	'use strict';
 
-	function esc(value) {
-		var element = document.createElement('div');
-		element.textContent = value == null ? '' : String(value);
-		return element.innerHTML;
-	}
-
-	function paragraphize(value) {
-		var text = String(value || '').trim();
-		if (!text) return '';
-		// Keep each recommendation as one compact paragraph. Sentence validation
-		// happens server-side; the renderer should not visually chop the voice apart.
-		return '<p>' + esc(text) + '</p>';
-	}
-
 	function init(root) {
 		if (root.getAttribute('data-mini-use-initialized') === '1') return;
 		var form = root.querySelector('.mini-use-form');
