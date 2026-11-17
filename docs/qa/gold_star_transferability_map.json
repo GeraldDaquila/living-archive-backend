@@ -19,6 +19,9 @@
     },
     "spiritual_agency_epistemic_humility": {
       "description": "distinguish spiritual influence from coercive determination while preserving human agency and the boundary between framework-based interpretation and independently verified fact"
+    },
+    "community_project_economic_accounting": {
+      "description": "account for who benefits, who contributes and bears costs, and whether shared resources and local value endure"
     }
   },
   "entries": [
@@ -237,6 +240,15 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Do not reuse approved wording or doorway, affirm metaphysical claims as fact, or force this frame onto unrelated free-will questions; abstain when the spiritual premise or structural relationship is absent."
+    },
+    {
+      "benchmark_id": "general-guide-community-project-economic-dimensions-gold-star-2026-11-18",
+      "question": "A community project reports its financial return and the number of volunteer hours but not who benefits or what common resources are maintained. What additional economic dimensions should the Guide surface?",
+      "family": "community_project_economic_accounting",
+      "structural_lesson": "make economic accounting distributional and lifecycle-aware: identify beneficiaries and decision power, labor and opportunity costs, externalized costs, shared-resource maintenance, local value retention, and durability",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not infer project-specific outcomes or fairness without evidence; do not transfer the exact answer or its Local Resilience Economies doorway to unrelated questions."
     }
   ]
 }
