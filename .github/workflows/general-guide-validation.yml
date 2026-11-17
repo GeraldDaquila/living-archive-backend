@@ -21,6 +21,8 @@ on:
   pull_request:
     paths:
       - "main.py"
+      - "ai_workforce_restructuring_contract.py"
+      - "tests/test_structural_doorway_presence.py"
       - "provider_bank.py"
       - "general_guide_composition.py"
       - "deterministic_answer_recovery.py"
