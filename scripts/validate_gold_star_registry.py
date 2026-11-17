@@ -537,7 +537,32 @@ def main():
             fail(f"{record['benchmark_id']} has incomplete exact-answer authority")
         previous = exact_authority.get(question)
         if previous and previous["answer"] != answer:
-            fail("conflicting exact-answer authority for normalized question: " + question)
+            # A reviewed successor may explicitly replace only the exact-query
+            # answer authority of its predecessor while leaving the predecessor
+            # as the single active quality-learning contributor. Require the
+            # relationship to be reciprocal; all other conflicting answers fail.
+            predecessor_id = str(
+                record.get("replaces_exact_query_runtime_authority_of") or ""
+            ).strip()
+            predecessor = next(
+                (
+                    item for item in authority_records
+                    if item.get("benchmark_id") == predecessor_id
+                ),
+                None,
+            )
+            successor_override = bool(
+                predecessor
+                and previous["benchmark_id"] == predecessor_id
+                and predecessor.get("runtime_exact_query_successor")
+                    == record.get("benchmark_id")
+                and record.get("runtime_transfer") is False
+                and capabilities.get("exact_answer_authority") is True
+                and capabilities.get("active_quality_contributor") is False
+                and capabilities.get("deterministic_fallback_eligible") is False
+            )
+            if not successor_override:
+                fail("conflicting exact-answer authority for normalized question: " + question)
         exact_authority[question] = {
             "benchmark_id": record["benchmark_id"],
             "answer": answer,
