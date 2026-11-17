@@ -583,7 +583,7 @@ def test_oversoul_free_will_question_recovers_answer_and_canonical_doorway_acros
     )
     assert recovered["response"] == answer
     assert recovered["recommendation"] == expected_doorway
-    assert recovered["provider"] == "bounded_provider_exhaustion_recovery"
+    assert recovered["provider"] == "bounded_oversoul_free_will_recovery"
 
     # A provider-generated answer still receives the same verified doorway.
     finalized_provider = main._guide_finalize_visitor_payload(
