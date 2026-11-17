@@ -84,3 +84,22 @@ def test_community_continuity_revision_recovers_its_verified_archive_doorway(mon
     monkeypatch.setattr(main, "_canonical_primary_from_docs", lambda docs, query, profile: None)
     recovered = main._verified_archive_doorway_fallback(query, [], {"action": "topical"})
     assert recovered == doorway
+
+
+
+def test_community_continuity_recovery_is_registered_and_owns_its_verified_doorway():
+    from deterministic_answer_recovery import (
+        has_registered_recovery,
+        registered_recovery_recommendation,
+        compose_recovery,
+    )
+
+    query = "How can communities preserve continuity while revising harmful inherited patterns?"
+    assert has_registered_recovery(query)
+    assert registered_recovery_recommendation(query) == {
+        "title": "From Awakening to Stewardship",
+        "url": "https://geralddaquila.com/from-awakening-to-stewardship/",
+    }
+    answer = compose_recovery(query)
+    assert answer.startswith("Communities preserve continuity")
+    assert len([p for p in answer.split("\\n\\n") if p.strip()]) == 3
