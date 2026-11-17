@@ -223,3 +223,46 @@ def test_main_has_dedicated_canonical_body_retrieval_for_topicful_contrast_reque
     assert "_archive_passage_sources(" in source
     assert "validated_distinct_passages=" in source
     assert "generation_authority_protected_docs" in source
+
+
+def test_live_style_method_question_with_first_person_is_missing_subject():
+    """Natural first-person wording must not be mistaken for a subject."""
+    question = (
+        "How should I represent two passages in the Archive that disagree "
+        "in emphasis before synthesis?"
+    )
+    module = __import__("general_guide_composition")
+    assert _requires_archive_passage_contrast(question)
+    assert module._archive_passage_contrast_topic_missing(question)
+    recovered = _archive_passage_contrast_recovery(question, [])
+    assert recovered is not None
+    assert recovered["model"] == "deterministic-topic-clarification"
+    assert recovered["response"].startswith(
+        "Represent the two passages separately and symmetrically"
+    )
+    assert recovered["doorway_title"] == "Sovereign Sensemaking Compass"
+    assert recovered["doorway_rationale"]
+
+
+def test_plain_show_me_two_passages_request_is_also_recognized():
+    question = "Show me two passages in the Archive that disagree in emphasis."
+    module = __import__("general_guide_composition")
+    assert _requires_archive_passage_contrast(question)
+    assert module._archive_passage_contrast_topic_missing(question)
+    recovered = _archive_passage_contrast_recovery(question, [])
+    assert recovered is not None
+    assert recovered["model"] == "deterministic-topic-clarification"
+
+
+def test_final_doorway_fallback_requires_frontend_renderable_rationale():
+    """A URL/title without rationale is rejected by the shared browser doorway helper."""
+    from pathlib import Path
+    import ast
+
+    main_source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    ast.parse(main_source)
+    start = main_source.index("def _guide_restore_verified_doorway")
+    end = main_source.index("def _guide_finalize_visitor_payload", start)
+    function_source = main_source[start:end]
+    assert "not str(doorway.get(\"rationale\") or \"\").strip()" in function_source
+    assert "_gold_star_default_doorway()" in function_source
