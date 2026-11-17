@@ -651,6 +651,35 @@ def _algorithmic_amplification_recovery():
     )
 
 
+def _reflective_conceptual_recovery(question):
+    """Keep reflective how-questions on conceptual tension, not action planning."""
+    q = _clean(question)
+    match = re.search(
+        r"^how can (?:one|we|you)\s+(.+?)\s+(?:be|remain|stay)\s+"
+        r"(.+?)\s+(?:without becoming|rather than becoming|rather than being|rather than|without)\s+(.+?)[?.!]*$",
+        q,
+        re.I,
+    )
+    if not match:
+        return None
+    subject, constructive_form, counterfeit = (
+        _clean(part).strip(" .?!;:") for part in match.groups()
+    )
+    if not subject or not constructive_form or not counterfeit:
+        return None
+    if len(subject.split()) > 7 or len(counterfeit.split()) > 8:
+        return None
+    return (
+        f"{subject.capitalize()} can be {constructive_form} without becoming {counterfeit} when it stays answerable to reality. "
+        f"It does not require pretending that difficulties are smaller than they are, or treating a desired outcome as guaranteed. "
+        f"The discipline lies in holding open a possibility while remaining honest about the conditions that could prevent it.\n\n"
+        f"The distinction becomes clearer when circumstances disappoint. {subject.capitalize()} in its constructive form allows evidence to change expectations and allows setbacks to change the approach; {counterfeit.casefold()} instead either refuses that correction or turns disappointment into a reason to dismiss possibility altogether. "
+        f"The point is not to protect {subject.casefold()} from difficult facts, but to keep difficult facts from being mistaken for the whole future.\n\n"
+        f"So {subject.casefold()} is disciplined not by suppressing uncertainty, but by giving uncertainty its proper place: it can limit what is promised without deciding in advance that nothing can improve. "
+        f"That makes {subject.casefold()} neither a guarantee nor a denial. It is a considered orientation that can revise its expectations without surrendering the capacity to act."
+    )
+
+
 def compose_recovery(question, *, underlying_question="", desired_movement=""):
     """Offer a useful bounded response without inventing facts or sources."""
     q = _clean(question)
@@ -996,6 +1025,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "AI may inform that work, but it cannot take responsibility for the decision away from the people who have the authority to make it. "
             "A defensible decision makes its criteria visible, protects rights and dignity, assigns accountability for errors, and reviews actual outcomes rather than treating projected efficiency as proof of success."
         )
+    elif (reflective_answer := _reflective_conceptual_recovery(q)) is not None:
+        answer = reflective_answer
     elif re.search(r"\b(?:how|steps|approach|what can i do|what should we do|how to)\b", lower):
         answer = (
             "Start by defining the outcome the change must achieve, the responsibilities that cannot be lost, and the people who will live with its consequences. "
