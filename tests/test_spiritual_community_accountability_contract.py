@@ -60,7 +60,7 @@ def test_spiritual_community_recovery_is_three_paragraphs_and_preserves_the_gove
     assert "question, decline, and leave without retaliation" in paragraphs[2]
     assert "A spiritual community has charismatic leadership" not in answer
     assert QUERY not in answer
-    assert not re.search(r"\b(?:AI|artificial intelligence|provider|retrieval)\\b", answer, re.I)
+    assert not re.search(r"\b(?:AI|artificial intelligence|provider|retrieval)\b", answer, re.I)
 
 
 def test_spiritual_community_recovery_owns_its_canonical_doorway():
