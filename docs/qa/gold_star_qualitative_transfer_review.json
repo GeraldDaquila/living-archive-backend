@@ -780,6 +780,15 @@
       "qualifying_context": "Questions asking how to act, decide, or respond when the future is uncertain and the consequences are meaningful, especially where responsibilities, affected people, incomplete evidence, and the distribution of costs matter.",
       "abstention_boundary": "Do not impose this decision discipline on low-stakes, purely descriptive, or self-contained factual questions. Do not equate uncertainty with a reason to wait, claim certainty, or presume a universally correct option. Keep unrelated AI or civilizational framing out unless explicitly requested.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-17-hope-disciplined-rather-than-naive",
+      "question": "How can hope remain disciplined rather than naïve?",
+      "reasoning_family": "disciplined_hope_reality_responsibility_correctability",
+      "transferable_discipline": "Treat hope as openness to possibility rather than a prediction of success; keep expectations answerable to present conditions and contrary evidence; allow setbacks to revise methods, timing, or goals; and test hope by whether it sustains responsible next steps without denying obstacles.",
+      "qualifying_context": "Questions about maintaining hope, meaning, or constructive possibility amid uncertainty, disappointment, constraints, or difficult realities.",
+      "abstention_boundary": "Do not equate hope with optimism, certainty, or guaranteed success. Do not treat realism as proof that change is impossible, and do not impose this frame on unrelated factual or low-stakes questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
