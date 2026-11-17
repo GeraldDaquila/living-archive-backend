@@ -556,7 +556,7 @@ def test_oversoul_free_will_question_recovers_answer_and_canonical_doorway_acros
     assert is_oversoul_free_will_question(query)
     assert has_registered_recovery(query)
     answer = compose_recovery(query)
-    assert len([part for part in answer.split("\\n\\n") if part.strip()]) == 3
+    assert len([part for part in answer.split("\n\n") if part.strip()]) == 3
     assert "influence rather than compulsion" in answer
     assert "without replacing the work and responsibility of choosing" in answer
     assert "not proof that an Oversoul exists" in answer
