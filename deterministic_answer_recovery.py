@@ -583,9 +583,29 @@ def _community_project_tradeoff_recovery():
     return "A fair assessment asks four connected sets of questions rather than treating “renewable” as proof that a project is automatically beneficial. Ecologically: where would it be built, what land, water, habitats, species, and landscape uses would it affect, what are its full life-cycle emissions and material demands, and what cumulative impacts or decommissioning obligations remain? Economically: who finances and owns it, who receives jobs, lease payments, tax revenue, or lower-cost electricity, who pays for grid upgrades and public support, and how are risks and returns distributed over time?\n\nCulturally, what does the site mean to the people who live with it: does it contain ancestral or sacred places, support customary access or livelihoods, or carry local knowledge and identity that a project plan may overlook? Who gets to define what counts as a loss, and can affected people shape the design? On governance, who proposed the project, who has authority to approve it, whose participation is meaningful rather than ceremonial, and what information, conflict-of-interest rules, grievance channels, independent review, and enforceable conditions are in place? Are groups with less political or economic power represented before decisions are made?\n\nThen compare the proposal with realistic alternatives: no project, another site or scale, a different technology or ownership model, or a mix of energy and demand-side options. Which harms can be avoided, which can be reduced, and which are irreversible or cannot fairly be compensated? Who carries the remaining costs, what benefits are guaranteed locally, and what evidence will be monitored after approval? A sound decision makes these trade-offs visible, protects rights that should not simply be exchanged for aggregate benefits, and sets conditions for review, correction, or stopping the project if its actual effects depart from what was promised."
 
 
+def is_oversoul_ego_authority_question(question):
+    """Recognize the bounded Oversoul/ego/awakening authority question family."""
+    q = _clean(question).casefold()
+    return bool(
+        re.search(r"\boversoul\b", q)
+        and re.search(r"\bego\b", q)
+        and re.search(r"\b(?:awakening|awakened|life outcome|life's outcome|final say|final authority|conflict)\b", q)
+    )
+
+
+def _oversoul_ego_authority_recovery():
+    """Answer the Oversoul/ego question as a bounded spiritual interpretation, not fact."""
+    return (
+        "There is no independently established answer that an Oversoul has the final say over a person's life outcome. Within spiritual frameworks that use the idea, the Oversoul is often understood as a wider or transpersonal dimension of identity, while the ego is the embodied sense of self through which a person makes choices, protects continuity, and responds to immediate circumstances. A useful interpretation is that the Oversoul may represent a deeper orientation or purpose, not a script that dictates every event or cancels personal agency.\n\n"
+        "The tension before awakening need not mean that the ego and Oversoul are enemies. The ego tends to organize life around identity, security, desire, memory, and control; an experience understood as awakening may widen a person's sense of belonging, meaning, or responsibility beyond those immediate concerns. That widening can feel like conflict because familiar ways of protecting the self are being questioned. In a more integrated reading, the ego is not destroyed but becomes less absolute: it remains necessary for living and choosing, while no longer being treated as the whole of what a person is.\n\n"
+        "So the most careful answer is neither that the Oversoul unilaterally determines every outcome nor that the ego must defeat it. In this interpretive framework, the relationship is better understood as orientation and participation: a wider sense of purpose may inform choices, but lived outcomes still unfold through agency, relationships, circumstances, and limits. Awakening may change how a person relates to those conditions; it does not prove that every event was predetermined. This is a spiritual interpretation, not an empirically verifiable account or a doctrine shared by every tradition."
+    )
+
+
 def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
     return bool(
+        is_oversoul_ego_authority_question(question)
         _is_public_predictive_system_question(question)
         or _is_archive_purpose_question(question)
         or _is_commons_care_question(question)
@@ -612,6 +632,12 @@ def _public_predictive_system_recovery():
 
 def registered_recovery_recommendation(question):
     """Return an evidence-backed doorway for a narrow registered recovery."""
+    if is_oversoul_ego_authority_question(question):
+        return {
+            "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
+            "url": "https://geralddaquila.com/oversoul-law",
+            "rationale": "This is the Archive's directly named Oversoul doorway for examining the question of spiritual jurisdiction. It is an invitation to inspect the Archive's own framework, not independent evidence that metaphysical claims are objectively established.",
+        }
     if is_community_project_tradeoff_question(question):
         return {
             "title": "Local Resilience Economies",
@@ -779,7 +805,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         re.search(r"\baccountable\s+retrieval\b", lower)
         and re.search(r"\b(?:what does|what is|define|explain|look like)\b", lower)
     )
-    if accountable_retrieval:
+    if is_oversoul_ego_authority_question(q):
+        answer = _oversoul_ego_authority_recovery()
+    elif accountable_retrieval:
         answer = (
             "Accountable retrieval means being able to show where an answer comes from, what supports it, and where its limits are. "
             "Finding material that appears relevant is not enough: a responsible answer keeps a visible relationship between the question, the source material, the interpretation, and the confidence that the evidence can reasonably support.\n\n"
