@@ -315,3 +315,44 @@ def test_community_project_tradeoff_provider_and_deterministic_doorways_share_on
     assert doorway == fallback_doorway
     assert doorway["title"] == "Local Resilience Economies"
     assert "does not assess this particular renewable-energy proposal" in doorway["rationale"]
+
+
+def test_public_predictive_system_question_selects_grounded_doorway_for_both_routes():
+    import main
+    from deterministic_answer_recovery import (
+        has_registered_recovery,
+        registered_recovery_recommendation,
+    )
+
+    query = (
+        "A government proposes a highly efficient predictive system for public services. "
+        "What constitutional and human questions must precede adoption?"
+    )
+    expected = {
+        "title": "AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever",
+        "url": "https://geralddaquila.com/2026/06/16/ai-vs-human-stewardship-why-conscious-guidance-matters-more-than-ever/",
+        "rationale": "AI vs. Human Stewardship examines why growing technological capability must remain guided by human wisdom, ethical judgment, oversight, agency, and clear accountability. It offers a broader foundation for examining predictive public systems and the responsibilities that must remain with people; it does not evaluate this particular government proposal.",
+    }
+
+    # Provider/normal routing and deterministic recovery must resolve the
+    # same complete visitor-facing doorway, including its grounded explanation.
+    assert main._select_verified_doorway_conceptual_family(query) == "public_predictive_systems"
+    assert main._VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS["public_predictive_systems"] == expected
+    assert main._select_guide_node_fallback_doorway(query) == expected
+    assert main._normalize_authoritative_recommendation(expected) == expected
+    assert has_registered_recovery(query)
+    assert registered_recovery_recommendation(query) == expected
+
+
+def test_public_predictive_system_doorway_match_does_not_overreach():
+    import main
+
+    assert main._select_verified_doorway_conceptual_family(
+        "A government proposes a predictive system for public services. What rights and human safeguards must precede adoption?"
+    ) == "public_predictive_systems"
+    assert main._select_verified_doorway_conceptual_family(
+        "How can a private retailer use predictive analytics to forecast inventory?"
+    ) != "public_predictive_systems"
+    assert main._select_verified_doorway_conceptual_family(
+        "What are the constitutional limits of government authority?"
+    ) != "public_predictive_systems"
