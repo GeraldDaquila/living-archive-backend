@@ -178,6 +178,8 @@ def test_final_visitor_boundary_enforces_passage_contrast_after_route_dispatch()
     assert len(boundary_functions) == 1
     boundary = boundary_functions[0]
     assert "archive_passage_contrast_recovery_from_context" in boundary
+    assert 'elif safe.get("model") == "deterministic-topic-clarification":' in boundary
+    assert '_gold_star_default_doorway()' in boundary
     assert "is_preserved_archive_passage_contrast_recovery" in boundary
     assert '_gold_star_default_doorway()' in boundary
     assert 'default_doorway = _normalize_authoritative_recommendation(' in boundary
