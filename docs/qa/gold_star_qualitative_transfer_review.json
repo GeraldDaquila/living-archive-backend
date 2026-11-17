@@ -887,6 +887,15 @@
       "transferable_discipline": "Treat public reputation and staff experience as position-dependent signals; examine cultural norms, decision power, leadership practices, staff care, and governance safeguards together. Distinguish reported experience from independently corroborated patterns and hypotheses; recommend confidential listening, disaggregated workforce data, complaint/decision-record review, anti-retaliation protections, and independent oversight.",
       "abstention_boundary": "Do not infer individual motives, character, or culpability from limited evidence. Do not treat donor, beneficiary, or community trust as proof that staff are safe, or staff reports alone as proof of an individual's intent. Preserve confidentiality, independence, and correctability.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-semantic-ambiguity-same-term-different-sources-gold-star-2026-11-18",
+      "question": "Two sources use the same term differently. How should the Guide detect and explain the ambiguity before answering?",
+      "reasoning_family": "semantic_disambiguation_before_answering",
+      "transferable_discipline": "When multiple sources use the same term, establish each source's contextual meaning before answering: identify referent, definition or operational use, scope, and criteria; compare uses symmetrically; distinguish genuine contradiction from different scope or different senses; preserve source-specific meanings; and ask for clarification when the intended sense remains unresolved.",
+      "qualifying_context": "Questions in which two or more sources use the same word or label but may assign it different definitions, referents, operational meanings, scopes, or criteria, and the Guide must resolve the ambiguity before answering.",
+      "abstention_boundary": "Do not infer that identical terminology means identical concepts; do not call distinct usages a contradiction until the underlying claims are compared; do not impose semantic comparison on questions that do not contain a genuine ambiguity; ask for clarification when source context and the visitor's question do not identify the intended sense.",
+      "activation": "active_quality_contributor"
     }
   ]
 }

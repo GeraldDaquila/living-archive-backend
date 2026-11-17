@@ -6503,9 +6503,67 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve the benchmark_id as the stable learning identity; serial allocation remains independent."
+    },
+    {
+      "benchmark_id": "general-guide-semantic-ambiguity-same-term-different-sources-gold-star-2026-11-18",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "Two sources use the same term differently. How should the Guide detect and explain the ambiguity before answering?",
+      "expected_response": "Two sources can use the same term while referring to different concepts, scopes, or standards. The Guide should treat the word as ambiguous until it establishes how each source is using it; sharing a label does not establish sharing a meaning.\n\nFirst, identify the exact term and examine each source in its own context. Record what the term refers to, how the source defines or operationalizes it, the scope in which it applies, and the distinction the source is making. Then compare those uses directly: show where they overlap, where they differ, and whether the apparent disagreement is a genuine contradiction, a difference in scope, or two distinct senses of the same word. Keep the sources' own meanings visible rather than translating one into the other's vocabulary.\n\nOnly after that comparison should the Guide answer under the meaning the visitor's question requires. If the wording or context does not establish which meaning is intended, state the plausible interpretations and ask one focused clarifying question. Never silently choose one definition, merge distinct meanings, or present a difference in terminology as a disagreement about substance.",
+      "expected_doorway": {
+        "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
+        "rationale": "This Navigator offers a relevant continuation into how knowledge is interpreted and made meaningful across sources. It supports closer attention to context, distinctions, and the limits of synthesis; it is an orientation resource, not a substitute for comparing the two source passages themselves."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User explicitly instructed structural correction and Gold Star elevation on 2026-11-18 after reviewing the live response failure.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "semantic_disambiguation_before_answering",
+      "transferable_lesson": "When multiple sources use the same term, establish each source's contextual meaning before answering: identify referent, definition or operational use, scope, and criteria; compare uses symmetrically; distinguish genuine contradiction from different scope or different senses; preserve source-specific meanings; and ask for clarification when the intended sense remains unresolved.",
+      "transfer_boundary": "Transfer the semantic-disambiguation method only. Do not assume the sources share a definition, impose this comparison on unrelated questions, invent source meanings, collapse distinct usages, or call different terminology a substantive contradiction without evidence.",
+      "known_theme": "semantic ambiguity, shared terminology, source interpretation, contextual meaning, definitions, referents, scope, operational use, conceptual distinctions, source comparison, contradiction versus equivocation, clarification before answering",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "semantic_disambiguation_before_answering",
+        "transferable_discipline": "Compare each source's contextual use of the shared term before answering; preserve referent, definition, scope, and criteria; distinguish equivocation or scope difference from genuine contradiction; clarify when intent remains unresolved.",
+        "abstention_boundary": "Do not infer a shared meaning from a shared word, merge source-specific definitions, or assert contradiction without comparing the claims in context."
+      },
+      "assertions": [
+        "Begin with the substantive answer: a shared term does not establish a shared meaning.",
+        "Identify the exact term and examine each source independently in its own context.",
+        "Compare referent, definition or operational use, scope, and criteria symmetrically.",
+        "Distinguish genuine contradiction from different scope or distinct senses of the same term.",
+        "Preserve each source's own vocabulary and meaning; do not silently translate or merge them.",
+        "Answer only after resolving which meaning the visitor's question requires; ask one focused clarifying question if context does not resolve it.",
+        "Use three purposeful paragraphs for this explanatory question; do not import decision-making, stewardship, or governance content unless the visitor asks for it.",
+        "Render the verified Knowledge & Sensemaking Navigator doorway after the substantive answer with its specific continuation rationale."
+      ],
+      "user_approved_at": "2026-11-18",
+      "elevation_approval_evidence": "User reviewed the live Guide screenshot for the exact question and explicitly instructed: “fix structurally specific to this question, plus, the bigger issue of the gold standard template being applied blindly and independently (it seems) of the subject matter. turn this into a gold star” on 2026-11-18.",
+      "provenance": {
+        "source": "User-provided live visitor-facing Guide screenshot and explicit Gold Star elevation instruction.",
+        "source_date": "2026-11-18",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the exact question and the off-topic response failure. The corrected answer is a newly authored structural correction authorized for Gold Star elevation; it is not misrepresented as text shown in the screenshot.",
+        "doorway_verification": {
+          "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+          "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
+          "verified_against": "Existing approved Gold Star registry entry for Archive-grounded guidance and canonical Knowledge & Sensemaking Navigator permalink."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent.",
+      "rating_out_of_10": 9.6
     }
   ],
-  "last_reconciliation_note": "Added user-approved nonprofit culture, power, care, and governance Gold Star on 2026-11-18. The exact three-paragraph answer and verified Building Trust-Centered Organizations doorway are frozen; transfer is limited to integrated organizational analysis, protected evidence-gathering, independent oversight, and non-diagnostic conclusions. No display serial was allocated; the adjacent organizational-culture-and-ethical-behavior benchmark remains distinct.",
+  "last_reconciliation_note": "2026-11-18: Added the semantic-ambiguity Gold Star. Inventory now reconciles to 102 approved records across 139 registry records; 100 active quality contributors, 38 numbered, 64 unassigned. No display serial allocated.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -6618,7 +6676,7 @@
     ],
     "runtime_integration_note": "Runtime composition must invoke active_quality_contribution() for eligible unseen questions before composition and pass only structural guidance—not exemplar answer text, factual claims, examples, citations, or doorways—into the response process. Exact-match enforcement remains separate.",
     "registry_authority": "SOLE_CANONICAL_SOURCE",
-    "last_reconciled": "2026-11-16"
+    "last_reconciled": "2026-11-18"
   },
   "canonical_storage": {
     "authority": "docs/qa/gold_standard_registry.json on the living-archive-backend main branch is the sole authoritative, additive Gold Star ledger.",
@@ -6635,13 +6693,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 101,
-    "registry_record_count": 138,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 101 approved Gold Stars across 138 registry records. 99 are active learning contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. The nonprofit culture/power/care/governance exemplar is distinct from the broader organizational-culture-and-ethical-behavior exemplar; it addresses conflicting public and staff experiences, evidence-gathering safeguards, and non-diagnostic governance review.",
+    "approved_gold_star_count": 102,
+    "registry_record_count": 139,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 102 approved Gold Stars across 139 registry records. 100 are active learning contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. The semantic-ambiguity exemplar is distinct from symmetric Archive-passage representation: it disambiguates one shared term used with different meanings before answering, while the latter compares different source emphases before synthesis.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation: 101 approved Gold Stars; 38 assigned display serials #56–#93; 63 approved records explicitly UNASSIGNED with reasons. The two explicitly released historical-gap serials, #85 and #86, remain allocated to their existing approved records; no open numbering gaps remain. No display serial was allocated to the nonprofit culture/power/care/governance exemplar.",
-    "unassigned_approved_gold_star_count": 63,
+    "numbering_reconciliation": "Record-level reconciliation: 102 approved Gold Stars; 38 assigned display serials #56–#93; 64 approved records explicitly UNASSIGNED with reasons. The explicitly released historical-gap serials #85 and #86 remain allocated to their existing approved records; no open numbering gaps remain. No display serial was allocated to the semantic-ambiguity exemplar.",
+    "unassigned_approved_gold_star_count": 64,
     "documented_numbering_gap_count": 0
   },
   "numbering_policy": {
