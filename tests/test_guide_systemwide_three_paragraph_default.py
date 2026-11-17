@@ -88,3 +88,32 @@ def test_default_composition_quality_gate_is_not_limited_to_stakeholder_question
     assert "COMPOSITION QUALITY GATE — mandatory for every substantive answer" in prompt
     assert "A plausible thematic association is not enough" in prompt
     assert "not only named question classes" in prompt
+
+
+
+def test_community_continuity_revision_recovery_answers_after_archive_retrieval_miss():
+    from deterministic_answer_recovery import (
+        compose_recovery,
+        is_community_continuity_revision_question,
+    )
+
+    query = "How can communities preserve continuity while revising harmful inherited patterns?"
+    assert is_community_continuity_revision_question(query)
+    assert not is_community_continuity_revision_question(
+        "How can communities preserve continuity across generations?"
+    )
+    answer = compose_recovery(query)
+    paragraphs = [part.strip() for part in answer.split("\\n\\n") if part.strip()]
+    assert len(paragraphs) == 3
+    assert paragraphs[0].startswith("Communities preserve continuity")
+    assert "people who live with the effects" in paragraphs[1]
+    assert "what is worth preserving" in paragraphs[2]
+    assert "Archive" not in answer
+
+
+def test_community_continuity_nonanswer_is_replaced_and_doorway_is_recovered():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    assert "do not have enough grounded material" in source
+    assert "is_community_continuity_revision_question(query)" in source
+    assert '== "community_continuity_revision"' in source
+    assert "general_conceptual_orientation" in source
