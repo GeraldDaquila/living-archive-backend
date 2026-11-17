@@ -2863,6 +2863,26 @@ def _open_question_orientation_recovery(question: str) -> Optional[str]:
 def _conceptual_relationship_recovery(question: str) -> Optional[str]:
     """Provide bounded general-knowledge recovery for a recognized, well-established concept pair."""
     normalized = _normalize_space(question).casefold()
+
+    # A direct, visitor-facing recovery for the common three-way distinction.
+    # This must remain answer-first even when the Basic Inquiry route bypasses
+    # provider composition: state the roles, explain their overlap, then give
+    # the visitor a practical comparison lens.
+    if (
+        re.search(r"\bstewardship\b", normalized)
+        and re.search(r"\bmanagement\b", normalized)
+        and re.search(r"\bownership\b", normalized)
+        and re.search(
+            r"\b(?:differ(?:s|ence|ent)?|comparison|compare|distinguish|versus|vs\.?)\b",
+            normalized,
+        )
+    ):
+        return (
+            "Ownership concerns the rights and claims associated with an asset; management is the work of organizing people and resources to carry out defined purposes; stewardship is responsibility for the long-term health and consequences of what has been entrusted to one's care. Ownership asks who holds the claim, management asks how the work is directed and performed, and stewardship asks what obligations should guide its use and what must remain healthy for others and the future.\n\n"
+            "The roles can overlap without becoming interchangeable. An owner may appoint a manager, and either may act as a steward; the distinction lies in the responsibility being exercised, not simply the person's title. Management can be efficient while serving a narrow objective, and ownership can be legally valid without settling whether a decision is responsible toward everyone affected. Stewardship brings those wider consequences, relationships, and time horizons into view.\n\n"
+            "A useful comparison holds the same dimensions constant: the source of authority, the scope of responsibility, the time horizon, and whose interests or consequences count. Ask who has the right to decide, who organizes the daily work, who must account for long-term effects, and who bears the costs if the asset or relationship is diminished. That makes it possible to see where ownership, management, and stewardship reinforce one another—and where they pull in different directions."
+        )
+
     _open_question_recovery = _open_question_orientation_recovery(question)
     if _open_question_recovery:
         return _open_question_recovery
@@ -3103,7 +3123,7 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
         )) >= 2
     )
     if stewardship_terms and re.search(
-        r"\\b(?:differ|difference|compare|versus|vs\\.?|rather than|distinguish)\\b",
+        r"\b(?:differ(?:s|ence|ent)?|compare|comparison|versus|vs\.?|rather than|distinguish)\b",
         normalized,
     ):
         return (
