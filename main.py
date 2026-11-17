@@ -325,7 +325,7 @@ def _select_guide_node_fallback_doorway(query):
         term for term in re.findall(r"[a-z]{4,}", normalized)
         if term not in stopwords
     }
-    if len(terms) < 2:
+    if not terms:
         return None
     best = None
     best_score = 0.0
@@ -343,11 +343,20 @@ def _select_guide_node_fallback_doorway(query):
         ]).casefold()
         node_terms = set(re.findall(r"[a-z]{4,}", haystack))
         overlap = terms & node_terms
-        # One generic shared word is not enough to justify a visitor handoff.
-        if len(overlap) < 2:
-            continue
         coverage = len(overlap) / len(terms)
-        if coverage < 0.20:
+        if len(terms) == 1:
+            # Single-concept questions can still earn a doorway, but only when
+            # the concept appears in both the node title and its purpose/hints.
+            supporting_text = " ".join([
+                str(node.get("purpose") or ""),
+                " ".join(node.get("semantic_hints") or []),
+            ]).casefold()
+            if len(next(iter(terms))) < 8 or not overlap or not any(
+                term in title.casefold() and term in supporting_text for term in overlap
+            ):
+                continue
+        elif len(overlap) < 2 or coverage < 0.20:
+            # Multi-concept queries require more than one grounded connection.
             continue
         score = len(overlap) + coverage
         if score > best_score:
@@ -11213,6 +11222,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     _final_conceptual_family = _select_verified_doorway_conceptual_family(query)
     if (
         not authoritative_doorway
+        and not _is_practical_stewardship_question(query)
         and not (
             _final_gold_standard is not None
             and bool(_final_gold_standard.get("forbids_doorway"))
