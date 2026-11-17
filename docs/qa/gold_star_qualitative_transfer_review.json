@@ -860,6 +860,15 @@
       "qualifying_context": "Questions explicitly comparing ownership, management, and stewardship, or asking how authority, operational responsibility, long-term care, and consequences differ across entrusted assets or relationships.",
       "abstention_boundary": "Do not infer legal ownership, actual decision rights, management arrangements, or asset-specific obligations without evidence. Do not equate ownership with stewardship or transfer this exact answer or its Stewardship vs Management vs Leadership doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-archive-examples-evidence-limits-gold-star-2026-11-18",
+      "question": "The archive offers two suggestive examples but no direct answer to a visitor's claim. How should the Guide express what is known and what remains open?",
+      "qualifying_context": "Questions asking what a limited set of Archive examples establishes about a broader visitor claim, especially where the examples are suggestive but no direct answer or explicit source statement is available.",
+      "reasoning_family": "archive_examples_evidence_limits",
+      "transferable_discipline": "Separate source-specific evidence from the Guide's synthesis; test whether examples are representative and whether other materials qualify or contradict them; state the exact boundary of what is established, what remains open, and what further evidence would be needed.",
+      "abstention_boundary": "Do not generalize from illustrative examples without evidence of representativeness. Do not present synthesis as a direct Archive claim or treat suggestive examples as proof of a broader proposition. Do not turn missing evidence into a confident conclusion; name what remains unresolved.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
