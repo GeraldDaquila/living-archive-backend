@@ -2,6 +2,8 @@
 
 import json
 
+import pytest
+
 import general_guide_composition as guide
 
 
@@ -46,5 +48,5 @@ def test_soft_contract_lane_cannot_admit_a_meta_opening():
         "response_shape": "explanatory",
     }
     parser = guide._parse_factory([], QUESTION)
-    with __import__("pytest").raises(ValueError, match="answer-first"):
+    with pytest.raises(ValueError, match="answer-first"):
         parser(json.dumps(payload))
