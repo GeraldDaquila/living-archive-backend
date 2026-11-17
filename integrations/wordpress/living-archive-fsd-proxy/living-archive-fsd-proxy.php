@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Living Archive — FSD Proxy
  * Description: Server-side, rate-limited proxy for the versioned episode-based FSD endpoint.
- * Version: 0.2.3
+ * Version: 0.2.4
  * Author: Living Archive
  */
 if (!defined('ABSPATH')) { exit; }
@@ -140,6 +140,6 @@ add_action('wp_enqueue_scripts', function () {
     // Candidate assets load only on the private staging draft. The REST endpoint
     // remains independently disabled unless both explicit feature flags are true.
     if (!is_page(80594)) return;
-    wp_enqueue_style('living-archive-fsd-episode', plugins_url('assets/fsd-app.css', __FILE__), array(), '0.2.3');
-    wp_enqueue_script('living-archive-fsd-episode', plugins_url('assets/fsd-app.js', __FILE__), array(), '0.2.3', true);
+    wp_enqueue_style('living-archive-fsd-episode', plugins_url('assets/fsd-app.css', __FILE__), array(), '0.2.4');
+    wp_enqueue_script('living-archive-fsd-episode', plugins_url('assets/fsd-app.js', __FILE__), array('la-answer-doorway-standard'), '0.2.4', true);
 });
