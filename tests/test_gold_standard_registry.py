@@ -1349,7 +1349,7 @@ def test_spiritual_community_accountability_gold_star_93_is_approved_and_exactly
     assert record["gold_star_number"] == 93
     assert record["explicit_user_elevation_approval"] is True
     assert record["rating_out_of_10"] == 9.5
-    assert len(record["expected_response"].split("\\n\\n")) == 3
+    assert len(record["expected_response"].split("\n\n")) == 3
     assert record["expected_doorway"]["title"] == "Community Accountability Systems"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/05/16/community-accountability-systems/"
     assert record["doorway_status"] == "VERIFIED_CANONICAL_SELECTED"
