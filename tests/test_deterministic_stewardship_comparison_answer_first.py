@@ -15,7 +15,7 @@ def test_basic_inquiry_deterministic_recovery_answers_before_navigating():
         {"context_blocks": ""},
         recommendation_available=False,
     )
-    paragraphs = result["response"].split("\\n\\n")
+    paragraphs = result["response"].split("\n\n")
     assert len(paragraphs) == 3
     assert paragraphs[0].startswith("Ownership concerns the rights and claims")
     assert "management is the work" in paragraphs[0]
