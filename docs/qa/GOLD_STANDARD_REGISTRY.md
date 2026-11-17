@@ -2,8 +2,8 @@
 
 ## Current Gold Star numbering authority — 2026-11-17
 
-- **Canonical inventory:** 126 records total; 87 approved Gold Stars; 87 matching qualitative-transfer reviews. One former approved Gold Star is now preserved as a superseded historical record, and its successor is a release candidate pending Gold Star elevation.
-- **Serial inventory:** 35 approved records carry display serials, #56–#84 and #87–#92. 52 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity. The new AI-workforce successor candidate is also unnumbered and excluded from Gold Star counts.
+- **Canonical inventory:** 126 records total; 88 approved Gold Stars; 88 matching qualitative-transfer reviews. One approved Gold Star retains its learning authority while a governed release candidate temporarily owns exact-query runtime authority.
+- **Serial inventory:** 35 approved records carry display serials, #56–#84 and #87–#92. 53 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity. The new AI-workforce successor candidate is also unnumbered and excluded from Gold Star counts.
 - **Restored 2026-11-17:** `gs-2026-11-17-structural-change-vs-disruption` retains its original three-paragraph answer and unassigned serial. Its doorway is now verified as Systems, Governance, and Organizational Design — https://geralddaquila.com/systems-structure/ — with a visitor-facing relevance rationale.
 - **Overwritten 2026-11-17:** The same benchmark now has one canonical current answer version: three distinct moves (distinction; disruption's causal role; post-event operational test), with the opening clause boundary corrected. The verified doorway, active exact/adaptive/deterministic capabilities, provenance, and `UNASSIGNED` serial are preserved. See `revision_history` in the machine-readable record.
 - **Newly elevated 2026-11-17:** `gs-2026-11-17-consequential-action-under-uncertainty` preserves the exact three-paragraph visitor answer and the verified **The Sovereign Sensemaking Compass** doorway, including its relevance rationale. It is an active structural-learning contributor; its display serial remains `UNASSIGNED`.
@@ -659,13 +659,13 @@ claims, examples, citations, and doorways do not transfer.
 The following user-approved Gold Stars were reconciled from temporary external evidence into the sole canonical ledger and are now eligible for governed exact-answer authority and structural quality contribution:
 
 - `general-guide-civilizational-transition-archive-meaning-gold-star-2026-11-13`
-- `general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13` — now preserved as `SUPERSEDED_GOLD_STANDARD` after the 2026-11-17 visitor review; its exact historical answer remains unchanged.
+- `general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13` — remains an approved Gold Star structural-learning exemplar; its exact-query runtime answer authority is delegated to the 2026-11-17 release candidate without demotion.
 
 These entries preserve their live-production provenance and qualitative transfer boundaries; the external record is evidence only and not a competing ledger.
 
 ### 2026-11-17 — AI workforce restructuring successor release candidate
 
-- **Predecessor:** `general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13` (preserved unchanged as a superseded historical answer).
+- **Predecessor:** `general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13` (preserved as an approved Gold Star learning exemplar; exact-query runtime authority delegated to this candidate).
 - **Successor:** `gs-2026-11-17-ai-workforce-restructuring-successor-candidate`
 - **Status:** `USER_APPROVED_RELEASE_CANDIDATE` — exact-query live review only; not a Gold Star and not an adaptive-learning contributor.
 - **Question:** “A company wants to use AI to reduce staffing costs. How should The Guide analyze this through operations, governance, human development, ethics, and stewardship?”
