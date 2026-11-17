@@ -81,6 +81,25 @@ def test_terminal_provider_exhaustion_uses_context_block_documents_when_no_prote
     assert "Passage Beta" in recovered["response"]
 
 
+def test_terminal_provider_exhaustion_unions_partial_protected_docs_with_context_blocks():
+    class Core:
+        @staticmethod
+        def context_blocks_to_documents(_blocks):
+            return SOURCES[1:]
+
+    recovered = archive_passage_contrast_recovery_from_context(
+        QUESTION,
+        Core(),
+        {
+            "generation_authority_protected_docs": SOURCES[:1],
+            "context_blocks": "second retrieved archive passage",
+        },
+    )
+    assert recovered is not None
+    assert "Passage Alpha" in recovered["response"]
+    assert "Passage Beta" in recovered["response"]
+
+
 def test_terminal_provider_exhaustion_states_evidence_limit_instead_of_generic_failure():
     class Core:
         @staticmethod
