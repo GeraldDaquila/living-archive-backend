@@ -1200,6 +1200,8 @@ def test_ai_staffing_successor_is_elevated_gold_star_and_preserves_legacy_record
     assert old["expected_response"].startswith("For a question like this, the first task is to make the decision visible.")
     assert old["runtime_exact_query_successor"] == successor_id
     assert old["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert old["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert old["runtime_exact_answer_authority_delegated"] is True
     assert successor["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert successor["rating_out_of_10"] == 9.5
     assert successor["user_reviewed_response"] is True
