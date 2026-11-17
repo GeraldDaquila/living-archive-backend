@@ -606,7 +606,7 @@ def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
     return bool(
         is_oversoul_ego_authority_question(question)
-        _is_public_predictive_system_question(question)
+        or _is_public_predictive_system_question(question)
         or _is_archive_purpose_question(question)
         or _is_commons_care_question(question)
         or _is_feedback_loops_institutions_question(question)
