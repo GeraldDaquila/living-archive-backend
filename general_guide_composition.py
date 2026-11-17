@@ -3139,10 +3139,10 @@ def enforce_response_contracts(question: str, response: str) -> str:
     )
     if is_spiritual_community_accountability_question(question):
         candidate = _spiritual_community_accountability_recovery()
-        paragraphs = [part.strip() for part in re.split(r"\\n\\s*\\n+", candidate) if part.strip()]
+        paragraphs = [part.strip() for part in re.split(r"\n\\s*\\n+", candidate) if part.strip()]
         if len(paragraphs) != 3:
             raise RuntimeError("Spiritual-community accountability response contract failed: expected three substantive paragraphs.")
-        if re.search(r"\\b(?:AI|artificial intelligence|provider|model|retrieval)\\b", candidate, re.I):
+        if re.search(r"\b(?:AI|artificial intelligence|provider|model|retrieval)\\b", candidate, re.I):
             raise RuntimeError("Spiritual-community accountability response contract failed: unrelated or internal framing leaked.")
     # Enforce the same bounded scenario response for provider/LLM and deterministic routes.
     from deterministic_answer_recovery import is_complex_future_scenario_question, _complex_future_scenario_recovery
