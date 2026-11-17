@@ -682,6 +682,12 @@ def _public_predictive_system_recovery():
 
 def registered_recovery_recommendation(question):
     """Return an evidence-backed doorway for a narrow registered recovery."""
+    if is_guide_personal_decision_agency_question(question):
+        return {
+            "title": "Being in the Driver's Seat (Without Pretending You Control the Road)",
+            "url": "https://geralddaquila.com/being-in-the-drivers-seat-without-pretending-you-control-the-road/",
+            "rationale": "This essay offers a grounded continuation on exercising personal agency within real conditions and limits. It supports the distinction between receiving orientation and surrendering responsibility for one's own choices; it does not prescribe the decision a visitor should make.",
+        }
     if is_oversoul_free_will_question(question) or is_oversoul_ego_authority_question(question):
         return {
             "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
@@ -824,6 +830,33 @@ def _reflective_conceptual_recovery(question):
     )
 
 
+def is_guide_personal_decision_agency_question(question):
+    """Recognize a meta-question about guiding personal decisions without taking agency."""
+    q = _clean(question).casefold()
+    guide_role = bool(re.search(r"\b(?:the\s+)?(?:guide|assistant|advisor)\b", q))
+    personal_decision = bool(re.search(
+        r"\b(?:personal|private|life)\s+(?:life\s+)?decision\b"
+        r"|\bdecision\s+to\s+be\s+made\s+for\s+(?:them|someone|a person)\b",
+        q,
+    ))
+    agency_boundary = bool(re.search(
+        r"\b(?:without|rather than|instead of|refus(?:e|ing)\s+to)\b.{0,100}"
+        r"\b(?:replace|take over|undermin|override)\w*\b.{0,40}\bagency\b"
+        r"|\bpreserv(?:e|ing)\s+(?:the\s+)?person(?:'s|’s)\s+agency\b",
+        q,
+    ))
+    orientation_request = bool(re.search(r"\b(?:orient(?:ation)?|guide|guidance|help)\b", q))
+    return guide_role and personal_decision and agency_boundary and orientation_request
+
+
+def _guide_personal_decision_agency_recovery():
+    """Explain how the Guide supports judgment without taking ownership of a life choice."""
+    return (
+        "The Guide should help a person make their own decision, not make the decision for them. Its role is to clarify what is actually being decided, what matters to the person, which responsibilities or commitments are involved, and what constraints shape the available choices. It can offer perspective and test assumptions, but it should not present its preference as the answer or imply that it knows the person's life better than they do.\n\n"
+        "Good orientation makes the choice easier to see without pretending it is easy. The Guide can help compare realistic alternatives, surface the strongest reasons for and against each, distinguish known facts from interpretations and unknowns, and consider who else may be affected. It should also make the consequences and reversibility of each option visible: a low-risk, reversible step may be tested, while a choice involving lasting harm, safety, or major obligations deserves more careful deliberation and, where appropriate, trusted human or specialist support.\n\n"
+        "The conversation should end with the person better equipped to judge, not more dependent on the Guide's judgment. The Guide can identify a useful next question, a proportionate next step, or evidence worth gathering, while leaving the values, consent, and final choice with the person who must live with the outcome. If the person corrects the framing or sees something differently, the Guide should adapt. Its success is measured by clearer understanding and stronger agency—not by securing agreement with a recommendation."
+    )
+
 def compose_recovery(question, *, underlying_question="", desired_movement=""):
     """Offer a useful bounded response without inventing facts or sources."""
     q = _clean(question)
@@ -861,7 +894,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         re.search(r"\baccountable\s+retrieval\b", lower)
         and re.search(r"\b(?:what does|what is|define|explain|look like)\b", lower)
     )
-    if is_oversoul_free_will_question(q):
+    if is_guide_personal_decision_agency_question(q):
+        answer = _guide_personal_decision_agency_recovery()
+    elif is_oversoul_free_will_question(q):
         answer = _oversoul_free_will_recovery()
     elif is_oversoul_ego_authority_question(q):
         answer = _oversoul_ego_authority_recovery()
