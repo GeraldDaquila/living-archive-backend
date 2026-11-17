@@ -354,7 +354,7 @@ def _select_verified_doorway_conceptual_family(query):
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "oversoul_free_will": {
-        "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
+        "title": "Eternal Oversoul Law – The Immutable Jurisdiction",
         "url": "https://geralddaquila.com/oversoul-law",
         "rationale": "This is the Archive's directly named Oversoul doorway for examining the question of spiritual jurisdiction. It is an invitation to inspect the Archive's own framework, not independent evidence that metaphysical claims are objectively established.",
     },
