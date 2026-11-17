@@ -3147,24 +3147,28 @@
       },
       "freeze_policy": "Preserve approved expected_response and canonical doorway. Change only through an explicit user-authorized benchmark-version update with provenance.",
       "gold_star_capabilities": {
-        "generation_class": "runtime_agnostic_curated_exemplar",
+        "generation_class": "superseded_historical_reference_only",
         "exact_answer_authority": false,
-        "active_quality_contributor": true,
-        "deterministic_fallback_eligible": true,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": false,
         "reasoning_family": "normalized_migrated_gold_star",
         "transferable_discipline": "**A systems map is a provisional representation for making relationships examinable—not a proof that the represented relationships are complete, causal, or settled.**",
         "abstention_boundary": "Transfer the epistemic discipline, not the exact answer or doorway. Apply it to questions about models, maps, frameworks, diagrams, and system representations when the visitor asks about their usefulness or limits. Do not attach this systems-thinking doorway to unrelated questions merely because they mention complexity, confidence, or change.",
-        "intake_note": "Migrated from a temporary parallel registry into the canonical ledger; normalized without creating a competing authority."
+        "intake_note": "Migrated from a temporary parallel registry into the canonical ledger; normalized without creating a competing authority.",
+        "superseded_by_benchmark_id": "general-guide-systems-map-useful-false-confidence-gold-standard-2026-11-15"
       },
       "known_theme": "migrated gold star",
-      "runtime_transfer": true,
+      "runtime_transfer": false,
       "legacy_approval_grandfathered": true,
       "legacy_approval_grandfathered_reason": "Approved before the explicit user-review elevation gate was introduced on 2026-11-15; preserved without reconstructing approval evidence.",
       "superseded_exact_authority_by": "general-guide-systems-map-useful-false-confidence-gold-standard-2026-11-15",
-      "supersession_reason": "A later user-reviewed Gold Star #83 explicitly approved a refined answer for the same exact question. The migrated exemplar remains canonical historical and qualitative evidence but is no longer eligible as competing exact runtime answer authority.",
+      "supersession_reason": "This migrated ledger record and the 2026-11-15 user-reviewed live Guide exemplar share the exact same visitor question and materially the same three-paragraph answer. The later live exemplar is the sole active learning contributor and exact-query authority. Preserve this migrated record, its original answer, and its doorway as historical provenance; do not count it as a second active contributor or a second exact-answer source.",
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "LEGACY_APPROVED_NO_SERIAL_ALLOCATION",
-      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects."
+      "numbering_unassigned_reason": "This benchmark is retained as a legacy-grandfathered USER_APPROVED_GOLD_STANDARD, but no canonical record-level serial allocation is recorded. Its approval and adaptive-learning eligibility are independent of the optional display serial. Do not infer a number from registry order, the legacy approval count, dates, GitHub PR numbers, or commit subjects.",
+      "runtime_exact_query_successor": "general-guide-systems-map-useful-false-confidence-gold-standard-2026-11-15",
+      "superseded_by_benchmark_id": "general-guide-systems-map-useful-false-confidence-gold-standard-2026-11-15",
+      "supersession_class": "historical_duplicate_reference_only"
     },
     {
       "benchmark_id": "gs-2026-11-13-03-cross-scale-orientation-canonical-continuation",
@@ -5099,7 +5103,10 @@
         "How do you test whether a systems model is wrong?"
       ],
       "user_approved_at": "2026-11-15",
-      "numbering_status": "ASSIGNED"
+      "numbering_status": "ASSIGNED",
+      "replaces_exact_query_runtime_authority_of": "gs-2026-11-13-04-migrated-canonical-ledger",
+      "supersedes_historical_duplicate_reference": "gs-2026-11-13-04-migrated-canonical-ledger",
+      "supersession_note": "This user-reviewed live exemplar is the sole active answer and learning authority for the exact visitor question. The migrated 2026-11-13 ledger entry is retained only as a historical reference, not as a parallel learning contributor."
     },
     {
       "benchmark_id": "general-guide-actionable-ethical-responsibility-gold-standard-2026-11-15",
@@ -6450,7 +6457,7 @@
     "last_audit_date": "2026-11-18",
     "approved_gold_star_count": 98,
     "registry_record_count": 135,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 98 approved Gold Stars across 135 registry records. The ownership/management/stewardship comparison joins the active structural-learning contributors under its bounded role-distinction family. Gold Star #85 is allocated under the prior explicit authorization; 61 approved records remain explicitly UNASSIGNED. Historical gap #86 remains released and unassigned.",
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 98 approved Gold Star records across 135 registry records. 96 are active learning contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. The 2026-11-15 user-reviewed systems-map exemplar is the sole active learning and exact-answer authority for its exact visitor question. Gold Star #85 remains allocated; #86 remains released and unassigned.",
     "numbered_gold_star_record_count": 37,
     "highest_assigned_gold_star_number": 93,
     "numbering_reconciliation": "Record-level reconciliation: 98 approved Gold Stars; 37 assigned display serials #56–#85 and #87–#93; 61 approved records explicitly UNASSIGNED with reasons. Serial #85 is allocated under the explicit historical-gap release; #86 remains the sole documented, released historical gap.",

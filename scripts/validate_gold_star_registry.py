@@ -63,7 +63,7 @@ def validate_exact_only_successors(approved_records, active_records):
     active_by_id = {item.get("benchmark_id"): item for item in active_records}
     exact_only = []
     for record in approved_records:
-        if record.get("runtime_transfer") is True:
+        if record.get("runtime_transfer") is True or record.get("superseded_by_benchmark_id"):
             continue
         capabilities = record.get("gold_star_capabilities")
         successor_of = str(record.get("replaces_exact_query_runtime_authority_of") or "").strip()
@@ -87,6 +87,46 @@ def validate_exact_only_successors(approved_records, active_records):
             )
         exact_only.append(record)
     return exact_only
+
+
+def validate_superseded_references(approved_records, active_records):
+    """Keep exact-question duplicates as provenance only, never as a second learner."""
+    active_by_id = {item.get("benchmark_id"): item for item in active_records}
+    superseded = []
+    for record in approved_records:
+        successor_id = str(record.get("superseded_by_benchmark_id") or "").strip()
+        if not successor_id:
+            continue
+        capabilities = record.get("gold_star_capabilities")
+        successor = active_by_id.get(successor_id)
+        successor_capabilities = (
+            successor.get("gold_star_capabilities") or {}
+            if isinstance(successor, dict) else {}
+        )
+        valid = (
+            record.get("runtime_transfer") is False
+            and record.get("runtime_exact_query_successor") == successor_id
+            and isinstance(capabilities, dict)
+            and capabilities.get("exact_answer_authority") is False
+            and capabilities.get("active_quality_contributor") is False
+            and capabilities.get("deterministic_fallback_eligible") is False
+            and capabilities.get("superseded_by_benchmark_id") == successor_id
+            and isinstance(successor, dict)
+            and successor.get("replaces_exact_query_runtime_authority_of") == record.get("benchmark_id")
+            and normalize_exact_question(successor.get("query"))
+                == normalize_exact_question(record.get("query"))
+            and successor.get("runtime_transfer") is True
+            and successor_capabilities.get("active_quality_contributor") is True
+            and successor_capabilities.get("exact_answer_authority") is True
+            and record.get("supersession_class") == "historical_duplicate_reference_only"
+        )
+        if not valid:
+            fail(
+                f"{record.get('benchmark_id')} has an invalid superseded duplicate reference "
+                "or its successor is not the sole active exact-query authority"
+            )
+        superseded.append(record)
+    return superseded
 
 
 def validate_numbering_metadata(registry, records):
@@ -531,6 +571,7 @@ def main():
     approved = [r for r in records if r.get("status") == APPROVED_STATUS]
     active = [r for r in approved if r.get("runtime_transfer") is True]
     exact_only = validate_exact_only_successors(approved, active)
+    superseded = validate_superseded_references(approved, active)
     authority_records = active + exact_only
 
     for record in active:
@@ -678,7 +719,7 @@ def main():
             "answer": answer,
         }
 
-    if len(active) + len(exact_only) != len(approved):
+    if len(active) + len(exact_only) + len(superseded) != len(approved):
         fail("approved Gold Star inventory contains an unclassified runtime authority state")
 
     validate_numbering_metadata(registry, records)
@@ -703,7 +744,7 @@ def main():
     print(
         "GOLD STAR INTEGRITY PASS: "
         f"{len(approved)} approved ({len(active)} learning contributors, "
-        f"{len(exact_only)} exact-query-only successors), {len(records)} total records, "
+        f"{len(exact_only)} exact-query-only successors, {len(superseded)} superseded historical references), {len(records)} total records, "
         f"{len(current_numbers)} numbered, max #{max(current_numbers.values(), default=0)}, "
         f"{len(entries)} reviews, {len(exact_authority)} exact-answer authorities; "
         "canonical-main assignment immutability PASS"

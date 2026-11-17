@@ -653,7 +653,14 @@ def test_user_approved_gold_stars_have_explicit_runtime_capability_classificatio
         # Some approved records are qualitative-transfer exemplars by explicit
         # capability contract; exact replay authority must not be invented.
         assert isinstance(capability.get("exact_answer_authority"), bool)
-        if record.get("runtime_transfer") is False:
+        if record.get("superseded_by_benchmark_id"):
+            # Historical duplicate is preserved for provenance only.
+            assert record.get("runtime_transfer") is False
+            assert record.get("runtime_exact_query_successor") == record.get("superseded_by_benchmark_id")
+            assert capability.get("exact_answer_authority") is False
+            assert capability.get("active_quality_contributor") is False
+            assert capability.get("deterministic_fallback_eligible") is False
+        elif record.get("runtime_transfer") is False:
             assert capability.get("exact_answer_authority") is True
             assert capability.get("active_quality_contributor") is False
             assert capability.get("deterministic_fallback_eligible") is False
@@ -845,7 +852,12 @@ def test_gold_star_has_one_strict_canonical_definition():
         assert record.get("expected_response"), record["benchmark_id"]
         assert record.get("freeze_policy"), record["benchmark_id"]
         capability = record.get("gold_star_capabilities") or {}
-        if record.get("runtime_transfer") is False:
+        if record.get("superseded_by_benchmark_id"):
+            assert record.get("runtime_transfer") is False, record["benchmark_id"]
+            assert capability.get("exact_answer_authority") is False, record["benchmark_id"]
+            assert capability.get("active_quality_contributor") is False, record["benchmark_id"]
+            assert capability.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
+        elif record.get("runtime_transfer") is False:
             assert capability.get("exact_answer_authority") is True, record["benchmark_id"]
             assert capability.get("active_quality_contributor") is False, record["benchmark_id"]
             assert capability.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
@@ -1287,7 +1299,11 @@ def test_approved_exact_query_only_successor_is_valid_and_cannot_claim_learning_
     active = [item for item in approved if item.get("runtime_transfer") is True]
 
     exact_only = validate_exact_only_successors(approved, active)
+    from scripts.validate_gold_star_registry import validate_superseded_references
+    superseded = validate_superseded_references(approved, active)
     assert len(exact_only) == 1
+    assert len(superseded) == 1
+    assert superseded[0]["benchmark_id"] == "gs-2026-11-13-04-migrated-canonical-ledger"
     assert exact_only[0]["gold_star_capabilities"]["exact_answer_authority"] is True
     assert exact_only[0]["gold_star_capabilities"]["active_quality_contributor"] is False
     assert exact_only[0]["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
@@ -1297,6 +1313,7 @@ def test_approved_exact_query_only_successor_is_valid_and_cannot_claim_learning_
         item for item in mutated
         if item.get("runtime_transfer") is False
         and item.get("gold_star_capabilities", {}).get("exact_answer_authority") is True
+        and not item.get("superseded_by_benchmark_id")
     )
     successor["replaces_exact_query_runtime_authority_of"] = "missing-predecessor"
     with pytest.raises(SystemExit, match="valid exact-query-only successor"):
