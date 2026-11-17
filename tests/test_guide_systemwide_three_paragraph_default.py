@@ -218,8 +218,9 @@ def test_community_continuity_gold_star_registry_and_transfer_entry_are_frozen_a
     assert record["numbering_status"] == "UNASSIGNED"
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
-    assert len([part for part in record["expected_response"].split("\\n\\n") if part.strip()]) == 3
+    assert len([part for part in record["expected_response"].split("\n\n") if part.strip()]) == 3
     assert record["expected_doorway"]["title"] == "From Awakening to Stewardship"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/from-awakening-to-stewardship/"
-    assert record["expected_doorway"]["rationale"] == entries[0]["transferable_discipline"] or record["expected_doorway"]["rationale"]
+    assert record["expected_doorway"]["rationale"] == "This essay explores how personal development can mature into stewardship: taking responsibility for the relationships, institutions, and shared conditions that support human flourishing. It offers a wider perspective on community continuity by asking what people must build and sustain together, rather than prescribing how a particular inherited practice should be changed."
+    assert "rather than prescribing how a particular inherited practice should be changed" in record["expected_doorway"]["rationale"]
     assert entries[0]["activation"] == "active_quality_contributor"
