@@ -89,4 +89,14 @@ def test_unrelated_question_is_not_rewritten_by_institutional_contract():
     query = "How should a team prepare for a difficult project deadline?"
     payload = {"response": "Keep the scope clear and review progress regularly."}
     result = main._guide_finalize_visitor_payload(payload, query)
-    assert result == payload
+    # Existing shared visitor-boundary policy may attach its ordinary broad
+    # continuation; this specialized contract must not rewrite the answer or
+    # substitute the Institutional Consciousness doorway for an unrelated query.
+    assert result["response"] == payload["response"]
+    assert result.get("processing") != (
+        "final_visitor_boundary_formal_informal_institutional_dynamics"
+    )
+    assert result.get("doorway_title") != "Institutional Consciousness"
+    assert result.get("doorway_url") != (
+        "https://geralddaquila.com/institutional-consciousness/"
+    )
