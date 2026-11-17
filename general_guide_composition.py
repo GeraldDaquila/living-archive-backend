@@ -1485,6 +1485,55 @@ def _care_and_commons_economic_recognition_recovery() -> str:
 
 
 
+
+def _requires_formal_informal_institutional_dynamics(query: str) -> bool:
+    """Recognize questions comparing written institutional rules with lived norms."""
+    q = _normalize_space(query).casefold()
+    organization = bool(re.search(
+        r"\b(?:organization|organisation|institution|institutional|workplace|company|agency|school|team)\b", q
+    ))
+    formal = bool(re.search(
+        r"\b(?:formal|official|written|institutional)\b.{0,55}\b(?:rules?|polic(?:y|ies)|procedures?|structures?|requirements?)\b|"
+        r"\b(?:rules?|polic(?:y|ies)|procedures?)\b.{0,55}\b(?:formal|official|written|institutional)\b", q
+    ))
+    informal = bool(re.search(
+        r"\b(?:informal|unwritten|social)\b.{0,45}\b(?:norms?|rules?|customs?|practices?|expectations?|relationships?)\b|"
+        r"\b(?:norms?|customs?|unwritten practices|informal practices)\b", q
+    ))
+    comparison = bool(re.search(
+        r"\b(?:compar(?:e|ing|ison)|contrast|distinguish|relationship|interact|behav(?:e|ior|iour)|function|operate)\w*\b", q
+    ))
+    return organization and formal and informal and comparison
+
+
+def _has_formal_informal_institutional_dynamics_explanation(response: str) -> bool:
+    """Require the distinction, interaction mechanism, and diagnostic method."""
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
+    if len(paragraphs) != 3:
+        return False
+    first, second, third = paragraphs
+    return (
+        bool(re.search(r"\b(?:formal rules|written rules|official rules)\b", first, re.I))
+        and bool(re.search(r"\b(?:informal norms|unwritten norms|social expectations)\b", first, re.I))
+        and bool(re.search(r"\b(?:authority|roles|procedures|enforcement)\b", first, re.I))
+        and bool(re.search(r"\b(?:reinforce|contradict|undermine|workarounds|selective enforcement|decoupl)\w*\b", second, re.I))
+        and bool(re.search(r"\b(?:incentives|legitimacy|accountability|relationships|power)\b", second, re.I))
+        and bool(re.search(r"\b(?:compare|examine|trace|diagnos)\w*\b", third, re.I))
+        and bool(re.search(r"\b(?:written|actual practice|everyday practice|observed behavior)\b", third, re.I))
+        and bool(re.search(r"\b(?:evidence|who benefits|consequences|feedback)\b", third, re.I))
+    )
+
+
+def _formal_informal_institutional_dynamics_recovery() -> str:
+    """Explain how formal rules and informal norms jointly shape organizational behavior."""
+    return (
+        "Formal institutional rules are the declared architecture of an organization: written policies, official roles, decision rights, procedures, reporting lines, and stated consequences. They specify who is authorized to act and what is supposed to happen. Informal norms are the unwritten expectations people learn through relationships, habits, status, group loyalties, and repeated experience. They shape what is actually acceptable, rewarded, discouraged, or safe to say. The distinction is not simply written versus unwritten; formal rules carry official authority, while informal norms carry social influence and practical expectations.\n\n"
+        "Organizational behavior emerges from their interaction. When the two align, informal expectations can reinforce a policy and make coordination easier. When they conflict, people may comply on paper while following a different routine, rely on personal networks, avoid raising problems, or apply rules selectively. Informal norms can fill gaps in unclear procedures, but they can also protect privilege or undermine accountability. To explain the result, examine who has real decision-making power, which incentives and relationships shape choices, how consistently rules are enforced, whose approval matters, and whether people can question or correct decisions. Legitimacy and trust influence whether a rule is treated as reasonable or merely as something to work around.\n\n"
+        "A sound comparison therefore traces the gap between the official rule and observed everyday practice rather than assuming either one tells the whole story. Identify the stated rule, observe what people actually do, ask what rewards or risks sustain that behavior, and compare the consequences for different groups. Use evidence such as decisions, exceptions, enforcement patterns, informal workarounds, and feedback from people affected. Do not assume every informal norm is harmful or that a formal rule is effective simply because it exists. The explanation should show how the two systems reinforce, modify, or contradict one another—and where the evidence is not sufficient to determine why."
+    )
+
+
+
 def _requires_community_project_economic_dimensions(query: str) -> bool:
     """Recognize community-project questions whose accounting omits distribution or shared assets."""
     q = _normalize_space(query).casefold()
