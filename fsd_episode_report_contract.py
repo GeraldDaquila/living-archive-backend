@@ -113,7 +113,14 @@ def validate_episode_report(
         "scope": "One bounded episode at the selected system boundary",
     }
     normalized["archive_references"] = [
-        {**refs_by_id[ref_id], "role": "conceptual_context_only"}
+        {
+            **refs_by_id[ref_id],
+            "role": "conceptual_context_only",
+            "rationale": (
+                f"This reference provides conceptual context for {refs_by_id[ref_id]['title']}; "
+                "it does not verify the respondent-reported episode."
+            ),
+        }
         for ref_id in ids
     ]
     normalized["archive_reference_notice"] = (
