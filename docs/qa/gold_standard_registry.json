@@ -6488,7 +6488,7 @@
       "number": 85,
       "status": "ALLOCATED_TO_APPROVED_GOLD_STAR",
       "reason_code": "ALLOCATED_TO_NEW_USER_APPROVED_GOLD_STAR",
-      "reason": "No approved Gold Star record or canonical assignment event for serial #85 was recovered in the canonical registry or reviewed Gold Star PR/commit evidence. GitHub PR #85 is a September 2026 v340 topical-doorway code change, not a Gold Star assignment.",
+      "reason": "Serial #85 had no recoverable canonical assignment when the two historical gaps were audited. Under the explicit 2026-11-16 authorization reserving #85 for the next newly approved Gold Star, it is now allocated to general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18. GitHub PR #85 remains unrelated: it is a September 2026 v340 topical-doorway question-alignment change, not a Gold Star assignment.",
       "evidence_checked": [
         "Canonical registry record-level assignments on main",
         "Gold Star registry commit history",
