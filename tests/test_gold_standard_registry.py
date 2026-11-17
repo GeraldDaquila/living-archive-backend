@@ -1041,7 +1041,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 98
+    assert len(approved) == 99
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1077,12 +1077,14 @@ def test_spiritual_bypassing_gold_star_is_explicitly_migrated_to_91_without_revi
     assert "not a backfill" in migration["reason"]
 
 
-def test_85_is_allocated_and_86_remains_the_only_documented_historical_gap():
+def test_85_and_86_are_allocated_and_no_documented_historical_gap_remains():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     gaps = registry["numbering_gap_register"]
     assert [g["number"] for g in gaps] == [86]
-    assert gaps[0]["status"] == "RELEASED_FOR_FUTURE_ALLOCATION"
+    assert gaps[0]["status"] == "ALLOCATED_TO_APPROVED_GOLD_STAR"
+    assert gaps[0]["allocated_to_benchmark_id"] == "general-guide-archive-examples-evidence-limits-gold-star-2026-11-18"
+    assert gaps[0]["allocation_authorization"]["fulfilled_by_benchmark_id"] == gaps[0]["allocated_to_benchmark_id"]
     assert gaps[0]["number"] == 86
     assert all(g["release_authorization"]["authorization_type"] == "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE" for g in gaps)
     assert all(g["release_authorization"]["historical_evidence_preserved"] is True for g in gaps)
@@ -1091,11 +1093,11 @@ def test_85_is_allocated_and_86_remains_the_only_documented_historical_gap():
     assert "only adds provenance.source_date" in gaps[0]["reason"]
     assert "recovered as Gold Star #56" in gaps[0]["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 98
-    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 37
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 99
+    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 38
     assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 93
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 61
-    assert registry["integrity_audit"]["documented_numbering_gap_count"] == 1
+    assert registry["integrity_audit"]["documented_numbering_gap_count"] == 0
 
 
 
@@ -1518,7 +1520,7 @@ def test_formal_informal_institutional_dynamics_gold_star_preserves_exact_live_a
     assert record["numbering_status"] == "UNASSIGNED"
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 98
     assert registry["integrity_audit"]["approved_gold_star_count"] == 98
-    assert registry["integrity_audit"]["registry_record_count"] == 135
+    assert registry["integrity_audit"]["registry_record_count"] == 136
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 61
     entry = next(item for item in review["entries"] if item["benchmark_id"] == benchmark_id)
     assert entry["activation"] == "active_quality_contributor"
