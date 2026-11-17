@@ -1205,6 +1205,8 @@ def test_ai_staffing_successor_preserves_legacy_record_and_serves_release_candid
     assert successor["gold_star_capabilities"]["exact_answer_authority"] is True
     assert successor["gold_star_capabilities"]["active_quality_contributor"] is False
     assert successor["expected_response"].startswith("An organization should assess AI-led staffing reductions")
+    from ai_workforce_restructuring_contract import has_gold_star_coverage
+    assert has_gold_star_coverage(successor["expected_response"])
     assert successor["doorway_status"] == "VERIFIED_CANONICAL_DESTINATION"
     assert successor["expected_doorway"]["url"] == (
         "https://geralddaquila.com/2026/05/06/agentic-systems-and-the-end-of-passive-labor/"
