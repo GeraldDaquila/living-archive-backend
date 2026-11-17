@@ -10984,10 +10984,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         _systemwide_recovery = _sanitize_basic_inquiry_response(
                             _compose_provider_exhaustion_recovery(query)
                         )
-                        # Clear any prior navigation inside the final authority
-                        # boundary. This keeps the final visitor state honest if
-                        # all answer authorities are exhausted.
-                        authoritative_doorway = None
+                        # Answer recovery and navigation authority are independent.
+                        # Preserve an already verified doorway while replacing
+                        # only the answer text; an absent or unverified doorway
+                        # remains absent and is handled by the bounded final
+                        # visitor doorway selector below.
                         # If every recovery below also fails, the visitor-facing
                         # boundary explicitly returns: I couldn’t produce a reliable answer to that question just now.
                         _systemwide_paragraphs = [
