@@ -30,3 +30,15 @@ def test_no_verified_evidence_keeps_no_doorway(monkeypatch):
     assert main._verified_archive_doorway_fallback(
         "A question with no verified Archive continuation", [], {"action": "topical"}
     ) is None
+
+
+def test_systemwide_answer_recovery_does_not_clear_verified_navigation():
+    from pathlib import Path
+
+    source = Path("main.py").read_text(encoding="utf-8")
+    start = source.index("# System-wide Gold Standard recovery:")
+    end = source.index("if len(_systemwide_paragraphs)", start)
+    recovery_boundary = source[start:end]
+
+    assert "Preserve an already verified doorway" in recovery_boundary
+    assert "authoritative_doorway = None" not in recovery_boundary
