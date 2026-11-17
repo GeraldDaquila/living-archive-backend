@@ -34,9 +34,9 @@ def test_shared_composition_question_intent_fidelity_policy():
 
 
 def test_composition_contract_remains_provider_neutral():
-    assert guide.CONTRACT_VERSION == "v1.44"
+    assert guide.CONTRACT_VERSION == "v1.45"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.44"
+    assert snapshot["contract_version"] == "v1.45"
     assert snapshot["provider_neutral"] is True
 
 
@@ -119,8 +119,8 @@ def test_conceptual_relationships_require_three_paragraph_default():
     assert "does not mean" in compact_parsed
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.44"
-    assert guide.contract_snapshot()["contract_version"] == "v1.44"
+    assert guide.CONTRACT_VERSION == "v1.45"
+    assert guide.contract_snapshot()["contract_version"] == "v1.45"
 
 
 def test_incomplete_comparison_question_clarifies_before_retrieval():
@@ -154,8 +154,8 @@ def test_ordinary_explanatory_question_is_not_interrupted():
 
 
 def test_composition_contract_version_advances_for_clarification_boundary():
-    assert guide.CONTRACT_VERSION == "v1.44"
-    assert guide.contract_snapshot()["contract_version"] == "v1.44"
+    assert guide.CONTRACT_VERSION == "v1.45"
+    assert guide.contract_snapshot()["contract_version"] == "v1.45"
 
 
 def test_plain_stewardship_explanation_rejects_unsolicited_spectrum_list():
@@ -394,4 +394,21 @@ def test_generic_how_fallback_avoids_process_announcement():
     assert response.startswith(
         "Start by defining the outcome the change must achieve, the responsibilities "
         "that cannot be lost"
+    )
+
+
+def test_reflective_conceptual_questions_stay_explanatory_and_subject_anchored():
+    question = "How can hope be disciplined without becoming cynical?"
+    assert guide._question_shape(question) == "explanatory"
+    assert not guide.is_practical_application_question(question)
+    for prompt in (guide._GENERAL_GUIDE_SYSTEM_COMPACT, guide._GENERAL_GUIDE_SYSTEM):
+        assert "answer the conceptual tension before offering any action" in prompt
+        assert "Do not convert the question into a generic decision checklist" in prompt
+        assert "Keep the explanation anchored to the named subject throughout all paragraphs" in prompt
+        assert "Do not introduce adjacent topics, specialist tools, AI governance, or institutional accountability" in prompt
+
+
+def test_explicit_practical_application_questions_remain_practical():
+    assert guide.is_practical_application_question(
+        "What would our organization actually do differently to practice trust?"
     )
