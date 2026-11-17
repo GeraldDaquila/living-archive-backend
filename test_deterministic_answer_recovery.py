@@ -47,7 +47,7 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
     def test_consequential_action_under_uncertainty_has_a_nonrepetitive_third_paragraph(self):
         question = "How should people act when the future is uncertain but consequential?"
         answer = compose_recovery(question)
-        paragraphs = [part.strip() for part in answer.split("\\n\\n") if part.strip()]
+        paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
         self.assertEqual(len(paragraphs), 3)
         self.assertIn("serious consequences and the future is uncertain", paragraphs[0])
         self.assertIn("Compare realistic options", paragraphs[1])
