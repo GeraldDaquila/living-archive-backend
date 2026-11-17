@@ -67,3 +67,28 @@ def test_semantic_ambiguity_gold_star_remains_registered_after_parallel_reconcil
     )
     assert standard is not None
     assert standard["benchmark_id"] == "general-guide-semantic-ambiguity-same-term-different-sources-gold-star-2026-11-18"
+
+
+def test_parallel_gold_star_inventory_reconciles_across_registry_and_transfer_review():
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    registry = json.loads((root / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+    review = json.loads((root / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
+    active = [r for r in approved if r.get("runtime_transfer") is True and r.get("gold_star_capabilities", {}).get("active_quality_contributor") is True]
+    assigned = [r for r in approved if r.get("numbering_status") == "ASSIGNED"]
+    unassigned = [r for r in approved if r.get("numbering_status") == "UNASSIGNED"]
+    review_ids = [e["benchmark_id"] for e in review["entries"] if e.get("activation") == "active_quality_contributor"]
+    active_ids = {r["benchmark_id"] for r in active}
+    assert len(registry["records"]) == 140
+    assert len(approved) == registry["integrity_audit"]["approved_gold_star_count"] == 103
+    assert len(active) == len(review_ids) == 101
+    assert set(review_ids) == active_ids
+    assert len(assigned) == registry["integrity_audit"]["numbered_gold_star_record_count"] == 38
+    assert len(unassigned) == registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 65
+    assert len(assigned) + len(unassigned) == len(approved)
+    assert len({r["benchmark_id"] for r in approved}) == len(approved)
+    assert any(r["benchmark_id"] == BENCHMARK_ID for r in approved)
+    assert any(r["benchmark_id"] == "general-guide-semantic-ambiguity-same-term-different-sources-gold-star-2026-11-18" for r in approved)
