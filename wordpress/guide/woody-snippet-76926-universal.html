@@ -869,13 +869,22 @@ body.page,
     return answer.replace(/([^\n])\n{3,}/g,'$1\n\n').replace(/^\s+|\s+$/g,'');
   }
   function renderAnswer(answer){
-    if(window.marked&&typeof window.marked.parse==='function') return window.marked.parse(answer);
-    return answer.split(/\n{2,}/).map(function(part){return '<p>'+part.replace(/\n/g,'<br>')+'</p>';}).join('');
+    var html=window.marked&&typeof window.marked.parse==='function'
+      ? window.marked.parse(answer)
+      : answer.split(/\n{2,}/).map(function(part){return '<p>'+part.replace(/\n/g,'<br>')+'</p>';}).join('');
+    if(window.LivingArchiveAnswerDoorway&&typeof window.LivingArchiveAnswerDoorway.sanitizeMarkdown==='function'){
+      return window.LivingArchiveAnswerDoorway.sanitizeMarkdown(html);
+    }
+    return null;
   }
   function render(payload){
     if(!payload||typeof payload.response!=='string'||!payload.response.trim())return false;
     var answer=normalizeAnswer(payload.response);
-    try{text.innerHTML=renderAnswer(answer);}catch(e){text.textContent=answer;}
+    try{
+      var safeAnswer=renderAnswer(answer);
+      if(safeAnswer)text.replaceChildren(safeAnswer);
+      else text.textContent=answer;
+    }catch(e){text.textContent=answer;}
     var recommendation=document.getElementById('archive-recommendation');
     var doorway=payload.recommendation||payload.authoritative_doorway||payload.canonical_doorway||payload.doorway||payload.canonical_recommendation||payload.archive_doorway||null;
     /* Resilience boundary must never erase a doorway rendered by the primary Guide controller.
