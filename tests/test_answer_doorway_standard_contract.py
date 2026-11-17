@@ -32,6 +32,7 @@ def main():
     lan_php = read("wordpress/public-living-archive-navigator/living-archive-navigator.php")
     mini_api = read("wordpress/mini-use/class-api.php")
     guide = read("wordpress/guide/woody-snippet-76926-universal.html")
+    guide_controller = read("wordpress/living-archive-guide-v489.324-answer-doorway-standard.js")
     lan = read("wordpress/public-living-archive-navigator/03-JavaScript.js")
     mini = read("wordpress/mini-use/mini-use.js")
     fsd_contract = read("fsd_episode_report_contract.py")
@@ -53,6 +54,9 @@ def main():
     assert "LivingArchiveAnswerDoorway.render(recommendation" in guide
     assert "link.href=doorway.url" not in guide
     assert "recommendation.replaceChildren()" in guide
+    assert "helper.normalize(recommendation)" in guide_controller
+    assert "helper.render(staging, normalized)" in guide_controller
+    assert "link.href = url" not in guide_controller
     assert "is_canonical_archive_url" in fsd_contract
     assert "parsed.username is None" in fsd_contract
     assert "not parsed.query" in fsd_contract
