@@ -128,3 +128,27 @@ def test_provider_exhaustion_without_two_sources_states_specific_limit():
     assert "could not verify two distinct" in recovered["response"]
     assert "Libraries" in recovered["response"]
     assert "Passage Alpha" not in recovered["response"]
+
+
+def test_final_visitor_boundary_enforces_passage_contrast_after_route_dispatch():
+    """Guard against provider/legacy routes bypassing the source-bound recovery."""
+    import ast
+    from pathlib import Path
+
+    main_source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    tree = ast.parse(main_source)
+    boundary_functions = []
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        body = ast.get_source_segment(main_source, node) or ""
+        if 'response_text = str(payload.get("response") or "")' in body:
+            boundary_functions.append(body)
+
+    assert len(boundary_functions) == 1
+    boundary = boundary_functions[0]
+    assert "archive_passage_contrast_recovery_from_context" in boundary
+    assert 'final_visitor_boundary_archive_passage_contrast' in boundary
+    assert boundary.index("archive_passage_contrast_recovery_from_context") < boundary.index(
+        "is_comparative_traditions_question"
+    )
