@@ -6601,24 +6601,13 @@
           "GitHub PR #1430 explicit user-authorized #57 allocation",
           "GitHub PR #86: v340 grief/death-topic classification repair"
         ],
-        "disposition": "Historical gap retained as evidence; serial #86 was released solely for the next new, explicitly approved Gold Star allocation under the two-number exception. No existing record was renumbered or backfilled.",
+        "disposition": "Historical gap retained as evidence; serial #86 is released solely for the next new, explicitly approved Gold Star allocation under the two-number exception. No existing record is renumbered or backfilled.",
         "release_authorization": {
           "authorization_type": "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE",
           "approved_by": "user",
           "approved_at": "2026-11-16",
           "authority": "User explicitly agreed to release both #85 and #86 as two exceptions in the conversation on 2026-11-16.",
           "allocation_rule": "Reserve #85 for the next newly approved Gold Star, then #86 for the following newly approved Gold Star. Allocation requires a new unique benchmark_id, explicit user approval of Gold Star elevation, and a record-level gold_star_number assignment. Do not assign either number to an existing approved record or infer an exemplar.",
-          "historical_evidence_preserved": true
-        },
-        "allocated_to_benchmark_id": "general-guide-archive-examples-evidence-limits-gold-star-2026-11-18",
-        "allocated_at": "2026-11-18",
-        "allocation_authorization": {
-          "authorization_type": "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE",
-          "approved_by": "user",
-          "approved_at": "2026-11-16",
-          "fulfilled_by_benchmark_id": "general-guide-archive-examples-evidence-limits-gold-star-2026-11-18",
-          "fulfilled_at": "2026-11-18",
-          "authority": "User explicitly agreed to release #85 and #86 as the next two serials; #85 was allocated first and this new user-approved Gold Star fulfills the #86 allocation.",
           "historical_evidence_preserved": true
         }
       },
