@@ -5369,7 +5369,10 @@ def _guide_restore_verified_doorway(payload, query):
                 "url": safe.get("doorway_url"),
             }
         )
-    if not doorway:
+    if not doorway and not (
+        _is_practical_stewardship_question(query)
+        or re.search(r"\b(?:practice|practicing)\s+stewardship\b", query, re.I)
+    ):
         try:
             candidate = _select_guide_node_fallback_doorway(query)
         except Exception:
