@@ -82,6 +82,7 @@ from deterministic_answer_recovery import (
     compose_recovery as _compose_provider_exhaustion_recovery,
     is_harm_repair_question,
     is_community_continuity_revision_question,
+    is_oversoul_free_will_question,
 )
 from ai_workforce_restructuring_contract import (
     is_ai_workforce_restructuring_question,
@@ -242,6 +243,10 @@ def _guide_node_prompt_context():
 def _select_verified_doorway_conceptual_family(query):
     """Return a verified conceptual family only when a canonical doorway applies."""
     text = str(query or "")
+    # Spiritual-agency questions have a direct Archive doorway. Resolve this
+    # before generic agency/uncertainty matches can select a broad compass.
+    if is_oversoul_free_will_question(text):
+        return "oversoul_free_will"
     if (
         re.search(r"\b(?:ai|artificial intelligence)\b", text, re.I)
         and re.search(r"\binterpreter\b", text, re.I)
@@ -337,6 +342,11 @@ def _select_verified_doorway_conceptual_family(query):
 
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
+    "oversoul_free_will": {
+        "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
+        "url": "https://geralddaquila.com/oversoul-law",
+        "rationale": "This is the Archive's directly named Oversoul doorway for examining spiritual jurisdiction and the relationship between wider purpose and personal choice. It is an invitation to inspect the Archive's own framework, not independent evidence that metaphysical claims are objectively established.",
+    },
     "human_development_ecology": {
         "title": "Becoming Fully Human",
         "url": "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/",
