@@ -152,3 +152,45 @@ def test_final_visitor_boundary_enforces_passage_contrast_after_route_dispatch()
     assert boundary.index("archive_passage_contrast_recovery_from_context") < boundary.index(
         "is_comparative_traditions_question"
     )
+
+
+def test_response_selected_pair_is_validated_not_first_two_search_hits():
+    docs = [
+        {**SOURCES[0], "title": "Search Hit One"},
+        {**SOURCES[1], "title": "Search Hit Two"},
+        {"title": "Selected Passage Three", "url": "https://geralddaquila.com/three/", "text": "C" * 120},
+        {"title": "Selected Passage Four", "url": "https://geralddaquila.com/four/", "text": "D" * 120},
+    ]
+    response = "Passage 1 — Selected Passage Three\nPassage 2 — Selected Passage Four"
+    selected = _archive_passage_sources(docs, response)
+    assert [item["title"] for item in selected] == ["Selected Passage Three", "Selected Passage Four"]
+
+
+def test_context_extraction_preserves_full_candidate_pool_for_contrast():
+    import ast
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    function = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_documents_from_context")
+    body = ast.get_source_segment(source, function)
+    assert "_archive_passage_contrast_candidate_pool" in body
+    assert "12 if contrast_pool else 4" in body
+    assert "documents.extend(item for item in parsed" in body
+
+
+def test_main_has_dedicated_bounded_archive_contrast_discovery_axes():
+    import ast
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    functions = [node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
+    bodies = [ast.get_source_segment(source, node) or "" for node in functions]
+    body = next(candidate for candidate in bodies if "_requires_archive_passage_contrast(query)" in candidate)
+    assert "_requires_archive_passage_contrast(query)" in body
+    assert '"stewardship control"' in body
+    assert '"individual agency institutional systems"' in body
+    assert '"growth structural limits"' in body
+    assert '"human development governance"' in body
+    assert "generation_authority_protected_docs" in body

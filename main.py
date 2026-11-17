@@ -9844,6 +9844,62 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         except Exception as exc:
             print(f"The Guide evidence recovery failed safely: exception={type(exc).__name__}.")
 
+    # Archive passage contrast has a dedicated discovery contract. Ordinary Guide
+    # retrieval is optimized to select one doorway and can return a narrow pool;
+    # it is not sufficient for a request that explicitly needs two source texts.
+    # Search several grounded Archive tension axes in parallel, retain full source
+    # bodies, and hand the complete bounded pool to composition before synthesis.
+    _archive_passage_contrast_request = general_guide_composition._requires_archive_passage_contrast(query)
+    if _archive_passage_contrast_request:
+        _contrast_queries = (
+            "stewardship control",
+            "individual agency institutional systems",
+            "growth structural limits",
+            "human development governance",
+        )
+        try:
+            from concurrent.futures import ThreadPoolExecutor as _ContrastExecutor
+            with _ContrastExecutor(max_workers=len(_contrast_queries)) as _contrast_executor:
+                _contrast_batches = list(_contrast_executor.map(
+                    lambda _q: _wordpress_search_canonical_candidates(_q, limit=5),
+                    _contrast_queries,
+                ))
+            _contrast_pool = []
+            _contrast_seen = set()
+            for _batch in _contrast_batches:
+                for _doc in _batch:
+                    if not isinstance(_doc, dict):
+                        continue
+                    _url_raw = str(_doc.get("url") or _doc.get("canonical_url") or "").strip()
+                    _url = _url_raw.rstrip("/").casefold()
+                    _title = str(_doc.get("title") or "").strip()
+                    _body = str(_doc.get("text") or _doc.get("content") or _doc.get("excerpt") or "").strip()
+                    if not _url or not _title or len(_body) < 250 or _url in _contrast_seen:
+                        continue
+                    if not re.match(r"^https://geralddaquila\.com/\S+$", _url_raw, re.I):
+                        continue
+                    _contrast_seen.add(_url)
+                    _contrast_pool.append({"title": _title, "url": _url_raw, "text": _body[:6000]})
+            if len(_contrast_pool) >= 2:
+                composition_context["generation_authority_protected_docs"] = _contrast_pool[:12]
+                composition_context["_archive_passage_contrast_candidate_pool"] = True
+                archive_evidence_unavailable = False
+                print(
+                    "The Guide Archive passage contrast discovery: "
+                    f"verified_candidates={len(composition_context['generation_authority_protected_docs'])}, "
+                    "axes=4; source-pair selection deferred to evidence-grounded composition."
+                )
+            else:
+                print(
+                    "The Guide Archive passage contrast discovery: "
+                    f"insufficient_candidates={len(_contrast_pool)} across 4 bounded search axes."
+                )
+        except Exception as _contrast_exc:
+            print(
+                "The Guide Archive passage contrast discovery failed safely: "
+                f"exception={type(_contrast_exc).__name__}."
+            )
+
     # Institutional meaning recovery is a separate navigation responsibility.
     # If the visitor explicitly asks what the Archive means by a concept, do one
     # title/topic recovery before any provider or deterministic fallback can

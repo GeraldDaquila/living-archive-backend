@@ -454,26 +454,26 @@ def _sanitize_candidate(text: Any) -> str:
 
 
 def _documents_from_context(use_core: Any, context_data: Dict[str, Any]) -> List[Dict[str, str]]:
-    documents: List[Dict[str, str]] = []
+    documents: List[Dict[str, Any]] = []
+    contrast_pool = bool(context_data.get("_archive_passage_contrast_candidate_pool"))
     protected = (
         context_data.get("generation_authority_protected_docs")
         or context_data.get("question_authority_protected_docs")
         or []
     )
     if isinstance(protected, list):
-        for item in protected:
-            if isinstance(item, dict):
-                documents.append(item)
+        documents.extend(item for item in protected if isinstance(item, dict))
 
-    if not documents:
-        try:
-            parsed = use_core.context_blocks_to_documents(
-                str(context_data.get("context_blocks") or "")
-            )
-        except Exception:
-            parsed = []
-        if isinstance(parsed, list):
-            documents.extend(item for item in parsed if isinstance(item, dict))
+    # For two-source comparison, preserve the union of protected and parsed
+    # retrieval evidence. The ordinary four-document cap can hide source two.
+    try:
+        parsed = use_core.context_blocks_to_documents(
+            str(context_data.get("context_blocks") or "")
+        )
+    except Exception:
+        parsed = []
+    if isinstance(parsed, list):
+        documents.extend(item for item in parsed if isinstance(item, dict))
 
     output: List[Dict[str, str]] = []
     seen = set()
@@ -492,8 +492,8 @@ def _documents_from_context(use_core: Any, context_data: Dict[str, Any]) -> List
         if key in seen:
             continue
         seen.add(key)
-        output.append({"title": title, "url": url, "content": content[:1500]})
-        if len(output) >= 4:
+        output.append({"title": title, "url": url, "content": content[:6000 if contrast_pool else 1500]})
+        if len(output) >= (12 if contrast_pool else 4):
             break
     return output
 
@@ -1887,10 +1887,11 @@ def _requires_archive_passage_contrast(query: str) -> bool:
     return asks_two_passages and asks_contrast and asks_representation
 
 
-def _archive_passage_sources(documents: List[Dict[str, Any]]) -> List[Dict[str, str]]:
-    """Return two distinct, usable canonical passages; never infer missing source text."""
-    selected = []
+def _archive_passage_sources(documents: List[Dict[str, Any]], response: str = "") -> List[Dict[str, str]]:
+    """Return the two response-selected, distinct canonical passages from verified evidence."""
+    candidates = []
     seen = set()
+    response_text = str(response or "").casefold()
     for item in documents or []:
         if not isinstance(item, dict):
             continue
@@ -1903,10 +1904,14 @@ def _archive_passage_sources(documents: List[Dict[str, Any]]) -> List[Dict[str, 
         if identity in seen:
             continue
         seen.add(identity)
-        selected.append({"title": title, "url": url, "excerpt": excerpt})
-        if len(selected) == 2:
-            break
-    return selected
+        candidates.append({"title": title, "url": url, "excerpt": excerpt})
+    # During provider validation, honor the two titles actually selected from
+    # the verified candidate pool, rather than imposing the first two search hits.
+    if response_text:
+        selected = [item for item in candidates if item["title"].casefold() in response_text]
+        if len(selected) >= 2:
+            return selected[:2]
+    return candidates[:2]
 
 
 def _archive_passage_contrast_recovery(question: str, documents: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
@@ -2290,7 +2295,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
         # Reject at the shared provider parser so the Provider Bank can retry;
         # the deterministic recovery below is the governed exhaustion path.
         if _requires_archive_passage_contrast(query):
-            sources = _archive_passage_sources(documents)
+            sources = _archive_passage_sources(documents, response)
             if len(sources) < 2:
                 raise ValueError("Archive passage comparison requires two distinct canonical passages with substantive excerpts")
             if not _has_archive_passage_contrast_structure(query, response, documents):
@@ -3984,7 +3989,7 @@ def compose(
         else ""
     )
     archive_contrast_instruction = (
-        "ARCHIVE PASSAGE CONTRAST CONTRACT: The visitor asks for two relevant Archive passages that differ in emphasis. Use exactly two distinct retrieved canonical passages with substantive excerpts; do not invent, substitute, or infer sources. Present them separately and symmetrically before synthesis. Label them Passage 1 and Passage 2, name each exact source title, and explain each passage's own central emphasis in its own terms using only what its retrieved text supports. Preserve qualifications, scope, and context; do not caricature either passage or imply disagreement where there is only a difference in focus. Then state precisely what differs, what may remain compatible, and what evidence would be needed to resolve any genuine tension. Only after both representations may you offer a cautious synthesis. Cite/link both exact canonical sources. If fewer than two usable passages were retrieved, do not claim to have found two: state that the comparison could not be grounded yet and offer a targeted route to refine retrieval. Never replace this task with generic process advice or a refusal unrelated to the evidence.\n\n"
+        "ARCHIVE PASSAGE CONTRAST CONTRACT: The visitor asks for two relevant Archive passages that differ in emphasis. Review the full verified candidate pool and select the two passages with the strongest shared subject relevance and clearest difference in emphasis; do not default to the first two search hits. Use exactly two distinct retrieved canonical passages with substantive excerpts; do not invent, substitute, or infer sources. If no genuine difference in emphasis is supported, say so rather than manufacture disagreement. Present the selected passages separately and symmetrically before synthesis. Label them Passage 1 and Passage 2, name each exact source title, and explain each passage's own central emphasis in its own terms using only what its retrieved text supports. Preserve qualifications, scope, and context; do not caricature either passage or imply disagreement where there is only a difference in focus. Then state precisely what differs, what may remain compatible, and what evidence would be needed to resolve any genuine tension. Only after both representations may you offer a cautious synthesis. Cite/link both exact canonical sources. If fewer than two usable passages were retrieved, do not claim to have found two: state that the comparison could not be grounded yet and offer a targeted route to refine retrieval. Never replace this task with generic process advice or a refusal unrelated to the evidence.\n\n"
         if _requires_archive_passage_contrast(question)
         else ""
     )
