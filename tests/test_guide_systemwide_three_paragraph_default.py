@@ -194,5 +194,5 @@ def test_community_continuity_doorway_rationale_matches_the_published_essay_and_
     assert deterministic_doorway["rationale"] == expected
     assert family_doorway["title"] == deterministic_doorway["title"] == "From Awakening to Stewardship"
     assert family_doorway["url"] == deterministic_doorway["url"] == "https://geralddaquila.com/from-awakening-to-stewardship/"
-    assert "inherited" not in expected.lower()
+    assert "carry wisdom and responsibility across generations" not in expected.lower()
     assert "rather than prescribing how a particular inherited practice should be changed" in expected
