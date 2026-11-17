@@ -2,8 +2,8 @@
 
 ## Current Gold Star numbering authority — 2026-11-17
 
-- **Canonical inventory:** 127 records total; 89 approved Gold Stars; 89 matching qualitative-transfer reviews. One approved Gold Star retains its learning authority while a governed release candidate temporarily owns exact-query runtime authority.
-- **Serial inventory:** 35 approved records carry display serials, #56–#84 and #87–#92. 54 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity. The new AI-workforce successor candidate is also unnumbered and excluded from Gold Star counts.
+- **Canonical inventory:** 127 records total; 90 approved Gold Stars; 90 matching qualitative-transfer reviews. The AI-workforce restructuring successor is now an approved Gold Star; its predecessor remains preserved as a separate learning exemplar.
+- **Serial inventory:** 35 approved records carry display serials, #56–#84 and #87–#92. 55 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity. The AI-workforce restructuring Gold Star remains unnumbered.
 - **Restored 2026-11-17:** `gs-2026-11-17-structural-change-vs-disruption` retains its original three-paragraph answer and unassigned serial. Its doorway is now verified as Systems, Governance, and Organizational Design — https://geralddaquila.com/systems-structure/ — with a visitor-facing relevance rationale.
 - **Overwritten 2026-11-17:** The same benchmark now has one canonical current answer version: three distinct moves (distinction; disruption's causal role; post-event operational test), with the opening clause boundary corrected. The verified doorway, active exact/adaptive/deterministic capabilities, provenance, and `UNASSIGNED` serial are preserved. See `revision_history` in the machine-readable record.
 - **Newly elevated 2026-11-17:** `gs-2026-11-17-consequential-action-under-uncertainty` preserves the exact three-paragraph visitor answer and the verified **The Sovereign Sensemaking Compass** doorway, including its relevance rationale. It is an active structural-learning contributor; its display serial remains `UNASSIGNED`.
@@ -673,16 +673,19 @@ These entries preserve their live-production provenance and qualitative transfer
 - **Doorway:** **From Awakening to Stewardship** — https://geralddaquila.com/from-awakening-to-stewardship/
 - **Numbering:** `UNASSIGNED`; no display serial was requested.
 
-### 2026-11-17 — AI workforce restructuring successor release candidate
+### 2026-11-17 — AI workforce restructuring Gold Star
 
 - **Predecessor:** `general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13` (preserved as an approved Gold Star learning exemplar; exact-query runtime authority delegated to this candidate).
 - **Successor:** `gs-2026-11-17-ai-workforce-restructuring-successor-candidate`
-- **Status:** `USER_APPROVED_RELEASE_CANDIDATE` — exact-query live review only; not a Gold Star and not an adaptive-learning contributor.
+- **Status:** `USER_APPROVED_GOLD_STANDARD` — exact answer authority and bounded active structural-learning contributor.
 - **Question:** “A company wants to use AI to reduce staffing costs. How should The Guide analyze this through operations, governance, human development, ethics, and stewardship?”
 - **Answer discipline:** Begin with the organizational decision itself; assess operational feasibility and total cost; identify governance ownership and accountability; examine employee voice, skill development, fairness, community effects, and stewardship of productivity gains.
 - **Doorway:** **Agentic Systems and the End of Passive Labor** — https://geralddaquila.com/2026/05/06/agentic-systems-and-the-end-of-passive-labor/
 - **Rationale:** The essay examines AI's shift across execution, coordination, and governance, including human responsibility, oversight, and stewardship.
-- **Numbering:** `UNASSIGNED`; no display serial was requested. Promotion and any serial allocation require explicit subsequent user approval.
+- **Rating:** 9.5/10.
+- **Approval:** Explicit user elevation after review of the exact live answer and verified doorway on 2026-11-17.
+- **Adaptive-learning boundary:** Transfer the integrated institutional decision discipline only; do not transfer answer text or doorway to unrelated questions.
+- **Numbering:** `UNASSIGNED`; no display serial was requested.
 
 ### Gold Star #27 — Archive Claim / Guide Synthesis Boundary (2026-11-13)
 
