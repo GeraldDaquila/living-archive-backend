@@ -6077,9 +6077,69 @@
         "evidence_boundary": "The screenshot establishes the rendered answer and displayed doorway. The answer text matches the registered personal-decision agency recovery. User explicitly authorized its elevation after reviewing the corrected live rendering."
       },
       "numbering_status": "ASSIGNED"
+    },
+    {
+      "benchmark_id": "general-guide-public-commons-stewardship-gold-star-2026-11-17",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What does the Archive’s claim to be a public commons require in how the Guide handles access, attribution, disagreement, and stewardship?",
+      "expected_response": "The claim that the Living Archive is a public knowledge commons creates an obligation to make its public materials discoverable and usable, while being honest that not every resource has the same access status. The Guide must distinguish open material from Steward-access or protected texts, respect those boundaries in what it retrieves and reproduces, and never treat the word “commons” as blanket permission to republish material or erase authorship. Public access is an invitation to encounter and learn; it does not mean every layer is unrestricted.\n\nAttribution and disagreement are part of that access, not extras. When the Guide reports a direct claim, it should identify the particular text that supports it; when it connects several resources, it should say that the connection is its own synthesis; and when it offers an interpretation, it should label it as orientation rather than Archive doctrine. If sources differ, it should name the difference, preserve each source’s context and voice, and explain what remains unresolved instead of quietly blending them into a consensus no source actually states.\n\nStewardship is the discipline that holds these practices together: preserve provenance and context, credit authorship, protect access conditions, represent disagreement fairly, and remain correctable when a source or reader reveals an error. The Guide should make the commons easier to navigate without claiming ownership of the knowledge or authority over the people who interpret it. Its measure is not how smoothly it produces one answer, but whether it helps visitors engage the shared body of work responsibly and continue thinking for themselves.",
+      "expected_doorway": {
+        "title": "Knowledge Stewardship in the AI Era: From Information to Wisdom",
+        "url": "https://geralddaquila.com/2026/09/14/knowledge-stewardship-in-the-ai-era-from-information-to-wisdom/",
+        "rationale": "This Archive essay includes a section on knowledge as a commons and explains why shared knowledge depends on responsible preservation, interpretation, transparency, accountability, and thoughtful participation. It is a direct continuation into the stewardship of the knowledge conditions the Guide must help preserve."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.7,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the live visitor-facing response and explicitly instructed structural correction and Gold Star elevation on 2026-11-17.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "public_knowledge_commons_stewardship_and_provenance",
+      "transferable_lesson": "Treat a public knowledge commons as a shared responsibility: preserve legitimate access distinctions; attribute direct claims to identifiable sources; label cross-source connections as the Guide's synthesis and interpretation as orientation; preserve disagreement and provenance; and remain correctable while leaving judgment with the visitor.",
+      "transfer_boundary": "Do not imply that public-commons status grants unrestricted access, reproduction, or removal of authorship. Do not expose protected or Steward-access material, present synthesis as a single source's claim, force agreement among differing sources, invent access terms, or transfer this question-specific doorway to unrelated questions.",
+      "known_theme": "public knowledge commons, access boundaries, attribution, source provenance, synthesis, disagreement, plurality, knowledge stewardship, correctability",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "public_knowledge_commons_stewardship_and_provenance",
+        "transferable_discipline": "Make public knowledge usable without erasing its boundaries or provenance: distinguish access classes, credit sources, label synthesis and orientation, preserve disagreement, and correct misrepresentation.",
+        "abstention_boundary": "Never equate a public commons with unrestricted reproduction or access to protected materials. Do not fabricate source permissions, collapse distinct source positions into consensus, or claim Archive authority for the Guide's own interpretation."
+      },
+      "assertions": [
+        "Exactly three substantive paragraphs: access and its limits; attribution, synthesis, and disagreement; stewardship, correctability, and visitor agency.",
+        "Distinguishes public discoverability and access from unrestricted reproduction or access to protected and Steward-access materials.",
+        "Requires direct Archive claims to identify their supporting source and cross-resource synthesis to be named as the Guide's own synthesis.",
+        "Keeps interpretation and orientation distinct from source evidence and Archive doctrine.",
+        "Preserves disagreement and source plurality rather than silently harmonizing different positions.",
+        "Requires provenance, context, authorship, access boundaries, fair representation, and correction.",
+        "The answer is complete before one visible canonical doorway to Knowledge Stewardship in the AI Era: From Information to Wisdom.",
+        "The doorway extends the inquiry into the stewardship of shared knowledge; it does not substitute for the answer."
+      ],
+      "user_approved_at": "2026-11-17",
+      "elevation_approval_evidence": "User supplied the live Guide screenshot and instructed: 'fix structurally and turn this into a gold star' on 2026-11-17. The screenshot establishes the reviewed answer shape and its missing continuation; the registered answer is the structurally corrected Gold Star version with a separately verified canonical doorway.",
+      "provenance": {
+        "source": "User-provided live visitor-facing Guide screenshot and explicit structural-correction/Gold-Star instruction in the conversation.",
+        "source_date": "2026-11-17",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the original three-layer answer and absence of a doorway. The registered answer is an explicitly authorized structural correction, not a verbatim transcript of the screenshot. The doorway destination and its relevance were independently verified against the published Archive resource.",
+        "doorway_verification": {
+          "title": "Knowledge Stewardship in the AI Era: From Information to Wisdom",
+          "url": "https://geralddaquila.com/2026/09/14/knowledge-stewardship-in-the-ai-era-from-information-to-wisdom/",
+          "source_post_id": 58509,
+          "source_status": "publish",
+          "verified_by": "Cowboy MCP WordPress post record; section titled 'Knowledge as a Commons'."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve the benchmark_id as the stable learning identity; serial allocation remains independent."
     }
   ],
-  "last_reconciliation_note": "Added user-approved Oversoul/free-will Gold Star exemplar on 2026-11-17. Exact response and canonical doorway are frozen; transfer is limited to spiritual influence versus coercion and epistemic boundary discipline. No serial allocation. Existing Gold Star successors and complex-future scenario readiness are preserved.",
+  "last_reconciliation_note": "Added user-approved public-commons stewardship Gold Star on 2026-11-17. The exact three-paragraph answer and verified Knowledge Stewardship in the AI Era doorway are frozen; transfer is limited to access boundaries, attribution, synthesis, disagreement, provenance, stewardship, and correction. No display serial was allocated; historical gaps #85 and #86 remain untouched. Existing Gold Star exemplars and exact-query successor governance are preserved.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -6209,13 +6269,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-17",
-    "approved_gold_star_count": 94,
-    "registry_record_count": 131,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 93 approved Gold Stars across 130 registry records. The complex-future scenario-readiness and Oversoul/free-will exemplars are active structural-learning contributors. The Oversoul exemplar's deterministic fallback eligibility remains false because its bounded recovery contract independently owns exact answer recovery. No display serial was allocated; prior exact-query successor governance remains unchanged.",
+    "approved_gold_star_count": 95,
+    "registry_record_count": 132,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 95 approved Gold Stars across 132 registry records. The complex-future scenario-readiness, Oversoul/free-will, personal-decision agency, and public-commons stewardship exemplars are active structural-learning contributors. The Oversoul exemplar's deterministic fallback eligibility remains false because its bounded recovery contract independently owns exact answer recovery. No display serial was allocated for the public-commons exemplar; prior exact-query successor governance remains unchanged.",
     "numbered_gold_star_record_count": 36,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation: 93 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 58 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
-    "unassigned_approved_gold_star_count": 58,
+    "numbering_reconciliation": "Record-level reconciliation: 95 approved Gold Stars; 36 assigned display serials #56–#84 and #87–#93; 59 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
+    "unassigned_approved_gold_star_count": 59,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {
