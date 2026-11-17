@@ -29,3 +29,5 @@
 .fsd-error-text{color:#9a3f34}
 .fsd-loading{padding:2rem;text-align:center;color:#526372}
 @media(max-width:600px){.fsd-panel{margin:1rem 0;padding:1.1rem;border-radius:12px}.fsd-nav{gap:.6rem}.fsd-nav .fsd-button{flex:1}}
+.fsd-archive-doorways{display:grid;gap:.55rem;margin-top:.55rem}
+.fsd-archive-doorways .la-answer-doorway{margin:.25rem 0 0}
