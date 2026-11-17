@@ -1,7 +1,7 @@
 # Living Archive Answer + Doorway Standard
 Version: 1.0.0
 Status: canonical presentation contract
-Applies to: The Guide / USE, HRN, FSD, SPE, and future visitor-facing modules.
+Applies to: The Guide / USE, HRN, FSD, SPE, Public Living Archive Navigator, Mini-USE, and future visitor-facing modules.
 
 ## Purpose
 Every visitor-facing module should present a complete answer or result first, then offer a distinct, optional doorway into a verified Living Archive resource when that resource materially advances the visitor's inquiry. The doorway is orientation, not promotion.
@@ -27,6 +27,8 @@ Incomplete, unverified, unrelated, or unsafe items are omitted. Never invent a d
 - **HRN:** adapt a selected canonical resource plus its grounded resource introduction. Do not turn conversational prompts, junction controls, or safety resources into ordinary Archive doorways.
 - **FSD:** adapt only `archive_references` explicitly marked `conceptual_context_only`. State that these references explain concepts and do not corroborate the respondent-reported episode. Do not imply a diagnosis, score, or stable system capacity.
 - **SPE:** preserve the three selected canonical destinations and their individually grounded `why_each` explanations. The shared renderer changes presentation only; it does not change selection, ordering, access boundaries, or the three-door contract.
+- **Public Living Archive Navigator:** preserve its clarification flow and three selected public destinations. The shared renderer does not change public T1–T3 corpus boundaries or Navigator selection.
+- **Mini-USE:** preserve catalogue synthesis, selected doors, and access classification. The shared renderer does not alter Mini-USE retrieval, ranking, or its Stewardship Catalogue boundary.
 
 ## Trust and rendering requirements
 - Validate URLs at the final browser boundary: HTTPS only, exact host `geralddaquila.com`, no username/password, non-default port, query, or fragment.
