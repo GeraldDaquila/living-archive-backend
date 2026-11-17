@@ -219,18 +219,26 @@ def test_deterministic_fallback_contribution_requires_explicit_capability():
         lessons._LESSONS = original
 
 
-def test_deterministic_fallback_guidance_is_applied_without_changing_paragraph_count():
+def test_deterministic_fallback_guidance_never_appends_lesson_text_to_the_conclusion():
     target = next(
         item for item in lessons._LESSONS
         if item["runtime_transfer"] and item.get("deterministic_fallback_eligible")
     )
     response = "First paragraph.\n\nSecond paragraph.\n\nThird paragraph."
     guided = lessons.apply_deterministic_fallback_guidance(target["query"], response)
-    assert "A useful way to examine this is:" in guided
-    assert target["transferable_discipline"] in guided
-    assert target["abstention_boundary"] in guided
+    assert guided == response
+    assert "A useful way to examine this is:" not in guided
+    assert target["transferable_discipline"] not in guided
+    assert target["abstention_boundary"] not in guided
     assert len([p for p in guided.split("\n\n") if p.strip()]) == 3
-    assert lessons.apply_deterministic_fallback_guidance(target["query"], guided) == guided
+
+
+def test_generic_future_uncertainty_action_question_does_not_match_civilizational_transition_or_fragmented_knowledge():
+    query = "How should people act when the future is uncertain but consequential?"
+    selected = lessons.select_lesson(query)
+    assert selected is None
+    assert lessons.active_quality_contribution(query) is None
+    assert lessons.deterministic_fallback_contribution(query) is None
 
 
 def test_deterministic_fallback_guidance_ignores_unflagged_analogues():
