@@ -317,6 +317,12 @@ def _select_verified_doorway_conceptual_family(query):
     ):
         return "community_continuity_revision"
 
+    # Community-project economic accounts need a wider lens when they report
+    # returns or volunteer inputs but omit benefit distribution and shared-asset
+    # maintenance. This is distinct from a full project trade-off assessment.
+    if general_guide_composition._requires_community_project_economic_dimensions(text):
+        return "community_project_economic_dimensions"
+
     # Community infrastructure trade-off questions have a verified, adjacent
     # doorway into local resilience, distributed infrastructure, and ecological
     # stewardship. The destination is not represented as a project-specific study.
@@ -416,6 +422,11 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
         "title": "Knowledge Stewardship in the AI Era: From Information to Wisdom",
         "url": "https://geralddaquila.com/2026/09/14/knowledge-stewardship-in-the-ai-era-from-information-to-wisdom/",
         "rationale": "This Archive essay includes a section on knowledge as a commons and explains why shared knowledge depends on responsible preservation, interpretation, transparency, accountability, and thoughtful participation. It is a direct continuation into the stewardship of the knowledge conditions the Guide must help preserve.",
+    },
+    "community_project_economic_dimensions": {
+        "title": "Local Resilience Economies",
+        "url": "https://geralddaquila.com/2026/05/27/local-resilience-economies/",
+        "rationale": "Local Resilience Economies examines how communities sustain local capability, shared infrastructure, cooperative structures, and ecological stewardship. It offers a wider systems lens for examining where value remains, who benefits, and how the resources that support community activity are maintained; it is an orientation, not an assessment of this particular project.",
     },
     "community_project_tradeoffs": {
         "title": "Local Resilience Economies",
@@ -5993,6 +6004,41 @@ def _guide_finalize_visitor_payload(payload, query):
         )
         return safe
 
+
+    # Community-project economic accounting is a shared visitor contract:
+    # provider/LLM and deterministic paths must surface distribution, sustaining
+    # costs, shared-resource maintenance, and long-horizon accountability, while
+    # retaining epistemic boundaries about the particular project.
+    if general_guide_composition._requires_community_project_economic_dimensions(query):
+        safe = dict(payload)
+        _community_economic_abstention = bool(
+            re.search(
+                r"(?:do not have enough grounded material|don't have enough grounded material|"
+                r"insufficient.*(?:grounded|archive).*(?:material|evidence)|"
+                r"cannot give a specific archive-based answer)",
+                str(response_text or ""),
+                re.I,
+            )
+        )
+        if (
+            _community_economic_abstention
+            or not general_guide_composition._has_community_project_economic_dimensions_explanation(response_text)
+        ):
+            safe["response"] = _sanitize_basic_inquiry_response(
+                general_guide_composition._community_project_economic_dimensions_recovery()
+            )
+        _community_economic_doorway = _normalize_authoritative_recommendation(
+            _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get("community_project_economic_dimensions")
+        )
+        safe["recommendation"] = _community_economic_doorway
+        safe["canonical_doorway"] = _community_economic_doorway
+        safe["doorway_title"] = _community_economic_doorway.get("title") if _community_economic_doorway else None
+        safe["doorway_url"] = _community_economic_doorway.get("url") if _community_economic_doorway else None
+        safe["doorway_rationale"] = _community_economic_doorway.get("rationale") if _community_economic_doorway else None
+        safe["processing"] = "final_visitor_boundary_community_project_economic_dimensions"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
 
     # Care and commons recognition is an ordinary conceptual answer obligation,
     # not an Archive-evidence lookup. Earlier provider or retrieval paths can
