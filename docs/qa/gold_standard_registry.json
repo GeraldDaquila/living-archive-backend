@@ -6049,7 +6049,8 @@
         "live_surface": "The Guide visitor-facing search response",
         "evidence_boundary": "The screenshot establishes the reviewed three-paragraph response and visible Community Accountability Systems doorway. The exact answer is preserved as the reviewed exemplar; the screenshot is the user's approval evidence.",
         "source_date": "2026-11-17",
-        "approval_record": "User explicitly instructed 'elevate to gold star' after reviewing the production visitor-facing response and its canonical doorway."
+        "approval_record": "User explicitly instructed 'elevate to gold star' after reviewing the production visitor-facing response and its canonical doorway.",
+        "source": "User-reviewed screenshot of the live visitor-facing Guide response, supplied in the conversation on 2026-11-17."
       },
       "freeze_policy": "Immutable user-approved Gold Star exemplar. Preserve the approved response and verified doorway; any future wording or doorway change requires a separately versioned benchmark and explicit user approval.",
       "gold_star_capabilities": {
