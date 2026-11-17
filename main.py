@@ -266,8 +266,8 @@ def _select_verified_doorway_conceptual_family(query):
     # This class does not map to a hard-coded destination; registry evidence
     # must still establish the relevance of the canonical continuation.
     if re.search(
-        r"^\\s*how\\s+can\\s+.+?\\b(?:be|remain|stay|become)\\b.+?"
-        r"\\b(?:rather than|without becoming|without turning into|without being)\\b",
+        r"^\s*how\s+can\s+.+?\b(?:be|remain|stay|become)\b.+?"
+        r"\b(?:rather than|without becoming|without turning into|without being)\b",
         text,
         re.I | re.S,
     ):
@@ -10440,12 +10440,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                             r"^https://geralddaquila\\.com/\\S+$", _bridge_url, re.I
                         ):
                             continue
-                        for _bridge_sentence in re.split(r"(?<=[.!?])\\s+", _bridge_body):
-                            _bridge_sentence = re.sub(r"\\s+", " ", _bridge_sentence).strip()
+                        for _bridge_sentence in re.split(r"(?<=[.!?])\s+", _bridge_body):
+                            _bridge_sentence = re.sub(r"\s+", " ", _bridge_sentence).strip()
                             if len(_bridge_sentence) < 45 or len(_bridge_sentence) > 600:
                                 continue
                             if re.search(
-                                r"\\b" + re.escape(_bridge_term) + r"\\b",
+                                r"\b" + re.escape(_bridge_term) + r"\b",
                                 _normalize_query(_bridge_sentence),
                             ):
                                 _candidate = {
