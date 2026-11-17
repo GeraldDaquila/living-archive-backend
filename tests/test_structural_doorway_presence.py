@@ -79,7 +79,7 @@ def test_community_continuity_revision_recovers_its_verified_archive_doorway(mon
     assert doorway == {
         "title": "From Awakening to Stewardship",
         "url": "https://geralddaquila.com/from-awakening-to-stewardship/",
-        "rationale": "This essay examines how communities and institutions carry wisdom and responsibility across generations while renewing structures and practices that no longer serve human flourishing. It distinguishes preserving what deserves to endure from preserving harmful patterns simply because they are inherited.",
+        "rationale": "This essay explores how personal development can mature into stewardship: taking responsibility for the relationships, institutions, and shared conditions that support human flourishing. It offers a wider perspective on community continuity by asking what people must build and sustain together, rather than prescribing how a particular inherited practice should be changed.",
     }
 
     monkeypatch.setattr(main, "_canonical_primary_from_docs", lambda docs, query, profile: None)
@@ -100,6 +100,7 @@ def test_community_continuity_recovery_is_registered_and_owns_its_verified_doorw
     assert registered_recovery_recommendation(query) == {
         "title": "From Awakening to Stewardship",
         "url": "https://geralddaquila.com/from-awakening-to-stewardship/",
+        "rationale": "This essay explores how personal development can mature into stewardship: taking responsibility for the relationships, institutions, and shared conditions that support human flourishing. It offers a wider perspective on community continuity by asking what people must build and sustain together, rather than prescribing how a particular inherited practice should be changed.",
     }
     answer = compose_recovery(query)
     assert answer.startswith("Communities preserve continuity")
