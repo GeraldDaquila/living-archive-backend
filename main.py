@@ -12890,7 +12890,8 @@ async def _use_request_boundary(scope, receive, send):
         except Exception as exc:
             print(
                 "The Guide Basic Inquiry seam failed; "
-                f"ordinary route remains ordinary and will not be reclassified; exception={type(exc).__name__}"
+                f"ordinary route remains ordinary and will not be reclassified; "
+                f"exception={type(exc).__name__}:{str(exc)[:180]!r}"
             )
             # A direct-attribute question must not escape through the legacy
             # deterministic recovery path if its evidence boundary itself fails.
@@ -12920,12 +12921,49 @@ async def _use_request_boundary(scope, receive, send):
             try:
                 context_data = use_core.fetch_canonical_context(query)
                 recovery_context = context_data if isinstance(context_data, dict) else {}
-                recovery = _basic_inquiry_round1_deterministic_response(
+                from deterministic_answer_recovery import (
+                    compose_recovery as _terminal_compose_recovery,
+                    has_registered_recovery as _terminal_has_registered_recovery,
+                    registered_recovery_recommendation as _terminal_recovery_recommendation,
+                )
+                _registered_recovery = bool(_terminal_has_registered_recovery(query))
+                _registered_recommendation = (
+                    _terminal_recovery_recommendation(query) if _registered_recovery else None
+                )
+                recovery = _basic_inquiry_provider_exhaustion_response(
                     query,
                     {},
                     recovery_context,
+                    recommendation_available=bool(
+                        _registered_recommendation
+                        or recovery_context.get("recommendation_canonical_primary")
+                    ),
                 )
-                recovery_text = str(recovery.get("response") or "").strip()
+                recovery_text = _sanitize_basic_inquiry_response(
+                    general_guide_composition.enforce_response_contracts(
+                        query, str(recovery.get("response") or "")
+                    )
+                )
+                # The outer ASGI exception path is a terminal visitor path, not
+                # permission to bypass the answer-quality contract used by normal
+                # composition. Registered conceptual recovery owns the answer
+                # when provider composition has failed.
+                if (
+                    _registered_recovery
+                    and (
+                        general_guide_composition.is_generic_nonanswer(query, recovery_text)
+                        or general_guide_composition.is_meta_answer_failure(recovery_text)
+                    )
+                ):
+                    recovery_text = _sanitize_basic_inquiry_response(
+                        _terminal_compose_recovery(query)
+                    )
+                if (
+                    not recovery_text
+                    or general_guide_composition.is_generic_nonanswer(query, recovery_text)
+                    or general_guide_composition.is_meta_answer_failure(recovery_text)
+                ):
+                    recovery_text = ""
                 if _basic_inquiry_contains_html_markup(recovery_text):
                     print(
                         "The Guide recovery boundary: rejected HTML-shaped deterministic output; "
@@ -12954,19 +12992,19 @@ async def _use_request_boundary(scope, receive, send):
                 # navigation work merely because the normal composition pipeline
                 # became unavailable. Preserve only a retrieval-validated primary;
                 # never invent or inherit a stale destination.
-                recovery_recommendation = None
+                recovery_recommendation = _registered_recommendation
                 # This direct Basic Inquiry recovery is a terminal answer path.
                 # It must not run an independent doorway selector after the main
                 # navigation boundary has failed. A cross-scale lookup here can
                 # reintroduce an unrelated destination (for example, the leading
                 # financial-sovereignty asset for a tools-versus-purposes inquiry).
                 # Preserve only a canonical primary already validated upstream.
-                if isinstance(context_data, dict):
+                if not recovery_recommendation and isinstance(context_data, dict):
                     candidate = context_data.get("recommendation_canonical_primary")
                     if isinstance(candidate, dict):
                         title = str(candidate.get("title") or "").strip()
                         url = str(candidate.get("url") or "").strip()
-                        if title and re.match(r"^https://\S+$", url, re.I):
+                        if title and re.match(r"^https://\\S+$", url, re.I):
                             recovery_recommendation = {"title": title, "url": url}
                 if recovery_text:
                     request_id = "basic-recovery-" + hashlib.sha1(
@@ -12986,9 +13024,30 @@ async def _use_request_boundary(scope, receive, send):
                         ),
                         "response": recovery_text,
                         "recommendation": recovery_recommendation,
+                        "canonical_doorway": recovery_recommendation,
+                        "answer_basis": {
+                            "kind": "general_knowledge",
+                            "label": (
+                                "General conceptual orientation"
+                                if is_community_continuity_revision_question(query)
+                                else "General knowledge"
+                            ),
+                            "explanation": (
+                                "This is a bounded conceptual explanation, not a claim that the Living Archive establishes every part of the answer."
+                                if is_community_continuity_revision_question(query)
+                                else "A provider-independent recovery answered the question; no Archive source attribution is implied."
+                            ),
+                        },
+                        "response_provenance": {
+                            "class": "deterministic_recovery",
+                            "provider": str(recovery.get("provider") or "provider_exhaustion_recovery"),
+                            "model": None,
+                            "quality_adjusted_llm_eligible": True,
+                            "llm_invoked": False,
+                        },
                         "processing": "basic_inquiry_recovery",
                         "route_source": "guide_basic_inquiry_recovery",
-                        "recovery": "deterministic_round1",
+                        "recovery": str(recovery.get("provider") or "deterministic_recovery"),
                         "visitor_boundary_version": APP_VERSION,
                     })
             except Exception as recovery_exc:
