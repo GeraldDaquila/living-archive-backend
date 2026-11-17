@@ -612,7 +612,7 @@ def test_oversoul_free_will_question_recovers_answer_and_canonical_doorway_acros
 
     query = "What power does the Oversoul have over a person’s choice without undermining free will?"
     expected_doorway = {
-        "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
+        "title": "Eternal Oversoul Law – The Immutable Jurisdiction",
         "url": "https://geralddaquila.com/oversoul-law",
         "rationale": "This is the Archive's directly named Oversoul doorway for examining the question of spiritual jurisdiction. It is an invitation to inspect the Archive's own framework, not independent evidence that metaphysical claims are objectively established.",
     }
@@ -623,6 +623,7 @@ def test_oversoul_free_will_question_recovers_answer_and_canonical_doorway_acros
     assert has_registered_recovery(query)
     answer = compose_recovery(query)
     assert len([part for part in answer.split("\n\n") if part.strip()]) == 3
+    assert "No independently verifiable evidence establishes that an Oversoul literally controls a person's choices." in answer
     assert "influence rather than compulsion" in answer
     assert "without replacing the work and responsibility of choosing" in answer
     assert "not proof that an Oversoul exists" in answer
