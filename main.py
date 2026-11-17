@@ -5638,6 +5638,12 @@ def _guide_restore_verified_doorway(payload, query):
         except Exception:
             candidate = None
         doorway = _normalize_authoritative_recommendation(candidate)
+    # The shared browser renderer requires a visitor-facing rationale as
+    # well as a canonical URL. A title/URL pair without that rationale is
+    # not a complete doorway; do not let it silently disappear at render time.
+    if doorway and not str(doorway.get("rationale") or "").strip():
+        doorway = None
+
     # A missing topic-specific match is not permission to return a navigation dead end.
     if not doorway:
         doorway = _normalize_authoritative_recommendation(_gold_star_default_doorway())
