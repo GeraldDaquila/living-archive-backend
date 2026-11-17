@@ -49,7 +49,7 @@ def test_spiritual_community_accountability_classifier_does_not_capture_adjacent
 
 def test_spiritual_community_recovery_is_three_paragraphs_and_preserves_the_governing_distinction():
     answer = compose_recovery(QUERY)
-    paragraphs = [part.strip() for part in re.split(r"\\n\\s*\\n+", answer) if part.strip()]
+    paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", answer) if part.strip()]
 
     assert len(paragraphs) == 3
     assert "Spiritual practice and the way a community governs its authority are different things." in paragraphs[0]
@@ -60,7 +60,7 @@ def test_spiritual_community_recovery_is_three_paragraphs_and_preserves_the_gove
     assert "question, decline, and leave without retaliation" in paragraphs[2]
     assert "A spiritual community has charismatic leadership" not in answer
     assert QUERY not in answer
-    assert not re.search(r"\\b(?:AI|artificial intelligence|provider|retrieval)\\b", answer, re.I)
+    assert not re.search(r"\b(?:AI|artificial intelligence|provider|retrieval)\\b", answer, re.I)
 
 
 def test_spiritual_community_recovery_owns_its_canonical_doorway():
