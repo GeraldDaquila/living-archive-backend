@@ -24,6 +24,7 @@ def test_explicit_no_handoff_gold_standard_still_suppresses_doorway():
         "doorway_title": "",
         "doorway_url": "",
         "forbids_doorway": True,
+        "doorway_omission_exception_reason": "An additional link would interrupt the immediate visitor response.",
     }
 
     candidate = {
@@ -48,7 +49,10 @@ def test_gold_standard_title_without_url_never_becomes_null_url_doorway():
     assert main._apply_registered_gold_standard_doorway(
         independently_verified, standard
     ) == independently_verified
-    assert main._apply_registered_gold_standard_doorway(None, standard) is None
+    fallback = main._apply_registered_gold_standard_doorway(None, standard)
+    assert fallback["title"] == "Sovereign Sensemaking Compass"
+    assert fallback["url"] == "https://geralddaquila.com/the-sovereign-sensemaking-compass/"
+    assert fallback["rationale"]
 
 
 def test_complete_gold_standard_doorway_pair_can_override_verified_selection():
@@ -91,6 +95,7 @@ def test_gold_standard_explicit_no_handoff_suppresses_every_doorway():
         "doorway_title": "",
         "doorway_url": "",
         "forbids_doorway": True,
+        "doorway_omission_exception_reason": "A separate link would undermine the immediate visitor experience.",
     }
     independently_verified = {
         "title": "Relevant Archive Resource",
