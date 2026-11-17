@@ -44,6 +44,20 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
                 answer = compose_recovery(question)
                 self.assertEqual(len([p for p in answer.split("\n\n") if p.strip()]), 3)
 
+    def test_consequential_action_under_uncertainty_has_a_nonrepetitive_third_paragraph(self):
+        question = "How should people act when the future is uncertain but consequential?"
+        answer = compose_recovery(question)
+        paragraphs = [part.strip() for part in answer.split("\\n\\n") if part.strip()]
+        self.assertEqual(len(paragraphs), 3)
+        self.assertIn("serious consequences and the future is uncertain", paragraphs[0])
+        self.assertIn("Compare realistic options", paragraphs[1])
+        self.assertIn("preserves room to learn and correct", paragraphs[2])
+        self.assertIn("signals for review", paragraphs[2])
+        self.assertIn("accountable", paragraphs[2])
+        self.assertNotIn("Distinguish strain and transition", answer)
+        self.assertNotIn("A useful way to examine this is:", answer)
+        self.assertNotIn("The limit to keep in view is:", answer)
+
     def test_hindsight_accountability_precedes_generic_decision_recovery(self):
         question = (
             "If the group made the best decision it could with the information available at the time, "
