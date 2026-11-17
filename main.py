@@ -323,7 +323,6 @@ def _select_verified_doorway_conceptual_family(query):
     if (
         re.search(r"\bstewardship\b", text, re.I)
         and re.search(r"\bmanagement\b", text, re.I)
-        and re.search(r"\bleadership\b", text, re.I)
         and re.search(r"\bownership\b", text, re.I)
         and re.search(r"\b(?:differ|difference|distinction|compare|comparison)\w*\b", text, re.I)
     ):
