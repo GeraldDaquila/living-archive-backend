@@ -194,7 +194,7 @@ def test_provider_and_deterministic_payloads_receive_same_final_doorway_contract
     assert has_gold_star_coverage(answer)
 
     standard = resolve_exact_gold_standard(query)
-    assert standard["status"] == "USER_APPROVED_RELEASE_CANDIDATE"
+    assert standard["status"] == "USER_APPROVED_GOLD_STANDARD"
     expected = {
         "title": standard["doorway_title"],
         "url": standard["doorway_url"],
