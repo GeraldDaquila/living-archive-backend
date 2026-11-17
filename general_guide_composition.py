@@ -4485,3 +4485,83 @@ except ValueError:
     pass
 else:
     raise RuntimeError("General Guide composition invariant failed: provider navigation leaked into visitor prose.")
+
+def _requires_nonprofit_culture_power_care_governance(query: str) -> bool:
+    """Recognize an integrated organizational question with conflicting trust and staff signals.
+
+    This is deliberately narrower than generic leadership or workplace questions:
+    it requires an organizational setting, a leadership/staff relationship, divergent
+    trust and staff-experience signals, multiple requested structural dimensions, and
+    an explicit evidence/diagnostic boundary.
+    """
+    q = _normalize_space(query).casefold()
+    organization = bool(re.search(
+        r"\b(?:nonprofit|non-profit|not-for-profit|organization|organisation|institution|workplace|company|charity|agency)\b",
+        q,
+    ))
+    leadership = bool(re.search(r"\b(?:founder|executive|leader|leadership|director)\b", q))
+    staff = bool(re.search(r"\b(?:staff|employees?|workers?|personnel|team members?)\b", q))
+    trust_signal = bool(re.search(r"\b(?:trusted|trust|respected|admired|confidence)\b", q))
+    adverse_signal = bool(re.search(
+        r"\b(?:fear|afraid|intimidat\w*|high turnover|turnover|retention|silence|retaliat\w*)\b",
+        q,
+    ))
+    dimensions = (
+        r"\bcultur\w*\b",
+        r"\bpower\b",
+        r"\bleadership\b",
+        r"\bcare\b",
+        r"\bgovernance\b",
+    )
+    dimension_count = sum(bool(re.search(pattern, q)) for pattern in dimensions)
+    epistemic_boundary = bool(re.search(
+        r"\b(?:without diagnos\w*|limited evidence|insufficient evidence|"
+        r"avoid diagnos\w*|not diagnos\w*|without assum\w*|not infer\w*)\b",
+        q,
+    ))
+    return (
+        organization and leadership and staff and trust_signal and adverse_signal
+        and dimension_count >= 4 and epistemic_boundary
+    )
+
+
+def _has_nonprofit_culture_power_care_governance_explanation(response: str) -> bool:
+    """Require integrated structural analysis and an explicit non-diagnostic boundary."""
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
+    if len(paragraphs) != 3:
+        return False
+    first, second, third = paragraphs
+    return (
+        bool(re.search(r"\b(?:trust|trusted)\b", first, re.I))
+        and bool(re.search(r"\b(?:fear|turnover|staff experience)\b", first, re.I))
+        and bool(re.search(r"\b(?:culture|power|leadership)\b", first, re.I))
+        and bool(re.search(r"\b(?:care|governance|decision|voice|accountability)\b", second, re.I))
+        and bool(re.search(r"\b(?:patterns?|evidence|multiple|independent|confidential|review)\b", second, re.I))
+        and bool(re.search(r"\b(?:cannot|cannot responsibly|does not establish|does not, by itself, establish|not establish|not prove|does not prove|do not prove)\b", third, re.I))
+        and bool(re.search(r"\b(?:diagnos\w*|motives?|character|culpability|individual)\b", third, re.I))
+        and bool(re.search(r"\b(?:correct\w*|accountab\w*|safeguard\w*|review|revisit)\b", third, re.I))
+    )
+
+
+def _nonprofit_culture_power_care_governance_recovery() -> str:
+    """Answer the integrated question without diagnosing people from limited evidence."""
+    return (
+        "A founder can be widely trusted by donors, beneficiaries, or the wider community while staff experience fear and high turnover; those accounts are not automatically mutually exclusive. People encounter the same leader from different positions of dependence, access, and power. The Guide should therefore treat the contrast as a signal to understand the organization, not as proof that the founder is either admirable or harmful. Culture, power, and leadership have to be examined together: stated values matter, but so do the everyday consequences of speaking up, disagreeing, making mistakes, or challenging a decision.\n\n"
+        "The analysis should trace how those conditions interact. Culture is visible in the behaviours that are rewarded, tolerated, or discouraged; power is visible in who controls decisions, information, resources, and opportunities; leadership is visible in repeated practices and the way authority is exercised. Care asks whether workloads, safety, dignity, and staff well-being are treated as real responsibilities rather than slogans. Governance asks whether people have safe ways to raise concerns, whether decisions can be questioned, and whether oversight is sufficiently independent of the person being questioned. For example, a nonprofit may have a trusted public-facing founder and a formal open-door policy, yet staff may learn from repeated retaliation, ignored complaints, or opaque decisions that speaking honestly carries a cost. That pattern warrants investigation; it does not, by itself, establish why any individual acted as they did.\n\n"
+        "The Guide should distinguish reported experience, independently corroborated patterns, and explanations that remain hypotheses. It can recommend confidential staff listening, disaggregated turnover and exit data, review of complaint handling and decision records, protection against retaliation, and independent governance oversight. It should compare accounts across roles and time, examine whether concerns recur, and make clear what evidence could confirm or challenge each interpretation. Fear and turnover are serious signals, but they do not prove an individual's motives, character, or culpability; public trust does not disprove staff harm. The responsible conclusion is a testable account of organizational conditions, with safeguards, accountable ownership, and a route to correction—not a diagnosis of a person."
+    )
+
+
+def _nonprofit_culture_power_care_governance_doorway() -> dict:
+    """Return the previously verified organizational-trust continuation."""
+    return {
+        "title": "Building Trust-Centered Organizations",
+        "url": "https://geralddaquila.com/2026/09/07/building-trust-centered-organizations/",
+        "rationale": (
+            "This essay examines how leadership signals, shared cultural norms, "
+            "incentives, trust, and accountability shape organizational life. "
+            "It offers a relevant continuation from the reported gap between "
+            "public confidence and staff experience to the conditions that make "
+            "an organization trustworthy in practice."
+        ),
+    }
