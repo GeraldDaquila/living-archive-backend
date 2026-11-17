@@ -83,6 +83,7 @@ from deterministic_answer_recovery import (
     is_harm_repair_question,
     is_community_continuity_revision_question,
     is_oversoul_free_will_question,
+    is_spiritual_community_accountability_question,
     is_complex_future_scenario_question,
 )
 from ai_workforce_restructuring_contract import (
@@ -244,6 +245,10 @@ def _guide_node_prompt_context():
 def _select_verified_doorway_conceptual_family(query):
     """Return a verified conceptual family only when a canonical doorway applies."""
     text = str(query or "")
+    # Spiritual-community accountability questions have a direct, narrowly
+    # relevant Archive doorway. Resolve this before generic community matches.
+    if is_spiritual_community_accountability_question(text):
+        return "spiritual_community_accountability"
     # Spiritual-agency questions have a direct Archive doorway. Resolve this
     # before generic agency/uncertainty matches can select a broad compass.
     if (
@@ -353,6 +358,11 @@ def _select_verified_doorway_conceptual_family(query):
 
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
+    "spiritual_community_accountability": {
+        "title": "Community Accountability Systems",
+        "url": "https://geralddaquila.com/2026/05/16/community-accountability-systems/",
+        "rationale": "This Archive essay examines how communities prevent power from becoming insulated from feedback through transparent, distributed accountability, clear boundaries, protected dissent, and repair. It directly addresses the risks of charismatic leadership and weak accountability without treating spiritual belief or practice itself as the problem.",
+    },
     "oversoul_free_will": {
         "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
         "url": "https://geralddaquila.com/oversoul-law",
