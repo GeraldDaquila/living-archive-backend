@@ -262,6 +262,14 @@ def _select_verified_doorway_conceptual_family(query):
         and re.search(r"\b(?:distinguish|difference|separate|external)\b", text, re.I)
     ):
         return "archive_guidance_provenance"
+    # Consequential action under uncertainty is a core sensemaking use case.
+    # The Compass is a verified continuation for this precise inquiry family.
+    if (
+        re.search(r"\b(?:act|action|decide|decision|choose|choice)\w*\b", text, re.I)
+        and re.search(r"\b(?:uncertain|uncertainty|unknown|unpredictable)\w*\b", text, re.I)
+        and re.search(r"\b(?:consequential|consequence|stakes|significant|matter)\w*\b", text, re.I)
+    ):
+        return "consequential_action_under_uncertainty"
     return None
 
 
@@ -286,6 +294,10 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
         "title": "ARC III: Growth doesn’t break systems. It reveals the limits of the structure holding them.",
         "url": "https://geralddaquila.com/arc-iii-growth-doesnt-break-systems-it-reveals-the-limits-of-the-structure-holding-them/",
     },
+    "consequential_action_under_uncertainty": {
+        "title": "The Sovereign Sensemaking Compass",
+        "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass",
+    },
 }
 
 
@@ -302,9 +314,21 @@ def _select_guide_node_fallback_doorway(query):
     verified_family_doorway = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     if verified_family_doorway:
         return dict(verified_family_doorway)
-    terms = set(re.findall(r"[a-z]{4,}", normalized))
+    stopwords = {
+        "about", "after", "again", "also", "and", "are", "but", "can", "could",
+        "does", "for", "from", "have", "how", "into", "its", "may", "more",
+        "most", "not", "our", "people", "should", "that", "the", "their",
+        "them", "then", "there", "these", "this", "those", "through", "under",
+        "when", "where", "which", "while", "with", "would", "your",
+    }
+    terms = {
+        term for term in re.findall(r"[a-z]{4,}", normalized)
+        if term not in stopwords
+    }
+    if not terms:
+        return None
     best = None
-    best_score = 0
+    best_score = 0.0
     for node in _guide_node_registry_snapshot():
         if not isinstance(node, dict):
             continue
@@ -317,10 +341,28 @@ def _select_guide_node_fallback_doorway(query):
             str(node.get("purpose") or ""),
             " ".join(node.get("semantic_hints") or []),
         ]).casefold()
-        score = sum(1 for term in terms if term in haystack)
+        node_terms = set(re.findall(r"[a-z]{4,}", haystack))
+        overlap = terms & node_terms
+        coverage = len(overlap) / len(terms)
+        if len(terms) == 1:
+            # Single-concept questions can still earn a doorway, but only when
+            # the concept appears in both the node title and its purpose/hints.
+            supporting_text = " ".join([
+                str(node.get("purpose") or ""),
+                " ".join(node.get("semantic_hints") or []),
+            ]).casefold()
+            if len(next(iter(terms))) < 8 or not overlap or not any(
+                term in title.casefold() or term in supporting_text for term in overlap
+            ):
+                continue
+        elif len(overlap) < 2 or coverage < 0.20:
+            # Multi-concept queries require more than one grounded connection.
+            continue
+        score = len(overlap) + coverage
         if score > best_score:
-            best, best_score = {"title": title, "url": url}, score
-    return best if best_score else None
+            best = {"title": title, "url": url}
+            best_score = score
+    return best
 
 
 def _verified_archive_doorway_fallback(query, docs, profile):
@@ -5327,7 +5369,10 @@ def _guide_restore_verified_doorway(payload, query):
                 "url": safe.get("doorway_url"),
             }
         )
-    if not doorway:
+    if not doorway and not (
+        _is_practical_stewardship_question(query)
+        or re.search(r"\b(?:practice|practicing)\s+stewardship\b", query, re.I)
+    ):
         try:
             candidate = _select_guide_node_fallback_doorway(query)
         except Exception:
@@ -11180,7 +11225,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     _final_conceptual_family = _select_verified_doorway_conceptual_family(query)
     if (
         not authoritative_doorway
-        and _final_conceptual_family
+        and not _is_practical_stewardship_question(query)
+        and not re.search(r"\b(?:practice|practicing)\s+stewardship\b", query, re.I)
         and not (
             _final_gold_standard is not None
             and bool(_final_gold_standard.get("forbids_doorway"))
