@@ -653,7 +653,8 @@ def _oversoul_ego_authority_recovery():
 def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
     return bool(
-        is_oversoul_ego_authority_question(question)
+        is_guide_personal_decision_agency_question(question)
+        or is_oversoul_ego_authority_question(question)
         or is_oversoul_free_will_question(question)
         or is_complex_future_scenario_question(question)
         or _is_public_predictive_system_question(question)
