@@ -83,6 +83,11 @@ from deterministic_answer_recovery import (
     is_harm_repair_question,
     is_community_continuity_revision_question,
 )
+from ai_workforce_restructuring_contract import (
+    is_ai_workforce_restructuring_question,
+    recovery_response as _ai_workforce_restructuring_recovery,
+    has_gold_star_coverage as _has_ai_workforce_gold_star_coverage,
+)
 from deterministic_relational_fractal import compose_relational_fractal
 from general_guide_composition import CONTRACT_VERSION as GENERAL_GUIDE_COMPOSITION_CONTRACT_VERSION
 from safety_utility import classify_safety, safety_utility_snapshot
@@ -289,15 +294,8 @@ def _select_verified_doorway_conceptual_family(query):
     ):
         return "reflective_conceptual_balance"
 
-    # Workforce restructuring through AI is a distinct organizational
-    # decision family. Require the technology, workforce impact, organizational
-    # setting, and a change/cost motive together; "AI" alone is not enough.
-    if (
-        re.search(r"\b(?:ai|artificial intelligence|automation|automated systems)\b", text, re.I)
-        and re.search(r"\b(?:staff(?:ing)?|workforce|employees?|labor|jobs?|headcount|layoffs?)\b", text, re.I)
-        and re.search(r"\b(?:company|companies|business|businesses|organization|organisation|employer|enterprise|workplace|firm)\b", text, re.I)
-        and re.search(r"\b(?:costs?|reduce|reduc\w*|cut|lower|efficien\w*|replace|displac\w*|restructur\w*|automat\w*)\b", text, re.I)
-    ):
+    # Share the exact same bounded intent classifier with the final answer contract.
+    if is_ai_workforce_restructuring_question(text):
         return "ai_workforce_restructuring"
 
     # Consequential action under uncertainty is a distinct sensemaking use case.
@@ -11667,6 +11665,23 @@ async def _use_send_json(send, payload, status_code=200):
     if isinstance(payload, dict):
         _boundary_query = str(payload.get("query") or "").strip()
         _boundary_standard = _resolve_exact_guide_gold_standard(_boundary_query)
+        # Enforce the same substantive Gold Star floor after provider composition
+        # and after deterministic recovery. A three-paragraph shape is insufficient
+        # when the opening merely narrates a process or the requested domains are
+        # not actually analyzed. The exact-question/approved-standard boundary
+        # above remains terminal and is never rewritten by this family contract.
+        if (
+            _boundary_query
+            and _boundary_standard is None
+            and is_ai_workforce_restructuring_question(_boundary_query)
+        ):
+            _answer = str(payload.get("response") or payload.get("answer") or "")
+            if not _has_ai_workforce_gold_star_coverage(_answer):
+                _recovered_answer = _ai_workforce_restructuring_recovery()
+                payload["response"] = _recovered_answer
+                if "answer" in payload:
+                    payload["answer"] = _recovered_answer
+                payload["answer_quality_contract"] = "ai_workforce_restructuring_gold_star_v1"
         # Absolute exact-authority boundary: no route may return a stale or
         # generic answer when the visitor's normalized question has an approved
         # Gold Star reference. This duplicates the composition-level guard
