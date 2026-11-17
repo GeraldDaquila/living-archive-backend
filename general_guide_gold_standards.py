@@ -54,9 +54,41 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
     if not isinstance(records, list):
         raise ValueError("Gold-standard registry records must be a list.")
 
+    records_by_id = {
+        str(record.get("benchmark_id") or ""): record
+        for record in records
+        if isinstance(record, dict)
+    }
     standards: Dict[str, Dict[str, str]] = {}
     for record in records:
         if not isinstance(record, dict) or record.get("status") not in _ELIGIBLE_STATUSES:
+            continue
+        # A Gold Star may remain an approved structural-learning exemplar while
+        # a governed exact-query release candidate temporarily owns its runtime
+        # answer. Validate both sides of that explicit relationship and exclude
+        # only the predecessor from exact-answer lookup; never demote the Gold Star.
+        successor_id = str(record.get("runtime_exact_query_successor") or "").strip()
+        if successor_id:
+            successor = records_by_id.get(successor_id)
+            successor_capabilities = (
+                successor.get("gold_star_capabilities") or {}
+                if isinstance(successor, dict)
+                else {}
+            )
+            valid_successor = bool(
+                isinstance(successor, dict)
+                and successor.get("replaces_exact_query_runtime_authority_of")
+                    == record.get("benchmark_id")
+                and _normalize_question(successor.get("query"))
+                    == _normalize_question(record.get("query"))
+                and successor.get("status") in _ELIGIBLE_STATUSES
+                and successor_capabilities.get("exact_answer_authority") is True
+            )
+            if not valid_successor:
+                raise ValueError(
+                    "Gold Star runtime exact-query successor linkage is invalid: "
+                    + str(record.get("benchmark_id") or "")
+                )
             continue
         capabilities = record.get("gold_star_capabilities") or {}
         if capabilities and not bool(capabilities.get("exact_answer_authority")):
