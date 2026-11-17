@@ -9,7 +9,6 @@ on:
       - "general_guide_composition.py"
       - "deterministic_answer_recovery.py"
       - "tests/test_archive_constitutional_recovery.py"
-      - "tests/test_guide_reflective_balance_doorway.py"
       - "tests/test_archive_claim_doorway_authority.py"
       - "tests/test_guide_reflective_balance_doorway.py"
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
@@ -24,6 +23,7 @@ on:
       - "general_guide_composition.py"
       - "deterministic_answer_recovery.py"
       - "tests/test_archive_constitutional_recovery.py"
+      - "tests/test_guide_reflective_balance_doorway.py"
       - "QA/V488_95_GENERAL_GUIDE_COMPOSITION_QA.py"
       - ".github/workflows/general-guide-validation.yml"
 
