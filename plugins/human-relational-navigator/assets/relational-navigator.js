@@ -84,10 +84,9 @@ ready(function(){
    var navigator=document.createElement('div');navigator.className='lah-rn-message lah-rn-message--navigator';renderText(navigator,responseText,'navigator');
    if(question){var q=document.createElement('p');q.className='lah-rn-question';q.textContent=String(question).trim();navigator.appendChild(q)}
    current.appendChild(navigator);
-   if(resource&&resource.url&&resource.title){
+   if(resource&&resource.url&&resource.title&&intro&&window.LivingArchiveAnswerDoorway){
     var wrap=document.createElement('div');wrap.className='lah-rn-resource-block';
-    if(intro){var p=document.createElement('p');p.className='lah-rn-resource-intro';p.textContent=intro;wrap.appendChild(p)}
-    var a=document.createElement('a');a.className='lah-rn-resource';a.href=resource.url;a.textContent=resource.title;a.target='_blank';a.rel='noopener';wrap.appendChild(a);current.appendChild(wrap);
+    if(window.LivingArchiveAnswerDoorway.render(wrap,{title:resource.title,url:resource.url,rationale:intro,kind:'continue'}))current.appendChild(wrap);
    } else if(accessIntro){
     var access=document.createElement('div');access.className='lah-rn-access-intro';var ap=document.createElement('p');ap.textContent=accessIntro;access.appendChild(ap);current.appendChild(access);
    }
