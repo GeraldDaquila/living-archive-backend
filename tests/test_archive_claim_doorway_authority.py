@@ -71,3 +71,25 @@ def test_archive_claim_boundary_clears_stale_canonical_doorway(monkeypatch):
     )
     assert result["recommendation"] is None
     assert result["canonical_doorway"] is None
+
+
+def test_public_commons_governance_question_selects_knowledge_sensemaking_doorway():
+    query = (
+        "What does the Archive's claim to be a public commons require in how the "
+        "Guide handles access, attribution, disagreement, and stewardship?"
+    )
+    family = main._select_verified_doorway_conceptual_family(query)
+    assert family == "archive_guidance_provenance"
+
+    result = main._guide_restore_verified_doorway({"response": "answer"}, query)
+    assert result["recommendation"] == {
+        "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+    }
+    assert result["doorway_title"] == result["recommendation"]["title"]
+    assert result["doorway_url"] == result["recommendation"]["url"]
+
+
+def test_public_commons_doorway_is_not_applied_to_unrelated_archive_claim():
+    query = "What is the Archive's publication date?"
+    assert main._select_verified_doorway_conceptual_family(query) != "archive_guidance_provenance"
