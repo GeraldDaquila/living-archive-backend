@@ -121,3 +121,90 @@ def test_provider_exhaustion_path_returns_registered_answer_and_doorway_together
     assert result["recommendation"] == expected_doorway
     assert result["doorway_title"] == expected_doorway["title"]
     assert result["doorway_url"] == expected_doorway["url"]
+
+def test_ai_workforce_restructuring_selects_its_verified_canonical_doorway():
+    query = (
+        "A company wants to use AI to reduce staffing costs. How should The Guide "
+        "analyze this through operations, governance, human development, ethics, and stewardship?"
+    )
+    assert main._select_verified_doorway_conceptual_family(query) == "ai_workforce_restructuring"
+    assert main._select_guide_node_fallback_doorway(query) == {
+        "title": "Agentic Systems and the End of Passive Labor",
+        "url": "https://geralddaquila.com/2026/05/06/agentic-systems-and-the-end-of-passive-labor/",
+        "rationale": (
+            "This essay examines how AI changes work beyond task automation: it traces the shift "
+            "across execution, coordination, and governance, and considers how human responsibility, "
+            "oversight, and stewardship should evolve. It provides a relevant continuation for "
+            "assessing workforce reductions as a redesign of work and accountability, not only a "
+            "cost-saving exercise."
+        ),
+    }
+
+
+def test_ai_workforce_doorway_is_not_selected_for_unrelated_ai_questions():
+    assert main._select_verified_doorway_conceptual_family(
+        "How can AI help me organize my personal reading notes?"
+    ) is None
+
+
+def test_shared_doorway_restoration_preserves_answer_and_syncs_frontend_contract():
+    query = (
+        "A company wants to use AI to reduce staffing costs. How should The Guide "
+        "analyze this through operations, governance, human development, ethics, and stewardship?"
+    )
+    answer = "Provider-authored answer remains unchanged."
+    restored = main._guide_restore_verified_doorway({"query": query, "response": answer}, query)
+    expected = main._select_guide_node_fallback_doorway(query)
+
+    assert restored["response"] == answer
+    assert restored["recommendation"] == expected
+    assert restored["canonical_doorway"] == expected
+    assert restored["doorway_title"] == expected["title"]
+    assert restored["doorway_url"] == expected["url"]
+    assert restored["doorway_rationale"] == expected["rationale"]
+
+
+def test_provider_and_deterministic_payloads_receive_same_final_doorway_contract():
+    import asyncio
+    import json
+
+    query = (
+        "A company wants to use AI to reduce staffing costs. How should The Guide "
+        "analyze this through operations, governance, human development, ethics, and stewardship?"
+    )
+    answer = (
+        "The decision should be evaluated as an organizational redesign, not only a labor-cost measure.\n\n"
+        "The company should compare operational gains with effects on work, skills, service quality, and the people affected.\n\n"
+        "Any change should retain accountable human oversight and a credible path to review or correction."
+    )
+
+    async def send_payload(provider):
+        events = []
+
+        async def send(event):
+            events.append(event)
+
+        payload = {
+            "ok": True,
+            "query": query,
+            "response": answer,
+            "provider": provider,
+            "recommendation": None,
+            "canonical_doorway": None,
+        }
+        await main._use_send_json(send, payload)
+        body = next(event["body"] for event in events if event["type"] == "http.response.body")
+        return json.loads(body.decode("utf-8"))
+
+    provider_payload = asyncio.run(send_payload("llm-provider"))
+    deterministic_payload = asyncio.run(send_payload("deterministic-recovery"))
+    expected = main._select_guide_node_fallback_doorway(query)
+
+    for payload in (provider_payload, deterministic_payload):
+        assert payload["response"] == answer
+        assert payload["recommendation"] == expected
+        assert payload["canonical_doorway"] == expected
+        assert payload["doorway_title"] == expected["title"]
+        assert payload["doorway_url"] == expected["url"]
+        assert payload["doorway_rationale"] == expected["rationale"]
+
