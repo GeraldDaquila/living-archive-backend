@@ -58,6 +58,37 @@ def load_json(path, label):
 
 
 
+def validate_exact_only_successors(approved_records, active_records):
+    """Allow only explicitly bounded successors that own exact-query authority, not learning transfer."""
+    active_by_id = {item.get("benchmark_id"): item for item in active_records}
+    exact_only = []
+    for record in approved_records:
+        if record.get("runtime_transfer") is True:
+            continue
+        capabilities = record.get("gold_star_capabilities")
+        successor_of = str(record.get("replaces_exact_query_runtime_authority_of") or "").strip()
+        predecessor = active_by_id.get(successor_of)
+        valid = (
+            record.get("runtime_transfer") is False
+            and isinstance(capabilities, dict)
+            and capabilities.get("exact_answer_authority") is True
+            and capabilities.get("active_quality_contributor") is False
+            and capabilities.get("deterministic_fallback_eligible") is False
+            and bool(successor_of)
+            and isinstance(predecessor, dict)
+            and predecessor.get("runtime_exact_query_successor") == record.get("benchmark_id")
+            and normalize_exact_question(predecessor.get("query"))
+                == normalize_exact_question(record.get("query"))
+        )
+        if not valid:
+            fail(
+                f"{record.get('benchmark_id')} is approved but neither an active "
+                "quality contributor nor a valid exact-query-only successor"
+            )
+        exact_only.append(record)
+    return exact_only
+
+
 def validate_numbering_metadata(registry, records):
     """Require explicit serial state for every approved record and explain every gap."""
     approved = [r for r in records if r.get("status") == APPROVED_STATUS]
@@ -387,11 +418,10 @@ def main():
     if len(review_ids) != len(set(review_ids)):
         fail("duplicate benchmark_id in qualitative-transfer registry")
 
-    active = [
-        r for r in records
-        if r.get("status") == APPROVED_STATUS
-        and r.get("runtime_transfer") is True
-    ]
+    approved = [r for r in records if r.get("status") == APPROVED_STATUS]
+    active = [r for r in approved if r.get("runtime_transfer") is True]
+    exact_only = validate_exact_only_successors(approved, active)
+    authority_records = active + exact_only
 
     for record in active:
         legacy = record.get("legacy_approval_grandfathered") is True
@@ -497,7 +527,7 @@ def main():
         fail("orphan qualitative-transfer reviews: " + ", ".join(orphan_reviews))
 
     exact_authority = {}
-    for record in active:
+    for record in authority_records:
         capabilities = record.get("gold_star_capabilities") or {}
         if not bool(capabilities.get("exact_answer_authority")):
             continue
@@ -513,9 +543,8 @@ def main():
             "answer": answer,
         }
 
-    approved = [r for r in records if r.get("status") == APPROVED_STATUS]
-    if len(active) != len(approved):
-        fail("not every user-approved Gold Star is active for runtime transfer")
+    if len(active) + len(exact_only) != len(approved):
+        fail("approved Gold Star inventory contains an unclassified runtime authority state")
 
     validate_numbering_metadata(registry, records)
     base_numbers, current_numbers = validate_numbering_against_base(records, registry)
@@ -538,7 +567,8 @@ def main():
 
     print(
         "GOLD STAR INTEGRITY PASS: "
-        f"{len(approved)} approved, {len(records)} total records, "
+        f"{len(approved)} approved ({len(active)} learning contributors, "
+        f"{len(exact_only)} exact-query-only successors), {len(records)} total records, "
         f"{len(current_numbers)} numbered, max #{max(current_numbers.values(), default=0)}, "
         f"{len(entries)} reviews, {len(exact_authority)} exact-answer authorities; "
         "canonical-main assignment immutability PASS"
