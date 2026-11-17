@@ -175,7 +175,7 @@ def test_provider_exhaustion_returns_registered_continuity_answer_and_doorway_to
     )
     doorway = registered_recovery_recommendation(query)
     assert result["response"].startswith("Communities preserve continuity")
-    assert len([p for p in result["response"].split("\\n\\n") if p.strip()]) == 3
+    assert len([p for p in result["response"].split("\n\n") if p.strip()]) == 3
     assert result["recommendation"] == doorway
     assert result["doorway_title"] == doorway["title"]
     assert result["doorway_url"] == doorway["url"]
