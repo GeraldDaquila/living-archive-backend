@@ -535,6 +535,72 @@ def test_public_predictive_gold_star_successor_is_exact_runtime_authority_and_pr
     assert standard["doorway_rationale"]
     assert standard["doorway_url"] == "https://geralddaquila.com/2026/06/16/ai-vs-human-stewardship-why-conscious-guidance-matters-more-than-ever/"
 
+def test_complex_future_prediction_is_reframed_into_scenarios_capacities_and_uncertainty():
+    import re
+    import main
+    from deterministic_answer_recovery import (
+        _complex_future_scenario_recovery, compose_recovery, has_registered_recovery,
+        is_complex_future_scenario_question, registered_recovery_recommendation,
+    )
+    query = (
+        "A user requests a definitive prediction about a complex future. "
+        "How should the Guide reframe the request toward scenarios, capacities, and uncertainty?"
+    )
+    answer = compose_recovery(query)
+    paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", answer) if part.strip()]
+    assert is_complex_future_scenario_question(query)
+    assert has_registered_recovery(query)
+    assert main._select_verified_doorway_conceptual_family(query) == "complex_future_scenario_planning"
+    assert len(paragraphs) == 3
+    assert answer == _complex_future_scenario_recovery()
+    assert "plausible ways this could unfold" in paragraphs[0]
+    assert "capacities" in paragraphs[1]
+    assert "observable signals" in paragraphs[2]
+    assert "preserve options where possible" in paragraphs[2]
+    assert not re.search(r"\bAI\b|artificial intelligence", answer, re.I)
+    assert registered_recovery_recommendation(query) == {
+        "title": "Sovereign Sensemaking Compass",
+        "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass/",
+        "rationale": (
+            "The Sovereign Sensemaking Compass offers an orientation framework for navigating uncertainty while retaining clarity and agency. "
+            "It is a useful next step for examining how to remain oriented and make responsible choices when no single forecast can settle the future; "
+            "it does not claim to predict specific outcomes."
+        ),
+    }
+
+
+def test_complex_future_scenario_contract_replaces_generic_provider_checklist():
+    from deterministic_answer_recovery import compose_recovery
+    from general_guide_composition import enforce_response_contracts
+    query = (
+        "A user requests a definitive prediction about a complex future. "
+        "How should the Guide reframe the request toward scenarios, capacities, and uncertainty?"
+    )
+    generic = (
+        "Start by defining the outcome the change must achieve, the responsibilities that cannot be lost, "
+        "and the people who will live with its consequences. Then compare realistic options.\n\n"
+        "Examine what each option makes possible, what it may damage, who bears the costs, and what evidence "
+        "would justify changing direction.\n\n"
+        "Choose deliberately, make the reasoning visible, and remain accountable for what follows. AI may "
+        "inform that work, but it cannot take responsibility away from the people who have the authority to make it."
+    )
+    expected = compose_recovery(query)
+    assert enforce_response_contracts(query, generic) == expected
+    assert enforce_response_contracts(query, expected) == expected
+
+
+def test_complex_future_scenario_classifier_does_not_capture_ordinary_uncertainty_or_routine_forecasts():
+    import main
+    from deterministic_answer_recovery import is_complex_future_scenario_question
+    for query in (
+        "How can I live with uncertainty when I do not know what comes next?",
+        "What is the relationship between complexity and uncertainty?",
+        "What will the weather be tomorrow?",
+    ):
+        assert not is_complex_future_scenario_question(query)
+        assert main._select_verified_doorway_conceptual_family(query) != "complex_future_scenario_planning"
+
+
 def test_oversoul_free_will_question_recovers_answer_and_canonical_doorway_across_routes():
     import main
     from deterministic_answer_recovery import (

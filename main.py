@@ -83,6 +83,7 @@ from deterministic_answer_recovery import (
     is_harm_repair_question,
     is_community_continuity_revision_question,
     is_oversoul_free_will_question,
+    is_complex_future_scenario_question,
 )
 from ai_workforce_restructuring_contract import (
     is_ai_workforce_restructuring_question,
@@ -334,6 +335,11 @@ def _select_verified_doorway_conceptual_family(query):
     ):
         return "reflective_conceptual_balance"
 
+    # Definitive prediction requests about complex futures require scenario,
+    # capacity, and uncertainty orientation before any doorway is selected.
+    if is_complex_future_scenario_question(text):
+        return "complex_future_scenario_planning"
+
     # Consequential action under uncertainty is a distinct sensemaking use case.
     # The visitor's wording must express all three elements; broad uncertainty
     # language alone is not sufficient to select this doorway.
@@ -391,6 +397,11 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "growth_within_living_limits": {
         "title": "ARC III: Growth doesn’t break systems. It reveals the limits of the structure holding them.",
         "url": "https://geralddaquila.com/arc-iii-growth-doesnt-break-systems-it-reveals-the-limits-of-the-structure-holding-them/",
+    },
+    "complex_future_scenario_planning": {
+        "title": "Sovereign Sensemaking Compass",
+        "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass/",
+        "rationale": "The Sovereign Sensemaking Compass offers an orientation framework for navigating uncertainty while retaining clarity and agency. It is a useful next step for examining how to remain oriented and make responsible choices when no single forecast can settle the future; it does not claim to predict specific outcomes.",
     },
     "consequential_action_under_uncertainty": {
         "title": "Sovereign Sensemaking Compass",
