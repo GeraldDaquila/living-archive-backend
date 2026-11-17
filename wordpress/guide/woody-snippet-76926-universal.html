@@ -678,6 +678,29 @@ body.page,
     min-width: 126px !important;
     min-height: 48px !important;
   }
+
+  /* Mobile reading hierarchy: preserve comfortable measure and legibility. */
+  .response-box {
+    margin-top: 14px !important;
+    padding: 20px 18px 22px !important;
+    border-radius: 16px !important;
+    font-size: 18px !important;
+    line-height: 1.68 !important;
+  }
+
+  #archive-response-text {
+    color: #333 !important;
+    font-size: clamp(17px, 4.5vw, 18px) !important;
+    line-height: 1.68 !important;
+  }
+
+  #archive-response-text p {
+    margin: 0 0 1.1em !important;
+  }
+
+  #archive-response-text p:last-child {
+    margin-bottom: 0 !important;
+  }
 }
 
 </style>
