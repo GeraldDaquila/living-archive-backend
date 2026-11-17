@@ -10,6 +10,7 @@ def main():
     js = read("wordpress/living-archive-answer-doorway-standard/assets/answer-doorway.js")
     css = read("wordpress/living-archive-answer-doorway-standard/assets/answer-doorway.css")
     spec = read("docs/architecture/LIVING_ARCHIVE_ANSWER_DOORWAY_STANDARD.md")
+    helper_php = read("wordpress/living-archive-answer-doorway-standard/living-archive-answer-doorway-standard.php")
 
     assert "https:" in js and "geralddaquila.com" in js
     assert "url.username" in js and "url.password" in js
@@ -53,9 +54,14 @@ def main():
     assert "la-answer-doorway-standard" in spe_php
     assert "la-answer-doorway-standard" in lan_php
     assert "la-answer-doorway-standard" in mini_api
-    assert "$safe_why[$id] = !empty($why_each[$id]) ? $why_each[$id] : '';" in spe_engine
-    assert "'reason' => ''," in spe_engine
-    assert "if (!isset($why_each[$id]) || $why_each[$id] === '') $why_each[$id] = '';" in lan_engine
+    assert "There is something here worth staying with." in spe_engine
+    assert "This gives you a concrete place to continue with the question you are carrying." in spe_engine
+    assert "This gives the question another place to go." in lan_engine
+    assert "add_filter('rest_post_dispatch', 'la_answer_doorway_filter_rest_response', 99, 3)" in helper_php
+    assert "la_answer_doorway_is_canonical_url" in helper_php
+    assert "la_answer_doorway_is_grounded_rationale" in helper_php
+    assert "'/stewardship/v1/pathway'" in helper_php
+    assert "'/living-archive/v1/navigate'" in helper_php
     assert "helper.renderMany(d,items)" in lan
     assert "innerHTML" not in lan
     assert "helper.renderMany(doorContainer, items)" in mini
