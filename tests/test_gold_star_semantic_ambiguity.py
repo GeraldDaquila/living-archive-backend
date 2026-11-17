@@ -2,7 +2,7 @@
 
 from general_guide_gold_standards import resolve_exact_gold_standard
 from gold_star_lessons import active_quality_contribution, select_lesson
-from general_guide_composition import _GENERAL_GUIDE_SYSTEM_COMPACT
+from general_guide_composition import _GENERAL_GUIDE_SYSTEM, _GENERAL_GUIDE_SYSTEM_COMPACT
 
 QUESTION = (
     "Two sources use the same term differently. "
@@ -56,3 +56,5 @@ def test_compact_composition_contract_is_question_first_and_subject_adaptive():
     assert "Treat every specialized section below as conditional" in prompt
     assert "SEMANTIC AMBIGUITY BEFORE ANSWERING" in prompt
     assert "Do not replace this task with generic decision, stewardship, or governance advice." in prompt
+    assert "QUESTION-FIRST, SUBJECT-ADAPTIVE COMPOSITION CONTRACT" in _GENERAL_GUIDE_SYSTEM
+    assert "SEMANTIC AMBIGUITY BEFORE ANSWERING" in _GENERAL_GUIDE_SYSTEM
