@@ -5662,11 +5662,11 @@ def _guide_finalize_visitor_payload(payload, query):
     # composition or deterministic recovery, so neither route can omit governance
     # obligations or drift to a merely adjacent destination.
     public_commons_terms = (
-        re.search(r"\\barchive\\b", str(query or ""), re.I)
-        and re.search(r"\\bpublic\\s+commons\\b", str(query or ""), re.I)
+        re.search(r"\barchive\b", str(query or ""), re.I)
+        and re.search(r"\bpublic\s+commons\b", str(query or ""), re.I)
         and all(re.search(pattern, str(query or ""), re.I) for pattern in (
-            r"\\baccess\\b", r"\\battribution\\b",
-            r"\\bdisagreement\\b", r"\\bstewardship\\b",
+            r"\baccess\b", r"\battribution\b",
+            r"\bdisagreement\b", r"\bstewardship\b",
         ))
     )
     if public_commons_terms:
