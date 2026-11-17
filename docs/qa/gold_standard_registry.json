@@ -5961,9 +5961,69 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user explicitly authorized Gold Star elevation but did not separately authorize allocation of a display serial. Preserve benchmark_id as the stable adaptive-learning identity; serial allocation remains independent."
+    },
+    {
+      "benchmark_id": "gs-2026-11-17-oversoul-free-will-influence-without-compulsion",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What power does the Oversoul have over a person’s choice without undermining free will?",
+      "expected_response": "There is no independently verifiable evidence that an Oversoul literally controls a person's choices. Within spiritual frameworks that use the idea, the Oversoul is more often treated as a wider source of orientation, meaning, or purpose than as an authority that dictates each decision. Its 'power' can therefore be understood as influence rather than compulsion: it may inform what a person notices, values, or feels called toward, without making a particular choice inevitable.\n\nThat distinction matters because a choice is still made through the person's lived awareness, judgment, relationships, and circumstances. A sense of deeper purpose may clarify possibilities or challenge familiar priorities, but the person must still interpret that experience and decide how to respond. They may accept it, question it, misunderstand it, or choose differently. The influence can be meaningful without replacing the work and responsibility of choosing.\n\nFree will does not require a person to be untouched by every influence; it requires that influence not be confused with coercive determination. In this interpretation, the Oversoul may orient or invite, while the person participates in shaping what happens through choices made within real conditions and limits. That is a spiritual reading of the relationship, not proof that an Oversoul exists, that every intuition comes from it, or that life outcomes are predetermined.",
+      "expected_doorway": {
+        "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
+        "url": "https://geralddaquila.com/oversoul-law",
+        "rationale": "This is the Archive's directly named Oversoul doorway for examining the question of spiritual jurisdiction. It is an invitation to inspect the Archive's own framework, not independent evidence that metaphysical claims are objectively established."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.7,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "Gold Star elevation explicitly approved by the user on 2026-11-17 after review of the full live visitor-facing response and its displayed canonical Oversoul doorway.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "spiritual_influence_without_coercion_epistemic_boundary",
+      "transferable_lesson": "When a spiritual or metaphysical framework is used to explain influence on human choice, distinguish orientation or invitation from coercive determination; preserve the person's role in interpreting experience and choosing; and state clearly which claims are framework-bound interpretations rather than independently verified facts.",
+      "transfer_boundary": "Do not assert that an Oversoul or other metaphysical entity objectively exists, controls choices, or determines outcomes. Do not treat intuition as proof of metaphysical communication, universalize one spiritual framework across traditions, or impose this reasoning family on ordinary questions about influence or free will without the visitor's spiritual premise. Transfer the distinction and epistemic discipline, never this answer text or its doorway.",
+      "known_theme": "Oversoul, spiritual agency, free will, influence versus compulsion, metaphysical claims, epistemic humility, personal responsibility",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "spiritual_influence_without_coercion_epistemic_boundary",
+        "transferable_discipline": "In spiritual questions about agency, distinguish influence from coercion; preserve human interpretation and responsibility for choice; and mark metaphysical explanations as interpretations within a framework, not independently verified facts.",
+        "abstention_boundary": "Do not affirm the metaphysical premise as fact, claim that intuition proves an Oversoul's action, or generalize the answer to other traditions or unrelated free-will questions. Do not reuse the approved wording or doorway."
+      },
+      "assertions": [
+        "Answer the visitor's exact question about the Oversoul's power without undermining free will; do not introduce unrelated subjects.",
+        "Paragraph one distinguishes influence from compulsion and explicitly marks the Oversoul claim as lacking independent verification.",
+        "Paragraph two preserves the person's lived awareness, judgment, relationships, circumstances, and responsibility to interpret and choose; include the possibility of accepting, questioning, misunderstanding, or choosing differently.",
+        "Paragraph three explains why free will need not mean freedom from all influence, while distinguishing orientation or invitation from coercive determination.",
+        "Close by marking the explanation as a spiritual interpretation, not proof that an Oversoul exists, that every intuition comes from it, or that outcomes are predetermined.",
+        "Keep exactly three substantive paragraphs with distinct functions; do not repeat the opening evidence boundary in place of explaining agency.",
+        "Preserve the directly named Eternal / Oversoul Law – The Immutable Jurisdiction doorway and its rationale as a separate continuation, not as evidence that the metaphysical claims are true.",
+        "Do not introduce AI, generic governance, or unrelated technology framing."
+      ],
+      "user_approved_at": "2026-11-17",
+      "elevation_approval_evidence": "The user reviewed the full live visitor-facing screenshot showing the exact question, complete three-paragraph answer, and displayed Eternal / Oversoul Law – The Immutable Jurisdiction doorway, then explicitly approved: “I approve and elevate this to gold star.”",
+      "provenance": {
+        "source": "user_reviewed_live_visitor_response_screenshot",
+        "source_date": "2026-11-17",
+        "evidence_boundary": "The user-provided full-screen screenshot establishes the exact visitor question, the complete three-paragraph answer, and the displayed doorway title, URL label, and rationale. The canonical destination URL and the exact answer's provider/deterministic route parity are independently grounded in merged PR #1600 and its regression tests. The screenshot does not establish the original generation provider.",
+        "source_pr": "PR #1600",
+        "doorway_verification": {
+          "source": "Merged repository canonical doorway contract and user-reviewed live visitor screenshot",
+          "canonical_title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
+          "canonical_url": "https://geralddaquila.com/oversoul-law",
+          "verification_date": "2026-11-17",
+          "conceptual_fit": "The Archive's directly named Oversoul Law doorway is the natural continuation for examining spiritual jurisdiction. Its role is to expose the Archive's own framework for inspection, not to establish metaphysical claims as objective fact."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve the benchmark_id as the stable learning identity; serial allocation remains independent."
     }
   ],
-  "last_reconciliation_note": "2026-11-17: Elevated gs-2026-11-17-ai-workforce-restructuring-successor-candidate to USER_APPROVED_GOLD_STANDARD after explicit user approval of the exact live answer and verified Agentic Systems and the End of Passive Labor doorway. The predecessor remains preserved as a distinct approved structural-learning exemplar; no serial was allocated.",
+  "last_reconciliation_note": "Added user-approved Oversoul/free-will Gold Star exemplar on 2026-11-17. Exact response and canonical doorway are frozen; transfer is limited to spiritual influence versus coercion and epistemic boundary discipline. No serial allocation. Existing Gold Star successors and complex-future scenario readiness are preserved.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -6093,13 +6153,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-17",
-    "approved_gold_star_count": 92,
-    "registry_record_count": 129,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 92 approved Gold Stars across 129 registry records. The complex-future scenario-readiness exemplar is an active exact-answer and structural-learning contributor, with its approved deterministic recovery and verified Sovereign Sensemaking Compass doorway preserved. It remains unnumbered because serial allocation was not separately requested. Existing AI-workforce and public-predictive successor governance remains unchanged.",
+    "approved_gold_star_count": 93,
+    "registry_record_count": 130,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 93 approved Gold Stars across 130 registry records. The complex-future scenario-readiness and Oversoul/free-will exemplars are active structural-learning contributors. The Oversoul exemplar's deterministic fallback eligibility remains false because its bounded recovery contract independently owns exact answer recovery. No display serial was allocated; prior exact-query successor governance remains unchanged.",
     "numbered_gold_star_record_count": 35,
     "highest_assigned_gold_star_number": 92,
-    "numbering_reconciliation": "Record-level reconciliation: 92 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 57 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
-    "unassigned_approved_gold_star_count": 57,
+    "numbering_reconciliation": "Record-level reconciliation: 93 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 58 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
+    "unassigned_approved_gold_star_count": 58,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {
