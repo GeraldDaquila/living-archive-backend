@@ -83,8 +83,11 @@ def test_public_commons_governance_question_selects_knowledge_sensemaking_doorwa
 
     result = main._guide_restore_verified_doorway({"response": "answer"}, query)
     assert result["recommendation"] == {
-        "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
-        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+        "title": "Knowledge Stewardship in the AI Era: From Information to Wisdom",
+        "url": "https://geralddaquila.com/2026/09/14/knowledge-stewardship-in-the-ai-era-from-information-to-wisdom/",
+        "rationale": (
+            "This Archive essay includes a section on knowledge as a commons and explains why shared knowledge depends on responsible preservation, interpretation, transparency, accountability, and thoughtful participation. It is a direct continuation into the stewardship of the knowledge conditions the Guide must help preserve."
+        ),
     }
     assert result["doorway_title"] == result["recommendation"]["title"]
     assert result["doorway_url"] == result["recommendation"]["url"]
