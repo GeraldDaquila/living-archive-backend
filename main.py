@@ -5601,11 +5601,17 @@ def _guide_finalize_visitor_payload(payload, query):
                 # question-grounded canonical continuation; if none is
                 # available, use the broad Compass doorway. Omission is
                 # reserved for an explicit, reviewed forbids_doorway exception.
-                try:
-                    fallback_candidate = _select_guide_node_fallback_doorway(query)
-                except Exception:
-                    fallback_candidate = None
-                fallback_doorway = _normalize_authoritative_recommendation(fallback_candidate)
+                # Preserve an independently selected canonical doorway
+                # before asking the registry for a new fallback.
+                fallback_doorway = _normalize_authoritative_recommendation(
+                    safe.get("recommendation")
+                )
+                if not fallback_doorway:
+                    try:
+                        fallback_candidate = _select_guide_node_fallback_doorway(query)
+                    except Exception:
+                        fallback_candidate = None
+                    fallback_doorway = _normalize_authoritative_recommendation(fallback_candidate)
                 if not fallback_doorway:
                     fallback_doorway = _normalize_authoritative_recommendation(_gold_star_default_doorway())
                 safe["recommendation"] = fallback_doorway
@@ -11945,12 +11951,21 @@ def _apply_exact_gold_standard_authority_to_payload(payload):
             # by default. Resolve a question-specific canonical resource first,
             # then use the broad Compass continuation; only a reasoned
             # no-doorway exception may omit it.
+            # Preserve the separately selected canonical continuation first.
+            # Gold Star metadata may leave its doorway blank without forbidding
+            # the independent navigation result already attached to this payload.
             try:
-                candidate = _select_guide_node_fallback_doorway(query)
+                candidate = _normalize_authoritative_recommendation(payload.get("recommendation"))
             except Exception:
                 candidate = None
+            if not candidate:
+                try:
+                    selected = _select_guide_node_fallback_doorway(query)
+                except Exception:
+                    selected = None
+                candidate = _normalize_authoritative_recommendation(selected)
             doorway = (
-                _normalize_authoritative_recommendation(candidate)
+                candidate
                 or _normalize_authoritative_recommendation(_gold_star_default_doorway())
             )
             payload["recommendation"] = doorway
