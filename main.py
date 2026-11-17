@@ -11223,7 +11223,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     if (
         not authoritative_doorway
         and not _is_practical_stewardship_question(query)
-        and not re.search(r"\\b(?:practice|practicing)\\s+stewardship\\b", query, re.I)
+        and not re.search(r"\b(?:practice|practicing)\s+stewardship\b", query, re.I)
         and not (
             _final_gold_standard is not None
             and bool(_final_gold_standard.get("forbids_doorway"))
