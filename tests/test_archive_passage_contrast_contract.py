@@ -6,6 +6,7 @@ from general_guide_composition import (
     _has_archive_passage_contrast_structure,
     _requires_archive_passage_contrast,
     archive_passage_contrast_recovery_from_context,
+    is_preserved_archive_passage_contrast_recovery,
 )
 
 QUESTION = (
@@ -114,6 +115,27 @@ def test_terminal_provider_exhaustion_states_evidence_limit_instead_of_generic_f
     assert "I couldn't produce a reliable answer" not in recovered["response"]
 
 
+def test_final_boundary_preserves_already_validated_deterministic_recovery_without_context():
+    recovered = _archive_passage_contrast_recovery(QUESTION, SOURCES)
+    assert recovered is not None
+    assert is_preserved_archive_passage_contrast_recovery(recovered)
+
+
+def test_final_boundary_does_not_trust_provider_generated_passage_markup():
+    recovered = _archive_passage_contrast_recovery(QUESTION, SOURCES)
+    recovered["provider"] = "external_provider"
+    assert not is_preserved_archive_passage_contrast_recovery(recovered)
+
+
+def test_final_boundary_rejects_duplicate_passage_urls_even_with_two_labels():
+    recovered = _archive_passage_contrast_recovery(QUESTION, SOURCES)
+    recovered["response"] = recovered["response"].replace(
+        "https://geralddaquila.com/beta/",
+        "https://geralddaquila.com/alpha/",
+    )
+    assert not is_preserved_archive_passage_contrast_recovery(recovered)
+
+
 def test_provider_exhaustion_recovery_preserves_both_sources_without_premature_synthesis():
     recovered = _archive_passage_contrast_recovery(QUESTION, SOURCES)
     assert recovered is not None
@@ -148,7 +170,11 @@ def test_final_visitor_boundary_enforces_passage_contrast_after_route_dispatch()
     assert len(boundary_functions) == 1
     boundary = boundary_functions[0]
     assert "archive_passage_contrast_recovery_from_context" in boundary
-    assert 'final_visitor_boundary_archive_passage_contrast' in boundary
+    assert "is_preserved_archive_passage_contrast_recovery" in boundary
+    assert 'final_visitor_boundary_archive_passage_contrast_preserved' in boundary
+    assert boundary.index("is_preserved_archive_passage_contrast_recovery") < boundary.index(
+        "archive_passage_contrast_recovery_from_context"
+    )
     assert boundary.index("archive_passage_contrast_recovery_from_context") < boundary.index(
         "is_comparative_traditions_question"
     )
