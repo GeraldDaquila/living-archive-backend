@@ -6,7 +6,7 @@ import deterministic_answer_recovery as recovery
 def test_hope_question_does_not_fall_through_to_generic_decision_template():
     question = "How can hope be disciplined rather than naïve?"
     answer = recovery.compose_recovery(question)
-    paragraphs = answer.split("\\n\\n")
+    paragraphs = answer.split("\n\n")
 
     assert len(paragraphs) == 3
     assert paragraphs[0].startswith("Hope can be disciplined without becoming naïve")
@@ -16,11 +16,11 @@ def test_hope_question_does_not_fall_through_to_generic_decision_template():
 
 
 def test_reflective_conceptual_recovery_generalizes_beyond_hope():
-    question = "How can confidence remain grounded without becoming arrogance?"
+    question = "How can conviction remain firm without becoming rigid?"
     answer = recovery.compose_recovery(question)
 
-    assert answer.startswith("Confidence can be grounded without becoming arrogance")
-    assert len(answer.split("\\n\\n")) == 3
+    assert answer.startswith("Conviction can remain firm without becoming rigid")
+    assert len(answer.split("\n\n")) == 3
     assert "Start by defining the outcome" not in answer
 
 
