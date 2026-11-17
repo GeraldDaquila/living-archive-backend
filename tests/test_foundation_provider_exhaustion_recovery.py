@@ -33,7 +33,7 @@ class FoundationProviderExhaustionRecoveryTests(unittest.TestCase):
         self.assertIn("connected body of essays", result["response"])
         self.assertIn("finding your bearings", result["response"])
         self.assertIn("Recover, Remember, Apply, and Refine", result["response"])
-        self.assertEqual(len(result["response"].split("\\n\\n")), 3)
+        self.assertEqual(len(result["response"].split("\n\n")), 3)
         self.assertEqual(result["doorway_title"], "")
         self.assertIsNone(result["recommendation"])
         provider_recovery.assert_not_called()
@@ -86,7 +86,7 @@ class FoundationProviderExhaustionRecoveryTests(unittest.TestCase):
 
         answer = result["response"]
         self.assertEqual(result["provider"], "bounded_provider_exhaustion_recovery")
-        self.assertEqual(len(answer.split("\\n\\n")), 3)
+        self.assertEqual(len(answer.split("\n\n")), 3)
         self.assertTrue(answer.startswith("Hope can be disciplined"))
         self.assertIn("uncertainty", answer.casefold())
         self.assertNotIn("Start by defining the outcome", answer)
@@ -126,4 +126,4 @@ def test_algorithmic_bias_question_uses_mechanism_first_recovery():
     assert "ranking system" in lowered
     assert "feedback loops" in lowered
     assert "not mean an algorithm is always the original cause" in lowered
-    assert answer.count("\\n\\n") == 2
+    assert answer.count("\n\n") == 2
