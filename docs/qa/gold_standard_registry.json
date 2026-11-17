@@ -6559,7 +6559,8 @@
       },
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent."
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent.",
+      "rating_out_of_10": 9.6
     }
   ],
   "last_reconciliation_note": "2026-11-18: Added the semantic-ambiguity Gold Star. Inventory now reconciles to 102 approved records across 139 registry records; 100 active quality contributors, 38 numbered, 64 unassigned. No display serial allocated.",
