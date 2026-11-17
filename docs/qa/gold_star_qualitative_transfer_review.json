@@ -843,6 +843,15 @@
       "qualifying_context": "Questions about a public knowledge commons, access to shared materials, attribution, source provenance, synthesis across texts, disagreement among sources, or stewardship of shared knowledge.",
       "abstention_boundary": "Do not equate public-commons status with unrestricted access or reproduction, expose protected material, erase authorship, present synthesis as a source claim, force consensus, or transfer this exemplar's exact answer or doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-community-project-economic-dimensions-gold-star-2026-11-18",
+      "question": "A community project reports its financial return and the number of volunteer hours but not who benefits or what common resources are maintained. What additional economic dimensions should the Guide surface?",
+      "reasoning_family": "community_project_economic_accounting_and_shared_resource_stewardship",
+      "transferable_discipline": "Make economic accounting distributional and lifecycle-aware: identify who benefits and who holds decision power, whose paid and unpaid labor and opportunity costs are counted, who bears externalized costs, what shared assets and ecological conditions require maintenance, and whether local value and capabilities endure.",
+      "qualifying_context": "Questions evaluating the economic contribution or viability of community projects, cooperatives, volunteer initiatives, or shared-resource arrangements where financial returns and labor totals omit distribution, common-resource stewardship, lifecycle costs, or long-term local value.",
+      "abstention_boundary": "Do not infer project-specific outcomes or fairness without evidence. Do not reduce economic contribution to money or volunteer hours, but also do not assume that all shared resources, ecological effects, or externalized costs are present in every project. Transfer the accounting discipline, never this answer text or its Local Resilience Economies doorway.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
