@@ -25,7 +25,9 @@ for (const url of [
   'https://geralddaquila.com:8443/systems-structure/',
   'https://geralddaquila.com/systems-structure/?next=https://evil.example/',
   'https://geralddaquila.com/systems-structure/#fragment',
-  'javascript:alert(1)'
+  'javascript:alert(1)',
+  'ftp://geralddaquila.com/resource/',
+  'https://geralddaquila.com:444/resource/'
 ]) {
   assert.equal(doorway.normalizeUrl(url), null, 'must reject ' + url);
 }
