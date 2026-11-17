@@ -651,6 +651,28 @@ def _algorithmic_amplification_recovery():
     )
 
 
+def is_community_continuity_revision_question(question):
+    """Recognize questions balancing intergenerational continuity with repair of inherited harm."""
+    q = _clean(question).casefold()
+    return bool(
+        re.search(r"^\s*how can\b", q)
+        and re.search(r"\b(?:community|communities|institution|institutions|group|groups)\b", q)
+        and re.search(r"\b(?:preserve|maintain|carry forward|sustain)\b.{0,80}\bcontinuity\b", q)
+        and re.search(r"\b(?:while|as|when)\b.{0,100}\b(?:revis|chang|reform|renew|transform)\w*\b", q)
+        and re.search(r"\b(?:harmful|unjust|exclusionary|oppressive|discriminatory)\b", q)
+        and re.search(r"\b(?:inherited|traditional|customary|historical)\b", q)
+    )
+
+
+def _community_continuity_revision_recovery():
+    """Explain how continuity can survive principled revision of inherited harm."""
+    return (
+        "Communities preserve continuity by distinguishing the inheritance they want to carry forward from practices that have survived mainly through repetition. Shared memory, language, relationships, place, and commitments can remain sources of belonging even when rules, customs, or arrangements of power that cause harm are changed. Continuity does not require every inherited form to remain untouched.\n\n"
+        "That distinction should be made with the people who live with the effects. A community can examine a practice's history and original purpose, hear from those harmed or excluded, identify what value it once served, and decide what should be retained, transformed, or ended. This avoids two errors: romanticizing the past as if inheritance made every practice legitimate, and treating everything inherited as disposable without understanding what it has carried.\n\n"
+        "Continuity is measured not by whether old forms remain unchanged, but by whether the community can carry forward what is worth preserving while becoming more just and capable of correction. Record why changes are made, preserve the knowledge and relationships that matter, assign responsibility for reviewing their effects, and revisit decisions as evidence and lived experience develop."
+    )
+
+
 def _reflective_conceptual_recovery(question):
     """Keep reflective how-questions on conceptual tension, not action planning."""
     q = _clean(question)
@@ -1025,6 +1047,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "AI may inform that work, but it cannot take responsibility for the decision away from the people who have the authority to make it. "
             "A defensible decision makes its criteria visible, protects rights and dignity, assigns accountability for errors, and reviews actual outcomes rather than treating projected efficiency as proof of success."
         )
+    elif is_community_continuity_revision_question(q):
+        answer = _community_continuity_revision_recovery()
     elif (reflective_answer := _reflective_conceptual_recovery(q)) is not None:
         answer = reflective_answer
     elif (
