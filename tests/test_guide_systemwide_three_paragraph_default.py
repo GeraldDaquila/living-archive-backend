@@ -303,3 +303,15 @@ def test_community_project_tradeoff_provider_prompt_requires_all_four_dimensions
     assert source.count("COMMUNITY PROJECT TRADE-OFF QUESTIONS:") == 2
     for term in ("ecological effects", "economic effects", "cultural effects", "governance", "no project", "residual costs", "monitoring"):
         assert term in source
+
+
+def test_community_project_tradeoff_provider_and_deterministic_doorways_share_one_canonical_destination():
+    import main
+
+    query = "A community is divided over a renewable-energy project. What questions reveal ecological, economic, cultural, and governance trade-offs?"
+    assert main._select_verified_doorway_conceptual_family(query) == "community_project_tradeoffs"
+    doorway = main._VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS["community_project_tradeoffs"]
+    fallback_doorway = main._select_guide_node_fallback_doorway(query)
+    assert doorway == fallback_doorway
+    assert doorway["title"] == "Local Resilience Economies"
+    assert "does not assess this particular renewable-energy proposal" in doorway["rationale"]
