@@ -1488,12 +1488,12 @@ def _care_and_commons_economic_recognition_recovery() -> str:
 def _requires_community_project_economic_dimensions(query: str) -> bool:
     """Recognize community-project questions whose accounting omits distribution or shared assets."""
     q = _normalize_space(query).casefold()
-    community = bool(re.search(r"\\b(?:community|communities|local|neighborhood)\\b", q))
-    project = bool(re.search(r"\\b(?:project|initiative|program|programme|development)\\b", q))
-    economic = bool(re.search(r"\\b(?:economic|economics|financial|return|revenue|volunteer|benefit|benefits|cost|costs)\\w*\\b", q))
+    community = bool(re.search(r"\b(?:community|communities|local|neighborhood)\b", q))
+    project = bool(re.search(r"\b(?:project|initiative|program|programme|development)\b", q))
+    economic = bool(re.search(r"\b(?:economic|economics|financial|return|revenue|volunteer|benefit|benefits|cost|costs)\w*\b", q))
     missing_dimensions = bool(re.search(
-        r"\\b(?:who benefits|who benefit|distribution|common resources?|shared resources?|commons?|maint(?:ain|enance)|"
-        r"unpaid work|volunteer hours|financial return|economic dimensions|wider value|long[- ]term costs?)\\b",
+        r"\b(?:who benefits|who benefit|distribution|common resources?|shared resources?|commons?|maint(?:ain|enance)|"
+        r"unpaid work|volunteer hours|financial return|economic dimensions|wider value|long[- ]term costs?)\b",
         q,
     ))
     return community and project and economic and missing_dimensions
@@ -1501,24 +1501,24 @@ def _requires_community_project_economic_dimensions(query: str) -> bool:
 
 def _has_community_project_economic_dimensions_explanation(response: str) -> bool:
     """Require distribution, sustaining costs/assets, and long-horizon accountability."""
-    paragraphs = [p.strip() for p in re.split(r"\\n\\s*\\n+", str(response or "")) if p.strip()]
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
     if len(paragraphs) != 3:
         return False
     first, second, third = paragraphs
     return (
-        bool(re.search(r"\\b(?:benefit|benefits|distribution|who gains|who benefits)\\b", first, re.I))
-        and bool(re.search(r"\\b(?:cost|costs|volunteer|unpaid|labor|work)\\b", second, re.I))
-        and bool(re.search(r"\\b(?:maintenance|maintain|shared resources|common resources|commons|assets)\\b", second, re.I))
-        and bool(re.search(r"\\b(?:long[- ]term|over time|lifecycle|future|renew|regenerat)\\b", third, re.I))
-        and bool(re.search(r"\\b(?:account|measure|track|review|responsib|benefit)\\w*\\b", third, re.I))
+        bool(re.search(r"\b(?:benefit|benefits|distribution|who gains|who benefits)\b", first, re.I))
+        and bool(re.search(r"\b(?:cost|costs|volunteer|unpaid|labor|work)\b", second, re.I))
+        and bool(re.search(r"\b(?:maintenance|maintain|shared resources|common resources|commons|assets)\b", second, re.I))
+        and bool(re.search(r"\b(?:long[- ]term|over time|lifecycle|future|renew|regenerat)\b", third, re.I))
+        and bool(re.search(r"\b(?:account|measure|track|review|responsib|benefit)\w*\b", third, re.I))
     )
 
 
 def _community_project_economic_dimensions_recovery() -> str:
     """Surface the wider economic account without pretending to know project-specific facts."""
     return (
-        "A community project's economic contribution should be assessed beyond its financial return and the number of volunteer hours recorded. The first additional dimension is distribution: who receives the project's benefits, who can use what it creates, who makes the consequential decisions, and whether value reaches the people and places carrying the work. An aggregate return can look positive while benefits are concentrated elsewhere or important costs remain uncounted.\\n\\n"
-        "The account should also include the resources and labor required to keep the project functioning. That means the time and opportunity costs of volunteer work, paid and unpaid coordination, upkeep and eventual replacement of shared assets, land and ecological effects, and costs transferred to households, public services, or neighboring communities. Common resources are not simply a contribution at the beginning; their condition, access, maintenance responsibility, and future availability are part of the project's economic performance.\\n\\n"
+        "A community project's economic contribution should be assessed beyond its financial return and the number of volunteer hours recorded. The first additional dimension is distribution: who receives the project's benefits, who can use what it creates, who makes the consequential decisions, and whether value reaches the people and places carrying the work. An aggregate return can look positive while benefits are concentrated elsewhere or important costs remain uncounted.\n\n"
+        "The account should also include the resources and labor required to keep the project functioning. That means the time and opportunity costs of volunteer work, paid and unpaid coordination, upkeep and eventual replacement of shared assets, land and ecological effects, and costs transferred to households, public services, or neighboring communities. Common resources are not simply a contribution at the beginning; their condition, access, maintenance responsibility, and future availability are part of the project's economic performance.\n\n"
         "Finally, examine how much value remains locally, whether the project builds durable skills and relationships, what dependencies it creates, and whether its benefits continue after initial funding or volunteer energy declines. A stronger account tracks who benefits and who bears costs across the project's life, the condition of the shared resources it depends on, and who is responsible for reviewing and correcting the arrangement. These are dimensions to investigate, not conclusions about this particular project."
     )
 
