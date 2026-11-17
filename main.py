@@ -304,7 +304,7 @@ def _select_verified_doorway_conceptual_family(query):
     # system, and a constitutional or human-rights adoption boundary.
     if (
         re.search(r"\b(?:government|public services?|public sector|state|municipal|city government|agency)\b", text, re.I)
-        and re.search(r"\b(?:predictive system|predictive model|algorithmic system|automated decision|ai system|automated system)\b", text, re.I)
+        and re.search(r"\b(?:predictive system|predictive model|algorithmic system|automated decision(?:[- ]making)?|ai system|automated system|automated (?:eligibility|benefit|risk|screening|assessment|scoring) (?:model|system|tool)|algorithmic (?:eligibility|risk|screening|assessment|scoring)|risk[- ]scoring (?:model|system|tool)|machine[- ]learning model)\b", text, re.I)
         and re.search(r"\b(?:constitutional|rights?|due process|human questions?|human consequences?|dignity|adoption|precede)\b", text, re.I)
     ):
         return "public_predictive_systems"
@@ -451,6 +451,17 @@ def _select_reflective_balance_doorway(query):
             "rationale": rationale,
         })
     return None
+
+
+def _public_predictive_system_family_doorway(query):
+    """Return the one verified public-predictive doorway for this question family."""
+    if _select_verified_doorway_conceptual_family(query) != "public_predictive_systems":
+        return None
+    candidate = _select_guide_node_fallback_doorway(query)
+    doorway = _normalize_authoritative_recommendation(candidate)
+    if not doorway or not doorway.get("rationale"):
+        return None
+    return doorway
 
 
 def _verified_archive_doorway_fallback(query, docs, profile):
@@ -10100,6 +10111,22 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "The Guide general-knowledge boundary: answered a registered stable fact "
             "without Archive attribution or an unsupported doorway; "
             f"fact_id={general_knowledge_recovery['fact_id']}."
+        )
+
+    # Public predictive systems have a question-family-owned continuation.
+    # This verified doorway outranks generic retrieval candidates: an adjacent
+    # governance essay must not displace the resource that directly frames human
+    # stewardship, ethical judgment, oversight, agency, and accountability.
+    _public_predictive_doorway = _public_predictive_system_family_doorway(query)
+    if _public_predictive_doorway:
+        authoritative_doorway = _public_predictive_doorway
+        composition_context["authoritative_doorway"] = _public_predictive_doorway
+        composition_context["authoritative_doorway_title"] = (
+            _public_predictive_doorway.get("title") or ""
+        )
+        print(
+            "The Guide conceptual navigation: public-predictive family doorway "
+            "takes precedence over generic retrieval selection."
         )
 
     # If conceptual retrieval missed the answer and ordinary selection found no
