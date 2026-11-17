@@ -1,6 +1,5 @@
 """Contract for the shared Answer + Doorway mobile reading hierarchy."""
 from pathlib import Path
-import re
 import unittest
 
 
@@ -18,28 +17,24 @@ PLUGIN_PHP = (
 
 class AnswerDoorwayMobilePresentationTests(unittest.TestCase):
     def test_shared_doorway_has_readable_mobile_type_scale(self):
-        self.assertRegex(DOORWAY_CSS, r"@media\s*\(max-width:\s*700px\)")
-        self.assertRegex(DOORWAY_CSS, r"\.la-answer-doorway__label\s*\{[^}]*font-size:\s*11px")
-        self.assertRegex(DOORWAY_CSS, r"\.la-answer-doorway__rationale\s*\{[^}]*font-size:\s*14px")
-        self.assertRegex(DOORWAY_CSS, r"\.la-answer-doorway__link\s*\{[^}]*font-size:\s*16px")
+        self.assertIn("@media (max-width: 700px)", DOORWAY_CSS)
+        self.assertIn("font-size: 12.5px !important", DOORWAY_CSS)
+        self.assertIn("font-size: 15.5px !important", DOORWAY_CSS)
+        self.assertIn("font-size: 17.5px !important", DOORWAY_CSS)
         self.assertIn("focus-visible", DOORWAY_CSS)
 
-    def test_guide_mobile_answer_is_not_shrunk_by_global_layout(self):
-        mobile = re.search(
-            r"@media\s*\(max-width:\s*700px\)\s*\{(.*?)\n\}",
-            GUIDE_SNIPPET,
-            re.S,
-        )
-        self.assertIsNotNone(mobile)
-        css = mobile.group(1)
-        self.assertIn(".response-box", css)
-        self.assertIn("padding: 20px 18px 22px", css)
-        self.assertRegex(css, r"#archive-response-text\s*\{[^}]*font-size:\s*clamp\(17px")
-        self.assertRegex(css, r"#archive-response-text\s*\{[^}]*line-height:\s*1\.68")
+    def test_guide_mobile_answer_has_readable_type_and_paragraph_rhythm(self):
+        self.assertIn("@media (max-width: 700px)", GUIDE_SNIPPET)
+        self.assertIn('.archive-stage-wrapper[data-guide-instance="woody"] .response-box', GUIDE_SNIPPET)
+        self.assertIn("padding: 22px 20px 24px !important", GUIDE_SNIPPET)
+        self.assertIn('.archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text', GUIDE_SNIPPET)
+        self.assertIn("font-size: 20px !important", GUIDE_SNIPPET)
+        self.assertIn("line-height: 1.7 !important", GUIDE_SNIPPET)
+        self.assertIn("margin-bottom: 1.15em !important", GUIDE_SNIPPET)
 
     def test_shared_asset_version_is_bumped_for_cache_refresh(self):
-        self.assertIn("Version: 1.0.2", PLUGIN_PHP)
-        self.assertIn("LA_ANSWER_DOORWAY_VERSION', '1.0.2'", PLUGIN_PHP)
+        self.assertIn("Version: 1.0.3", PLUGIN_PHP)
+        self.assertIn("LA_ANSWER_DOORWAY_VERSION', '1.0.3'", PLUGIN_PHP)
 
 
 if __name__ == "__main__":
