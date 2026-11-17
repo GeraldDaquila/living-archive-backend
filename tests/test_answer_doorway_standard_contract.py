@@ -61,6 +61,9 @@ def main():
     assert "helper.normalize(recommendation)" in guide_controller
     assert "helper.render(staging, normalized)" in guide_controller
     assert "link.href = url" not in guide_controller
+    assert "sanitizeMarkdown(renderedAnswer)" in guide_controller
+    assert "sanitizeMarkdown(html)" in guide
+    assert "text.innerHTML=renderAnswer(answer)" not in guide
     assert "is_canonical_archive_url" in fsd_contract
     assert "parsed.username is None" in fsd_contract
     assert "not parsed.query" in fsd_contract
