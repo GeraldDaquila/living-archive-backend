@@ -120,3 +120,18 @@ def test_transformation_inquiry_gold_star_doorway_policy():
 
     assert not main._eligible_outward_doc(query, irrelevant, profile)
     assert main._eligible_outward_doc(query, direct, profile)
+
+
+def test_complete_gold_standard_doorway_preserves_registry_authored_rationale():
+    standard = {
+        "doorway_title": "Systems, Governance, and Organizational Design",
+        "doorway_url": "https://geralddaquila.com/systems-structure/",
+        "doorway_rationale": "This hub explains how structures and incentives shape durable system behavior.",
+        "forbids_doorway": False,
+    }
+    result = main._apply_registered_gold_standard_doorway(None, standard)
+    assert result == {
+        "title": "Systems, Governance, and Organizational Design",
+        "url": "https://geralddaquila.com/systems-structure/",
+        "rationale": "This hub explains how structures and incentives shape durable system behavior.",
+    }
