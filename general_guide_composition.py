@@ -1869,6 +1869,60 @@ def _systems_vs_separate_problems_recovery() -> str:
     "The practical test is whether understanding the connections explains more than a list of isolated issues would. Ask what depends on what, which effects return to influence their causes, and what conditions keep the pattern going. Not every cluster of problems is one system; the relationships must be evidenced rather than assumed. The Guide should explain this distinction first. A diagnostic tool such as FSD can be offered afterward if you want to map a specific real-world pattern, but it should not replace the answer to the conceptual question.")
 
 
+def _requires_archive_passage_contrast(query: str) -> bool:
+    """Recognize explicit requests to compare distinct Archive passages before synthesis."""
+    q = _normalize_space(query).casefold()
+    asks_two_passages = bool(re.search(
+        r"\b(?:two|2|multiple)\b.{0,100}\b(?:archive )?passages?\b|\bpassages?\b.{0,100}\b(?:two|2)\b",
+        q,
+    ))
+    asks_contrast = bool(re.search(
+        r"\b(?:disagree|differ|contrast|different emphasis|opposing emphasis|tension|diverge)\w*\b",
+        q,
+    ))
+    asks_representation = bool(re.search(
+        r"\b(?:represent|present|describe|portray|summari[sz]e)\w*\b",
+        q,
+    ))
+    return asks_two_passages and asks_contrast and asks_representation
+
+
+def _archive_passage_sources(documents: List[Dict[str, Any]]) -> List[Dict[str, str]]:
+    """Return two distinct, usable canonical passages; never infer missing source text."""
+    selected = []
+    seen = set()
+    for item in documents or []:
+        if not isinstance(item, dict):
+            continue
+        title = _normalize_space(item.get("title"))
+        url = _normalize_space(item.get("url") or item.get("canonical_url"))
+        excerpt = _normalize_space(item.get("text") or item.get("content") or item.get("excerpt"))
+        if not title or not url.startswith("https://geralddaquila.com/") or len(excerpt) < 80:
+            continue
+        identity = (title.casefold(), url.casefold())
+        if identity in seen:
+            continue
+        seen.add(identity)
+        selected.append({"title": title, "url": url, "excerpt": excerpt})
+        if len(selected) == 2:
+            break
+    return selected
+
+
+def _has_archive_passage_contrast_structure(query: str, response: str, documents: List[Dict[str, Any]]) -> bool:
+    """Require two independently represented sources before any synthesis."""
+    if not _requires_archive_passage_contrast(query):
+        return True
+    sources = _archive_passage_sources(documents)
+    if len(sources) < 2:
+        return False
+    text = str(response or "").casefold()
+    title_coverage = all(source["title"].casefold() in text for source in sources)
+    source_labels = len(re.findall(r"(?im)^\s*(?:passage|source)\s*(?:one|1|two|2)\b", str(response or ""))) >= 2
+    synthesis_late = bool(re.search(r"(?i)\b(?:only after|after representing|then synthesi[sz]e|before synthesizing)\b", response))
+    return title_coverage and source_labels and synthesis_late
+
+
 def _requires_method_comparison(query: str) -> bool:
     """Recognize questions comparing distinct methods of inquiry or understanding."""
     q = _normalize_space(query).casefold()
@@ -2109,6 +2163,13 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
         # distinct traditions, or retreats into an Archive-verification non-answer.
         # Reject at the shared provider parser so the Provider Bank can retry;
         # the deterministic recovery below is the governed exhaustion path.
+        if _requires_archive_passage_contrast(query):
+            sources = _archive_passage_sources(documents)
+            if len(sources) < 2:
+                raise ValueError("Archive passage comparison requires two distinct canonical passages with substantive excerpts")
+            if not _has_archive_passage_contrast_structure(query, response, documents):
+                raise ValueError("represent both retrieved Archive passages independently by title before identifying their difference and attempting synthesis")
+
         if _comparative_traditions_contract.response_requires_quality_repair(query, response):
             raise ValueError(
                 "comparative-traditions answer must preserve each tradition's own terms, "
@@ -3764,9 +3825,15 @@ def compose(
         if integrity_recovery
         else ""
     )
+    archive_contrast_instruction = (
+        "ARCHIVE PASSAGE CONTRAST CONTRACT: The visitor asks for two relevant Archive passages that differ in emphasis. Use exactly two distinct retrieved canonical passages with substantive excerpts; do not invent, substitute, or infer sources. Present them separately and symmetrically before synthesis. Label them Passage 1 and Passage 2, name each exact source title, and explain each passage's own central emphasis in its own terms using only what its retrieved text supports. Preserve qualifications, scope, and context; do not caricature either passage or imply disagreement where there is only a difference in focus. Then state precisely what differs, what may remain compatible, and what evidence would be needed to resolve any genuine tension. Only after both representations may you offer a cautious synthesis. Cite/link both exact canonical sources. If fewer than two usable passages were retrieved, do not claim to have found two: state that the comparison could not be grounded yet and offer a targeted route to refine retrieval. Never replace this task with generic process advice or a refusal unrelated to the evidence.\n\n"
+        if _requires_archive_passage_contrast(question)
+        else ""
+    )
     user_content = (
         f"Visitor question:\n{question}\n\n"
         + integrity_recovery_instruction
+        + archive_contrast_instruction
         + gold_star_quality_instruction
         + explicit_invitation_instruction
         + practical_application_instruction
