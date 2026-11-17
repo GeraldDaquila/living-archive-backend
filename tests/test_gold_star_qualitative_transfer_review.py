@@ -38,7 +38,7 @@ def test_every_approved_gold_star_has_a_complete_or_explicitly_withheld_doorway(
             assert isinstance(doorway,dict), record["benchmark_id"]
             assert doorway.get("title","").strip(), record["benchmark_id"]
             assert doorway.get("url","").strip(), record["benchmark_id"]
-            if record["benchmark_id"] == "gs-2026-11-17-structural-change-vs-disruption":
+            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty"}:
                 assert doorway.get("rationale", "").strip()
 
 
@@ -211,3 +211,20 @@ def test_approved_gold_stars_have_complete_provenance_and_quality_contract():
                 provenance.get("source_date", "").strip()
                 or provenance.get("approved_at", "").strip()
             ), record["benchmark_id"]
+
+
+def test_consequential_action_gold_star_has_bounded_structural_transfer():
+    registry = _registry()
+    benchmark_id = "gs-2026-11-17-consequential-action-under-uncertainty"
+    record = next(r for r in registry["records"] if r["benchmark_id"] == benchmark_id)
+    review = json.loads(Path("docs/qa/gold_star_qualitative_transfer_review.json").read_text())
+    entry = next(r for r in review["entries"] if r["benchmark_id"] == benchmark_id)
+
+    assert record["runtime_transfer"] is True
+    assert entry["activation"] == "active_quality_contributor"
+    assert entry["reasoning_family"] == "consequential_action_under_uncertainty"
+    assert "what is known and unknown" in entry["transferable_discipline"]
+    assert "who carries the costs" in entry["transferable_discipline"]
+    assert "review signals" in entry["transferable_discipline"]
+    assert "low-stakes" in entry["abstention_boundary"]
+    assert "answer text" not in entry["transferable_discipline"].lower()

@@ -5587,9 +5587,68 @@
           "approval_basis": "User instruction to overwrite the current Gold Star with the updated reviewed version."
         }
       ]
+    },
+    {
+      "benchmark_id": "gs-2026-11-17-consequential-action-under-uncertainty",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "How should people act when the future is uncertain but consequential?",
+      "expected_response": "When a decision has serious consequences and the future is uncertain, act in proportion to what is known rather than waiting for certainty or pretending to have it. Begin by identifying what must be protected, who will be affected, which responsibilities cannot be deferred, and which parts of the situation remain unknown.\n\nCompare realistic options by looking at what each makes possible, what it could damage, who carries the costs, and what evidence would change the assessment. Give particular weight to people who will live with the consequences, including those with the least influence over the decision.\n\nThen choose a course that preserves room to learn and correct where possible. Set clear signals for review, name who is accountable for watching the effects, and change direction when evidence or conditions warrant it. A decision can be necessary without being certain; its quality depends partly on whether it remains answerable to the people and realities it affects.",
+      "expected_doorway": {
+        "title": "The Sovereign Sensemaking Compass",
+        "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass/",
+        "rationale": "This is a grounded map for navigating uncertainty without losing clarity or agency, directly supporting the question of how to act when the future is not settled."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.5,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "Gold Star elevation explicitly approved by the user on 2026-11-17 after review of the live visitor-facing answer and separate continuation doorway.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "consequential_action_under_uncertainty",
+      "transferable_lesson": "When decisions carry meaningful consequences under uncertainty, calibrate action to what is known; compare realistic options by their effects, costs, evidence, and distribution across affected people; then choose a proportionate, correctable course with explicit review signals and accountable observation.",
+      "transfer_boundary": "Apply this discipline only when the visitor is asking how to act or decide under consequential uncertainty. Do not impose it on low-stakes, purely descriptive, or factual questions; do not equate uncertainty with a reason to delay, claim certainty, or presume one option is universally correct. Do not introduce unrelated AI or civilizational framing unless the visitor asks for it.",
+      "known_theme": "consequential decisions, uncertainty, proportionate action, incomplete evidence, affected stakeholders, correctability, review signals, accountability",
+      "gold_star_capabilities": {
+        "generation_class": "runtime_agnostic_curated_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "consequential_action_under_uncertainty",
+        "transferable_discipline": "Compose in three distinct moves: calibrate action to knowns and unknowns while identifying responsibilities; compare realistic options and who bears their consequences; then choose a proportionate, correctable course with review signals and accountability.",
+        "abstention_boundary": "Do not transfer the answer text, factual claims, examples, or doorway. Do not impose a consequential decision framework on low-stakes or descriptive questions, and do not introduce unrelated subjects."
+      },
+      "assertions": [
+        "Answer the visitor's actual question directly; do not announce the act of answering or introduce an unrelated subject.",
+        "Paragraph one calibrates action to what is known and unknown and identifies what must be protected, affected people, and non-deferrable responsibilities.",
+        "Paragraph two compares realistic options by possibilities, potential damage, cost-bearers, and evidence that could change the assessment.",
+        "Give particular weight to people who will live with the consequences, including those with the least influence over the decision.",
+        "Paragraph three advances beyond comparison to a correctable course, explicit review signals, accountable observation, and willingness to change direction.",
+        "Keep the three paragraph functions distinct; do not repeat the option-comparison checklist in the conclusion.",
+        "Do not add AI, artificial intelligence, or civilizational-transition framing unless the visitor explicitly asks about those subjects.",
+        "Keep the verified Sovereign Sensemaking Compass doorway separate from the answer and preserve its visitor-facing relevance rationale."
+      ],
+      "user_approved_at": "2026-11-17",
+      "elevation_approval_evidence": "The user explicitly approved elevation after reviewing the live visitor-facing answer and doorway screenshot: \"yes, elevate to gold star\" on 2026-11-17.",
+      "provenance": {
+        "source": "user_reviewed_live_visitor_response_screenshot",
+        "source_date": "2026-11-17",
+        "evidence_boundary": "The user-reviewed screenshot establishes the exact question, exact three-paragraph answer, displayed doorway title, and visitor-facing rationale. The canonical Compass page was independently verified at the recorded permalink. The original generation provider is not asserted.",
+        "doorway_verification": {
+          "source": "Published canonical Living Archive page",
+          "canonical_title": "The Sovereign Sensemaking Compass",
+          "canonical_url": "https://geralddaquila.com/the-sovereign-sensemaking-compass/",
+          "verification_date": "2026-11-17",
+          "conceptual_fit": "The published page presents a practical discernment framework for navigating uncertainty, information overload, and inner conflict, with tools for distinguishing signal from story and preserving agency."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable adaptive-learning identity; serial allocation remains independent."
     }
   ],
-  "last_reconciliation_note": "2026-11-17: Restored gs-2026-11-17-structural-change-vs-disruption after verifying the published Systems, Governance, and Organizational Design destination (WordPress post 41615). Preserved the exact approved answer and UNASSIGNED serial; added a visitor-facing doorway rationale.",
+  "last_reconciliation_note": "2026-11-17: Added gs-2026-11-17-consequential-action-under-uncertainty as a user-approved Gold Star after review of the live answer and verified Sovereign Sensemaking Compass doorway. Preserved the exact screenshot response and doorway rationale; kept the display serial UNASSIGNED.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -5719,13 +5778,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-17",
-    "approved_gold_star_count": 86,
-    "registry_record_count": 123,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 86 approved Gold Stars; historical and withdrawn candidate records remain outside active authority. The structural-change-versus-disruption answer is restored after its verified canonical doorway was established.",
+    "approved_gold_star_count": 87,
+    "registry_record_count": 124,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 87 approved Gold Stars; historical and withdrawn candidate records remain outside active authority. The consequential-action-under-uncertainty exemplar is approved with its verified Sovereign Sensemaking Compass doorway.",
     "numbered_gold_star_record_count": 35,
     "highest_assigned_gold_star_number": 92,
-    "numbering_reconciliation": "Record-level reconciliation: 86 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 51 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
-    "unassigned_approved_gold_star_count": 51,
+    "numbering_reconciliation": "Record-level reconciliation: 87 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 52 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
+    "unassigned_approved_gold_star_count": 52,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {

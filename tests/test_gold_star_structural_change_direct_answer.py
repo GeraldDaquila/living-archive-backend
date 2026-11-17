@@ -76,3 +76,24 @@ def test_exact_gold_star_terminal_boundary_returns_doorway_rationale():
     assert payload["recommendation"]["url"] == record["expected_doorway"]["url"]
     assert payload["recommendation"]["rationale"] == record["expected_doorway"]["rationale"]
     assert payload["doorway_rationale"] == record["expected_doorway"]["rationale"]
+
+
+def test_consequential_action_gold_star_is_available_to_exact_deterministic_fallback():
+    benchmark_id = "gs-2026-11-17-consequential-action-under-uncertainty"
+    record = next(r for r in REGISTRY["records"] if r["benchmark_id"] == benchmark_id)
+    result = main._basic_inquiry_round1_deterministic_response(
+        record["query"], {}, {}
+    )
+
+    assert result["provider"] == "gold_standard_registry_deterministic_fallback"
+    assert result["response"] == record["expected_response"]
+    assert result["doorway_title"] == record["expected_doorway"]["title"]
+    assert result["doorway_url"] == record["expected_doorway"]["url"]
+    assert result["doorway_rationale"] == record["expected_doorway"]["rationale"]
+
+    visitor = main._guide_finalize_visitor_payload(result, record["query"])
+    assert visitor["response"] == record["expected_response"]
+    assert visitor["recommendation"]["title"] == record["expected_doorway"]["title"]
+    assert visitor["recommendation"]["url"] == record["expected_doorway"]["url"]
+    assert visitor["recommendation"]["rationale"] == record["expected_doorway"]["rationale"]
+    assert visitor["processing"] == "final_visitor_boundary_exact_gold_standard"
