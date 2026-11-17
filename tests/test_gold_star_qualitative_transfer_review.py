@@ -135,11 +135,15 @@ def test_next_number_is_based_on_registry_maximum_not_approved_count():
     assert next_number != len(assignments) + 1  # Numbering follows the highest assigned ID, not the inventory size.
 
 
-def test_gaps_85_and_86_are_not_backfilled():
+def test_released_gap_85_is_allocated_only_to_its_new_approved_exemplar_and_86_remains_open():
     registry = _registry()
     assignments = _numbered_approved(registry["records"])
-    assert 85 not in assignments.values()
+    benchmark_id = "general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18"
+    assert assignments[benchmark_id] == 85
     assert 86 not in assignments.values()
+    allocation = next(item for item in registry["numbering_allocation_history"] if item["number"] == 85)
+    assert allocation["benchmark_id"] == benchmark_id
+    assert allocation["prior_gap_record"]["release_authorization"]["approved_by"] == "user"
 
 
 def test_qualitative_transfer_reviews_remain_aligned():

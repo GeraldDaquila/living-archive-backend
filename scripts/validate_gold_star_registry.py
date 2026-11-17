@@ -279,15 +279,24 @@ def validate_numbering_against_base(current_records, current_registry=None):
             base_gap_map = {item.get("number"): item for item in base_gaps if isinstance(item, dict)}
             current_gap_map = {item.get("number"): item for item in (current_gaps or []) if isinstance(item, dict)}
             changed_gaps = []
+            allocation_history = current_registry.get("numbering_allocation_history", [])
+            allocations_by_number = {
+                item.get("number"): item
+                for item in allocation_history
+                if isinstance(item, dict)
+            }
+            current_records_by_id = {
+                item.get("benchmark_id"): item
+                for item in current_records
+                if isinstance(item, dict)
+            }
             for number, base_gap in base_gap_map.items():
                 current_gap = current_gap_map.get(number)
                 if current_gap == base_gap:
                     continue
-                # The only permitted historical-gap mutation is the explicit,
-                # user-authorized release of #85 and #86. Preserve all original
-                # evidence fields; add only the release authorization and its
-                # resulting status/disposition.
-                allowed = (
+                # First permit the explicit, user-authorized release of #85/#86.
+                # Original evidence remains immutable; only release metadata is added.
+                allowed_release = (
                     number in {85, 86}
                     and isinstance(current_gap, dict)
                     and current_gap.get("status") == "RELEASED_FOR_FUTURE_ALLOCATION"
@@ -302,7 +311,40 @@ def validate_numbering_against_base(current_records, current_registry=None):
                     and current_gap.get("release_authorization", {}).get("approved_at") == "2026-11-16"
                     and current_gap.get("release_authorization", {}).get("historical_evidence_preserved") is True
                 )
-                if not allowed:
+                if allowed_release:
+                    continue
+
+                # A released #85/#86 may later be consumed only by a genuinely
+                # new, explicitly user-approved Gold Star. The gap leaves the
+                # active gap register (because it is now assigned), while its
+                # exact prior evidence is retained in numbering_allocation_history.
+                allocation = allocations_by_number.get(number)
+                allocated_record = (
+                    current_records_by_id.get(allocation.get("benchmark_id"))
+                    if isinstance(allocation, dict) else None
+                )
+                record_allocation = (
+                    allocated_record.get("numbering_allocation")
+                    if isinstance(allocated_record, dict) else None
+                )
+                allowed_allocation = (
+                    number in {85, 86}
+                    and current_gap is None
+                    and isinstance(allocation, dict)
+                    and allocation.get("status") == "ALLOCATED_TO_APPROVED_GOLD_STAR"
+                    and allocation.get("allocation_class") == "new_approved_record_not_historical_backfill"
+                    and allocation.get("prior_gap_record") == base_gap
+                    and isinstance(allocated_record, dict)
+                    and allocated_record.get("status") == APPROVED_STATUS
+                    and allocated_record.get("gold_star_number") == number
+                    and allocated_record.get("numbering_status") == "ASSIGNED"
+                    and allocated_record.get("user_reviewed_response") is True
+                    and allocated_record.get("explicit_user_elevation_approval") is True
+                    and isinstance(record_allocation, dict)
+                    and record_allocation.get("allocated_number") == number
+                    and record_allocation.get("prior_gap_record_preserved") is True
+                )
+                if not allowed_allocation:
                     changed_gaps.append(number)
             if changed_gaps:
                 fail("historical numbering gap evidence/disposition is immutable except for the explicit #85/#86 release: "
@@ -368,19 +410,87 @@ def validate_numbering_against_base(current_records, current_registry=None):
              "without an explicit authorized numbering migration: "
              + ", ".join(unauthorized_migrations))
 
-    # New assignments must be contiguous after the highest number already
-    # present on main; gaps in historical sequences remain untouched.
+    # New assignments normally continue after the highest number already
+    # present on main. The only exception is the previously user-authorized
+    # release of historical gaps #85 and #86: a released gap may be consumed
+    # by the next genuinely new, explicitly approved Gold Star, in that order.
     base_max = max(base_numbers.values(), default=0)
     new_assignments = sorted(
         number for benchmark_id, number in current_numbers.items()
         if benchmark_id not in base_numbers and benchmark_id not in recovered_historical_ids
     )
-    if new_assignments:
-        expected = list(range(base_max + 1, base_max + 1 + len(new_assignments)))
-        if new_assignments != expected:
+    authorized_gap_allocations = set()
+    if current_registry is not None:
+        exception = (
+            current_registry.get("numbering_policy", {}).get("gap_exception_policy", {})
+            if isinstance(current_registry.get("numbering_policy"), dict) else {}
+        )
+        authorized_numbers = exception.get("authorized_numbers", [])
+        allocation_history = current_registry.get("numbering_allocation_history", [])
+        history_by_number = {
+            item.get("number"): item
+            for item in allocation_history
+            if isinstance(item, dict)
+        }
+        for number in (85, 86):
+            if number not in new_assignments:
+                continue
+            allocation = history_by_number.get(number)
+            base_gap = next(
+                (item for item in base_registry.get("numbering_gap_register", [])
+                 if isinstance(item, dict) and item.get("number") == number),
+                None,
+            )
+            record = (
+                current_by_id.get(allocation.get("benchmark_id"))
+                if isinstance(allocation, dict) else None
+            )
+            record_allocation = record.get("numbering_allocation") if isinstance(record, dict) else None
+            release = base_gap.get("release_authorization") if isinstance(base_gap, dict) else None
+            valid = (
+                authorized_numbers == [85, 86]
+                and exception.get("order") == [85, 86]
+                and isinstance(base_gap, dict)
+                and base_gap.get("status") == "RELEASED_FOR_FUTURE_ALLOCATION"
+                and isinstance(release, dict)
+                and release.get("authorization_type") == "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE"
+                and release.get("approved_by") == "user"
+                and release.get("approved_at") == "2026-11-16"
+                and release.get("historical_evidence_preserved") is True
+                and isinstance(allocation, dict)
+                and allocation.get("status") == "ALLOCATED_TO_APPROVED_GOLD_STAR"
+                and allocation.get("allocation_class") == "new_approved_record_not_historical_backfill"
+                and allocation.get("prior_gap_record") == base_gap
+                and isinstance(record, dict)
+                and record.get("benchmark_id") not in base_ids
+                and record.get("status") == APPROVED_STATUS
+                and record.get("gold_star_number") == number
+                and record.get("numbering_status") == "ASSIGNED"
+                and record.get("user_reviewed_response") is True
+                and record.get("explicit_user_elevation_approval") is True
+                and isinstance(record_allocation, dict)
+                and record_allocation.get("allocated_number") == number
+                and record_allocation.get("prior_gap_record_preserved") is True
+            )
+            if not valid:
+                fail(f"historical gap #{number} allocation lacks its explicit user-approved new-record evidence")
+            authorized_gap_allocations.add(number)
+
+        # A later released number cannot be consumed before every earlier
+        # number in the narrow exception sequence has been allocated.
+        if 86 in authorized_gap_allocations and 85 not in current_numbers.values():
+            fail("historical gap #86 cannot be allocated before #85")
+
+    ordinary_new_assignments = [
+        number for number in new_assignments
+        if number not in authorized_gap_allocations
+    ]
+    if ordinary_new_assignments:
+        expected = list(range(base_max + 1, base_max + 1 + len(ordinary_new_assignments)))
+        if ordinary_new_assignments != expected:
             fail(
                 "new Gold Star numbers must be allocated contiguously after "
-                f"canonical main max #{base_max}; expected {expected}, got {new_assignments}"
+                f"canonical main max #{base_max}; expected {expected}, got {ordinary_new_assignments}"
             )
 
     # Ensure numbers are unique across all current approved records.

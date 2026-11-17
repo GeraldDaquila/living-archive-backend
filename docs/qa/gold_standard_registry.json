@@ -6252,9 +6252,73 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve the benchmark_id as the stable learning identity; serial allocation remains independent."
+    },
+    {
+      "benchmark_id": "general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "gold_star_number": 85,
+      "query": "A visitor asks how stewardship differs from management and ownership. What comparison structure would make the distinctions usable?",
+      "expected_response": "Ownership concerns the rights and claims associated with an asset; management is the work of organizing people and resources to carry out defined purposes; stewardship is responsibility for the long-term health and consequences of what has been entrusted to one's care. Ownership asks who holds the claim, management asks how the work is directed and performed, and stewardship asks what obligations should guide its use and what must remain healthy for others and the future.\n\nThe roles can overlap without becoming interchangeable. An owner may appoint a manager, and either may act as a steward; the distinction lies in the responsibility being exercised, not simply the person's title. Management can be efficient while serving a narrow objective, and ownership can be legally valid without settling whether a decision is responsible toward everyone affected. Stewardship brings those wider consequences, relationships, and time horizons into view.\n\nA useful comparison holds the same dimensions constant: the source of authority, the scope of responsibility, the time horizon, and whose interests or consequences count. Ask who has the right to decide, who organizes the daily work, who must account for long-term effects, and who bears the costs if the asset or relationship is diminished. That makes it possible to see where ownership, management, and stewardship reinforce one another—and where they pull in different directions.",
+      "expected_doorway": {
+        "title": "Stewardship vs Management vs Leadership",
+        "url": "https://geralddaquila.com/2026/05/22/stewardship-vs-management-vs-leadership/",
+        "rationale": "This essay distinguishes leadership as direction and mobilization, management as execution and operational stability, and stewardship as long-term responsibility for system health and ethical governance. It directly compares those three roles. Ownership is not one of its stated categories, so ownership should be examined separately rather than treated as interchangeable with stewardship."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.3,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the live visitor-facing response and explicitly instructed Gold Star elevation on 2026-11-18.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "ownership_management_stewardship_role_distinction",
+      "transferable_lesson": "Make comparisons usable by holding common dimensions constant while distinguishing the source of authority, scope of responsibility, time horizon, and whose interests or consequences count. Separate ownership claims and decision rights, management's organization and execution of work, and stewardship's responsibility for long-term health and effects; explain how the roles may overlap without becoming interchangeable.",
+      "transfer_boundary": "Transfer the comparison method, not this answer text or its doorway. Do not assume ownership automatically establishes responsible use, that managers necessarily act as stewards, or that stewardship means legal ownership or operational control. Do not collapse distinct roles or infer asset-specific rights, duties, or outcomes without evidence.",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "ownership_management_stewardship_role_distinction",
+        "transferable_discipline": "Compare roles across consistent dimensions—authority, responsibility, time horizon, and affected interests—while distinguishing ownership claims, management execution, and stewardship accountability. Explain overlap without treating the roles as interchangeable.",
+        "abstention_boundary": "Do not infer legal ownership, decision rights, actual management arrangements, or asset-specific obligations without evidence. Do not equate ownership with stewardship or assume efficiency establishes responsible long-term care."
+      },
+      "assertions": [
+        "Preserve the exact reviewed answer as three substantive paragraphs: distinguish ownership, management, and stewardship; explain how roles overlap without becoming interchangeable; provide a consistent comparison structure.",
+        "Answer the question directly in the opening sentence without an announcement, preface, or restatement of the question.",
+        "Distinguish ownership as rights and claims, management as organizing people and resources to carry out defined purposes, and stewardship as responsibility for long-term health and consequences.",
+        "Explain that an owner may appoint a manager and either may act as a steward; distinguish the responsibility being exercised from a person's title.",
+        "Compare source of authority, scope of responsibility, time horizon, and whose interests or consequences count.",
+        "Make decision rights, daily work organization, long-term accountability, and who bears costs visible.",
+        "Render the canonical Stewardship vs Management vs Leadership doorway after the complete answer, with an explicit qualification that ownership is not one of the essay's stated categories.",
+        "Do not present the doorway as a complete treatment of ownership; it extends the inquiry while preserving that boundary."
+      ],
+      "user_approved_at": "2026-11-18",
+      "elevation_approval_evidence": "User supplied the live visitor-facing Guide screenshot showing the exact question, three-paragraph answer, and canonical doorway, then explicitly instructed: 'elevate' on 2026-11-18.",
+      "provenance": {
+        "source": "User-provided live visitor-facing Guide screenshot and explicit Gold Star elevation approval.",
+        "source_date": "2026-11-18",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the exact displayed query, three-paragraph response, and doorway rationale. The response is frozen as shown; no additional ownership category is attributed to the linked essay.",
+        "doorway_verification": {
+          "title": "Stewardship vs Management vs Leadership",
+          "url": "https://geralddaquila.com/2026/05/22/stewardship-vs-management-vs-leadership/",
+          "verified_against": "Merged PR #1631's canonical doorway route and reviewed essay excerpt; the registered rationale preserves the essay's three-role scope and explicitly identifies ownership as outside its stated categories."
+        }
+      },
+      "numbering_status": "ASSIGNED",
+      "numbering_allocation": {
+        "allocated_number": 85,
+        "allocation_class": "explicit_user_authorized_historical_gap_release",
+        "approved_at": "2026-11-18",
+        "authority": "User explicitly instructed Gold Star elevation on 2026-11-18; canonical numbering policy reserves #85 for the next newly approved Gold Star.",
+        "prior_gap_record_preserved": true
+      },
+      "known_theme": "ownership, management, stewardship, role distinction, authority, responsibility, time horizon, entrusted assets, long-term care, accountability, affected interests"
     }
   ],
-  "last_reconciliation_note": "Added user-approved formal/informal institutional-dynamics Gold Star on 2026-11-18. The exact three-paragraph answer and verified Institutional Consciousness doorway are frozen; transfer is limited to evidence-based comparison of formal authority and informal norms and their interaction in organizational behavior. No display serial was allocated; historical gaps #85 and #86 remain untouched.",
+  "last_reconciliation_note": "Added user-approved ownership/management/stewardship comparison Gold Star #85 on 2026-11-18. The exact three-paragraph live answer and verified Stewardship vs Management vs Leadership doorway rationale are frozen; transfer is limited to comparing authority, responsibility, time horizon, and affected interests without collapsing ownership, management, and stewardship. The doorway explicitly preserves that ownership is not one of the essay's stated categories. Historical gap #85 is allocated under the prior explicit authorization; #86 remains released and unassigned.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -6384,14 +6448,14 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 97,
-    "registry_record_count": 134,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 97 approved Gold Stars across 134 registry records. The formal/informal institutional-dynamics exemplar joins the active structural-learning contributors under its bounded reasoning family. No display serial was allocated; 61 approved records remain explicitly UNASSIGNED with reasons. Existing assignments and historical gaps #85 and #86 remain unchanged.",
-    "numbered_gold_star_record_count": 36,
+    "approved_gold_star_count": 98,
+    "registry_record_count": 135,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 98 approved Gold Stars across 135 registry records. The ownership/management/stewardship comparison joins the active structural-learning contributors under its bounded role-distinction family. Gold Star #85 is allocated under the prior explicit authorization; 61 approved records remain explicitly UNASSIGNED. Historical gap #86 remains released and unassigned.",
+    "numbered_gold_star_record_count": 37,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation: 97 approved Gold Stars; 36 assigned display serials #56–#84 and #87–#93; 61 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
+    "numbering_reconciliation": "Record-level reconciliation: 98 approved Gold Stars; 37 assigned display serials #56–#85 and #87–#93; 61 approved records explicitly UNASSIGNED with reasons. Serial #85 is allocated under the explicit historical-gap release; #86 remains the sole documented, released historical gap.",
     "unassigned_approved_gold_star_count": 61,
-    "documented_numbering_gap_count": 2
+    "documented_numbering_gap_count": 1
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -6422,26 +6486,6 @@
   },
   "numbering_gap_register": [
     {
-      "number": 85,
-      "status": "RELEASED_FOR_FUTURE_ALLOCATION",
-      "reason_code": "NO_CANONICAL_ALLOCATION_RECORD",
-      "reason": "No approved Gold Star record or canonical assignment event for serial #85 was recovered in the canonical registry or reviewed Gold Star PR/commit evidence. GitHub PR #85 is a September 2026 v340 topical-doorway code change, not a Gold Star assignment.",
-      "evidence_checked": [
-        "Canonical registry record-level assignments on main",
-        "Gold Star registry commit history",
-        "GitHub PR #85: v340 topical doorway question-alignment repair"
-      ],
-      "disposition": "Historical gap retained as evidence; serial #85 is released solely for the next new, explicitly approved Gold Star allocation under the two-number exception. No existing record is renumbered or backfilled.",
-      "release_authorization": {
-        "authorization_type": "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE",
-        "approved_by": "user",
-        "approved_at": "2026-11-16",
-        "authority": "User explicitly agreed to release both #85 and #86 as two exceptions in the conversation on 2026-11-16.",
-        "allocation_rule": "Reserve #85 for the next newly approved Gold Star, then #86 for the following newly approved Gold Star. Allocation requires a new unique benchmark_id, explicit user approval of Gold Star elevation, and a record-level gold_star_number assignment. Do not assign either number to an existing approved record or infer an exemplar.",
-        "historical_evidence_preserved": true
-      }
-    },
-    {
       "number": 86,
       "status": "RELEASED_FOR_FUTURE_ALLOCATION",
       "reason_code": "MISLEADING_COMMIT_SUBJECT_NO_ALLOCATION",
@@ -6461,6 +6505,35 @@
         "authority": "User explicitly agreed to release both #85 and #86 as two exceptions in the conversation on 2026-11-16.",
         "allocation_rule": "Reserve #85 for the next newly approved Gold Star, then #86 for the following newly approved Gold Star. Allocation requires a new unique benchmark_id, explicit user approval of Gold Star elevation, and a record-level gold_star_number assignment. Do not assign either number to an existing approved record or infer an exemplar.",
         "historical_evidence_preserved": true
+      }
+    }
+  ],
+  "numbering_allocation_history": [
+    {
+      "number": 85,
+      "status": "ALLOCATED_TO_APPROVED_GOLD_STAR",
+      "benchmark_id": "general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18",
+      "allocated_at": "2026-11-18",
+      "allocation_class": "new_approved_record_not_historical_backfill",
+      "prior_gap_record": {
+        "number": 85,
+        "status": "RELEASED_FOR_FUTURE_ALLOCATION",
+        "reason_code": "NO_CANONICAL_ALLOCATION_RECORD",
+        "reason": "No approved Gold Star record or canonical assignment event for serial #85 was recovered in the canonical registry or reviewed Gold Star PR/commit evidence. GitHub PR #85 is a September 2026 v340 topical-doorway code change, not a Gold Star assignment.",
+        "evidence_checked": [
+          "Canonical registry record-level assignments on main",
+          "Gold Star registry commit history",
+          "GitHub PR #85: v340 topical doorway question-alignment repair"
+        ],
+        "disposition": "Historical gap retained as evidence; serial #85 is released solely for the next new, explicitly approved Gold Star allocation under the two-number exception. No existing record is renumbered or backfilled.",
+        "release_authorization": {
+          "authorization_type": "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE",
+          "approved_by": "user",
+          "approved_at": "2026-11-16",
+          "authority": "User explicitly agreed to release both #85 and #86 as two exceptions in the conversation on 2026-11-16.",
+          "allocation_rule": "Reserve #85 for the next newly approved Gold Star, then #86 for the following newly approved Gold Star. Allocation requires a new unique benchmark_id, explicit user approval of Gold Star elevation, and a record-level gold_star_number assignment. Do not assign either number to an existing approved record or infer an exemplar.",
+          "historical_evidence_preserved": true
+        }
       }
     }
   ]

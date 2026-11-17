@@ -736,3 +736,19 @@ These entries preserve their live-production provenance and qualitative transfer
 - **Freeze policy:** Preserve the exact approved response and doorway rationale. Changes require explicit user authorization and a separately documented benchmark-version change.
 
 - **Newly elevated 2026-11-17:** `gs-2026-11-17-oversoul-free-will-influence-without-compulsion` preserves the exact three-paragraph Oversoul/free-will response and the separate **Eternal / Oversoul Law – The Immutable Jurisdiction** doorway. Its transferable discipline is limited to distinguishing spiritual influence from coercion while preserving epistemic boundaries; it remains `UNASSIGNED`.
+
+
+### Gold Star #85 — Ownership, management, and stewardship comparison (2026-11-18)
+
+- **Benchmark:** `general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18`
+- **Status:** `USER_APPROVED_GOLD_STANDARD`; exact answer and doorway frozen after explicit user elevation.
+- **Question:** “A visitor asks how stewardship differs from management and ownership. What comparison structure would make the distinctions usable?”
+- **Answer:** The exact three-paragraph response is preserved in `docs/qa/gold_standard_registry.json` and its regression fixture.
+- **Comparison discipline:** Hold the source of authority, scope of responsibility, time horizon, and affected interests constant. Distinguish ownership claims, management's organization and execution of work, and stewardship's responsibility for long-term health and consequences; explain overlap without treating the roles as interchangeable.
+- **Doorway:** **Stewardship vs Management vs Leadership** — https://geralddaquila.com/2026/05/22/stewardship-vs-management-vs-leadership/
+- **Doorway qualification:** The essay distinguishes leadership, management, and stewardship; ownership is not one of its stated categories. The visitor-facing rationale explicitly preserves that boundary.
+- **Rating:** 9.3/10.
+- **Approval:** User reviewed the live visitor-facing screenshot and explicitly instructed elevation on 2026-11-18.
+- **Adaptive-learning boundary:** Transfer the comparison method only. Do not transfer the exact answer or doorway to unrelated questions, infer asset-specific rights or obligations without evidence, or equate ownership with stewardship.
+- **Numbering:** **#85**, allocated under the previously authorized #85–#86 historical-gap release. #86 remains released and unassigned.
+- **Freeze policy:** Preserve the exact approved response and doorway rationale. Changes require explicit user authorization and a separately documented benchmark-version change.
