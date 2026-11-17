@@ -224,3 +224,94 @@ def test_community_continuity_gold_star_registry_and_transfer_entry_are_frozen_a
     assert record["expected_doorway"]["rationale"] == "This essay explores how personal development can mature into stewardship: taking responsibility for the relationships, institutions, and shared conditions that support human flourishing. It offers a wider perspective on community continuity by asking what people must build and sustain together, rather than prescribing how a particular inherited practice should be changed."
     assert "rather than prescribing how a particular inherited practice should be changed" in record["expected_doorway"]["rationale"]
     assert entries[0]["activation"] == "active_quality_contributor"
+
+
+def test_community_project_tradeoff_question_is_recognized_without_overmatching():
+    from deterministic_answer_recovery import is_community_project_tradeoff_question
+
+    query = "A community is divided over a renewable-energy project. What questions reveal ecological, economic, cultural, and governance trade-offs?"
+    assert is_community_project_tradeoff_question(query)
+    assert is_community_project_tradeoff_question(
+        "What questions should residents ask about the ecological, economic, and governance trade-offs of a community solar project?"
+    )
+    assert not is_community_project_tradeoff_question(
+        "What are the benefits of renewable energy for a household?"
+    )
+    assert not is_community_project_tradeoff_question(
+        "What questions should a community ask about a new library?"
+    )
+
+
+def test_community_project_tradeoff_contract_replaces_generic_three_paragraph_filler():
+    from general_guide_composition import (
+        _community_project_tradeoff_recovery,
+        _has_community_project_tradeoff_analysis,
+        _requires_community_project_tradeoff_analysis,
+        enforce_response_contracts,
+    )
+
+    query = "A community is divided over a renewable-energy project. What questions reveal ecological, economic, cultural, and governance trade-offs?"
+    generic = (
+        "The question about a community is divided over a renewable-energy project. What questions reveal ecological, economic, cultural, and governance trade-offs can be approached by first identifying the main issue and the decision or understanding at stake. A useful answer should distinguish what is established from what is inferred rather than fill gaps with confidence.\n\n"
+        "The next step is to examine the most relevant facts, relationships, and plausible explanations. Ask which evidence would distinguish them, whose perspective may be missing, and whether any assumption is doing more work than the facts justify.\n\n"
+        "This provides a grounded starting point without pretending to know details the question has not supplied. Where the evidence is incomplete, say what can reasonably be concluded and what remains open, instead of replacing the answer with a generic refusal."
+    )
+    assert _requires_community_project_tradeoff_analysis(query)
+    assert not _has_community_project_tradeoff_analysis(generic)
+    repaired = enforce_response_contracts(query, generic)
+    assert repaired == _community_project_tradeoff_recovery()
+    assert _has_community_project_tradeoff_analysis(repaired)
+    assert len([p for p in repaired.split("\n\n") if p.strip()]) == 3
+
+
+def test_community_project_tradeoff_contract_preserves_a_complete_provider_answer():
+    from general_guide_composition import (
+        _community_project_tradeoff_recovery,
+        _has_community_project_tradeoff_analysis,
+        enforce_response_contracts,
+    )
+
+    query = "A community is divided over a renewable-energy project. What questions reveal ecological, economic, cultural, and governance trade-offs?"
+    complete = _community_project_tradeoff_recovery()
+    assert _has_community_project_tradeoff_analysis(complete)
+    assert enforce_response_contracts(query, complete) == complete
+
+
+def test_community_project_tradeoff_deterministic_recovery_and_doorway_are_registered_together():
+    from deterministic_answer_recovery import (
+        compose_recovery,
+        has_registered_recovery,
+        registered_recovery_recommendation,
+    )
+    from main import _basic_inquiry_round1_deterministic_response
+
+    query = "A community is divided over a renewable-energy project. What questions reveal ecological, economic, cultural, and governance trade-offs?"
+    assert has_registered_recovery(query)
+    answer = compose_recovery(query)
+    assert answer.startswith("A fair assessment asks four connected sets of questions")
+    assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
+    doorway = registered_recovery_recommendation(query)
+    assert doorway["title"] == "Local Resilience Economies"
+    assert doorway["url"] == "https://geralddaquila.com/2026/05/27/local-resilience-economies/"
+    result = _basic_inquiry_round1_deterministic_response(query, {}, {"context_blocks": ""})
+    assert result["response"] == answer
+    assert result["recommendation"] == doorway
+
+
+def test_community_project_tradeoff_provider_prompt_requires_all_four_dimensions():
+    source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert source.count("COMMUNITY PROJECT TRADE-OFF QUESTIONS:") == 2
+    for term in ("ecological effects", "economic effects", "cultural effects", "governance", "no project", "residual costs", "monitoring"):
+        assert term in source
+
+
+def test_community_project_tradeoff_provider_and_deterministic_doorways_share_one_canonical_destination():
+    import main
+
+    query = "A community is divided over a renewable-energy project. What questions reveal ecological, economic, cultural, and governance trade-offs?"
+    assert main._select_verified_doorway_conceptual_family(query) == "community_project_tradeoffs"
+    doorway = main._VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS["community_project_tradeoffs"]
+    fallback_doorway = main._select_guide_node_fallback_doorway(query)
+    assert doorway == fallback_doorway
+    assert doorway["title"] == "Local Resilience Economies"
+    assert "does not assess this particular renewable-energy proposal" in doorway["rationale"]

@@ -278,6 +278,22 @@ def _select_verified_doorway_conceptual_family(query):
     ):
         return "community_continuity_revision"
 
+    # Community infrastructure trade-off questions have a verified, adjacent
+    # doorway into local resilience, distributed infrastructure, and ecological
+    # stewardship. The destination is not represented as a project-specific study.
+    if (
+        re.search(r"\b(?:community|communities|local residents|host community)\b", text, re.I)
+        and re.search(r"\b(?:project|proposal|development|infrastructure|facility|energy scheme)\b", text, re.I)
+        and re.search(r"\b(?:trade[- ]?offs?|competing interests|costs and benefits|impacts)\b", text, re.I)
+        and sum(bool(re.search(pattern, text, re.I)) for pattern in (
+            r"\b(?:ecolog(?:y|ical)|environment(?:al)?|biodiversity|habitat)\b",
+            r"\b(?:economic|economy|costs?|benefits?|livelihoods?)\b",
+            r"\b(?:cultural|heritage|identity|customary|sacred)\b",
+            r"\b(?:governance|decision[- ]making|authority|consent|participation)\b",
+        )) >= 2
+    ):
+        return "community_project_tradeoffs"
+
     # Reflective balance questions authorize a bounded approved-node lookup.
     # This class does not map to a hard-coded destination; registry evidence
     # must still establish the relevance of the canonical continuation.
@@ -317,6 +333,11 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "archive_guidance_provenance": {
         "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
         "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+    },
+    "community_project_tradeoffs": {
+        "title": "Local Resilience Economies",
+        "url": "https://geralddaquila.com/2026/05/27/local-resilience-economies/",
+        "rationale": "Local Resilience Economies examines how communities build stability through distributed infrastructure, cooperative structures, local capability, and ecological stewardship. It offers a wider systems lens for asking who controls essential infrastructure, where value remains, and how local resilience is sustained; it does not assess this particular renewable-energy proposal.",
     },
     "community_continuity_revision": {
         "title": "From Awakening to Stewardship",
@@ -6337,6 +6358,27 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "doorway_rationale": _structural_change_gold_star.get("doorway_rationale"),
             "recommendation": None,
             "provider": "gold_standard_registry_deterministic_fallback",
+            "model": "",
+        }
+
+    # Community infrastructure trade-off questions require a substantive
+    # cross-domain answer even when provider generation or retrieval is unavailable.
+    # Keep the verified local-resilience doorway attached to the same recovery.
+    from deterministic_answer_recovery import (
+        is_community_project_tradeoff_question,
+        compose_recovery as _compose_registered_recovery,
+        registered_recovery_recommendation as _registered_recommendation,
+    )
+    if is_community_project_tradeoff_question(query):
+        _tradeoff_answer = _compose_registered_recovery(query)
+        _tradeoff_doorway = _registered_recommendation(query)
+        return {
+            "response": _tradeoff_answer,
+            "doorway_title": str((_tradeoff_doorway or {}).get("title") or ""),
+            "doorway_url": str((_tradeoff_doorway or {}).get("url") or ""),
+            "doorway_rationale": str((_tradeoff_doorway or {}).get("rationale") or ""),
+            "recommendation": _tradeoff_doorway,
+            "provider": "bounded_community_project_tradeoff_recovery",
             "model": "",
         }
 
