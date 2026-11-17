@@ -534,3 +534,47 @@ def test_public_predictive_gold_star_successor_is_exact_runtime_authority_and_pr
     assert standard["doorway_title"] == "AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever"
     assert standard["doorway_rationale"]
     assert standard["doorway_url"] == "https://geralddaquila.com/2026/06/16/ai-vs-human-stewardship-why-conscious-guidance-matters-more-than-ever/"
+
+def test_oversoul_free_will_question_recovers_answer_and_canonical_doorway_across_routes():
+    import main
+    from deterministic_answer_recovery import (
+        compose_recovery,
+        has_registered_recovery,
+        is_oversoul_free_will_question,
+        registered_recovery_recommendation,
+    )
+
+    query = "What power does the Oversoul have over a person’s choice without undermining free will?"
+    expected_doorway = {
+        "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
+        "url": "https://geralddaquila.com/oversoul-law",
+        "rationale": "This is the Archive's directly named Oversoul doorway for examining spiritual jurisdiction and the relationship between wider purpose and personal choice. It is an invitation to inspect the Archive's own framework, not independent evidence that metaphysical claims are objectively established.",
+    }
+
+    # The exact visitor wording must enter the specialist recovery even though
+    # it contains neither "ego" nor "awakening".
+    assert is_oversoul_free_will_question(query)
+    assert has_registered_recovery(query)
+    answer = compose_recovery(query)
+    assert len([part for part in answer.split("\\n\\n") if part.strip()]) == 3
+    assert "influence rather than compulsion" in answer
+    assert "without replacing the work and responsibility of choosing" in answer
+    assert "not proof that an Oversoul exists" in answer
+
+    # Both recovery navigation and the shared provider/deterministic doorway
+    # selector must resolve the same complete, question-specific destination.
+    assert registered_recovery_recommendation(query) == expected_doorway
+    assert main._select_verified_doorway_conceptual_family(query) == "oversoul_free_will"
+    assert main._select_guide_node_fallback_doorway(query) == expected_doorway
+
+    # A provider-exhaustion event must return the substantive recovery rather
+    # than the generic Guide failure message or a broad unrelated compass.
+    recovered = main._basic_inquiry_provider_exhaustion_response(
+        query, {}, {"context_blocks": ""}, recommendation_available=True
+    )
+    assert recovered["response"] == answer
+    assert recovered["recommendation"] == expected_doorway
+    assert recovered["provider"] == "bounded_provider_exhaustion_recovery"
+
+    # Do not classify every mention of Oversoul as this particular inquiry.
+    assert not is_oversoul_free_will_question("What is an Oversoul?")
