@@ -6,7 +6,8 @@
     'there is something here worth staying with.',
     'this gives you a concrete place to continue with the question you are carrying.',
     'there is something here worth exploring.',
-    'this is a useful place to continue.'
+    'this is a useful place to continue.',
+    'this gives the question another place to go.'
   ];
   var LABELS = {
     continue: 'CONTINUE EXPLORING',
