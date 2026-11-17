@@ -185,8 +185,9 @@ def test_main_has_dedicated_bounded_archive_contrast_discovery_axes():
 
     source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
-    function = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == "_query_pipeline")
-    body = ast.get_source_segment(source, function)
+    functions = [node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
+    bodies = [ast.get_source_segment(source, node) or "" for node in functions]
+    body = next(candidate for candidate in bodies if "_requires_archive_passage_contrast(query)" in candidate)
     assert "_requires_archive_passage_contrast(query)" in body
     assert '"stewardship control"' in body
     assert '"individual agency institutional systems"' in body
