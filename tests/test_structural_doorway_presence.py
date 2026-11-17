@@ -172,11 +172,24 @@ def test_provider_and_deterministic_payloads_receive_same_final_doorway_contract
         "A company wants to use AI to reduce staffing costs. How should The Guide "
         "analyze this through operations, governance, human development, ethics, and stewardship?"
     )
-    answer = (
-        "The decision should be evaluated as an organizational redesign, not only a labor-cost measure.\n\n"
-        "The company should compare operational gains with effects on work, skills, service quality, and the people affected.\n\n"
-        "Any change should retain accountable human oversight and a credible path to review or correction."
+    from ai_workforce_restructuring_contract import (
+        recovery_response,
+        has_gold_star_coverage,
     )
+
+    screenshot_answer = (
+        "For a question like this, the first task is to make the decision visible. "
+        "What outcome is the organisation trying to achieve, what responsibilities does it carry, "
+        "and who will live with the consequences?\\n\\n"
+        "From there, compare the real options rather than assuming that the proposed course is the only one. "
+        "Look at what each option makes possible, what it may damage, who bears the costs, and what evidence "
+        "would justify changing direction.\\n\\n"
+        "The point is not to make the decision for the organisation, but to make the grounds for acting clearer. "
+        "Choose deliberately, make the reasoning and limits visible, and remain accountable for what follows."
+    )
+    answer = recovery_response()
+    assert not has_gold_star_coverage(screenshot_answer)
+    assert has_gold_star_coverage(answer)
 
     async def send_payload(provider):
         events = []
@@ -202,6 +215,7 @@ def test_provider_and_deterministic_payloads_receive_same_final_doorway_contract
 
     for payload in (provider_payload, deterministic_payload):
         assert payload["response"] == answer
+        assert payload["answer_quality_contract"] == "ai_workforce_restructuring_gold_star_v1"
         assert payload["recommendation"] == expected
         assert payload["canonical_doorway"] == expected
         assert payload["doorway_title"] == expected["title"]
