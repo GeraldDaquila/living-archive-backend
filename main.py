@@ -5504,6 +5504,26 @@ def _guide_finalize_visitor_payload(payload, query):
                 # adapter can lose a verified continuation by reading a legacy
                 # alias instead of recommendation.
                 exact_rationale = str(exact_standard.get("doorway_rationale") or "").strip()
+                # Exact-query Gold Standards own the answer and the chosen
+                # destination. When their legacy record lacks only the
+                # visitor-facing explanation, enrich it from the same verified
+                # conceptual-family registry—but only if title and canonical
+                # URL match exactly. Never replace or infer a different doorway.
+                if not exact_rationale:
+                    family = _select_verified_doorway_conceptual_family(query)
+                    family_candidate = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
+                    if isinstance(family_candidate, dict):
+                        family_doorway = _normalize_authoritative_recommendation(
+                            family_candidate
+                        )
+                        if (
+                            family_doorway
+                            and family_doorway.get("title") == exact_title
+                            and family_doorway.get("url") == exact_url
+                        ):
+                            exact_rationale = str(
+                                family_doorway.get("rationale") or ""
+                            ).strip()
                 exact_doorway = {"title": exact_title, "url": exact_url}
                 if exact_rationale:
                     exact_doorway["rationale"] = exact_rationale
