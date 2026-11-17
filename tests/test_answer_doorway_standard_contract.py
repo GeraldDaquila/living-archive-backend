@@ -56,6 +56,7 @@ def main():
     assert "recommendation.replaceChildren()" in guide
     assert "var primaryDoorway=text.querySelector" in guide
     assert "primary.remove()" in guide
+    assert "guide-controller-v489.324.js" in guide
     assert "helper.normalize(recommendation)" in guide_controller
     assert "helper.render(staging, normalized)" in guide_controller
     assert "link.href = url" not in guide_controller
