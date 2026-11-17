@@ -1142,6 +1142,8 @@ def test_only_two_explicit_historical_gap_releases_are_authorized_for_future_new
     assert gaps[86]["release_authorization"]["approved_by"] == "user"
     allocation = next(item for item in registry["numbering_allocation_history"] if item["number"] == 85)
     assert allocation["benchmark_id"] == "general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18"
+    assert allocation["prior_gap_record"]["status"] == "RELEASED_FOR_FUTURE_ALLOCATION"
+    assert allocation["prior_gap_record"]["release_authorization"]["approved_by"] == "user"
     assert len([r for r in registry["records"] if r.get("gold_star_number") in {85, 86}]) == 1
     assert next(r for r in registry["records"] if r.get("gold_star_number") == 85)["benchmark_id"] == "general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18"
 
