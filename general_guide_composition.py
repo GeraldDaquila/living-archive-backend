@@ -4084,7 +4084,35 @@ def compose(
         if _requires_explicit_followup_invitation(question)
         else ""
     )
-    gold_star_quality_instruction = (("GOLD STAR STRUCTURAL CALIBRATION (not content transfer): The selected lesson's subject has been judged relevant. Use its discipline only to sharpen reasoning that directly serves this visitor's question: " + str(gold_star_quality.get("discipline") or "") + " " + ("Keep this boundary in view without importing its wording: " + str(gold_star_quality.get("abstention_boundary") or "") if gold_star_quality.get("abstention_boundary") else "") + " Integrate the useful reasoning naturally into the paragraph where it belongs. Do not append this guidance, its wording, or its boundary to paragraph three; do not add a fourth move or change the answer's subject. Never copy, quote, paraphrase, or transfer the exemplar's answer, claims, examples, citations, or doorway. The visitor's question remains authoritative.\n\n") if gold_star_quality else "")
+    gold_star_quality_instruction = ""
+    if gold_star_quality:
+        candidate_lines = []
+        for index, item in enumerate(gold_star_quality.get("candidates") or [], start=1):
+            candidate_lines.append(
+                f"{index}. ID={item.get('benchmark_id')}; similarity={item.get('score')}; "
+                f"question={item.get('query')}; theme={item.get('known_theme')}; "
+                f"reasoning discipline={item.get('reasoning_family')}: {item.get('discipline')}; "
+                f"boundary={item.get('abstention_boundary')}"
+            )
+        candidate_evidence = "\\n".join(candidate_lines)
+        gold_star_quality_instruction = (
+            "GOLD STAR MULTI-CANDIDATE ADJUDICATION (structural guidance only; never answer authority): "
+            "These ranked retrieval candidates are possibilities, not approved selections. Similarity scores "
+            "identify candidates but do not establish relevance, compatibility, or permission to combine. "
+            "First identify the visitor's actual subject and reasoning task independently. Assess each candidate "
+            "separately: does its subject and discipline materially serve the task beyond shared broad vocabulary; "
+            "what distinct reasoning contribution would it add; is that contribution already supplied by the "
+            "question, reliable knowledge, or another candidate; and does its abstention boundary fit? Select one "
+            "only when it is the single sufficient fit. Combine candidates only when each contributes a distinct, "
+            "necessary, mutually compatible reasoning operation and integration adds no repetition, conflict, or "
+            "subject drift. Reject all when none materially improves the answer or relevance is merely lexical. "
+            "Never combine candidates to reward their number or similarity ranking. Never let a candidate override "
+            "the visitor's question, factual evidence, or subject-adaptive response shape. If none qualifies, answer "
+            "normally without Gold Star guidance; never refuse or substitute an unrelated doorway because candidates "
+            "were rejected. Use selected discipline invisibly. Never transfer exemplar answers, claims, examples, "
+            "citations, or doorways.\\nRanked candidates (for adjudication, not automatic application):\\n"
+            + candidate_evidence + "\\n\\n"
+        )
     integrity_recovery_instruction = (
         "INTEGRITY RECOVERY: A previous candidate answer was detected as an approved reference answer to a different question. "
         "Do not repeat or paraphrase that unrelated answer. Answer the visitor’s exact question using the supplied canonical material. "
@@ -4125,7 +4153,7 @@ def compose(
     cache_key = _composition_cache_key(
         question,
         history_text,
-        shape + ("|integrity_recovery" if integrity_recovery else "") + ("|gold_star:" + str(gold_star_quality.get("benchmark_id")) if gold_star_quality else ""),
+        shape + ("|integrity_recovery" if integrity_recovery else "") + ("|gold_star_candidates:" + ",".join(str(x.get("benchmark_id")) for x in gold_star_quality.get("candidates", [])) if gold_star_quality else ""),
         documents,
     )
     now = time.monotonic()
