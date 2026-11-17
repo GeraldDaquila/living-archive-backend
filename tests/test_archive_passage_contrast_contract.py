@@ -179,7 +179,10 @@ def test_final_visitor_boundary_enforces_passage_contrast_after_route_dispatch()
     boundary = boundary_functions[0]
     assert "archive_passage_contrast_recovery_from_context" in boundary
     assert "is_preserved_archive_passage_contrast_recovery" in boundary
-    assert '_guide_restore_verified_doorway(safe, query)' in boundary
+    assert '_gold_star_default_doorway()' in boundary
+    assert 'default_doorway = _normalize_authoritative_recommendation(' in boundary
+    assert 'safe["doorway_rationale"] = default_doorway.get("rationale") if default_doorway else None' in boundary
+    assert '_guide_restore_verified_doorway(safe, query)' not in boundary
     assert 'deterministic-topic-clarification' in boundary
     assert 'final_visitor_boundary_archive_passage_contrast_preserved' in boundary
     assert boundary.index("is_preserved_archive_passage_contrast_recovery") < boundary.index(
@@ -266,3 +269,17 @@ def test_final_doorway_fallback_requires_frontend_renderable_rationale():
     function_source = main_source[start:end]
     assert "not str(doorway.get(\"rationale\") or \"\").strip()" in function_source
     assert "_gold_star_default_doorway()" in function_source
+
+
+
+def test_topicless_clarification_uses_compass_not_a_guessed_conceptual_family():
+    """Without a subject, the doorway must remain the approved broad continuation."""
+    from pathlib import Path
+    main_source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    start = main_source.index('if payload.get("model") == "deterministic-topic-clarification":')
+    end = main_source.index('        else:', start)
+    branch = main_source[start:end]
+    assert "_gold_star_default_doorway()" in branch
+    assert "_select_verified_doorway_conceptual_family(query)" not in branch
+    assert 'safe["doorway_title"] = default_doorway.get("title")' in branch
+    assert 'safe["doorway_rationale"] = default_doorway.get("rationale")' in branch
