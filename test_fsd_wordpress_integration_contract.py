@@ -58,8 +58,8 @@ def test_ui_preserves_respondent_provenance_and_archive_boundary():
 
 def test_assets_are_staging_only_and_cache_version_is_aligned():
     assert "if (!is_page(80594)) return;" in PHP
-    assert "'assets/fsd-app.css', __FILE__), array(), '0.2.3'" in PHP
-    assert "'assets/fsd-app.js', __FILE__), array(), '0.2.3', true" in PHP
+    assert "'assets/fsd-app.css', __FILE__), array(), '0.2.4'" in PHP
+    assert "'assets/fsd-app.js', __FILE__), array('la-answer-doorway-standard'), '0.2.4', true" in PHP
     assert ".fsd-" in CSS
 
 
@@ -92,6 +92,8 @@ def test_primary_mirror_fallback_and_response_contract_are_explicit():
     assert "return new WP_Error('la_fsd_backend_unavailable'" in PHP
 
 
-def test_browser_external_links_use_safe_target_attributes():
-    assert 'a.target="_blank"' in JS
-    assert 'a.rel="noopener noreferrer"' in JS
+def test_browser_external_links_use_shared_canonical_doorway_boundary():
+    assert "window.LivingArchiveAnswerDoorway" in JS
+    assert "doorwayHelper.renderMany" in JS
+    assert "ref.role===\"conceptual_context_only\"" in JS
+    assert "a.target=\"_blank\"" not in JS
