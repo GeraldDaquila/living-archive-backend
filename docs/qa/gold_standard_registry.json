@@ -6072,11 +6072,12 @@
       "elevation_approval_evidence": "User instruction on 2026-11-17: 'elevate to gold star' after reviewing the production screenshot.",
       "approval_state": "User reviewed the live response and visible canonical doorway, then explicitly authorized Gold Star elevation on 2026-11-17.",
       "user_approved_at": "2026-11-17",
-      "gold_star_number": 93,
       "reasoning_family": "spiritual_practice_and_governance_accountability",
       "transferable_lesson": "Assess the governance of spiritual authority without making spiritual practice itself suspect: distinguish influence from unaccountable power, use observable patterns rather than assumptions, and make dissent, independent oversight, transparency, freedom to leave, and repair real.",
       "transfer_boundary": "Transfer the diagnostic and safeguarding discipline, not this exemplar's exact wording, specific spiritual-community framing, or Community Accountability Systems doorway to unrelated questions.",
-      "numbering_status": "ASSIGNED"
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "USER_APPROVED_NO_SERIAL_ALLOCATION",
+      "numbering_unassigned_reason": "The user explicitly approved Gold Star elevation but did not authorize a display serial. Do not infer a serial from registry order or the current maximum; the historical #85 and #86 gaps remain available only for separately user-authorized future allocations."
     }
   ],
   "last_reconciliation_note": "Added user-approved Oversoul/free-will Gold Star exemplar on 2026-11-17. Exact response and canonical doorway are frozen; transfer is limited to spiritual influence versus coercion and epistemic boundary discipline. No serial allocation. Existing Gold Star successors and complex-future scenario readiness are preserved.",
@@ -6209,13 +6210,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-17",
-    "approved_gold_star_count": 93,
-    "registry_record_count": 130,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 93 approved Gold Stars across 130 registry records. The complex-future scenario-readiness and Oversoul/free-will exemplars are active structural-learning contributors. The Oversoul exemplar's deterministic fallback eligibility remains false because its bounded recovery contract independently owns exact answer recovery. No display serial was allocated; prior exact-query successor governance remains unchanged.",
+    "approved_gold_star_count": 94,
+    "registry_record_count": 131,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 94 approved Gold Stars across 131 registry records. The complex-future scenario-readiness and Oversoul/free-will exemplars are active structural-learning contributors. The Oversoul exemplar's deterministic fallback eligibility remains false because its bounded recovery contract independently owns exact answer recovery. The spiritual-community accountability exemplar is approved but remains display-serial unassigned pending explicit user authorization. Historical gaps #85 and #86 remain documented and unassigned.",
     "numbered_gold_star_record_count": 35,
     "highest_assigned_gold_star_number": 92,
-    "numbering_reconciliation": "Record-level reconciliation: 93 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 58 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
-    "unassigned_approved_gold_star_count": 58,
+    "numbering_reconciliation": "Record-level reconciliation: 94 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 59 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
+    "unassigned_approved_gold_star_count": 59,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {
