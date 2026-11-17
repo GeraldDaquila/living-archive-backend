@@ -5796,6 +5796,26 @@ def _guide_finalize_visitor_payload(payload, query):
     # The passage-contrast contract is an absolute final-boundary invariant.
     # Provider-exhaustion recovery alone is insufficient because delegated and
     # legacy routes can bypass that helper and still emit a generic abstention.
+    # Composition may already have produced a source-validated deterministic
+    # two-passage response. Preserve that result: the final boundary receives
+    # the visitor payload, not the original retrieval context, so attempting a
+    # second recovery here can falsely downgrade two verified sources to zero.
+    if general_guide_composition.is_preserved_archive_passage_contrast_recovery(payload):
+        safe = dict(payload)
+        safe["response"] = _sanitize_basic_inquiry_response(response_text)
+        safe["recommendation"] = None
+        safe["canonical_doorway"] = None
+        safe["doorway_title"] = None
+        safe["doorway_url"] = None
+        safe["processing"] = "final_visitor_boundary_archive_passage_contrast_preserved"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        print(
+            "The Guide final visitor boundary: preserved the already-validated "
+            "two-passage Archive contrast; no second recovery attempted."
+        )
+        return safe
+
     _archive_passage_contrast = (
         general_guide_composition.archive_passage_contrast_recovery_from_context(
             query, use_core, payload if isinstance(payload, dict) else {}
