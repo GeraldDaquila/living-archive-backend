@@ -14,8 +14,11 @@ url:x&&x.url,
 rationale:clean(r.why_each&&((r.why_each[x.id])||(r.why_each[x.title]))||""),
 kind:"continue"
 }));
-if(!helper||typeof helper.renderMany!=="function"||helper.renderMany(d,items)!==3){
-throw Error("The pathway did not return three complete, verified destinations.");
+if(!helper||typeof helper.renderMany!=="function"){
+d.replaceChildren();
+}else{
+const rendered=helper.renderMany(d,items);
+if(rendered!==3)d.replaceChildren();
 }
 const landscape=Array.isArray(r.landscape)?r.landscape:[];
 const safeLandscape=[];
