@@ -4496,27 +4496,27 @@ def _requires_nonprofit_culture_power_care_governance(query: str) -> bool:
     """
     q = _normalize_space(query).casefold()
     organization = bool(re.search(
-        r"\\b(?:nonprofit|non-profit|not-for-profit|organization|organisation|institution|workplace|company|charity|agency)\\b",
+        r"\b(?:nonprofit|non-profit|not-for-profit|organization|organisation|institution|workplace|company|charity|agency)\b",
         q,
     ))
-    leadership = bool(re.search(r"\\b(?:founder|executive|leader|leadership|director)\\b", q))
-    staff = bool(re.search(r"\\b(?:staff|employees?|workers?|personnel|team members?)\\b", q))
-    trust_signal = bool(re.search(r"\\b(?:trusted|trust|respected|admired|confidence)\\b", q))
+    leadership = bool(re.search(r"\b(?:founder|executive|leader|leadership|director)\b", q))
+    staff = bool(re.search(r"\b(?:staff|employees?|workers?|personnel|team members?)\b", q))
+    trust_signal = bool(re.search(r"\b(?:trusted|trust|respected|admired|confidence)\b", q))
     adverse_signal = bool(re.search(
-        r"\\b(?:fear|afraid|intimidat\\w*|high turnover|turnover|retention|silence|retaliat\\w*)\\b",
+        r"\b(?:fear|afraid|intimidat\w*|high turnover|turnover|retention|silence|retaliat\w*)\b",
         q,
     ))
     dimensions = (
-        r"\\bcultur\\w*\\b",
-        r"\\bpower\\b",
-        r"\\bleadership\\b",
-        r"\\bcare\\b",
-        r"\\bgovernance\\b",
+        r"\bcultur\w*\b",
+        r"\bpower\b",
+        r"\bleadership\b",
+        r"\bcare\b",
+        r"\bgovernance\b",
     )
     dimension_count = sum(bool(re.search(pattern, q)) for pattern in dimensions)
     epistemic_boundary = bool(re.search(
-        r"\\b(?:without diagnos\\w*|limited evidence|insufficient evidence|"
-        r"avoid diagnos\\w*|not diagnos\\w*|without assum\\w*|not infer\\w*)\\b",
+        r"\b(?:without diagnos\w*|limited evidence|insufficient evidence|"
+        r"avoid diagnos\w*|not diagnos\w*|without assum\w*|not infer\w*)\b",
         q,
     ))
     return (
@@ -4527,19 +4527,19 @@ def _requires_nonprofit_culture_power_care_governance(query: str) -> bool:
 
 def _has_nonprofit_culture_power_care_governance_explanation(response: str) -> bool:
     """Require integrated structural analysis and an explicit non-diagnostic boundary."""
-    paragraphs = [p.strip() for p in re.split(r"\\n\\s*\\n+", str(response or "")) if p.strip()]
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
     if len(paragraphs) != 3:
         return False
     first, second, third = paragraphs
     return (
-        bool(re.search(r"\\b(?:trust|trusted)\\b", first, re.I))
-        and bool(re.search(r"\\b(?:fear|turnover|staff experience)\\b", first, re.I))
-        and bool(re.search(r"\\b(?:culture|power|leadership)\\b", first, re.I))
-        and bool(re.search(r"\\b(?:care|governance|decision|voice|accountability)\\b", second, re.I))
-        and bool(re.search(r"\\b(?:patterns?|evidence|multiple|independent|confidential|review)\\b", second, re.I))
-        and bool(re.search(r"\\b(?:cannot|cannot responsibly|does not establish|not establish|not prove|does not prove)\\b", third, re.I))
-        and bool(re.search(r"\\b(?:diagnos\\w*|motives?|character|culpability|individual)\\b", third, re.I))
-        and bool(re.search(r"\\b(?:correct\\w*|accountab\\w*|safeguard\\w*|review|revisit)\\b", third, re.I))
+        bool(re.search(r"\b(?:trust|trusted)\b", first, re.I))
+        and bool(re.search(r"\b(?:fear|turnover|staff experience)\b", first, re.I))
+        and bool(re.search(r"\b(?:culture|power|leadership)\b", first, re.I))
+        and bool(re.search(r"\b(?:care|governance|decision|voice|accountability)\b", second, re.I))
+        and bool(re.search(r"\b(?:patterns?|evidence|multiple|independent|confidential|review)\b", second, re.I))
+        and bool(re.search(r"\b(?:cannot|cannot responsibly|does not establish|not establish|not prove|does not prove)\b", third, re.I))
+        and bool(re.search(r"\b(?:diagnos\w*|motives?|character|culpability|individual)\b", third, re.I))
+        and bool(re.search(r"\b(?:correct\w*|accountab\w*|safeguard\w*|review|revisit)\b", third, re.I))
     )
 
 
