@@ -478,3 +478,26 @@ def test_public_predictive_family_does_not_overmatch_private_analytics_or_generi
     assert not _is_public_predictive_system_question(private_analytics)
     assert main._select_verified_doorway_conceptual_family(generic_rights) != "public_predictive_systems"
     assert not _is_public_predictive_system_question(generic_rights)
+
+
+def test_public_predictive_gold_star_successor_is_exact_runtime_authority_and_preserves_predecessor():
+    from general_guide_gold_standards import resolve_exact_gold_standard
+    from deterministic_answer_recovery import _public_predictive_system_recovery
+
+    query = (
+        "A government proposes a highly efficient predictive system for public services. "
+        "What constitutional and human questions must precede adoption?"
+    )
+    standard = resolve_exact_gold_standard(query)
+    expected_phrase = (
+        "reach a human decision-maker with the authority to review and correct the decision."
+    )
+
+    assert standard is not None
+    assert standard["benchmark_id"] == "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17"
+    assert expected_phrase in standard["expected_response"]
+    assert expected_phrase in _public_predictive_system_recovery()
+    assert standard["expected_response"] == _public_predictive_system_recovery()
+    assert standard["doorway_title"] == "AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever"
+    assert standard["doorway_rationale"]
+    assert standard["doorway_url"] == "https://geralddaquila.com/2026/06/16/ai-vs-human-stewardship-why-conscious-guidance-matters-more-than-ever/"
