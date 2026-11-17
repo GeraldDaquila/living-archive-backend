@@ -234,7 +234,7 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 61
     assert report["highest_assigned_gold_star_number"] == 93
     assert report["numbering_sequence_start"] == 56
-    assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
+    assert [gap["number"] for gap in report["numbering_gap_register"]] == [86]
     assert len(report["number_assignments"]) == 37
     assert len(report["unassigned_benchmark_ids"]) == 61
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
@@ -1065,26 +1065,25 @@ def test_spiritual_bypassing_gold_star_is_explicitly_migrated_to_91_without_revi
     assert "not a backfill" in migration["reason"]
 
 
-def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignment():
+def test_85_is_allocated_and_86_remains_the_only_documented_historical_gap():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     gaps = registry["numbering_gap_register"]
-    assert [g["number"] for g in gaps] == [85, 86]
-    assert gaps[0]["status"] == "ALLOCATED_TO_APPROVED_GOLD_STAR"
-    assert gaps[1]["status"] == "RELEASED_FOR_FUTURE_ALLOCATION"
-    assert gaps[0]["allocation"]["benchmark_id"] == "general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18"
+    assert [g["number"] for g in gaps] == [86]
+    assert gaps[0]["status"] == "RELEASED_FOR_FUTURE_ALLOCATION"
+    assert gaps[0]["number"] == 86
     assert all(g["release_authorization"]["authorization_type"] == "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE" for g in gaps)
     assert all(g["release_authorization"]["historical_evidence_preserved"] is True for g in gaps)
     assert gaps[0]["release_authorization"]["allocation_rule"].find("#85") >= 0
-    assert "7a036632323b7c09003d1fce637a7b49128a27bf" in gaps[1]["reason"]
-    assert "only adds provenance.source_date" in gaps[1]["reason"]
-    assert "recovered as Gold Star #56" in gaps[1]["reason"]
+    assert "7a036632323b7c09003d1fce637a7b49128a27bf" in gaps[0]["reason"]
+    assert "only adds provenance.source_date" in gaps[0]["reason"]
+    assert "recovered as Gold Star #56" in gaps[0]["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
     assert registry["integrity_audit"]["approved_gold_star_count"] == 98
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 37
     assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 93
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 61
-    assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
+    assert registry["integrity_audit"]["documented_numbering_gap_count"] == 1
 
 
 
@@ -1138,10 +1137,11 @@ def test_only_two_explicit_historical_gap_releases_are_authorized_for_future_new
     assert "No existing approved record" in policy["allocation_rule"]
     assert policy["does_not_change_adaptive_learning_identity"] is True
     gaps = {g["number"]: g for g in registry["numbering_gap_register"]}
-    assert set(gaps) == {85, 86}
-    assert gaps[85]["status"] == "ALLOCATED_TO_APPROVED_GOLD_STAR"
+    assert set(gaps) == {86}
     assert gaps[86]["status"] == "RELEASED_FOR_FUTURE_ALLOCATION"
-    assert all(gaps[n]["release_authorization"]["approved_by"] == "user" for n in (85, 86))
+    assert gaps[86]["release_authorization"]["approved_by"] == "user"
+    allocation = next(item for item in registry["numbering_allocation_history"] if item["number"] == 85)
+    assert allocation["benchmark_id"] == "general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18"
     assert len([r for r in registry["records"] if r.get("gold_star_number") in {85, 86}]) == 1
     assert next(r for r in registry["records"] if r.get("gold_star_number") == 85)["benchmark_id"] == "general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18"
 
