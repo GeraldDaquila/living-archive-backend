@@ -6579,7 +6579,16 @@
         "historical_evidence_preserved": true
       },
       "allocated_to_benchmark_id": "general-guide-archive-examples-evidence-limits-gold-star-2026-11-18",
-      "allocated_at": "2026-11-18"
+      "allocated_at": "2026-11-18",
+      "allocation_authorization": {
+        "authorization_type": "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE",
+        "approved_by": "user",
+        "approved_at": "2026-11-16",
+        "fulfilled_by_benchmark_id": "general-guide-archive-examples-evidence-limits-gold-star-2026-11-18",
+        "fulfilled_at": "2026-11-18",
+        "authority": "User explicitly agreed to release #85 and #86 as the next two serials; #85 was allocated first and this new user-approved Gold Star fulfills the #86 allocation.",
+        "historical_evidence_preserved": true
+      }
     }
   ],
   "numbering_allocation_history": [
@@ -6618,7 +6627,7 @@
       "allocation_class": "new_approved_record_not_historical_backfill",
       "prior_gap_record": {
         "number": 86,
-        "status": "ALLOCATED_TO_APPROVED_GOLD_STAR",
+        "status": "RELEASED_FOR_FUTURE_ALLOCATION",
         "reason_code": "MISLEADING_COMMIT_SUBJECT_NO_ALLOCATION",
         "reason": "No canonical Gold Star assignment event for serial #86 was recovered. Commit 7a036632323b7c09003d1fce637a7b49128a27bf is titled 'Complete provenance date for Gold Star 86', but its diff only adds provenance.source_date to general-guide-agency-circumstance-gold-standard-2026-11-15. That same record is historically recovered as Gold Star #56 from merged PR #1428 and the immediately following explicit #57 allocation in PR #1430. The commit subject's '#86' is therefore a mislabel, not a second assignment. GitHub PR #86 is a September 2026 v340 grief-versus-death-topic code change, not a Gold Star assignment.",
         "evidence_checked": [
@@ -6628,7 +6637,6 @@
           "GitHub PR #1430 explicit user-authorized #57 allocation",
           "GitHub PR #86: v340 grief/death-topic classification repair"
         ],
-        "disposition": "Historical gap evidence retained; serial #86 is now allocated to the next newly approved Gold Star under the explicit 2026-11-16 release authorization. No existing record was renumbered.",
         "release_authorization": {
           "authorization_type": "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE",
           "approved_by": "user",
@@ -6636,10 +6644,9 @@
           "authority": "User explicitly agreed to release both #85 and #86 as two exceptions in the conversation on 2026-11-16.",
           "allocation_rule": "Reserve #85 for the next newly approved Gold Star, then #86 for the following newly approved Gold Star. Allocation requires a new unique benchmark_id, explicit user approval of Gold Star elevation, and a record-level gold_star_number assignment. Do not assign either number to an existing approved record or infer an exemplar.",
           "historical_evidence_preserved": true
-        },
-        "allocated_to_benchmark_id": "general-guide-archive-examples-evidence-limits-gold-star-2026-11-18",
-        "allocated_at": "2026-11-18"
-      }
+        }
+      },
+      "authority": "User explicitly instructed Gold Star elevation on 2026-11-18. The canonical numbering policy reserves #86 for the next newly approved Gold Star after #85 was allocated; this approval completes that authorized allocation."
     }
   ]
 }
