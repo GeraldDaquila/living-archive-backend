@@ -345,7 +345,7 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "oversoul_free_will": {
         "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
         "url": "https://geralddaquila.com/oversoul-law",
-        "rationale": "This is the Archive's directly named Oversoul doorway for examining spiritual jurisdiction and the relationship between wider purpose and personal choice. It is an invitation to inspect the Archive's own framework, not independent evidence that metaphysical claims are objectively established.",
+        "rationale": "This is the Archive's directly named Oversoul doorway for examining the question of spiritual jurisdiction. It is an invitation to inspect the Archive's own framework, not independent evidence that metaphysical claims are objectively established.",
     },
     "human_development_ecology": {
         "title": "Becoming Fully Human",
