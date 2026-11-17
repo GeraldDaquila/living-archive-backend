@@ -298,7 +298,7 @@ def _select_verified_doorway_conceptual_family(query):
         r"\b(?:claim|claims|source|sources)\b",
     ))
     if re.search(r"\barchive\b", text, re.I) and archive_commons_terms >= 3:
-        return "archive_guidance_provenance"
+        return "public_commons_stewardship"
     if (
         re.search(r"\barchive(?:-grounded|\s+grounded)?\b", text, re.I)
         and re.search(r"\b(?:guidance|knowledge|evidence|synthesis|orientation)\b", text, re.I)
