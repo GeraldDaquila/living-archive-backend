@@ -44,7 +44,7 @@ def test_provider_exhaustion_recovery_returns_answer_and_verified_doorway():
     result = composition._comparative_traditions_recovery(QUESTION)
     assert result is not None
     assert result["provider"] == "bounded_comparative_traditions_recovery"
-    assert len(result["response"].split("\\n\\n")) == 3
+    assert len(result["response"].split("\n\n")) == 3
     assert result["doorway_title"] == "At the Edge of Explanation"
     assert result["doorway_url"] == "https://geralddaquila.com/2026/07/20/at-the-edge-of-explanation/"
 
