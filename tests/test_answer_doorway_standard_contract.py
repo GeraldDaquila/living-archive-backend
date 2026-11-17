@@ -27,6 +27,7 @@ def main():
     fsd = read("integrations/wordpress/living-archive-fsd-proxy/assets/fsd-app.js")
     hrn = read("plugins/human-relational-navigator/assets/relational-navigator.js")
     spe = read("wordpress/spe/03-JavaScript.js")
+    guide = read("wordpress/guide/woody-snippet-76926-universal.html")
     fsd_contract = read("fsd_episode_report_contract.py")
 
     assert "doorwayHelper.renderMany" in fsd
@@ -35,6 +36,9 @@ def main():
     assert "helper.renderMany(d,items)!==3" in spe
     assert "helper.normalizeUrl(x.url)" in spe
     assert "innerHTML" not in spe
+    assert "LivingArchiveAnswerDoorway.render(recommendation" in guide
+    assert "link.href=doorway.url" not in guide
+    assert "recommendation.replaceChildren()" in guide
     assert "is_canonical_archive_url" in fsd_contract
     assert "parsed.username is None" in fsd_contract
     assert "not parsed.query" in fsd_contract
