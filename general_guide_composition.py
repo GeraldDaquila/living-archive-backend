@@ -897,6 +897,12 @@ _GENERIC_NONANSWER_PATTERNS = (
     # so classify the failure family rather than one exact template.
     r"\bi could(?: not|n't) verify a reliable answer from the material available\b",
     r"\bi could(?: not|n't) identify a sufficiently relevant archive resource to recommend\b",
+    # The generic deterministic default describes how to investigate instead of
+    # answering the named subject. Treat this fallback family as a failed answer
+    # so it cannot pass merely because it has three fluent paragraphs.
+    r"\bthe question about .{1,180} can be approached by first identifying the main issue\b",
+    r"\bthe next step is to examine the most relevant facts, relationships, and plausible explanations\b",
+    r"\bthis provides a grounded starting point without pretending to know details the question has not supplied\b",
 
 )
 
