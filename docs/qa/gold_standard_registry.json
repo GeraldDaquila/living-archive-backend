@@ -6581,7 +6581,7 @@
     "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 100 approved Gold Stars across 137 registry records. 98 are active learning contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. The systems-map duplicate lineage remains governed with one active exemplar. The symmetric-source-representation exemplar is an additional distinct active contributor; it does not duplicate the contextual-values synthesis or source-claim/synthesis-boundary exemplars.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation: 99 approved Gold Stars; 38 assigned display serials #56–#93; 61 approved records explicitly UNASSIGNED with reasons. The two explicitly released historical-gap serials, #85 and #86, are now allocated to new approved records; no open numbering gaps remain. Historical gap evidence for #86 is retained in numbering_allocation_history.",
+    "numbering_reconciliation": "Record-level reconciliation: 100 approved Gold Stars; 38 assigned display serials #56–#93; 62 approved records explicitly UNASSIGNED with reasons. The two explicitly released historical-gap serials, #85 and #86, are now allocated to new approved records; no open numbering gaps remain. Historical gap evidence for #86 is retained in numbering_allocation_history.",
     "unassigned_approved_gold_star_count": 62,
     "documented_numbering_gap_count": 0
   },
