@@ -136,3 +136,58 @@ def test_public_commons_gold_star_does_not_capture_unrelated_archive_questions(m
     result = main._guide_finalize_visitor_payload(payload, query)
     assert result["response"] == "ordinary answer"
     assert result.get("processing") != "final_visitor_boundary_public_commons_stewardship"
+
+
+def test_archive_examples_without_direct_answer_use_evidence_limits_contract_for_both_routes(monkeypatch):
+    query = (
+        "The archive offers two suggestive examples but no direct answer to a visitor's claim. "
+        "How should the Guide express what is known and what remains open?"
+    )
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda q: None)
+    generic_decision_answer = (
+        "Start by defining the outcome the change must achieve, the responsibilities that cannot "
+        "be lost, and the people who will live with its consequences."
+    )
+    irrelevant_glossary = {
+        "title": "Living Glossary",
+        "url": "https://geralddaquila.com/living-glossary/",
+    }
+    payloads = (
+        {"response": generic_decision_answer, "recommendation": dict(irrelevant_glossary), "route_source": "provider"},
+        {"response": generic_decision_answer, "recommendation": dict(irrelevant_glossary), "route_source": "deterministic"},
+    )
+
+    assert main._is_archive_examples_evidence_limits_inquiry(query) is True
+    results = [
+        main._guide_finalize_visitor_payload(payload, query)
+        for payload in payloads
+    ]
+
+    expected_doorway = {
+        "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+        "rationale": (
+            "Continue into the Archive's Knowledge & Sensemaking pathway to examine how sources, "
+            "evidence, interpretation, and unresolved questions relate."
+        ),
+    }
+    for result in results:
+        assert "The two examples establish what those particular sources actually say" in result["response"]
+        assert "What remains open is whether the examples are representative" in result["response"]
+        assert "Illustration is useful, but it is not proof." in result["response"]
+        assert generic_decision_answer not in result["response"]
+        assert result["recommendation"] == expected_doorway
+        assert result["canonical_doorway"] == expected_doorway
+        assert result["doorway_title"] == expected_doorway["title"]
+        assert result["doorway_url"] == expected_doorway["url"]
+        assert result["doorway_rationale"] == expected_doorway["rationale"]
+        assert result["processing"] == "final_visitor_boundary_archive_examples_evidence_limits"
+
+
+def test_archive_examples_evidence_limits_detector_does_not_capture_ordinary_decision_questions():
+    assert not main._is_archive_examples_evidence_limits_inquiry(
+        "A company has two options and must decide which change to implement. What outcome should it prioritize?"
+    )
+    assert not main._is_archive_examples_evidence_limits_inquiry(
+        "What does the Archive say about the meaning of stewardship?"
+    )
