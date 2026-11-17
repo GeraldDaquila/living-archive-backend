@@ -6545,6 +6545,23 @@ def _enforce_reflective_recovery_completion(query, response):
 def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_data, *, recommendation_available=False):
     """Keep specialist recoveries; improve only the generic provider-exhaustion answer."""
     import general_guide_composition as _guide_composition
+    # This request family owns a source-bound recovery contract. Resolve it
+    # before the legacy deterministic fallback can substitute generic failure
+    # prose, including when provider exhaustion or an outer delegated route
+    # bypasses compose()'s own recovery ladder.
+    _archive_contrast_recovery = (
+        _guide_composition.archive_passage_contrast_recovery_from_context(
+            query, use_core, context_data if isinstance(context_data, dict) else {}
+        )
+    )
+    if _archive_contrast_recovery is not None:
+        _archive_contrast_recovery = dict(_archive_contrast_recovery)
+        _archive_contrast_recovery["recommendation"] = None
+        _archive_contrast_recovery["canonical_doorway"] = None
+        _archive_contrast_recovery["provider"] = "bounded_archive_passage_contrast_terminal_recovery"
+        _archive_contrast_recovery["model"] = "deterministic-evidence-boundary"
+        return _archive_contrast_recovery
+
     result = _basic_inquiry_round1_deterministic_response(
         query, interpretation, context_data,
         recommendation_available=recommendation_available,
