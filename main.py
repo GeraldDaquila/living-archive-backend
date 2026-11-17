@@ -11937,6 +11937,24 @@ def _apply_exact_gold_standard_authority_to_payload(payload):
             payload["doorway_title"] = title
             payload["doorway_url"] = url
             payload["doorway_rationale"] = rationale or None
+        else:
+            # A frozen Gold Star with no destination still carries a doorway
+            # by default. Resolve a question-specific canonical resource first,
+            # then use the broad Compass continuation; only a reasoned
+            # no-doorway exception may omit it.
+            try:
+                candidate = _select_guide_node_fallback_doorway(query)
+            except Exception:
+                candidate = None
+            doorway = (
+                _normalize_authoritative_recommendation(candidate)
+                or _normalize_authoritative_recommendation(_gold_star_default_doorway())
+            )
+            payload["recommendation"] = doorway
+            payload["canonical_doorway"] = doorway
+            payload["doorway_title"] = doorway.get("title") if doorway else None
+            payload["doorway_url"] = doorway.get("url") if doorway else None
+            payload["doorway_rationale"] = doorway.get("rationale") if doorway else None
     return payload
 
 async def _use_send_json(send, payload, status_code=200):
