@@ -880,7 +880,8 @@ body.page,
     var doorway=payload.recommendation||payload.authoritative_doorway||payload.canonical_doorway||payload.doorway||payload.canonical_recommendation||payload.archive_doorway||null;
     /* Resilience boundary must never erase a doorway rendered by the primary Guide controller.
        It supplements the answer only when this intercepted payload itself carries a complete doorway. */
-    if(recommendation&&doorway&&typeof doorway==='object'&&window.LivingArchiveAnswerDoorway){
+    var primaryDoorway=text.querySelector('.archive-inline-recommendation');
+    if(recommendation&&doorway&&typeof doorway==='object'&&window.LivingArchiveAnswerDoorway&&!primaryDoorway){
       var rationale=typeof doorway.rationale==='string'?doorway.rationale.trim():'';
       var rendered=window.LivingArchiveAnswerDoorway.render(recommendation,{
         title:doorway.title,
@@ -895,7 +896,7 @@ body.page,
     box.style.display='block';if(controls)controls.style.display='flex';button.disabled=false;button.classList.remove('is-loading');button.removeAttribute('aria-busy');return true;
   }
   window.fetch=function(){return originalFetch.apply(null,arguments).then(function(response){if(active())response.clone().json().then(function(payload){if(active()&&payload&&typeof payload.response==='string'&&payload.response.trim()){latest=payload;window.setTimeout(function(){if(latest===payload&&active())render(payload);},300);}}).catch(function(){});return response;});};
-  function clearDoorway(){var recommendation=document.getElementById('archive-recommendation');if(recommendation){recommendation.replaceChildren();recommendation.style.display='none';}}
+  function clearDoorway(){var recommendation=document.getElementById('archive-recommendation');if(recommendation){recommendation.replaceChildren();recommendation.style.display='none';}var primary=document.querySelector('#archive-response-text .archive-inline-recommendation');if(primary)primary.remove();}
   form.addEventListener('submit',function(){submittedAt=Date.now();latest=null;clearDoorway();},true);
   window.setInterval(function(){if(!active())return;if(latest&&render(latest))return;if(Date.now()-submittedAt>30000&&!latest){text.textContent='The Guide is taking longer than expected. Please try your question again.';box.style.display='block';button.disabled=false;button.classList.remove('is-loading');button.removeAttribute('aria-busy');submittedAt=0;}},250);
 })();
