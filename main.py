@@ -247,7 +247,10 @@ def _select_verified_doorway_conceptual_family(query):
     text = str(query or "")
     # Spiritual-community accountability questions have a direct, narrowly
     # relevant Archive doorway. Resolve this before generic community matches.
-    if is_spiritual_community_accountability_question(text):
+    from deterministic_answer_recovery import (
+        is_spiritual_community_accountability_question as _is_spiritual_community_accountability_question,
+    )
+    if _is_spiritual_community_accountability_question(text):
         return "spiritual_community_accountability"
     # Spiritual-agency questions have a direct Archive doorway. Resolve this
     # before generic agency/uncertainty matches can select a broad compass.
