@@ -119,3 +119,63 @@ def test_community_continuity_nonanswer_is_replaced_and_doorway_is_recovered():
     assert 'composition_context.get("answer_basis") == "general_conceptual_orientation"' in source
     assert '"label": "General conceptual orientation"' in source
     assert "rather than claiming that the Living Archive establishes the full answer" in source
+
+
+
+def test_retrieval_only_disclaimer_is_rejected_for_ordinary_explanatory_questions():
+    from general_guide_composition import is_generic_nonanswer
+
+    query = "How can communities preserve continuity while revising harmful inherited patterns?"
+    screenshot_style = (
+        "I do not have enough grounded material here to give a specific Archive-based answer, "
+        "but the question can still be approached by making its central tension visible: what is at stake, "
+        "who or what is affected, what responsibilities are involved, and what would change if the situation "
+        "were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\n"
+        "A useful next question is where this distinction matters most: in how the organization makes decisions, "
+        "measures success, or responds to consequences.\n\n"
+        "The approach can be revisited as consequences become clearer and the people affected share what they are experiencing."
+    )
+    assert is_generic_nonanswer(query, screenshot_style)
+
+    archive_specific_query = "How does the Living Archive say communities should preserve continuity while revising harmful inherited patterns?"
+    archive_specific_disclaimer = screenshot_style.replace(
+        "The approach can be revisited as consequences become clearer and the people affected share what they are experiencing.",
+        "The approach can be revisited as consequences become clearer and the people affected share what they are experiencing. The available sources do not establish a more specific canonical prescription.",
+    )
+    assert not is_generic_nonanswer(archive_specific_query, archive_specific_disclaimer)
+
+
+def test_outer_basic_inquiry_exception_path_reuses_terminal_answer_and_navigation_contracts():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    marker = 'The Guide Basic Inquiry seam failed;'
+    start = source.index(marker)
+    end = source.index('explicit_formation_route =', start)
+    boundary = source[start:end]
+    assert "_basic_inquiry_provider_exhaustion_response(" in boundary
+    assert "general_guide_composition.enforce_response_contracts(" in boundary
+    assert "_terminal_has_registered_recovery(query)" in boundary
+    assert "_terminal_recovery_recommendation(query)" in boundary
+    assert '"canonical_doorway": recovery_recommendation' in boundary
+    assert '"answer_basis": {' in boundary
+    assert "_basic_inquiry_round1_deterministic_response(" not in boundary
+    assert "str(exc)[:180]" in boundary
+
+
+
+def test_provider_exhaustion_returns_registered_continuity_answer_and_doorway_together():
+    from main import _basic_inquiry_provider_exhaustion_response
+    from deterministic_answer_recovery import registered_recovery_recommendation
+
+    query = "How can communities preserve continuity while revising harmful inherited patterns?"
+    result = _basic_inquiry_provider_exhaustion_response(
+        query,
+        {},
+        {"context_blocks": ""},
+        recommendation_available=True,
+    )
+    doorway = registered_recovery_recommendation(query)
+    assert result["response"].startswith("Communities preserve continuity")
+    assert len([p for p in result["response"].split("\n\n") if p.strip()]) == 3
+    assert result["recommendation"] == doorway
+    assert result["doorway_title"] == doorway["title"]
+    assert result["doorway_url"] == doorway["url"]
