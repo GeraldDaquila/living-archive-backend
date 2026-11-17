@@ -420,3 +420,61 @@ def test_exact_gold_standard_does_not_borrow_rationale_for_a_different_destinati
         "url": "https://geralddaquila.com/a-different-canonical-resource/",
     }
     assert "rationale" not in result["recommendation"]
+
+
+def test_public_predictive_system_family_covers_automated_public_eligibility_models():
+    import main
+    from deterministic_answer_recovery import (
+        _is_public_predictive_system_question,
+        has_registered_recovery,
+        registered_recovery_recommendation,
+    )
+
+    query = (
+        "A city government is considering an automated eligibility model for public benefits. "
+        "What due-process, appeal, and human-oversight safeguards should be settled before adoption?"
+    )
+    expected = {
+        "title": "AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever",
+        "url": "https://geralddaquila.com/2026/06/16/ai-vs-human-stewardship-why-conscious-guidance-matters-more-than-ever/",
+        "rationale": "AI vs. Human Stewardship examines why growing technological capability must remain guided by human wisdom, ethical judgment, oversight, agency, and clear accountability. It offers a broader foundation for examining predictive public systems and the responsibilities that must remain with people; it does not evaluate this particular government proposal.",
+    }
+
+    assert main._select_verified_doorway_conceptual_family(query) == "public_predictive_systems"
+    assert main._public_predictive_system_family_doorway(query) == expected
+    assert _is_public_predictive_system_question(query)
+    assert has_registered_recovery(query)
+    assert registered_recovery_recommendation(query) == expected
+
+
+def test_public_predictive_family_doorway_outranks_generic_retrieval_recommendation():
+    import main
+
+    query = (
+        "A city government is considering an automated eligibility model for public benefits. "
+        "What due-process, appeal, and human-oversight safeguards should be settled before adoption?"
+    )
+    family_doorway = main._public_predictive_system_family_doorway(query)
+    generic_adjacent_candidate = {
+        "title": "Every Governance System Encodes a Model of Human Consciousness",
+        "url": "https://geralddaquila.com/2026/08/27/every-governance-system-encodes-a-model-of-human-consciousness",
+        "rationale": "A broad governance essay.",
+    }
+
+    assert family_doorway is not None
+    assert family_doorway["title"] != generic_adjacent_candidate["title"]
+    assert family_doorway["url"] != generic_adjacent_candidate["url"]
+    assert family_doorway["rationale"]
+
+
+def test_public_predictive_family_does_not_overmatch_private_analytics_or_generic_rights_questions():
+    import main
+    from deterministic_answer_recovery import _is_public_predictive_system_question
+
+    private_analytics = "How can a private retailer use an automated eligibility model to segment customers?"
+    generic_rights = "What due-process rights should citizens have when interacting with government agencies?"
+
+    assert main._select_verified_doorway_conceptual_family(private_analytics) != "public_predictive_systems"
+    assert not _is_public_predictive_system_question(private_analytics)
+    assert main._select_verified_doorway_conceptual_family(generic_rights) != "public_predictive_systems"
+    assert not _is_public_predictive_system_question(generic_rights)
