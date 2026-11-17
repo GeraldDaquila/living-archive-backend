@@ -5917,7 +5917,7 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["response"] = _archive_examples_evidence_limits_recovery()
         doorway = {
             "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
-            "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+            "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
             "rationale": (
                 "Continue into the Archive’s Knowledge & Sensemaking pathway to examine how sources, "
                 "evidence, interpretation, and unresolved questions relate."
