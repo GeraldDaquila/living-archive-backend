@@ -141,5 +141,5 @@ add_action('wp_enqueue_scripts', function () {
     // remains independently disabled unless both explicit feature flags are true.
     if (!is_page(80594)) return;
     wp_enqueue_style('living-archive-fsd-episode', plugins_url('assets/fsd-app.css', __FILE__), array(), '0.2.3');
-    wp_enqueue_script('living-archive-fsd-episode', plugins_url('assets/fsd-app.js', __FILE__), array(), '0.2.3', true);
+    wp_enqueue_script('living-archive-fsd-episode', plugins_url('assets/fsd-app.js', __FILE__), array('la-answer-doorway-standard'), '0.2.4', true);
 });
