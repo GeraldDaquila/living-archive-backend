@@ -27,7 +27,13 @@ _STOP_WORDS = frozenset({
     "our","should","so","that","the","their","this","to","what","when","where",
     "which","who","why","with","would","you","your","concept","concepts",
     "difference","differences","explain","important","meaning","question",
-    "questions","understand","understanding","way","ways"
+    "questions","understand","understanding","way","ways",
+    # Broad decision/context vocabulary cannot establish subject identity by itself.
+    "people","person","act","action","actions","acting","future","uncertain",
+    "uncertainty","consequential","consequence","consequences","decision",
+    "decisions","responsibility","responsibilities","responsible","change",
+    "changes","changing","system","systems","outcome","outcomes","impact",
+    "impacts","important","significant","matter","matters","options","option"
 })
 
 def _tokens(value: Any) -> set[str]:
