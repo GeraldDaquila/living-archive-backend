@@ -179,3 +179,20 @@ def test_provider_exhaustion_returns_registered_continuity_answer_and_doorway_to
     assert result["recommendation"] == doorway
     assert result["doorway_title"] == doorway["title"]
     assert result["doorway_url"] == doorway["url"]
+
+
+def test_community_continuity_doorway_rationale_matches_the_published_essay_and_both_response_paths():
+    import main
+    from deterministic_answer_recovery import registered_recovery_recommendation
+
+    query = "How can communities preserve continuity while revising harmful inherited patterns?"
+    expected = "This essay explores how personal development can mature into stewardship: taking responsibility for the relationships, institutions, and shared conditions that support human flourishing. It offers a wider perspective on community continuity by asking what people must build and sustain together, rather than prescribing how a particular inherited practice should be changed."
+    family_doorway = main._VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS["community_continuity_revision"]
+    deterministic_doorway = registered_recovery_recommendation(query)
+
+    assert family_doorway["rationale"] == expected
+    assert deterministic_doorway["rationale"] == expected
+    assert family_doorway["title"] == deterministic_doorway["title"] == "From Awakening to Stewardship"
+    assert family_doorway["url"] == deterministic_doorway["url"] == "https://geralddaquila.com/from-awakening-to-stewardship/"
+    assert "carry wisdom and responsibility across generations" not in expected.lower()
+    assert "rather than prescribing how a particular inherited practice should be changed" in expected
