@@ -80,6 +80,7 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
         ) or bool(re.search(r"\bdo not send me to another page\b", question))
         doorway_title = "" if no_handoff else str(doorway.get("title") or "")
         doorway_url = None if no_handoff else doorway.get("url")
+        doorway_rationale = "" if no_handoff else str(doorway.get("rationale") or "").strip()
         if question in standards:
             previous = standards[question]
             if previous["expected_response"] != answer:
@@ -89,6 +90,7 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
             if (
                 previous.get("doorway_title", "") != doorway_title
                 or previous.get("doorway_url", "") != (str(doorway_url) if doorway_url else "")
+                or previous.get("doorway_rationale", "") != doorway_rationale
                 or bool(previous.get("forbids_doorway")) != no_handoff
             ):
                 raise ValueError(
@@ -101,6 +103,7 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
             "status": str(record.get("status") or ""),
             "doorway_title": doorway_title,
             "doorway_url": str(doorway_url) if doorway_url else "",
+            "doorway_rationale": doorway_rationale,
             "forbids_doorway": no_handoff,
         }
     return standards
