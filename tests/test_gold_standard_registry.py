@@ -231,12 +231,12 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
     assert report["numbered_gold_star_count"] == len(numbered) == 35
-    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 58
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 59
     assert report["highest_assigned_gold_star_number"] == 92
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
     assert len(report["number_assignments"]) == 35
-    assert len(report["unassigned_benchmark_ids"]) == 58
+    assert len(report["unassigned_benchmark_ids"]) == 59
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
@@ -1029,7 +1029,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 93
+    assert len(approved) == 94
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1332,7 +1332,7 @@ def test_complex_future_scenario_readiness_gold_star_preserves_exact_answer_and_
     assert resolve_exact_gold_standard("How can we prepare for an uncertain future?") is None
 
 
-def test_spiritual_community_accountability_gold_star_93_is_approved_and_exactly_resolvable():
+def test_spiritual_community_accountability_gold_star_is_approved_and_exactly_resolvable():
     from general_guide_gold_standards import resolve_exact_gold_standard
 
     query = (
@@ -1346,7 +1346,9 @@ def test_spiritual_community_accountability_gold_star_93_is_approved_and_exactly
     )
 
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
-    assert record["gold_star_number"] == 93
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert "gold_star_number" not in record
+    assert record["numbering_unassigned_reason_code"] == "USER_APPROVED_NO_SERIAL_ALLOCATION"
     assert record["explicit_user_elevation_approval"] is True
     assert record["rating_out_of_10"] == 9.5
     assert len(record["expected_response"].split("\n\n")) == 3
