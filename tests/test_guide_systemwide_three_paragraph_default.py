@@ -103,7 +103,7 @@ def test_community_continuity_revision_recovery_answers_after_archive_retrieval_
         "How can communities preserve continuity across generations?"
     )
     answer = compose_recovery(query)
-    paragraphs = [part.strip() for part in answer.split("\\n\\n") if part.strip()]
+    paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
     assert len(paragraphs) == 3
     assert paragraphs[0].startswith("Communities preserve continuity")
     assert "people who live with the effects" in paragraphs[1]
