@@ -420,6 +420,12 @@ def _select_guide_node_fallback_doorway(query):
     cannot erase a stronger canonical continuation.
     """
     normalized = str(query or "").casefold()
+    from deterministic_answer_recovery import (
+        is_guide_personal_decision_agency_question,
+        registered_recovery_recommendation,
+    )
+    if is_guide_personal_decision_agency_question(query):
+        return registered_recovery_recommendation(query)
     family = _select_verified_doorway_conceptual_family(query)
     verified_family_doorway = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     if verified_family_doorway:
@@ -5481,6 +5487,14 @@ def _archive_claim_authoritative_doorway(query, doorway):
         return None
     return {"title": node_title, "url": node_url}
 
+def _gold_star_default_doorway():
+    """Return the approved broad Archive continuation when a Gold Star has no narrower doorway."""
+    return {
+        "title": "Sovereign Sensemaking Compass",
+        "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass/",
+        "rationale": "The Sovereign Sensemaking Compass offers a broad continuation for developing clarity and agency when a question has no narrower verified Archive destination. It is an invitation to explore the Archive's orientation framework, not a claim that one framework settles every question.",
+    }
+
 def _guide_restore_verified_doorway(payload, query):
     """Restore one verified canonical doorway at the terminal visitor boundary.
 
@@ -5570,13 +5584,22 @@ def _guide_finalize_visitor_payload(payload, query):
                 safe["doorway_url"] = exact_url
                 safe["doorway_rationale"] = exact_rationale or None
             else:
-                # Fail closed: an exact standard with no verified doorway must
-                # not inherit stale navigation from an upstream payload.
-                safe["recommendation"] = None
-                safe["canonical_doorway"] = None
-                safe["doorway_title"] = None
-                safe["doorway_url"] = None
-                safe["doorway_rationale"] = None
+                # A Gold Star carries a doorway by default. First attempt a
+                # question-grounded canonical continuation; if none is
+                # available, use the broad Compass doorway. Omission is
+                # reserved for an explicit, reviewed forbids_doorway exception.
+                try:
+                    fallback_candidate = _select_guide_node_fallback_doorway(query)
+                except Exception:
+                    fallback_candidate = None
+                fallback_doorway = _normalize_authoritative_recommendation(fallback_candidate)
+                if not fallback_doorway:
+                    fallback_doorway = _normalize_authoritative_recommendation(_gold_star_default_doorway())
+                safe["recommendation"] = fallback_doorway
+                safe["canonical_doorway"] = fallback_doorway
+                safe["doorway_title"] = fallback_doorway.get("title") if fallback_doorway else None
+                safe["doorway_url"] = fallback_doorway.get("url") if fallback_doorway else None
+                safe["doorway_rationale"] = fallback_doorway.get("rationale") if fallback_doorway else None
         else:
             safe["recommendation"] = None
             safe["canonical_doorway"] = None
@@ -5584,6 +5607,28 @@ def _guide_finalize_visitor_payload(payload, query):
             safe["doorway_url"] = None
             safe["doorway_rationale"] = None
         safe["processing"] = "final_visitor_boundary_exact_gold_standard"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
+    # Personal-decision questions about the Guide's role have one shared
+    # answer-and-doorway contract. Enforce it here so provider/LLM and
+    # deterministic routes cannot diverge or leak the question into a subject slot.
+    from deterministic_answer_recovery import (
+        is_guide_personal_decision_agency_question,
+        _guide_personal_decision_agency_recovery,
+        registered_recovery_recommendation as _registered_recovery_doorway,
+    )
+    if is_guide_personal_decision_agency_question(query):
+        safe = dict(payload)
+        safe["response"] = _guide_personal_decision_agency_recovery()
+        doorway = _normalize_authoritative_recommendation(_registered_recovery_doorway(query))
+        safe["recommendation"] = doorway
+        safe["canonical_doorway"] = doorway
+        safe["doorway_title"] = doorway.get("title") if doorway else None
+        safe["doorway_url"] = doorway.get("url") if doorway else None
+        safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
+        safe["processing"] = "final_visitor_boundary_personal_decision_agency"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
