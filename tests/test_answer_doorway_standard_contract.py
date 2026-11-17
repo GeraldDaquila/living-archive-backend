@@ -28,6 +28,9 @@ def main():
     fsd = read("integrations/wordpress/living-archive-fsd-proxy/assets/fsd-app.js")
     hrn = read("plugins/human-relational-navigator/assets/relational-navigator.js")
     spe = read("wordpress/spe/03-JavaScript.js")
+    spe_php = read("wordpress/spe/stewardship-pathway-engine.php")
+    lan_php = read("wordpress/public-living-archive-navigator/living-archive-navigator.php")
+    mini_api = read("wordpress/mini-use/class-api.php")
     guide = read("wordpress/guide/woody-snippet-76926-universal.html")
     lan = read("wordpress/public-living-archive-navigator/03-JavaScript.js")
     mini = read("wordpress/mini-use/mini-use.js")
@@ -40,6 +43,9 @@ def main():
     assert "if(rendered!==3)d.replaceChildren()" in spe
     assert "helper.normalizeUrl(x.url)" in spe
     assert "innerHTML" not in spe
+    assert "la-answer-doorway-standard" in spe_php
+    assert "la-answer-doorway-standard" in lan_php
+    assert "la-answer-doorway-standard" in mini_api
     assert "helper.renderMany(d,items)" in lan
     assert "innerHTML" not in lan
     assert "helper.renderMany(doorContainer, items)" in mini
