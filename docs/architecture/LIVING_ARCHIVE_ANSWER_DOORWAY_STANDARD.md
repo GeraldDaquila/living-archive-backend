@@ -33,6 +33,7 @@ Incomplete, unverified, unrelated, or unsafe items are omitted. Never invent a d
 ## Trust and rendering requirements
 - Validate URLs at the final browser boundary: HTTPS only, exact host `geralddaquila.com`, no username/password, non-default port, query, or fragment.
 - Use DOM creation and `textContent`; never interpolate titles, rationales, or URLs into HTML strings.
+- The Guide's Markdown response is parsed in a detached template, stripped of executable/active elements and all attributes, and only then inserted. Markdown links survive only when they pass the same first-party canonical URL validator.
 - Enforce field length limits and omit malformed entries.
 - Keep the answer/result complete independently of the doorway.
 - Do not fabricate a fallback doorway. Clear stale doorway content when a new request starts or when no valid item is returned.
