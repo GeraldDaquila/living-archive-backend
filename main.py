@@ -5477,7 +5477,7 @@ def _archive_claim_authoritative_doorway(query, doorway):
         return None
     node_title = str(node.get("title") or "").strip()
     node_url = str(node.get("url") or node.get("canonical_url") or "").strip()
-    if not node_title or not re.match(r"^https://\\S+$", node_url, re.I):
+    if not node_title or not re.match(r"^https://\S+$", node_url, re.I):
         return None
     return {"title": node_title, "url": node_url}
 
