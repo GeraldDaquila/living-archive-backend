@@ -1324,6 +1324,10 @@ function renderAuthoritativeRecommendation(data) {
     ? recommendation.title.trim()
     : '';
 
+  var rationale = recommendation && typeof recommendation.rationale === 'string'
+    ? recommendation.rationale.trim()
+    : '';
+
   title = title
     .replace(/^[\s\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]+/u, '')
     .replace(/&amp;/gi, '&')
@@ -1343,7 +1347,7 @@ function renderAuthoritativeRecommendation(data) {
     !!title && /^https:\/\/[^\s]+$/i.test(url);
 
   if (validCurrentRecommendation) {
-    guideLastRecommendation = { title: title, url: url };
+    guideLastRecommendation = { title: title, url: url, rationale: rationale };
   } else {
     // A response without an evidenced doorway must not inherit one from
     // an earlier response.
@@ -1409,6 +1413,21 @@ function renderAuthoritativeRecommendation(data) {
   ].join(';');
 
   block.appendChild(label);
+
+  if (rationale) {
+    var rationaleText = document.createElement('p');
+    rationaleText.className = 'archive-recommendation-rationale';
+    rationaleText.textContent = rationale;
+    rationaleText.style.cssText = [
+      'margin:0 0 8px',
+      'font-size:13px',
+      'line-height:1.55',
+      'font-weight:400',
+      'color:#4b463d'
+    ].join(';');
+    block.appendChild(rationaleText);
+  }
+
   block.appendChild(link);
 
   if (responseText) {
