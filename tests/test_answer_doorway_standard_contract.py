@@ -54,6 +54,8 @@ def main():
     assert "LivingArchiveAnswerDoorway.render(recommendation" in guide
     assert "link.href=doorway.url" not in guide
     assert "recommendation.replaceChildren()" in guide
+    assert "var primaryDoorway=text.querySelector" in guide
+    assert "primary.remove()" in guide
     assert "helper.normalize(recommendation)" in guide_controller
     assert "helper.render(staging, normalized)" in guide_controller
     assert "link.href = url" not in guide_controller
