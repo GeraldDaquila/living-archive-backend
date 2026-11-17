@@ -6491,12 +6491,24 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
     from general_guide_gold_standards import resolve_exact_gold_standard
     _structural_change_gold_star = resolve_exact_gold_standard(query)
     if _structural_change_gold_star and _structural_change_gold_star.get("expected_response"):
+        # An exact approved answer and its approved canonical doorway form one
+        # visitor-facing handoff. Do not drop the doorway merely because this
+        # deterministic route did not receive a retrieved recommendation.
+        _gold_star_doorway = None
+        _gold_star_title = str(_structural_change_gold_star.get("doorway_title") or "").strip()
+        _gold_star_url = str(_structural_change_gold_star.get("doorway_url") or "").strip()
+        _gold_star_rationale = str(_structural_change_gold_star.get("doorway_rationale") or "").strip()
+        if _gold_star_title and re.match(r"^https://\S+$", _gold_star_url, re.I):
+            _gold_star_doorway = {"title": _gold_star_title, "url": _gold_star_url}
+            if _gold_star_rationale:
+                _gold_star_doorway["rationale"] = _gold_star_rationale
         return {
             "response": _structural_change_gold_star["expected_response"],
-            "doorway_title": _structural_change_gold_star.get("doorway_title", ""),
-            "doorway_url": _structural_change_gold_star.get("doorway_url"),
-            "doorway_rationale": _structural_change_gold_star.get("doorway_rationale"),
-            "recommendation": None,
+            "doorway_title": _gold_star_title,
+            "doorway_url": _gold_star_url or None,
+            "doorway_rationale": _gold_star_rationale or None,
+            "recommendation": _gold_star_doorway,
+            "canonical_doorway": _gold_star_doorway,
             "provider": "gold_standard_registry_deterministic_fallback",
             "model": "",
         }
