@@ -231,12 +231,12 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
     assert report["numbered_gold_star_count"] == len(numbered) == 35
-    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 51
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 52
     assert report["highest_assigned_gold_star_number"] == 92
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
     assert len(report["number_assignments"]) == 35
-    assert len(report["unassigned_benchmark_ids"]) == 51
+    assert len(report["unassigned_benchmark_ids"]) == 52
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
@@ -1016,7 +1016,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 86
+    assert len(approved) == 87
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1065,10 +1065,10 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     assert "only adds provenance.source_date" in gaps[1]["reason"]
     assert "recovered as Gold Star #56" in gaps[1]["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 86
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 87
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 35
     assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 92
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 51
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 52
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
 
 
@@ -1147,3 +1147,43 @@ def test_user_elevated_community_wisdom_gold_star_preserves_exact_live_response(
     assert "historical, theological, empirical, and experiential claims" in record["expected_response"]
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+
+
+def test_consequential_action_under_uncertainty_gold_star_preserves_exact_answer_doorway_and_unassigned_identity():
+    from general_guide_gold_standards import resolve_exact_gold_standard
+
+    record = next(
+        r for r in _registry()["records"]
+        if r["benchmark_id"] == "gs-2026-11-17-consequential-action-under-uncertainty"
+    )
+    expected = (
+        "When a decision has serious consequences and the future is uncertain, act in proportion to what is known rather than waiting for certainty or pretending to have it. Begin by identifying what must be protected, who will be affected, which responsibilities cannot be deferred, and which parts of the situation remain unknown.\n\n"
+        "Compare realistic options by looking at what each makes possible, what it could damage, who carries the costs, and what evidence would change the assessment. Give particular weight to people who will live with the consequences, including those with the least influence over the decision.\n\n"
+        "Then choose a course that preserves room to learn and correct where possible. Set clear signals for review, name who is accountable for watching the effects, and change direction when evidence or conditions warrant it. A decision can be necessary without being certain; its quality depends partly on whether it remains answerable to the people and realities it affects."
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == "How should people act when the future is uncertain but consequential?"
+    assert record["expected_response"] == expected
+    assert record["rating_out_of_10"] == 9.5
+    assert record["expected_doorway"] == {
+        "title": "The Sovereign Sensemaking Compass",
+        "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass/",
+        "rationale": "This is a grounded map for navigating uncertainty without losing clarity or agency, directly supporting the question of how to act when the future is not settled."
+    }
+    assert record["doorway_status"] == "VERIFIED_CANONICAL_DESTINATION"
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record.get("gold_star_number") is None
+    assert record["numbering_unassigned_reason_code"] == "NO_SERIAL_ALLOCATION_REQUESTED"
+    capabilities = record["gold_star_capabilities"]
+    assert capabilities["exact_answer_authority"] is True
+    assert capabilities["active_quality_contributor"] is True
+    assert capabilities["deterministic_fallback_eligible"] is False
+
+    resolved = resolve_exact_gold_standard(record["query"])
+    assert resolved is not None
+    assert resolved["benchmark_id"] == record["benchmark_id"]
+    assert resolved["expected_response"] == expected
+    assert resolved["doorway_title"] == "The Sovereign Sensemaking Compass"
+    assert resolved["doorway_url"] == "https://geralddaquila.com/the-sovereign-sensemaking-compass/"
+    assert resolved["doorway_rationale"] == record["expected_doorway"]["rationale"]
+    assert resolve_exact_gold_standard("How should people act when the future is uncertain?") is None
