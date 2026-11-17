@@ -803,7 +803,7 @@ def test_shared_json_sender_enforces_registered_personal_agency_answer_and_doorw
     )
     assert result["recommendation"]["url"] == (
         "https://geralddaquila.com/"
-        "being-in-the-drivers-seat-without-pretending-to-control-the-road/"
+        "being-in-the-drivers-seat-without-pretending-you-control-the-road/"
     )
     assert result["canonical_doorway"] == result["recommendation"]
     assert result["doorway_rationale"]
