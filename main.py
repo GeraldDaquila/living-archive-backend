@@ -13004,7 +13004,7 @@ async def _use_request_boundary(scope, receive, send):
                     if isinstance(candidate, dict):
                         title = str(candidate.get("title") or "").strip()
                         url = str(candidate.get("url") or "").strip()
-                        if title and re.match(r"^https://\\S+$", url, re.I):
+                        if title and re.match(r"^https://\S+$", url, re.I):
                             recovery_recommendation = {"title": title, "url": url}
                 if recovery_text:
                     request_id = "basic-recovery-" + hashlib.sha1(
