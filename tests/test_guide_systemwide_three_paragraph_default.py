@@ -548,7 +548,7 @@ def test_oversoul_free_will_question_recovers_answer_and_canonical_doorway_acros
     expected_doorway = {
         "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
         "url": "https://geralddaquila.com/oversoul-law",
-        "rationale": "This is the Archive's directly named Oversoul doorway for examining spiritual jurisdiction and the relationship between wider purpose and personal choice. It is an invitation to inspect the Archive's own framework, not independent evidence that metaphysical claims are objectively established.",
+        "rationale": "This is the Archive's directly named Oversoul doorway for examining the question of spiritual jurisdiction. It is an invitation to inspect the Archive's own framework, not independent evidence that metaphysical claims are objectively established.",
     }
 
     # The exact visitor wording must enter the specialist recovery even though
