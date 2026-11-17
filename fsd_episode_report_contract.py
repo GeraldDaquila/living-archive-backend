@@ -15,6 +15,29 @@ TEXT_LIMITS = {"summary": 700, "episode_observation": 700}
 LIST_LIMITS = {"strengths": 4, "enabling_conditions": 4, "constraints": 4, "next_steps": 4}
 ITEM_MAX_CHARS = 260
 FORBIDDEN_INTERNAL_TERMS = re.compile(r"\b(?:SEE|MOVE|REPEAT)\b")
+def is_canonical_archive_url(value: Any) -> bool:
+    """Accept only canonical first-party HTTPS paths without URL decorations."""
+    if not isinstance(value, str) or not value or len(value) > 2048:
+        return False
+    try:
+        parsed = urlsplit(value.strip())
+        port = parsed.port
+    except ValueError:
+        return False
+    return (
+        parsed.scheme.casefold() == "https"
+        and parsed.hostname is not None
+        and parsed.hostname.casefold() == "geralddaquila.com"
+        and parsed.username is None
+        and parsed.password is None
+        and port in (None, 443)
+        and bool(parsed.path)
+        and parsed.path.startswith("/")
+        and not parsed.query
+        and not parsed.fragment
+    )
+
+
 FORBIDDEN_PROVENANCE_CLAIMS = re.compile(
     r"\b(?:archive|living archive)\b.{0,80}\b(?:verif(?:y|ies|ied)|confirm(?:s|ed)?|corroborat(?:e|es|ed))\b"
     r"|\b(?:verif(?:y|ies|ied)|confirm(?:s|ed)?|corroborat(?:e|es|ed))\b.{0,80}\b(?:episode|respondent|event)\b",
@@ -42,12 +65,8 @@ def validate_episode_report(
         ref_id = str(ref.get("reference_id") or "")
         title = str(ref.get("title") or "").strip()
         url = str(ref.get("url") or "").strip()
-        parsed = urlsplit(url)
-        if (
-            ref_id and title and parsed.scheme.casefold() == "https"
-            and parsed.netloc.casefold() == "geralddaquila.com"
-        ):
-            refs_by_id[ref_id] = {"reference_id": ref_id, "title": title, "url": url}
+        if ref_id and title and len(title) <= 180 and is_canonical_archive_url(url):
+            refs_by_id[ref_id] = {"reference_id": ref_id, "title": title, "url": url.strip()}
     if len(refs_by_id) > 6:
         refs_by_id = dict(list(refs_by_id.items())[:6])
 
@@ -94,7 +113,14 @@ def validate_episode_report(
         "scope": "One bounded episode at the selected system boundary",
     }
     normalized["archive_references"] = [
-        {**refs_by_id[ref_id], "role": "conceptual_context_only"}
+        {
+            **refs_by_id[ref_id],
+            "role": "conceptual_context_only",
+            "rationale": (
+                f"This reference provides conceptual context for {refs_by_id[ref_id]['title']}; "
+                "it does not verify the respondent-reported episode."
+            ),
+        }
         for ref_id in ids
     ]
     normalized["archive_reference_notice"] = (
