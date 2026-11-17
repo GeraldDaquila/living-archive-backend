@@ -1955,6 +1955,42 @@ def _archive_passage_contrast_recovery(question: str, documents: List[Dict[str, 
     }
 
 
+def archive_passage_contrast_recovery_from_context(
+    question: str, use_core: Any, context_data: Dict[str, Any]
+) -> Optional[Dict[str, Any]]:
+    """Resolve the explicit two-passage recovery from every approved context source.
+
+    The outer provider-exhaustion boundary can be reached through legacy and
+    delegated routes that do not return through compose()'s own exhaustion
+    ladder. Rebuild the same bounded document set here so that those routes
+    cannot replace this request with a generic provider-failure response.
+    """
+    if not _requires_archive_passage_contrast(question):
+        return None
+    context = context_data if isinstance(context_data, dict) else {}
+    documents: List[Dict[str, Any]] = []
+    for key in (
+        "generation_authority_protected_docs",
+        "question_authority_protected_docs",
+        "documents",
+        "retrieved_documents",
+        "sources",
+    ):
+        value = context.get(key) or []
+        if isinstance(value, list):
+            documents.extend(item for item in value if isinstance(item, dict))
+    # This accessor applies the same protected-source precedence and canonical
+    # context parsing used by ordinary composition. Keep both paths because some
+    # runtime routes carry only context_blocks while others carry protected docs.
+    documents.extend(_documents_from_context(use_core, context))
+    recovered = _archive_passage_contrast_recovery(question, documents)
+    if recovered is not None:
+        recovered = dict(recovered)
+        recovered["processing"] = "archive_passage_contrast_terminal_recovery"
+        recovered["route_source"] = "guide_provider_exhaustion_boundary"
+    return recovered
+
+
 def _has_archive_passage_contrast_structure(query: str, response: str, documents: List[Dict[str, Any]]) -> bool:
     """Require two independently represented sources before any synthesis."""
     if not _requires_archive_passage_contrast(query):
