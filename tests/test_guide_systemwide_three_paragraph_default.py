@@ -116,4 +116,6 @@ def test_community_continuity_nonanswer_is_replaced_and_doorway_is_recovered():
     assert "do not have enough grounded material" in source
     assert "is_community_continuity_revision_question(query)" in source
     assert '== "community_continuity_revision"' in source
-    assert "general_conceptual_orientation" in source
+    assert 'composition_context.get("answer_basis") == "general_conceptual_orientation"' in source
+    assert '"label": "General conceptual orientation"' in source
+    assert "rather than claiming that the Living Archive establishes the full answer" in source
