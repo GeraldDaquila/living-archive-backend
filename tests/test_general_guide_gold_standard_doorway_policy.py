@@ -95,6 +95,7 @@ def test_gold_standard_explicit_no_handoff_suppresses_every_doorway():
         "doorway_title": "",
         "doorway_url": "",
         "forbids_doorway": True,
+        "doorway_omission_exception_reason": "A separate link would undermine the immediate visitor experience.",
     }
     independently_verified = {
         "title": "Relevant Archive Resource",
