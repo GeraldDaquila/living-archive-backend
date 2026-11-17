@@ -1887,8 +1887,25 @@ def _requires_archive_passage_contrast(query: str) -> bool:
     return asks_two_passages and asks_contrast and asks_representation
 
 
+def _archive_passage_contrast_subject(question: str) -> str:
+    """Extract a bounded subject phrase for canonical Archive body search."""
+    normalized = _normalize_space(question)
+    match = re.search(
+        r"\\b(?:about|on|concerning|regarding|within|in relation to)\\s+(.+?)"
+        r"(?=\\s+(?:that|which)\\s+(?:disagree|differ|contrast|diverge)|"
+        r"\\s+before\\s+(?:attempting|any)|\\s+how\\s+should\\b|[?.!]|$)",
+        normalized,
+        re.I,
+    )
+    if match:
+        return _normalize_space(match.group(1)).strip(" ,;:")
+    return ""
+
+
 def _archive_passage_contrast_topic_missing(question: str) -> bool:
     """Require a subject before searching the entire Archive for an arbitrary contrast."""
+    if _archive_passage_contrast_subject(question):
+        return False
     tokens = set(re.findall(r"[a-z0-9]+", _normalize_space(question).casefold()))
     generic = {
         "find", "two", "2", "multiple", "relevant", "archive", "passage", "passages",
