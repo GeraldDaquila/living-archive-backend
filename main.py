@@ -321,11 +321,11 @@ def _select_verified_doorway_conceptual_family(query):
     # Route this exact comparison family to its reviewed canonical essay rather
     # than relying on lexical doorway selection, which may omit the rationale.
     if (
-        re.search(r"\\bstewardship\\b", text, re.I)
-        and re.search(r"\\bmanagement\\b", text, re.I)
-        and re.search(r"\\bleadership\\b", text, re.I)
-        and re.search(r"\\bownership\\b", text, re.I)
-        and re.search(r"\\b(?:differ|difference|distinction|compare|comparison)\\w*\\b", text, re.I)
+        re.search(r"\bstewardship\b", text, re.I)
+        and re.search(r"\bmanagement\b", text, re.I)
+        and re.search(r"\bleadership\b", text, re.I)
+        and re.search(r"\bownership\b", text, re.I)
+        and re.search(r"\b(?:differ|difference|distinction|compare|comparison)\w*\b", text, re.I)
     ):
         return "stewardship_management_leadership_ownership"
 
