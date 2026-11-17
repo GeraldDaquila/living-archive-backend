@@ -139,7 +139,8 @@ await page.route("**/*", async route => {
     if (query === QUESTIONS[2]) {
       recommendation = {
         title: "What Healthy Communities Actually Look Like",
-        url: "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/"
+        url: "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/",
+        rationale: "This article explores how community health depends on shared participation, meaningful voice, and the conditions that let people work through differences."
       };
     }
   }
@@ -211,7 +212,7 @@ try {
     window.__guideApiRequests = [];
     const qaQuestions = ["What does stewardship mean in everyday life?","How might this shape the way people make decisions together?","I'm new to the Living Archive. I care about healthier communities, but I don't know its vocabulary or where to begin.","What is one concrete way to practice this in a neighborhood?"];
     const qaAnswers = ["Stewardship means caring responsibly for something entrusted to you, such as shared spaces, time, or relationships. Small acts of care help preserve what others rely on.","People make better decisions together when they can speak honestly while still considering the needs of the group. Shared responsibility works best when disagreement is safe and practical.","A healthy community is one where people can participate, raise concerns, work through differences, and have a meaningful say in decisions that affect them. Look at whose voices are heard, how responsibility is shared, whether people can disagree safely, and what happens when someone is excluded or harmed. You do not need the Archive's vocabulary to start. A useful place to continue is the article below.","A neighborhood can practice stewardship by maintaining a shared garden or common space together. That makes care visible, distributes responsibility, and gives neighbors a reason to cooperate. What shared place in your neighborhood could benefit from that kind of care?"];
-    const recommendation = { title: "What Healthy Communities Actually Look Like", url: "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/" };
+    const recommendation = { title: "What Healthy Communities Actually Look Like", url: "https://geralddaquila.com/2025/10/07/t4-codex-overflow-communities-governance-by-resonance/", rationale: "This article explores how community health depends on shared participation, meaningful voice, and the conditions that let people work through differences." };
     const qaFollowup = "Can you explain your previous answer in simpler terms?";
     const originalFetch = window.fetch.bind(window);
     window.fetch = function(...args) {
@@ -307,7 +308,14 @@ try {
     }, { selector: ROOT + " #archive-response-text", before, timeout: 20_000 });
     mark("main_query_rendered", { index: i + 1, query: QUESTIONS[i], answerLength: (await answer.innerText()).length });
     if (i === 2) {
-      const link = root.locator("#archive-response-text a.archive-recommendation-link");
+      const doorway = root.locator("#archive-response-text .la-answer-doorway");
+      const link = doorway.locator("a.la-answer-doorway__link");
+      const rationale = doorway.locator(".la-answer-doorway__rationale");
+      await doorway.waitFor({ state: "visible" });
+      const rationaleText = (await rationale.innerText()).trim();
+      if (!rationaleText.includes("shared participation") || !rationaleText.includes("meaningful voice")) {
+        throw new Error("Canonical newcomer doorway rationale mismatch: " + JSON.stringify(rationaleText));
+      }
       await link.waitFor({ state: "visible" });
       const linkData = await link.evaluate(node => ({ title: node.innerText.trim(), href: node.href }));
       if (linkData.title !== "What Healthy Communities Actually Look Like") {

@@ -27,7 +27,10 @@ def test_structural_change_answer_is_restored_with_verified_canonical_doorway():
     assert record["expected_doorway"]["title"] == "Systems, Governance, and Organizational Design"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/systems-structure/"
     assert record["expected_doorway"]["rationale"]
-    assert record["expected_response"].startswith("Structural change reorganizes the arrangements")
+    assert record["expected_response"] == "Structural change reorganizes the arrangements that shape how a system works; ordinary disruption interrupts or unsettles its activity without necessarily changing those arrangements.\n\nA disruption can expose weaknesses, interrupt routines, or create pressure for reform. It may even trigger structural change, but the event itself is not the change: the decisive shift occurs only when the response alters how authority, incentives, dependencies, resources, or capabilities are organized. A dramatic or prolonged interruption can leave those arrangements untouched.\n\nTo assess a claimed change, look at ordinary operations after emergency measures and exceptional support have ended. Compare who can make decisions, how resources move, and which dependencies shape routine work before and after. If those differences continue to govern everyday choices, the system has been structurally changed; if operations return to their previous pattern once the disturbance passes, the disruption has ended without durable reorganization."
+    assert record["revision_history"][-1]["action"] == "OVERWRITE_CURRENT_APPROVED_VERSION"
+    assert "; ordinary disruption interrupts" in record["expected_response"].split("\\n\\n")[0]
+    assert ", ordinary disruption interrupts" not in record["expected_response"].split("\\n\\n")[0]
     assert paragraphs[2].startswith("To assess a claimed change, look at ordinary operations after emergency measures")
     assert "If those differences continue to govern everyday choices" in paragraphs[2]
     assert record["withdrawal"]["resolved_at"] == "2026-11-17"
