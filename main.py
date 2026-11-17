@@ -11990,6 +11990,43 @@ def _apply_exact_gold_standard_authority_to_payload(payload):
             payload["doorway_rationale"] = doorway.get("rationale") if doorway else None
     return payload
 
+def _apply_registered_personal_decision_agency_contract(payload, query):
+    """Make the registered agency answer authoritative at the shared JSON exit.
+
+    The outer ASGI response wrapper is defense in depth, but some legacy and
+    provider-exhaustion paths can reach the shared sender before that wrapper
+    has enough request context to repair the answer. The payload's own query is
+    the authoritative value at this boundary.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    from deterministic_answer_recovery import (
+        is_guide_personal_decision_agency_question,
+        _guide_personal_decision_agency_recovery,
+        registered_recovery_recommendation,
+    )
+    if not is_guide_personal_decision_agency_question(query):
+        return payload
+
+    safe = dict(payload)
+    answer = _guide_personal_decision_agency_recovery()
+    safe["response"] = answer
+    if "answer" in safe:
+        safe["answer"] = answer
+    doorway = _normalize_authoritative_recommendation(
+        registered_recovery_recommendation(query)
+    )
+    safe["recommendation"] = doorway
+    safe["canonical_doorway"] = doorway
+    safe["doorway_title"] = doorway.get("title") if doorway else None
+    safe["doorway_url"] = doorway.get("url") if doorway else None
+    safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
+    safe["processing"] = "sender_boundary_personal_decision_agency"
+    safe["route_source"] = "guide_shared_json_sender"
+    safe["visitor_boundary_version"] = APP_VERSION
+    return safe
+
+
 async def _use_send_json(send, payload, status_code=200):
     # Stamp every visitor-facing JSON payload with the actual Render deployment
     # identity so E2E can reject responses served by a stale instance during rollout.
@@ -12006,6 +12043,13 @@ async def _use_send_json(send, payload, status_code=200):
     if isinstance(payload, dict):
         _boundary_query = str(payload.get("query") or "").strip()
         _boundary_standard = _resolve_exact_guide_gold_standard(_boundary_query)
+        # Exact approved Gold Stars remain terminal. Otherwise, enforce this
+        # registered answer-and-doorway pair at the shared JSON sender so
+        # provider exhaustion and early deterministic returns cannot bypass it.
+        if _boundary_query and _boundary_standard is None:
+            payload = _apply_registered_personal_decision_agency_contract(
+                payload, _boundary_query
+            )
         # Provider and deterministic routes share one substantive quality floor.
         # Exact approved/candidate standards remain terminal and are never rewritten.
         if (
