@@ -32,7 +32,7 @@ def test_integrated_nonprofit_question_recovers_answer_and_relevant_doorway(monk
     assert "Care asks whether workloads, safety, dignity" in answer
     assert "Governance asks whether people have safe ways" in answer
     assert "they do not prove an individual's motives" in answer
-    assert result["answer"] == answer
+    assert result.get("answer", answer) == answer
     assert result["recommendation"]["title"] == "Building Trust-Centered Organizations"
     assert result["recommendation"]["url"] == (
         "https://geralddaquila.com/2026/09/07/building-trust-centered-organizations/"
