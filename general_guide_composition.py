@@ -2345,6 +2345,22 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
         try:
             return _parse_strict(raw)
         except ValueError as strict_exc:
+            # This is a semantic subject-substitution boundary, not a stylistic
+            # preference. Do not admit a fluent off-topic comparative answer
+            # through the generic soft-contract compatibility lane; propagate
+            # the rejection so Provider Bank can retry or invoke bounded recovery.
+            try:
+                parsed_for_comparison = json.loads(str(raw or "").strip())
+            except (TypeError, json.JSONDecodeError):
+                parsed_for_comparison = {}
+            candidate_for_comparison = (
+                _sanitize_candidate(parsed_for_comparison.get("response"))
+                if isinstance(parsed_for_comparison, dict) else ""
+            )
+            if _comparative_traditions_contract.response_requires_quality_repair(
+                query, candidate_for_comparison
+            ):
+                raise strict_exc
             try:
                 parsed = json.loads(str(raw or "").strip())
                 if not isinstance(parsed, dict):
