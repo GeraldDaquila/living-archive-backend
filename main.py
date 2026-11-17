@@ -6087,6 +6087,22 @@ def _explicit_closing_question_requested(query):
         or re.search(r"\bquestion\b.{0,100}\b(?:invite|inviting|prompt|prompting)\b", q, re.I)
         or re.search(r"\bask me\b.{0,60}\bquestion\b", q, re.I)
     )
+def _enforce_reflective_recovery_completion(query, response):
+    """Prevent a later composition layer from appending prose to a completed deterministic reflective answer."""
+    normalized = re.sub(r"\s+", " ", str(query or "")).strip()
+    reflective_shape = re.match(
+        r"(?i)^how can (?:(?:one|we|you)\s+)?(.+?)\s+(?:be|remain|stay)\s+(.+?)\s+(?:without becoming|rather than becoming|rather than being|rather than|without)\s+(.+?)[?.!]*$",
+        normalized,
+    )
+    if not reflective_shape:
+        return response
+    expected = _sanitize_basic_inquiry_response(_compose_provider_exhaustion_recovery(query))
+    current = _sanitize_basic_inquiry_response(response)
+    if expected and current.startswith(expected):
+        return expected
+    return response
+
+
 def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_data, *, recommendation_available=False):
     """Keep specialist recoveries; improve only the generic provider-exhaustion answer."""
     import general_guide_composition as _guide_composition
@@ -11262,6 +11278,12 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     response, _glossary_answer_basis = general_guide_composition.apply_glossary_source_attribution(
         response, context_data
     )
+
+    # A deterministic reflective recovery is already a complete answer. If a
+    # later adapter has appended a second generic composition, restore the
+    # registered answer at the final visitor boundary rather than accepting a
+    # paragraph-count-only pass.
+    response = _enforce_reflective_recovery_completion(query, response)
 
     # Absolute last-mile answer-integrity boundary. Downstream attribution or
     # recovery rewrites must never allow an approved answer for a different
