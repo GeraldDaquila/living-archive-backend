@@ -98,7 +98,7 @@ def test_hope_gold_star_is_exact_answer_authority_with_verified_doorway():
     assert standard["doorway_rationale"].startswith(
         "This essay examines how the search for meaning and hope"
     )
-    paragraphs = standard["expected_response"].split("\\n\\n")
+    paragraphs = standard["expected_response"].split("\n\n")
     assert len(paragraphs) == 3
     assert "possibility" in paragraphs[0].lower()
     assert "revise expectations" in paragraphs[1].lower()
