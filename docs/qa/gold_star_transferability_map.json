@@ -16,6 +16,9 @@
     },
     "distinction_integration": {
       "description": "clarify distinctions before integrating related perspectives"
+    },
+    "spiritual_agency_epistemic_humility": {
+      "description": "distinguish spiritual influence from coercive determination while preserving human agency and the boundary between framework-based interpretation and independently verified fact"
     }
   },
   "entries": [
@@ -225,6 +228,15 @@
       "role": "cross_question_candidate",
       "transferability_status": "shadow_active",
       "abstention_boundary": "Do not reuse approved wording or force a match; abstain when the structural relationship is weak or merely topical."
+    },
+    {
+      "benchmark_id": "gs-2026-11-17-oversoul-free-will-influence-without-compulsion",
+      "question": "What power does the Oversoul have over a person’s choice without undermining free will?",
+      "family": "spiritual_agency_epistemic_humility",
+      "structural_lesson": "distinguish influence from compulsion, preserve the person's interpretive responsibility, and mark metaphysical claims as framework-bound rather than empirically established",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not reuse approved wording or doorway, affirm metaphysical claims as fact, or force this frame onto unrelated free-will questions; abstain when the spiritual premise or structural relationship is absent."
     }
   ]
 }
