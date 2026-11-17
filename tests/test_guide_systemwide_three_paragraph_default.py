@@ -640,7 +640,7 @@ def test_oversoul_free_will_question_recovers_answer_and_canonical_doorway_acros
     )
     assert deterministic["response"] == answer
     assert deterministic["recommendation"] == expected_doorway
-    assert deterministic["provider"] == "bounded_oversoul_free_will_recovery"
+    assert deterministic["provider"] == "gold_standard_registry_deterministic_fallback"
 
     # A provider-exhaustion event must return the substantive recovery rather
     # than the generic Guide failure message or a broad unrelated compass.
@@ -649,7 +649,7 @@ def test_oversoul_free_will_question_recovers_answer_and_canonical_doorway_acros
     )
     assert recovered["response"] == answer
     assert recovered["recommendation"] == expected_doorway
-    assert recovered["provider"] == "bounded_oversoul_free_will_recovery"
+    assert recovered["provider"] == "gold_standard_registry_deterministic_fallback"
 
     # A provider-generated answer still receives the same verified doorway.
     finalized_provider = main._guide_finalize_visitor_payload(
