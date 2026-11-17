@@ -6323,9 +6323,72 @@
         "prior_gap_record_preserved": true
       },
       "known_theme": "ownership, management, stewardship, role distinction, authority, responsibility, time horizon, entrusted assets, long-term care, accountability, affected interests"
+    },
+    {
+      "benchmark_id": "general-guide-archive-examples-evidence-limits-gold-star-2026-11-18",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "The archive offers two suggestive examples but no direct answer to a visitor's claim. How should the Guide express what is known and what remains open?",
+      "expected_response": "The two examples establish what those particular sources actually say, in the contexts in which they say it. If they support a shared point, the Guide may identify that convergence as a synthesis—but it must name it as an inference from those examples, not as a direct Archive statement or proof of the visitor's broader claim.\n\nWhat remains open is whether the examples are representative, whether other Archive materials qualify or contradict them, and whether they provide evidence for the wider claim at all. The Guide should state exactly where support ends: these examples may suggest a possibility without establishing the broader claim. It should identify missing evidence rather than turn the absence of a direct answer into a confident conclusion.\n\nThe answer should therefore show three things: what each source establishes, with its source identified; what can reasonably be inferred across the examples, explicitly labelled as synthesis; and what remains unresolved, including what further evidence would narrow or settle the question. If the Archive has not directly addressed the claim, say so plainly. Illustration is useful, but it is not proof.",
+      "expected_doorway": {
+        "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
+        "rationale": "Continue into the Archive’s Knowledge & Sensemaking pathway to examine how sources, evidence, interpretation, and unresolved questions relate."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.7,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the live visitor-facing response with its Knowledge & Sensemaking doorway and explicitly instructed Gold Star elevation on 2026-11-18.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "archive_examples_evidence_limits",
+      "transferable_lesson": "Calibrate claims to the evidence actually available: identify what each cited source establishes in context, label cross-source convergence as the Guide's synthesis, test whether examples are representative or contradicted by other materials, and state what remains unresolved and what further evidence would be needed. Illustrative examples are not proof of a broader claim.",
+      "transfer_boundary": "Transfer the evidence-calibration method, not this answer's wording, example count, or Knowledge & Sensemaking doorway. Do not treat suggestive examples as proof, present synthesis as a direct Archive claim, infer representativeness without evidence, or convert missing evidence into a confident conclusion. Do not assume that every unanswered question is unresolved in the same way; identify the actual source and evidence limits.",
+      "known_theme": "Archive examples, source evidence, direct claims, synthesis, representativeness, counterevidence, unresolved claims, evidence gaps, epistemic limits",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "archive_examples_evidence_limits",
+        "transferable_discipline": "Separate what sources establish from what the Guide infers; assess representativeness and counterevidence; state the unresolved boundary and the evidence needed to move beyond it.",
+        "abstention_boundary": "Do not generalize from illustrative examples without evidence of representativeness; do not claim that a broader proposition is established when the sources only suggest it; identify missing or contradictory evidence and label synthesis as synthesis."
+      },
+      "assertions": [
+        "Preserve the exact reviewed answer as three substantive paragraphs: source-specific findings; what remains open about representativeness, qualification, contradiction, and support for the wider claim; and the three-part method for presenting evidence, synthesis, and unresolved questions.",
+        "Begin with what the two examples actually establish in their own source contexts; do not announce or restate the question.",
+        "Label any shared conclusion across examples as the Guide's synthesis, not as a direct Archive statement or proof of the visitor's broader claim.",
+        "State that representativeness, other qualifying or contradictory Archive materials, and the evidentiary basis for the wider claim may remain open.",
+        "Identify what further evidence would narrow or settle the question; do not convert the absence of a direct answer into a confident conclusion.",
+        "End with the principle that illustration is useful but is not proof.",
+        "Render the canonical Living Archive Navigator: Volume III – Knowledge & Sensemaking doorway after the complete answer, with its rationale connecting sources, evidence, interpretation, and unresolved questions."
+      ],
+      "user_approved_at": "2026-11-18",
+      "elevation_approval_evidence": "User reviewed the live visitor-facing Guide screenshot showing the exact three-paragraph evidence-boundary answer and the Knowledge & Sensemaking Navigator doorway, then explicitly instructed: 'elevate' on 2026-11-18.",
+      "provenance": {
+        "source": "User-provided live visitor-facing Guide screenshot and explicit Gold Star elevation approval.",
+        "source_date": "2026-11-18",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the exact displayed question, three-paragraph answer, and Knowledge & Sensemaking doorway. The benchmark preserves the answer's distinction between source-specific evidence, synthesis, and unresolved broader claims; it does not assert that the two underlying examples prove the visitor's claim.",
+        "doorway_verification": {
+          "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+          "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
+          "verified_against": "Canonical live Living Archive Navigator: Volume III – Knowledge & Sensemaking page."
+        }
+      },
+      "numbering_status": "ASSIGNED",
+      "gold_star_number": 86,
+      "numbering_allocation": {
+        "allocated_number": 86,
+        "allocation_class": "explicit_user_authorized_historical_gap_release",
+        "approved_at": "2026-11-18",
+        "authority": "User explicitly instructed Gold Star elevation on 2026-11-18. The canonical numbering policy reserves #86 for the next newly approved Gold Star after #85 was allocated; this approval completes that authorized allocation.",
+        "prior_gap_record_preserved": true
+      }
     }
   ],
-  "last_reconciliation_note": "Added user-approved ownership/management/stewardship comparison Gold Star #85 on 2026-11-18. The exact three-paragraph live answer and verified Stewardship vs Management vs Leadership doorway rationale are frozen; transfer is limited to comparing authority, responsibility, time horizon, and affected interests without collapsing ownership, management, and stewardship. The doorway explicitly preserves that ownership is not one of the essay's stated categories. Historical gap #85 is allocated under the prior explicit authorization; #86 remains released and unassigned.",
+  "last_reconciliation_note": "Added user-approved Gold Star #86 on 2026-11-18. The exact three-paragraph Archive-examples evidence-boundary answer and verified Knowledge & Sensemaking Navigator doorway are frozen. This is distinct from #72: #72 separates direct claims, synthesis, and orientation; #86 calibrates what examples establish, whether they support a wider claim, and what remains unresolved. #86 closes the second explicitly authorized historical-gap release; no existing record was renumbered.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -6455,14 +6518,14 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 98,
-    "registry_record_count": 135,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 98 approved Gold Star records across 135 registry records. 96 are active learning contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. The 2026-11-15 user-reviewed systems-map exemplar is the sole active learning and exact-answer authority for its exact visitor question. Gold Star #85 remains allocated; #86 remains released and unassigned.",
-    "numbered_gold_star_record_count": 37,
+    "approved_gold_star_count": 99,
+    "registry_record_count": 136,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 99 approved Gold Star records across 136 registry records. 97 are active learning contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. Gold Star #85 and #86 are allocated to their explicitly authorized new exemplars; the released #86 historical gap is now closed. The systems-map duplicate lineage remains governed with one active exemplar.",
+    "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation: 98 approved Gold Stars; 37 assigned display serials #56–#85 and #87–#93; 61 approved records explicitly UNASSIGNED with reasons. Serial #85 is allocated under the explicit historical-gap release; #86 remains the sole documented, released historical gap.",
+    "numbering_reconciliation": "Record-level reconciliation: 99 approved Gold Stars; 38 assigned display serials #56–#93; 61 approved records explicitly UNASSIGNED with reasons. The two explicitly released historical-gap serials, #85 and #86, are now allocated to new approved records; no open numbering gaps remain. Historical gap evidence for #86 is retained in numbering_allocation_history.",
     "unassigned_approved_gold_star_count": 61,
-    "documented_numbering_gap_count": 1
+    "documented_numbering_gap_count": 0
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
@@ -6491,30 +6554,7 @@
       "does_not_change_adaptive_learning_identity": true
     }
   },
-  "numbering_gap_register": [
-    {
-      "number": 86,
-      "status": "RELEASED_FOR_FUTURE_ALLOCATION",
-      "reason_code": "MISLEADING_COMMIT_SUBJECT_NO_ALLOCATION",
-      "reason": "No canonical Gold Star assignment event for serial #86 was recovered. Commit 7a036632323b7c09003d1fce637a7b49128a27bf is titled 'Complete provenance date for Gold Star 86', but its diff only adds provenance.source_date to general-guide-agency-circumstance-gold-standard-2026-11-15. That same record is historically recovered as Gold Star #56 from merged PR #1428 and the immediately following explicit #57 allocation in PR #1430. The commit subject's '#86' is therefore a mislabel, not a second assignment. GitHub PR #86 is a September 2026 v340 grief-versus-death-topic code change, not a Gold Star assignment.",
-      "evidence_checked": [
-        "Canonical registry record-level assignments on main",
-        "Commit 7a036632323b7c09003d1fce637a7b49128a27bf diff",
-        "GitHub PR #1428 merge and 56th-approved-record count transition",
-        "GitHub PR #1430 explicit user-authorized #57 allocation",
-        "GitHub PR #86: v340 grief/death-topic classification repair"
-      ],
-      "disposition": "Historical gap retained as evidence; serial #86 is released solely for the next new, explicitly approved Gold Star allocation under the two-number exception. No existing record is renumbered or backfilled.",
-      "release_authorization": {
-        "authorization_type": "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE",
-        "approved_by": "user",
-        "approved_at": "2026-11-16",
-        "authority": "User explicitly agreed to release both #85 and #86 as two exceptions in the conversation on 2026-11-16.",
-        "allocation_rule": "Reserve #85 for the next newly approved Gold Star, then #86 for the following newly approved Gold Star. Allocation requires a new unique benchmark_id, explicit user approval of Gold Star elevation, and a record-level gold_star_number assignment. Do not assign either number to an existing approved record or infer an exemplar.",
-        "historical_evidence_preserved": true
-      }
-    }
-  ],
+  "numbering_gap_register": [],
   "numbering_allocation_history": [
     {
       "number": 85,
@@ -6542,6 +6582,36 @@
           "historical_evidence_preserved": true
         }
       }
+    },
+    {
+      "number": 86,
+      "status": "ALLOCATED_TO_APPROVED_GOLD_STAR",
+      "benchmark_id": "general-guide-archive-examples-evidence-limits-gold-star-2026-11-18",
+      "allocated_at": "2026-11-18",
+      "allocation_class": "new_approved_record_not_historical_backfill",
+      "prior_gap_record": {
+        "number": 86,
+        "status": "RELEASED_FOR_FUTURE_ALLOCATION",
+        "reason_code": "MISLEADING_COMMIT_SUBJECT_NO_ALLOCATION",
+        "reason": "No canonical Gold Star assignment event for serial #86 was recovered. Commit 7a036632323b7c09003d1fce637a7b49128a27bf is titled 'Complete provenance date for Gold Star 86', but its diff only adds provenance.source_date to general-guide-agency-circumstance-gold-standard-2026-11-15. That same record is historically recovered as Gold Star #56 from merged PR #1428 and the immediately following explicit #57 allocation in PR #1430. The commit subject's '#86' is therefore a mislabel, not a second assignment. GitHub PR #86 is a September 2026 v340 grief-versus-death-topic code change, not a Gold Star assignment.",
+        "evidence_checked": [
+          "Canonical registry record-level assignments on main",
+          "Commit 7a036632323b7c09003d1fce637a7b49128a27bf diff",
+          "GitHub PR #1428 merge and 56th-approved-record count transition",
+          "GitHub PR #1430 explicit user-authorized #57 allocation",
+          "GitHub PR #86: v340 grief/death-topic classification repair"
+        ],
+        "disposition": "Historical gap retained as evidence; serial #86 is released solely for the next new, explicitly approved Gold Star allocation under the two-number exception. No existing record is renumbered or backfilled.",
+        "release_authorization": {
+          "authorization_type": "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE",
+          "approved_by": "user",
+          "approved_at": "2026-11-16",
+          "authority": "User explicitly agreed to release both #85 and #86 as two exceptions in the conversation on 2026-11-16.",
+          "allocation_rule": "Reserve #85 for the next newly approved Gold Star, then #86 for the following newly approved Gold Star. Allocation requires a new unique benchmark_id, explicit user approval of Gold Star elevation, and a record-level gold_star_number assignment. Do not assign either number to an existing approved record or infer an exemplar.",
+          "historical_evidence_preserved": true
+        }
+      },
+      "authority": "User explicitly instructed Gold Star elevation on 2026-11-18. The canonical numbering policy reserves #86 for the next newly approved Gold Star after #85 was allocated; this approval completes that authorized allocation."
     }
   ]
 }

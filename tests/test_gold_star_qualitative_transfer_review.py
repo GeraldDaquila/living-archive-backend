@@ -170,15 +170,21 @@ def test_next_number_is_based_on_registry_maximum_not_approved_count():
     assert next_number != len(assignments) + 1  # Numbering follows the highest assigned ID, not the inventory size.
 
 
-def test_released_gap_85_is_allocated_only_to_its_new_approved_exemplar_and_86_remains_open():
+def test_released_gaps_85_and_86_are_allocated_only_to_their_new_approved_exemplars():
     registry = _registry()
     assignments = _numbered_approved(registry["records"])
-    benchmark_id = "general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18"
-    assert assignments[benchmark_id] == 85
-    assert 86 not in assignments.values()
-    allocation = next(item for item in registry["numbering_allocation_history"] if item["number"] == 85)
-    assert allocation["benchmark_id"] == benchmark_id
-    assert allocation["prior_gap_record"]["release_authorization"]["approved_by"] == "user"
+    benchmark_85 = "general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18"
+    benchmark_86 = "general-guide-archive-examples-evidence-limits-gold-star-2026-11-18"
+    assert assignments[benchmark_85] == 85
+    assert assignments[benchmark_86] == 86
+    allocation_85 = next(item for item in registry["numbering_allocation_history"] if item["number"] == 85)
+    allocation_86 = next(item for item in registry["numbering_allocation_history"] if item["number"] == 86)
+    assert allocation_85["benchmark_id"] == benchmark_85
+    assert allocation_86["benchmark_id"] == benchmark_86
+    assert allocation_85["prior_gap_record"]["release_authorization"]["approved_by"] == "user"
+    assert allocation_86["prior_gap_record"]["release_authorization"]["approved_by"] == "user"
+    assert allocation_86["prior_gap_record"]["status"] == "RELEASED_FOR_FUTURE_ALLOCATION"
+    assert registry["numbering_gap_register"] == []
 
 
 def test_qualitative_transfer_reviews_remain_aligned():

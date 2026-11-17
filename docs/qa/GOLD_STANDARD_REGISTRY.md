@@ -752,3 +752,19 @@ These entries preserve their live-production provenance and qualitative transfer
 - **Adaptive-learning boundary:** Transfer the comparison method only. Do not transfer the exact answer or doorway to unrelated questions, infer asset-specific rights or obligations without evidence, or equate ownership with stewardship.
 - **Numbering:** **#85**, allocated under the previously authorized #85–#86 historical-gap release. #86 remains released and unassigned.
 - **Freeze policy:** Preserve the exact approved response and doorway rationale. Changes require explicit user authorization and a separately documented benchmark-version change.
+
+
+### Gold Star #86 — Archive examples and the limits of evidence (2026-11-18)
+
+- **Benchmark:** `general-guide-archive-examples-evidence-limits-gold-star-2026-11-18`
+- **Status:** `USER_APPROVED_GOLD_STANDARD`; exact live answer and Knowledge & Sensemaking doorway frozen after explicit user elevation.
+- **Question:** “The archive offers two suggestive examples but no direct answer to a visitor's claim. How should the Guide express what is known and what remains open?”
+- **Answer:** The exact three-paragraph response is preserved in `docs/qa/gold_standard_registry.json` and its regression fixture.
+- **Evidence discipline:** Identify what each source establishes in context; label any convergence as the Guide's synthesis; test whether the examples are representative or contradicted by other Archive materials; state what remains unresolved and what further evidence would be needed. Illustration is useful, but it is not proof.
+- **Doorway:** **The Living Archive Navigator: Volume III – Knowledge & Sensemaking** — https://geralddaquila.com/the-living-archive-navigator-volume-iii/
+- **Rating:** 9.7/10.
+- **Approval:** User reviewed the live visitor-facing screenshot and explicitly instructed elevation on 2026-11-18.
+- **Relationship to #72:** #72 separates direct Archive claims, synthesis, and orientation. #86 addresses the narrower evidentiary question of what illustrative examples establish, whether they support a broader claim, and what remains open. Both are active, distinct benchmarks; #86 does not replace #72.
+- **Adaptive-learning boundary:** Transfer evidence calibration only. Do not treat examples as proof, present synthesis as a direct Archive claim, infer representativeness without evidence, or convert missing evidence into a confident conclusion.
+- **Numbering:** **#86**, allocated under the previously authorized #85–#86 historical-gap release. Both serials are now allocated; no numbering gap remains.
+- **Freeze policy:** Preserve the exact approved response and doorway rationale. Changes require explicit user authorization and a separately documented benchmark-version change.
