@@ -294,6 +294,35 @@ def _historical_cultural_recovery():
     )
 
 
+def is_complex_future_scenario_question(question):
+    """Recognize explicit requests to reframe a definitive prediction about a complex future."""
+    q = _clean(question).casefold()
+    prediction_request = bool(re.search(
+        r"\b(?:definitive|certain|exact|single[- ]outcome)\s+(?:prediction|forecast)\b"
+        r"|\b(?:predict|prediction|forecast|forecasting)\b.{0,80}\b(?:complex|uncertain|nonlinear|interacting)?\s*future\b",
+        q,
+    ))
+    complex_future = bool(re.search(
+        r"\b(?:complex|nonlinear|highly uncertain|interdependent|interacting)\b.{0,50}\b(?:future|system|conditions|forces)\b"
+        r"|\bcomplex future\b",
+        q,
+    ))
+    reframing = bool(re.search(
+        r"\b(?:scenarios?|scenario planning|capacities|capability|capabilities|uncertainty|reframe|alternative futures)\b",
+        q,
+    ))
+    return prediction_request and complex_future and reframing
+
+
+def _complex_future_scenario_recovery():
+    """Reframe prediction demand into plausible futures, capacity, and adaptive readiness."""
+    return (
+        "The Guide should not turn a complex future into one definitive prediction. Outcomes may depend on interacting conditions that change over time, so a single forecast can hide the assumptions on which it rests and make one possibility look settled. Reframe the question from “What will happen?” to “What are several plausible ways this could unfold, and what conditions would make each more or less likely?” Scenarios are not competing prophecies; they are structured possibilities for testing understanding and readiness.\n\n"
+        "For each scenario, examine the capacities it would require and the capacities already available: knowledge, skills, resources, relationships, infrastructure, coordination, and legitimate decision-making authority. Identify constraints, dependencies, vulnerabilities, and gaps; ask who can strengthen the capabilities that matter and how long that would take. Do not assume that stronger capacity can eliminate uncertainty. Its purpose is to widen the range of conditions people can meet and reduce avoidable fragility across more than one plausible future.\n\n"
+        "Then identify observable signals that would make one scenario more or less plausible, what evidence would change the assessment, and which decisions should be revisited if those signals appear. Prefer steps that remain useful across several scenarios, preserve options where possible, and define in advance when to adapt, pause, or change direction. Keep assumptions and confidence limits visible, update the scenarios as conditions change, and never present a scenario as a guaranteed outcome. The aim is not to know the future in advance, but to build the capacity to respond responsibly as it unfolds."
+    )
+
+
 def _is_public_predictive_system_question(question):
     """Recognize consequential public-sector predictive systems before generic fallback."""
     q = _clean(question).casefold()
@@ -626,6 +655,7 @@ def has_registered_recovery(question):
     return bool(
         is_oversoul_ego_authority_question(question)
         or is_oversoul_free_will_question(question)
+        or is_complex_future_scenario_question(question)
         or _is_public_predictive_system_question(question)
         or _is_archive_purpose_question(question)
         or _is_commons_care_question(question)
@@ -657,6 +687,12 @@ def registered_recovery_recommendation(question):
             "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
             "url": "https://geralddaquila.com/oversoul-law",
             "rationale": "This is the Archive's directly named Oversoul doorway for examining the question of spiritual jurisdiction. It is an invitation to inspect the Archive's own framework, not independent evidence that metaphysical claims are objectively established.",
+        }
+    if is_complex_future_scenario_question(question):
+        return {
+            "title": "Sovereign Sensemaking Compass",
+            "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass/",
+            "rationale": "The Sovereign Sensemaking Compass offers an orientation framework for navigating uncertainty while retaining clarity and agency. It is a useful next step for examining how to remain oriented and make responsible choices when no single forecast can settle the future; it does not claim to predict specific outcomes.",
         }
     if is_community_project_tradeoff_question(question):
         return {
@@ -842,6 +878,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = _community_project_tradeoff_recovery()
     elif _is_modes_of_knowing_dialogue_question(q):
         answer = _modes_of_knowing_dialogue_recovery()
+    elif is_complex_future_scenario_question(q):
+        answer = _complex_future_scenario_recovery()
     elif _is_public_predictive_system_question(q):
         answer = _public_predictive_system_recovery()
     elif _is_archive_purpose_question(q):

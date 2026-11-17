@@ -3130,6 +3130,10 @@ def _community_project_tradeoff_recovery() -> str:
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    # Enforce the same bounded scenario response for provider/LLM and deterministic routes.
+    from deterministic_answer_recovery import is_complex_future_scenario_question, _complex_future_scenario_recovery
+    if is_complex_future_scenario_question(question):
+        candidate = _complex_future_scenario_recovery()
     if _requires_community_project_tradeoff_analysis(question) and not _has_community_project_tradeoff_analysis(candidate):
         candidate = _community_project_tradeoff_recovery()
     if _requires_community_project_tradeoff_analysis(question) and not _has_community_project_tradeoff_analysis(candidate):
