@@ -5864,8 +5864,8 @@
       ],
       "gold_star_capabilities": {
         "exact_answer_authority": true,
-        "active_quality_contributor": true,
-        "deterministic_fallback_eligible": true,
+        "active_quality_contributor": false,
+        "deterministic_fallback_eligible": false,
         "generation_class": "deterministic_curated_recovery_exemplar",
         "reasoning_family": "public_predictive_systems_constitutional_human_stewardship",
         "transferable_discipline": "Establish the legitimacy, authority, rights, meaningful human recourse, historical inheritance, reversibility, and accountability of consequential public technology before evaluating efficiency.",
@@ -5873,7 +5873,7 @@
         "primary_response_source": "deterministic fallback via _public_predictive_system_recovery()",
         "llm_origin": false
       },
-      "runtime_transfer": true,
+      "runtime_transfer": false,
       "provenance": {
         "source_ref": "User-reviewed live visitor screenshot dated 2026-11-17, followed by explicit approval to elevate the two targeted refinements.",
         "verification_context": "The live visitor answer and canonical doorway were reviewed; the successor sharpens the human appeal safeguard and supplies the doorway's grounded rationale without altering the predecessor record.",
