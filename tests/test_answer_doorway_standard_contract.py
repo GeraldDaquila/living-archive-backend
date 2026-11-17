@@ -17,7 +17,10 @@ def main():
     assert "title.length > 180" in js and "rationale.length > 600" in js
     assert "GENERIC_RATIONALES.indexOf(rationale.toLowerCase())" in js
     assert "textContent" in js
-    assert "innerHTML" not in js
+    assert "template.innerHTML = String(html == null ? '' : html);" in js
+    assert "removeEntirely[tag]" in js
+    assert "node.removeAttribute(attribute.name)" in js
+    assert "normalizeUrl(node.getAttribute('href')" in js
     assert "CONTINUE EXPLORING" in js
     assert ".la-answer-doorway" in css and "#f7f5ef" in css
     for module in ("The Guide / USE", "HRN", "FSD", "SPE", "Public Living Archive Navigator", "Mini-USE"):
