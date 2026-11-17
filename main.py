@@ -6321,6 +6321,20 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
                         "provider": "rejected_non_substantive_recovery",
                         "model": "quality-gate-rejection",
                     }
+    # Provider-exhaustion responses must carry the same verified doorway
+    # contract as successful provider responses. Preserve explicit no-doorway
+    # safety/repair boundaries and the foundation answer's intentional restraint.
+    if (
+        isinstance(result, dict)
+        and result.get("provider") != "bounded_foundation_provider_exhaustion_recovery"
+        and not is_harm_repair_question(query)
+    ):
+        try:
+            if _select_verified_doorway_conceptual_family(query):
+                result = _guide_restore_verified_doorway(result, query)
+        except Exception:
+            # Navigation restoration must never invalidate a usable recovery answer.
+            pass
     return result
 
 
