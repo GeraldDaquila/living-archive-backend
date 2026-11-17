@@ -82,6 +82,7 @@ from deterministic_answer_recovery import (
     compose_recovery as _compose_provider_exhaustion_recovery,
     is_harm_repair_question,
     is_community_continuity_revision_question,
+    is_oversoul_free_will_question,
 )
 from ai_workforce_restructuring_contract import (
     is_ai_workforce_restructuring_question,
@@ -242,6 +243,15 @@ def _guide_node_prompt_context():
 def _select_verified_doorway_conceptual_family(query):
     """Return a verified conceptual family only when a canonical doorway applies."""
     text = str(query or "")
+    # Spiritual-agency questions have a direct Archive doorway. Resolve this
+    # before generic agency/uncertainty matches can select a broad compass.
+    if (
+        re.search(r"\boversoul\b", text, re.I)
+        and re.search(r"\b(?:free will|free choice|personal agency|human agency|choices?)\b", text, re.I)
+        and re.search(r"\b(?:power|influence|shape|guide|direct|determine|control|override|affect|authority)\b", text, re.I)
+        and re.search(r"\b(?:without undermining|without negating|without overriding|while preserving|while retaining|compatible with|undermin\w*|conflict|tension)\b", text, re.I)
+    ):
+        return "oversoul_free_will"
     if (
         re.search(r"\b(?:ai|artificial intelligence)\b", text, re.I)
         and re.search(r"\binterpreter\b", text, re.I)
@@ -337,6 +347,11 @@ def _select_verified_doorway_conceptual_family(query):
 
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
+    "oversoul_free_will": {
+        "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
+        "url": "https://geralddaquila.com/oversoul-law",
+        "rationale": "This is the Archive's directly named Oversoul doorway for examining the question of spiritual jurisdiction. It is an invitation to inspect the Archive's own framework, not independent evidence that metaphysical claims are objectively established.",
+    },
     "human_development_ecology": {
         "title": "Becoming Fully Human",
         "url": "https://geralddaquila.com/2026/10/05/the-architecture-of-human-development/",
@@ -5562,6 +5577,28 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
 
+    # Oversoul/free-will is a bounded constitutional concept family. It
+    # must keep its specialist answer and directly named doorway together for
+    # both provider and deterministic outputs, before unrelated early returns.
+    from deterministic_answer_recovery import is_oversoul_free_will_question
+    if is_oversoul_free_will_question(query):
+        from deterministic_answer_recovery import (
+            compose_recovery as _compose_oversoul_recovery,
+            registered_recovery_recommendation as _oversoul_doorway,
+        )
+        safe = dict(payload)
+        safe["response"] = _compose_oversoul_recovery(query)
+        doorway = _oversoul_doorway(query)
+        safe["recommendation"] = doorway
+        safe["canonical_doorway"] = doorway
+        safe["doorway_title"] = doorway.get("title") if doorway else None
+        safe["doorway_url"] = doorway.get("url") if doorway else None
+        safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
+        safe["processing"] = "final_visitor_boundary_oversoul_free_will_recovery"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
     # Reflective balance is a navigation obligation independent of answer
     # repair. Preserve the answer exactly and resolve the approved public
     # continuation before later early-return branches can bypass restoration.
@@ -6450,6 +6487,29 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "doorway_rationale": _structural_change_gold_star.get("doorway_rationale"),
             "recommendation": None,
             "provider": "gold_standard_registry_deterministic_fallback",
+            "model": "",
+        }
+
+    # Keep this predicate locally imported: this deterministic boundary is
+    # also extracted and contract-tested as an isolated function in CI.
+    from deterministic_answer_recovery import is_oversoul_free_will_question
+    # Oversoul/free-will questions have an explicit provider-independent
+    # recovery. Keep the answer and its directly named canonical doorway joined
+    # at the deterministic boundary instead of allowing generic retrieval or
+    # uncertainty navigation to replace either one.
+    if is_oversoul_free_will_question(query):
+        from deterministic_answer_recovery import (
+            registered_recovery_recommendation as _oversoul_recommendation,
+        )
+        _oversoul_answer = _compose_provider_exhaustion_recovery(query)
+        _oversoul_doorway = _oversoul_recommendation(query)
+        return {
+            "response": _oversoul_answer,
+            "doorway_title": str((_oversoul_doorway or {}).get("title") or ""),
+            "doorway_url": str((_oversoul_doorway or {}).get("url") or ""),
+            "doorway_rationale": str((_oversoul_doorway or {}).get("rationale") or ""),
+            "recommendation": _oversoul_doorway,
+            "provider": "bounded_oversoul_free_will_recovery",
             "model": "",
         }
 

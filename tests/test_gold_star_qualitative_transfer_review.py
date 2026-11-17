@@ -183,7 +183,16 @@ def test_approved_gold_stars_have_complete_provenance_and_quality_contract():
             }, record["benchmark_id"]
         capabilities = record.get("gold_star_capabilities")
         assert isinstance(capabilities, dict), record["benchmark_id"]
-        assert capabilities.get("active_quality_contributor") is True, record["benchmark_id"]
+        if record.get("runtime_transfer") is False:
+            # An approved exact-query successor may own the answer without
+            # becoming a second adaptive-learning contributor or fallback.
+            assert capabilities.get("exact_answer_authority") is True, record["benchmark_id"]
+            assert capabilities.get("active_quality_contributor") is False, record["benchmark_id"]
+            assert capabilities.get("deterministic_fallback_eligible") is False, record["benchmark_id"]
+            assert record.get("replaces_exact_query_runtime_authority_of"), record["benchmark_id"]
+        else:
+            assert record.get("runtime_transfer") is True, record["benchmark_id"]
+            assert capabilities.get("active_quality_contributor") is True, record["benchmark_id"]
         assert record.get("assertions"), record["benchmark_id"]
 
         legacy = record.get("legacy_approval_grandfathered") is True
