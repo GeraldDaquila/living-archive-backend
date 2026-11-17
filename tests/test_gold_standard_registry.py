@@ -1147,3 +1147,34 @@ def test_user_elevated_community_wisdom_gold_star_preserves_exact_live_response(
     assert "historical, theological, empirical, and experiential claims" in record["expected_response"]
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+
+
+def test_spiritual_community_accountability_gold_star_93_is_approved_and_exactly_resolvable():
+    from general_guide_gold_standards import resolve_exact_gold_standard
+
+    query = (
+        "A spiritual community has charismatic leadership and weak accountability. "
+        "How should the Guide identify the risks without dismissing spiritual practice itself?"
+    )
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-spiritual-community-accountability-gold-star-2026-11-17"
+    )
+
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["gold_star_number"] == 93
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["rating_out_of_10"] == 9.5
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
+    assert record["expected_doorway"]["title"] == "Community Accountability Systems"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/2026/05/16/community-accountability-systems/"
+    assert record["doorway_status"] == "VERIFIED_CANONICAL_SELECTED"
+
+    exact = resolve_exact_gold_standard(query)
+    assert exact is not None
+    assert exact["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert exact["expected_response"] == record["expected_response"]
+    assert exact["doorway_title"] == record["expected_doorway"]["title"]
+    assert exact["doorway_url"] == record["expected_doorway"]["url"]
+    assert exact["doorway_rationale"] == record["expected_doorway"]["rationale"]
