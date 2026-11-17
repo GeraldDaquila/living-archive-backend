@@ -5661,6 +5661,37 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
 
+    # Exact, narrowly scoped Guide contract for comparing formal rules with informal norms.
+    # Keep this distinct from the adjacent formal-authority/actual-power and culture/ethics
+    # exemplars: this question asks how written institutional requirements and socially
+    # maintained expectations interact to produce observable organizational behaviour.
+    _formal_norms_query = re.sub(r"\\s+", " ", str(query or "").strip().lower()).rstrip(" ?.")
+    if _formal_norms_query == "how should the guide compare formal institutional rules with informal norms when explaining why an organization behaves as it does":
+        safe = dict(payload)
+        safe["response"] = (
+            "An organization behaves according to more than its formal rules. Its behaviour emerges from the interaction between what the institution officially requires and what people have learned is actually expected, rewarded, tolerated, or punished.\\n\\n"
+            "Formal institutional rules are codified: policies, procedures, assigned responsibilities, decision rights, and official sanctions. They establish legitimate authority and define what is supposed to happen. Informal norms are socially maintained: habits, unwritten expectations, loyalties, conventions, and assumptions about what is acceptable or possible. They influence what people actually do, often without anyone having to state the expectation explicitly.\\n\\n"
+            "The critical question is how these two systems interact. Informal norms may reinforce formal rules, shape how people interpret them, enable people to circumvent them, or contradict them. For example, an organization may formally encourage employees to report problems. But if people who raise concerns are routinely excluded, criticized, or passed over for advancement, the operative norm may be silence. The written rule describes the official expectation; repeated consequences reveal the practical one.\\n\\n"
+            "To understand which system is shaping behaviour, examine both documentary evidence and actual practice: what policies and decision rights prescribe; who influences decisions and controls information; what behaviour receives approval, reward, tolerance, or punishment; what happens when formal requirements conflict with established practices; and which patterns recur across people, teams, and situations.\\n\\n"
+            "The aim is not to assume that informal norms are inherently harmful or that formal rules are always effective. Informal norms can sustain trust and cooperation where formal procedures are inadequate; they can also preserve exclusion, silence, and unaccountable power. The decisive distinction is between the organization as formally designed and the organization as actually practiced. Understanding its behaviour requires examining both—and identifying where they reinforce, modify, or contradict one another."
+        )
+        if "answer" in safe:
+            safe["answer"] = safe["response"]
+        _formal_norms_doorway = {
+            "title": "Building Trust-Centered Organizations",
+            "url": "https://geralddaquila.com/2026/09/07/building-trust-centered-organizations/",
+            "rationale": "This essay examines how trust, leadership signals, incentives, accountability, and shared cultural norms shape the way organizations function in practice. It extends the comparison from written expectations to the conditions that make everyday behaviour reliable or contradictory."
+        }
+        safe["recommendation"] = _formal_norms_doorway
+        safe["canonical_doorway"] = _formal_norms_doorway
+        safe["doorway_title"] = _formal_norms_doorway["title"]
+        safe["doorway_url"] = _formal_norms_doorway["url"]
+        safe["doorway_rationale"] = _formal_norms_doorway["rationale"]
+        safe["processing"] = "final_visitor_boundary_formal_rules_informal_norms"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
     # Public-commons governance has one shared, question-specific visitor contract.
     # Enforce the same complete answer and verified doorway after either provider/LLM
     # composition or deterministic recovery, so neither route can omit governance
