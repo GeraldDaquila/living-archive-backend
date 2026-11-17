@@ -768,3 +768,21 @@ These entries preserve their live-production provenance and qualitative transfer
 - **Adaptive-learning boundary:** Transfer evidence calibration only. Do not treat examples as proof, present synthesis as a direct Archive claim, infer representativeness without evidence, or convert missing evidence into a confident conclusion.
 - **Numbering:** **#86**, allocated under the previously authorized #85–#86 historical-gap release. Both serials are now allocated; no numbering gap remains.
 - **Freeze policy:** Preserve the exact approved response and doorway rationale. Changes require explicit user authorization and a separately documented benchmark-version change.
+
+
+### Gold Star — Nonprofit culture, power, care, and governance (2026-11-18)
+
+- **Benchmark:** `general-guide-nonprofit-culture-power-care-governance-gold-star-2026-11-18`
+- **Status:** `USER_APPROVED_GOLD_STANDARD`; exact live answer and verified doorway frozen after explicit user elevation.
+- **Question:** “A nonprofit’s founder is widely trusted by donors, beneficiaries, or the wider community while staff experience fear and high turnover; how can the Guide integrate culture, power, leadership, care, and governance without diagnosing individuals from limited evidence?”
+- **Answer:** The exact three-paragraph response is preserved in `docs/qa/gold_standard_registry.json`.
+- **Analysis discipline:** Treat public trust and staff fear/turnover as potentially coexisting, position-dependent signals. Integrate culture, power, leadership, care, and governance; distinguish reported experience, corroborated patterns, and hypotheses; recommend confidential listening, disaggregated workforce data, complaint and decision-record review, anti-retaliation protections, and independent oversight.
+- **Evidence boundary:** Fear and turnover warrant investigation but do not establish individual motives or culpability; public trust does not disprove staff harm. The conclusion must remain a testable account of organizational conditions, not a diagnosis of a person.
+- **Doorway:** **Building Trust-Centered Organizations** — https://geralddaquila.com/2026/09/07/building-trust-centered-organizations/
+- **Rationale:** This essay examines how leadership signals, shared cultural norms, incentives, trust, and accountability shape organizational life. It offers a relevant continuation from the reported gap between public confidence and staff experience to the conditions that make an organization trustworthy in practice.
+- **Rating:** 9.6/10.
+- **Approval:** User reviewed the live visitor-facing screenshot and explicitly instructed elevation on 2026-11-18.
+- **Relationship to the organizational-culture-and-ethical-behavior exemplar:** The earlier benchmark explains how operating norms shape ethical behavior. This benchmark addresses the narrower conflict between public reputation and staff experience, integrates five organizational dimensions, and specifies protected, independent evidence-gathering. Both remain distinct; this entry does not replace the earlier exemplar.
+- **Adaptive-learning boundary:** Transfer the integrated organizational-analysis and evidence-discipline method only. Do not transfer answer text or doorway to unrelated questions, infer individual motives or culpability from limited evidence, or treat public confidence as proof of staff safety.
+- **Numbering:** `UNASSIGNED`; no display serial was requested.
+- **Freeze policy:** Preserve the exact approved response and doorway rationale. Changes require explicit user authorization and a separately documented benchmark-version change.
