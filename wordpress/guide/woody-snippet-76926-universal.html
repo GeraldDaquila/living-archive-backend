@@ -679,26 +679,30 @@ body.page,
     min-height: 48px !important;
   }
 
-  /* Mobile reading hierarchy: preserve comfortable measure and legibility. */
-  .response-box {
-    margin-top: 14px !important;
-    padding: 20px 18px 22px !important;
-    border-radius: 16px !important;
-    font-size: 18px !important;
-    line-height: 1.68 !important;
+  /* Mobile answer rhythm: preserve the established type scale while giving
+     each reasoning movement enough separation to scan comfortably. */
+  .archive-stage-wrapper[data-guide-instance="woody"] .response-box {
+    padding: 22px 20px 24px !important;
+    line-height: 1.7 !important;
   }
 
-  #archive-response-text {
-    color: #333 !important;
-    font-size: clamp(17px, 4.5vw, 18px) !important;
-    line-height: 1.68 !important;
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text {
+    color: #2e3238 !important;
+    font-size: 20px !important;
+    font-weight: 400 !important;
+    line-height: 1.7 !important;
   }
 
-  #archive-response-text p {
-    margin: 0 0 1.1em !important;
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text p {
+    color: #2e3238 !important;
+    font-size: 20px !important;
+    font-weight: 400 !important;
+    line-height: 1.7 !important;
+    margin-top: 0 !important;
+    margin-bottom: 1.15em !important;
   }
 
-  #archive-response-text p:last-child {
+  .archive-stage-wrapper[data-guide-instance="woody"] #archive-response-text p:last-child {
     margin-bottom: 0 !important;
   }
 }
