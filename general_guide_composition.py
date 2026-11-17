@@ -1909,6 +1909,52 @@ def _archive_passage_sources(documents: List[Dict[str, Any]]) -> List[Dict[str, 
     return selected
 
 
+def _archive_passage_contrast_recovery(question: str, documents: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Provide a source-faithful two-passage display when provider composition is unavailable."""
+    if not _requires_archive_passage_contrast(question):
+        return None
+    sources = _archive_passage_sources(documents)
+    if len(sources) < 2:
+        return {
+            "response": (
+                "I could not verify two distinct, substantive Archive passages for this comparison, "
+                "so I will not invent a pair or claim that the Archive contains a disagreement. "
+                "The comparison needs two source texts with enough context to represent each fairly. "
+                "Please narrow the topic or search the Libraries for the relevant subject; once two "
+                "passages are available, they can be presented separately before any synthesis."
+            ),
+            "doorway_title": "",
+            "doorway_url": "",
+            "response_shape": "explanatory",
+            "provider": "bounded_archive_passage_contrast_recovery",
+            "model": "deterministic-evidence-boundary",
+        }
+    blocks = []
+    for index, source in enumerate(sources, start=1):
+        excerpt = source["excerpt"][:1100].rstrip()
+        blocks.append(
+            f"Passage {index} — [{source['title']}]({source['url']})\n\n"
+            f"Retrieved passage text: “{excerpt}”"
+        )
+    response = (
+        blocks[0] + "\n\n" + blocks[1] + "\n\n"
+        "These are two separate source representations, not yet a synthesis. Before combining them, "
+        "the Guide should identify each passage's central concern, scope, qualifications, and intended "
+        "audience in its own terms. It should then name the exact difference in emphasis, distinguish "
+        "a genuine contradiction from complementary focus, and preserve any unresolved tension. "
+        "The excerpts above are bounded retrieval text; no broader interpretation should be attributed "
+        "to either source without reading its full context."
+    )
+    return {
+        "response": response,
+        "doorway_title": "",
+        "doorway_url": "",
+        "response_shape": "explanatory",
+        "provider": "bounded_archive_passage_contrast_recovery",
+        "model": "extractive-deterministic",
+    }
+
+
 def _has_archive_passage_contrast_structure(query: str, response: str, documents: List[Dict[str, Any]]) -> bool:
     """Require two independently represented sources before any synthesis."""
     if not _requires_archive_passage_contrast(query):
@@ -3924,6 +3970,15 @@ def compose(
             path="fallback_recovery",
             openness="continuity_after_provider_exhaustion",
         )
+        archive_contrast_recovery = _archive_passage_contrast_recovery(question, documents)
+        if archive_contrast_recovery is not None:
+            _emit_guide_outcome(
+                "provider_exhaustion_fallback",
+                recovery="archive_passage_contrast",
+                sources=len(_archive_passage_sources(documents)),
+            )
+            return archive_contrast_recovery
+
         # Comparative-traditions inquiries have a dedicated bounded recovery.
         # Do not let provider exhaustion turn a clear comparison question into
         # a generic refusal or an unrelated fallback. The recovery preserves
