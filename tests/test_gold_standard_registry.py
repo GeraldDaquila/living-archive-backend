@@ -231,12 +231,12 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
     assert report["numbered_gold_star_count"] == len(numbered) == 35
-    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 56
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 57
     assert report["highest_assigned_gold_star_number"] == 92
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
     assert len(report["number_assignments"]) == 35
-    assert len(report["unassigned_benchmark_ids"]) == 56
+    assert len(report["unassigned_benchmark_ids"]) == 57
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
@@ -1029,7 +1029,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 91
+    assert len(approved) == 92
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1078,10 +1078,10 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     assert "only adds provenance.source_date" in gaps[1]["reason"]
     assert "recovered as Gold Star #56" in gaps[1]["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 91
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 92
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 35
     assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 92
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 56
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 57
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
 
 
@@ -1308,7 +1308,7 @@ def test_complex_future_scenario_readiness_gold_star_preserves_exact_answer_and_
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["query"] == "A user requests a definitive prediction about a complex future. How should the Guide reframe the request toward scenarios, capacities, and uncertainty?"
     assert record["expected_response"] == expected
-    assert len(expected.split("\\n\\n")) == 3
+    assert len(expected.split(chr(10) * 2)) == 3
     assert record["rating_out_of_10"] == 9.3
     assert record["user_reviewed_response"] is True
     assert record["explicit_user_elevation_approval"] is True
