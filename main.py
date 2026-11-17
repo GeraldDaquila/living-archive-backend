@@ -431,7 +431,7 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     },
     "archive_guidance_provenance": {
         "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
-        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
     },
     "public_commons_stewardship": {
         "title": "Knowledge Stewardship in the AI Era: From Information to Wisdom",
