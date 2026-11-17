@@ -231,12 +231,12 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
     assert report["numbered_gold_star_count"] == len(numbered) == 35
-    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 52
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 53
     assert report["highest_assigned_gold_star_number"] == 92
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
     assert len(report["number_assignments"]) == 35
-    assert len(report["unassigned_benchmark_ids"]) == 52
+    assert len(report["unassigned_benchmark_ids"]) == 53
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
@@ -1016,7 +1016,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 87
+    assert len(approved) == 88
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1196,11 +1196,12 @@ def test_ai_staffing_successor_preserves_legacy_record_and_serves_release_candid
     old = records[old_id]
     successor = records[successor_id]
 
-    assert old["status"] == "SUPERSEDED_GOLD_STANDARD"
+    assert old["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert old["expected_response"].startswith("For a question like this, the first task is to make the decision visible.")
-    assert old["superseded_by"] == successor_id
+    assert old["runtime_exact_query_successor"] == successor_id
+    assert old["gold_star_capabilities"]["active_quality_contributor"] is True
     assert successor["status"] == "USER_APPROVED_RELEASE_CANDIDATE"
-    assert successor["supersedes_benchmark_id"] == old_id
+    assert successor["replaces_exact_query_runtime_authority_of"] == old_id
     assert successor["gold_star_capabilities"]["exact_answer_authority"] is True
     assert successor["gold_star_capabilities"]["active_quality_contributor"] is False
     assert successor["expected_response"].startswith("An organization should assess AI-led staffing reductions")
