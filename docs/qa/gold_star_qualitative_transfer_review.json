@@ -789,6 +789,15 @@
       "qualifying_context": "Questions about maintaining hope, meaning, or constructive possibility amid uncertainty, disappointment, constraints, or difficult realities.",
       "abstention_boundary": "Do not equate hope with optimism, certainty, or guaranteed success. Do not treat realism as proof that change is impossible, and do not impose this frame on unrelated factual or low-stakes questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-17-community-continuity-harmful-inherited-patterns",
+      "question": "How can communities preserve continuity while revising harmful inherited patterns?",
+      "reasoning_family": "continuity_without_preserving_harmful_inheritance",
+      "transferable_discipline": "Distinguish valuable shared inheritance from harmful inherited practices; involve affected people in examining history, purpose, and consequences; decide what to retain, transform, or end; and make continuity accountable through documentation, review, and correction.",
+      "qualifying_context": "Questions about communities preserving identity, belonging, memory, or intergenerational continuity while changing harmful traditions, customs, institutional arrangements, or inherited patterns.",
+      "abstention_boundary": "Do not romanticize inherited practices because they are longstanding or assume all inheritance should be discarded. Do not prescribe changes to a specific community without context and the participation of those affected.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
