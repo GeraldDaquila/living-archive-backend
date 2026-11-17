@@ -5512,7 +5512,7 @@ def _archive_claim_authoritative_doorway(query, doorway=None):
     if isinstance(family_candidate, dict):
         family_title = str(family_candidate.get("title") or "").strip()
         family_url = str(family_candidate.get("url") or "").strip()
-        if family_title and re.match(r"^https://\\S+$", family_url, re.I):
+        if family_title and family_url.startswith("https://") and not any(ch.isspace() for ch in family_url):
             result = {"title": family_title, "url": family_url}
             rationale = str(family_candidate.get("rationale") or "").strip()
             if rationale:
@@ -5524,7 +5524,7 @@ def _archive_claim_authoritative_doorway(query, doorway=None):
         return None
     node_title = str(node.get("title") or "").strip()
     node_url = str(node.get("url") or node.get("canonical_url") or "").strip()
-    if not node_title or not re.match(r"^https://\\S+$", node_url, re.I):
+    if not node_title or not node_url.startswith("https://") and not any(ch.isspace() for ch in node_url):
         return None
     return {"title": node_title, "url": node_url}
 
