@@ -72,6 +72,7 @@ def test_reflective_balance_question_does_not_invent_doorway_without_registry_ev
 
 def test_community_continuity_revision_recovers_its_verified_archive_doorway(monkeypatch):
     query = "How can communities preserve continuity while revising harmful inherited patterns?"
+    assert main._is_conceptual_explanatory_request(query)
     assert main._select_verified_doorway_conceptual_family(query) == "community_continuity_revision"
     doorway = main._select_guide_node_fallback_doorway(query)
     assert doorway == {
