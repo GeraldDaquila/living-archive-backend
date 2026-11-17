@@ -231,12 +231,12 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
     assert report["numbered_gold_star_count"] == len(numbered) == 38
-    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 61
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 62
     assert report["highest_assigned_gold_star_number"] == 93
     assert report["numbering_sequence_start"] == 56
     assert report["numbering_gap_register"] == []
     assert len(report["number_assignments"]) == 38
-    assert len(report["unassigned_benchmark_ids"]) == 61
+    assert len(report["unassigned_benchmark_ids"]) == 62
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
@@ -1041,7 +1041,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 99
+    assert len(approved) == 100
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1050,7 +1050,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
             assert record.get("numbering_status") == "UNASSIGNED"
             assert record.get("numbering_unassigned_reason_code")
             assert record.get("numbering_unassigned_reason")
-            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness", "gs-2026-11-17-oversoul-free-will-influence-without-compulsion", "general-guide-public-commons-stewardship-gold-star-2026-11-17", "general-guide-community-project-economic-dimensions-gold-star-2026-11-18", "general-guide-formal-informal-institutional-dynamics-gold-star-2026-11-18"}:
+            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness", "gs-2026-11-17-oversoul-free-will-influence-without-compulsion", "general-guide-public-commons-stewardship-gold-star-2026-11-17", "general-guide-community-project-economic-dimensions-gold-star-2026-11-18", "general-guide-formal-informal-institutional-dynamics-gold-star-2026-11-18", "general-guide-symmetric-source-representation-before-synthesis-gold-star-2026-11-18"}:
                 assert record.get("legacy_approval_grandfathered") is not True
                 assert record.get("numbering_unassigned_reason_code") == "NO_SERIAL_ALLOCATION_REQUESTED"
             elif record["benchmark_id"] not in {"gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing", "gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship", "gs-2026-11-16-collapse-adaptation-regeneration", "gs-2026-11-16-techno-utopian-thinking"}:
@@ -1095,10 +1095,10 @@ def test_85_and_86_are_allocated_and_no_documented_historical_gap_remains():
     assert "only adds provenance.source_date" in prior_gap["reason"]
     assert "recovered as Gold Star #56" in prior_gap["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 99
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 100
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 38
     assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 93
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 61
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 62
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 0
 
 
@@ -1522,10 +1522,10 @@ def test_formal_informal_institutional_dynamics_gold_star_preserves_exact_live_a
     assert record["runtime_transfer"] is True
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["numbering_status"] == "UNASSIGNED"
-    assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 99
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 99
-    assert registry["integrity_audit"]["registry_record_count"] == 136
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 61
+    assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 100
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 100
+    assert registry["integrity_audit"]["registry_record_count"] == 137
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 62
     entry = next(item for item in review["entries"] if item["benchmark_id"] == benchmark_id)
     assert entry["activation"] == "active_quality_contributor"
     assert entry["reasoning_family"] == "formal_informal_institutional_dynamics"
@@ -1582,11 +1582,11 @@ def test_ownership_management_stewardship_gold_star_85_preserves_exact_answer_do
     assert deterministic_contract["doorway_title"] == fixture["expected_doorway_title"]
     assert deterministic_contract["recommendation"]["url"] == fixture["expected_doorway_url"]
 
-    assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 99
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 99
-    assert registry["integrity_audit"]["registry_record_count"] == 136
+    assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 100
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 100
+    assert registry["integrity_audit"]["registry_record_count"] == 137
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 38
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 61
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 62
 
     review = json.loads((ROOT / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
     entry = next(item for item in review["entries"] if item["benchmark_id"] == fixture["benchmark_id"])
@@ -1653,14 +1653,59 @@ def test_archive_examples_evidence_limits_gold_star_86_preserves_exact_answer_an
     assert prior["benchmark_id"] == "general-guide-archive-claim-synthesis-boundary-gold-star-2026-11-13"
     assert prior["benchmark_id"] != fixture["benchmark_id"]
 
-    assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 99
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 99
-    assert registry["integrity_audit"]["registry_record_count"] == 136
+    assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 100
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 100
+    assert registry["integrity_audit"]["registry_record_count"] == 137
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 38
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 61
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 62
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 0
 
     review = json.loads((ROOT / "docs/qa/gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
     entry = next(item for item in review["entries"] if item["benchmark_id"] == fixture["benchmark_id"])
     assert entry["activation"] == "active_quality_contributor"
     assert entry["reasoning_family"] == "archive_examples_evidence_limits"
+
+
+
+def test_symmetric_source_representation_gold_star_is_registered_and_runtime_resolvable():
+    from general_guide_gold_standards import resolve_exact_gold_standard
+
+    registry = _registry()
+    fixture = json.loads((ROOT / "tests" / "fixtures" / "general_guide_symmetric_source_representation_gold_star.json").read_text(encoding="utf-8"))
+    assert fixture["benchmark_id"] == "general-guide-symmetric-source-representation-before-synthesis-gold-star-2026-11-18"
+    assert fixture["rating_out_of_10"] == 9.6
+    benchmark_id = "general-guide-symmetric-source-representation-before-synthesis-gold-star-2026-11-18"
+    query = "Find two relevant Archive passages that disagree in emphasis. How should the Guide represent each passage before attempting any synthesis?"
+    expected = "Represent the two passages separately and symmetrically before interpreting their relationship. For each passage, identify its exact source, state its central concern in its own terms, and preserve its scope, qualifications, and intended audience. Do not translate either passage into the other's vocabulary or turn a difference in emphasis into a disagreement.\n\nOnly after both representations are clear should the Guide compare them: name where their emphases differ, distinguish a genuine contradiction from complementary focus, and retain any tension that the available text cannot resolve. Synthesis comes last and must not erase distinctions the sources themselves preserve."
+    record = next(item for item in registry["records"] if item["benchmark_id"] == benchmark_id)
+    review = json.loads((ROOT / "docs" / "qa" / "gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    entry = next(item for item in review["entries"] if item["benchmark_id"] == benchmark_id)
+
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["rating_out_of_10"] == 9.6
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["expected_response"] == expected
+    assert len(expected.split(chr(10) * 2)) == 2
+    assert record["expected_doorway"] == {
+        "title": "The Sovereign Sensemaking Compass",
+        "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass",
+        "rationale": "The Sovereign Sensemaking Compass offers a broad continuation for developing clarity and agency when a question has no narrower verified Archive destination. It is an invitation to explore the Archive’s orientation framework, not a claim that one framework settles every question.",
+    }
+    assert entry["activation"] == "active_quality_contributor"
+    assert entry["reasoning_family"] == "symmetric_source_representation_before_synthesis"
+    assert "same fields in the same order" in entry["transferable_discipline"]
+    assert "synthesize only after both representations are complete" in entry["transferable_discipline"]
+
+    resolved = resolve_exact_gold_standard(query)
+    assert resolved is not None
+    assert resolved["benchmark_id"] == benchmark_id
+    assert resolved["expected_response"] == expected
+    assert resolved["doorway_title"] == "The Sovereign Sensemaking Compass"
+    assert resolved["doorway_url"] == "https://geralddaquila.com/the-sovereign-sensemaking-compass"
+
+    # The adjacent contextual-synthesis exemplar remains independently exact.
+    adjacent = resolve_exact_gold_standard("Two archive texts appear to emphasize different values. How should the Guide identify the tension and reason toward a contextual synthesis?")
+    assert adjacent is not None
+    assert adjacent["benchmark_id"] == "general-guide-contextual-synthesis-across-different-values-gold-star-2026-11-13"

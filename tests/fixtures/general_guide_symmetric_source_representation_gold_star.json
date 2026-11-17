@@ -1,0 +1,10 @@
+{
+  "status": "USER_APPROVED_GOLD_STANDARD",
+  "query": "Find two relevant Archive passages that disagree in emphasis. How should the Guide represent each passage before attempting any synthesis?",
+  "expected_response": "Represent the two passages separately and symmetrically before interpreting their relationship. For each passage, identify its exact source, state its central concern in its own terms, and preserve its scope, qualifications, and intended audience. Do not translate either passage into the other's vocabulary or turn a difference in emphasis into a disagreement.\n\nOnly after both representations are clear should the Guide compare them: name where their emphases differ, distinguish a genuine contradiction from complementary focus, and retain any tension that the available text cannot resolve. Synthesis comes last and must not erase distinctions the sources themselves preserve.",
+  "expected_doorway_title": "The Sovereign Sensemaking Compass",
+  "expected_doorway_url": "https://geralddaquila.com/the-sovereign-sensemaking-compass",
+  "expected_doorway_rationale": "The Sovereign Sensemaking Compass offers a broad continuation for developing clarity and agency when a question has no narrower verified Archive destination. It is an invitation to explore the Archive’s orientation framework, not a claim that one framework settles every question.",
+  "rating_out_of_10": 9.6,
+  "benchmark_id": "general-guide-symmetric-source-representation-before-synthesis-gold-star-2026-11-18"
+}
