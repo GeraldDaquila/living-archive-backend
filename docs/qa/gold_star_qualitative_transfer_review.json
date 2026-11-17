@@ -807,6 +807,15 @@
       "qualifying_context": "Questions about organizational adoption of AI or automation where staffing, work redesign, operational feasibility, governance, human development, ethics, stewardship, and the distribution of gains or burdens are materially connected.",
       "abstention_boundary": "Do not presume AI is inherently beneficial, treat staff reduction as an end in itself, make unsupported legal or labor-market claims, or make the decision for the responsible organization. Do not impose this integrated workforce frame on unrelated AI questions or general technology questions without material workforce consequences. Transfer the reasoning discipline only, never this answer text or its doorway.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-17-oversoul-free-will-influence-without-compulsion",
+      "question": "What power does the Oversoul have over a person’s choice without undermining free will?",
+      "reasoning_family": "spiritual_influence_without_coercion_epistemic_boundary",
+      "transferable_discipline": "When a spiritual or metaphysical framework is used to explain influence on human choice, distinguish orientation or invitation from coercive determination; preserve the person's role in interpreting experience and choosing; and state clearly which claims are framework-bound interpretations rather than independently verified facts.",
+      "qualifying_context": "Questions that explicitly invoke the Oversoul or a comparable spiritual framework and ask how spiritual influence, guidance, or purpose can coexist with personal choice or free will.",
+      "abstention_boundary": "Do not assert that an Oversoul or other metaphysical entity objectively exists, controls choices, or determines outcomes. Do not treat intuition as proof of metaphysical communication, universalize one spiritual framework across traditions, or impose this reasoning family on ordinary questions about influence or free will without the visitor's spiritual premise. Transfer the distinction and epistemic discipline, never this answer text or its doorway.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
