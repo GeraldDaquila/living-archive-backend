@@ -44,6 +44,23 @@ class DeterministicAnswerRecoveryTests(unittest.TestCase):
                 answer = compose_recovery(question)
                 self.assertEqual(len([p for p in answer.split("\n\n") if p.strip()]), 3)
 
+    def test_consequential_action_under_uncertainty_has_a_nonrepetitive_third_paragraph(self):
+        question = "How should people act when the future is uncertain but consequential?"
+        answer = compose_recovery(question)
+        paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
+        self.assertEqual(len(paragraphs), 3)
+        self.assertIn("serious consequences and the future is uncertain", paragraphs[0])
+        self.assertIn("Compare realistic options", paragraphs[1])
+        self.assertIn("preserves room to learn and correct", paragraphs[2])
+        self.assertIn("signals for review", paragraphs[2])
+        self.assertIn("accountable", paragraphs[2])
+        self.assertNotIn("Distinguish strain and transition", answer)
+        self.assertNotIn("A useful way to examine this is:", answer)
+        self.assertNotIn("The limit to keep in view is:", answer)
+        self.assertNotIn("AI", answer)
+        self.assertNotIn("artificial intelligence", answer.casefold())
+        self.assertNotIn("civilizational", answer.casefold())
+
     def test_hindsight_accountability_precedes_generic_decision_recovery(self):
         question = (
             "If the group made the best decision it could with the information available at the time, "
@@ -258,7 +275,7 @@ def test_modes_of_knowing_dialogue_recovery_preserves_distinctions():
     assert doorway["title"] == "Being in the Driver's Seat (Without Pretending You Control the Road)"
 
 
-def test_provider_exhaustion_recovery_consumes_explicit_gold_star_guidance(monkeypatch):
+def test_provider_exhaustion_recovery_does_not_append_gold_star_guidance(monkeypatch):
     import gold_star_lessons
     guidance = {
         "benchmark_id": "test-approved-guidance",
@@ -274,6 +291,55 @@ def test_provider_exhaustion_recovery_consumes_explicit_gold_star_guidance(monke
         lambda query: guidance,
     )
     answer = compose_recovery("What is a useful way to understand a difficult situation?")
-    assert guidance["discipline"] in answer
-    assert guidance["abstention_boundary"] in answer
+    assert guidance["discipline"] not in answer
+    assert guidance["abstention_boundary"] not in answer
     assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
+
+
+
+def test_consequential_action_under_uncertainty_has_grounded_doorway_and_rationale():
+    import main
+    query = "How should people act when the future is uncertain but consequential?"
+    assert main._select_verified_doorway_conceptual_family(query) == "consequential_action_under_uncertainty"
+    payload = {
+        "response": "A proportionate, correctable decision is better than pretending to know the future.",
+        "recommendation": {
+            "title": "An unrelated upstream candidate",
+            "url": "https://geralddaquila.com/unrelated-resource/",
+        },
+    }
+    result = main._guide_restore_verified_doorway(payload, query)
+    doorway = result["recommendation"]
+    assert doorway is not None
+    assert doorway["title"] == "Sovereign Sensemaking Compass"
+    assert doorway["url"] == "https://geralddaquila.com/the-sovereign-sensemaking-compass/"
+    assert "uncertainty" in doorway["rationale"].lower()
+    assert "clarity" in doorway["rationale"].lower()
+    assert result["canonical_doorway"] == doorway
+    assert result["doorway_rationale"] == doorway["rationale"]
+
+
+def test_uncertainty_without_consequential_action_does_not_claim_compass_family():
+    import main
+    query = "How should people respond when the future is uncertain?"
+    assert main._select_verified_doorway_conceptual_family(query) != "consequential_action_under_uncertainty"
+
+
+def test_authoritative_recommendation_preserves_bounded_rationale():
+    import main
+    candidate = {
+        "title": "Sovereign Sensemaking Compass",
+        "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass/",
+        "rationale": "A grounded map for navigating uncertainty while preserving clarity and agency.",
+    }
+    assert main._normalize_authoritative_recommendation(candidate) == candidate
+
+
+def test_authoritative_recommendation_rejects_markup_in_rationale():
+    import main
+    candidate = {
+        "title": "Sovereign Sensemaking Compass",
+        "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass/",
+        "rationale": "<script>alert(1)</script>",
+    }
+    assert main._normalize_authoritative_recommendation(candidate) is None
