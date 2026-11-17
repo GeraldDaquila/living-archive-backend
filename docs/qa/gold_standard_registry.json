@@ -2629,7 +2629,7 @@
         "How can a complex organisational decision be examined without fragmenting it into separate domains?"
       ],
       "gold_star_capabilities": {
-        "exact_answer_authority": true,
+        "exact_answer_authority": false,
         "active_quality_contributor": true,
         "deterministic_fallback_eligible": true,
         "generation_class": "runtime_agnostic_curated_exemplar",
@@ -5812,7 +5812,7 @@
         "verification_context": "User-reviewed exact live visitor-facing answer and verified canonical doorway; explicit user elevation approval recorded 2026-11-17. The original approved predecessor remains preserved as a separate structural-learning exemplar.",
         "approval_date": "2026-11-17"
       },
-      "freeze_policy": "Preserve the exact approved three-paragraph answer and verified doorway title, canonical URL, and rationale. Changes require explicit user authorization and a separately documented benchmark-version change. Transfer only the bounded structural discipline and abstention boundary; never transfer the answer text or doorway to unrelated questions.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
       "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
       "doorway_note": "Canonical published post verified through WordPress post ID 49212; title, URL, and relevance rationale are grounded in the published essay.",
       "numbering_status": "UNASSIGNED",
