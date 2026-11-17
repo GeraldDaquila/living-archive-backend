@@ -637,25 +637,25 @@ def is_spiritual_community_accountability_question(question):
     q = _clean(question).casefold()
     spiritual_context = bool(re.search(
         r"\b(?:spiritual communit(?:y|ies)|faith communit(?:y|ies)|religious communit(?:y|ies)|"
-        r"spiritual group|faith group|religious group|spiritual practice)\\b", q
+        r"spiritual group|faith group|religious group|spiritual practice)\b", q
     ))
     charismatic_authority = bool(re.search(
         r"\b(?:charismatic leadership|charismatic leader|charisma|spiritual leader|"
-        r"religious leader|guru|teacher)\\b", q
+        r"religious leader|guru|teacher)\b", q
     ))
     accountability_gap = bool(re.search(
         r"\b(?:weak|limited|absent|missing|poor|inadequate|lack(?:ing)?)\\b.{0,45}"
         r"\b(?:accountab(?:ility|le)|oversight|checks and balances|review)\\b|"
         r"\b(?:accountab(?:ility|le)|oversight|checks and balances|review)\\b.{0,45}"
-        r"\b(?:weak|limited|absent|missing|poor|inadequate|lack(?:ing)?)\\b", q
+        r"\b(?:weak|limited|absent|missing|poor|inadequate|lack(?:ing)?)\b", q
     ))
     asks_for_risk_analysis = bool(re.search(
-        r"\b(?:risk|risks|danger|dangers|vulnerab\w*|how should|how can|identify|assess|recogniz\w*)\\b", q
+        r"\b(?:risk|risks|danger|dangers|vulnerab\w*|how should|how can|identify|assess|recogniz\w*)\b", q
     ))
     protects_spiritual_practice = bool(re.search(
         r"\b(?:without dismiss(?:ing)?|without reject(?:ing)?|without undermining|"
         r"while respect(?:ing)?|while preserv(?:ing)?|not dismiss(?:ing)?|"
-        r"spiritual practice itself|practice itself)\\b", q
+        r"spiritual practice itself|practice itself)\b", q
     ))
     return (
         spiritual_context
