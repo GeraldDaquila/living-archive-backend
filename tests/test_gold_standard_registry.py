@@ -1671,6 +1671,9 @@ def test_symmetric_source_representation_gold_star_is_registered_and_runtime_res
     from general_guide_gold_standards import resolve_exact_gold_standard
 
     registry = _registry()
+    fixture = json.loads((ROOT / "tests" / "fixtures" / "general_guide_symmetric_source_representation_gold_star.json").read_text(encoding="utf-8"))
+    assert fixture["benchmark_id"] == "general-guide-symmetric-source-representation-before-synthesis-gold-star-2026-11-18"
+    assert fixture["rating_out_of_10"] == 9.6
     benchmark_id = "general-guide-symmetric-source-representation-before-synthesis-gold-star-2026-11-18"
     query = "Find two relevant Archive passages that disagree in emphasis. How should the Guide represent each passage before attempting any synthesis?"
     expected = "Represent the two passages separately and symmetrically before interpreting their relationship. For each passage, identify its exact source, state its central concern in its own terms, and preserve its scope, qualifications, and intended audience. Do not translate either passage into the other's vocabulary or turn a difference in emphasis into a disagreement.\n\nOnly after both representations are clear should the Guide compare them: name where their emphases differ, distinguish a genuine contradiction from complementary focus, and retain any tension that the available text cannot resolve. Synthesis comes last and must not erase distinctions the sources themselves preserve."
