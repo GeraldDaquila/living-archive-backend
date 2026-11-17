@@ -571,6 +571,7 @@ def has_registered_recovery(question):
         or _is_general_explanatory_question(question)
         or _is_modes_of_knowing_dialogue_question(question)
         or is_stewardship_failure_repair_question(question)
+        or is_community_continuity_revision_question(question)
     )
 
 
@@ -585,6 +586,11 @@ def _public_predictive_system_recovery():
 
 def registered_recovery_recommendation(question):
     """Return an evidence-backed doorway for a narrow registered recovery."""
+    if is_community_continuity_revision_question(question):
+        return {
+            "title": "From Awakening to Stewardship",
+            "url": "https://geralddaquila.com/from-awakening-to-stewardship/",
+        }
     if _is_public_predictive_system_question(question):
         return {
             "title": "AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever",
