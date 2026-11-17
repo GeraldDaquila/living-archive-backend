@@ -3561,6 +3561,21 @@ def _default_gold_standard_evidence_recovery(
     }
 
 
+def _comparative_traditions_recovery(question: str) -> Optional[Dict[str, Any]]:
+    """Return a substantive bounded recovery and its verified doorway for this question family."""
+    if not _comparative_traditions_contract.is_comparative_traditions_question(question):
+        return None
+    doorway = _comparative_traditions_contract.verified_doorway(question)
+    return {
+        "response": _comparative_traditions_contract.recovery_response(),
+        "doorway_title": doorway["title"] if doorway else "",
+        "doorway_url": doorway["url"] if doorway else "",
+        "response_shape": "explanatory",
+        "provider": "bounded_comparative_traditions_recovery",
+        "model": "deterministic-contract-recovery",
+    }
+
+
 def compose(
 
     *,
@@ -3830,21 +3845,14 @@ def compose(
         # Do not let provider exhaustion turn a clear comparison question into
         # a generic refusal or an unrelated fallback. The recovery preserves
         # internal diversity and distinguishes claim types before comparison.
-        if _comparative_traditions_contract.is_comparative_traditions_question(question):
-            doorway = _comparative_traditions_contract.verified_doorway(question)
+        comparative_recovery = _comparative_traditions_recovery(question)
+        if comparative_recovery is not None:
             _emit_guide_outcome(
                 "provider_exhaustion_fallback",
                 recovery="comparative_traditions",
-                doorway=bool(doorway),
+                doorway=bool(comparative_recovery.get("doorway_url")),
             )
-            return {
-                "response": _comparative_traditions_contract.recovery_response(),
-                "doorway_title": doorway["title"] if doorway else "",
-                "doorway_url": doorway["url"] if doorway else "",
-                "response_shape": "explanatory",
-                "provider": "bounded_comparative_traditions_recovery",
-                "model": "deterministic-contract-recovery",
-            }
+            return comparative_recovery
 
         # A verified Archive doorway is navigation evidence, not a failed answer.
         # For institutional meaning questions, preserve that evidence before the
