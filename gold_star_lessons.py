@@ -58,15 +58,19 @@ def _concept_terms(value: Any) -> set[str]:
 
 
 def _lesson_signature(lesson: Dict[str, Any]) -> set[str]:
-    """Return the approved structural vocabulary eligible for analogue matching."""
+    """Return subject identity, not prose that could make an analogy self-fulfilling.
+
+    Cross-question matching is grounded in the approved question, its known
+    theme, reasoning family, and reviewed variants. Transferable discipline,
+    qualifying context, and assertions are deliberately excluded: those fields
+    describe how a lesson reasons and can contain broad words (e.g. action,
+    future, uncertainty) that falsely attract unrelated questions.
+    """
     return _concept_terms(" ".join((
         str(lesson.get("query") or ""),
         str(lesson.get("known_theme") or ""),
         str(lesson.get("reasoning_family") or ""),
-        str(lesson.get("qualifying_context") or ""),
-        str(lesson.get("transferable_discipline") or ""),
         " ".join(str(x) for x in lesson.get("variants") or []),
-        " ".join(str(x) for x in lesson.get("assertions") or []),
     )))
 
 class GoldStarRegistryIntegrityError(RuntimeError):
@@ -541,23 +545,13 @@ def deterministic_fallback_contribution(query: str) -> Optional[Dict[str, Any]]:
 
 
 def apply_deterministic_fallback_guidance(query: str, response: str) -> str:
-    """Apply eligible structural guidance without transferring an exemplar answer."""
-    text = str(response or "").strip()
-    if not text:
-        return text
-    try:
-        contribution = deterministic_fallback_contribution(query)
-    except Exception:
-        return text
-    if not contribution or "A useful way to examine this is:" in text:
-        return text
-    paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", text) if part.strip()]
-    if not paragraphs:
-        return text
-    paragraphs[-1] += (
-        " A useful way to examine this is: "
-        + str(contribution["discipline"]).strip()
-        + " The limit to keep in view is: "
-        + str(contribution["abstention_boundary"]).strip()
-    )
-    return "\n\n".join(paragraphs)
+    """Preserve authored deterministic prose; never paste a lesson into paragraph three.
+
+    Deterministic recoveries are pre-authored answer templates, not generative
+    prompts. A Gold Star may inform their design and regression criteria, but
+    appending its discipline and abstention text to an existing answer creates
+    a fourth cognitive move inside the conclusion and can import an unrelated
+    exemplar's subject. Exact Gold Star answers retain their separate registry
+    authority; cross-question deterministic guidance is therefore non-mutating.
+    """
+    return str(response or "").strip()
