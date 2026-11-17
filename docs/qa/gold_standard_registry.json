@@ -6197,7 +6197,7 @@
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve the benchmark_id as the stable learning identity; serial allocation remains independent."
     }
   ],
-  "last_reconciliation_note": "Added user-approved public-commons stewardship Gold Star on 2026-11-17. The exact three-paragraph answer and verified Knowledge Stewardship in the AI Era doorway are frozen; transfer is limited to access boundaries, attribution, synthesis, disagreement, provenance, stewardship, and correction. No display serial was allocated; historical gaps #85 and #86 remain untouched. Existing Gold Star exemplars and exact-query successor governance are preserved.",
+  "last_reconciliation_note": "Added user-approved community-project economic-dimensions Gold Star on 2026-11-18. The exact three-paragraph answer and verified Local Resilience Economies doorway are frozen; transfer is limited to distributional and lifecycle-aware economic accounting, including beneficiaries, decision power, labor and opportunity costs, externalized costs, shared-resource maintenance, local value retention, and durability. No display serial was allocated; historical gaps #85 and #86 remain untouched. Exact-question duplicate check found no existing benchmark.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -6326,13 +6326,13 @@
     "gold_star_contract": "Gold Star means one thing only: a fully validated, frozen exemplar that actively contributes to adaptive learning. The canonical registry may retain non-Gold-Star evidence and candidate records, but they are excluded from the Gold Star count and runtime Gold Star authority."
   },
   "integrity_audit": {
-    "last_audit_date": "2026-11-17",
+    "last_audit_date": "2026-11-18",
     "approved_gold_star_count": 96,
     "registry_record_count": 133,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 95 approved Gold Stars across 132 registry records. The complex-future scenario-readiness, Oversoul/free-will, personal-decision agency, and public-commons stewardship exemplars are active structural-learning contributors. The Oversoul exemplar's deterministic fallback eligibility remains false because its bounded recovery contract independently owns exact answer recovery. No display serial was allocated for the public-commons exemplar; prior exact-query successor governance remains unchanged.",
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 96 approved Gold Stars across 133 registry records. The community-project economic-dimensions exemplar joins the active structural-learning contributors under its bounded reasoning family. No display serial was allocated; 60 approved records remain explicitly UNASSIGNED with reasons. Existing assignments and historical gaps #85 and #86 remain unchanged.",
     "numbered_gold_star_record_count": 36,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation: 95 approved Gold Stars; 36 assigned display serials #56–#84 and #87–#93; 59 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
+    "numbering_reconciliation": "Record-level reconciliation: 96 approved Gold Stars; 36 assigned display serials #56–#84 and #87–#93; 60 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
     "unassigned_approved_gold_star_count": 60,
     "documented_numbering_gap_count": 2
   },
