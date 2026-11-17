@@ -6386,9 +6386,67 @@
         "authority": "User explicitly instructed Gold Star elevation on 2026-11-18. The canonical numbering policy reserves #86 for the next newly approved Gold Star after #85 was allocated; this approval completes that authorized allocation.",
         "prior_gap_record_preserved": true
       }
+    },
+    {
+      "benchmark_id": "general-guide-symmetric-source-representation-before-synthesis-gold-star-2026-11-18",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "Find two relevant Archive passages that disagree in emphasis. How should the Guide represent each passage before attempting any synthesis?",
+      "expected_response": "Represent the two passages separately and symmetrically before interpreting their relationship. For each passage, identify its exact source, state its central concern in its own terms, and preserve its scope, qualifications, and intended audience. Do not translate either passage into the other's vocabulary or turn a difference in emphasis into a disagreement.\n\nOnly after both representations are clear should the Guide compare them: name where their emphases differ, distinguish a genuine contradiction from complementary focus, and retain any tension that the available text cannot resolve. Synthesis comes last and must not erase distinctions the sources themselves preserve.",
+      "expected_doorway": {
+        "title": "The Sovereign Sensemaking Compass",
+        "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass",
+        "rationale": "The Sovereign Sensemaking Compass offers a broad continuation for developing clarity and agency when a question has no narrower verified Archive destination. It is an invitation to explore the Archive’s orientation framework, not a claim that one framework settles every question."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.6,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the live visitor-facing response and explicitly instructed Gold Star elevation on 2026-11-18.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "symmetric_source_representation_before_synthesis",
+      "transferable_lesson": "Before comparing differently emphasized or apparently conflicting Archive passages, represent each source independently and symmetrically using the same fields: exact source, central concern in its own terms, scope, qualifications, and intended audience. Only then compare emphases, distinguish genuine contradiction from complementary focus, preserve unresolved tension, and synthesize last without erasing source distinctions.",
+      "transfer_boundary": "Transfer the source-representation discipline, not this answer text or Sovereign Sensemaking Compass doorway. Do not translate one passage into another's vocabulary, infer contradiction from emphasis alone, claim what an unseen passage says, force synthesis where the available text cannot resolve a tension, or erase source-specific scope and qualifications.",
+      "known_theme": "Archive passages, source fidelity, comparative reading, different emphases, contradiction versus complementary focus, symmetric representation, source context, synthesis, unresolved tension",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "symmetric_source_representation_before_synthesis",
+        "transferable_discipline": "Represent each passage separately and symmetrically using identical fields—source, central concern, scope, qualifications, and audience—before comparing emphasis; distinguish contradiction from complementary focus, preserve unresolved tension, and synthesize last.",
+        "abstention_boundary": "Do not infer contradiction from emphasis alone, translate source vocabularies prematurely, claim content without the source, or force a synthesis that the available text cannot support."
+      },
+      "assertions": [
+        "Preserve the exact reviewed answer as two substantive paragraphs: symmetric source representation before comparison; then comparison, contradiction/complement distinction, unresolved tension, and synthesis last.",
+        "Begin with the governing instruction directly; do not announce or restate the question.",
+        "Represent both passages separately and symmetrically, using the same fields in the same order: exact source, central concern in its own terms, scope, qualifications, and intended audience.",
+        "Do not translate either passage into the other's vocabulary or treat a difference in emphasis as proof of disagreement.",
+        "Compare the passages only after both source representations are clear.",
+        "Distinguish genuine contradiction from complementary focus and preserve any tension the available text cannot resolve.",
+        "Synthesis comes last and must not erase distinctions the sources themselves preserve.",
+        "Render the verified Sovereign Sensemaking Compass doorway after the complete answer as a broad continuation, not as a claim that one framework settles every question."
+      ],
+      "user_approved_at": "2026-11-18",
+      "elevation_approval_evidence": "User reviewed the live visitor-facing Guide screenshot showing the two-paragraph symmetric-source-representation answer and the Sovereign Sensemaking Compass doorway, then explicitly instructed: 'elevate' on 2026-11-18.",
+      "provenance": {
+        "source": "User-provided live visitor-facing Guide screenshot and explicit Gold Star elevation approval.",
+        "source_date": "2026-11-18",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the exact visitor question, the two substantive answer paragraphs, the follow-up prompt, and the displayed Sovereign Sensemaking Compass doorway. The answer is preserved as shown; the doorway's canonical URL is independently verified against the canonical Archive crosslink inventory.",
+        "doorway_verification": {
+          "title": "The Sovereign Sensemaking Compass",
+          "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass",
+          "verified_against": "Canonical archive_crosslink_snapshot.json entry for The Sovereign Sensemaking Compass (WordPress post ID 32352)."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve the benchmark_id as the stable learning identity; serial allocation remains independent."
     }
   ],
-  "last_reconciliation_note": "Added user-approved Gold Star #86 on 2026-11-18. The exact three-paragraph Archive-examples evidence-boundary answer and verified Knowledge & Sensemaking Navigator doorway are frozen. This is distinct from #72: #72 separates direct claims, synthesis, and orientation; #86 calibrates what examples establish, whether they support a wider claim, and what remains unresolved. #86 closes the second explicitly authorized historical-gap release; no existing record was renumbered.",
+  "last_reconciliation_note": "Added user-approved symmetric-source-representation Gold Star on 2026-11-18. The exact two-paragraph answer and verified Sovereign Sensemaking Compass doorway are frozen; transfer is limited to independent, symmetric source representation before comparison, distinguishing contradiction from complementary emphasis, preserving unresolved tension, and synthesizing last. No display serial was allocated; existing Gold Star numbering and duplicate lineage remain unchanged.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -6518,13 +6576,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 99,
-    "registry_record_count": 136,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 99 approved Gold Star records across 136 registry records. 97 are active learning contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. Gold Star #85 and #86 are allocated to their explicitly authorized new exemplars; the released #86 historical gap is now closed. The systems-map duplicate lineage remains governed with one active exemplar.",
+    "approved_gold_star_count": 100,
+    "registry_record_count": 137,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 100 approved Gold Stars across 137 registry records. 98 are active learning contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. The systems-map duplicate lineage remains governed with one active exemplar. The symmetric-source-representation exemplar is an additional distinct active contributor; it does not duplicate the contextual-values synthesis or source-claim/synthesis-boundary exemplars.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
     "numbering_reconciliation": "Record-level reconciliation: 99 approved Gold Stars; 38 assigned display serials #56–#93; 61 approved records explicitly UNASSIGNED with reasons. The two explicitly released historical-gap serials, #85 and #86, are now allocated to new approved records; no open numbering gaps remain. Historical gap evidence for #86 is retained in numbering_allocation_history.",
-    "unassigned_approved_gold_star_count": 61,
+    "unassigned_approved_gold_star_count": 62,
     "documented_numbering_gap_count": 0
   },
   "numbering_policy": {
