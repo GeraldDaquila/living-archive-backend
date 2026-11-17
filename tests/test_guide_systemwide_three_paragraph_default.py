@@ -132,7 +132,8 @@ def test_retrieval_only_disclaimer_is_rejected_for_ordinary_explanatory_question
         "who or what is affected, what responsibilities are involved, and what would change if the situation "
         "were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\n"
         "A useful next question is where this distinction matters most: in how the organization makes decisions, "
-        "measures success, or responds to consequences."
+        "measures success, or responds to consequences.\n\n"
+        "The approach can be revisited as consequences become clearer and the people affected share what they are experiencing."
     )
     assert is_generic_nonanswer(query, screenshot_style)
 
