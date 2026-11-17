@@ -71,7 +71,7 @@ class DefaultGroundedDoorwayContractTests(unittest.TestCase):
 
     def test_last_mile_fallback_is_default_but_explicit_no_doorway_is_preserved(self):
         self.assertIn(
-            "if (\n        not authoritative_doorway\n        and not _is_practical_stewardship_question(query)\n        and not (",
+            "if (\n        not authoritative_doorway\n        and not _is_practical_stewardship_question(query)\n        and not re.search(r\"\\\\b(?:practice|practicing)\\\\s+stewardship\\\\b\", query, re.I)\n        and not (",
             SOURCE,
         )
         self.assertIn(
