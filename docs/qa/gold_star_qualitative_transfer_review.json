@@ -878,6 +878,15 @@
       "qualifying_context": "Questions asking how The Guide should compare multiple Archive passages, especially where they differ in emphasis, appear to disagree, or may support a synthesis without losing source-specific meaning.",
       "abstention_boundary": "Do not claim what an unseen passage says, translate one source into another's vocabulary, infer contradiction from emphasis alone, force synthesis where the available text cannot resolve the tension, or erase source-specific scope, qualifications, and audience. Transfer the representation discipline, not this answer or doorway.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-nonprofit-culture-power-care-governance-gold-star-2026-11-18",
+      "question": "A nonprofit’s founder is widely trusted by donors, beneficiaries, or the wider community while staff experience fear and high turnover; how can the Guide integrate culture, power, leadership, care, and governance without diagnosing individuals from limited evidence?",
+      "qualifying_context": "Questions about nonprofits or other mission-driven organizations where public confidence in a founder or leader appears to conflict with staff reports of fear, turnover, retaliation, or unsafe dissent, and the Guide must integrate organizational culture, power, leadership, care, and governance without diagnosing individuals.",
+      "reasoning_family": "nonprofit_culture_power_care_governance_with_evidence_boundaries",
+      "transferable_discipline": "Treat public reputation and staff experience as position-dependent signals; examine cultural norms, decision power, leadership practices, staff care, and governance safeguards together. Distinguish reported experience from independently corroborated patterns and hypotheses; recommend confidential listening, disaggregated workforce data, complaint/decision-record review, anti-retaliation protections, and independent oversight.",
+      "abstention_boundary": "Do not infer individual motives, character, or culpability from limited evidence. Do not treat donor, beneficiary, or community trust as proof that staff are safe, or staff reports alone as proof of an individual's intent. Preserve confidentiality, independence, and correctability.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
