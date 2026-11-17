@@ -1,0 +1,11 @@
+{
+  "benchmark_id": "general-guide-archive-examples-evidence-limits-gold-star-2026-11-18",
+  "status": "USER_APPROVED_GOLD_STANDARD",
+  "query": "The archive offers two suggestive examples but no direct answer to a visitor's claim. How should the Guide express what is known and what remains open?",
+  "expected_response": "The two examples establish what those particular sources actually say, in the contexts in which they say it. If they support a shared point, the Guide may identify that convergence as a synthesis—but it must name it as an inference from those examples, not as a direct Archive statement or proof of the visitor's broader claim.\n\nWhat remains open is whether the examples are representative, whether other Archive materials qualify or contradict them, and whether they provide evidence for the wider claim at all. The Guide should state exactly where support ends: these examples may suggest a possibility without establishing the broader claim. It should identify missing evidence rather than turn the absence of a direct answer into a confident conclusion.\n\nThe answer should therefore show three things: what each source establishes, with its source identified; what can reasonably be inferred across the examples, explicitly labelled as synthesis; and what remains unresolved, including what further evidence would narrow or settle the question. If the Archive has not directly addressed the claim, say so plainly. Illustration is useful, but it is not proof.",
+  "expected_doorway_title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+  "expected_doorway_url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
+  "expected_doorway_rationale": "Continue into the Archive’s Knowledge & Sensemaking pathway to examine how sources, evidence, interpretation, and unresolved questions relate.",
+  "rating_out_of_10": 9.7,
+  "gold_star_number": 86
+}
