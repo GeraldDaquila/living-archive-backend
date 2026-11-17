@@ -117,7 +117,7 @@ def test_terminal_provider_exhaustion_states_evidence_limit_instead_of_generic_f
         TOPIC_QUESTION, Core(), {"context_blocks": "one retrieved archive passage"}
     )
     assert recovered is not None
-    assert "Which subject or question" in recovered["response"]
+    assert "could not verify two distinct" in recovered["response"]
     assert "I couldn't produce a reliable answer" not in recovered["response"]
 
 
