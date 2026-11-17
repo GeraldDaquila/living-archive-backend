@@ -20,7 +20,7 @@ def main():
     assert "innerHTML" not in js
     assert "CONTINUE EXPLORING" in js
     assert ".la-answer-doorway" in css and "#f7f5ef" in css
-    for module in ("The Guide / USE", "HRN", "FSD", "SPE"):
+    for module in ("The Guide / USE", "HRN", "FSD", "SPE", "Public Living Archive Navigator", "Mini-USE"):
         assert module in spec
     assert "do not corroborate" in spec
     assert "three selected canonical destinations" in spec
@@ -29,6 +29,8 @@ def main():
     hrn = read("plugins/human-relational-navigator/assets/relational-navigator.js")
     spe = read("wordpress/spe/03-JavaScript.js")
     guide = read("wordpress/guide/woody-snippet-76926-universal.html")
+    lan = read("wordpress/public-living-archive-navigator/03-JavaScript.js")
+    mini = read("wordpress/mini-use/mini-use.js")
     fsd_contract = read("fsd_episode_report_contract.py")
 
     assert "doorwayHelper.renderMany" in fsd
@@ -38,6 +40,10 @@ def main():
     assert "if(rendered!==3)d.replaceChildren()" in spe
     assert "helper.normalizeUrl(x.url)" in spe
     assert "innerHTML" not in spe
+    assert "helper.renderMany(d,items)" in lan
+    assert "innerHTML" not in lan
+    assert "helper.renderMany(doorContainer, items)" in mini
+    assert "innerHTML" not in mini
     assert "LivingArchiveAnswerDoorway.render(recommendation" in guide
     assert "link.href=doorway.url" not in guide
     assert "recommendation.replaceChildren()" in guide
