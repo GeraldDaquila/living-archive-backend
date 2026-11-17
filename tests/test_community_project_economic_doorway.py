@@ -21,7 +21,7 @@ def test_screenshot_question_enters_community_project_economic_contract():
 def test_recovery_surfaces_distribution_sustaining_costs_and_long_horizon():
     answer = composition._community_project_economic_dimensions_recovery()
     assert composition._has_community_project_economic_dimensions_explanation(answer)
-    assert len(answer.split("\\n\\n")) == 3
+    assert len(answer.split("\n\n")) == 3
     assert "who receives the project's benefits" in answer
     assert "replacement of shared assets" in answer
     assert "not conclusions about this particular project" in answer
@@ -60,9 +60,9 @@ def test_final_visitor_boundary_repairs_abstention_and_emits_canonical_doorway()
 def test_adequate_provider_answer_is_preserved_but_doorway_is_still_enforced():
     answer = (
         "The project should report who receives its benefits and how they are "
-        "distributed across the community.\\n\\n"
+        "distributed across the community.\n\n"
         "It should also count volunteer labor and the costs of maintaining shared "
-        "resources and assets, including who carries that responsibility.\\n\\n"
+        "resources and assets, including who carries that responsibility.\n\n"
         "A long-term account should track lifecycle effects, local value retained, "
         "and who is accountable for review and correction over time."
     )
