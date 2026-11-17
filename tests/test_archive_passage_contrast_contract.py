@@ -207,8 +207,8 @@ def test_main_has_dedicated_canonical_body_retrieval_for_topicful_contrast_reque
     import ast
 
     main_source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
-    tree = ast.parse(main_source)
-    source = ast.get_source_segment(main_source, tree)
+    ast.parse(main_source)
+    source = main_source
     assert "_wordpress_search_canonical_candidates(" in source
     assert "_archive_passage_contrast_topic_missing(query)" in source
     assert "_archive_passage_sources(" in source
