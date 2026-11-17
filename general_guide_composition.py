@@ -1979,10 +1979,18 @@ def archive_passage_contrast_recovery_from_context(
         value = context.get(key) or []
         if isinstance(value, list):
             documents.extend(item for item in value if isinstance(item, dict))
-    # This accessor applies the same protected-source precedence and canonical
-    # context parsing used by ordinary composition. Keep both paths because some
-    # runtime routes carry only context_blocks while others carry protected docs.
-    documents.extend(_documents_from_context(use_core, context))
+    # Union protected documents with the parsed context blocks. The ordinary
+    # composer prefers protected docs when present, but this recovery needs the
+    # full already-retrieved candidate set: a partial protected list must not hide
+    # a second substantive canonical passage carried in context_blocks.
+    try:
+        parsed_context = use_core.context_blocks_to_documents(
+            str(context.get("context_blocks") or "")
+        )
+    except Exception:
+        parsed_context = []
+    if isinstance(parsed_context, list):
+        documents.extend(item for item in parsed_context if isinstance(item, dict))
     recovered = _archive_passage_contrast_recovery(question, documents)
     if recovered is not None:
         recovered = dict(recovered)
