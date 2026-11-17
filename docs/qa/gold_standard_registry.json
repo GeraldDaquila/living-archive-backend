@@ -5951,13 +5951,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-17",
-    "approved_gold_star_count": 88,
+    "approved_gold_star_count": 89,
     "registry_record_count": 127,
     "review_reconciliation": "Canonical inventory reconciled on 2026-11-17: 89 approved Gold Stars and one exact-query release candidate outside active Gold Star authority. Historical and withdrawn candidate records remain outside active authority. The consequential-action-under-uncertainty, disciplined-hope, and community-continuity exemplars are approved with verified, question-relevant public doorways. The AI-staffing predecessor remains an approved structural-learning exemplar; its exact-query runtime answer authority is delegated to a release candidate pending explicit elevation.",
     "numbered_gold_star_record_count": 35,
     "highest_assigned_gold_star_number": 92,
-    "numbering_reconciliation": "Record-level reconciliation: 88 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 53 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
-    "unassigned_approved_gold_star_count": 53,
+    "numbering_reconciliation": "Record-level reconciliation: 89 approved Gold Stars; 35 assigned display serials #56–#84 and #87–#92; 54 approved records explicitly UNASSIGNED with reasons. Historical gaps #85 and #86 remain documented and unassigned.",
+    "unassigned_approved_gold_star_count": 54,
     "documented_numbering_gap_count": 2
   },
   "numbering_policy": {
