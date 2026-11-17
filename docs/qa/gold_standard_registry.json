@@ -5823,7 +5823,11 @@
       "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
       "approval_state": "Gold Star elevation explicitly approved by the user on 2026-11-17 after review of the exact live visitor-facing answer and its separate verified doorway.",
-      "elevation_approval_evidence": "The user reviewed the exact live visitor-facing answer and doorway screenshot, assessed it as meeting the Gold Star threshold, and explicitly instructed: “elevate” on 2026-11-17."
+      "elevation_approval_evidence": "The user reviewed the exact live visitor-facing answer and doorway screenshot, assessed it as meeting the Gold Star threshold, and explicitly instructed: “elevate” on 2026-11-17.",
+      "reasoning_family": "integrated_institutional_judgment",
+      "transferable_lesson": "Assess AI-led workforce change as a redesign of work and responsibility; test task-level feasibility and total operating costs; identify governance ownership and accountable oversight; compare layoffs with realistic alternatives; examine how productivity gains and burdens are distributed; and require a limited, reviewable pilot with measures of service, quality, workload, error, and worker outcomes.",
+      "transfer_boundary": "Transfer this integrated institutional decision discipline only to questions where AI or automation materially affects workforce arrangements and human consequences. Do not presume AI is inherently beneficial, treat staff reduction as an end in itself, make unsupported legal or labor-market claims, or decide for the responsible organization. Never transfer this answer text or doorway to unrelated questions.",
+      "user_approved_at": "2026-11-17"
     }
   ],
   "last_reconciliation_note": "2026-11-17: Elevated gs-2026-11-17-ai-workforce-restructuring-successor-candidate to USER_APPROVED_GOLD_STANDARD after explicit user approval of the exact live answer and verified Agentic Systems and the End of Passive Labor doorway. The predecessor remains preserved as a distinct approved structural-learning exemplar; no serial was allocated.",
