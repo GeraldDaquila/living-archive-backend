@@ -481,6 +481,8 @@ def test_public_predictive_family_does_not_overmatch_private_analytics_or_generi
 
 
 def test_public_predictive_gold_star_successor_is_exact_runtime_authority_and_preserves_predecessor():
+    import json
+    from pathlib import Path
     from general_guide_gold_standards import resolve_exact_gold_standard
     from deterministic_answer_recovery import _public_predictive_system_recovery
 
@@ -492,9 +494,24 @@ def test_public_predictive_gold_star_successor_is_exact_runtime_authority_and_pr
     expected_phrase = (
         "reach a human decision-maker with the authority to review and correct the decision."
     )
+    registry = json.loads(
+        (Path(__file__).resolve().parents[1] / "docs" / "qa" / "gold_standard_registry.json")
+        .read_text(encoding="utf-8")
+    )
+    predecessor = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-2026-11-13"
+    )
+    successor = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17"
+    )
 
+    assert predecessor["expected_response"].count("reach a responsible human authority.") == 1
+    assert predecessor["runtime_exact_query_successor"] == successor["benchmark_id"]
+    assert successor["replaces_exact_query_runtime_authority_of"] == predecessor["benchmark_id"]
     assert standard is not None
-    assert standard["benchmark_id"] == "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17"
+    assert standard["benchmark_id"] == successor["benchmark_id"]
     assert expected_phrase in standard["expected_response"]
     assert expected_phrase in _public_predictive_system_recovery()
     assert standard["expected_response"] == _public_predictive_system_recovery()
