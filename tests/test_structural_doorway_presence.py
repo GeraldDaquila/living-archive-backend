@@ -180,10 +180,10 @@ def test_provider_and_deterministic_payloads_receive_same_final_doorway_contract
     screenshot_answer = (
         "For a question like this, the first task is to make the decision visible. "
         "What outcome is the organisation trying to achieve, what responsibilities does it carry, "
-        "and who will live with the consequences?\\n\\n"
+        "and who will live with the consequences?\n\n"
         "From there, compare the real options rather than assuming that the proposed course is the only one. "
         "Look at what each option makes possible, what it may damage, who bears the costs, and what evidence "
-        "would justify changing direction.\\n\\n"
+        "would justify changing direction.\n\n"
         "The point is not to make the decision for the organisation, but to make the grounds for acting clearer. "
         "Choose deliberately, make the reasoning and limits visible, and remain accountable for what follows."
     )
@@ -200,7 +200,7 @@ def test_provider_and_deterministic_payloads_receive_same_final_doorway_contract
         payload = {
             "ok": True,
             "query": query,
-            "response": answer,
+            "response": screenshot_answer,
             "provider": provider,
             "recommendation": None,
             "canonical_doorway": None,
