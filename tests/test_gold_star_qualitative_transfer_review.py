@@ -38,6 +38,8 @@ def test_every_approved_gold_star_has_a_complete_or_explicitly_withheld_doorway(
             assert isinstance(doorway,dict), record["benchmark_id"]
             assert doorway.get("title","").strip(), record["benchmark_id"]
             assert doorway.get("url","").strip(), record["benchmark_id"]
+            if record["benchmark_id"] == "gs-2026-11-17-structural-change-vs-disruption":
+                assert doorway.get("rationale", "").strip()
 
 
 import json

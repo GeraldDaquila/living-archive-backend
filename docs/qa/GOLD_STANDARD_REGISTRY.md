@@ -2,8 +2,9 @@
 
 ## Current Gold Star numbering authority — 2026-11-17
 
-- **Canonical inventory:** 122 records total; 85 approved Gold Stars; 85 matching qualitative-transfer reviews.
-- **Serial inventory:** 35 approved records carry display serials, #56–#84 and #87–#92. 50 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity.
+- **Canonical inventory:** 123 records total; 86 approved Gold Stars; 86 matching qualitative-transfer reviews.
+- **Serial inventory:** 35 approved records carry display serials, #56–#84 and #87–#92. 51 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity.
+- **Restored 2026-11-17:** `gs-2026-11-17-structural-change-vs-disruption` retains its original three-paragraph answer and unassigned serial. Its doorway is now verified as Systems, Governance, and Organizational Design — https://geralddaquila.com/systems-structure/ — with a visitor-facing relevance rationale.
 - **Identity:** `benchmark_id` is the stable identity used by adaptive learning. `gold_star_number` is an optional human-facing serial, not an eligibility condition.
 - **Recovered #56–#59:** #56 agency/circumstance (PR #1428 plus the immediately following explicit #57 allocation in PR #1430); #57 developmental language (PR #1430); #58 culture (PR #1432); #59 transformation/temporary relief (PR #1434). The canonical records carry historical recovery provenance.
 - **#85:** Historical allocation record not recovered; explicitly released for a future new, user-authorized allocation under the recorded exception.
