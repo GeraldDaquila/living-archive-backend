@@ -1254,7 +1254,8 @@ def test_ai_workforce_gold_star_has_bounded_active_transfer_review_and_no_serial
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
     assert record["numbering_status"] == "UNASSIGNED"
     assert record.get("gold_star_number") is None
-    assert entry["activation"] == "active_quality_contributor"
+    assert entry["role"] == "cross_question_candidate"
+    assert entry["transferability_status"] == "cross_question_candidate"
     assert entry["reasoning_family"] == "integrated_institutional_judgment"
     assert "total operating costs" in entry["transferable_discipline"]
     assert "distribution" in entry["transferable_discipline"]
