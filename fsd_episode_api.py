@@ -23,6 +23,7 @@ from fsd_episode_contract import (
 from fsd_episode_report_contract import (
     FSDEpisodeReportError,
     validate_episode_report,
+    is_canonical_archive_url,
 )
 from fsd_runtime import parse_evidence
 
@@ -79,7 +80,7 @@ def _archive_context(use_core: Any) -> list[dict[str, Any]]:
             continue
         for item in parse_evidence(context):
             url = item.get("url")
-            if not url or url in seen:
+            if not is_canonical_archive_url(url) or url in seen:
                 continue
             seen.add(url)
             references.append({
