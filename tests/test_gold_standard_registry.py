@@ -1583,7 +1583,7 @@ def test_ownership_management_stewardship_gold_star_85_preserves_exact_answer_do
     assert deterministic_contract["recommendation"]["url"] == fixture["expected_doorway_url"]
 
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 99
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 98
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 99
     assert registry["integrity_audit"]["registry_record_count"] == 136
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 38
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 61
