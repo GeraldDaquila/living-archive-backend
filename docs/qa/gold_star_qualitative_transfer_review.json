@@ -887,6 +887,15 @@
       "transferable_discipline": "Treat public reputation and staff experience as position-dependent signals; examine cultural norms, decision power, leadership practices, staff care, and governance safeguards together. Distinguish reported experience from independently corroborated patterns and hypotheses; recommend confidential listening, disaggregated workforce data, complaint/decision-record review, anti-retaliation protections, and independent oversight.",
       "abstention_boundary": "Do not infer individual motives, character, or culpability from limited evidence. Do not treat donor, beneficiary, or community trust as proof that staff are safe, or staff reports alone as proof of an individual's intent. Preserve confidentiality, independence, and correctability.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-quoted-passage-context-restoration-gold-star-2026-11-18",
+      "question": "A retrieved passage is quoted out of context in a user prompt. How should the Guide restore the surrounding context before analyzing it?",
+      "qualifying_context": "A visitor presents a retrieved quotation, excerpt, or passage whose surrounding source context may be missing or distorted, and asks the Guide to interpret or analyze it.",
+      "reasoning_family": "quoted_passage_context_restoration_before_interpretation",
+      "transferable_discipline": "When a retrieved quotation may be out of context, treat it as a fragment: verify its original source and exact wording; recover the surrounding paragraph, adjacent paragraphs, headings, definitions, qualifications, notes, and relevant argument; compare the excerpt against the original for omissions or alterations; separate explicit source claims from contextual implications and user framing; analyze only after reconstruction; disclose unavailable context and keep dependent conclusions provisional.",
+      "abstention_boundary": "Transfer only the context-restoration sequence to genuine quoted-passage or excerpt interpretation tasks. Do not assume quotations are inaccurate, invent missing source context, infer author intent beyond evidence, conflate separate sources, or impose this sequence on unrelated factual or conceptual questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
