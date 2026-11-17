@@ -44,6 +44,8 @@ def test_report_separates_respondent_account_from_archive_conceptual_context():
     result = validate_episode_report(report(), episode(), refs())
     assert result["episode_provenance"]["independently_verified"] is False
     assert result["archive_references"][0]["role"] == "conceptual_context_only"
+    assert "Correspondence and Correctability" in result["archive_references"][0]["rationale"]
+    assert "does not verify" in result["archive_references"][0]["rationale"]
     assert "do not verify" in result["archive_reference_notice"]
     assert result["episode_interpretation"]["overall"] == "both_transitions_reported"
     assert "does not establish stable system capacity" in result["inference_limit"]
