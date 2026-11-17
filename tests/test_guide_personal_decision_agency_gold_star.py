@@ -91,3 +91,8 @@ def test_gold_star_without_specific_doorway_gets_default_compass_unless_explicit
     assert omitted["doorway_title"] is None
     assert omitted["doorway_url"] is None
     assert omitted["doorway_rationale"] is None
+
+def test_non_gold_star_responses_do_not_receive_a_forced_generic_doorway():
+    import main
+
+    assert main._enforce_registered_gold_standard_doorway(None, None, "What is 2 + 2?") is None
