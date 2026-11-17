@@ -628,6 +628,7 @@ def registered_recovery_recommendation(question):
         return {
             "title": "AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever",
             "url": "https://geralddaquila.com/2026/06/16/ai-vs-human-stewardship-why-conscious-guidance-matters-more-than-ever/",
+            "rationale": "AI vs. Human Stewardship examines why growing technological capability must remain guided by human wisdom, ethical judgment, oversight, agency, and clear accountability. It offers a broader foundation for examining predictive public systems and the responsibilities that must remain with people; it does not evaluate this particular government proposal.",
         }
     if _is_stewardship_leadership_crisis_question(question):
         # Recovery answers are also Archive entry points. Keep the continuation
