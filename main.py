@@ -5499,19 +5499,32 @@ def _boundary_canonical_doorway(payload, query):
     return None
 
 
-def _archive_claim_authoritative_doorway(query, doorway):
-    """Return only the query-specific canonical doorway for provenance answers.
+def _archive_claim_authoritative_doorway(query, doorway=None):
+    """Resolve provenance navigation from a verified family or matching Guide node.
 
-    Provenance answers fail closed against unrelated or stale upstream
-    recommendations. A registered Guide node is the authoritative doorway and
-    is returned even when the upstream recommendation is absent.
+    Never promote an incidental upstream recommendation. A conceptual-family
+    registry entry is already an explicitly reviewed, canonical destination and
+    therefore takes precedence over semantic Guide Node matching. If no such
+    family applies, require a query-specific registered node.
     """
+    family = _select_verified_doorway_conceptual_family(query)
+    family_candidate = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
+    if isinstance(family_candidate, dict):
+        family_title = str(family_candidate.get("title") or "").strip()
+        family_url = str(family_candidate.get("url") or "").strip()
+        if family_title and family_url.startswith("https://") and not any(ch.isspace() for ch in family_url):
+            result = {"title": family_title, "url": family_url}
+            rationale = str(family_candidate.get("rationale") or "").strip()
+            if rationale:
+                result["rationale"] = rationale
+            return result
+
     node = _guide_node_specific_match(query)
     if not isinstance(node, dict):
         return None
     node_title = str(node.get("title") or "").strip()
     node_url = str(node.get("url") or node.get("canonical_url") or "").strip()
-    if not node_title or not re.match(r"^https://\\S+$", node_url, re.I):
+    if not node_title or not node_url.startswith("https://") and not any(ch.isspace() for ch in node_url):
         return None
     return {"title": node_title, "url": node_url}
 
@@ -5751,27 +5764,14 @@ def _guide_finalize_visitor_payload(payload, query):
     if _is_archive_claim_boundary_inquiry(query):
         safe = dict(payload)
         safe["response"] = _archive_claim_boundary_recovery()
-        # Archive provenance answers accept only a query-specific registered
-        # doorway. Never let a generic Atlas fallback replace a rejected or
-        # missing subject doorway.
-        node = _guide_node_specific_match(query)
-        if isinstance(node, dict):
-            node_title = str(node.get("title") or "").strip()
-            node_url = str(node.get("url") or node.get("canonical_url") or "").strip()
-            safe["recommendation"] = (
-                {"title": node_title, "url": node_url}
-                if node_title and re.match(r"^https://\S+$", node_url, re.I)
-                else None
-            )
-        else:
-            family = _select_verified_doorway_conceptual_family(query)
-            family_doorway = _select_guide_node_fallback_doorway(query) if family else None
-            if isinstance(family_doorway, dict):
-                family_title = str(family_doorway.get("title") or "").strip()
-                family_url = str(family_doorway.get("url") or "").strip()
-                safe["recommendation"] = {"title": family_title, "url": family_url} if family_title and re.match(r"^https://\S+$", family_url, re.I) else None
-            else:
-                safe["recommendation"] = None
+        # Resolve from the same authoritative contract used by the ordinary
+        # visitor boundary: reviewed conceptual-family destinations first,
+        # then a query-specific registered Guide Node. Do not ask the generic
+        # fallback selector to rediscover a destination already approved in
+        # the conceptual-family registry.
+        safe["recommendation"] = _archive_claim_authoritative_doorway(
+            query, payload.get("recommendation")
+        )
         # recommendation and canonical_doorway are one visitor-facing contract.
         # A rejected provenance doorway must clear both fields; otherwise a stale
         # upstream canonical_doorway can bypass the fail-closed decision in the UI.

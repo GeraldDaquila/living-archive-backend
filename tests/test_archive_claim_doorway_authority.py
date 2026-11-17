@@ -93,3 +93,64 @@ def test_public_commons_governance_question_selects_knowledge_sensemaking_doorwa
 def test_public_commons_doorway_is_not_applied_to_unrelated_archive_claim():
     query = "What is the Archive's publication date?"
     assert main._select_verified_doorway_conceptual_family(query) != "archive_guidance_provenance"
+
+
+def test_public_commons_doorway_survives_terminal_archive_claim_boundary(monkeypatch):
+    query = (
+        "What does the Archive's claim to be a public commons require in how the "
+        "Guide handles access, attribution, disagreement, and stewardship?"
+    )
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda q: None)
+    monkeypatch.setattr(main, "_guide_node_specific_match", lambda q: None)
+    # The family registry itself is the reviewed authority; the generic node
+    # fallback must not be asked to rediscover the already-approved destination.
+    monkeypatch.setattr(main, "_select_guide_node_fallback_doorway", lambda q: None)
+
+    result = main._guide_finalize_visitor_payload(
+        {"response": "The approved three-layer answer."},
+        query,
+    )
+    expected = {
+        "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+    }
+    assert result["processing"] == "final_visitor_boundary_archive_claim_provenance"
+    assert result["response"] == main._archive_claim_boundary_recovery()
+    assert result["response"].count("\n\n") == 2
+    assert result["recommendation"]["title"] == expected["title"]
+    assert result["recommendation"]["url"] == expected["url"]
+    assert result["canonical_doorway"] == result["recommendation"]
+    assert result["doorway_title"] == expected["title"]
+    assert result["doorway_url"] == expected["url"]
+
+
+def test_public_commons_doorway_reaches_final_json_sender(monkeypatch):
+    query = (
+        "What does the Archive's claim to be a public commons require in how the "
+        "Guide handles access, attribution, disagreement, and stewardship?"
+    )
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda q: None)
+    monkeypatch.setattr(main, "_guide_node_specific_match", lambda q: None)
+    payload = main._guide_finalize_visitor_payload(
+        {"query": query, "response": "The approved three-layer answer."},
+        query,
+    )
+
+    sent = []
+
+    async def capture(message):
+        sent.append(message)
+
+    import asyncio
+    import json
+    asyncio.run(main._use_send_json(capture, payload))
+    body = json.loads(sent[-1]["body"].decode("utf-8"))
+    assert body["recommendation"]["title"] == (
+        "The Living Archive Navigator: Volume III – Knowledge & Sensemaking"
+    )
+    assert body["recommendation"]["url"] == (
+        "https://geralddaquila.com/the-living-archive-navigator-volume-iii"
+    )
+    assert body["canonical_doorway"] == body["recommendation"]
+    assert body["doorway_title"] == body["recommendation"]["title"]
+    assert body["doorway_url"] == body["recommendation"]["url"]
