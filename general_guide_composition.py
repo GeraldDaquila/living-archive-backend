@@ -4537,7 +4537,7 @@ def _has_nonprofit_culture_power_care_governance_explanation(response: str) -> b
         and bool(re.search(r"\b(?:culture|power|leadership)\b", first, re.I))
         and bool(re.search(r"\b(?:care|governance|decision|voice|accountability)\b", second, re.I))
         and bool(re.search(r"\b(?:patterns?|evidence|multiple|independent|confidential|review)\b", second, re.I))
-        and bool(re.search(r"\b(?:cannot|cannot responsibly|does not establish|not establish|not prove|does not prove)\b", third, re.I))
+        and bool(re.search(r"\b(?:cannot|cannot responsibly|does not establish|does not, by itself, establish|not establish|not prove|does not prove|do not prove)\b", third, re.I))
         and bool(re.search(r"\b(?:diagnos\w*|motives?|character|culpability|individual)\b", third, re.I))
         and bool(re.search(r"\b(?:correct\w*|accountab\w*|safeguard\w*|review|revisit)\b", third, re.I))
     )
