@@ -1552,6 +1552,8 @@ def test_ownership_management_stewardship_gold_star_85_preserves_exact_answer_do
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
 
     resolved = resolve_exact_gold_standard(fixture["query"])
+    curly_apostrophe_query = fixture["query"].replace("visitor's", "visitor’s")
+    assert resolve_exact_gold_standard(curly_apostrophe_query)["benchmark_id"] == fixture["benchmark_id"]
     assert resolved is not None
     assert resolved["benchmark_id"] == fixture["benchmark_id"]
     assert resolved["expected_response"] == fixture["expected_response"]
