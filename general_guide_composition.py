@@ -1887,6 +1887,21 @@ def _requires_archive_passage_contrast(query: str) -> bool:
     return asks_two_passages and asks_contrast and asks_representation
 
 
+def _archive_passage_contrast_topic_missing(question: str) -> bool:
+    """Require a subject before searching the entire Archive for an arbitrary contrast."""
+    tokens = set(re.findall(r"[a-z0-9]+", _normalize_space(question).casefold()))
+    generic = {
+        "find", "two", "2", "multiple", "relevant", "archive", "passage", "passages",
+        "that", "which", "disagree", "differs", "differ", "contrast", "contrasts",
+        "different", "emphasis", "opposing", "tension", "diverge", "how", "should",
+        "guide", "represent", "represents", "representing", "each", "before", "after",
+        "attempting", "attempt", "synthesis", "synthesize", "synthesise", "the", "a",
+        "an", "in", "on", "of", "for", "with", "and", "or", "to", "what", "where",
+        "can", "could", "would", "please", "show", "me", "about",
+    }
+    return not (tokens - generic)
+
+
 def _archive_passage_sources(documents: List[Dict[str, Any]]) -> List[Dict[str, str]]:
     """Return two distinct, usable canonical passages; never infer missing source text."""
     selected = []
@@ -1913,15 +1928,29 @@ def _archive_passage_contrast_recovery(question: str, documents: List[Dict[str, 
     """Provide a source-faithful two-passage display when provider composition is unavailable."""
     if not _requires_archive_passage_contrast(question):
         return None
+    if _archive_passage_contrast_topic_missing(question):
+        return {
+            "response": (
+                "Which subject or question should the two passages address? "
+                "A topic will let me search the Archive for distinct source texts, "
+                "represent each passage in its own terms, and identify any difference "
+                "in emphasis without assuming that the sources disagree."
+            ),
+            "doorway_title": "",
+            "doorway_url": "",
+            "response_shape": "explanatory",
+            "provider": "bounded_archive_passage_contrast_recovery",
+            "model": "deterministic-topic-clarification",
+        }
     sources = _archive_passage_sources(documents)
     if len(sources) < 2:
         return {
             "response": (
-                "I could not verify two distinct, substantive Archive passages for this comparison, "
-                "so I will not invent a pair or claim that the Archive contains a disagreement. "
+                "I could not verify two distinct, substantive Archive passages on that subject. "
+                "I will not invent a pair or claim that the Archive contains a disagreement. "
                 "The comparison needs two source texts with enough context to represent each fairly. "
-                "Please narrow the topic or search the Libraries for the relevant subject; once two "
-                "passages are available, they can be presented separately before any synthesis."
+                "I can continue searching once the subject is clear; if the Archive does not contain "
+                "two qualifying passages, I will say so rather than manufacture a comparison."
             ),
             "doorway_title": "",
             "doorway_url": "",
