@@ -5,6 +5,7 @@ from general_guide_composition import (
     _archive_passage_contrast_recovery,
     _has_archive_passage_contrast_structure,
     _requires_archive_passage_contrast,
+    archive_passage_contrast_recovery_from_context,
 )
 
 QUESTION = (
@@ -47,6 +48,51 @@ def test_generic_refusal_or_synthesis_without_two_representations_fails():
 
 def test_missing_second_source_cannot_be_misrepresented_as_a_comparison():
     assert not _has_archive_passage_contrast_structure(QUESTION, "Passage 1 — Passage Alpha", SOURCES[:1])
+
+
+def test_terminal_provider_exhaustion_recovers_from_protected_context_documents():
+    class Core:
+        @staticmethod
+        def context_blocks_to_documents(_blocks):
+            return []
+
+    recovered = archive_passage_contrast_recovery_from_context(
+        QUESTION,
+        Core(),
+        {"generation_authority_protected_docs": SOURCES},
+    )
+    assert recovered is not None
+    assert "Passage Alpha" in recovered["response"]
+    assert "Passage Beta" in recovered["response"]
+    assert recovered["processing"] == "archive_passage_contrast_terminal_recovery"
+
+
+def test_terminal_provider_exhaustion_uses_context_block_documents_when_no_protected_docs():
+    class Core:
+        @staticmethod
+        def context_blocks_to_documents(_blocks):
+            return SOURCES
+
+    recovered = archive_passage_contrast_recovery_from_context(
+        QUESTION, Core(), {"context_blocks": "retrieved archive context"}
+    )
+    assert recovered is not None
+    assert "Passage Alpha" in recovered["response"]
+    assert "Passage Beta" in recovered["response"]
+
+
+def test_terminal_provider_exhaustion_states_evidence_limit_instead_of_generic_failure():
+    class Core:
+        @staticmethod
+        def context_blocks_to_documents(_blocks):
+            return SOURCES[:1]
+
+    recovered = archive_passage_contrast_recovery_from_context(
+        QUESTION, Core(), {"context_blocks": "one retrieved archive passage"}
+    )
+    assert recovered is not None
+    assert "could not verify two distinct" in recovered["response"]
+    assert "I couldn't produce a reliable answer" not in recovered["response"]
 
 
 def test_provider_exhaustion_recovery_preserves_both_sources_without_premature_synthesis():
