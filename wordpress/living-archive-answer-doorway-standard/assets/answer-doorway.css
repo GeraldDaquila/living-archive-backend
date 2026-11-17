@@ -3,7 +3,7 @@
   box-sizing: border-box;
   width: 100%;
   margin: 1rem 0 0;
-  padding: 11px 12px 10px;
+  padding: 14px 16px 14px;
   border: 1px solid #e2ded4;
   border-left: 2px solid #b89443;
   border-radius: 6px;
@@ -11,20 +11,20 @@
   color: #302d27;
 }
 .la-answer-doorway__label {
-  margin: 0 0 6px;
-  color: #514a3d;
-  font-size: 10px;
+  margin: 0 0 8px;
+  color: #51432b;
+  font-size: 15px;
   font-weight: 600;
   line-height: 1.35;
   letter-spacing: .055em;
   text-transform: uppercase;
 }
 .la-answer-doorway__rationale {
-  margin: 0 0 7px;
-  color: #5a554b;
+  margin: 0 0 10px;
+  color: #49453d;
   font-size: 11px;
   font-weight: 400;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 .la-answer-doorway__link {
   display: inline-block;
@@ -42,7 +42,35 @@
   color: #111;
   text-decoration-thickness: 2px;
 }
+.la-answer-doorway__link:focus-visible {
+  outline: 2px solid #8a6929;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
 .la-answer-doorway[hidden] { display: none !important; }
-@media (max-width: 600px) {
-  .la-answer-doorway { margin-top: .85rem; padding: 10px 11px; }
+@media (max-width: 700px) {
+  .la-answer-doorway {
+    margin-top: 1rem;
+    padding: 14px 15px 15px;
+    border-left-width: 3px;
+    border-radius: 8px;
+  }
+  .la-answer-doorway__label {
+    margin-bottom: 8px;
+    font-size: 11px;
+    line-height: 1.45;
+    letter-spacing: .065em;
+  }
+  .la-answer-doorway__rationale {
+    margin-bottom: 10px;
+    color: #403c34;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .la-answer-doorway__link {
+    display: block;
+    font-size: 16px;
+    line-height: 1.45;
+    font-weight: 600;
+  }
 }
