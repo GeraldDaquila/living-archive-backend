@@ -584,12 +584,31 @@ def _community_project_tradeoff_recovery():
 
 
 def is_oversoul_ego_authority_question(question):
-    """Recognize the bounded Oversoul/ego/awakening authority question family."""
+    """Recognize bounded Oversoul/ego authority questions without overmatching."""
     q = _clean(question).casefold()
     return bool(
         re.search(r"\boversoul\b", q)
         and re.search(r"\bego\b", q)
         and re.search(r"\b(?:awakening|awakened|life outcome|life's outcome|final say|final authority|conflict)\b", q)
+    )
+
+
+def is_oversoul_free_will_question(question):
+    """Recognize Oversoul questions explicitly testing influence against free choice."""
+    q = _clean(question).casefold()
+    oversoul = bool(re.search(r"\boversoul\b", q))
+    freedom = bool(re.search(r"\b(?:free will|free choice|personal agency|human agency|one's choice|a person's choice|person's choice|individual choice|choices?)\b", q))
+    influence = bool(re.search(r"\b(?:power|influence|shape|guide|direct|determine|control|override|affect|authority)\b", q))
+    tension = bool(re.search(r"\b(?:without undermining|without negating|without overriding|while preserving|while retaining|compatible with|undermin\w*|conflict|tension)\b", q))
+    return oversoul and freedom and influence and tension
+
+
+def _oversoul_free_will_recovery():
+    """Explain spiritual influence and human choice without asserting metaphysical fact."""
+    return (
+        "There is no independently verifiable evidence that an Oversoul literally controls a person's choices. Within spiritual frameworks that use the idea, the Oversoul is more often treated as a wider source of orientation, meaning, or purpose than as an authority that dictates each decision. Its 'power' can therefore be understood as influence rather than compulsion: it may inform what a person notices, values, or feels called toward, without making a particular choice inevitable.\n\n"
+        "That distinction matters because a choice is still made through the person's lived awareness, judgment, relationships, and circumstances. A sense of deeper purpose may clarify possibilities or challenge familiar priorities, but the person must still interpret that experience and decide how to respond. They may accept it, question it, misunderstand it, or choose differently. The influence can be meaningful without replacing the work and responsibility of choosing.\n\n"
+        "Free will does not require a person to be untouched by every influence; it requires that influence not be confused with coercive determination. In this interpretation, the Oversoul may orient or invite, while the person participates in shaping what happens through choices made within real conditions and limits. That is a spiritual reading of the relationship, not proof that an Oversoul exists, that every intuition comes from it, or that life outcomes are predetermined."
     )
 
 
@@ -606,6 +625,7 @@ def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
     return bool(
         is_oversoul_ego_authority_question(question)
+        or is_oversoul_free_will_question(question)
         or _is_public_predictive_system_question(question)
         or _is_archive_purpose_question(question)
         or _is_commons_care_question(question)
@@ -632,7 +652,7 @@ def _public_predictive_system_recovery():
 
 def registered_recovery_recommendation(question):
     """Return an evidence-backed doorway for a narrow registered recovery."""
-    if is_oversoul_ego_authority_question(question):
+    if is_oversoul_free_will_question(question) or is_oversoul_ego_authority_question(question):
         return {
             "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
             "url": "https://geralddaquila.com/oversoul-law",
@@ -805,7 +825,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         re.search(r"\baccountable\s+retrieval\b", lower)
         and re.search(r"\b(?:what does|what is|define|explain|look like)\b", lower)
     )
-    if is_oversoul_ego_authority_question(q):
+    if is_oversoul_free_will_question(q):
+        answer = _oversoul_free_will_recovery()
+    elif is_oversoul_ego_authority_question(q):
         answer = _oversoul_ego_authority_recovery()
     elif accountable_retrieval:
         answer = (
