@@ -352,7 +352,7 @@ def _select_guide_node_fallback_doorway(query):
                 " ".join(node.get("semantic_hints") or []),
             ]).casefold()
             if len(next(iter(terms))) < 8 or not overlap or not any(
-                term in title.casefold() and term in supporting_text for term in overlap
+                term in title.casefold() or term in supporting_text for term in overlap
             ):
                 continue
         elif len(overlap) < 2 or coverage < 0.20:
