@@ -54,7 +54,7 @@ def has_gold_star_coverage(response):
     third_ok = (
         re.search(r"\b(?:human-development|human development|employees?|workers?)\b", third, re.I)
         and re.search(r"\b(?:ethical|ethics|fair|fairness)\w*\b", third, re.I)
-        re.search(r"\bstewardship\b", third, re.I)
+        and re.search(r"\bstewardship\b", third, re.I)
         and re.search(r"\b(?:pilot|review|measure|monitor|correct)\w*\b", third, re.I)
     )
     return bool(first_ok and second_ok and third_ok)
