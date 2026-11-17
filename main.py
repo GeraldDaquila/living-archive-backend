@@ -409,6 +409,10 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
         "url": "https://geralddaquila.com/2026/06/08/regenerative-governance-what-comes-after-extraction-based-systems/",
     },
     "archive_guidance_provenance": {
+        "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+    },
+    "public_commons_stewardship": {
         "title": "Knowledge Stewardship in the AI Era: From Information to Wisdom",
         "url": "https://geralddaquila.com/2026/09/14/knowledge-stewardship-in-the-ai-era-from-information-to-wisdom/",
         "rationale": "This Archive essay includes a section on knowledge as a commons and explains why shared knowledge depends on responsible preservation, interpretation, transparency, accountability, and thoughtful participation. It is a direct continuation into the stewardship of the knowledge conditions the Guide must help preserve.",
@@ -5677,7 +5681,7 @@ def _guide_finalize_visitor_payload(payload, query):
             "Stewardship is the discipline that holds these practices together: preserve provenance and context, credit authorship, protect access conditions, represent disagreement fairly, and remain correctable when a source or reader reveals an error. The Guide should make the commons easier to navigate without claiming ownership of the knowledge or authority over the people who interpret it. Its measure is not how smoothly it produces one answer, but whether it helps visitors engage the shared body of work responsibly and continue thinking for themselves."
         )
         doorway = _normalize_authoritative_recommendation(
-            _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get("archive_guidance_provenance")
+            _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get("public_commons_stewardship")
         )
         safe["recommendation"] = doorway
         safe["canonical_doorway"] = doorway
