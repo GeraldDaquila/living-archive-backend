@@ -39,6 +39,7 @@ def main():
 
     assert "doorwayHelper.renderMany" in fsd
     assert 'ref.role==="conceptual_context_only"' in fsd
+    assert 'rationale:ref.rationale' in fsd
     assert "window.LivingArchiveAnswerDoorway.render(wrap" in hrn
     assert "const rendered=helper.renderMany(d,items)" in spe
     assert "if(rendered!==3)d.replaceChildren()" in spe
