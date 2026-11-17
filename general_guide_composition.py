@@ -1955,6 +1955,50 @@ def _archive_passage_contrast_recovery(question: str, documents: List[Dict[str, 
     }
 
 
+def archive_passage_contrast_recovery_from_context(
+    question: str, use_core: Any, context_data: Dict[str, Any]
+) -> Optional[Dict[str, Any]]:
+    """Resolve the explicit two-passage recovery from every approved context source.
+
+    The outer provider-exhaustion boundary can be reached through legacy and
+    delegated routes that do not return through compose()'s own exhaustion
+    ladder. Rebuild the same bounded document set here so that those routes
+    cannot replace this request with a generic provider-failure response.
+    """
+    if not _requires_archive_passage_contrast(question):
+        return None
+    context = context_data if isinstance(context_data, dict) else {}
+    documents: List[Dict[str, Any]] = []
+    for key in (
+        "generation_authority_protected_docs",
+        "question_authority_protected_docs",
+        "documents",
+        "retrieved_documents",
+        "sources",
+    ):
+        value = context.get(key) or []
+        if isinstance(value, list):
+            documents.extend(item for item in value if isinstance(item, dict))
+    # Union protected documents with the parsed context blocks. The ordinary
+    # composer prefers protected docs when present, but this recovery needs the
+    # full already-retrieved candidate set: a partial protected list must not hide
+    # a second substantive canonical passage carried in context_blocks.
+    try:
+        parsed_context = use_core.context_blocks_to_documents(
+            str(context.get("context_blocks") or "")
+        )
+    except Exception:
+        parsed_context = []
+    if isinstance(parsed_context, list):
+        documents.extend(item for item in parsed_context if isinstance(item, dict))
+    recovered = _archive_passage_contrast_recovery(question, documents)
+    if recovered is not None:
+        recovered = dict(recovered)
+        recovered["processing"] = "archive_passage_contrast_terminal_recovery"
+        recovered["route_source"] = "guide_provider_exhaustion_boundary"
+    return recovered
+
+
 def _has_archive_passage_contrast_structure(query: str, response: str, documents: List[Dict[str, Any]]) -> bool:
     """Require two independently represented sources before any synthesis."""
     if not _requires_archive_passage_contrast(query):
