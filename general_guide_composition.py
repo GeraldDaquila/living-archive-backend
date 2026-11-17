@@ -2229,12 +2229,12 @@ def _outcome_evaluation_recovery() -> str:
 
 _ANSWER_FIRST_META_OPENING = re.compile(
     r"^(?:"
-    r"(?:a|the)\\s+(?:(?:sound|good|useful|clear|fair|strong|meaningful|effective)\\s+)?"
-    r"(?:comparison|answer|explanation|response|approach|framework|way)\\s+"
-    r"(?:of|for|to|begins?|starts?|would|should)\\b"
+    r"(?:a|the)\s+(?:(?:sound|good|useful|clear|fair|strong|meaningful|effective)\s+)?"
+    r"(?:comparison|answer|explanation|response|approach|framework|way)\s+"
+    r"(?:of|for|to|begins?|starts?|would|should)\b"
     r"|(?:to answer (?:this|the question)|in response to (?:this|the question)|"
     r"the question (?:asks|is asking|calls for)|what (?:a|the) (?:good|useful|sound|clear) "
-    r"(?:answer|comparison|explanation) (?:does|should|would))\\b"
+    r"(?:answer|comparison|explanation) (?:does|should|would))\b"
     r")",
     re.I,
 )
@@ -2250,8 +2250,8 @@ def _has_direct_answer_opening(query: str, response: str) -> bool:
     text = _sanitize_candidate(response)
     if not text:
         return False
-    first_paragraph = re.split(r"\\n\\s*\\n+", text, maxsplit=1)[0].strip()
-    first_sentence_match = re.match(r"(.+?[.!?])(?:\\s|$)", first_paragraph)
+    first_paragraph = re.split(r"\n\s*\n+", text, maxsplit=1)[0].strip()
+    first_sentence_match = re.match(r"(.+?[.!?])(?:\s|$)", first_paragraph)
     first_sentence = (first_sentence_match.group(1) if first_sentence_match else first_paragraph).strip()
     if not first_sentence or _ANSWER_FIRST_META_OPENING.search(first_sentence):
         return False
@@ -2260,6 +2260,7 @@ def _has_direct_answer_opening(query: str, response: str) -> bool:
     if len(normalized_question) >= 28 and normalized_question in normalized_opening:
         return False
     return True
+
 
 
 def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
