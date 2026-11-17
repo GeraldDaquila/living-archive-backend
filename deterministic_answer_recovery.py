@@ -655,12 +655,12 @@ def is_community_continuity_revision_question(question):
     """Recognize questions balancing intergenerational continuity with repair of inherited harm."""
     q = _clean(question).casefold()
     return bool(
-        re.search(r"^\\s*how can\\b", q)
-        and re.search(r"\\b(?:community|communities|institution|institutions|group|groups)\\b", q)
-        and re.search(r"\\b(?:preserve|maintain|carry forward|sustain)\\b.{0,80}\\bcontinuity\\b", q)
-        and re.search(r"\\b(?:while|as|when)\\b.{0,100}\\b(?:revis|chang|reform|renew|transform)\\w*\\b", q)
-        and re.search(r"\\b(?:harmful|unjust|exclusionary|oppressive|discriminatory)\\b", q)
-        and re.search(r"\\b(?:inherited|traditional|customary|historical)\\b", q)
+        re.search(r"^\s*how can\b", q)
+        and re.search(r"\b(?:community|communities|institution|institutions|group|groups)\b", q)
+        and re.search(r"\b(?:preserve|maintain|carry forward|sustain)\b.{0,80}\bcontinuity\b", q)
+        and re.search(r"\b(?:while|as|when)\b.{0,100}\b(?:revis|chang|reform|renew|transform)\w*\b", q)
+        and re.search(r"\b(?:harmful|unjust|exclusionary|oppressive|discriminatory)\b", q)
+        and re.search(r"\b(?:inherited|traditional|customary|historical)\b", q)
     )
 
 
