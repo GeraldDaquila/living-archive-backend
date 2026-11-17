@@ -1971,7 +1971,7 @@ def is_preserved_archive_passage_contrast_recovery(payload: Any) -> bool:
         return False
     response = str(payload.get("response") or "")
     matches = re.findall(
-        r"(?m)^Passage ([12]) — \\[([^\\]\\n]+)\\]\\((https://geralddaquila\\.com/[^\\s)]+)\\)",
+        r"(?m)^Passage ([12]) — \[([^\]\n]+)\]\((https://geralddaquila\.com/[^\s)]+)\)",
         response,
     )
     if len(matches) != 2 or [item[0] for item in matches] != ["1", "2"]:
