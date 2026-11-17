@@ -284,6 +284,21 @@ def _select_verified_doorway_conceptual_family(query):
         and re.search(r"\b(?:ecological|environmental|social|planetary|living)\b.{0,100}\blimits?\b|\blimits?\b.{0,100}\b(?:ecological|environmental|social|planetary|living)\b", text, re.I)
     ):
         return "growth_within_living_limits"
+    # Archive-governance questions about the public-commons claim require a
+    # dedicated knowledge/sensemaking doorway. These questions concern how
+    # claims, access, attribution, disagreement, and stewardship are handled;
+    # they must not fall through to the provenance fail-closed path merely
+    # because the visitor is asking about governance rather than definitions.
+    archive_commons_terms = sum(bool(re.search(pattern, text, re.I)) for pattern in (
+        r"\bpublic\s+commons\b",
+        r"\baccess\b",
+        r"\battribution\b",
+        r"\bdisagreement\b",
+        r"\bstewardship\b",
+        r"\b(?:claim|claims|source|sources)\b",
+    ))
+    if re.search(r"\barchive\b", text, re.I) and archive_commons_terms >= 3:
+        return "archive_guidance_provenance"
     if (
         re.search(r"\barchive(?:-grounded|\s+grounded)?\b", text, re.I)
         and re.search(r"\b(?:guidance|knowledge|evidence|synthesis|orientation)\b", text, re.I)
