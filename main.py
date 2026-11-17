@@ -6327,13 +6327,28 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
     _recovery_standard = _resolve_exact_guide_gold_standard(query)
     if (
         isinstance(result, dict)
-        and result.get("provider") != "bounded_foundation_provider_exhaustion_recovery"
+        and result.get("provider") not in {
+            "bounded_foundation_provider_exhaustion_recovery",
+            "rejected_non_substantive_recovery",
+        }
         and not is_harm_repair_question(query)
         and not bool(_recovery_standard and _recovery_standard.get("forbids_doorway"))
         and str(result.get("processing") or "") != "final_visitor_boundary_archive_claim_provenance"
     ):
         try:
-            if _select_verified_doorway_conceptual_family(query):
+            _standard_title = str((_recovery_standard or {}).get("doorway_title") or "").strip()
+            _standard_url = str((_recovery_standard or {}).get("doorway_url") or "").strip()
+            _standard_rationale = str((_recovery_standard or {}).get("doorway_rationale") or "").strip()
+            if _standard_title and re.match(r"^https://\S+$", _standard_url, re.I):
+                _standard_doorway = {"title": _standard_title, "url": _standard_url}
+                if _standard_rationale:
+                    _standard_doorway["rationale"] = _standard_rationale
+                result["recommendation"] = _standard_doorway
+                result["canonical_doorway"] = _standard_doorway
+                result["doorway_title"] = _standard_title
+                result["doorway_url"] = _standard_url
+                result["doorway_rationale"] = _standard_rationale or None
+            elif _select_verified_doorway_conceptual_family(query):
                 result = _guide_restore_verified_doorway(result, query)
         except Exception:
             # Navigation restoration must never invalidate a usable recovery answer.
