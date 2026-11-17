@@ -2227,6 +2227,42 @@ def _outcome_evaluation_recovery() -> str:
     )
 
 
+_ANSWER_FIRST_META_OPENING = re.compile(
+    r"^(?:"
+    r"(?:a|the)\s+(?:(?:sound|good|useful|clear|fair|strong|meaningful|effective)\s+)?"
+    r"(?:comparison|answer|explanation|response|approach|framework|way)\s+"
+    r"(?:of|for|to|begins?|starts?|would|should)\b"
+    r"|(?:to answer (?:this|the question)|in response to (?:this|the question)|"
+    r"the question (?:asks|is asking|calls for)|what (?:a|the) (?:good|useful|sound|clear) "
+    r"(?:answer|comparison|explanation) (?:does|should|would))\b"
+    r")",
+    re.I,
+)
+
+
+def _has_direct_answer_opening(query: str, response: str) -> bool:
+    """Require the first sentence to do the visitor's requested intellectual work.
+
+    This is a hard visitor-boundary rule, not a stylistic preference. In
+    particular, never admit prose that announces a comparison/answer or
+    reproduces the visitor's full question as its opening.
+    """
+    text = _sanitize_candidate(response)
+    if not text:
+        return False
+    first_paragraph = re.split(r"\n\s*\n+", text, maxsplit=1)[0].strip()
+    first_sentence_match = re.match(r"(.+?[.!?])(?:\s|$)", first_paragraph)
+    first_sentence = (first_sentence_match.group(1) if first_sentence_match else first_paragraph).strip()
+    if not first_sentence or _ANSWER_FIRST_META_OPENING.search(first_sentence):
+        return False
+    normalized_question = _normalize_space(query).strip(" ?!.").casefold()
+    normalized_opening = _normalize_space(first_sentence).casefold()
+    if len(normalized_question) >= 28 and normalized_question in normalized_opening:
+        return False
+    return True
+
+
+
 def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
     titles = {item["title"] for item in documents}
     def _parse_strict(raw: str) -> Dict[str, Any]:
@@ -2267,6 +2303,11 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
             )
 
         if _requires_three_paragraph_default(query):
+            if not _has_direct_answer_opening(query, response):
+                raise ValueError(
+                    "Gold Standard answer-first opening must answer the visitor's question directly; "
+                    "announced comparisons, process prefaces, and echoed questions are not answers"
+                )
             paragraphs = [
                 part.strip()
                 for part in re.split(r"\n\s*\n+", response)
@@ -2519,6 +2560,13 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                 response = _sanitize_candidate(parsed.get("response"))
                 if not response or len(response) < 40 or len(response) > 7000:
                     raise ValueError("provider response failed basic visitor bounds")
+                # Answer-first is constitutional at the visitor boundary. The
+                # soft-contract lane may relax paragraph count or examples, but
+                # it may never admit an announced answer or an echoed question.
+                if _requires_three_paragraph_default(query) and not _has_direct_answer_opening(query, response):
+                    raise ValueError(
+                        "provider response failed the hard answer-first visitor boundary"
+                    )
                 # These are hard boundaries, not editorial preferences.
                 if _INTERNAL_SYSTEM_NAME.search(response) or _INTERNAL_LANGUAGE.search(response):
                     raise ValueError("provider response exposed internal implementation language")
