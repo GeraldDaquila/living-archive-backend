@@ -15,6 +15,7 @@ def main():
     assert "url.username" in js and "url.password" in js
     assert "url.search" in js and "url.hash" in js
     assert "title.length > 180" in js and "rationale.length > 600" in js
+    assert "GENERIC_RATIONALES.indexOf(rationale.toLowerCase())" in js
     assert "textContent" in js
     assert "innerHTML" not in js
     assert "CONTINUE EXPLORING" in js
@@ -33,7 +34,8 @@ def main():
     assert "doorwayHelper.renderMany" in fsd
     assert 'ref.role==="conceptual_context_only"' in fsd
     assert "window.LivingArchiveAnswerDoorway.render(wrap" in hrn
-    assert "helper.renderMany(d,items)!==3" in spe
+    assert "const rendered=helper.renderMany(d,items)" in spe
+    assert "if(rendered!==3)d.replaceChildren()" in spe
     assert "helper.normalizeUrl(x.url)" in spe
     assert "innerHTML" not in spe
     assert "LivingArchiveAnswerDoorway.render(recommendation" in guide
