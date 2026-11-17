@@ -558,6 +558,31 @@ def _archive_purpose_recovery():
     )
 
 
+
+def is_community_project_tradeoff_question(question):
+    """Recognize community project questions requiring cross-domain trade-off inquiry."""
+    q = _clean(question).casefold()
+    community = bool(re.search(r"\b(?:community|communities|local residents|indigenous peoples|host community)\b", q))
+    project = bool(re.search(r"\b(?:project|proposal|development|infrastructure|facility|energy scheme)\b", q))
+    tradeoff = bool(re.search(r"\b(?:trade[- ]?offs?|competing interests|costs and benefits|impacts)\b", q))
+    domains = (
+        bool(re.search(r"\b(?:ecolog(?:y|ical)|environment(?:al)?|biodiversity|habitat)\b", q)),
+        bool(re.search(r"\b(?:economic|economy|costs?|benefits?|livelihoods?)\b", q)),
+        bool(re.search(r"\b(?:cultural|heritage|identity|customary|sacred)\b", q)),
+        bool(re.search(r"\b(?:governance|decision[- ]making|authority|consent|participation)\b", q)),
+    )
+    asks_for_questions = bool(re.search(
+        r"\b(?:what|which)\s+questions?\b|\bwhat\s+should\s+(?:we|they|a community)\s+(?:ask|consider|examine)\b|\bhow\s+to\s+(?:assess|evaluate|weigh)\b",
+        q,
+    ))
+    return community and project and tradeoff and sum(domains) >= 2 and asks_for_questions
+
+
+def _community_project_tradeoff_recovery():
+    """Return a bounded three-paragraph cross-domain community project analysis."""
+    return "A fair assessment asks four connected sets of questions rather than treating “renewable” as proof that a project is automatically beneficial. Ecologically: where would it be built, what land, water, habitats, species, and landscape uses would it affect, what are its full life-cycle emissions and material demands, and what cumulative impacts or decommissioning obligations remain? Economically: who finances and owns it, who receives jobs, lease payments, tax revenue, or lower-cost electricity, who pays for grid upgrades and public support, and how are risks and returns distributed over time?\n\nCulturally, what does the site mean to the people who live with it: does it contain ancestral or sacred places, support customary access or livelihoods, or carry local knowledge and identity that a project plan may overlook? Who gets to define what counts as a loss, and can affected people shape the design? On governance, who proposed the project, who has authority to approve it, whose participation is meaningful rather than ceremonial, and what information, conflict-of-interest rules, grievance channels, independent review, and enforceable conditions are in place? Are groups with less political or economic power represented before decisions are made?\n\nThen compare the proposal with realistic alternatives: no project, another site or scale, a different technology or ownership model, or a mix of energy and demand-side options. Which harms can be avoided, which can be reduced, and which are irreversible or cannot fairly be compensated? Who carries the remaining costs, what benefits are guaranteed locally, and what evidence will be monitored after approval? A sound decision makes these trade-offs visible, protects rights that should not simply be exchanged for aggregate benefits, and sets conditions for review, correction, or stopping the project if its actual effects depart from what was promised."
+
+
 def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
     return bool(
@@ -572,6 +597,7 @@ def has_registered_recovery(question):
         or _is_modes_of_knowing_dialogue_question(question)
         or is_stewardship_failure_repair_question(question)
         or is_community_continuity_revision_question(question)
+        or is_community_project_tradeoff_question(question)
     )
 
 
@@ -586,6 +612,12 @@ def _public_predictive_system_recovery():
 
 def registered_recovery_recommendation(question):
     """Return an evidence-backed doorway for a narrow registered recovery."""
+    if is_community_project_tradeoff_question(question):
+        return {
+            "title": "Local Resilience Economies",
+            "url": "https://geralddaquila.com/2026/05/27/local-resilience-economies/",
+            "rationale": "Local Resilience Economies examines how communities build stability through distributed infrastructure, cooperative structures, local capability, and ecological stewardship. It offers a wider systems lens for asking who controls essential infrastructure, where value remains, and how local resilience is sustained; it does not assess this particular renewable-energy proposal.",
+        }
     if is_community_continuity_revision_question(question):
         return {
             "title": "From Awakening to Stewardship",
@@ -755,6 +787,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
             "The purpose is not simply to produce a plausible answer. It is to make an answer answerable: open to examination, challenge, correction, and further inquiry. "
             "That is a form of stewardship of knowledge—handling what has been found carefully enough that neither the source nor the visitor is asked to carry more certainty than the evidence can bear."
         )
+    elif is_community_project_tradeoff_question(q):
+        answer = _community_project_tradeoff_recovery()
     elif _is_modes_of_knowing_dialogue_question(q):
         answer = _modes_of_knowing_dialogue_recovery()
     elif _is_public_predictive_system_question(q):

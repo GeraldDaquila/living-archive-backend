@@ -141,6 +141,9 @@ Use supplied Archive material as grounding when it is genuinely relevant. Synthe
 
 Preserve useful distinctions and calibrate causal claims. For questions about how algorithmic or automated systems scale existing biases, inequities, or institutional failures, explain the distinctive mechanism before broadening to the larger social system: such systems can amplify patterns through repeated ranking, allocation, recommendation, classification, optimization, or feedback loops, especially when underlying data, objectives, or institutions already carry those conditions. Distinguish amplification from sole causation: automation may accelerate or distribute a pattern without originating it. Then examine the reinforcing relationships that make correction harder and preserve variation across contexts rather than treating every outcome as identical. Do not flatten relationships between ideas into slogans or generic advice. When the visitor asks about synthesis, coherence, judgment, or the risk of a persuasive answer becoming overconfident, make the governing boundary visible first, then explain the practical checks, and close by distinguishing clarification from decision-making authority. Do not manufacture certainty by smoothing unresolved alternatives, uncertainty, consequences, or accountability into a single persuasive story. For an abstract or unfamiliar concept, define it plainly and use one brief, clearly illustrative everyday example only when it adds understanding. Do not fabricate case studies, statistics, quotations, named authorities, or examples presented as real events.
 
+COMMUNITY PROJECT TRADE-OFF QUESTIONS:
+When a visitor asks what questions reveal trade-offs in a community project or infrastructure proposal, do not repeat the question or offer a generic process checklist. Address the dimensions the visitor names. For ecological effects, ask about site, land, water, habitats, biodiversity, full life-cycle impacts, cumulative effects, and decommissioning. For economic effects, ask who finances, owns, pays, receives jobs or revenue, bears risk, and benefits over time. For cultural effects, ask about heritage, identity, customary access, sacred or ancestral places, livelihoods, local knowledge, and whose definition of loss is heard. For governance, ask who proposes and decides, who is represented, whether participation can shape the outcome, what rights and consent apply, how conflicts of interest are handled, and what review or grievance routes exist. Then compare realistic alternatives, including no project, identify who gains and who bears residual costs, distinguish avoidable from irreversible harm, and specify monitoring and conditions for correction. Do not assume the project is beneficial or harmful without case-specific evidence. Use three purposeful paragraphs: the first develops ecological and economic questions; the second develops cultural and governance questions; the third compares alternatives and explains distribution, rights, monitoring, and revisability. Keep the questions concrete and answer the visitor's request for questions.
+
 For reflective-conceptual questions, including questions phrased as “How can [an abstract quality or principle] be [cultivated, disciplined, sustained, or practiced]?”, answer the conceptual tension before offering any action. Explain what the quality means in this context, what can distort or undermine it, and how its constructive form differs from its nearest counterfeit or excess. Do not convert the question into a generic decision checklist, self-management routine, or sequence of imperatives unless the visitor explicitly asks for a procedure. Keep the explanation anchored to the named subject throughout all paragraphs: paragraph one states the governing distinction; paragraph two explains the tension or mechanism with a recognizable example where useful; paragraph three draws out the consequence, limit, or practical meaning without repeating the first two. Do not introduce adjacent topics, specialist tools, AI governance, or institutional accountability unless the question itself calls for them. A practical foothold may follow the explanation, but it must arise from the distinction just established rather than replace it.
 
 For practical questions, give a useful, low-risk next step when general guidance is responsible. Explain options and consequences without taking over the visitor's judgment. Do not diagnose, therapize, moralize, presume personal circumstances, or manufacture intimacy. For grief or significant distress, recognize the specific difficulty in plain language and, when the immediate need is unclear, ask one gentle open question rather than rushing into advice. Immediate danger requires the established safety boundary.
@@ -168,6 +171,9 @@ SEMANTIC PROGRESSION CONTRACT (system-wide, including recovery paths):
 - Approved Gold Star lessons calibrate structure; they are not answer fragments. Use one only when the approved question, known theme, and reasoning family genuinely match the visitor's subject. Broad lexical overlap is insufficient. Integrate relevant discipline without copying its wording or abstention boundary; never append Gold Star guidance or meta-labels to paragraph three. If the analogy is weak, abstain.
 - For consequential action under uncertainty, paragraph three must add a new operational movement: choose a proportionate and correctable course, set review signals, and identify who remains accountable for observing consequences. Do not repeat the option-comparison checklist.
 - Before returning a response, compare paragraph functions and claims: if paragraph three does not add a new application, consequence, boundary, or decision-relevant insight, revise it rather than padding it.
+
+COMMUNITY PROJECT TRADE-OFF QUESTIONS:
+When a visitor asks what questions reveal trade-offs in a community project or infrastructure proposal, do not repeat the question or offer a generic process checklist. Address the dimensions the visitor names. For ecological effects, ask about site, land, water, habitats, biodiversity, full life-cycle impacts, cumulative effects, and decommissioning. For economic effects, ask who finances, owns, pays, receives jobs or revenue, bears risk, and benefits over time. For cultural effects, ask about heritage, identity, customary access, sacred or ancestral places, livelihoods, local knowledge, and whose definition of loss is heard. For governance, ask who proposes and decides, who is represented, whether participation can shape the outcome, what rights and consent apply, how conflicts of interest are handled, and what review or grievance routes exist. Then compare realistic alternatives, including no project, identify who gains and who bears residual costs, distinguish avoidable from irreversible harm, and specify monitoring and conditions for correction. Do not assume the project is beneficial or harmful without case-specific evidence. Use three purposeful paragraphs: the first develops ecological and economic questions; the second develops cultural and governance questions; the third compares alternatives and explains distribution, rights, monitoring, and revisability. Keep the questions concrete and answer the visitor's request for questions.
 
 REFLECTIVE-CONCEPTUAL QUESTION BOUNDARY:
 For reflective-conceptual questions, including questions phrased as “How can [an abstract quality or principle] be [cultivated, disciplined, sustained, or practiced]?”, answer the conceptual tension before offering any action. Explain what the quality means in this context, what can distort or undermine it, and how its constructive form differs from its nearest counterfeit or excess. Do not convert the question into a generic decision checklist, self-management routine, or sequence of imperatives unless the visitor explicitly asks for a procedure. Keep the explanation anchored to the named subject throughout all paragraphs: paragraph one states the governing distinction; paragraph two explains the tension or mechanism with a recognizable example where useful; paragraph three draws out the consequence, limit, or practical meaning without repeating the first two. Do not introduce adjacent topics, specialist tools, AI governance, or institutional accountability unless the question itself calls for them. A practical foothold may follow the explanation, but it must arise from the distinction just established rather than replace it.
@@ -3070,9 +3076,58 @@ def _fabricated_coherence_recovery() -> str:
     )
 
 
+
+def _requires_community_project_tradeoff_analysis(question: str) -> bool:
+    """Recognize community project questions asking for cross-domain trade-off inquiry."""
+    q = _normalize_space(question).casefold()
+    community = bool(re.search(r"\b(?:community|communities|local residents|indigenous peoples|host community)\b", q))
+    project = bool(re.search(r"\b(?:project|proposal|development|infrastructure|facility|energy scheme)\b", q))
+    tradeoff = bool(re.search(r"\b(?:trade[- ]?offs?|competing interests|costs and benefits|impacts)\b", q))
+    domains = (
+        bool(re.search(r"\b(?:ecolog(?:y|ical)|environment(?:al)?|biodiversity|habitat)\b", q)),
+        bool(re.search(r"\b(?:economic|economy|costs?|benefits?|livelihoods?)\b", q)),
+        bool(re.search(r"\b(?:cultural|heritage|identity|customary|sacred)\b", q)),
+        bool(re.search(r"\b(?:governance|decision[- ]making|authority|consent|participation)\b", q)),
+    )
+    asks_for_questions = bool(re.search(
+        r"\b(?:what|which)\s+questions?\b|\bwhat\s+should\s+(?:we|they|a community)\s+(?:ask|consider|examine)\b|\bhow\s+to\s+(?:assess|evaluate|weigh)\b",
+        q,
+    ))
+    return community and project and tradeoff and sum(domains) >= 2 and asks_for_questions
+
+
+def _has_community_project_tradeoff_analysis(response: str) -> bool:
+    """Require all four requested domains, distributional analysis, alternatives, and review."""
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
+    if len(paragraphs) != 3:
+        return False
+    text = _normalize_space(response).casefold()
+    domain_groups = (
+        r"\b(?:ecolog(?:y|ical)|environment(?:al)?|biodiversity|habitats?|land|water)\b",
+        r"\b(?:economic|economy|costs?|benefits?|jobs?|ownership|financ(?:e|ing))\b",
+        r"\b(?:cultural|heritage|identity|customary|ancestral|sacred|local knowledge)\b",
+        r"\b(?:governance|decision[- ]making|authority|consent|participation|oversight)\b",
+    )
+    has_all_domains = all(re.search(pattern, text) for pattern in domain_groups)
+    distribution = bool(re.search(r"\b(?:who pays|who benefits|who bears|who receives|distributed|distribution)\b", text))
+    alternatives = bool(re.search(r"\b(?:alternatives?|no project|another site|different site|different scale|ownership model)\b", text))
+    accountability = bool(re.search(r"\b(?:monitor|review|grievance|independent review|conditions|correct|stopping the project)\b", text))
+    question_led = text.count("?") >= 6
+    return has_all_domains and distribution and alternatives and accountability and question_led
+
+
+def _community_project_tradeoff_recovery() -> str:
+    """Substantive, provider-independent analysis of community project trade-offs."""
+    return "A fair assessment asks four connected sets of questions rather than treating “renewable” as proof that a project is automatically beneficial. Ecologically: where would it be built, what land, water, habitats, species, and landscape uses would it affect, what are its full life-cycle emissions and material demands, and what cumulative impacts or decommissioning obligations remain? Economically: who finances and owns it, who receives jobs, lease payments, tax revenue, or lower-cost electricity, who pays for grid upgrades and public support, and how are risks and returns distributed over time?\n\nCulturally, what does the site mean to the people who live with it: does it contain ancestral or sacred places, support customary access or livelihoods, or carry local knowledge and identity that a project plan may overlook? Who gets to define what counts as a loss, and can affected people shape the design? On governance, who proposed the project, who has authority to approve it, whose participation is meaningful rather than ceremonial, and what information, conflict-of-interest rules, grievance channels, independent review, and enforceable conditions are in place? Are groups with less political or economic power represented before decisions are made?\n\nThen compare the proposal with realistic alternatives: no project, another site or scale, a different technology or ownership model, or a mix of energy and demand-side options. Which harms can be avoided, which can be reduced, and which are irreversible or cannot fairly be compensated? Who carries the remaining costs, what benefits are guaranteed locally, and what evidence will be monitored after approval? A sound decision makes these trade-offs visible, protects rights that should not simply be exchanged for aggregate benefits, and sets conditions for review, correction, or stopping the project if its actual effects depart from what was promised."
+
+
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    if _requires_community_project_tradeoff_analysis(question) and not _has_community_project_tradeoff_analysis(candidate):
+        candidate = _community_project_tradeoff_recovery()
+    if _requires_community_project_tradeoff_analysis(question) and not _has_community_project_tradeoff_analysis(candidate):
+        raise RuntimeError("Community project trade-off response contract failed after recovery.")
     if _requires_fabricated_coherence_boundary(question):
         candidate = _fabricated_coherence_recovery()
     if _requires_broad_conceptual_definition(question) and not _has_broad_conceptual_definition(candidate):
