@@ -5532,7 +5532,7 @@ def _boundary_canonical_doorway(payload, query):
         # the inquiry. This remains evidence-bounded: no title or URL is ever
         # manufactured.
         recovery_queries = [query]
-     if _is_archive_claim_boundary_inquiry(query):
+        if _is_archive_claim_boundary_inquiry(query):
             recovery_queries.append(
                 query + " source attribution interpretation synthesis provenance judgment"
             )
