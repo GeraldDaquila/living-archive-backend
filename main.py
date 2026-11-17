@@ -8262,6 +8262,8 @@ def _enforce_registered_gold_standard_doorway(doorway, gold_standard, query=""):
     selected doorway has already passed the canonical relevance and URL gates.
     Only an explicit no-handoff assertion overrides that default.
     """
+    if gold_standard is None:
+        return _normalize_authoritative_recommendation(doorway)
     if _gold_star_doorway_omission_is_justified(gold_standard):
         return None
     return (
