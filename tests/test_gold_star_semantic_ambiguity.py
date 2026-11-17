@@ -18,7 +18,7 @@ def test_semantic_ambiguity_gold_star_is_exactly_resolvable_with_doorway():
     assert standard is not None
     assert standard["benchmark_id"] == BENCHMARK_ID
     assert "sharing a meaning" in standard["expected_response"].lower()
-    assert "referent" in standard["expected_response"].lower()
+    assert "refers to" in standard["expected_response"].lower()
     assert "genuine contradiction" in standard["expected_response"].lower()
     assert "ask one focused clarifying question" in standard["expected_response"].lower()
     assert standard["doorway_title"] == (
