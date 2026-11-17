@@ -1,0 +1,34 @@
+{
+  "template_id": "living-archive-gold-star-record-template",
+  "template_version": "1.0.0",
+  "status": "AUTHORING_TEMPLATE_NOT_A_BENCHMARK",
+  "benchmark_id": "replace-with-stable-unique-id",
+  "status_for_new_approval": "USER_APPROVED_GOLD_STANDARD",
+  "subsystem": "general-purpose-guide",
+  "query": "Replace with the exact visitor question.",
+  "expected_response": "Paste the exact user-approved visitor-facing answer. Preserve its approved wording and paragraph structure.",
+  "doorway_status": "VERIFIED",
+  "expected_doorway": {
+    "title": "Verified canonical Archive resource title",
+    "url": "https://geralddaquila.com/verified-canonical-resource/",
+    "rationale": "Explain in one or two visitor-facing sentences what this resource adds to this question."
+  },
+  "doorway_omission_exception_reason": "",
+  "assertions": [
+    "Answer is complete before the separate doorway.",
+    "Doorway is present by default and has a verified canonical URL.",
+    "Doorway rationale explains its specific contribution without overstating the source."
+  ],
+  "provenance": {
+    "source_path": "Replace with the source artifact path.",
+    "source_ref": "Replace with the approving commit or source reference.",
+    "approval_date": "YYYY-MM-DD",
+    "approval_evidence": "Record the explicit user approval reference."
+  },
+  "freeze_policy": "Preserve the exact approved answer and doorway. Changes require explicit user authorization and a separately documented benchmark-version change.",
+  "approved_omission_example": {
+    "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+    "expected_doorway": null,
+    "doorway_omission_exception_reason": "State the concrete, response-specific reason why navigation would materially undermine quality or safety, or record the visitor's explicit refusal of navigation."
+  }
+}
