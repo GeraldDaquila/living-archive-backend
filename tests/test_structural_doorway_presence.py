@@ -103,3 +103,21 @@ def test_community_continuity_recovery_is_registered_and_owns_its_verified_doorw
     answer = compose_recovery(query)
     assert answer.startswith("Communities preserve continuity")
     assert len([p for p in answer.split("\n\n") if p.strip()]) == 3
+
+
+def test_provider_exhaustion_path_returns_registered_answer_and_doorway_together():
+    from deterministic_answer_recovery import registered_recovery_recommendation
+
+    query = "How can communities preserve continuity while revising harmful inherited patterns?"
+    result = main._basic_inquiry_provider_exhaustion_response(
+        query,
+        {},
+        {"context_blocks": ""},
+        recommendation_available=True,
+    )
+    expected_doorway = registered_recovery_recommendation(query)
+    assert result["response"].startswith("Communities preserve continuity")
+    assert len([p for p in result["response"].split("\\n\\n") if p.strip()]) == 3
+    assert result["recommendation"] == expected_doorway
+    assert result["doorway_title"] == expected_doorway["title"]
+    assert result["doorway_url"] == expected_doorway["url"]
