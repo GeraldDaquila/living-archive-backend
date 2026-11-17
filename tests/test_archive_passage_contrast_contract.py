@@ -2,6 +2,7 @@ import pytest
 
 from general_guide_composition import (
     _archive_passage_sources,
+    _archive_passage_contrast_recovery,
     _has_archive_passage_contrast_structure,
     _requires_archive_passage_contrast,
 )
@@ -46,3 +47,19 @@ def test_generic_refusal_or_synthesis_without_two_representations_fails():
 
 def test_missing_second_source_cannot_be_misrepresented_as_a_comparison():
     assert not _has_archive_passage_contrast_structure(QUESTION, "Passage 1 — Passage Alpha", SOURCES[:1])
+
+
+def test_provider_exhaustion_recovery_preserves_both_sources_without_premature_synthesis():
+    recovered = _archive_passage_contrast_recovery(QUESTION, SOURCES)
+    assert recovered is not None
+    assert "[Passage Alpha](https://geralddaquila.com/alpha/)" in recovered["response"]
+    assert "[Passage Beta](https://geralddaquila.com/beta/)" in recovered["response"]
+    assert "not yet a synthesis" in recovered["response"]
+
+
+def test_provider_exhaustion_without_two_sources_states_specific_limit():
+    recovered = _archive_passage_contrast_recovery(QUESTION, SOURCES[:1])
+    assert recovered is not None
+    assert "could not verify two distinct" in recovered["response"]
+    assert "Libraries" in recovered["response"]
+    assert "Passage Alpha" not in recovered["response"]
