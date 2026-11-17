@@ -856,11 +856,10 @@
     {
       "benchmark_id": "general-guide-formal-informal-institutional-dynamics-gold-star-2026-11-18",
       "question": "How should the Guide compare formal institutional rules with informal norms when explaining why an organization behaves as it does?",
-      "family": "formal_informal_institutional_dynamics",
-      "structural_lesson": "explain organizational behavior by comparing declared formal authority and written rules with lived informal expectations, then trace how their alignment or contradiction shapes decisions, incentives, enforcement, power, legitimacy, trust, workarounds, and accountability using evidence",
-      "role": "cross_question_candidate",
-      "transferability_status": "cross_question_candidate",
-      "abstention_boundary": "Do not assume informal norms are harmful or formal rules effective by default; do not infer organization-specific motives or outcomes without evidence. Transfer the comparison discipline, never the exact answer or Institutional Consciousness doorway."
+      "abstention_boundary": "Do not assume informal norms are harmful or formal rules effective by default; do not infer organization-specific motives or outcomes without evidence. Transfer the comparison discipline, never the exact answer or Institutional Consciousness doorway.",
+      "reasoning_family": "formal_informal_institutional_dynamics",
+      "transferable_discipline": "explain organizational behavior by comparing declared formal authority and written rules with lived informal expectations, then trace how their alignment or contradiction shapes decisions, incentives, enforcement, power, legitimacy, trust, workarounds, and accountability using evidence",
+      "activation": "active_quality_contributor"
     }
   ]
 }
