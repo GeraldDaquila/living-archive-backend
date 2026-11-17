@@ -40,3 +40,6 @@ Incomplete, unverified, unrelated, or unsafe items are omitted. Never invent a d
 
 ## Synchronization
 Backend and module adapters may retain their native response envelopes. Each adapter must map only trusted fields into the shared item contract above. The renderer is versioned independently and must not own retrieval, relevance, canonical authority, or module reasoning.
+
+## Deliberate non-applications
+The shared component is for an answer/result followed by one or more canonical destinations. It is not a universal replacement for every link or result card on the site. Atlas Finder's image/map results remain visual search results. Glossary Intelligence's term definitions, related-term navigation, and lineage listings retain their native information architecture. These interfaces should use the shared doorway only if a distinct, reasoned canonical continuation is introduced; do not relabel every result link as a doorway.
