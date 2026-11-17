@@ -138,7 +138,10 @@ def test_retrieval_only_disclaimer_is_rejected_for_ordinary_explanatory_question
     assert is_generic_nonanswer(query, screenshot_style)
 
     archive_specific_query = "How does the Living Archive say communities should preserve continuity while revising harmful inherited patterns?"
-    archive_specific_disclaimer = screenshot_style + "\n\nThe available sources do not establish a more specific canonical prescription."
+    archive_specific_disclaimer = screenshot_style.replace(
+        "The approach can be revisited as consequences become clearer and the people affected share what they are experiencing.",
+        "The approach can be revisited as consequences become clearer and the people affected share what they are experiencing. The available sources do not establish a more specific canonical prescription.",
+    )
     assert not is_generic_nonanswer(archive_specific_query, archive_specific_disclaimer)
 
 
