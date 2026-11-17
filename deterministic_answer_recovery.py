@@ -632,6 +632,49 @@ def is_oversoul_free_will_question(question):
     return oversoul and freedom and influence and tension
 
 
+def is_spiritual_community_accountability_question(question):
+    """Recognize spiritual-community questions that explicitly pair charismatic authority with weak accountability."""
+    q = _clean(question).casefold()
+    spiritual_context = bool(re.search(
+        r"\b(?:spiritual communit(?:y|ies)|faith communit(?:y|ies)|religious communit(?:y|ies)|"
+        r"spiritual group|faith group|religious group|spiritual practice)\b", q
+    ))
+    charismatic_authority = bool(re.search(
+        r"\b(?:charismatic leadership|charismatic leader|charisma|spiritual leader|"
+        r"religious leader|guru|teacher)\b", q
+    ))
+    accountability_gap = bool(re.search(
+        r"\b(?:weak|limited|absent|missing|poor|inadequate|lack(?:ing)?)\b.{0,45}"
+        r"\b(?:accountab(?:ility|le)|oversight|checks and balances|review)\b|"
+        r"\b(?:accountab(?:ility|le)|oversight|checks and balances|review)\b.{0,45}"
+        r"\b(?:weak|limited|absent|missing|poor|inadequate|lack(?:ing)?)\b", q
+    ))
+    asks_for_risk_analysis = bool(re.search(
+        r"\b(?:risk|risks|danger|dangers|vulnerab\w*|how should|how can|identify|assess|recogniz\w*)\b", q
+    ))
+    protects_spiritual_practice = bool(re.search(
+        r"\b(?:without dismiss(?:ing)?|without reject(?:ing)?|without undermining|"
+        r"while respect(?:ing)?|while preserv(?:ing)?|not dismiss(?:ing)?|"
+        r"spiritual practice itself|practice itself)\b", q
+    ))
+    return (
+        spiritual_context
+        and charismatic_authority
+        and accountability_gap
+        and asks_for_risk_analysis
+        and protects_spiritual_practice
+    )
+
+
+def _spiritual_community_accountability_recovery():
+    """Assess governance risks without treating spiritual practice itself as suspect."""
+    return (
+        "Spiritual practice and the way a community governs its authority are different things. Ritual, belief, devotion, and a leader's ability to inspire trust are not, by themselves, evidence of harm. The risk arises when personal influence becomes authority that cannot be questioned and weak accountability leaves important decisions, resources, discipline, or safeguarding in the hands of the same person or inner circle. That is a governance vulnerability, not a verdict on the community's beliefs.\n\n"
+        "The relevant warning signs are observable patterns: are questions treated as disloyalty or spiritual failure; can members disagree without humiliation, exclusion, or retaliation; are finances and consequential decisions transparent; are complaints heard by people independent of the leader; and can members refuse requests or leave without threats or coercive penalties? Charisma becomes dangerous when it is used to make a leader's judgment immune from review, or when spiritual language is used to excuse secrecy, dependency, boundary violations, or harm. A single disagreement is not proof of abuse; the concern is a repeated pattern and its effects on people's freedom, safety, and dignity.\n\n"
+        "Safeguards should strengthen the community's ability to practice freely, not prescribe what its members must believe. Authority can be shared through a genuinely independent council, clear role limits, transparent finances, recorded decisions, conflict-of-interest rules, protected complaint channels, and external review when serious harm is alleged. Members must be able to question, decline, and leave without retaliation, while allegations are assessed fairly and appropriate repair or protection follows. The decisive test is whether spiritual life remains voluntary and whether those who exercise influence remain answerable to the people affected by it."
+    )
+
+
 def _oversoul_free_will_recovery():
     """Explain spiritual influence and human choice without asserting metaphysical fact."""
     return (
@@ -655,6 +698,7 @@ def has_registered_recovery(question):
     return bool(
         is_oversoul_ego_authority_question(question)
         or is_oversoul_free_will_question(question)
+        or is_spiritual_community_accountability_question(question)
         or is_complex_future_scenario_question(question)
         or _is_public_predictive_system_question(question)
         or _is_archive_purpose_question(question)
@@ -682,6 +726,12 @@ def _public_predictive_system_recovery():
 
 def registered_recovery_recommendation(question):
     """Return an evidence-backed doorway for a narrow registered recovery."""
+    if is_spiritual_community_accountability_question(question):
+        return {
+            "title": "Community Accountability Systems",
+            "url": "https://geralddaquila.com/2026/05/16/community-accountability-systems/",
+            "rationale": "This Archive essay examines how communities prevent power from becoming insulated from feedback through transparent, distributed accountability, clear boundaries, protected dissent, and repair. It directly addresses the risks of charismatic leadership and weak accountability without treating spiritual belief or practice itself as the problem.",
+        }
     if is_oversoul_free_will_question(question) or is_oversoul_ego_authority_question(question):
         return {
             "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
@@ -861,7 +911,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         re.search(r"\baccountable\s+retrieval\b", lower)
         and re.search(r"\b(?:what does|what is|define|explain|look like)\b", lower)
     )
-    if is_oversoul_free_will_question(q):
+    if is_spiritual_community_accountability_question(q):
+        answer = _spiritual_community_accountability_recovery()
+    elif is_oversoul_free_will_question(q):
         answer = _oversoul_free_will_recovery()
     elif is_oversoul_ego_authority_question(q):
         answer = _oversoul_ego_authority_recovery()
@@ -1268,7 +1320,7 @@ def contract_snapshot():
         "contract_version": "v2",
         "provider_independent": True,
         "does_not_invent_archive_evidence": True,
-        "question_shapes": ["hindsight_accountability", "ethical_tradeoff", "comparison", "causal", "decision", "practical", "definition", "reflective", "general"],
+        "question_shapes": ["spiritual_community_accountability", "hindsight_accountability", "ethical_tradeoff", "comparison", "causal", "decision", "practical", "definition", "reflective", "general"],
     }
 
 

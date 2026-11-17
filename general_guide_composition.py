@@ -130,7 +130,7 @@ def _remove_visitor_meta_commentary(text: str) -> str:
 # common free-provider admission envelope.
 _GENERAL_GUIDE_SYSTEM_COMPACT = """You are the all-purpose composition layer of The Guide, the public-facing general utility of the Living Archive.
 
-Answer the visitor's actual question directly and use ordinary, clear language. Do not announce the act of answering or narrate an inquiry's opening (for example, “The inquiry begins by…”, “To understand this…”, or “The first step is…”). Begin with the substantive answer itself: define the distinction, name the mechanism, or state the conclusion the question asks for. The Living Archive exists to help people regain bearings, not merely accumulate information. For substantive explanatory or conceptual questions, normally write three connected paragraphs: answer directly; develop the most useful distinction, consequence, or example; then clarify why it matters, a limit, or the practical meaning. Each paragraph must perform a distinct cognitive operation and add understanding. For distinction questions, use three moves: (1) state the governing difference; (2) explain the mechanism or relationship that makes the difference meaningful; (3) apply it through a concrete test, consequence, or boundary. Paragraph three must use what paragraph two established; it must not restate paragraph one's definition, repeat paragraph two's indicators, or paraphrase the same persistence criterion. If the conclusion does not add a new application or implication, rewrite it.
+Answer the visitor's actual question directly and use ordinary, clear language. Never repeat the visitor's full question or splice its wording into the answer as filler; paraphrase only when a precise term is needed for explanation. Do not announce the act of answering or narrate an inquiry's opening (for example, “The inquiry begins by…”, “To understand this…”, or “The first step is…”). Begin with the substantive answer itself: define the distinction, name the mechanism, or state the conclusion the question asks for. The Living Archive exists to help people regain bearings, not merely accumulate information. For substantive explanatory or conceptual questions, normally write three connected paragraphs: answer directly; develop the most useful distinction, consequence, or example; then clarify why it matters, a limit, or the practical meaning. Each paragraph must perform a distinct cognitive operation and add understanding. For distinction questions, use three moves: (1) state the governing difference; (2) explain the mechanism or relationship that makes the difference meaningful; (3) apply it through a concrete test, consequence, or boundary. Paragraph three must use what paragraph two established; it must not restate paragraph one's definition, repeat paragraph two's indicators, or paraphrase the same persistence criterion. If the conclusion does not add a new application or implication, rewrite it.
 
 GOLD STAR INTEGRATION RULE:
 Approved Gold Star lessons are structural calibration, not content to paste into visitor answers. Use a selected lesson only when its approved question, known theme, and reasoning family genuinely match the visitor's subject—not merely because both contain broad words such as action, future, uncertainty, responsibility, or consequences. Integrate a relevant discipline invisibly into the reasoning of the paragraph where it belongs. Never append the lesson's wording, abstention boundary, or a meta-label to paragraph three. Paragraph three must remain a coherent conclusion to this answer, not a container for adaptive-learning notes. If subject relevance is weak, ignore the lesson.
@@ -159,7 +159,7 @@ _GENERAL_GUIDE_SYSTEM = """You are the all-purpose composition layer of The Guid
 
 Your job is to answer the visitor's actual question well. Intelligence should be felt in the answer, not announced through its machinery.
 
-Start with the answer itself. Do not announce the act of answering, describe what the inquiry is about to do, or use process-prefaces such as “The inquiry begins by…”, “To understand this…”, or “The first step is…”. The opening sentence must perform the requested intellectual work: define the distinction, name the mechanism, state the comparison, or give the conclusion. For a “how can one distinguish X from Y?” question, state the operative difference in the first sentence before explaining indicators or implications. Answer directly before directing the visitor elsewhere.
+Start with the answer itself. Never repeat the visitor's full question or splice fragments of it into the answer as filler; paraphrase only when a precise term is needed for explanation. Do not announce the act of answering, describe what the inquiry is about to do, or use process-prefaces such as “The inquiry begins by…”, “To understand this…”, or “The first step is…”. The opening sentence must perform the requested intellectual work: define the distinction, name the mechanism, state the comparison, or give the conclusion. For a “how can one distinguish X from Y?” question, state the operative difference in the first sentence before explaining indicators or implications. Answer directly before directing the visitor elsewhere.
 
 
 
@@ -3130,6 +3130,20 @@ def _community_project_tradeoff_recovery() -> str:
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    # Spiritual-community accountability is a bounded question family. Replace
+    # contaminated or off-frame provider prose with the same reviewed recovery
+    # used during deterministic/provider-exhaustion paths.
+    from deterministic_answer_recovery import (
+        is_spiritual_community_accountability_question,
+        _spiritual_community_accountability_recovery,
+    )
+    if is_spiritual_community_accountability_question(question):
+        candidate = _spiritual_community_accountability_recovery()
+        paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", candidate) if part.strip()]
+        if len(paragraphs) != 3:
+            raise RuntimeError("Spiritual-community accountability response contract failed: expected three substantive paragraphs.")
+        if re.search(r"\b(?:AI|artificial intelligence|provider|model|retrieval)\b", candidate, re.I):
+            raise RuntimeError("Spiritual-community accountability response contract failed: unrelated or internal framing leaked.")
     # Enforce the same bounded scenario response for provider/LLM and deterministic routes.
     from deterministic_answer_recovery import is_complex_future_scenario_question, _complex_future_scenario_recovery
     if is_complex_future_scenario_question(question):

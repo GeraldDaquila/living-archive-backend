@@ -83,6 +83,7 @@ from deterministic_answer_recovery import (
     is_harm_repair_question,
     is_community_continuity_revision_question,
     is_oversoul_free_will_question,
+    is_spiritual_community_accountability_question,
     is_complex_future_scenario_question,
 )
 from ai_workforce_restructuring_contract import (
@@ -244,6 +245,13 @@ def _guide_node_prompt_context():
 def _select_verified_doorway_conceptual_family(query):
     """Return a verified conceptual family only when a canonical doorway applies."""
     text = str(query or "")
+    # Spiritual-community accountability questions have a direct, narrowly
+    # relevant Archive doorway. Resolve this before generic community matches.
+    from deterministic_answer_recovery import (
+        is_spiritual_community_accountability_question as _is_spiritual_community_accountability_question,
+    )
+    if _is_spiritual_community_accountability_question(text):
+        return "spiritual_community_accountability"
     # Spiritual-agency questions have a direct Archive doorway. Resolve this
     # before generic agency/uncertainty matches can select a broad compass.
     if (
@@ -353,6 +361,11 @@ def _select_verified_doorway_conceptual_family(query):
 
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
+    "spiritual_community_accountability": {
+        "title": "Community Accountability Systems",
+        "url": "https://geralddaquila.com/2026/05/16/community-accountability-systems/",
+        "rationale": "This Archive essay examines how communities prevent power from becoming insulated from feedback through transparent, distributed accountability, clear boundaries, protected dissent, and repair. It directly addresses the risks of charismatic leadership and weak accountability without treating spiritual belief or practice itself as the problem.",
+    },
     "oversoul_free_will": {
         "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
         "url": "https://geralddaquila.com/oversoul-law",
@@ -6533,6 +6546,25 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "doorway_rationale": str((_oversoul_doorway or {}).get("rationale") or ""),
             "recommendation": _oversoul_doorway,
             "provider": "bounded_oversoul_free_will_recovery",
+            "model": "",
+        }
+
+    from deterministic_answer_recovery import (
+        is_spiritual_community_accountability_question,
+        compose_recovery as _compose_spiritual_community_recovery,
+        registered_recovery_recommendation as _spiritual_community_recommendation,
+    )
+    if is_spiritual_community_accountability_question(query):
+        _spiritual_answer = _compose_spiritual_community_recovery(query)
+        _spiritual_doorway = _spiritual_community_recommendation(query)
+        return {
+            "response": _spiritual_answer,
+            "doorway_title": str((_spiritual_doorway or {}).get("title") or ""),
+            "doorway_url": str((_spiritual_doorway or {}).get("url") or ""),
+            "doorway_rationale": str((_spiritual_doorway or {}).get("rationale") or ""),
+            "recommendation": _spiritual_doorway,
+            "canonical_doorway": _spiritual_doorway,
+            "provider": "bounded_spiritual_community_accountability_recovery",
             "model": "",
         }
 
