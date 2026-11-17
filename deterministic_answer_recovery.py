@@ -655,7 +655,7 @@ def _reflective_conceptual_recovery(question):
     """Keep reflective how-questions on conceptual tension, not action planning."""
     q = _clean(question)
     match = re.search(
-        r"^how can (?:one|we|you)\s+(.+?)\s+(?:be|remain|stay)\s+"
+        r"^how can (?:(?:one|we|you)\s+)?(.+?)\s+(?:be|remain|stay)\s+"
         r"(.+?)\s+(?:without becoming|rather than becoming|rather than being|rather than|without)\s+(.+?)[?.!]*$",
         q,
         re.I,
