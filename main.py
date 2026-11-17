@@ -13945,7 +13945,7 @@ async def _use_request_boundary(scope, receive, send):
             # an explicit visitor refusal of navigation remain authoritative.
             exact_doorway_standard = _resolve_exact_guide_gold_standard(query)
             explicit_no_doorway = bool(re.search(
-                r"\\b(?:do not|don't|without|no)\\b.{0,48}\\b(?:doorway|link|page|resource|handoff|recommendation)\\b",
+                r"\b(?:do not|don't|without|no)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
                 query,
                 re.I,
             ))
