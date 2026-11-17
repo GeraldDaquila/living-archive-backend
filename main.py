@@ -299,6 +299,16 @@ def _select_verified_doorway_conceptual_family(query):
     ):
         return "community_project_tradeoffs"
 
+    # Public-sector predictive systems require a dedicated canonical continuation.
+    # Match only when the question joins public authority, a predictive/automated
+    # system, and a constitutional or human-rights adoption boundary.
+    if (
+        re.search(r"\b(?:government|public services?|public sector|state|municipal|city government|agency)\b", text, re.I)
+        and re.search(r"\b(?:predictive system|predictive model|algorithmic system|automated decision|ai system|automated system)\b", text, re.I)
+        and re.search(r"\b(?:constitutional|rights?|due process|human questions?|human consequences?|dignity|adoption|precede)\b", text, re.I)
+    ):
+        return "public_predictive_systems"
+
     # Share the bounded workforce-restructuring classifier with the final answer contract.
     if is_ai_workforce_restructuring_question(text):
         return "ai_workforce_restructuring"
@@ -334,6 +344,11 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "ai_role_distinction": {
         "title": "Responsible AI Principle",
         "url": "https://geralddaquila.com/responsible-ai-principle/",
+    },
+    "public_predictive_systems": {
+        "title": "AI vs. Human Stewardship: Why Conscious Guidance Matters More Than Ever",
+        "url": "https://geralddaquila.com/2026/06/16/ai-vs-human-stewardship-why-conscious-guidance-matters-more-than-ever/",
+        "rationale": "AI vs. Human Stewardship examines why growing technological capability must remain guided by human wisdom, ethical judgment, oversight, agency, and clear accountability. It offers a broader foundation for examining predictive public systems and the responsibilities that must remain with people; it does not evaluate this particular government proposal.",
     },
     "ai_workforce_restructuring": {
         "title": "Agentic Systems and the End of Passive Labor",
