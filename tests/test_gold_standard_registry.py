@@ -234,7 +234,7 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 61
     assert report["highest_assigned_gold_star_number"] == 93
     assert report["numbering_sequence_start"] == 56
-    assert [gap["number"] for gap in report["numbering_gap_register"]] == [86]
+    assert report["numbering_gap_register"] == []
     assert len(report["number_assignments"]) == 38
     assert len(report["unassigned_benchmark_ids"]) == 61
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
@@ -1081,17 +1081,19 @@ def test_85_and_86_are_allocated_and_no_documented_historical_gap_remains():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     gaps = registry["numbering_gap_register"]
-    assert [g["number"] for g in gaps] == [86]
-    assert gaps[0]["status"] == "ALLOCATED_TO_APPROVED_GOLD_STAR"
-    assert gaps[0]["allocated_to_benchmark_id"] == "general-guide-archive-examples-evidence-limits-gold-star-2026-11-18"
-    assert gaps[0]["allocation_authorization"]["fulfilled_by_benchmark_id"] == gaps[0]["allocated_to_benchmark_id"]
-    assert gaps[0]["number"] == 86
-    assert all(g["release_authorization"]["authorization_type"] == "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE" for g in gaps)
-    assert all(g["release_authorization"]["historical_evidence_preserved"] is True for g in gaps)
-    assert gaps[0]["release_authorization"]["allocation_rule"].find("#85") >= 0
-    assert "7a036632323b7c09003d1fce637a7b49128a27bf" in gaps[0]["reason"]
-    assert "only adds provenance.source_date" in gaps[0]["reason"]
-    assert "recovered as Gold Star #56" in gaps[0]["reason"]
+    assert gaps == []
+    allocation = next(item for item in registry["numbering_allocation_history"] if item["number"] == 86)
+    assert allocation["status"] == "ALLOCATED_TO_APPROVED_GOLD_STAR"
+    assert allocation["benchmark_id"] == "general-guide-archive-examples-evidence-limits-gold-star-2026-11-18"
+    prior_gap = allocation["prior_gap_record"]
+    assert prior_gap["status"] == "RELEASED_FOR_FUTURE_ALLOCATION"
+    assert prior_gap["number"] == 86
+    assert prior_gap["release_authorization"]["authorization_type"] == "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE"
+    assert prior_gap["release_authorization"]["historical_evidence_preserved"] is True
+    assert prior_gap["release_authorization"]["allocation_rule"].find("#85") >= 0
+    assert "7a036632323b7c09003d1fce637a7b49128a27bf" in prior_gap["reason"]
+    assert "only adds provenance.source_date" in prior_gap["reason"]
+    assert "recovered as Gold Star #56" in prior_gap["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
     assert registry["integrity_audit"]["approved_gold_star_count"] == 99
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 38
