@@ -31,7 +31,7 @@ def test_integrated_nonprofit_question_recovers_answer_and_relevant_doorway(monk
     assert "different positions of dependence, access, and power" in answer
     assert "Care asks whether workloads, safety, dignity" in answer
     assert "Governance asks whether people have safe ways" in answer
-    assert "does not prove an individual's motives" in answer
+    assert "they do not prove an individual's motives" in answer
     assert result["answer"] == answer
     assert result["recommendation"]["title"] == "Building Trust-Centered Organizations"
     assert result["recommendation"]["url"] == (
