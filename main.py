@@ -6182,6 +6182,30 @@ def _guide_finalize_visitor_payload(payload, query):
         return safe
 
 
+    # Integrated nonprofit culture/power/care/governance questions require a
+    # substantive answer even when retrieval or provider composition fails. This
+    # final visitor-boundary contract keeps the analysis structural and preserves
+    # the explicit prohibition on diagnosing individuals from limited evidence.
+    if general_guide_composition._requires_nonprofit_culture_power_care_governance(query):
+        safe = dict(payload)
+        if not general_guide_composition._has_nonprofit_culture_power_care_governance_explanation(response_text):
+            safe["response"] = _sanitize_basic_inquiry_response(
+                general_guide_composition._nonprofit_culture_power_care_governance_recovery()
+            )
+        if "answer" in safe:
+            safe["answer"] = safe["response"]
+        _nonprofit_org_doorway = general_guide_composition._nonprofit_culture_power_care_governance_doorway()
+        _nonprofit_org_doorway = _normalize_authoritative_recommendation(_nonprofit_org_doorway)
+        safe["recommendation"] = _nonprofit_org_doorway
+        safe["canonical_doorway"] = _nonprofit_org_doorway
+        safe["doorway_title"] = _nonprofit_org_doorway.get("title") if _nonprofit_org_doorway else None
+        safe["doorway_url"] = _nonprofit_org_doorway.get("url") if _nonprofit_org_doorway else None
+        safe["doorway_rationale"] = _nonprofit_org_doorway.get("rationale") if _nonprofit_org_doorway else None
+        safe["processing"] = "final_visitor_boundary_nonprofit_culture_power_care_governance"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
     # Formal/informal institutional dynamics are a shared visitor contract:
     # provider/LLM and deterministic paths must explain both the distinction and
     # their interaction, then restore the verified Institutional Consciousness doorway.
