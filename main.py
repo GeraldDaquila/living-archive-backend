@@ -5499,6 +5499,7 @@ def _gold_star_doorway_omission_is_justified(gold_standard):
     return bool(reason)
 
 
+# Gold Star visitor contract: a doorway is the default; omission requires a reasoned exception.
 def _gold_star_default_doorway():
     """Return the approved broad Archive continuation when a Gold Star has no narrower doorway."""
     return {
