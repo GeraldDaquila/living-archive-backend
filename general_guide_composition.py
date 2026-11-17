@@ -1880,8 +1880,12 @@ def _requires_archive_passage_contrast(query: str) -> bool:
         r"\b(?:disagree|differ|contrast|different emphasis|opposing emphasis|tension|diverge)\w*\b",
         q,
     ))
+    # Asking to show, find, retrieve, identify, or list two contrasting
+    # passages is itself a representation request. Requiring an additional
+    # verb such as "represent" silently excluded ordinary visitor phrasing.
     asks_representation = bool(re.search(
-        r"\b(?:represent|present|describe|portray|summari[sz]e)\w*\b",
+        r"\b(?:represent|present|describe|portray|summari[sz]e|show|find|"
+        r"retrieve|identify|locate|list|give)\w*\b",
         q,
     ))
     return asks_two_passages and asks_contrast and asks_representation
@@ -1915,6 +1919,10 @@ def _archive_passage_contrast_topic_missing(question: str) -> bool:
         "attempting", "attempt", "synthesis", "synthesize", "synthesise", "the", "a",
         "an", "in", "on", "of", "for", "with", "and", "or", "to", "what", "where",
         "can", "could", "would", "please", "show", "me", "about", "any",
+        # First- and second-person framing is request scaffolding, not a topic.
+        "i", "we", "you", "my", "our", "your", "us", "tell", "explain",
+        "need", "want", "like", "find", "give", "identify", "locate", "list",
+        "retrieve", "present", "describe", "summarize", "summarise",
     }
     return not (tokens - generic)
 
