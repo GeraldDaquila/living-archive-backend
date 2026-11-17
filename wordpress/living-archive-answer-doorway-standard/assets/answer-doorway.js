@@ -102,6 +102,8 @@
   function build(item) {
     var card = document.createElement('section');
     card.className = 'la-answer-doorway';
+    card.setAttribute('role', 'group');
+    card.setAttribute('aria-live', 'polite');
     card.setAttribute('aria-label', 'Continue exploring the Living Archive');
 
     var label = document.createElement('p');
