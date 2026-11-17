@@ -58,6 +58,7 @@ def test_reflective_balance_question_opens_bounded_canonical_doorway_lookup(monk
     assert main._select_guide_node_fallback_doorway(query) == {
         "title": approved["title"],
         "url": approved["url"],
+        "rationale": approved["purpose"],
     }
 
 
@@ -167,16 +168,16 @@ def test_shared_doorway_restoration_preserves_answer_and_syncs_frontend_contract
 def test_provider_and_deterministic_payloads_receive_same_final_doorway_contract():
     import asyncio
     import json
+    from ai_workforce_restructuring_contract import (
+        recovery_response,
+        has_gold_star_coverage,
+    )
+    from general_guide_gold_standards import resolve_exact_gold_standard
 
     query = (
         "A company wants to use AI to reduce staffing costs. How should The Guide "
         "analyze this through operations, governance, human development, ethics, and stewardship?"
     )
-    from ai_workforce_restructuring_contract import (
-        recovery_response,
-        has_gold_star_coverage,
-    )
-
     screenshot_answer = (
         "For a question like this, the first task is to make the decision visible. "
         "What outcome is the organisation trying to achieve, what responsibilities does it carry, "
@@ -190,6 +191,14 @@ def test_provider_and_deterministic_payloads_receive_same_final_doorway_contract
     answer = recovery_response()
     assert not has_gold_star_coverage(screenshot_answer)
     assert has_gold_star_coverage(answer)
+
+    standard = resolve_exact_gold_standard(query)
+    assert standard["status"] == "USER_APPROVED_RELEASE_CANDIDATE"
+    expected = {
+        "title": standard["doorway_title"],
+        "url": standard["doorway_url"],
+        "rationale": standard["doorway_rationale"],
+    }
 
     async def send_payload(provider):
         events = []
@@ -211,14 +220,12 @@ def test_provider_and_deterministic_payloads_receive_same_final_doorway_contract
 
     provider_payload = asyncio.run(send_payload("llm-provider"))
     deterministic_payload = asyncio.run(send_payload("deterministic-recovery"))
-    expected = main._select_guide_node_fallback_doorway(query)
 
     for payload in (provider_payload, deterministic_payload):
-        assert payload["response"] == answer
-        assert payload["answer_quality_contract"] == "ai_workforce_restructuring_gold_star_v1"
+        assert payload["response"] == standard["expected_response"]
+        assert payload.get("answer_quality_contract") is None
         assert payload["recommendation"] == expected
         assert payload["canonical_doorway"] == expected
         assert payload["doorway_title"] == expected["title"]
         assert payload["doorway_url"] == expected["url"]
         assert payload["doorway_rationale"] == expected["rationale"]
-
