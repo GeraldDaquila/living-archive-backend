@@ -231,12 +231,12 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
     assert report["numbered_gold_star_count"] == len(numbered) == 35
-    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 53
+    assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 54
     assert report["highest_assigned_gold_star_number"] == 92
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
     assert len(report["number_assignments"]) == 35
-    assert len(report["unassigned_benchmark_ids"]) == 53
+    assert len(report["unassigned_benchmark_ids"]) == 54
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
 
@@ -1016,7 +1016,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 88
+    assert len(approved) == 89
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1025,7 +1025,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
             assert record.get("numbering_status") == "UNASSIGNED"
             assert record.get("numbering_unassigned_reason_code")
             assert record.get("numbering_unassigned_reason")
-            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive"}:
+            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns"}:
                 assert record.get("legacy_approval_grandfathered") is not True
                 assert record.get("numbering_unassigned_reason_code") == "NO_SERIAL_ALLOCATION_REQUESTED"
             elif record["benchmark_id"] not in {"gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing", "gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship", "gs-2026-11-16-collapse-adaptation-regeneration", "gs-2026-11-16-techno-utopian-thinking"}:
@@ -1065,10 +1065,10 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     assert "only adds provenance.source_date" in gaps[1]["reason"]
     assert "recovered as Gold Star #56" in gaps[1]["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 88
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 89
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 35
     assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 92
-    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 53
+    assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 54
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
 
 
@@ -1187,3 +1187,35 @@ def test_consequential_action_under_uncertainty_gold_star_preserves_exact_answer
     assert resolved["doorway_url"] == "https://geralddaquila.com/the-sovereign-sensemaking-compass/"
     assert resolved["doorway_rationale"] == record["expected_doorway"]["rationale"]
     assert resolve_exact_gold_standard("How should people act when the future is uncertain?") is None
+
+def test_ai_staffing_successor_preserves_legacy_record_and_serves_release_candidate():
+    registry = _registry()
+    old_id = "general-guide-integrated-institutional-judgment-ai-staffing-gold-star-2026-11-13"
+    successor_id = "gs-2026-11-17-ai-workforce-restructuring-successor-candidate"
+    records = {item["benchmark_id"]: item for item in registry["records"]}
+    old = records[old_id]
+    successor = records[successor_id]
+
+    assert old["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert old["expected_response"].startswith("For a question like this, the first task is to make the decision visible.")
+    assert old["runtime_exact_query_successor"] == successor_id
+    assert old["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert successor["status"] == "USER_APPROVED_RELEASE_CANDIDATE"
+    assert successor["replaces_exact_query_runtime_authority_of"] == old_id
+    assert successor["gold_star_capabilities"]["exact_answer_authority"] is True
+    assert successor["gold_star_capabilities"]["active_quality_contributor"] is False
+    assert successor["expected_response"].startswith("An organization should assess AI-led staffing reductions")
+    from ai_workforce_restructuring_contract import has_gold_star_coverage
+    assert has_gold_star_coverage(successor["expected_response"])
+    assert successor["doorway_status"] == "VERIFIED_CANONICAL_DESTINATION"
+    assert successor["expected_doorway"]["url"] == (
+        "https://geralddaquila.com/2026/05/06/agentic-systems-and-the-end-of-passive-labor/"
+    )
+    assert successor["numbering_status"] == "UNASSIGNED"
+
+    from general_guide_gold_standards import resolve_exact_gold_standard
+    resolved = resolve_exact_gold_standard(successor["query"])
+    assert resolved["benchmark_id"] == successor_id
+    assert resolved["status"] == "USER_APPROVED_RELEASE_CANDIDATE"
+    assert resolved["doorway_rationale"] == successor["expected_doorway"]["rationale"]
+
