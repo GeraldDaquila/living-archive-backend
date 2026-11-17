@@ -230,12 +230,12 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     assert report["active_runtime_gold_star_count"] == len(active)
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
-    assert report["numbered_gold_star_count"] == len(numbered) == 35
+    assert report["numbered_gold_star_count"] == len(numbered) == 36
     assert report["unassigned_approved_gold_star_count"] == len(unassigned) == 58
-    assert report["highest_assigned_gold_star_number"] == 92
+    assert report["highest_assigned_gold_star_number"] == 93
     assert report["numbering_sequence_start"] == 56
     assert [gap["number"] for gap in report["numbering_gap_register"]] == [85, 86]
-    assert len(report["number_assignments"]) == 35
+    assert len(report["number_assignments"]) == 36
     assert len(report["unassigned_benchmark_ids"]) == 58
     assert any("does not itself assert that tests passed" in item for item in report["limitations"])
 
@@ -1029,7 +1029,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 93
+    assert len(approved) == 94
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1078,9 +1078,9 @@ def test_only_85_and_86_are_documented_gaps_and_86_commit_subject_is_not_assignm
     assert "only adds provenance.source_date" in gaps[1]["reason"]
     assert "recovered as Gold Star #56" in gaps[1]["reason"]
     assert registry["numbering_policy"]["sequence_start"] == 56
-    assert registry["integrity_audit"]["approved_gold_star_count"] == 93
-    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 35
-    assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 92
+    assert registry["integrity_audit"]["approved_gold_star_count"] == 94
+    assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 36
+    assert registry["integrity_audit"]["highest_assigned_gold_star_number"] == 93
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 58
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 2
 
@@ -1330,3 +1330,55 @@ def test_complex_future_scenario_readiness_gold_star_preserves_exact_answer_and_
     assert resolved["doorway_rationale"] == record["expected_doorway"]["rationale"]
     assert compose_recovery(record["query"]) == expected
     assert resolve_exact_gold_standard("How can we prepare for an uncertain future?") is None
+
+
+def test_personal_decision_agency_gold_star_93_preserves_exact_live_answer_and_doorway():
+    from general_guide_gold_standards import resolve_exact_gold_standard
+    fixture_path = ROOT / "tests" / "fixtures" / "general_guide_personal_decision_agency_gold_standard.json"
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+    record = next(
+        item for item in _registry()["records"]
+        if item["benchmark_id"] == "general-guide-personal-decision-agency-gold-star-2026-11-17"
+    )
+
+    assert record["status"] == fixture["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["gold_star_number"] == fixture["gold_star_number"] == 93
+    assert record["numbering_status"] == "ASSIGNED"
+    assert record["query"] == fixture["query"]
+    assert record["expected_response"] == fixture["expected_response"]
+    assert record["expected_doorway"] == {
+        "title": fixture["expected_doorway_title"],
+        "url": fixture["expected_doorway_url"],
+        "rationale": fixture["expected_doorway_rationale"],
+    }
+    assert record["rating_out_of_10"] == fixture["rating_out_of_10"] == 9.7
+    assert record["user_reviewed_response"] is True
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["runtime_transfer"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is True
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
+
+    resolved = resolve_exact_gold_standard(record["query"])
+    assert resolved is not None
+    assert resolved["benchmark_id"] == record["benchmark_id"]
+    assert resolved["expected_response"] == fixture["expected_response"]
+    assert resolved["doorway_title"] == fixture["expected_doorway_title"]
+    assert resolved["doorway_url"] == fixture["expected_doorway_url"]
+    assert resolved["doorway_rationale"] == fixture["expected_doorway_rationale"]
+    assert resolve_exact_gold_standard("How should a Guide help someone make a difficult choice?") is None
+
+
+def test_personal_decision_agency_gold_star_93_has_active_transfer_review():
+    review = json.loads(
+        (ROOT / "docs" / "qa" / "gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8")
+    )
+    entry = next(
+        item for item in review["entries"]
+        if item["benchmark_id"] == "general-guide-personal-decision-agency-gold-star-2026-11-17"
+    )
+    assert entry["activation"] == "active_quality_contributor"
+    assert entry["reasoning_family"] == "personal_decision_agency_without_substituted_judgment"
+    assert "person's values and responsibilities" in entry["transferable_discipline"]
+    assert "Do not make the person's life decision" in entry["abstention_boundary"]
