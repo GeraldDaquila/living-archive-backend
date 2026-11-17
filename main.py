@@ -5532,34 +5532,7 @@ def _boundary_canonical_doorway(payload, query):
         # the inquiry. This remains evidence-bounded: no title or URL is ever
         # manufactured.
         recovery_queries = [query]
-        # When a visitor explicitly asks what examples establish and what remains
-    # unresolved, answer the evidence question before broader provenance or
-    # decision-coaching handlers can reinterpret it as a generic decision task.
-    if _is_archive_examples_evidence_limits_inquiry(query):
-        safe = dict(payload)
-        safe["response"] = _archive_examples_evidence_limits_recovery()
-        doorway = {
-            "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
-            "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
-            "rationale": (
-                "Continue into the Archive's Knowledge & Sensemaking pathway to examine how sources, "
-                "evidence, interpretation, and unresolved questions relate."
-            ),
-        }
-        safe["recommendation"] = dict(doorway)
-        safe["canonical_doorway"] = dict(doorway)
-        safe["doorway_title"] = doorway["title"]
-        safe["doorway_url"] = doorway["url"]
-        safe["doorway_rationale"] = doorway["rationale"]
-        safe["processing"] = "final_visitor_boundary_archive_examples_evidence_limits"
-        safe["route_source"] = "guide_final_visitor_boundary"
-        safe["visitor_boundary_version"] = APP_VERSION
-        print(
-            "The Guide final visitor boundary: separated example evidence, synthesis, and unresolved claims."
-        )
-        return safe
-
-    if _is_archive_claim_boundary_inquiry(query):
+     if _is_archive_claim_boundary_inquiry(query):
             recovery_queries.append(
                 query + " source attribution interpretation synthesis provenance judgment"
             )
@@ -5936,6 +5909,33 @@ def _guide_finalize_visitor_payload(payload, query):
     # Epistemic provenance questions are not decision problems. They require a
     # clear distinction between direct Archive evidence, cross-Archive synthesis,
     # and the Guide's own orienting frame.
+    # When a visitor explicitly asks what examples establish and what remains
+    # unresolved, answer the evidence question before broader provenance or
+    # decision-coaching handlers can reinterpret it as a generic decision task.
+    if _is_archive_examples_evidence_limits_inquiry(query):
+        safe = dict(payload)
+        safe["response"] = _archive_examples_evidence_limits_recovery()
+        doorway = {
+            "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+            "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii",
+            "rationale": (
+                "Continue into the Archive's Knowledge & Sensemaking pathway to examine how sources, "
+                "evidence, interpretation, and unresolved questions relate."
+            ),
+        }
+        safe["recommendation"] = dict(doorway)
+        safe["canonical_doorway"] = dict(doorway)
+        safe["doorway_title"] = doorway["title"]
+        safe["doorway_url"] = doorway["url"]
+        safe["doorway_rationale"] = doorway["rationale"]
+        safe["processing"] = "final_visitor_boundary_archive_examples_evidence_limits"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        print(
+            "The Guide final visitor boundary: separated example evidence, synthesis, and unresolved claims."
+        )
+        return safe
+
     if _is_archive_claim_boundary_inquiry(query):
         safe = dict(payload)
         safe["response"] = _archive_claim_boundary_recovery()
