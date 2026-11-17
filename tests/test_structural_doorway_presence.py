@@ -67,3 +67,19 @@ def test_reflective_balance_question_does_not_invent_doorway_without_registry_ev
 
     assert main._select_verified_doorway_conceptual_family(query) == "reflective_conceptual_balance"
     assert main._select_guide_node_fallback_doorway(query) is None
+
+
+
+def test_community_continuity_revision_recovers_its_verified_archive_doorway(monkeypatch):
+    query = "How can communities preserve continuity while revising harmful inherited patterns?"
+    assert main._select_verified_doorway_conceptual_family(query) == "community_continuity_revision"
+    doorway = main._select_guide_node_fallback_doorway(query)
+    assert doorway == {
+        "title": "From Awakening to Stewardship",
+        "url": "https://geralddaquila.com/from-awakening-to-stewardship/",
+        "rationale": "This essay examines how communities and institutions carry wisdom and responsibility across generations while renewing structures and practices that no longer serve human flourishing. It distinguishes preserving what deserves to endure from preserving harmful patterns simply because they are inherited.",
+    }
+
+    monkeypatch.setattr(main, "_canonical_primary_from_docs", lambda docs, query, profile: None)
+    recovered = main._verified_archive_doorway_fallback(query, [], {"action": "topical"})
+    assert recovered == doorway
