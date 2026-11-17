@@ -6546,6 +6546,25 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "model": "",
         }
 
+    from deterministic_answer_recovery import (
+        is_spiritual_community_accountability_question,
+        compose_recovery as _compose_spiritual_community_recovery,
+        registered_recovery_recommendation as _spiritual_community_recommendation,
+    )
+    if is_spiritual_community_accountability_question(query):
+        _spiritual_answer = _compose_spiritual_community_recovery(query)
+        _spiritual_doorway = _spiritual_community_recommendation(query)
+        return {
+            "response": _spiritual_answer,
+            "doorway_title": str((_spiritual_doorway or {}).get("title") or ""),
+            "doorway_url": str((_spiritual_doorway or {}).get("url") or ""),
+            "doorway_rationale": str((_spiritual_doorway or {}).get("rationale") or ""),
+            "recommendation": _spiritual_doorway,
+            "canonical_doorway": _spiritual_doorway,
+            "provider": "bounded_spiritual_community_accountability_recovery",
+            "model": "",
+        }
+
     # Community infrastructure trade-off questions require a substantive
     # cross-domain answer even when provider generation or retrieval is unavailable.
     # Keep the verified local-resilience doorway attached to the same recovery.
