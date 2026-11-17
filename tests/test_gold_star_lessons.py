@@ -233,11 +233,18 @@ def test_deterministic_fallback_guidance_never_appends_lesson_text_to_the_conclu
     assert len([p for p in guided.split("\n\n") if p.strip()]) == 3
 
 
-def test_generic_future_uncertainty_action_question_does_not_match_civilizational_transition_or_fragmented_knowledge():
+def test_consequential_action_question_matches_its_own_gold_star_not_unrelated_fallback_guidance():
     query = "How should people act when the future is uncertain but consequential?"
     selected = lessons.select_lesson(query)
-    assert selected is None
-    assert lessons.active_quality_contribution(query) is None
+    assert selected is not None
+    assert selected["benchmark_id"] == "gs-2026-11-17-consequential-action-under-uncertainty"
+    assert selected["exact"] is True
+    active = lessons.active_quality_contribution(query)
+    assert active is not None
+    assert active["benchmark_id"] == selected["benchmark_id"]
+    assert active["authority_mode"] == "structural_guidance_only"
+    # This exemplar is exact-answer-authorized, but not authorized for
+    # cross-question deterministic structural transfer.
     assert lessons.deterministic_fallback_contribution(query) is None
 
 
