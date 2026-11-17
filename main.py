@@ -5577,6 +5577,28 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
 
+    # Oversoul/free-will is a bounded constitutional concept family. It
+    # must keep its specialist answer and directly named doorway together for
+    # both provider and deterministic outputs, before unrelated early returns.
+    from deterministic_answer_recovery import is_oversoul_free_will_question
+    if is_oversoul_free_will_question(query):
+        from deterministic_answer_recovery import (
+            compose_recovery as _compose_oversoul_recovery,
+            registered_recovery_recommendation as _oversoul_doorway,
+        )
+        safe = dict(payload)
+        safe["response"] = _compose_oversoul_recovery(query)
+        doorway = _oversoul_doorway(query)
+        safe["recommendation"] = doorway
+        safe["canonical_doorway"] = doorway
+        safe["doorway_title"] = doorway.get("title") if doorway else None
+        safe["doorway_url"] = doorway.get("url") if doorway else None
+        safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
+        safe["processing"] = "final_visitor_boundary_oversoul_free_will_recovery"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
     # Reflective balance is a navigation obligation independent of answer
     # repair. Preserve the answer exactly and resolve the approved public
     # continuation before later early-return branches can bypass restoration.
@@ -6468,6 +6490,9 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "model": "",
         }
 
+    # Keep this predicate locally imported: this deterministic boundary is
+    # also extracted and contract-tested as an isolated function in CI.
+    from deterministic_answer_recovery import is_oversoul_free_will_question
     # Oversoul/free-will questions have an explicit provider-independent
     # recovery. Keep the answer and its directly named canonical doorway joined
     # at the deterministic boundary instead of allowing generic retrieval or
