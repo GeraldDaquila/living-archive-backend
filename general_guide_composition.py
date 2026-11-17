@@ -1130,7 +1130,7 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
     # Archive itself establishes; otherwise require conceptual orientation.
     explicit_archive_authority_request = bool(re.search(
         r"\b(?:according to|within|inside)\s+(?:the\s+)?living archive\b|"
-        r"\bwhat does (?:the\s+)?(?:living\s+)?archive say\b|"
+        r"\b(?:what|how|where|which) (?:does|do|is|are) (?:the\s+)?(?:living\s+)?archive (?:say|state|establish|define|prescribe)\b|"
         r"\bwhat is established in (?:the\s+)?(?:living\s+)?archive\b",
         _normalize_space(query),
         re.I,
