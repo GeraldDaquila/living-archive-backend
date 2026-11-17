@@ -14,6 +14,8 @@ QUESTION = (
     "How should the Guide represent each passage before attempting any synthesis?"
 )
 
+TOPIC_QUESTION = TOPIC_QUESTION
+
 SOURCES = [
     {"title": "Passage Alpha", "url": "https://geralddaquila.com/alpha/", "text": "A" * 120},
     {"title": "Passage Beta", "url": "https://geralddaquila.com/beta/", "text": "B" * 120},
@@ -23,6 +25,8 @@ SOURCES = [
 def test_explicit_two_passage_contrast_request_is_recognized():
     assert _requires_archive_passage_contrast(QUESTION)
     assert not _requires_archive_passage_contrast("What is a passage in the Living Archive?")
+    assert __import__("general_guide_composition")._archive_passage_contrast_topic_missing(QUESTION)
+    assert not __import__("general_guide_composition")._archive_passage_contrast_topic_missing(TOPIC_QUESTION)
 
 
 def test_only_two_distinct_canonical_passages_with_text_are_eligible():
@@ -58,7 +62,7 @@ def test_terminal_provider_exhaustion_recovers_from_protected_context_documents(
             return []
 
     recovered = archive_passage_contrast_recovery_from_context(
-        QUESTION,
+        TOPIC_QUESTION,
         Core(),
         {"generation_authority_protected_docs": SOURCES},
     )
@@ -75,7 +79,7 @@ def test_terminal_provider_exhaustion_uses_context_block_documents_when_no_prote
             return SOURCES
 
     recovered = archive_passage_contrast_recovery_from_context(
-        QUESTION, Core(), {"context_blocks": "retrieved archive context"}
+        TOPIC_QUESTION, Core(), {"context_blocks": "retrieved archive context"}
     )
     assert recovered is not None
     assert "Passage Alpha" in recovered["response"]
@@ -89,7 +93,7 @@ def test_terminal_provider_exhaustion_unions_partial_protected_docs_with_context
             return SOURCES[1:]
 
     recovered = archive_passage_contrast_recovery_from_context(
-        QUESTION,
+        TOPIC_QUESTION,
         Core(),
         {
             "generation_authority_protected_docs": SOURCES[:1],
@@ -108,7 +112,7 @@ def test_terminal_provider_exhaustion_states_evidence_limit_instead_of_generic_f
             return SOURCES[:1]
 
     recovered = archive_passage_contrast_recovery_from_context(
-        QUESTION, Core(), {"context_blocks": "one retrieved archive passage"}
+        TOPIC_QUESTION, Core(), {"context_blocks": "one retrieved archive passage"}
     )
     assert recovered is not None
     assert "Which subject or question" in recovered["response"]
@@ -116,20 +120,20 @@ def test_terminal_provider_exhaustion_states_evidence_limit_instead_of_generic_f
 
 
 def test_final_boundary_preserves_already_validated_deterministic_recovery_without_context():
-    topic_question = QUESTION.replace("relevant Archive passages", "Archive passages about stewardship")
+    topic_question = TOPIC_QUESTION
     recovered = _archive_passage_contrast_recovery(topic_question, SOURCES)
     assert recovered is not None
     assert is_preserved_archive_passage_contrast_recovery(recovered)
 
 
 def test_final_boundary_does_not_trust_provider_generated_passage_markup():
-    recovered = _archive_passage_contrast_recovery(QUESTION, SOURCES)
+    recovered = _archive_passage_contrast_recovery(TOPIC_QUESTION, SOURCES)
     recovered["provider"] = "external_provider"
     assert not is_preserved_archive_passage_contrast_recovery(recovered)
 
 
 def test_final_boundary_rejects_duplicate_passage_urls_even_with_two_labels():
-    recovered = _archive_passage_contrast_recovery(QUESTION, SOURCES)
+    recovered = _archive_passage_contrast_recovery(TOPIC_QUESTION, SOURCES)
     recovered["response"] = recovered["response"].replace(
         "https://geralddaquila.com/beta/",
         "https://geralddaquila.com/alpha/",
@@ -138,7 +142,7 @@ def test_final_boundary_rejects_duplicate_passage_urls_even_with_two_labels():
 
 
 def test_provider_exhaustion_recovery_preserves_both_sources_without_premature_synthesis():
-    recovered = _archive_passage_contrast_recovery(QUESTION, SOURCES)
+    recovered = _archive_passage_contrast_recovery(TOPIC_QUESTION, SOURCES)
     assert recovered is not None
     assert "[Passage Alpha](https://geralddaquila.com/alpha/)" in recovered["response"]
     assert "[Passage Beta](https://geralddaquila.com/beta/)" in recovered["response"]
@@ -146,7 +150,7 @@ def test_provider_exhaustion_recovery_preserves_both_sources_without_premature_s
 
 
 def test_provider_exhaustion_without_two_sources_states_specific_limit():
-    topic_question = QUESTION.replace("relevant Archive passages", "Archive passages about stewardship")
+    topic_question = TOPIC_QUESTION
     recovered = _archive_passage_contrast_recovery(topic_question, SOURCES[:1])
     assert recovered is not None
     assert "could not verify two distinct" in recovered["response"]
@@ -192,5 +196,19 @@ def test_missing_subject_requests_clarification_instead_of_claiming_retrieval_fa
 
 
 def test_topicful_passage_contrast_request_is_not_misclassified_as_missing_subject():
-    topic_question = QUESTION.replace("relevant Archive passages", "Archive passages about stewardship")
-    assert not __import__("general_guide_composition")._archive_passage_contrast_topic_missing(topic_question)
+    assert not __import__("general_guide_composition")._archive_passage_contrast_topic_missing(TOPIC_QUESTION)
+
+
+
+def test_main_has_dedicated_canonical_body_retrieval_for_topicful_contrast_requests():
+    from pathlib import Path
+    import ast
+
+    main_source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    tree = ast.parse(main_source)
+    source = ast.get_source_segment(main_source, tree)
+    assert "_wordpress_search_canonical_candidates(" in source
+    assert "_archive_passage_contrast_topic_missing(query)" in source
+    assert "_archive_passage_sources(" in source
+    assert "validated_distinct_passages=" in source
+    assert "generation_authority_protected_docs" in source
