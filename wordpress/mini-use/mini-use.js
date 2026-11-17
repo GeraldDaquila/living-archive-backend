@@ -85,7 +85,9 @@
 				if (count) results.appendChild(doorContainer);
 				if (!count) {
 					var noMatch = document.createElement('p');
-					noMatch.textContent = 'We couldn’t find a close match this time. Try describing the situation a little differently.';
+					noMatch.textContent = doors.length
+						? 'Possible matches were returned, but none had a complete, verified doorway for this question.'
+						: 'We couldn’t find a close match this time. Try describing the situation a little differently.';
 					results.appendChild(noMatch);
 				}
 				results.hidden = false;
