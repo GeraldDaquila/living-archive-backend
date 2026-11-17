@@ -9978,6 +9978,64 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "recommendation suppressed."
         )
 
+    # Explicit two-passage contrast has a stricter retrieval need than a doorway:
+    # registry metadata and navigation candidates are not passage evidence. Search
+    # canonical WordPress bodies for the visitor's named subject, then pass the
+    # actual bodies through the same frame-neutral, sufficiency, and question-fit
+    # gates before composition can represent them.
+    if (
+        general_guide_composition._requires_archive_passage_contrast(query)
+        and not general_guide_composition._archive_passage_contrast_topic_missing(query)
+    ):
+        try:
+            _contrast_docs = _wordpress_search_canonical_candidates(
+                resource_query, limit=10
+            )
+            _contrast_docs = [
+                item for item in _contrast_docs
+                if isinstance(item, dict)
+                and str(item.get("text") or item.get("content") or item.get("excerpt") or "").strip()
+            ]
+            _contrast_docs, _contrast_frame_boundary = use_core._frame_neutral_generation_documents(
+                _contrast_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+            )
+            if _contrast_docs:
+                _contrast_docs, _contrast_insufficient = use_core._evidence_sufficiency_gate(
+                    _contrast_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+                )
+            else:
+                _contrast_insufficient = True
+            if _contrast_docs and not _contrast_insufficient:
+                _contrast_docs, _contrast_question_unavailable = use_core._v208_question_evidence_fit_gate(
+                    _contrast_docs, resource_query, str(context_data.get("intent") or "TOPICAL_INQUIRY")
+                )
+            else:
+                _contrast_question_unavailable = True
+            _contrast_sources = general_guide_composition._archive_passage_sources(
+                _contrast_docs if not _contrast_question_unavailable else []
+            )
+            if len(_contrast_sources) >= 2:
+                composition_context["generation_authority_protected_docs"] = _contrast_docs
+                composition_context["generation_evidence_docs"] = _contrast_docs
+                composition_context["documents"] = _contrast_docs
+                archive_evidence_unavailable = False
+                print(
+                    "The Guide Archive passage contrast retrieval: "
+                    f"validated_distinct_passages={len(_contrast_sources)}; "
+                    "source=canonical_wordpress_bodies."
+                )
+            else:
+                print(
+                    "The Guide Archive passage contrast retrieval: "
+                    f"validated_distinct_passages={len(_contrast_sources)}; "
+                    "metadata_only_candidates_rejected=True."
+                )
+        except Exception as exc:
+            print(
+                "The Guide Archive passage contrast retrieval failed safely: "
+                f"exception={type(exc).__name__}."
+            )
+
     if archive_evidence_unavailable:
         # Synthesis evidence and navigation evidence have different lifecycles.
         # Keep a verified authoritative doorway in the request context so later
