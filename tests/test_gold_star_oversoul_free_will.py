@@ -26,7 +26,7 @@ def test_user_approved_oversoul_free_will_gold_star_is_frozen_and_bounded():
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
     assert is_oversoul_free_will_question(query)
     assert compose_recovery(query) == record["expected_response"]
-    assert len(record["expected_response"].split("\\n\\n")) == 3
+    assert len(record["expected_response"].split("\n\n")) == 3
     assert record["expected_doorway"] == registered_recovery_recommendation(query)
     assert record["expected_doorway"]["title"] == "Eternal / Oversoul Law – The Immutable Jurisdiction"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/oversoul-law"
