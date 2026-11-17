@@ -5833,10 +5833,19 @@ def _guide_finalize_visitor_payload(payload, query):
     if general_guide_composition.is_preserved_archive_passage_contrast_recovery(payload):
         safe = dict(payload)
         safe["response"] = _sanitize_basic_inquiry_response(response_text)
-        safe["recommendation"] = None
-        safe["canonical_doorway"] = None
-        safe["doorway_title"] = None
-        safe["doorway_url"] = None
+        if payload.get("model") == "deterministic-topic-clarification":
+            # This path answers the methodological part immediately, then asks
+            # for the one missing retrieval subject. Preserve the default Gold
+            # Star doorway rather than turning a necessary clarification into
+            # a navigation dead end.
+            safe = _guide_restore_verified_doorway(safe, query)
+        else:
+            # The two verified source links are the doorway for the completed
+            # passage comparison; do not append an unrelated general doorway.
+            safe["recommendation"] = None
+            safe["canonical_doorway"] = None
+            safe["doorway_title"] = None
+            safe["doorway_url"] = None
         safe["processing"] = "final_visitor_boundary_archive_passage_contrast_preserved"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
