@@ -344,8 +344,42 @@ def _select_guide_node_fallback_doorway(query):
         ]).casefold()
         score = sum(1 for term in terms if term in haystack)
         if score > best_score:
-            best, best_score = {"title": title, "url": url}, score
+            # The shared frontend renderer requires a grounded rationale;
+            # title/URL-only recommendations are incomplete visitor contracts.
+            rationale = str(node.get("purpose") or "").strip()
+            candidate = {"title": title, "url": url}
+            if rationale:
+                candidate["rationale"] = rationale
+            best, best_score = candidate, score
     return best if best_score else None
+
+
+def _select_reflective_balance_doorway(query):
+    """Resolve the approved public doorway for reflective balance questions.
+
+    This is node-ID-bound rather than dependent on fuzzy token overlap.
+    WordPress remains authoritative for the approved record and canonical URL.
+    """
+    if _select_verified_doorway_conceptual_family(query) != "reflective_conceptual_balance":
+        return None
+    for node in _guide_node_registry_snapshot():
+        if not isinstance(node, dict):
+            continue
+        if str(node.get("node_id") or "").strip() != "spirituality-without-escapism":
+            continue
+        if str(node.get("status") or "").strip() != "active":
+            return None
+        if str(node.get("access_class") or "").strip() != "public":
+            return None
+        title = str(node.get("title") or "").strip()
+        url = str(node.get("canonical_url") or node.get("url") or "").strip()
+        rationale = str(node.get("purpose") or "").strip()
+        return _normalize_authoritative_recommendation({
+            "title": title,
+            "url": url,
+            "rationale": rationale,
+        })
+    return None
 
 
 def _verified_archive_doorway_fallback(query, docs, profile):
@@ -5417,6 +5451,22 @@ def _guide_finalize_visitor_payload(payload, query):
             safe["doorway_url"] = None
             safe["doorway_rationale"] = None
         safe["processing"] = "final_visitor_boundary_exact_gold_standard"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
+    # Reflective balance is a navigation obligation independent of answer
+    # repair. Preserve the answer exactly and resolve the approved public
+    # continuation before later early-return branches can bypass restoration.
+    reflective_doorway = _select_reflective_balance_doorway(query)
+    if reflective_doorway is not None:
+        safe = dict(payload)
+        safe["recommendation"] = reflective_doorway
+        safe["canonical_doorway"] = reflective_doorway
+        safe["doorway_title"] = reflective_doorway["title"]
+        safe["doorway_url"] = reflective_doorway["url"]
+        safe["doorway_rationale"] = reflective_doorway.get("rationale")
+        safe["processing"] = "final_visitor_boundary_reflective_balance_doorway"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
