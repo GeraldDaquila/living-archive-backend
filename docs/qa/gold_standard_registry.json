@@ -6517,15 +6517,15 @@
       "allocation_class": "new_approved_record_not_historical_backfill",
       "prior_gap_record": {
         "number": 85,
-        "status": "ALLOCATED_TO_APPROVED_GOLD_STAR",
-        "reason_code": "ALLOCATED_TO_NEW_USER_APPROVED_GOLD_STAR",
-        "reason": "Serial #85 had no recoverable canonical assignment when the two historical gaps were audited. Under the explicit 2026-11-16 authorization reserving #85 for the next newly approved Gold Star, it is now allocated to general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18. GitHub PR #85 remains unrelated: it is a September 2026 v340 topical-doorway question-alignment change, not a Gold Star assignment.",
+        "status": "RELEASED_FOR_FUTURE_ALLOCATION",
+        "reason_code": "NO_CANONICAL_ALLOCATION_RECORD",
+        "reason": "No approved Gold Star record or canonical assignment event for serial #85 was recovered in the canonical registry or reviewed Gold Star PR/commit evidence. GitHub PR #85 is a September 2026 v340 topical-doorway code change, not a Gold Star assignment.",
         "evidence_checked": [
           "Canonical registry record-level assignments on main",
           "Gold Star registry commit history",
           "GitHub PR #85: v340 topical doorway question-alignment repair"
         ],
-        "disposition": "Historical gap retained as evidence; serial #85 has now been allocated to the newly approved ownership/management/stewardship Gold Star under the explicit 2026-11-16 two-number exception. No existing record was renumbered or backfilled.",
+        "disposition": "Historical gap retained as evidence; serial #85 is released solely for the next new, explicitly approved Gold Star allocation under the two-number exception. No existing record is renumbered or backfilled.",
         "release_authorization": {
           "authorization_type": "EXPLICIT_USER_AUTHORIZED_HISTORICAL_GAP_RELEASE",
           "approved_by": "user",
@@ -6533,12 +6533,6 @@
           "authority": "User explicitly agreed to release both #85 and #86 as two exceptions in the conversation on 2026-11-16.",
           "allocation_rule": "Reserve #85 for the next newly approved Gold Star, then #86 for the following newly approved Gold Star. Allocation requires a new unique benchmark_id, explicit user approval of Gold Star elevation, and a record-level gold_star_number assignment. Do not assign either number to an existing approved record or infer an exemplar.",
           "historical_evidence_preserved": true
-        },
-        "allocation": {
-          "benchmark_id": "general-guide-ownership-management-stewardship-comparison-gold-star-2026-11-18",
-          "allocated_at": "2026-11-18",
-          "authority": "Explicit user instruction to elevate this new Gold Star, applied to the pre-authorized #85-then-#86 allocation order.",
-          "allocation_class": "new_approved_record_not_historical_backfill"
         }
       }
     }
