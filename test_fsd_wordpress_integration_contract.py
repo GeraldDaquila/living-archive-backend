@@ -53,7 +53,8 @@ def test_ui_preserves_respondent_provenance_and_archive_boundary():
     assert "independently_verified!==false" in JS
     assert "Respondent-reported account; not independently verified." in JS
     assert "conceptual_context_only" in JS
-    assert "they do not verify the reported episode" in JS
+    assert "rationale:ref.rationale" in JS
+    assert "conceptual_context_only" in JS
 
 
 def test_assets_are_staging_only_and_cache_version_is_aligned():
