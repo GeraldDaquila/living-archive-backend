@@ -110,3 +110,33 @@ def test_deterministic_route_binds_answer_and_doorway_together():
     assert deterministic["recommendation"] == EXPECTED_DOORWAY
     assert deterministic["doorway_title"] == EXPECTED_DOORWAY["title"]
     assert deterministic["doorway_url"] == EXPECTED_DOORWAY["url"]
+
+
+def test_spiritual_community_accountability_is_registered_as_user_approved_gold_star_93():
+    import json
+    from pathlib import Path
+    from general_guide_gold_standards import resolve_exact_gold_standard
+
+    registry_path = Path(__file__).resolve().parents[1] / "docs" / "qa" / "gold_standard_registry.json"
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-spiritual-community-accountability-gold-star-2026-11-17"
+    )
+
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["gold_star_number"] == 93
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["rating_out_of_10"] == 9.5
+    assert record["expected_response"] == compose_recovery(QUERY)
+    assert record["expected_doorway"]["title"] == "Community Accountability Systems"
+    assert record["expected_doorway"]["url"] == EXPECTED_DOORWAY["url"]
+    assert record["doorway_status"] == "VERIFIED_CANONICAL_SELECTED"
+
+    exact = resolve_exact_gold_standard(QUERY)
+    assert exact is not None
+    assert exact["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert exact["expected_response"] == compose_recovery(QUERY)
+    assert exact["doorway_title"] == EXPECTED_DOORWAY["title"]
+    assert exact["doorway_url"] == EXPECTED_DOORWAY["url"]
+    assert exact["doorway_rationale"] == EXPECTED_DOORWAY["rationale"]
