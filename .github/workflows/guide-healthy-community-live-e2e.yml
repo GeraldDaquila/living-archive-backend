@@ -9,6 +9,8 @@ on:
       - "tests/test_human_development_conceptual_recovery.py"
       - ".github/workflows/guide-healthy-community-live-e2e.yml"
       - "tests/test_conceptual_guide_grounding_boundary.py"
+      - "general_guide_gold_standards.py"
+      - "tests/test_general_guide_gold_standard_doorway_policy.py"
   push:
     branches: [main]
     paths:
@@ -16,6 +18,8 @@ on:
       - "QA/guide_healthy_community_live_e2e.mjs"
       - ".github/workflows/guide-healthy-community-live-e2e.yml"
       - "tests/test_conceptual_guide_grounding_boundary.py"
+      - "general_guide_gold_standards.py"
+      - "tests/test_general_guide_gold_standard_doorway_policy.py"
   workflow_dispatch:
 
 permissions:
