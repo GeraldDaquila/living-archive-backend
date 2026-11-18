@@ -818,21 +818,18 @@ def is_interpretation_revision_evidence_question(question):
 
 
 def _interpretation_revision_evidence_recovery():
-    """Make a claim-sensitive evidence method visible without judging the visitor's belief."""
+    """Give a practical, claim-sensitive method for revising an interpretation."""
     return (
-        "A useful starting point is to separate the experience from the interpretation you have placed on it. "
-        "What you felt, noticed, or lived through may be real and important without every explanation of its source being established. "
-        "Examining an explanation does not require you to dismiss the experience. The right test depends on the kind of claim being made.\n\n"
-        "For a claim about an observable event, another person's actions, a cause, or a pattern in the world, work through five checks:\n\n"
-        "1. **Name the claim.** What, exactly, are you saying happened or caused what? Separate what you directly experienced from what you infer it means.\n"
-        "2. **Check the evidence.** What records or observations can be checked independently, and can their origins be traced? Do apparently separate sources actually repeat one original account?\n"
-        "3. **Test alternatives.** What else could explain the same experience? What would your interpretation lead you to expect, and does that expectation recur under comparable conditions?\n"
-        "4. **Specify disconfirmation.** What particular observation would count against your interpretation? If no possible observation could change your view, you are protecting the claim from testing.\n"
-        "5. **Apply one standard.** Give supporting and challenging evidence the same scrutiny. Do not lower the bar for evidence that agrees with you or demand impossible certainty from evidence that does not.\n\n"
-        "For a metaphysical claim or one about personal meaning, be clear about what public evidence can and cannot establish. "
-        "An experience may remain meaningful even when its supernatural explanation is uncertain. But if a spiritual claim makes observable predictions, describing it as spiritual does not exempt those predictions from examination. "
-        "You can revise the factual explanation while retaining the experience's personal significance, or suspend judgment when the evidence cannot decide the matter. "
-        "The practical standard is this: say in advance what would strengthen the interpretation, weaken it, or leave it unresolved—and allow the evidence, including contrary evidence, to make a difference."
+        "Separate the experience from the explanation you have placed on it. What you felt, noticed, or lived through can be real and important even when its cause or meaning is uncertain. Examining an explanation does not require you to dismiss the experience—or to accept your first interpretation of it.\n\n"
+        "First identify what kind of claim you are making. A claim about an observable event, another person's actions, a cause, or a pattern in the world can be checked against evidence. A metaphysical claim or a claim about personal meaning may not be settled by public evidence in the same way. If it makes observable predictions, however, those predictions can and should be examined.\n\n"
+        "For an observable claim, use five tests:\n\n"
+        "1. **State the claim precisely.** What did you directly experience, and what are you inferring from it? Keep the observation separate from the explanation.\n"
+        "2. **Trace the evidence.** What records or observations could someone else check? Where did each come from? Several accounts are not independent corroboration if they all repeat the same original source.\n"
+        "3. **Compare alternatives.** What else could produce the same observation? What would each explanation lead you to expect? Include ordinary explanations and evidence that does not fit your preferred account.\n"
+        "4. **Name what could change your mind.** Before looking for more evidence, specify an observation that would weaken the claim. If no possible observation could count, be honest that this is a commitment of faith or meaning, not an empirically established conclusion.\n"
+        "5. **Choose a proportionate update.** You might retain the interpretation, narrow it, lower your confidence, revise its factual explanation, or suspend judgment. The evidence need not force an all-or-nothing choice. Apply the same standard to evidence on both sides.\n\n"
+        "For example, if you interpret repeatedly thinking of someone shortly before they contact you as evidence of a special connection, record every instance in advance—including times you think of them and they do not contact you. Set the time window beforehand and compare the full pattern, not only the striking coincidences. This does not decide what the relationship means to you; it tests the specific claim that the coincidences establish a cause or connection.\n\n"
+        "You can keep the personal significance of an experience while changing your account of what caused it. The sound standard is neither automatic belief nor automatic disbelief: state what would strengthen the interpretation, what would weaken it, and what evidence would leave it unresolved—and then let those conditions genuinely affect your view."
     )
 
 
