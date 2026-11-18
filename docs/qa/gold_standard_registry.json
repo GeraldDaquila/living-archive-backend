@@ -6981,7 +6981,7 @@
       "user_approved_at": "2026-11-18"
     }
   ],
-  "last_reconciliation_note": "2026-11-18: Reconciled the distinct approved calibration-versus-validation promotion and remedy-selection Gold Stars. Canonical inventory: 108 approved Gold Stars across 146 registry records; 107 active runtime-transfer contributors, 38 numbered, 70 UNASSIGNED. Each benchmark has a unique active qualitative-transfer review. No existing benchmark identity or serial changed.",
+  "last_reconciliation_note": "2026-11-18: Reconciled the distinct approved calibration-versus-validation promotion and remedy-selection Gold Stars. Canonical inventory: 109 approved Gold Stars across 146 registry records; 107 active runtime-transfer contributors, 38 numbered, 71 UNASSIGNED. Each benchmark has a unique active qualitative-transfer review. No existing benchmark identity or serial changed.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -7113,11 +7113,11 @@
     "last_audit_date": "2026-11-18",
     "approved_gold_star_count": 109,
     "registry_record_count": 146,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 108 approved Gold Stars across 146 registry records. 107 are active quality contributors with matching qualitative-transfer reviews; one is an exact-query-only successor and one migrated duplicate is preserved as a superseded historical reference only. The calibration-versus-validation promotion and remedy-selection benchmarks are distinct approved active contributors. No existing benchmark identity or serial changed.",
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 109 approved Gold Stars across 146 registry records. 107 are active quality contributors with matching qualitative-transfer reviews; one is an exact-query-only successor and one migrated duplicate is preserved as a superseded historical reference only. The calibration-versus-validation promotion and remedy-selection benchmarks are distinct approved active contributors. No existing benchmark identity or serial changed.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 108 approved Gold Stars; 38 assigned display serials #56–#93; 70 approved records explicitly UNASSIGNED with reasons. No existing serial changed and no new serial was allocated.",
-    "unassigned_approved_gold_star_count": 70,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 109 approved Gold Stars; 38 assigned display serials #56–#93; 71 approved records explicitly UNASSIGNED with reasons. No existing serial changed and no new serial was allocated.",
+    "unassigned_approved_gold_star_count": 71,
     "documented_numbering_gap_count": 0
   },
   "numbering_policy": {
