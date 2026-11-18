@@ -7089,7 +7089,7 @@
     "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 108 approved Gold Stars across 146 registry records. 106 are active quality contributors with matching qualitative-transfer reviews; one is an exact-query-only successor and one migrated duplicate is preserved as a superseded historical reference only. The calibration-versus-validation promotion benchmark is a distinct approved active contributor and remains UNASSIGNED. No existing benchmark identity or serial changed.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 107 approved Gold Stars; 38 assigned display serials #56–#93; 69 approved records explicitly UNASSIGNED with reasons. No existing serial changed and no new serial was allocated.",
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 108 approved Gold Stars; 38 assigned display serials #56–#93; 70 approved records explicitly UNASSIGNED with reasons. No existing serial changed and no new serial was allocated.",
     "unassigned_approved_gold_star_count": 70,
     "documented_numbering_gap_count": 0
   },
