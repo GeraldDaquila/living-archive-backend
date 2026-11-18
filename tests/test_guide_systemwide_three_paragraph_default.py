@@ -842,3 +842,59 @@ def test_compact_provider_prompt_carries_the_sitewide_gold_star_floor_without_fi
     assert "A polished non-answer is still a failed answer" in prompt
     assert "the response form remains task-dependent" in prompt
     assert "Do not impose a fixed paragraph count" in prompt
+
+
+
+def test_archive_formal_definition_abstention_is_rejected_for_ordinary_questions():
+    from general_guide_composition import is_generic_nonanswer, _requires_substantive_answer_contract
+
+    query = "What is the role of trust in community stewardship?"
+    refusal = (
+        "The Archive does not appear to provide a single formal definition for this exact relationship. "
+        "A useful Archive doorway is Trust Architecture: The Missing Infrastructure Behind Functional Societies. "
+        "It offers a grounded way to explore one of the central ideas in your question, without implying that "
+        "the Archive has formally defined the relationship itself."
+    )
+    assert _requires_substantive_answer_contract(query)
+    assert is_generic_nonanswer(query, refusal)
+
+    archive_query = "What does the Living Archive explicitly establish about this particular spiritual practice?"
+    assert not is_generic_nonanswer(archive_query, refusal)
+
+
+def test_trust_community_stewardship_recovery_matches_live_acceptance_contract():
+    from deterministic_answer_recovery import (
+        compose_recovery,
+        has_registered_recovery,
+        is_trust_community_stewardship_question,
+        registered_recovery_recommendation,
+    )
+    from general_guide_composition import enforce_response_contracts
+
+    query = "What is the role of trust in community stewardship?"
+    assert is_trust_community_stewardship_question(query)
+    assert not is_trust_community_stewardship_question("What is trust?")
+    assert has_registered_recovery(query)
+
+    answer = compose_recovery(query)
+    paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
+    assert len(paragraphs) == 3
+    normalized = " ".join(answer.casefold().split())
+    for phrase in (
+        "trust helps people in a community rely on one another",
+        "think of a shared garden",
+        "stewardship is tending the garden",
+        "competence",
+        "consistency",
+        "fairness",
+        "reciprocity",
+        "accountability",
+        "question and correct decisions",
+    ):
+        assert phrase in normalized
+    assert enforce_response_contracts(query, "The Archive does not appear to provide a single formal definition for this exact relationship.") == answer
+
+    doorway = registered_recovery_recommendation(query)
+    assert doorway["title"] == "Trust Architecture: The Missing Infrastructure Behind Functional Societies"
+    assert doorway["url"] == "https://geralddaquila.com/2026/09/07/trust-architecture-the-missing-infrastructure-behind-functional-societies/"
+    assert "social infrastructure" in doorway["rationale"].lower()
