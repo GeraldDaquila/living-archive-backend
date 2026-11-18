@@ -857,6 +857,41 @@ def is_resonance_confirmation_bias_question(question):
     return names_both and discernment_task and (intuition_context or action_context)
 
 
+def is_felt_truth_claim_discernment_question(question):
+    """Recognize claims whose felt appeal is being mistaken for evidence."""
+    q = _clean(question).casefold()
+    names_claim = bool(re.search(
+        r"\b(?:claims?|beliefs?|ideas?|assumptions?|interpretations?)\b", q
+    ))
+    names_appeal = bool(re.search(
+        r"\b(?:feel(?:s|ing)?\s+(?:true|right|beautiful|empowering)|"
+        r"beautiful|empowering|resonat\w*|emotionally\s+compelling)\b", q
+    ))
+    asks_examination = bool(re.search(
+        r"\b(?:examin\w*|test\w*|question\w*|scrutiniz\w*|"
+        r"evaluat\w*|assess\w*|investigat\w*|evidenc\w*)\b", q
+    ))
+    return names_claim and names_appeal and asks_examination
+
+
+def _felt_truth_claim_discernment_recovery():
+    """Separate personal meaning from evidentiary support and provide a usable audit."""
+    return (
+        "A claim can feel deeply true without necessarily being true. An idea may resonate with your experience, offer a beautiful explanation of the world, or restore a sense of purpose and agency. Those experiences deserve attention, but they are not themselves proof of the claims attached to them. The first discipline is to distinguish the value of an experience from the accuracy of the interpretation built around it.\n\n"
+        "Emotionally attractive beliefs can become self-protecting. We notice confirming experiences, overlook contradictions, interpret ambiguity in our favor, and mistake the comfort a belief provides for evidence that it is correct. This does not mean beautiful, spiritual, hopeful, or empowering ideas are necessarily false. It means their appeal should not exempt them from examination.\n\n"
+        "A practical examination has seven steps:\n"
+        "1. **State the claim precisely.** What exactly are you accepting? Separate the proposition from the emotions, promises, and implications surrounding it.\n"
+        "2. **Separate experience from interpretation.** What did you directly observe or experience? What meaning did you assign to it? Both matter, but they are different kinds of information.\n"
+        "3. **Identify the evidence.** What supports the claim independently of how compelling it feels? Is the evidence direct, repeatable, independently corroborated, or dependent on one interpretation?\n"
+        "4. **Look for disconfirming evidence.** What would make the claim less credible? What observation would count against it? A belief that can accommodate every possible outcome without changing is difficult to examine meaningfully.\n"
+        "5. **Consider alternative explanations.** Could the same experience be explained by expectation, selective attention, coincidence, social reinforcement, personal need, or another plausible mechanism?\n"
+        "6. **Examine what the belief does.** Does it increase your capacity to think, act responsibly, and remain open to correction? Or does it make you dependent on an authority, resistant to questions, or afraid of contrary evidence?\n"
+        "7. **Adjust confidence proportionately.** You do not have to accept or reject everything immediately. You can retain an experience's personal significance while suspending judgment about its explanation.\n\n"
+        "Discernment does not require becoming cynical. It requires refusing to confuse emotional resonance with epistemic certainty. Something can be beautiful without being factual, empowering without being universally applicable, and personally meaningful without being independently established. Equally, discovering that an explanation is mistaken does not necessarily invalidate the experience that led you to it.\n\n"
+        "The aim is not to strip life of meaning. It is to build meanings that can withstand honest examination. Let what resonates invite investigation, let evidence determine confidence, and let the willingness to revise remain part of what makes a belief worth holding."
+    )
+
+
 def _resonance_confirmation_bias_recovery():
     """Separate intuitive signal from interpretation, then test the proposed pattern."""
     return (
@@ -883,6 +918,7 @@ def has_registered_recovery(question):
         is_guide_personal_decision_agency_question(question)
         or is_interpretation_revision_evidence_question(question)
         or is_resonance_confirmation_bias_question(question)
+        or is_felt_truth_claim_discernment_question(question)
         or is_oversoul_ego_authority_question(question)
         or is_external_discernment_outsourcing_question(question)
         or is_personality_soul_oversoul_question(question)
@@ -923,6 +959,17 @@ def registered_recovery_recommendation(question):
             "url": "https://geralddaquila.com/2026/04/06/seeing-patterns-without-fooling-yourself/",
             "rationale": (
                 "This essay offers a practical way to examine whether a perceived pattern is supported or projected: repeatability, plausible mechanism, constraints, and disconfirmation. It is a method for testing an interpretation, not independent proof for or against a spiritual claim."
+            ),
+        }
+    if is_felt_truth_claim_discernment_question(question):
+        return {
+            "title": "Seeing Patterns Without Fooling Yourself",
+            "url": "https://geralddaquila.com/2026/04/06/seeing-patterns-without-fooling-yourself/",
+            "rationale": (
+                "This essay offers a practical method for examining whether a perceived pattern is supported or projected. "
+                "Its filters—repeatability, plausible mechanism, constraints, and disconfirmation—extend the question of how "
+                "to test emotionally compelling claims without letting confirmation bias decide the result. It is a method "
+                "for examination, not independent proof for or against any particular belief."
             ),
         }
     if is_resonance_confirmation_bias_question(question):
@@ -1151,6 +1198,10 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     # Evidence-discernment questions must not fall through to generic reflection.
     if is_resonance_confirmation_bias_question(q):
         return _resonance_confirmation_bias_recovery()
+
+    # Felt-truth questions require claim-sensitive examination, not generic encouragement.
+    if is_felt_truth_claim_discernment_question(q):
+        return _felt_truth_claim_discernment_recovery()
 
     # Retrospective accountability must outrank generic decision advice:
     # evaluate process using what was knowable then, not the outcome known now.
