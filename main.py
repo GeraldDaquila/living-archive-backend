@@ -9553,6 +9553,51 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     request_deadline = time.monotonic() + GUIDE_REQUEST_BUDGET_SECONDS
     composition_repair_attempted = False
     query = str(query or "").strip()
+    # This meta-governance question has a provider- and retrieval-independent
+    # answer. Intercept it before Glossary/Pinecone discovery: an infrastructure
+    # outage must not prevent USE from explaining how to distinguish an
+    # infrastructure defect from a genuine reasoning-capability gap.
+    _remedy_selection = general_guide_composition._gold_star_remedy_selection_recovery(query)
+    if _remedy_selection is not None:
+        _request_id = "gold-star-remedy-" + hashlib.sha1(query.encode("utf-8")).hexdigest()[:16]
+        _answer = str(_remedy_selection.get("response") or "").strip()
+        if not _answer:
+            raise RuntimeError("Gold Star remedy-selection recovery returned no answer.")
+        print(
+            "The Guide early deterministic boundary: "
+            "source=gold_star_remedy_selection, retrieval_invoked=false, provider_invoked=false"
+        )
+        return {
+            "ok": True,
+            "version": APP_VERSION,
+            "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "source_sha256": RUNTIME_SOURCE_SHA256,
+            "request_id": _request_id,
+            "query": query,
+            "intent": "TOPICAL_INQUIRY",
+            "response": _answer,
+            "recommendation": None,
+            "canonical_doorway": None,
+            "doorway_title": None,
+            "doorway_url": None,
+            "doorway_omission_reason": "no_verified_direct_archive_continuation",
+            "answer_basis": {
+                "kind": "general_knowledge",
+                "label": "USE learning-governance method",
+                "explanation": "A bounded, provider-independent explanation; no Living Archive source or doorway is implied.",
+            },
+            "response_provenance": {
+                "class": "deterministic_recovery",
+                "provider": str(_remedy_selection.get("provider") or "bounded_gold_star_remedy_selection_recovery"),
+                "model": None,
+                "quality_adjusted_llm_eligible": True,
+                "llm_invoked": False,
+            },
+            "processing": "gold_star_remedy_selection_recovery",
+            "route_source": "guide_early_deterministic_boundary",
+            "recovery": "gold_star_remedy_selection",
+            "visitor_boundary_version": APP_VERSION,
+        }
     # Classify the bounded newcomer intent before retrieval so the same question
     # does not pay for general discovery and then discard that work for recovery.
     healthy_community_short_circuit = _is_healthy_community_orientation_question(query)
