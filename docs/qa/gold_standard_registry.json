@@ -6789,7 +6789,8 @@
       },
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial. Preserve benchmark_id as the stable learning identity."
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial. Preserve benchmark_id as the stable learning identity.",
+      "legacy_approval_grandfathered": false
     }
   ],
   "last_reconciliation_note": "2026-11-18: Added the multi-candidate Gold Star adjudication benchmark after incorporating the concurrent scope-governance doorway update. Canonical inventory: 105 approved Gold Stars across 142 registry records; 103 runtime-transfer contributors, 38 numbered, 67 UNASSIGNED. Review entries reconcile exactly; no serial was allocated or changed.",
