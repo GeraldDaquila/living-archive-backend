@@ -153,7 +153,7 @@ def test_final_visitor_boundary_does_not_capture_unrelated_queries():
     )
 
 
-def test_felt_truth_candidate_is_not_promoted_into_the_gold_star_ledger_early():
+def test_felt_truth_discernment_is_registered_as_an_approved_gold_star():
     from pathlib import Path
     import json
 
@@ -163,7 +163,14 @@ def test_felt_truth_candidate_is_not_promoted_into_the_gold_star_ledger_early():
             encoding="utf-8"
         )
     )
-    assert not any(
-        item.get("benchmark_id") == "gs-2026-11-19-felt-truth-claim-discernment"
-        for item in registry["records"]
+    record = next(
+        item for item in registry["records"]
+        if item.get("benchmark_id") == "gs-2026-11-19-felt-truth-claim-discernment"
     )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["rating_out_of_10"] == 9.5
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert "appropriate to the kind of claim" in record["expected_response"]
+    assert record["expected_response"] == recovery.compose_recovery(QUERY)
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
