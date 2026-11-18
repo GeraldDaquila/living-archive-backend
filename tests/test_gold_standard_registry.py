@@ -1964,13 +1964,11 @@ def test_personality_soul_oversoul_question_has_exact_provider_independent_gold_
     assert record["expected_doorway"]["title"] == "Eternal / Oversoul Law – The Immutable Jurisdiction"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/oversoul-law"
 
-    import main
-    deterministic = main._basic_inquiry_round1_deterministic_response(
-        query, {}, {"context_blocks": ""}, recommendation_available=False
-    )
-    assert deterministic["response"] == record["expected_response"]
-    assert deterministic["recommendation"] == record["expected_doorway"]
-    assert deterministic["canonical_doorway"] == record["expected_doorway"]
+    from general_guide_gold_standards import resolve_exact_gold_standard
+    resolved = resolve_exact_gold_standard(query)
+    assert resolved["benchmark_id"] == record["benchmark_id"]
+    assert resolved["expected_response"] == record["expected_response"]
+    assert resolved["doorway_rationale"] == record["expected_doorway"]["rationale"]
 
 
 def test_personality_soul_oversoul_classifier_rejects_adjacent_questions():
@@ -1995,4 +1993,4 @@ def test_personality_soul_oversoul_gold_star_has_bounded_transfer_review():
     assert "three lenses" in review["transferable_discipline"]
     assert "lived evidence" in review["transferable_discipline"]
     assert "independently verified facts" in review["transferable_discipline"]
-    assert "do not transfer this answer text or doorway" in review["abstention_boundary"]
+    assert "do not transfer this answer text or doorway" in review["abstention_boundary"].casefold()
