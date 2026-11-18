@@ -13,18 +13,20 @@ QUERY = (
 EXPECTED_OPENING = "USE should recognize a shared reasoning weakness"
 
 
-def test_gold_star_structural_template_is_default_in_both_live_and_editorial_prompts():
+def test_gold_star_quality_floor_is_task_dependent_in_both_live_and_editorial_prompts():
     source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
-    assert source.count("default structural template across every visitor-facing Guide path") == 2
-    assert source.count("default structural template, not a universal subject-matter template") == 0
-    assert source.count("QUESTION-FIRST, DEFAULT GOLD STAR STRUCTURAL TEMPLATE") == 2
-    assert "SYSTEM-WIDE GOLD STAR STRUCTURAL TEMPLATE (default across the entire Guide)" in source
-    assert "Subject adaptation changes what each structural move contains; it does not make the default architecture optional." in source
+    assert source.count("QUESTION-FIRST, TASK-DEPENDENT COMPOSITION GOVERNANCE") == 2
+    assert "SYSTEM-WIDE GOLD STAR STRUCTURAL TEMPLATE" not in source
+    assert "GOLD STAR QUALITY GOVERNANCE" in source
+    assert "TASK-DEPENDENT PRESENTATION STANDARD" in source
+    assert "three purposeful paragraphs by default" not in source
+    assert "defaults to three purposeful paragraphs" not in source
     compact_start = source.index("_GENERAL_GUIDE_SYSTEM_COMPACT =")
     compact_end = source.index("\n_GENERAL_GUIDE_SYSTEM =", compact_start)
     compact = source[compact_start:compact_end]
-    assert "default structural template across every visitor-facing Guide path" in compact
-    assert "specialist routes, retrieval-grounded composition, deterministic recovery, provider-exhaustion fallback" in compact
+    assert "quality and reasoning-governance standard, not a prescribed answer template" in compact
+    assert "Do not impose a fixed paragraph count" in compact
+    assert "Specialized guidance is conditional" in compact
 
 
 def test_cross_question_pattern_learning_query_has_provider_independent_gold_standard_recovery():

@@ -401,9 +401,9 @@ def test_healthy_community_newcomer_uses_three_paragraph_recovery_before_composi
     assert '"provider": "bounded_healthy_community_orientation_recovery"' in inquiry
 
 
-def test_early_paragraph_guard_does_not_trigger_a_second_composition():
+def test_final_quality_guard_is_task_dependent_and_does_not_trigger_a_second_composition():
     start = SOURCE.index(
-        "# Paragraph quality is enforced at the final payload boundary below."
+        "# Apply the shared task-dependent quality contract at the final visitor boundary."
     )
     end = SOURCE.index(
         "if general_guide_composition._requires_responsibility_boundary_answer(query)",
@@ -411,7 +411,8 @@ def test_early_paragraph_guard_does_not_trigger_a_second_composition():
     )
     guard = SOURCE[start:end]
     assert "general_guide_composition.compose(" not in guard
-    assert "single final repair" in guard
+    assert "Do not run a second composition merely to satisfy a prescribed answer shape." in guard
+    assert "never paragraph count" in guard
 
 
 
