@@ -183,6 +183,6 @@ def test_cross_question_gold_star_prompt_receives_and_adjudicates_qualifying_con
     user_message = next(item["content"] for item in captured["messages"] if item["role"] == "user")
     assert "qualifying context=Questions involving consequential choices" in user_message
     assert "abstention boundary=Do not impose this frame on simple factual questions" in user_message
-    system_message = next(item["content"] for item in captured["messages"] if item["role"] == "system")
-    assert "BOTH its reviewed qualifying context and abstention boundary" in user_message
+    assert "cross-question candidate must fit" in user_message
+    assert "exact-match candidate remains confined to that exact normalized question" in user_message
     assert "Shared vocabulary, a similar reasoning family, or a high similarity score is insufficient" in user_message
