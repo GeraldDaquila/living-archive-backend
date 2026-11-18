@@ -160,9 +160,12 @@ def test_outermost_boundary_reapplies_doorway_after_all_inner_early_returns():
 
     source = (Path(main.__file__).resolve().parent / "main.py").read_text(encoding="utf-8")
     outer = source.index("safe_payload = _guide_finalize_visitor_payload(payload, query)")
-    restore = source.index("safe_payload = _guide_restore_verified_doorway(safe_payload, query)", outer)
+    terminal_policy = source.index(
+        "safe_payload = _guide_enforce_terminal_doorway_policy(",
+        outer,
+    )
     provenance = source.index('safe_payload.setdefault("build_provenance"', outer)
-    assert outer < restore < provenance
+    assert outer < terminal_policy < provenance
 
 
 def test_reviewed_gold_star_exception_is_the_only_registry_based_suppression():
