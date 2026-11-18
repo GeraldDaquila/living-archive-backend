@@ -524,7 +524,7 @@ def shadow_observation(query: str) -> Tuple[Optional[str], Optional[float]]:
 def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
     """Return up to three ranked structural candidates for explicit adjudication."""
     candidates = [
-        item for item in select_lesson_candidates(query, limit=3)
+        item for item in select_lesson_candidates(query, limit=len(_LESSONS))
         if str(item.get("qualifying_context") or "").strip()
         and str(item.get("abstention_boundary") or "").strip()
         and str(item.get("transferable_discipline") or "").strip()
