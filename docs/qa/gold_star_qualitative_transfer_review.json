@@ -986,6 +986,15 @@
       "qualifying_context": "Questions asking what evidence would establish genuine autonomy, adaptivity, resilience, or improvement in an AI system, especially when sustained operation or response volume is being offered as proof.",
       "abstention_boundary": "Do not transfer the answer text. Do not claim the Guide or another system has demonstrated any capability without operational evidence. Do not invent sample sizes, thresholds, benchmark results, or rates. Do not impose this protocol on unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-19-felt-truth-claim-discernment",
+      "question": "What claims am I accepting because they feel true, beautiful, or empowering—and what would it take to examine them carefully?",
+      "reasoning_family": "felt_truth_claim_discernment",
+      "transferable_discipline": "When a visitor questions claims or beliefs because they feel true, beautiful, empowering, resonant, or emotionally compelling, distinguish the lived experience and its personal value from the factual accuracy of the attached interpretation. Require precise claim formulation, separation of observation and interpretation, independent evidence, disconfirming tests, alternative explanations, examination of belief effects, and proportionate confidence. Preserve meaning without treating emotional appeal as proof.",
+      "qualifying_context": "Questions asking how to examine beliefs or claims that feel true, beautiful, empowering, resonant, comforting, or emotionally compelling, especially when the visitor explicitly asks for careful examination or evidence.",
+      "abstention_boundary": "Do not imply that emotionally compelling, beautiful, spiritual, hopeful, or empowering claims are necessarily false. Do not dismiss or invalidate the visitor's experience. Do not treat resonance, comfort, intensity, or usefulness as evidence that a proposition is factually true. Do not impose a spiritual framework, assume the claim's content, or transfer this answer text or doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
