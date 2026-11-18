@@ -950,6 +950,15 @@
       "qualifying_context": "Explicit meta-governance questions asking how to decide whether a recurring weakness warrants a new Gold Star or instead belongs in retrieval, source metadata/indexing, or deterministic logic. This is an internal USE learning-governance discipline, not a default frame for ordinary visitor questions.",
       "abstention_boundary": "Do not infer a reasoning gap from a repeated symptom before checking the owning engineering layer; do not create Gold Stars for code, retrieval, metadata, or indexing repairs; do not infer cross-question recurrence from one case or lexical overlap; do not claim unavailable evaluation evidence; and do not force an Archive doorway when no verified direct continuation materially advances the inquiry.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-retrieval-outage-deterministic-recovery-disclosure-gold-star-2026-11-18",
+      "question": "A retrieval service fails, but the Guide can still access previously verified source references and deterministic recovery mechanisms. What should it do, and what should it disclose?",
+      "reasoning_family": "retrieval_outage_recovery_and_evidence_disclosure",
+      "transferable_discipline": "Separate retrieval-service availability from answerability. Reuse previously verified source references only when they remain accessible and their identity, canonical URL, permissions, provenance, and freshness are validated. Otherwise invoke an approved deterministic recovery, label its basis, disclose the outage and limitations, and offer only independently verified relevant navigation.",
+      "qualifying_context": "Questions about how a knowledge or answer system should behave when retrieval or a supporting source service fails but some verified references or deterministic recovery mechanisms may remain available.",
+      "abstention_boundary": "Do not claim cached references exist unless they are actually accessible and validated; do not imply fresh retrieval, invent citations or Archive doctrine, bypass safety or access boundaries, or force an unrelated doorway. If no reliable recovery remains, disclose that limitation.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
