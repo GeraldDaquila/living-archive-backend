@@ -1805,3 +1805,34 @@ def test_scope_governance_gold_star_is_registered_without_serial_allocation():
     assert "Narrow the scope" in record["expected_response"]
     assert "Revise when" in record["expected_response"]
     assert "Reject when" in record["expected_response"]
+
+
+def test_gold_star_scope_governance_contract_is_present_in_both_composition_prompts():
+    from general_guide_composition import _GENERAL_GUIDE_SYSTEM, _GENERAL_GUIDE_SYSTEM_COMPACT
+    from gold_star_lessons import select_lesson
+
+    question = (
+        "A new Gold Star appears to improve responses in one domain but degrades "
+        "responses in another. How should USE determine whether its scope should "
+        "be narrowed, revised, or rejected?"
+    )
+    for prompt in (_GENERAL_GUIDE_SYSTEM, _GENERAL_GUIDE_SYSTEM_COMPACT):
+        assert "GOLD STAR SCOPE GOVERNANCE (META-GOVERNANCE TASKS ONLY)" in prompt
+        assert "never impose it on ordinary visitor questions" in prompt
+        assert "unrelated negative controls" in prompt
+
+    selected = select_lesson(question)
+    assert selected is not None
+    assert selected["benchmark_id"] == (
+        "general-guide-gold-star-scope-governance-cross-domain-regression-2026-11-18"
+    )
+    assert selected["exact"] is True
+
+    for unrelated in (
+        "How can I improve my garden soil?",
+        "What is the difference between weather and climate?",
+    ):
+        candidate = select_lesson(unrelated)
+        assert candidate is None or candidate["benchmark_id"] != (
+            "general-guide-gold-star-scope-governance-cross-domain-regression-2026-11-18"
+        )
