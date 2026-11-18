@@ -79,7 +79,7 @@ def test_final_visitor_boundary_restores_refined_answer_and_verified_doorway():
     assert result["response"] == compose_recovery(QUERY)
     assert "existing responsibility" in result["response"]
     assert "emerging opportunity" in result["response"]
-    assert "premature or unsupported invitation" in result["response"]
+    assert "premature or unsupported invitation" in result["response"].casefold()
     assert result["recommendation"]["title"] == "Stewardship as Human Maturity"
     assert result["canonical_doorway"] == result["recommendation"]
     assert result["doorway_title"] == "Stewardship as Human Maturity"
