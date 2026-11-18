@@ -74,9 +74,9 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
         return {"version": VERSION, "status": "fail", "reason": "missing_answer"}
     if len(answer) > 30000:
         return {"version": VERSION, "status": "fail", "reason": "answer_exceeds_contract_limit"}
-    if re.search(r"<\\s*(?:script|style|html|body|iframe)\\b", answer, re.I):
+    if re.search(r"<\s*(?:script|style|html|body|iframe)\b", answer, re.I):
         return {"version": VERSION, "status": "fail", "reason": "unsafe_markup"}
-    folded = re.sub(r"\\s+", " ", answer.casefold()).strip()
+    folded = re.sub(r"\s+", " ", answer.casefold()).strip()
     if any(marker in folded for marker in NON_ANSWER_MARKERS):
         return {"version": VERSION, "status": "fail", "reason": "generic_nonanswer"}
     if not str(query or "").strip():
@@ -89,7 +89,7 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
         "source_independent": True,
         "exact_standard_immutable": bool(exact_standard),
     }
-    # Shadow diagnostics are metadata only. In particular, a semantic
-    # hard_failure is deliberately NOT promoted into the v2 enforcement status.
+    # Shadow diagnostics are metadata only. A semantic hard failure is not
+    # promoted into the v2 enforcement status and cannot change the answer.
     result["semantic_shadow"] = _semantic_shadow(query, payload)
     return result
