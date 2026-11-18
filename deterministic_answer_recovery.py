@@ -715,7 +715,7 @@ def is_trust_community_stewardship_question(question):
     q = _clean(question).casefold()
     return bool(
         re.search(r"\btrust\b", q)
-        and re.search(r"\bcommunities?\b", q)
+        and re.search(r"\b(?:community|communities)\b", q)
         and re.search(r"\bstewardship\b", q)
         and re.search(r"\b(?:what is|what role|role of|how does|why does|why is)\b", q)
     )
