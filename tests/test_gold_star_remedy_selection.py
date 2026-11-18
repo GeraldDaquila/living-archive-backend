@@ -75,13 +75,18 @@ def test_remedy_selection_candidate_is_unique_and_not_activated_before_live_revi
     records = [r for r in registry["records"] if r.get("benchmark_id") == benchmark_id]
     assert len(records) == 1
     record = records[0]
-    assert record["status"] == "CANDIDATE"
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["query"] == QUERY
     assert record["expected_response"].startswith("USE should create a Gold Star only when")
     assert record["expected_doorway"] is None
-    assert "pending live review" in record["provenance"]["evidence_boundary"]
-    assert "Do not promote" in record["freeze_policy"]
+    assert record["doorway_status"] == "INTENTIONALLY_NONE_APPROVED"
+    assert record["forbids_doorway"] is True
+    assert record["expected_doorway"] is None
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert "terminal visitor boundary" in record["provenance"]["evidence_boundary"]
+    assert record["freeze_policy"] == "immutable_user_approved_gold_standard"
+    assert record["runtime_transfer"] is True
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == registry["integrity_audit"]["approved_gold_star_count"] == 107
+    assert len(approved) == registry["integrity_audit"]["approved_gold_star_count"] == 108
     assert len(registry["records"]) == registry["integrity_audit"]["registry_record_count"] == 145
     assert len({r["benchmark_id"] for r in registry["records"]}) == len(registry["records"])
