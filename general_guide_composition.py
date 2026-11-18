@@ -1191,8 +1191,8 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
 
     paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", response) if p.strip()]
     if _requires_substantive_answer_contract(query):
-        # Multi-part prose may use any task-appropriate length. Reject only
-        # repeated blocks or a redundant comparison reopening when 3+ parts exist.
+        # The quality gate is task-dependent. It rejects repeated blocks, but
+        # never requires three paragraphs or any fixed number of response units.
         normalized = [_normalize_space(p).casefold() for p in paragraphs]
         if len(normalized) > 1 and len(set(normalized)) < len(normalized):
             return True
