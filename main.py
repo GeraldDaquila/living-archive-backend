@@ -6020,6 +6020,44 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
 
+    # Regeneration-participation questions ask where a person can responsibly
+    # contribute, not merely for inspiration. Enforce the complete discernment
+    # method after every provider and recovery route, with its verified doorway.
+    from deterministic_answer_recovery import (
+        is_regeneration_participation_question,
+        compose_recovery as _compose_regeneration_participation_recovery,
+        registered_recovery_recommendation as _regeneration_participation_doorway,
+    )
+    if is_regeneration_participation_question(query):
+        safe = dict(payload)
+        answer = _compose_regeneration_participation_recovery(query)
+        safe["response"] = answer
+        if "answer" in safe:
+            safe["answer"] = answer
+        doorway = _normalize_authoritative_recommendation(
+            _regeneration_participation_doorway(query)
+        )
+        safe["recommendation"] = doorway
+        safe["canonical_doorway"] = doorway
+        safe["doorway_title"] = doorway.get("title") if doorway else None
+        safe["doorway_url"] = doorway.get("url") if doorway else None
+        safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
+        safe.pop("doorway_omission_exception_reason", None)
+        safe["answer_basis"] = {
+            "kind": "general_knowledge",
+            "label": "General knowledge",
+            "explanation": (
+                "This is a voluntary, practical discernment framework. It does not "
+                "claim to verify a supernatural invitation or infer the visitor's "
+                "personal responsibilities; the canonical Archive resource is a "
+                "continuation for exploring stewardship."
+            ),
+        }
+        safe["processing"] = "final_visitor_boundary_regeneration_participation"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
     # Personal-decision questions about the Guide's role have one shared
     # answer-and-doorway contract. Enforce it here so provider/LLM and
     # deterministic routes cannot diverge or leak the question into a subject slot.
