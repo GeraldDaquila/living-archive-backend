@@ -5802,6 +5802,43 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
 
+    # External-discernment questions are a diagnostic task, not a prompt for
+    # generic reflection or a resource-first answer. Enforce the complete
+    # question-specific audit after every successful provider route as well as
+    # every fallback route; preserve the independently verified agency doorway.
+    from deterministic_answer_recovery import (
+        is_external_discernment_outsourcing_question,
+        _external_discernment_outsourcing_recovery,
+        registered_recovery_recommendation as _registered_recovery_doorway,
+    )
+    if is_external_discernment_outsourcing_question(query):
+        safe = dict(payload)
+        answer = _external_discernment_outsourcing_recovery()
+        safe["response"] = answer
+        if "answer" in safe:
+            safe["answer"] = answer
+        doorway = _normalize_authoritative_recommendation(
+            _registered_recovery_doorway(query)
+        )
+        safe["recommendation"] = doorway
+        safe["canonical_doorway"] = doorway
+        safe["doorway_title"] = doorway.get("title") if doorway else None
+        safe["doorway_url"] = doorway.get("url") if doorway else None
+        safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
+        safe["answer_basis"] = {
+            "kind": "general_knowledge",
+            "label": "General knowledge",
+            "explanation": (
+                "A bounded discernment framework is provided without assuming "
+                "the visitor's personal circumstances or presenting spiritual "
+                "interpretations as independently verified facts."
+            ),
+        }
+        safe["processing"] = "final_visitor_boundary_external_discernment_outsourcing"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
     # This narrow discernment contract is enforced after every non-exact route,
     # so provider fluency cannot turn a question about confirmation bias into
     # generic reflection or unrelated organizational orientation.
