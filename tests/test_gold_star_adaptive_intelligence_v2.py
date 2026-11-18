@@ -80,3 +80,48 @@ def test_v2_contract_does_not_mutate_canonical_gold_star_records():
     assert all(item.get("benchmark_id") for item in approved)
     assert all(item.get("provenance") for item in approved)
     assert all(item.get("freeze_policy") for item in approved)
+
+
+def test_v2_heldout_suite_covers_all_required_question_classes():
+    suite = json.loads(
+        (ROOT / "docs" / "qa" / "guide_learning_evaluation_set.json").read_text(encoding="utf-8")
+    )
+    classes = {case.get("question_type") for case in suite.get("cases", [])}
+    assert classes == {
+        "general_fact",
+        "conceptual_explanation",
+        "practical_application",
+        "strategic_tradeoff",
+        "technical_verification",
+        "uncertain_or_insufficient_evidence",
+        "explicit_no_handoff",
+    }
+    assert len(suite["cases"]) == 7
+    assert all(case.get("rubric") and case.get("critical_dimensions") for case in suite["cases"])
+
+
+def test_v2_live_evaluator_has_question_specific_contracts_for_new_classes():
+    from scripts.guide_live_evaluation import evaluate_held
+
+    cases = [
+        {
+            "case_id": "heldout-strategic-governance-001",
+            "query": "Should a growing nonprofit centralize decisions or distribute authority across its teams?",
+        },
+        {
+            "case_id": "heldout-technical-verification-001",
+            "query": "How can I verify that a Python service has a required environment variable configured without exposing its secret value?",
+        },
+        {
+            "case_id": "heldout-uncertain-causation-001",
+            "query": "What caused the sudden increase in our website traffic last week?",
+        },
+        {
+            "case_id": "heldout-explicit-no-handoff-001",
+            "query": "Explain the difference between a policy and a procedure in plain language. Do not recommend resources, links, or follow-up steps.",
+        },
+    ]
+    for case in cases:
+        result = evaluate_held(case, {"status": 200, "body": {"ok": True, "response": "Test answer."}})
+        assert result and result[-1]["name"] != "known_heldout_case"
+        assert all(item["name"] != "known_heldout_case" for item in result)
