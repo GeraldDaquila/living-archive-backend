@@ -419,6 +419,7 @@ def _lesson_candidate_payload(x: Dict[str, Any], score: float, *, exact: bool = 
         "query": x["query"], "known_theme": x["known_theme"],
         "assertions": x["assertions"],
         "reasoning_family": x.get("reasoning_family", ""),
+        "qualifying_context": x.get("qualifying_context", ""),
         "transferable_discipline": x.get("transferable_discipline", ""),
         "abstention_boundary": x.get("abstention_boundary", ""),
     }
@@ -545,6 +546,7 @@ def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
                 "query": item["query"],
                 "known_theme": item["known_theme"],
                 "reasoning_family": item["reasoning_family"],
+                "qualifying_context": item["qualifying_context"],
                 "discipline": item["transferable_discipline"],
                 "abstention_boundary": item["abstention_boundary"],
             }
