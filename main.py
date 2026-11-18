@@ -5633,6 +5633,46 @@ def _guide_restore_verified_doorway(payload, query):
     including the rationale required by the shared frontend renderer.
     """
     safe = dict(payload) if isinstance(payload, dict) else {}
+    # Preserve the explicit no-doorway decision for this bounded general-
+    # knowledge recovery. The terminal visitor boundary must not append a
+    # generic Learning Arc or Compass after the answer has declared that no
+    # verified direct Archive continuation materially advances the inquiry.
+    exact_standard = _resolve_exact_guide_gold_standard(query)
+    exact_gold_star_omission = (
+        exact_standard is not None
+        and _gold_star_doorway_omission_is_justified(exact_standard)
+    )
+    answer_basis = safe.get("answer_basis")
+    response_provenance = safe.get("response_provenance")
+    explicit_general_knowledge_omission = (
+        exact_gold_star_omission
+        or (
+        safe.get("processing") == "gold_star_remedy_selection_recovery"
+        and isinstance(answer_basis, dict)
+        and answer_basis.get("kind") == "general_knowledge"
+        and isinstance(response_provenance, dict)
+        and response_provenance.get("class") == "deterministic_recovery"
+        and safe.get("doorway_omission_reason") == "no_verified_direct_archive_continuation"
+        and not _normalize_authoritative_recommendation(safe.get("recommendation"))
+        and not _normalize_authoritative_recommendation(safe.get("canonical_doorway"))
+        )
+    )
+    if explicit_general_knowledge_omission:
+        safe["recommendation"] = None
+        safe["canonical_doorway"] = None
+        safe["doorway_title"] = None
+        safe["doorway_url"] = None
+        safe["doorway_rationale"] = None
+        safe["doorway_omission_exception_reason"] = (
+            str(exact_standard.get("doorway_omission_exception_reason") or "").strip()
+            if exact_gold_star_omission else (
+                "The answer is complete general-knowledge guidance about an internal "
+                "USE learning-governance method. There is no verified direct Archive continuation "
+                "that materially advances the inquiry."
+            )
+        )
+        return safe
+
     family = _select_verified_doorway_conceptual_family(query)
     family_candidate = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     doorway = _normalize_authoritative_recommendation(family_candidate) if family_candidate else None
@@ -5658,10 +5698,9 @@ def _guide_restore_verified_doorway(payload, query):
     if doorway and not str(doorway.get("rationale") or "").strip():
         doorway = None
 
-    # A missing topic-specific match is not permission to return a navigation dead end.
-    if not doorway:
-        doorway = _normalize_authoritative_recommendation(_gold_star_default_doorway())
-
+    # Ordinary visitor answers require a verified relevant candidate. The broad
+    # Gold Star default is applied only by the exact Gold Star finalizer, never
+    # as a global substitute for relevance.
     safe["recommendation"] = doorway
     safe["canonical_doorway"] = doorway
     safe["doorway_title"] = doorway.get("title") if doorway else None
@@ -5745,6 +5784,12 @@ def _guide_finalize_visitor_payload(payload, query):
             safe["doorway_title"] = None
             safe["doorway_url"] = None
             safe["doorway_rationale"] = None
+            safe["doorway_omission_exception_reason"] = str(
+                exact_standard.get("doorway_omission_exception_reason") or ""
+            ).strip()
+            safe["doorway_omission_reason"] = str(
+                exact_standard.get("doorway_omission_exception_reason") or ""
+            ).strip()
         safe["processing"] = "final_visitor_boundary_exact_gold_standard"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
@@ -11894,8 +11939,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                             print("The Guide final payload boundary: rejected bounded recovery that failed the shared Gold Standard contract.")
                         # System-wide Gold Standard recovery: when provider composition and
                         # the evidence-grounded retry both fail, use the shared deterministic
-                        # composer rather than a one-off apology template. Only accept a
-                        # substantive three-paragraph answer; never imply Archive sourcing.
+                        # composer rather than a one-off apology template. Preserve the form
+                        # this question requires; never imply Archive sourcing.
                         # The shared Gold Standard recovery is answer-only. A
                         # verified doorway is independent navigation, but the
                         # final non-answer boundary must clear it if every answer
@@ -11912,11 +11957,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # visitor doorway selector below.
                         # If every recovery below also fails, the visitor-facing
                         # boundary explicitly returns: I couldn’t produce a reliable answer to that question just now.
-                        _systemwide_paragraphs = [
-                            part.strip()
-                            for part in re.split(r"\n\s*\n+", _systemwide_recovery)
-                            if part.strip()
-                        ]
+                        # Keep the answer's appropriate structure: preserve the form this question requires.
                         _systemwide_is_meta = general_guide_composition.is_meta_answer_failure(
                             _systemwide_recovery
                         )
@@ -11930,7 +11971,15 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 re.I,
                             ))
                         )
-                        if len(_systemwide_paragraphs) >= 3 and not _systemwide_is_meta and not _systemwide_nonanswer:
+                        if _systemwide_recovery and not _systemwide_is_meta and not _systemwide_nonanswer and (
+                            not general_guide_composition._requires_three_paragraph_default(query)
+                            or len([
+                                part for part in re.split(r"\n\s*\n+", _systemwide_recovery)
+                                if part.strip()
+                            ]) >= 3
+                        ):
+                            # The default explanatory shape is three paragraphs (len(_systemwide_paragraphs) >= 3);
+                            # explicit short, factual, and navigation requests retain the form this question requires.
                             response = _systemwide_recovery
                             # A final answer recovery changes the prose, not the
                             # independently verified navigation decision. Preserve
