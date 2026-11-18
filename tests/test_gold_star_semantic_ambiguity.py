@@ -51,10 +51,53 @@ def test_unrelated_decision_question_does_not_receive_semantic_ambiguity_lesson(
 
 def test_compact_composition_contract_is_question_first_and_subject_adaptive():
     prompt = _GENERAL_GUIDE_SYSTEM_COMPACT
-    assert "QUESTION-FIRST, SUBJECT-ADAPTIVE COMPOSITION CONTRACT" in prompt
-    assert "delivery-quality floor, not a universal content template" in prompt
-    assert "Treat every specialized section below as conditional" in prompt
+    assert "QUESTION-FIRST, TASK-DEPENDENT COMPOSITION GOVERNANCE" in prompt
+    assert "quality and reasoning-governance standard, not a prescribed answer template" in prompt
+    assert "Do not impose a fixed paragraph count, three-move sequence, or prose format" in prompt
+    assert "Specialized guidance is conditional" in prompt
+    assert "QUESTION-FIRST, TASK-DEPENDENT COMPOSITION GOVERNANCE" in _GENERAL_GUIDE_SYSTEM
+    assert "Do not impose a fixed paragraph count" in _GENERAL_GUIDE_SYSTEM
     assert "SEMANTIC AMBIGUITY BEFORE ANSWERING" in prompt
     assert "Do not replace this task with generic decision, stewardship, or governance advice." in prompt
     assert "QUESTION-FIRST, SUBJECT-ADAPTIVE COMPOSITION CONTRACT" in _GENERAL_GUIDE_SYSTEM
     assert "SEMANTIC AMBIGUITY BEFORE ANSWERING" in _GENERAL_GUIDE_SYSTEM
+
+
+CALIBRATION_VALIDATION_QUESTION = (
+    "A revised Guide performs better on the calibration set but worse on the validation set. "
+    "Which result should govern the decision to promote the revision, and why?"
+)
+CALIBRATION_VALIDATION_BENCHMARK_ID = (
+    "general-guide-calibration-vs-validation-promotion-decision-gold-star-2026-11-18"
+)
+
+
+def test_calibration_validation_gold_star_is_exact_and_question_specific():
+    standard = resolve_exact_gold_standard(CALIBRATION_VALIDATION_QUESTION)
+    assert standard is not None
+    assert standard["benchmark_id"] == CALIBRATION_VALIDATION_BENCHMARK_ID
+    answer = standard["expected_response"].lower()
+    assert "validation result should govern promotion" in answer
+    assert "should not be promoted" in answer
+    assert "data leakage" in answer and "split integrity" in answer
+    assert "reproducible improvement" in answer
+    assert standard["doorway_title"] is None
+    assert standard["doorway_url"] is None
+
+
+def test_calibration_validation_gold_star_transfers_only_model_evaluation_discipline():
+    selected = select_lesson(CALIBRATION_VALIDATION_QUESTION)
+    assert selected is not None
+    assert selected["benchmark_id"] == CALIBRATION_VALIDATION_BENCHMARK_ID
+    contribution = active_quality_contribution(CALIBRATION_VALIDATION_QUESTION)
+    assert contribution is not None
+    assert contribution["benchmark_id"] == CALIBRATION_VALIDATION_BENCHMARK_ID
+    assert contribution["authority_mode"] == "structural_guidance_only"
+    assert "held-out validation" in contribution["discipline"].lower()
+    assert "expected_response" not in contribution
+    assert "doorway" not in contribution
+
+
+def test_calibration_validation_lesson_does_not_capture_unrelated_decision_questions():
+    selected = select_lesson("Should I promote a team member who exceeded one target but missed another?")
+    assert selected is None or selected["benchmark_id"] != CALIBRATION_VALIDATION_BENCHMARK_ID
