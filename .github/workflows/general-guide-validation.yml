@@ -22,6 +22,7 @@ on:
       - "tests/test_guide_systemwide_three_paragraph_default.py"
       - "tests/test_guide_healthy_community_answer_contract.py"
       - "tests/test_general_guide_gold_standard_doorway_policy.py"
+      - "tests/test_guide_trust_community_stewardship_recovery.py"
       - "tests/test_retrieval_failure_gold_star.py"
       - "docs/qa/gold_standard_registry.json"
       - "docs/qa/gold_star_qualitative_transfer_review.json"
@@ -45,6 +46,7 @@ on:
       - "tests/test_guide_systemwide_three_paragraph_default.py"
       - "tests/test_guide_healthy_community_answer_contract.py"
       - "tests/test_general_guide_gold_standard_doorway_policy.py"
+      - "tests/test_guide_trust_community_stewardship_recovery.py"
       - "tests/test_retrieval_failure_gold_star.py"
       - "docs/qa/gold_standard_registry.json"
       - "docs/qa/gold_star_qualitative_transfer_review.json"
@@ -91,3 +93,5 @@ jobs:
         run: PYTHONPATH=. python -m pytest -q tests/test_guide_healthy_community_answer_contract.py
       - name: Run exact Gold Star doorway authority regressions
         run: PYTHONPATH=. python -m pytest -q tests/test_general_guide_gold_standard_doorway_policy.py
+      - name: Run trust/community stewardship answer and doorway regressions
+        run: PYTHONPATH=. python -m pytest -q tests/test_guide_trust_community_stewardship_recovery.py
