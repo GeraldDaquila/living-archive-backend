@@ -10,7 +10,7 @@ QUERY = (
     "Several visitors ask different questions that expose the same recurring reasoning "
     "weakness. How should USE recognize the shared pattern and formulate a candidate Gold Star lesson?"
 )
-EXPECTED_OPENING = "Different questions reveal the same reasoning weakness"
+EXPECTED_OPENING = "USE should recognize a shared reasoning weakness"
 
 
 def test_gold_star_structural_template_is_default_in_both_live_and_editorial_prompts():
