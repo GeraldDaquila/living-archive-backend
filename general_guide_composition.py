@@ -23,7 +23,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.49"
+CONTRACT_VERSION = "v1.50"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
@@ -131,7 +131,7 @@ def _remove_visitor_meta_commentary(text: str) -> str:
 # common free-provider admission envelope.
 _GENERAL_GUIDE_SYSTEM_COMPACT = """You are the all-purpose composition layer of The Guide, the public-facing general utility of the Living Archive.
 
-Answer the visitor's actual question directly and use ordinary, clear language. Never repeat the visitor's full question or splice its wording into the answer as filler; paraphrase only when a precise term is needed for explanation. Do not announce the act of answering or narrate an inquiry's opening (for example, “The inquiry begins by…”, “To understand this…”, or “The first step is…”). Begin with the substantive answer itself: define the distinction, name the mechanism, or state the conclusion the question asks for. The Living Archive exists to help people regain bearings, not merely accumulate information. Choose the response form that best performs the visitor's actual task. Do not impose a fixed paragraph count, three-move sequence, or prose format. A direct factual question may need a concise answer and qualification; a comparison may need matched criteria and a clear judgment; a procedure may need ordered steps and verification; a diagnostic question may need signals, competing explanations, and tests; a decision question may need a recommendation, trade-offs, conditions, and contingencies; an evidentiary question may need claims, support, inference limits, and uncertainty. Use paragraphs, bullets, tables, steps, or a combination only when that form makes the answer clearer and more complete. Each section or paragraph must perform a necessary task-specific function; remove any move that adds no value.
+Answer the visitor's actual question directly and use ordinary, clear language. Never repeat the visitor's full question or splice its wording into the answer as filler; paraphrase only when a precise term is needed for explanation. Do not announce the act of answering or narrate an inquiry's opening (for example, “The inquiry begins by…”, “To understand this…”, or “The first step is…”). Begin with the substantive answer itself: define the distinction, name the mechanism, or state the conclusion the question asks for. The Living Archive exists to help people regain bearings, not merely accumulate information. Choose the response form that best performs the visitor's actual task. Do not impose a fixed paragraph count, three-move sequence, or prose format. A polished non-answer is still a failed answer: never substitute an insufficient-material disclaimer, a description of the question's tension, or a generic invitation to reflect for the requested deliverable. When Archive evidence is absent, give a bounded general-knowledge answer or interpretation when the task permits it, distinguish that basis from Archive claims, and state only the uncertainty that remains. This applies across every question family and fallback path; the response form remains task-dependent. A direct factual question may need a concise answer and qualification; a comparison may need matched criteria and a clear judgment; a procedure may need ordered steps and verification; a diagnostic question may need signals, competing explanations, and tests; a decision question may need a recommendation, trade-offs, conditions, and contingencies; an evidentiary question may need claims, support, inference limits, and uncertainty. Use paragraphs, bullets, tables, steps, or a combination only when that form makes the answer clearer and more complete. Each section or paragraph must perform a necessary task-specific function; remove any move that adds no value.
 
 AUTONOMY, ADAPTIVITY, RESILIENCE, AND IMPROVEMENT — EVIDENCE-EVALUATION QUESTIONS:
 When a visitor asks what would demonstrate that the Guide or another AI system is genuinely autonomous, adaptive, resilient, or improving rather than merely continuing to produce responses, recognize an evidence-evaluation task. Answer with an explicit evaluation framework; do not turn it into a reflective discussion of organizational responsibility or ask the visitor to choose an organizational issue. State the governing distinction immediately: continued operation and response volume demonstrate activity or continuity, not by themselves autonomy, adaptation, resilience, or improved answer quality.
@@ -333,6 +333,8 @@ Let the task determine the response form. A simple factual lookup may need one o
 The answer must be complete before any optional doorway appears. Place a verified, directly relevant Archive resource in a distinct section only when it materially advances the visitor's actual question or next need. Do not use the general Compass merely because no narrower destination was found. For Archive-specific claims, distinguish published-source content from general explanation, and answer responsibly when the question permits it.
 
 COMPOSITION QUALITY GATE — mandatory for every substantive answer, not only named question classes:
+
+A polished non-answer is still a failed answer. Never substitute a statement that there is insufficient Archive material, a description of the question's tension, or a generic invitation to reflect for the requested deliverable. When Archive evidence is absent, answer from clearly bounded general knowledge or interpretation when the task permits it, distinguish that basis from Archive claims, and state only the uncertainty that actually remains. This rule applies to every question family and every provider/fallback path; the response form remains task-dependent.
 
 Before finalizing, make sure the answer performs the requested task substantively; formatting alone does not establish quality.
 - For a definition question, the opening sentence must actually define the named subject in plain language and distinguish its core function from the nearest likely confusion. Do not say that a concept is "best understood by what it means," announce that a useful explanation would distinguish it, or describe what definitions do; perform the explanation instead.
@@ -1192,7 +1194,7 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
     # Archive itself establishes; otherwise require conceptual orientation.
     explicit_archive_authority_request = bool(re.search(
         r"\b(?:according to|within|inside)\s+(?:the\s+)?living archive\b|"
-        r"\b(?:what|how|where|which) (?:does|do|is|are) (?:the\s+)?(?:living\s+)?archive (?:say|state|establish|define|prescribe)\b|"
+        r"\b(?:what|how|where|which) (?:does|do|is|are) (?:the\s+)?(?:living\s+)?archive (?:explicitly |clearly )?(?:say|state|establish|define|prescribe)\b|"
         r"\bwhat is established in (?:the\s+)?(?:living\s+)?archive\b",
         _normalize_space(query),
         re.I,
@@ -1203,8 +1205,18 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
         text,
         re.I,
     ))
-    if _question_shape(query) == "explanatory" and retrieval_only_disclaimer and not explicit_archive_authority_request:
+    # A retrieval disclaimer is not an answer to any substantive visitor task,
+    # regardless of surface grammar (including reflective, navigationally phrased,
+    # comparative, or decision-oriented questions). Preserve it only when the
+    # visitor explicitly asks what the Archive itself establishes; in that case
+    # the evidence boundary is part of the requested answer.
+    if _requires_substantive_answer_contract(query) and retrieval_only_disclaimer and not explicit_archive_authority_request:
         return True
+    if retrieval_only_disclaimer and explicit_archive_authority_request:
+        # The visitor asked specifically for the Archive's established position.
+        # A transparent evidence-boundary statement is the requested deliverable;
+        # do not force it through the ordinary conceptual-answer definition gate.
+        return False
     if not _has_direct_definition_for_subject(query, response):
         return True
     if any(re.search(pattern, text, re.I) for pattern in _GENERIC_NONANSWER_PATTERNS):
@@ -3487,6 +3499,20 @@ def _community_project_tradeoff_recovery() -> str:
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    # Regeneration/participation is a distinct personal-to-systemic question family.
+    # Keep the response grounded in voluntary stewardship and the verified
+    # cornerstone doorway; do not reduce the inquiry to generic reflection.
+    from deterministic_answer_recovery import (
+        is_regeneration_participation_question,
+        _regeneration_participation_recovery,
+    )
+    if is_regeneration_participation_question(question):
+        candidate = _regeneration_participation_recovery()
+        if not all(re.search(pattern, candidate, re.I) for pattern in (
+            r"\bregeneration\b", r"\bspiritual content\b", r"\bresponsib\w*\b",
+            r"\bpeople affected\b", r"\bfeedback\b"
+        )):
+            raise RuntimeError("Regeneration-participation response contract failed after recovery.")
     # Spiritual-community accountability is a bounded question family. Replace
     # contaminated or off-frame provider prose with the same reviewed recovery
     # used during deterministic/provider-exhaustion paths.

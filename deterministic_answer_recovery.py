@@ -686,6 +686,30 @@ def is_oversoul_free_will_question(question):
     return oversoul and freedom and influence and tension
 
 
+def is_regeneration_participation_question(question):
+    """Recognize a personal inquiry about moving from spiritual consumption into regenerative participation."""
+    q = _clean(question).casefold()
+    regeneration = bool(re.search(r"\b(?:regenerat\w*|renewal|renewing life)\b", q))
+    participation = bool(re.search(
+        r"\b(?:participat\w*|invited|contribut\w*|serve|embody|put(?:ting)? into practice|"
+        r"take part|responsib\w*)\b", q
+    ))
+    consumption_or_spiritual_frame = bool(re.search(
+        r"\b(?:consum\w*|content|watching|reading|spiritual|spirituality|teachings|"
+        r"talking about|learning about)\b", q
+    ))
+    return regeneration and participation and consumption_or_spiritual_frame
+
+
+def _regeneration_participation_recovery():
+    """Translate spiritual interest into grounded, voluntary regenerative practice."""
+    return (
+        "The invitation is to let what you take in become a form of care. Spiritual content can inspire insight, but regeneration begins when that insight helps renew something real: a relationship, a community, a shared resource, an institution, a place, or a living system. In the Living Archive's stewardship framing, development matures beyond improving the self alone toward responsibility for realities larger than oneself. The question shifts from what resonates with me to what has been entrusted to my care—and what can I help make healthier, more capable, or more whole.\n\n"
+        "Look for the point where your existing relationships and capacities meet an actual need. That might mean repairing trust in a relationship, sharing knowledge that helps others act, contributing to a community effort, caring for land or resources, or helping a group make decisions more fairly. Regenerative participation is not simply being present or agreeing with an inspiring idea: it involves listening to the people affected, understanding what is depleted or excluded, sharing responsibility rather than claiming authority, and paying attention to whether the contribution strengthens dignity, trust, capability, and the system's capacity to renew itself.\n\n"
+        "A practical beginning is to choose one living context you already belong to and ask: what needs tending; who should help define the need; what can I responsibly contribute; and what feedback would show whether it is helping? Take one proportionate action, remain answerable to the people affected, and revise it when its effects become clearer. You do not need to treat every spiritual impression as a command or prove that a supernatural invitation has occurred. Let the quality of participation—not the amount of content consumed or the intensity of the feeling—be the test."
+    )
+
+
 def is_spiritual_community_accountability_question(question):
     """Recognize spiritual-community questions that explicitly pair charismatic authority with weak accountability."""
     q = _clean(question).casefold()
@@ -808,6 +832,7 @@ def has_registered_recovery(question):
         or is_personality_soul_oversoul_question(question)
         or is_oversoul_free_will_question(question)
         or is_spiritual_community_accountability_question(question)
+        or is_regeneration_participation_question(question)
         or is_complex_future_scenario_question(question)
         or _is_public_predictive_system_question(question)
         or _is_archive_purpose_question(question)
@@ -840,6 +865,12 @@ def registered_recovery_recommendation(question):
             "title": "Being in the Driver's Seat (Without Pretending You Control the Road)",
             "url": "https://geralddaquila.com/being-in-the-drivers-seat-without-pretending-you-control-the-road/",
             "rationale": "This essay offers a grounded continuation on exercising personal agency within real conditions and limits. It supports the distinction between receiving orientation and surrendering responsibility for one's own choices; it does not prescribe the decision a visitor should make.",
+        }
+    if is_regeneration_participation_question(question):
+        return {
+            "title": "Stewardship as Human Maturity",
+            "url": "https://geralddaquila.com/2026/07/06/stewardship-as-human-maturity/",
+            "rationale": "This published cornerstone traces the movement from self-development toward responsibility and contribution beyond the self. It asks what has been entrusted to a person's care and describes stewardship as participation in relationships, communities, institutions, ecosystems, and generations; it is a grounded continuation from spiritual inspiration toward lived responsibility, not a claim about a supernatural calling."
         }
     if is_spiritual_community_accountability_question(question):
         return {
@@ -1071,6 +1102,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = _personality_soul_oversoul_recovery()
     elif is_guide_personal_decision_agency_question(q):
         answer = _guide_personal_decision_agency_recovery()
+    elif is_regeneration_participation_question(q):
+        answer = _regeneration_participation_recovery()
     elif is_spiritual_community_accountability_question(q):
         answer = _spiritual_community_accountability_recovery()
     elif is_oversoul_free_will_question(q):
