@@ -877,6 +877,16 @@ def _requires_substantive_answer_contract(query: str) -> bool:
     return True
 
 
+def _requires_three_paragraph_default(query: str) -> bool:
+    """Backward-compatible alias for the shared substantive-answer quality gate.
+
+    The historical name is retained for callers outside this module. It no
+    longer enforces or implies any paragraph count; task-dependent composition
+    selects the response shape.
+    """
+    return _requires_substantive_answer_contract(query)
+
+
 _META_ANSWER_FAILURE_PATTERNS = (
     r"\bi can(?:not|['’]t) give this question the careful explanation it deserves\b",
     r"\bi don['’]?t want to replace the answer you asked for\b",
