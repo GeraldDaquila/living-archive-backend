@@ -50,7 +50,7 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
         checks.append({"name": name, "passed": bool(passed), "rationale": rationale,
                        "severity": "hard" if hard else "review"})
     if kind == "explicit_no_handoff":
-        add("no_resource_handoff", not payload.get("recommendation") and not re.search(r"https?://|www\.", answer, re.I), "Respect explicit no-resource/no-link instructions.")
+        add("no_resource_handoff", not payload.get("recommendation") and not re.search(r"https?://|www\.", answer, re.I), "Respect explicit no-resource/no-link instructions.", hard=True)
         add("no_unrequested_followup", not _has(low, ("would you like", "if you want, i can", "you may want to explore", "next, you could", "i recommend reading")), "Do not append an unrequested next step.", hard=True)
     elif kind == "technical_verification":
         add("presence_not_disclosure", _has(low, ("os.getenv", "os.environ", "environment variable")) and _has(low, ("is not none", "bool(", "presence check", "configured")), "Explain a boolean/presence check.")
