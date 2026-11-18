@@ -7270,7 +7270,8 @@
       },
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request allocation of a display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent."
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request allocation of a display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent.",
+      "legacy_approval_grandfathered": false
     }
   ],
   "last_reconciliation_note": "2026-11-18: Added gs-2026-11-18-autonomy-adaptivity-resilience-improvement-evidence as an approved exact-query Gold Star with a bounded, pre-registered AI capability evidence-evaluation protocol and matching qualitative-transfer review. Canonical inventory: 112 approved Gold Stars across 150 registry records; 110 active runtime-transfer contributors, 38 numbered, 74 UNASSIGNED. No existing serial changed; no new serial was allocated.",
