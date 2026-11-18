@@ -787,7 +787,7 @@ def _resonance_confirmation_bias_recovery():
         "So an impression can feel genuinely resonant and still be interpreted through confirmation bias. The key distinction is between the signal you experience and the truth of the explanation you attach to it.\\n\\n"
         "Before acting, write down four things separately: what you directly observed; what you felt; what you think it means; and what conclusion or action you are considering. "
         "Then test the proposed pattern rather than trying to suppress the feeling. Ask four questions: Does it recur under comparable conditions, or is it resting on one striking coincidence? "
-        "What plausible mechanism connects the observations, rather than merely making them feel coherent? "
+        "What is the strongest alternative explanation? What plausible mechanism connects the observations, rather than merely making them feel coherent? "
         "What constraints or alternative explanations could produce the same result, and where might the pattern stop applying? "
         "Most importantly, what specific observation would count against your interpretation? If no possible evidence could change your mind, you are protecting a belief rather than testing a claim.\\n\\n"
         "Apply the same standard in both directions: do not accept weak evidence because it agrees with you, or demand impossible certainty because it does not. "
