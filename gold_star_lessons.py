@@ -451,11 +451,10 @@ def select_lesson_candidates(
     ]
     if len(exact) == 1:
         return [_lesson_candidate_payload(exact[0], 1.0, exact=True)]
-    if len(exact) > 1:
-        # Registry integrity should prevent this; fail closed rather than choose
-        # arbitrarily between conflicting exact authorities.
-        raise GoldStarRegistryIntegrityError("Multiple exact Gold Star authorities match one normalized question.")
-
+    duplicate_exact = len(exact) > 1
+    # Preserve the historical selector's deterministic ranking for legacy
+    # normalized-query collisions. Such collisions are not exposed as a
+    # multi-candidate synthesis opportunity: retain one legacy winner only.
     candidates = [x for x in _LESSONS if x["runtime_transfer"] and eligible(x)]
     query_terms = _tokens(query)
     if len(query_terms) < 2:
