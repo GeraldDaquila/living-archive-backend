@@ -7162,6 +7162,28 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "model": "",
         }
 
+    # Regeneration/participation questions have their own provider-independent
+    # answer-and-doorway contract. Keep the human-scale stewardship response
+    # available when retrieval or provider composition is unavailable.
+    from deterministic_answer_recovery import (
+        is_regeneration_participation_question,
+        compose_recovery as _compose_regeneration_recovery,
+        registered_recovery_recommendation as _regeneration_recommendation,
+    )
+    if is_regeneration_participation_question(query):
+        _regeneration_answer = _compose_regeneration_recovery(query)
+        _regeneration_doorway = _regeneration_recommendation(query)
+        return {
+            "response": _regeneration_answer,
+            "doorway_title": str((_regeneration_doorway or {}).get("title") or ""),
+            "doorway_url": str((_regeneration_doorway or {}).get("url") or ""),
+            "doorway_rationale": str((_regeneration_doorway or {}).get("rationale") or ""),
+            "recommendation": _regeneration_doorway,
+            "canonical_doorway": _regeneration_doorway,
+            "provider": "bounded_regeneration_participation_recovery",
+            "model": "",
+        }
+
     # Community infrastructure trade-off questions require a substantive
     # cross-domain answer even when provider generation or retrieval is unavailable.
     # Keep the verified local-resilience doorway attached to the same recovery.
