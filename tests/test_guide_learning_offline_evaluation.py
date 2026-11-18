@@ -16,7 +16,7 @@ def test_learning_schema_and_evaluation_suite_are_versioned():
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert schema["properties"]["schema_version"]["const"] == "1.0.0"
     assert suite["suite_version"] == "1.2.0"
-    assert suite["status"] == "LIVE_CAPTURED_HELDOUTS_HAVE_FAILURES_HUMAN_REVIEW_PENDING"
+    assert suite["status"] == "EXPANDED_SEVEN_CLASS_HELDOUTS_HUMAN_REVIEW_PENDING"
 
 
 def test_registry_is_the_authoritative_gold_standard_floor():
