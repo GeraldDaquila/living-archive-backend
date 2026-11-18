@@ -68,14 +68,17 @@ def test_cosmology_provider_exhaustion_fallback_answers_the_actual_question():
     result = main._basic_inquiry_round1_deterministic_response(
         query, {}, {"context_blocks": ""}
     )
-    assert result["provider"] == "bounded_archive_informed_cosmology_recovery"
+    assert result["provider"] == "bounded_cosmology_and_worldview_recovery"
     response = result["response"]
-    assert len(response.split("\n\n")) == 3
-    assert "Cosmology is an understanding" in response
-    assert "separation-based worldview" in response
-    assert "unity-informed worldview" in response
-    assert "not labels for judging a person" in response
+    assert len(response.split("\n\n")) == 4
+    assert "In science, it is the study of the universe as a whole" in response
+    assert "A worldview is not the same thing as scientific cosmology" in response
+    assert "not scientific findings that prove one worldview correct" in response
+    assert "The Archive's interpretive framework" in response
     assert result["doorway_title"] == ""
+    assert result["doorway_url"] == ""
+    assert result["recommendation"] is None
+    assert "No directly relevant canonical cosmology resource has been verified" in result["doorway_omission_reason"]
 
 
 def test_cosmology_recovery_is_limited_to_lived_significance_questions():
@@ -84,7 +87,7 @@ def test_cosmology_recovery_is_limited_to_lived_significance_questions():
     )
     assert recovery is not None
     assert recovery["recovery_id"] == "archive_informed_cosmology_lived_significance"
-    assert len(recovery["response"].split("\n\n")) == 3
+    assert len(recovery["response"].split("\n\n")) == 4
     assert main._established_archive_cosmology_recovery("What is cosmology?") is None
     assert main._established_archive_cosmology_recovery(
         "What is the cosmology of the Living Archive?"
