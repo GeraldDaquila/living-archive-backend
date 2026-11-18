@@ -6951,7 +6951,8 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent.",
-      "forbids_doorway": true
+      "forbids_doorway": true,
+      "user_approved_at": "2026-11-18"
     }
   ],
   "last_reconciliation_note": "2026-11-18: Added one distinct user-approved Gold Star for calibration-versus-validation model-revision promotion. Canonical inventory: 108 approved Gold Stars across 146 registry records; 106 active runtime-transfer contributors, 38 numbered, 70 UNASSIGNED. The new benchmark is exact-query resolvable, contributes only its bounded model-evaluation reasoning discipline, and intentionally has no doorway. No existing benchmark identity or serial changed.",
