@@ -759,20 +759,20 @@ def is_resonance_confirmation_bias_question(question):
     """Recognize a request to distinguish intuitive resonance from confirmation bias."""
     q = _clean(question).casefold()
     names_both = (
-        bool(re.search(r"\\bresonan(?:ce|t)\\w*\\b", q))
-        and bool(re.search(r"\\bconfirmation\\s+bias\\b", q))
+        bool(re.search(r"\bresonan(?:ce|t)\w*\b", q))
+        and bool(re.search(r"\bconfirmation\s+bias\b", q))
     )
     discernment_task = bool(re.search(
-        r"\\b(?:distinguish|tell\\s+(?:the\\s+)?difference|differentiate|"
-        r"separate|discern|test|check|audit)\\b", q
+        r"\b(?:distinguish|tell\s+(?:the\s+)?difference|differentiate|"
+        r"separate|discern|test|check|audit)\b", q
     ))
     intuition_context = bool(re.search(
-        r"\\b(?:intuit(?:ion|ive|ively)|impression|gut\\s+feeling|"
-        r"inner\\s+knowing|resonat(?:es|ed|ing))\\b", q
+        r"\b(?:intuit(?:ion|ive|ively)|impression|gut\s+feeling|"
+        r"inner\s+knowing|resonat(?:es|ed|ing))\b", q
     ))
     action_context = bool(re.search(
-        r"\\b(?:before\\s+acting|before\\s+i\\s+act|act(?:ing)?\\s+on|"
-        r"decision|choose|choice|believ(?:e|ing))\\b", q
+        r"\b(?:before\s+acting|before\s+i\s+act|act(?:ing)?\s+on|"
+        r"decision|choose|choice|believ(?:e|ing))\b", q
     ))
     return names_both and discernment_task and (intuition_context or action_context)
 
