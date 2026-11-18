@@ -541,35 +541,45 @@ def _select_guide_node_fallback_doorway(query):
     verified_family_doorway = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     if verified_family_doorway:
         return dict(verified_family_doorway)
-    terms = set(re.findall(r"[a-z]{4,}", normalized))
-    best = None
-    best_score = 0
-    for node in _guide_node_registry_snapshot():
+    profile = _base._inquiry_profile(query)
+    eligible = []
+    for index, node in enumerate(_guide_node_registry_snapshot()):
         if not isinstance(node, dict):
             continue
         title = str(node.get("title") or "").strip()
-        url = str(node.get("url") or node.get("canonical_url") or node.get("permalink") or "").strip()
-        if not title or not re.fullmatch(r"https://geralddaquila\.com/[^\s]+", url, re.I):
+        url = str(node.get("canonical_url") or node.get("url") or node.get("permalink") or "").strip()
+        if (
+            not title
+            or str(node.get("status") or "active").strip().casefold() != "active"
+            or str(node.get("access_class") or "public").strip().casefold() not in {"public", "mixed"}
+            or not re.fullmatch(r"https://geralddaquila\\.com/[^\\s]+", url, re.I)
+        ):
             continue
-        haystack = " ".join([
-            title,
-            str(node.get("purpose") or ""),
-            " ".join(node.get("semantic_hints") or []),
-        ]).casefold()
-        # Match complete lexical terms, not substrings: "recur" must not
-        # become evidence for a glossary about "recurring" terms. Weak
-        # morphological overlap is not enough to warrant a visitor doorway.
-        haystack_terms = set(re.findall(r"[a-z]{4,}", haystack))
-        score = len(terms & haystack_terms)
-        if score > best_score:
-            # The shared frontend renderer requires a grounded rationale;
-            # title/URL-only recommendations are incomplete visitor contracts.
-            rationale = str(node.get("purpose") or "").strip()
-            candidate = {"title": title, "url": url}
-            if rationale:
-                candidate["rationale"] = rationale
-            best, best_score = candidate, score
-    return best if best_score else None
+        purpose = str(node.get("purpose") or "").strip()
+        hints = node.get("semantic_hints") or []
+        if not isinstance(hints, (list, tuple)):
+            hints = []
+        evidence = " ".join([purpose, *[str(hint) for hint in hints]])
+        doc = {"title": title, "url": url, "text": evidence}
+        # Keyword overlap is only a retrieval hint. A visitor handoff requires
+        # the same substantive relevance gates used for canonical documents.
+        if not _eligible_outward_doc(query, doc, profile, min_relevance=2):
+            continue
+        metrics = _subject_metrics(query, doc)
+        context = _contextual_fit(query, doc)
+        score = (
+            _relevance_level(metrics),
+            metrics[2],
+            metrics[3],
+            context[2],
+            context[1],
+            int(node.get("discovery_priority") == "high"),
+            -index,
+        )
+        if purpose:
+            eligible.append((score, {"title": title, "url": url, "rationale": purpose}))
+    eligible.sort(key=lambda item: item[0], reverse=True)
+    return eligible[0][1] if eligible else None
 
 
 def _select_reflective_balance_doorway(query):
@@ -5808,15 +5818,54 @@ def _guide_restore_verified_doorway(payload, query):
     family_candidate = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     doorway = _normalize_authoritative_recommendation(family_candidate) if family_candidate else None
     if not doorway:
-        doorway = _normalize_authoritative_recommendation(safe.get("recommendation"))
-    if not doorway:
-        doorway = _normalize_authoritative_recommendation(
-            {
-                "title": safe.get("doorway_title"),
-                "url": safe.get("doorway_url"),
-                "rationale": safe.get("doorway_rationale"),
-            }
-        )
+        upstream_candidate = _normalize_authoritative_recommendation(safe.get("recommendation"))
+        if not upstream_candidate:
+            upstream_candidate = _normalize_authoritative_recommendation(
+                {
+                    "title": safe.get("doorway_title"),
+                    "url": safe.get("doorway_url"),
+                    "rationale": safe.get("doorway_rationale"),
+                }
+            )
+        if upstream_candidate:
+            # Validate the candidate against its canonical source, not merely its
+            # provider-supplied title, URL, or rationale.
+            candidate_docs = []
+            context = str(
+                safe.get("canonical_link_context")
+                or safe.get("context_blocks")
+                or ""
+            )
+            if context:
+                try:
+                    candidate_docs.extend(_parse_context_documents(context))
+                except Exception:
+                    pass
+            for node in _guide_node_registry_snapshot():
+                if not isinstance(node, dict):
+                    continue
+                node_url = str(
+                    node.get("canonical_url") or node.get("url") or node.get("permalink") or ""
+                ).strip()
+                if node_url.rstrip("/") == str(upstream_candidate.get("url") or "").rstrip("/"):
+                    hints = node.get("semantic_hints") or []
+                    if not isinstance(hints, (list, tuple)):
+                        hints = []
+                    candidate_docs.append({
+                        "title": str(node.get("title") or upstream_candidate.get("title") or ""),
+                        "url": node_url,
+                        "text": " ".join([str(node.get("purpose") or ""), *[str(hint) for hint in hints]]),
+                    })
+            profile = _base._inquiry_profile(query)
+            for candidate_doc in candidate_docs:
+                candidate_url = str(
+                    candidate_doc.get("url") or candidate_doc.get("canonical_url") or ""
+                ).rstrip("/")
+                if candidate_url != str(upstream_candidate.get("url") or "").rstrip("/"):
+                    continue
+                if _eligible_outward_doc(query, candidate_doc, profile, min_relevance=2):
+                    doorway = upstream_candidate
+                    break
     if not doorway:
         try:
             candidate = _select_guide_node_fallback_doorway(query)
