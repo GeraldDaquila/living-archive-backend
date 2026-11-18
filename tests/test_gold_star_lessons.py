@@ -324,3 +324,14 @@ def test_collapse_adaptation_regeneration_gold_star_is_active_structural_learnin
     # Another previously approved analogue may qualify independently; this
     # exemplar itself remains explicitly ineligible for deterministic fallback.
     assert deterministic is None or deterministic["benchmark_id"] != result["benchmark_id"]
+
+
+
+def test_active_quality_candidate_preserves_qualifying_context_and_abstention_boundary():
+    result = lessons.active_quality_contribution(
+        "How do local choices relate to wider institutional and social circumstances?"
+    )
+    assert result and result["candidates"]
+    for candidate in result["candidates"]:
+        assert candidate["qualifying_context"]
+        assert candidate["abstention_boundary"]
