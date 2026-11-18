@@ -730,17 +730,24 @@ def test_external_discernment_outsourcing_question_is_answered_as_a_bounded_diag
     assert has_registered_recovery(query)
     answer = compose_recovery(query)
     assert answer == _external_discernment_outsourcing_recovery()
+    normalized = answer.casefold()
     for marker in (
         "teacher or spiritual leader",
         "system or doctrine",
         "signs, dreams, or synchronicities",
         "spiritual framework",
-        "what you directly observed",
-        "what evidence could make you reconsider",
-        "Guidance can widen perception",
+        "what actually happened, before interpretation",
+        "what else could explain it",
+        "whose account shaped that conclusion",
+        "what evidence would lead you to revise it",
+        "influence versus evidence",
+        "confidence, emotional intensity, symbolic resonance",
+        "consent, or appropriate safeguards",
+        "without threat or coercion",
     ):
-        assert marker in answer
-    assert "not conclusions about you" in answer
+        assert marker.casefold() in normalized
+    assert "i cannot tell from your question which source, if any" in normalized
+    assert "perspective rather than final authority" in normalized
     doorway = registered_recovery_recommendation(query)
     assert doorway["title"] == "Being in the Driver's Seat (Without Pretending You Control the Road)"
     assert doorway["url"] == "https://geralddaquila.com/being-in-the-drivers-seat-without-pretending-you-control-the-road/"
