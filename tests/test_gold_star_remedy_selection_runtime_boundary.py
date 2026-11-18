@@ -109,3 +109,4 @@ def test_exact_approved_gold_star_encodes_the_intentional_no_doorway_exception()
     assert record["forbids_doorway"] is True
     assert record["doorway_title"] == ""
     assert record["doorway_url"] == ""
+    assert main._gold_star_doorway_omission_is_justified(record) is True
