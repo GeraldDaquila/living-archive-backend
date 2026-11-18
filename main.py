@@ -11922,6 +11922,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 str((_answer_only_retry or {}).get("response") or "").strip()
                             )
                             _answer_only_valid = bool(
+                                _answer_only_text
                                 and not general_guide_composition.is_meta_answer_failure(_answer_only_text)
                                 and not general_guide_composition.is_generic_nonanswer(query, _answer_only_text)
                             )
