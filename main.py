@@ -9650,7 +9650,10 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Capability-evidence questions are answerable without retrieval or a live
     # provider. Resolve them before the provider bank so outages cannot replace
     # the requested evaluation framework with generic continuity prose.
-    _autonomy_evidence = general_guide_composition._autonomy_evidence_evaluation_recovery(query)
+    _autonomy_evidence = (
+        None if _resolve_exact_guide_gold_standard(query) is not None
+        else general_guide_composition._autonomy_evidence_evaluation_recovery(query)
+    )
     if _autonomy_evidence is not None:
         _request_id = "autonomy-evidence-" + hashlib.sha1(query.encode("utf-8")).hexdigest()[:16]
         _answer = str(_autonomy_evidence.get("response") or "").strip()
