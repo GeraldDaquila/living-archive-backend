@@ -70,3 +70,32 @@ def test_structured_specialist_handoff_uses_its_own_contract():
     )
     assert result["status"] == "not_applicable"
     assert result["reason"] == "structured_handoff"
+
+
+def test_shared_json_sender_invokes_floor_before_serialization():
+    import ast
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    sender = next(
+        node for node in tree.body
+        if isinstance(node, ast.AsyncFunctionDef) and node.name == "_use_send_json"
+    )
+    calls = [
+        node for node in ast.walk(sender)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "evaluate_response_floor"
+    ]
+    serializations = [
+        node for node in ast.walk(sender)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "json"
+        and node.func.attr == "dumps"
+    ]
+    assert calls
+    assert serializations
+    assert min(node.lineno for node in calls) < min(node.lineno for node in serializations)
