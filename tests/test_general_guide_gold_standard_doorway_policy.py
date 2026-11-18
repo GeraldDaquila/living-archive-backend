@@ -142,18 +142,17 @@ def test_complete_gold_standard_doorway_preserves_registry_authored_rationale():
     }
 
 
-def test_shared_restore_supplies_default_doorway_when_no_specific_candidate_exists(monkeypatch):
+def test_shared_restore_omits_doorway_when_no_relevant_candidate_exists(monkeypatch):
     monkeypatch.setattr(main, "_select_verified_doorway_conceptual_family", lambda query: "")
     monkeypatch.setattr(main, "_select_guide_node_fallback_doorway", lambda query: None)
     payload = {"response": "A complete answer."}
 
     result = main._guide_restore_verified_doorway(payload, "A general explanatory question?")
 
-    assert result["recommendation"]["title"] == "Sovereign Sensemaking Compass"
-    assert result["recommendation"]["url"] == "https://geralddaquila.com/the-sovereign-sensemaking-compass/"
-    assert result["canonical_doorway"] == result["recommendation"]
-    assert result["doorway_title"] == result["recommendation"]["title"]
-    assert result["doorway_url"] == result["recommendation"]["url"]
+    assert result["recommendation"] is None
+    assert result["canonical_doorway"] is None
+    assert result["doorway_title"] is None
+    assert result["doorway_url"] is None
 
 
 def test_outermost_boundary_reapplies_doorway_after_all_inner_early_returns():
