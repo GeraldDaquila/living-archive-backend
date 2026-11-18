@@ -120,3 +120,96 @@ def test_final_visitor_boundary_repairs_provider_and_legacy_route_failures():
     assert "_autonomy_evidence_evaluation_recovery(query)" in block
     assert 'safe["recommendation"] = None' in block
     assert "final_visitor_boundary_autonomy_evidence_evaluation" in block
+
+
+def test_final_visitor_boundary_runtime_recovers_when_payload_response_is_noncompliant():
+    # Exercise the actual finalizer function in isolation. Importing main.py
+    # would start the full application dependency graph and is unnecessary for
+    # this branch-level invariant.
+    import ast
+    import re
+
+    module = ast.parse(MAIN_SOURCE)
+    function = next(
+        node for node in module.body
+        if isinstance(node, ast.FunctionDef)
+        and node.name == "_guide_finalize_visitor_payload"
+    )
+    namespace = {
+        "re": re,
+        "APP_VERSION": "test",
+        "_resolve_exact_guide_gold_standard": lambda _query: None,
+        "_gold_star_doorway_omission_is_justified": lambda _standard: False,
+        "general_guide_composition": type(
+            "Composition",
+            (),
+            {
+                "_requires_autonomy_evidence_evaluation": staticmethod(lambda _query: True),
+                "_has_autonomy_evidence_evaluation": staticmethod(
+                    lambda text: "AUTONOMY-EVIDENCE-FRAMEWORK" in str(text)
+                ),
+                "_autonomy_evidence_evaluation_recovery": staticmethod(
+                    lambda _query: {
+                        "response": (
+                            "AUTONOMY-EVIDENCE-FRAMEWORK: assess autonomy, adaptation, "
+                            "resilience, and improvement with auditable evidence."
+                        )
+                    }
+                ),
+            },
+        ),
+    }
+    isolated = ast.Module(body=[function], type_ignores=[])
+    exec(compile(isolated, "main.py", "exec"), namespace)
+
+    result = namespace["_guide_finalize_visitor_payload"](
+        {"ok": True, "response": "A noncompliant answer from an earlier route."},
+        "What evidence demonstrates genuine autonomy, adaptivity, resilience, and improvement?",
+    )
+
+    assert result["response"].startswith("AUTONOMY-EVIDENCE-FRAMEWORK:")
+    assert result["processing"] == "final_visitor_boundary_autonomy_evidence_evaluation"
+    assert result["recommendation"] is None
+    assert result["doorway_title"] is None
+
+
+def test_final_visitor_boundary_preserves_an_already_compliant_autonomy_answer():
+    import ast
+    import re
+
+    module = ast.parse(MAIN_SOURCE)
+    function = next(
+        node for node in module.body
+        if isinstance(node, ast.FunctionDef)
+        and node.name == "_guide_finalize_visitor_payload"
+    )
+    answer = "AUTONOMY-EVIDENCE-FRAMEWORK: independently evaluated evidence."
+
+    namespace = {
+        "re": re,
+        "APP_VERSION": "test",
+        "_resolve_exact_guide_gold_standard": lambda _query: None,
+        "_gold_star_doorway_omission_is_justified": lambda _standard: False,
+        "general_guide_composition": type(
+            "Composition",
+            (),
+            {
+                "_requires_autonomy_evidence_evaluation": staticmethod(lambda _query: True),
+                "_has_autonomy_evidence_evaluation": staticmethod(
+                    lambda text: "AUTONOMY-EVIDENCE-FRAMEWORK" in str(text)
+                ),
+                "_autonomy_evidence_evaluation_recovery": staticmethod(
+                    lambda _query: {"response": "This recovery should not replace the answer."}
+                ),
+            },
+        ),
+    }
+    isolated = ast.Module(body=[function], type_ignores=[])
+    exec(compile(isolated, "main.py", "exec"), namespace)
+
+    result = namespace["_guide_finalize_visitor_payload"](
+        {"ok": True, "response": answer},
+        "What evidence demonstrates genuine autonomy, adaptivity, resilience, and improvement?",
+    )
+
+    assert result["response"] == answer

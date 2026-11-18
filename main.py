@@ -5804,6 +5804,10 @@ def _guide_finalize_visitor_payload(payload, query):
     # provider-exhaustion and legacy deterministic paths.
     if general_guide_composition._requires_autonomy_evidence_evaluation(query):
         safe = dict(payload)
+        # Read the response from the payload at this boundary. Earlier routes
+        # may provide either the canonical response field or the legacy answer
+        # alias; never depend on a local variable assigned by a different route.
+        response_text = str(safe.get("response") or safe.get("answer") or "").strip()
         if not general_guide_composition._has_autonomy_evidence_evaluation(response_text):
             recovery = general_guide_composition._autonomy_evidence_evaluation_recovery(query)
             if not recovery or not general_guide_composition._has_autonomy_evidence_evaluation(recovery.get("response", "")):
