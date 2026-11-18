@@ -7347,12 +7347,16 @@
     "last_audit_date": "2026-11-18",
     "approved_gold_star_count": 112,
     "registry_record_count": 150,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 112 approved Gold Stars across 150 registry records. 110 active quality contributors have matching qualitative-transfer reviews; the existing exact-query-only successor and migrated duplicate remain excluded from active contribution. The autonomy/adaptivity/resilience/improvement evidence benchmark is a new approved active contributor with a matching review. The personality/soul/Oversoul discernment benchmark is an approved active contributor with a matching review and display serial #94. No existing benchmark identity or serial changed.",
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 112 approved-status records across 150 registry records. 110 are active structural-learning contributors with matching qualitative-transfer reviews; 1 is an approved exact-query-only successor and 1 is a superseded historical duplicate retained for provenance. 1 recovered response is pending approval evidence and is excluded from every Gold Star count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 112 approved Gold Stars; 39 assigned display serials #56–#94; 73 approved records explicitly UNASSIGNED with reasons. Gold Star #94 was allocated to gs-2026-11-18-personality-soul-oversoul-discernment after explicit user elevation. No existing serial changed.",
     "unassigned_approved_gold_star_count": 73,
-    "documented_numbering_gap_count": 0
+    "documented_numbering_gap_count": 0,
+    "active_quality_contributor_count": 110,
+    "exact_query_only_successor_count": 1,
+    "superseded_historical_reference_count": 1,
+    "pending_approval_evidence_count": 1
   },
   "numbering_policy": {
     "identity_key": "benchmark_id",
