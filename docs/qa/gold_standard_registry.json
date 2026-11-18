@@ -6872,9 +6872,38 @@
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent.",
       "forbids_doorway": true
+    },
+    {
+      "benchmark_id": "general-guide-gold-star-remedy-selection-vs-engineering-defect-2026-11-18",
+      "status": "CANDIDATE",
+      "subsystem": "general-purpose-guide",
+      "query": "How should USE distinguish a recurring weakness that deserves a new Gold Star from a weakness better addressed through improved retrieval, source metadata, or deterministic logic?",
+      "expected_response": "USE should create a Gold Star only when the recurring failure is a genuine reasoning-capability gap: the system has the right evidence, the source information is accurate, and the applicable deterministic rules are working, yet it still repeatedly fails to perform a reasoning operation that matters across distinct questions. A Gold Star teaches a transferable way to reason; it is not a general-purpose container for defects that belong to the software or knowledge infrastructure.\n\nDiagnose the earliest failed layer before choosing a remedy. If the needed source exists but is missing from the candidate set or ranked out, improve retrieval coverage, queries, or ranking. If the source is found but its title, canonical URL, type, version, permissions, or provenance is missing or wrong, repair the source metadata and its indexing. If the failure is reproducible under a known rule—such as routing, validation, thresholds, access boundaries, or response serialization—correct the deterministic logic and add a regression test. These are engineering corrections, even when they repeatedly produce poor answers.\n\nA Gold Star becomes justified only when those lower layers have been checked and the residual failure is still a recurring reasoning weakness across materially different, independently evaluated questions. Isolate the missing reasoning operation, state the corrective discipline and its qualifying conditions and abstention boundary, then test it on held-out target cases, adjacent cases, and unrelated negative controls. Compare correctness, relevance, completeness, calibration, and regressions before and after; require human review before activation. If an engineering correction removes the failure, do not create a Gold Star. If both defects coexist, repair the infrastructure first and evaluate only the remaining reasoning gap.",
+      "expected_doorway": null,
+      "assertions": [
+        "Distinguishes a reasoning-capability gap from retrieval, source-metadata, and deterministic-logic defects.",
+        "Diagnoses the earliest failed layer before choosing a remedy.",
+        "Retrieval defects are corrected through candidate coverage, query, or ranking improvements.",
+        "Source identity, canonical URL, type, version, permissions, and provenance defects are corrected in metadata and indexing.",
+        "Known repeatable routing, validation, threshold, access, and serialization defects are corrected deterministically with regression tests.",
+        "A Gold Star is considered only for a residual reasoning weakness recurring across materially different, independently evaluated questions after lower-layer checks.",
+        "Candidate lessons specify the missing reasoning operation, qualifying conditions, and abstention boundary.",
+        "Evaluation includes held-out target cases, adjacent cases, and unrelated negative controls, with before/after quality and regression comparison.",
+        "Human review is required before activation; engineering corrections are not encoded as Gold Stars.",
+        "No Archive doorway is attached because the question concerns an internal USE learning-governance method and no direct canonical continuation is established."
+      ],
+      "provenance": {
+        "source": "User-provided live visitor-facing Guide screenshot and explicit instruction to structurally correct and elevate the response.",
+        "source_date": "2026-11-18",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes a polished but off-topic response. The corrected answer is a newly authored, question-specific remedy-selection contract. This registry entry remains a candidate pending live review of the corrected visitor-facing response.",
+        "doorway_decision": "No doorway is proposed; this is an internal USE learning-governance method and no verified canonical resource is established as a direct continuation."
+      },
+      "rating_out_of_10": 9.8,
+      "freeze_policy": "Do not promote to USER_APPROVED_GOLD_STANDARD or activate runtime transfer until the corrected visitor-facing response has been reviewed and explicitly approved."
     }
   ],
-  "last_reconciliation_note": "2026-11-18: Reconciled the concurrent USE doorway-warrant Gold Star and the cross-question pattern-recognition/candidate-lesson Gold Star as two distinct additions. Canonical inventory: 107 approved Gold Stars across 144 registry records; 105 active runtime-transfer contributors, 38 numbered, 69 UNASSIGNED. Each new benchmark has one unique active qualitative-transfer review. No existing benchmark identity or serial changed; neither new benchmark received a display serial.",
+  "last_reconciliation_note": "2026-11-18: Reconciled the concurrent USE doorway-warrant Gold Star and the cross-question pattern-recognition/candidate-lesson Gold Star as two distinct additions. Canonical inventory: 107 approved Gold Stars across 144 registry records; 105 active runtime-transfer contributors, 38 numbered, 69 UNASSIGNED. Each new benchmark has one unique active qualitative-transfer review. No existing benchmark identity or serial changed; neither new benchmark received a display serial. 2026-11-18 follow-up: Added one distinct remedy-selection CANDIDATE pending corrected live-response review; registry now has 145 records while approved Gold Stars remain 107 and active transfer reviews remain unchanged. No serial allocated.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -7005,8 +7034,8 @@
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
     "approved_gold_star_count": 107,
-    "registry_record_count": 144,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 107 approved Gold Stars across 144 registry records. 105 are active quality contributors with matching qualitative-transfer reviews; one is an exact-query-only successor and one migrated duplicate is preserved as a superseded historical reference only. The USE doorway-warrant and cross-question pattern-learning benchmarks are distinct approved active contributors. No display serial was allocated to either addition.",
+    "registry_record_count": 145,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 107 approved Gold Stars across 145 registry records. 105 are active quality contributors with matching qualitative-transfer reviews; one is an exact-query-only successor and one migrated duplicate is preserved as a superseded historical reference only. The USE doorway-warrant and cross-question pattern-learning benchmarks are distinct approved active contributors. No display serial was allocated to either addition.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 107 approved Gold Stars; 38 assigned display serials #56–#93; 69 approved records explicitly UNASSIGNED with reasons. No existing serial changed and no new serial was allocated.",
