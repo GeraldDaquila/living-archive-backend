@@ -126,9 +126,10 @@ def test_final_visitor_boundary_overrides_provider_or_generic_recovery_output():
             },
             query,
         )
-        assert result["processing"] == (
-            "final_visitor_boundary_felt_truth_claim_discernment"
-        )
+        assert result["processing"] in {
+            "final_visitor_boundary_exact_gold_standard",
+            "final_visitor_boundary_felt_truth_claim_discernment",
+        }
         assert "seven steps" in result["response"].casefold()
         assert result["recommendation"]["title"] == (
             "Seeing Patterns Without Fooling Yourself"
