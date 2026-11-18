@@ -99,3 +99,58 @@ def test_shared_json_sender_invokes_floor_before_serialization():
     assert calls
     assert serializations
     assert min(node.lineno for node in calls) < min(node.lineno for node in serializations)
+
+
+def test_shared_sender_e2e_allows_valid_answer_and_attaches_floor(monkeypatch):
+    import asyncio
+    import json
+    import main
+
+    monkeypatch.setattr(main, "_apply_exact_gold_standard_authority_to_payload", lambda value: value)
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda query: None)
+    monkeypatch.setattr(main, "_apply_registered_personal_decision_agency_contract", lambda value, query: value)
+    monkeypatch.setattr(main, "is_ai_workforce_restructuring_question", lambda query: False)
+    monkeypatch.setattr(main, "_gold_star_doorway_omission_is_justified", lambda standard: False)
+
+    sent = []
+    async def send(message):
+        sent.append(message)
+
+    payload = {
+        "ok": True,
+        "query": "What is photosynthesis?",
+        "response": "Photosynthesis converts light energy into chemical energy.",
+        "recommendation": {"title": "Related resource", "url": "https://example.org/resource"},
+    }
+    asyncio.run(main._use_send_json(send, payload))
+    body = json.loads(next(item["body"] for item in sent if item["type"] == "http.response.body"))
+    assert body["gold_star_v2_quality_floor"]["status"] == "pass"
+    assert next(item["status"] for item in sent if item["type"] == "http.response.start") == 200
+
+
+def test_shared_sender_e2e_withholds_invalid_completed_answer(monkeypatch):
+    import asyncio
+    import json
+    import main
+
+    monkeypatch.setattr(main, "_apply_exact_gold_standard_authority_to_payload", lambda value: value)
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda query: None)
+    monkeypatch.setattr(main, "_apply_registered_personal_decision_agency_contract", lambda value, query: value)
+    monkeypatch.setattr(main, "is_ai_workforce_restructuring_question", lambda query: False)
+    monkeypatch.setattr(main, "_gold_star_doorway_omission_is_justified", lambda standard: False)
+
+    sent = []
+    async def send(message):
+        sent.append(message)
+
+    payload = {
+        "ok": True,
+        "query": "Explain the issue.",
+        "response": "",
+        "recommendation": {"title": "Related resource", "url": "https://example.org/resource"},
+    }
+    asyncio.run(main._use_send_json(send, payload))
+    body = json.loads(next(item["body"] for item in sent if item["type"] == "http.response.body"))
+    assert next(item["status"] for item in sent if item["type"] == "http.response.start") == 503
+    assert body["error_type"] == "gold_star_v2_quality_floor_rejected"
+    assert body["gold_star_v2_quality_floor"]["reason"] == "missing_answer"
