@@ -7154,6 +7154,28 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "model": "",
         }
 
+    # Trust-in-community-stewardship is a narrower question family than
+    # generic stewardship. Resolve it before the broader stewardship recovery
+    # can capture the query and replace the visitor's actual question.
+    from deterministic_answer_recovery import (
+        is_trust_community_stewardship_question,
+        compose_recovery as _compose_trust_community_recovery,
+        registered_recovery_recommendation as _trust_community_recommendation,
+    )
+    if is_trust_community_stewardship_question(query):
+        _trust_answer = _compose_trust_community_recovery(query)
+        _trust_doorway = _trust_community_recommendation(query)
+        return {
+            "response": _trust_answer,
+            "doorway_title": str((_trust_doorway or {}).get("title") or ""),
+            "doorway_url": str((_trust_doorway or {}).get("url") or ""),
+            "doorway_rationale": str((_trust_doorway or {}).get("rationale") or ""),
+            "recommendation": _trust_doorway,
+            "canonical_doorway": _trust_doorway,
+            "provider": "bounded_trust_community_stewardship_recovery",
+            "model": "",
+        }
+
     from deterministic_answer_recovery import (
         is_spiritual_community_accountability_question,
         compose_recovery as _compose_spiritual_community_recovery,
