@@ -952,10 +952,10 @@
       "activation": "active_quality_contributor"
     },
     {
-      "benchmark_id": "general-guide-retrieval-outage-deterministic-recovery-disclosure-gold-star-2026-11-18",
+      "benchmark_id": "general-guide-retrieval-outage-deterministic-recovery-disclosure-gold-star-refined-2026-11-18",
       "question": "A retrieval service fails, but the Guide can still access previously verified source references and deterministic recovery mechanisms. What should it do, and what should it disclose?",
       "reasoning_family": "retrieval_outage_recovery_and_evidence_disclosure",
-      "transferable_discipline": "Separate retrieval-service availability from answerability. Reuse previously verified source references only when they remain accessible and their identity, canonical URL, permissions, provenance, and freshness are validated. Otherwise invoke an approved deterministic recovery, label its basis, disclose the outage and limitations, and offer only independently verified relevant navigation.",
+      "transferable_discipline": "Detect retrieval failure; validate retained references; if none are usable, invoke an approved deterministic recovery within scope; disclose the actual evidence basis and material limitations; never fabricate citations or force unrelated navigation.",
       "qualifying_context": "Questions about how a knowledge or answer system should behave when retrieval or a supporting source service fails but some verified references or deterministic recovery mechanisms may remain available.",
       "abstention_boundary": "Do not claim cached references exist unless they are actually accessible and validated; do not imply fresh retrieval, invent citations or Archive doctrine, bypass safety or access boundaries, or force an unrelated doorway. If no reliable recovery remains, disclose that limitation.",
       "activation": "active_quality_contributor"
