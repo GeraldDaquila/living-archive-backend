@@ -11,6 +11,7 @@ on:
       - "provider_bank.py"
       - "guide_request_budget.py"
       - "tests/test_general_guide_provider_budget.py"
+      - "tests/test_living_archive_navigator_provider_bank_contract.py"
       - ".github/workflows/general-guide-provider-budget-qa.yml"
 
 permissions:
@@ -27,4 +28,4 @@ jobs:
       - name: Install test dependency
         run: python -m pip install pytest
       - name: Test bounded provider budget
-        run: pytest -q tests/test_general_guide_provider_budget.py
+        run: pytest -q tests/test_general_guide_provider_budget.py tests/test_living_archive_navigator_provider_bank_contract.py
