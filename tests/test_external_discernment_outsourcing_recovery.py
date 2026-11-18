@@ -17,21 +17,33 @@ def test_exact_question_is_classified_and_has_a_registered_recovery():
     assert has_registered_recovery(QUERY)
 
 
-def test_recovery_performs_the_four_locus_audit_and_preserves_agency():
+def test_recovery_performs_four_locus_audit_without_presuming_visitor_state():
     answer = compose_recovery(QUERY)
     assert answer == _external_discernment_outsourcing_recovery()
     for required in (
-        "teacher or spiritual leader",
-        "system or doctrine",
-        "signs, dreams, or synchronicities",
-        "spiritual framework",
-        "what you directly observed",
-        "what meaning you are assigning to it",
-        "whose interpretation is influencing you",
-        "what evidence could make you reconsider",
+        "I cannot tell from your question which source, if any, is influencing your judgment",
+        "A teacher or spiritual leader",
+        "A system or doctrine",
+        "Signs, dreams, or synchronicities",
+        "A spiritual framework",
+        "what actually happened, before interpretation",
+        "what else could explain it",
+        "what makes that account reliable here",
+        "what evidence would lead you to revise it",
+        "influence versus evidence",
+        "confidence, emotional intensity, symbolic resonance, and internal coherence",
+        "consent, or appropriate safeguards",
         "You do not have to reject outside wisdom",
+        "perspective rather than final authority",
     ):
         assert required in answer
+
+    # Each locus must have a distinct diagnostic test, not merely be named.
+    assert "Can you question them or decline their advice" in answer
+    assert "What observation would count against the interpretation?" in answer
+    assert "it does not by itself establish what caused it or what action you must take" in answer
+    assert "Can its claims be questioned and revised?" in answer
+    assert "without threat or coercion" in answer
 
 
 def test_registered_doorway_is_relevant_and_explicitly_bounded():
