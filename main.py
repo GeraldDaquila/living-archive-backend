@@ -19,7 +19,7 @@ from pathlib import Path
 from urllib.parse import quote
 from boundary_resilience import CONTRACT_VERSION as BOUNDARY_RESILIENCE_CONTRACT_VERSION, StaleAuthorityCache
 from fastapi import HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 
 from hub_contracts import (
     build_hub_request,
@@ -5957,6 +5957,40 @@ def _guide_finalize_visitor_payload(payload, query):
             ),
         }
         safe["processing"] = "final_visitor_boundary_resonance_confirmation_bias_recovery"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
+    # Felt-truth discernment is a question-specific intellectual task, not generic
+    # reflection. Enforce it after every provider and fallback route.
+    from deterministic_answer_recovery import (
+        is_felt_truth_claim_discernment_question,
+        _felt_truth_claim_discernment_recovery,
+        registered_recovery_recommendation as _registered_recovery_doorway,
+    )
+    if is_felt_truth_claim_discernment_question(query):
+        safe = dict(payload)
+        answer = _felt_truth_claim_discernment_recovery()
+        safe["response"] = answer
+        if "answer" in safe:
+            safe["answer"] = answer
+        doorway = _normalize_authoritative_recommendation(_registered_recovery_doorway(query))
+        safe["recommendation"] = doorway
+        safe["canonical_doorway"] = doorway
+        safe["doorway_title"] = doorway.get("title") if doorway else None
+        safe["doorway_url"] = doorway.get("url") if doorway else None
+        safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
+        safe.pop("doorway_omission_exception_reason", None)
+        safe["answer_basis"] = {
+            "kind": "general_knowledge",
+            "label": "General knowledge",
+            "explanation": (
+                "This is a practical epistemic-discernment method. The linked Archive essay "
+                "offers a related method for testing perceived patterns; it is a continuation, "
+                "not independent proof of any particular belief."
+            ),
+        }
+        safe["processing"] = "final_visitor_boundary_felt_truth_claim_discernment"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
@@ -14810,6 +14844,60 @@ async def _use_request_boundary(scope, receive, send):
 
     await _FASTAPI_APP(scope, _use_replay_receive(raw_body), _send_with_final_visitor_boundary)
 
+
+@app.get("/qa-browser", response_class=HTMLResponse)
+async def _gold_star_qa_browser():
+    """Isolated browser harness for exercising the visitor query flow on QA."""
+    return HTMLResponse(r"""
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Life. Understood. — QA Browser Test</title>
+<style>
+:root{font-family:Arial,Helvetica,sans-serif;color:#172033;background:#fff}
+*{box-sizing:border-box}body{max-width:760px;margin:0 auto;padding:28px 20px 48px}
+.brand{font-family:Georgia,serif;color:#bd8b25;font-size:25px;line-height:1.02;margin:0 0 18px}
+.panel{background:#f3f3f3;border:1px solid #ddd;border-radius:14px;padding:20px;margin:14px 0 20px;box-shadow:0 8px 22px #0000000a}
+label{display:block;font-size:14px;margin:0 0 12px}
+textarea{width:100%;min-height:100px;border:1px solid #ccc;border-radius:12px;padding:12px;font:14px/1.5 Arial;resize:vertical;color:#172033}
+button{display:block;margin:10px 0 0 auto;background:#050505;color:#fff;border:0;border-radius:10px;padding:12px 24px;font-size:14px;cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}#result{white-space:pre-wrap;line-height:1.65;font-size:14px}
+.meta{font-size:12px;color:#64748b;margin:0 0 12px}a{color:#7b5b16}
+.doorway{border-top:1px solid #ddd;margin-top:18px;padding-top:14px}
+.status{font-size:12px;color:#64748b;margin-top:10px}
+</style></head><body>
+<div class="brand">Life.<br>Understood.</div>
+<div class="panel"><label for="question">Ask a question, follow a curiosity, or find what you need.</label>
+<textarea id="question">What claims am I accepting because they feel true, beautiful, or empowering—and what would it take to examine them carefully?</textarea>
+<button id="search" type="button">Search</button>
+<div class="status" id="status">QA environment · isolated test backend.</div></div>
+<div class="panel" id="answer-panel" hidden><p class="meta" id="echo"></p>
+<div id="result"></div><div class="doorway" id="doorway" hidden></div>
+<p class="status" id="diagnostics"></p></div>
+<script>
+const button=document.getElementById("search");
+button.addEventListener("click",async()=>{
+ const query=document.getElementById("question").value.trim();if(!query)return;
+ button.disabled=true;button.textContent="Searching…";
+ document.getElementById("status").textContent="Submitting to the QA visitor endpoint…";
+ document.getElementById("answer-panel").hidden=true;
+ try{
+  const response=await fetch("/api/query",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query})});
+  const data=await response.json();document.getElementById("answer-panel").hidden=false;
+  document.getElementById("echo").textContent="Your question asks: "+query;
+  document.getElementById("result").textContent=data.response||data.message||"No visitor response was returned.";
+  const rec=data.recommendation||data.canonical_doorway,box=document.getElementById("doorway");
+  box.hidden=!rec;box.replaceChildren();
+  if(rec){const title=document.createElement("strong");title.textContent=rec.title||"Continue exploring";
+   const p=document.createElement("p");p.textContent=rec.rationale||"";
+   const a=document.createElement("a");a.href=rec.url||"#";a.textContent="Read the Archive resource";a.target="_blank";a.rel="noopener noreferrer";
+   box.append(title,p,a);}
+  const floor=data.gold_star_v2_quality_floor;
+  document.getElementById("diagnostics").textContent="HTTP "+response.status+" · "+(data.processing||data.route_source||"route not exposed")+(floor?" · Gold Star floor: "+floor.status:"");
+  document.getElementById("status").textContent=response.ok?"QA request completed.":"QA request returned an error; inspect the response below.";
+ }catch(error){document.getElementById("status").textContent="Browser request failed: "+error.message;}
+ finally{button.disabled=false;button.textContent="Search";}
+});
+</script></body></html>""")
 
 PROVIDER_GATEWAY_RUNTIME_VERSION = "v1"
 
