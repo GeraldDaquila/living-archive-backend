@@ -706,13 +706,13 @@ def test_specialist_semantic_contracts_accept_task_complete_single_paragraph_ans
 def test_basic_inquiry_round1_uses_universal_quality_floor_with_task_adaptive_shape():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
     start = source.index("_BASIC_INQUIRY_ROUND1_SYSTEM =")
-    end = source.index("\\n\n\ndef _sanitize_basic_inquiry_response", start)
+    end = source.index("\n\n\ndef _sanitize_basic_inquiry_response", start)
     prompt = source[start:end]
     assert "quality floor, not as a fixed answer template" in prompt
     assert "Do not impose a fixed paragraph count, universal sequence, or closing question" in prompt
     assert "exactly one natural opening question" not in prompt
     assert '2–4 short paragraphs ending with exactly one opening question' not in prompt
-    assert "response.count(\\"?\\") != 1" not in source
+    assert 'response.count("?") != 1' not in source
     assert "Round 1 response must contain exactly one opening question" not in source
 
 
