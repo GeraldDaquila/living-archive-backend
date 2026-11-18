@@ -612,6 +612,32 @@ def _community_project_tradeoff_recovery():
     return "A fair assessment asks four connected sets of questions rather than treating “renewable” as proof that a project is automatically beneficial. Ecologically: where would it be built, what land, water, habitats, species, and landscape uses would it affect, what are its full life-cycle emissions and material demands, and what cumulative impacts or decommissioning obligations remain? Economically: who finances and owns it, who receives jobs, lease payments, tax revenue, or lower-cost electricity, who pays for grid upgrades and public support, and how are risks and returns distributed over time?\n\nCulturally, what does the site mean to the people who live with it: does it contain ancestral or sacred places, support customary access or livelihoods, or carry local knowledge and identity that a project plan may overlook? Who gets to define what counts as a loss, and can affected people shape the design? On governance, who proposed the project, who has authority to approve it, whose participation is meaningful rather than ceremonial, and what information, conflict-of-interest rules, grievance channels, independent review, and enforceable conditions are in place? Are groups with less political or economic power represented before decisions are made?\n\nThen compare the proposal with realistic alternatives: no project, another site or scale, a different technology or ownership model, or a mix of energy and demand-side options. Which harms can be avoided, which can be reduced, and which are irreversible or cannot fairly be compensated? Who carries the remaining costs, what benefits are guaranteed locally, and what evidence will be monitored after approval? A sound decision makes these trade-offs visible, protects rights that should not simply be exchanged for aggregate benefits, and sets conditions for review, correction, or stopping the project if its actual effects depart from what was promised."
 
 
+def is_personality_soul_oversoul_question(question):
+    """Recognize the three-part personality/soul/Oversoul discernment question narrowly."""
+    q = _clean(question).casefold()
+    has_three_lenses = all(re.search(pattern, q) for pattern in (
+        r"\bpersonality\b",
+        r"\bsoul\b",
+        r"\boversoul\b",
+    ))
+    asks_for_distinction = bool(re.search(
+        r"\b(?:difference|distinguish|distinction|relationship|between)\b", q
+    ))
+    includes_desire = bool(re.search(
+        r"\b(?:want|wants|desire|desires|wish|wishes|longing)\b", q
+    ))
+    includes_learning = bool(re.search(
+        r"\b(?:learn|learning|lesson|lessons|growth|developing)\b", q
+    ))
+    includes_invitation = bool(re.search(
+        r"\b(?:inviting|invitation|called|calling|become|becoming|purpose)\b", q
+    ))
+    return (
+        has_three_lenses and asks_for_distinction
+        and includes_desire and includes_learning and includes_invitation
+    )
+
+
 def is_oversoul_ego_authority_question(question):
     """Recognize bounded Oversoul/ego authority questions without overmatching."""
     q = _clean(question).casefold()
@@ -693,11 +719,21 @@ def _oversoul_ego_authority_recovery():
     )
 
 
+def _personality_soul_oversoul_recovery():
+    """Distinguish immediate desire, developmental learning, and spiritual invitation."""
+    return (
+        "The distinction is between three different kinds of information about your life. Your personality expresses what you want, need, fear, prefer, and are trying to protect in the circumstances you are living now. Those desires are not automatically shallow or wrong; they tell you something about your needs, values, boundaries, and sense of identity. What your soul is learning, in the language of a spiritual-development framework, concerns the capacities or understanding you may be developing through experience—perhaps patience, discernment, courage, trust, or a more honest relationship with yourself and others. What your Oversoul may be inviting you to become points to a still wider horizon of purpose or possibility: not a command or predetermined role, but a direction you may feel drawn to explore.\n\n"
+        "These three can support one another, but they can also pull in different directions. A personality-level desire may be legitimate even when it is not the whole answer; a difficult experience is not automatically a lesson you were meant to endure; and a powerful feeling of being called is not, by itself, proof that an Oversoul has spoken. To discern them, ask three separate questions: What do I genuinely want, and what need or value is underneath that want? What is this experience actually teaching me, as shown by what I am noticing and changing over time? What larger possibility seems to invite me toward greater honesty, freedom, care, or responsibility—and can I examine that invitation without surrendering my judgment? Let evidence from lived experience, not intensity alone, inform your answers.\n\n"
+        "The aim is not to silence the personality in favor of the soul, or to treat the Oversoul as an authority that overrides either one. A more integrated reading is that immediate desires provide information, reflection turns experience into learning, and a wider sense of purpose may help orient what you choose to become. You remain responsible for interpreting that sense of direction and deciding whether it is sound. This is a spiritual way of making meaning, not an independently verifiable account of metaphysical beings or a claim that every desire, hardship, or intuition has been assigned a cosmic purpose. A credible invitation should deepen agency and responsibility—not require coercion, self-erasure, or denial of material reality."
+    )
+
+
 def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
     return bool(
         is_guide_personal_decision_agency_question(question)
         or is_oversoul_ego_authority_question(question)
+        or is_personality_soul_oversoul_question(question)
         or is_oversoul_free_will_question(question)
         or is_spiritual_community_accountability_question(question)
         or is_complex_future_scenario_question(question)
@@ -739,6 +775,8 @@ def registered_recovery_recommendation(question):
             "url": "https://geralddaquila.com/2026/05/16/community-accountability-systems/",
             "rationale": "This Archive essay examines how communities prevent power from becoming insulated from feedback through transparent, distributed accountability, clear boundaries, protected dissent, and repair. It directly addresses the risks of charismatic leadership and weak accountability without treating spiritual belief or practice itself as the problem.",
         }
+    if is_personality_soul_oversoul_question(question):
+        return {"title":"Eternal / Oversoul Law – The Immutable Jurisdiction","url":"https://geralddaquila.com/oversoul-law","rationale":"This is the Archive's directly named Oversoul doorway for examining the question of spiritual invitation and jurisdiction. It offers the Archive's own framework for inspection; it is not independent evidence that an Oversoul exists or that a perceived invitation is objectively authoritative."}
     if is_oversoul_free_will_question(question) or is_oversoul_ego_authority_question(question):
         return {
             "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
@@ -945,7 +983,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         re.search(r"\baccountable\s+retrieval\b", lower)
         and re.search(r"\b(?:what does|what is|define|explain|look like)\b", lower)
     )
-    if is_guide_personal_decision_agency_question(q):
+    if is_personality_soul_oversoul_question(q):
+        answer = _personality_soul_oversoul_recovery()
+    elif is_guide_personal_decision_agency_question(q):
         answer = _guide_personal_decision_agency_recovery()
     elif is_spiritual_community_accountability_question(q):
         answer = _spiritual_community_accountability_recovery()

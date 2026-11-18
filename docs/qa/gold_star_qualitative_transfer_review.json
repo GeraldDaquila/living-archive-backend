@@ -968,6 +968,15 @@
       "qualifying_context": "Questions asking whether a model, Guide, or system revision should be promoted when performance improves on calibration/tuning data but declines on a held-out validation set.",
       "abstention_boundary": "Apply only when a question compares performance on calibration/tuning data with held-out validation data for a model or system revision. Do not assume the dataset labels or metrics are comparable without checking; do not treat one noisy validation result as conclusive without examining uncertainty and reproducibility; do not confuse this with probability-calibration metrics unless the question establishes that meaning; and do not transfer the answer or technical details to unrelated decision questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-18-personality-soul-oversoul-discernment",
+      "question": "What is the difference between what my personality wants, what my soul is learning, and what my Oversoul may be inviting me to become?",
+      "reasoning_family": "personality_soul_oversoul_discernment",
+      "transferable_discipline": "When a visitor distinguishes personality wants, soul learning, and a perceived Oversoul invitation, keep the three lenses distinct before integrating them; treat ordinary desires as information rather than defects; test developmental interpretations against lived evidence over time; preserve agency; and mark metaphysical claims as framework-bound rather than independently verified facts.",
+      "qualifying_context": "Questions that explicitly invoke personality, soul, and Oversoul together and ask how immediate desire, developmental learning, and a wider spiritual invitation differ or relate.",
+      "abstention_boundary": "Do not impose this three-lens framework on unrelated questions, demean ordinary needs as merely egoic, claim that suffering was cosmically assigned, assert that an Oversoul objectively exists or has issued an instruction, or transfer this answer text or doorway.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
