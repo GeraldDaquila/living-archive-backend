@@ -50,3 +50,46 @@ def test_evaluation_answer_may_use_a_compact_table_instead_of_reflective_prose()
 
     assert "use a compact table or clearly separated criteria" in contract
     assert "the decision-relevant standard" in contract
+
+
+
+def test_exact_guide_question_matches_provider_independent_recovery():
+    question = (
+        "The Guide has been operating successfully for an extended period without human intervention. "
+        "What evidence should demonstrate that it is genuinely autonomous, adaptive, resilient, "
+        "and improving rather than merely continuing to produce responses?"
+    )
+    recovery = guide._autonomy_evidence_evaluation_recovery(question)
+    assert recovery is not None
+    assert guide._has_autonomy_evidence_evaluation(recovery["response"])
+    assert recovery["doorway_title"] == ""
+    assert recovery["doorway_url"] == ""
+
+
+def test_capability_evidence_recovery_covers_each_distinct_claim_and_limits():
+    question = (
+        "What evidence would demonstrate that the Guide is autonomous, adaptive, resilient, "
+        "and improving rather than merely continuing to run?"
+    )
+    answer = guide._autonomy_evidence_evaluation_recovery(question)["response"]
+    assert "human intervention" in answer
+    assert "held-out cases" in answer
+    assert "degrades safely" in answer
+    assert "baseline and follow-up" in answer
+    assert "regression rates" in answer
+    assert "claims remain unverified" in answer
+
+
+def test_predicate_does_not_capture_unrelated_autonomy_or_resilience_questions():
+    assert not guide._requires_autonomy_evidence_evaluation(
+        "How can a community become more resilient and adaptive?"
+    )
+    assert not guide._requires_autonomy_evidence_evaluation(
+        "What does autonomy mean in political philosophy?"
+    )
+
+
+def test_incomplete_provider_answer_fails_the_evidence_contract():
+    assert not guide._has_autonomy_evidence_evaluation(
+        "The Guide has been running for a long time and has produced many responses."
+    )
