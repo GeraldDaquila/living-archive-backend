@@ -13814,20 +13814,6 @@ async def _use_request_boundary(scope, receive, send):
             "request_id": request_id,
         })
 
-    def _fetch_terminal_recovery_context(query):
-    """Retrieve optional context without making retrieval a prerequisite for recovery."""
-    try:
-        context = use_core.fetch_canonical_context(query)
-        return context if isinstance(context, dict) else {}
-    except Exception as exc:
-        # A retrieval outage must not disable provider-independent recovery.
-        print(
-            "The Guide terminal recovery: canonical context unavailable; "
-            f"continuing without newly retrieved context; exception={type(exc).__name__}"
-        )
-        return {}
-
-
 # v488.45: ordinary questions get exactly one routing decision.
     # Native boundaries above remain authoritative. Once those boundaries have
     # been cleared, Basic Inquiry owns the ordinary path. A Basic Inquiry
@@ -14778,6 +14764,20 @@ if STREAM_CONTRACT_VERSION != "SSE-VALIDATED-v1" or STREAM_TRANSPORT_VERSION != 
 # below. Keep import-time startup free of runtime probes: a production server
 # must not fail to boot merely because an optional recovery module changes its
 # initialization order.
+
+def _fetch_terminal_recovery_context(query):
+    """Retrieve optional context without making retrieval a prerequisite for recovery."""
+    try:
+        context = use_core.fetch_canonical_context(query)
+        return context if isinstance(context, dict) else {}
+    except Exception as exc:
+        # A retrieval outage must not disable provider-independent recovery.
+        print(
+            "The Guide terminal recovery: canonical context unavailable; "
+            f"continuing without newly retrieved context; exception={type(exc).__name__}"
+        )
+        return {}
+
 
 async def _guide_outer_visitor_response_boundary(scope, receive, send):
     """Enforce visitor-response sanitation around every /api/query exit path.
