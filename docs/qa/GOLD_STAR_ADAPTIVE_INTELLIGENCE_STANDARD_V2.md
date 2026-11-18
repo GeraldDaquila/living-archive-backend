@@ -135,11 +135,12 @@ This v2.0 specification is additive to the existing Gold Star governance. Runtim
 
 ## 10. Runtime enforcement boundary
 
-The v2.0 minimum is source-independent. The Guide's shared visitor JSON sender is
-the final enforcement point for ordinary visitor JSON responses, including
-provider-composed, exact Gold Star, deterministic recovery, and specialist
-responses that use that sender. The sender invokes
-`gold_star_response_floor.evaluate_response_floor` before serialization.
+The v2.0 minimum is source-independent. The Guide enforces the v2.0 floor at both visitor JSON exits: the early-return
+`_use_send_json` path and the outer `_send_with_final_visitor_boundary` that
+captures ordinary FastAPI `/api/query` responses. This covers both early
+specialist/recovery returns and the normal provider-composition path. Each exit
+invokes `gold_star_response_floor.evaluate_response_floor` before JSON
+serialization, so the ordinary LLM route cannot bypass the floor.
 
 The runtime gate is intentionally conservative and machine-verifiable:
 - a successful response must contain a non-empty answer and its originating query;
