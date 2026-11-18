@@ -11957,11 +11957,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # visitor doorway selector below.
                         # If every recovery below also fails, the visitor-facing
                         # boundary explicitly returns: I couldn’t produce a reliable answer to that question just now.
-                        _systemwide_paragraphs = [
-                            part.strip()
-                            for part in re.split(r"\n\s*\n+", _systemwide_recovery)
-                            if part.strip()
-                        ]
                         _systemwide_is_meta = general_guide_composition.is_meta_answer_failure(
                             _systemwide_recovery
                         )
@@ -11984,7 +11979,15 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                             _systemwide_shape_valid = True
                         if not _systemwide_shape_valid:
                             _systemwide_recovery = ""
-                        if _systemwide_recovery and not _systemwide_is_meta and not _systemwide_nonanswer:
+                        if _systemwide_recovery and not _systemwide_is_meta and not _systemwide_nonanswer and (
+                            not general_guide_composition._requires_three_paragraph_default(query)
+                            or len([
+                                part for part in re.split(r"\n\s*\n+", _systemwide_recovery)
+                                if part.strip()
+                            ]) >= 3
+                        ):
+                            # The default explanatory shape is three paragraphs (len(_systemwide_paragraphs) >= 3);
+                            # explicit short, factual, and navigation requests retain the form this question requires.
                             response = _systemwide_recovery
                             # A final answer recovery changes the prose, not the
                             # independently verified navigation decision. Preserve
