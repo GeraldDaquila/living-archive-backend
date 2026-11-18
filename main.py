@@ -7511,20 +7511,20 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         }
 
     _cosmology_lived_question = bool(
-        re.search(r"\\b(?:cosmology|worldview)\\b", q)
-        and re.search(r"\\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\\b", q)
+        re.search(r"\b(?:cosmology|worldview)\b", q)
+        and re.search(r"\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\b", q)
     )
     if _cosmology_lived_question:
         _cosmology_response = (
             "Cosmology has two closely related meanings. In science, it is the study of the universe as a whole: its origin, large-scale structure, development, and possible future. "
             "In philosophy and ordinary human reflection, the word can also refer to a broad account of what reality is like and where human beings belong within it. "
-            "The question you asked about how people live concerns this second, wider use of the term.\\n\\n"
+            "The question you asked about how people live concerns this second, wider use of the term.\n\n"
             "A worldview is not the same thing as scientific cosmology. It is the set of assumptions—often partly unexamined—through which people interpret existence, other people, nature, change, and their own place in the world. "
-            "Those assumptions can shape what people notice, what they regard as possible, what they value, and how they respond to one another.\\n\\n"
+            "Those assumptions can shape what people notice, what they regard as possible, what they value, and how they respond to one another.\n\n"
             "This matters in everyday life because assumptions about reality influence how situations are understood. "
             "If people assume that life is mainly a contest for scarce status or control, disagreement may be treated as a threat and cooperation may be harder to sustain. "
             "If they understand people as distinct but interdependent, they may be more likely to consider relationships, shared conditions, and mutual consequences when making decisions. "
-            "These are illustrative philosophical interpretations, not scientific findings that prove one worldview correct.\\n\\n"
+            "These are illustrative philosophical interpretations, not scientific findings that prove one worldview correct.\n\n"
             "The Living Archive explores one such interpretation through its distinction between separation-based and unity-informed ways of understanding human life. "
             "That is the Archive's interpretive framework, which can be examined and questioned; it should not be confused with the scientific discipline of cosmology or presented as a settled description of reality."
         )
@@ -12595,8 +12595,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # lexical fallback must not add navigation to bounded practical/safety
     # responses whose contract intentionally has no recommendation.
     _cosmology_doorway_not_verified = bool(
-        re.search(r"\\b(?:cosmology|worldview)\\b", str(query or ""), re.I)
-        and re.search(r"\\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\\b", str(query or ""), re.I)
+        re.search(r"\b(?:cosmology|worldview)\b", str(query or ""), re.I)
+        and re.search(r"\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\b", str(query or ""), re.I)
     )
     _final_conceptual_family = (
         None if _cosmology_doorway_not_verified
@@ -14860,8 +14860,8 @@ async def _use_request_boundary(scope, receive, send):
                 exact_doorway_standard
             )
             _cosmology_doorway_not_verified = bool(
-                re.search(r"\\b(?:cosmology|worldview)\\b", str(query or ""), re.I)
-                and re.search(r"\\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\\b", str(query or ""), re.I)
+                re.search(r"\b(?:cosmology|worldview)\b", str(query or ""), re.I)
+                and re.search(r"\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\b", str(query or ""), re.I)
             )
             if isinstance(safe_payload, dict) and not (
                 reviewed_omission or explicit_no_doorway or _cosmology_doorway_not_verified
