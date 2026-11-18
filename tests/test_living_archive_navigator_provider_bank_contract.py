@@ -14,7 +14,7 @@ def test_living_archive_navigator_is_an_explicit_provider_gateway_operation():
             isinstance(target, ast.Name) and target.id == "ALLOWED_OPERATIONS"
             for target in node.targets
         ):
-            operations = ast.literal_eval(node.value)
+            operations = {item.value for item in ast.walk(node.value) if isinstance(item, ast.Constant)}
             break
     assert operations is not None
     assert "living_archive_navigator" in operations
