@@ -7091,9 +7091,68 @@
       "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent.",
       "forbids_doorway": true,
       "user_approved_at": "2026-11-18"
+    },
+    {
+      "benchmark_id": "gs-2026-11-18-personality-soul-oversoul-discernment",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is the difference between what my personality wants, what my soul is learning, and what my Oversoul may be inviting me to become?",
+      "expected_response": "The distinction is between three different kinds of information about your life. Your personality expresses what you want, need, fear, prefer, and are trying to protect in the circumstances you are living now. Those desires are not automatically shallow or wrong; they tell you something about your needs, values, boundaries, and sense of identity. What your soul is learning, in the language of a spiritual-development framework, concerns the capacities or understanding you may be developing through experience—perhaps patience, discernment, courage, trust, or a more honest relationship with yourself and others. What your Oversoul may be inviting you to become points to a still wider horizon of purpose or possibility: not a command or predetermined role, but a direction you may feel drawn to explore.\n\nThese three can support one another, but they can also pull in different directions. A personality-level desire may be legitimate even when it is not the whole answer; a difficult experience is not automatically a lesson you were meant to endure; and a powerful feeling of being called is not, by itself, proof that an Oversoul has spoken. To discern them, ask three separate questions: What do I genuinely want, and what need or value is underneath that want? What is this experience actually teaching me, as shown by what I am noticing and changing over time? What larger possibility seems to invite me toward greater honesty, freedom, care, or responsibility—and can I examine that invitation without surrendering my judgment? Let evidence from lived experience, not intensity alone, inform your answers.\n\nThe aim is not to silence the personality in favor of the soul, or to treat the Oversoul as an authority that overrides either one. A more integrated reading is that immediate desires provide information, reflection turns experience into learning, and a wider sense of purpose may help orient what you choose to become. You remain responsible for interpreting that sense of direction and deciding whether it is sound. This is a spiritual way of making meaning, not an independently verifiable account of metaphysical beings or a claim that every desire, hardship, or intuition has been assigned a cosmic purpose. A credible invitation should deepen agency and responsibility—not require coercion, self-erasure, or denial of material reality.",
+      "expected_doorway": {
+        "title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
+        "url": "https://geralddaquila.com/oversoul-law",
+        "rationale": "This is the Archive's directly named Oversoul doorway for examining the question of spiritual invitation and jurisdiction. It offers the Archive's own framework for inspection; it is not independent evidence that an Oversoul exists or that a perceived invitation is objectively authoritative."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.7,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "Gold Star elevation explicitly requested by the user on 2026-11-18 as part of the structural correction of the exact live visitor question; approval is for this bounded answer, its epistemic limits, and its verified canonical Oversoul continuation.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "personality_soul_oversoul_discernment",
+      "transferable_lesson": "When a visitor distinguishes immediate personality desires, soul-level developmental learning, and a perceived Oversoul invitation, keep the three lenses distinct before integrating them; validate each through lived evidence and reflection; preserve personal agency; and mark metaphysical interpretation as framework-bound rather than independently verified fact.",
+      "transfer_boundary": "Do not transfer this answer text or doorway to unrelated questions. Do not assert that an Oversoul exists, that hardship is assigned as a lesson, or that an intuition is an objectively authoritative instruction. Do not demean ordinary needs or desires as merely egoic, and do not impose a spiritual frame when the visitor has not introduced one.",
+      "known_theme": "personality desire, soul learning, Oversoul invitation, becoming, spiritual development, discernment, personal agency, epistemic humility",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_exact_query_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "personality_soul_oversoul_discernment",
+        "transferable_discipline": "Distinguish immediate desire, developmental learning, and perceived transpersonal invitation; ask what each is grounded in; preserve agency and avoid treating spiritual interpretation as independently verified fact.",
+        "abstention_boundary": "Do not impose the three-lens spiritual framework on unrelated questions, claim metaphysical certainty, treat suffering as cosmically assigned, or reuse the approved answer or doorway."
+      },
+      "assertions": [
+        "Answer the exact question directly by distinguishing personality wants, soul learning, and Oversoul invitation as three different lenses.",
+        "Do not demean personality desires; treat them as information about needs, values, boundaries, fears, and present circumstances.",
+        "Frame soul learning as a spiritual-development interpretation of capacities or understanding emerging through experience, not as proof that hardship was assigned.",
+        "Frame Oversoul invitation as a possible wider orientation or horizon, not a command, predetermined role, or independently verified communication.",
+        "Give the visitor a practical three-question discernment method grounded in lived evidence and change over time.",
+        "Preserve the visitor's responsibility to interpret, question, and choose; reject coercion, self-erasure, and denial of material reality.",
+        "Keep the directly relevant Eternal / Oversoul Law doorway separate from the answer and explicitly state that it is an invitation to inspect the Archive's framework, not proof of metaphysical claims."
+      ],
+      "user_approved_at": "2026-11-18",
+      "elevation_approval_evidence": "The user reviewed the live visitor question and its inadequate response screenshot, then explicitly instructed: “fix structurally and turn into gold.” The approval authorizes this exact-question correction and Gold Star elevation, with the answer contract and doorway bounded by the assertions above.",
+      "provenance": {
+        "source": "user_reviewed_live_visitor_question_and_structural_correction_request",
+        "source_date": "2026-11-18",
+        "evidence_boundary": "The user-provided screenshot establishes the exact visitor question and the structural failure. The corrected answer is governed by the exact-query regression and canonical registry record; the screenshot does not show the corrected answer or its eventual live rendering.",
+        "source_pr": "Pending pull request for this correction",
+        "doorway_verification": {
+          "source": "Existing canonical Oversoul doorway contract and previously verified visitor-facing Oversoul Gold Star record",
+          "canonical_title": "Eternal / Oversoul Law – The Immutable Jurisdiction",
+          "canonical_url": "https://geralddaquila.com/oversoul-law",
+          "verification_date": "2026-11-18",
+          "conceptual_fit": "The Archive's directly named Oversoul Law doorway is the relevant continuation for examining the Archive's own framework of spiritual invitation and jurisdiction; it does not independently verify metaphysical claims."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial. Gold Star approval and display numbering remain independent."
     }
   ],
-  "last_reconciliation_note": "2026-11-18: Refined the retrieval-outage recovery Gold Star while preserving the superseded record as history, and integrated the distinct calibration-versus-validation promotion Gold Star. Canonical inventory: 110 approved Gold Stars across 148 registry records; 108 active runtime-transfer contributors, 38 numbered, 72 UNASSIGNED. Both active benchmarks have matching qualitative-transfer reviews. No existing serial changed; neither active benchmark received a display serial.",
+  "last_reconciliation_note": "2026-11-18: Added gs-2026-11-18-personality-soul-oversoul-discernment as an approved exact-query Gold Star with a bounded personality/soul/Oversoul discernment contract, a matching active qualitative-transfer review, and the verified Eternal / Oversoul Law doorway. Canonical inventory: 111 approved Gold Stars across 149 registry records; 109 active runtime-transfer contributors, 38 numbered, 73 UNASSIGNED. No existing serial changed and no new serial was allocated.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -7223,13 +7282,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 110,
-    "registry_record_count": 148,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 110 approved Gold Stars across 148 registry records. 108 active quality contributors have matching qualitative-transfer reviews; one exact-query-only successor and one migrated duplicate remain excluded from active contribution. The refined retrieval-outage recovery supersedes the earlier approved version, and the calibration-versus-validation promotion benchmark is a distinct approved active contributor. No existing benchmark identity or serial changed.",
+    "approved_gold_star_count": 111,
+    "registry_record_count": 149,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 111 approved Gold Stars across 149 registry records. 109 active quality contributors have matching qualitative-transfer reviews; the existing exact-query-only successor and migrated duplicate remain excluded from active contribution. The personality/soul/Oversoul discernment benchmark is a new approved active contributor with a matching review. No existing benchmark identity or serial changed.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 110 approved Gold Stars; 38 assigned display serials #56–#93; 72 approved records explicitly UNASSIGNED with reasons. No existing serial changed and no new serial was allocated.",
-    "unassigned_approved_gold_star_count": 72,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 111 approved Gold Stars; 38 assigned display serials #56–#93; 73 approved records explicitly UNASSIGNED with reasons. No existing serial changed and no new serial was allocated.",
+    "unassigned_approved_gold_star_count": 73,
     "documented_numbering_gap_count": 0
   },
   "numbering_policy": {
