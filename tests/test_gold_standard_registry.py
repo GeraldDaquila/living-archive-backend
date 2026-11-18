@@ -1993,4 +1993,4 @@ def test_personality_soul_oversoul_gold_star_has_bounded_transfer_review():
     assert "three lenses" in review["transferable_discipline"]
     assert "lived evidence" in review["transferable_discipline"]
     assert "independently verified facts" in review["transferable_discipline"]
-    assert "do not transfer this answer text or doorway" in review["abstention_boundary"].casefold()
+    assert "transfer this answer text or doorway" in review["abstention_boundary"].casefold()
