@@ -76,9 +76,10 @@ def test_composition_contract_requires_select_combine_or_reject_adjudication():
     source = inspect.getsource(composition.compose)
     required = (
         "GOLD STAR MULTI-CANDIDATE ADJUDICATION",
-        "Select one only when it is the single sufficient fit",
-        "Combine candidates only when each contributes a distinct",
-        "Reject all when none materially improves the answer",
+        "Select one ",
+        "only when it is the single sufficient fit.",
+        "Combine candidates only when each contributes a distinct, ",
+        "Reject all when none materially improves the answer or relevance is merely lexical.",
         "answer normally without Gold Star guidance",
         "not approved selections",
     )
