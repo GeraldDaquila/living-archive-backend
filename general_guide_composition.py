@@ -823,12 +823,11 @@ def enforce_conflicting_information_boundary(query: str, payload: Dict[str, Any]
 
 
 
-def _requires_three_paragraph_default(query: str) -> bool:
-    """Apply the Gold Standard as the default for ordinary visitor questions.
+def _requires_substantive_answer_contract(query: str) -> bool:
+    """Identify ordinary questions that require a substantive, answer-first response.
 
-    The policy is default-on: ordinary questions receive a substantive,
-    answer-first three-paragraph explanation unless a narrow, explicit
-    exception applies. Do not make question wording a prerequisite for quality.
+    This classifier activates the shared quality floor, not a paragraph count or
+    fixed response shape. The visitor's task determines the composition form.
     """
     q = _normalize_space(query).casefold()
     if not q:
@@ -1191,7 +1190,7 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
         return True
 
     paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", response) if p.strip()]
-    if _requires_three_paragraph_default(query):
+    if _requires_substantive_answer_contract(query):
         # A three-paragraph answer must develop, not merely repeat, its thesis.
         if len(paragraphs) != 3:
             return True
@@ -2427,24 +2426,14 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                 "internal diversity, and claim-specific epistemic standards"
             )
 
-        if _requires_three_paragraph_default(query):
+        if _requires_substantive_answer_contract(query):
             if not _has_direct_answer_opening(query, response):
                 raise ValueError(
                     "Gold Standard answer-first opening must answer the visitor's question directly; "
                     "announced comparisons, process prefaces, and echoed questions are not answers"
                 )
-            paragraphs = [
-                part.strip()
-                for part in re.split(r"\n\s*\n+", response)
-                if part.strip()
-            ]
-            if len(paragraphs) < 3:
-                raise ValueError(
-                    "substantive explanatory answer must meet the three-paragraph Guide Gold Standard"
-                )
-            # Paragraph count is necessary but not sufficient. Reject the
-            # recurring meta-answer/failure template so the provider bank retries
-            # instead of treating commentary about answering as the answer itself.
+            # Reject meta-answer/failure language, but do not enforce a fixed
+            # paragraph count. Task-dependent composition determines the shape.
             if is_meta_answer_failure(response):
                 raise ValueError(
                     "Gold Standard candidate is meta-answer/failure text, not a substantive answer to the visitor's question"
@@ -2500,9 +2489,6 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
 
 
         if _requires_method_comparison(query):
-            paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-            if len(paragraphs) < 3:
-                raise ValueError("method-comparison answer requires the three-paragraph Guide Gold Standard")
             if not _has_method_comparison_coverage(query, response):
                 raise ValueError("method-comparison answer must distinguish every method named in the visitor question")
             if re.search(r"\b(?:choose one step|identify the main constraint|before acting|adjust rather than assuming)\b", response, re.I):
@@ -2510,13 +2496,6 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
 
         if _requires_concrete_concept_explanation(query):
             paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-            minimum_paragraphs = 3 if _requires_archive_scoped_meaning(query) else 2
-            if len(paragraphs) < minimum_paragraphs:
-                raise ValueError(
-                    "Archive-scoped meaning questions require the three-paragraph Guide Gold Standard"
-                    if minimum_paragraphs == 3
-                    else "abstract concept definition must use readable paragraph breaks"
-                )
             if not _has_everyday_example(response):
                 raise ValueError("abstract concept definition requires one useful everyday example")
             if _requires_archive_scoped_meaning(query):
@@ -2570,25 +2549,20 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                     raise ValueError("Archive-scoped meaning answer must not retreat into generic disclaimer language")
 
         if _is_archive_constitutional_question(query):
-            paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-            if len(paragraphs) < 3:
-                raise ValueError("constitutional explanation requires three purposeful paragraphs")
             if not _has_constitutional_governing_relationships(response):
                 raise ValueError(
                     "constitutional explanation must state governing relationships, stable principles or responsibilities, and the Archive's order of recovery"
                 )
 
         if _requires_discernment_synthesis(query):
-            paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", response) if part.strip()]
-            if len(paragraphs) < 2:
-                raise ValueError("conceptual relationship answer must develop beyond a one-paragraph summary")
             if not re.search(r"\b(?:but|however|while|although|does not mean|is not the same as|distinction|depends on)\b", response, re.I):
                 raise ValueError("conceptual relationship answer must resolve a meaningful tension or distinction")
 
         if _requires_compound_explanatory_structure(query):
-            paragraph_count = len(re.findall(r"\n\s*\n", response)) + 1
-            if paragraph_count < 3:
-                raise ValueError("compound explanatory composition requires three purposeful paragraphs")
+            # The task contract requires every requested part to be answered;
+            # it does not require those parts to occupy separate paragraphs.
+            if not response.strip():
+                raise ValueError("compound explanatory response is empty")
 
         if _requires_explicit_followup_invitation(query):
             if not response.rstrip().endswith("?"):
@@ -2688,7 +2662,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
                 # Answer-first is constitutional at the visitor boundary. The
                 # soft-contract lane may relax paragraph count or examples, but
                 # it may never admit an announced answer or an echoed question.
-                if _requires_three_paragraph_default(query) and not _has_direct_answer_opening(query, response):
+                if _requires_substantive_answer_contract(query) and not _has_direct_answer_opening(query, response):
                     raise ValueError(
                         "provider response failed the hard answer-first visitor boundary"
                     )
@@ -3826,14 +3800,15 @@ def _default_gold_standard_evidence_recovery(
     question: str,
     documents: List[Dict[str, str]],
 ) -> Optional[Dict[str, Any]]:
-    """Preserve the default explanatory composition contract when every model fails.
+    """Preserve a bounded evidence-based recovery when every model fails.
 
-    This shared recovery applies the same evidence and three-paragraph rules to
-    explanatory questions generally; it is not a question-specific canned answer.
+    This shared recovery is available for substantive questions when selected
+    source evidence can support a useful answer. It does not define the response
+    shape for other composition paths.
     It uses source sentences only, and declines when the retrieved evidence cannot
     support a useful answer rather than inventing Archive-specific claims.
     """
-    if not _requires_three_paragraph_default(question):
+    if not _requires_substantive_answer_contract(question):
         return None
 
     stop = {
