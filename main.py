@@ -5799,6 +5799,29 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
 
+    # The evidence framework is a final visitor-boundary invariant, not merely
+    # a prompt preference. Enforce it after every non-exact route, including
+    # provider-exhaustion and legacy deterministic paths.
+    if general_guide_composition._requires_autonomy_evidence_evaluation(query):
+        safe = dict(payload)
+        if not general_guide_composition._has_autonomy_evidence_evaluation(response_text):
+            recovery = general_guide_composition._autonomy_evidence_evaluation_recovery(query)
+            if not recovery or not general_guide_composition._has_autonomy_evidence_evaluation(recovery.get("response", "")):
+                raise RuntimeError("Final visitor boundary could not restore autonomy evidence framework.")
+            safe["response"] = recovery["response"]
+        if "answer" in safe:
+            safe["answer"] = safe["response"]
+        safe["recommendation"] = None
+        safe["canonical_doorway"] = None
+        safe["doorway_title"] = None
+        safe["doorway_url"] = None
+        safe["doorway_rationale"] = None
+        safe["doorway_omission_reason"] = "no_verified_direct_archive_continuation"
+        safe["processing"] = "final_visitor_boundary_autonomy_evidence_evaluation"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
     # Public-commons governance has one shared, question-specific visitor contract.
     # Enforce the same complete answer and verified doorway after either provider/LLM
     # composition or deterministic recovery, so neither route can omit governance
@@ -9624,6 +9647,53 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     request_deadline = time.monotonic() + GUIDE_REQUEST_BUDGET_SECONDS
     composition_repair_attempted = False
     query = str(query or "").strip()
+    # Capability-evidence questions are answerable without retrieval or a live
+    # provider. Resolve them before the provider bank so outages cannot replace
+    # the requested evaluation framework with generic continuity prose.
+    _autonomy_evidence = (
+        None if _resolve_exact_guide_gold_standard(query) is not None
+        else general_guide_composition._autonomy_evidence_evaluation_recovery(query)
+    )
+    if _autonomy_evidence is not None:
+        _request_id = "autonomy-evidence-" + hashlib.sha1(query.encode("utf-8")).hexdigest()[:16]
+        _answer = str(_autonomy_evidence.get("response") or "").strip()
+        if not general_guide_composition._has_autonomy_evidence_evaluation(_answer):
+            raise RuntimeError("Autonomy evidence recovery failed its completeness contract.")
+        print(
+            "The Guide early deterministic boundary: "
+            "source=autonomy_evidence_evaluation, retrieval_invoked=false, provider_invoked=false"
+        )
+        return {
+            "ok": True,
+            "version": APP_VERSION,
+            "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "source_sha256": RUNTIME_SOURCE_SHA256,
+            "request_id": _request_id,
+            "query": query,
+            "intent": "TOPICAL_INQUIRY",
+            "response": _answer,
+            "recommendation": None,
+            "canonical_doorway": None,
+            "doorway_title": None,
+            "doorway_url": None,
+            "doorway_omission_reason": "no_verified_direct_archive_continuation",
+            "answer_basis": {
+                "kind": "general_knowledge",
+                "label": "Capability evidence framework",
+                "explanation": "A provider-independent evaluation design; no claim about the Guide's actual performance is implied.",
+            },
+            "response_provenance": {
+                "class": "deterministic_recovery",
+                "provider": "bounded_autonomy_evidence_evaluation_recovery",
+                "model": None,
+                "quality_adjusted_llm_eligible": True,
+                "llm_invoked": False,
+            },
+            "processing": "autonomy_evidence_evaluation_recovery",
+            "route_source": "guide_early_deterministic_boundary",
+            "recovery": "autonomy_evidence_evaluation",
+            "visitor_boundary_version": APP_VERSION,
+        }
     # This meta-governance question has a provider- and retrieval-independent
     # answer. Intercept it before Glossary/Pinecone discovery: an infrastructure
     # outage must not prevent USE from explaining how to distinguish an

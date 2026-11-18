@@ -23,7 +23,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.48"
+CONTRACT_VERSION = "v1.49"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
@@ -3857,6 +3857,72 @@ def _gold_star_remedy_selection_recovery(query: str) -> Optional[Dict[str, Any]]
     }
 
 
+
+def _requires_autonomy_evidence_evaluation(query: str) -> bool:
+    """Recognize requests for evidence of genuine AI autonomy, adaptivity, resilience, or improvement."""
+    q = _normalize_space(query).casefold()
+    asks_evidence = bool(re.search(
+        r"\b(?:what evidence|what would demonstrate|how (?:can|could|would) (?:we|one|you) tell|"
+        r"how (?:do|can|could) (?:we|you) demonstrate|what would prove|how should .* evaluate|"
+        r"what should demonstrate|how can .* be measured)\b",
+        q,
+    ))
+    names_capability = bool(re.search(
+        r"\b(?:autonom\w*|adaptiv\w*|resilien\w*|improv\w*)\b", q
+    ))
+    names_guide_or_ai = bool(re.search(
+        r"\b(?:the guide|guide|ai system|artificial intelligence|ai assistant|language model)\b", q
+    ))
+    contrasts_activity = bool(re.search(
+        r"\b(?:rather than|instead of|merely|just|continu(?:e|ing) to (?:operate|run|produce)|"
+        r"response volume|without human intervention|human intervention)\b",
+        q,
+    ))
+    return asks_evidence and names_capability and names_guide_or_ai and contrasts_activity
+
+
+def _autonomy_evidence_evaluation_recovery(query: str) -> Optional[Dict[str, Any]]:
+    """Provide the provider-independent evidence framework for bounded AI capability claims."""
+    if not _requires_autonomy_evidence_evaluation(query):
+        return None
+    response = (
+        "Continued operation and a high volume of responses show that a system is active; they do not, by themselves, show that it is autonomous, adaptive, resilient, or improving. Those are four different claims, and each needs its own repeatable evidence. Autonomy should mean bounded delegated work under explicit permissions, not freedom from oversight.\n\n"
+        "- **Autonomy:** show a defined set of tasks completed without human intervention, alongside a complete intervention record: human edits, approvals, overrides, escalations, handoffs, and failures. Report the denominator and demonstrate that the system stayed within its authority and sought help at the boundary.\n"
+        "- **Adaptivity:** run controlled before-and-after tests in which instructions, evidence, context, or task conditions deliberately change. Use unfamiliar and held-out cases to test whether the system adjusts appropriately rather than repeating memorized answers. Record what changed and why; provider switching or cached answers alone are not adaptation.\n"
+        "- **Resilience:** test planned failures such as unavailable providers, retrieval outages, conflicting inputs, and malformed requests. Record whether the system degrades safely, recovers, preserves source and permission boundaries, and tells the visitor what it could not verify. Count failures as well as successful recoveries.\n"
+        "- **Improvement:** compare versioned baseline and follow-up results on the same fixed evaluation set plus held-out cases. Have independent reviewers assess correctness, relevance, completeness, calibration, task success, and regression rates. Show repeatable gains across cases and time, not a few impressive examples or more responses.\n\n"
+        "Make the evidence auditable: specify the system version, observation period, task population and denominator, test conditions, intervention and failure rates, recovery outcomes, and scoring method. Preserve privacy while retaining enough trace data for independent review; include negative controls and disclose regressions. Define success criteria before testing rather than inventing thresholds after seeing results.\n\n"
+        "Without those operational records and controlled evaluations, the Guide cannot claim that its own autonomy, adaptivity, resilience, or improvement has been demonstrated. The correct conclusion is that the claims remain unverified—not that they are false, and not that continued operation proves them. The standard is repeatable, independently checkable evidence for each capability within a clearly stated boundary."
+    )
+    return {
+        "response": response,
+        "doorway_title": "",
+        "doorway_url": "",
+        "response_shape": "explanatory",
+        "provider": "bounded_autonomy_evidence_evaluation_recovery",
+        "model": "deterministic-contract-recovery",
+    }
+
+
+def _has_autonomy_evidence_evaluation(response: str) -> bool:
+    """Validate all four capability dimensions and the evidence/claim boundary."""
+    text = _normalize_space(response).casefold()
+    if len(text) < 900:
+        return False
+    required = (
+        r"\bcontinued operation\b",
+        r"\bautonom\w*\b",
+        r"\badaptiv\w*\b",
+        r"\bresilien\w*\b",
+        r"\bimprov\w*\b",
+        r"\b(?:held-out|unfamiliar)\b",
+        r"\b(?:failure|failures|outage)\b",
+        r"\b(?:baseline|versioned)\b",
+        r"\b(?:regression|regressions)\b",
+        r"\b(?:unverified|not been demonstrated|cannot claim)\b",
+    )
+    return all(re.search(pattern, text) for pattern in required)
+
 def _cross_question_pattern_learning_recovery(query: str) -> Optional[Dict[str, Any]]:
     """Explain evidence-led cross-question learning without claiming unseen data access."""
     text = _normalize_space(query)
@@ -4011,6 +4077,13 @@ def compose(
     if cross_question_learning_recovery is not None:
         _emit_guide_outcome("deterministic_boundary", source="cross_question_pattern_learning")
         return cross_question_learning_recovery
+
+    # This evidence question has a provider-independent answer. Resolve it before
+    # model generation so provider exhaustion cannot downgrade it to reflective filler.
+    autonomy_evidence_recovery = _autonomy_evidence_evaluation_recovery(question)
+    if autonomy_evidence_recovery is not None:
+        _emit_guide_outcome("deterministic_boundary", source="autonomy_evidence_evaluation")
+        return autonomy_evidence_recovery
 
     # Remedy selection is distinct from cross-question pattern discovery: a
     # repeated failure may still belong to retrieval, source metadata, or code.
