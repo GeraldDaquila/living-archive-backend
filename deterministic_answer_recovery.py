@@ -612,6 +612,33 @@ def _community_project_tradeoff_recovery():
     return "A fair assessment asks four connected sets of questions rather than treating “renewable” as proof that a project is automatically beneficial. Ecologically: where would it be built, what land, water, habitats, species, and landscape uses would it affect, what are its full life-cycle emissions and material demands, and what cumulative impacts or decommissioning obligations remain? Economically: who finances and owns it, who receives jobs, lease payments, tax revenue, or lower-cost electricity, who pays for grid upgrades and public support, and how are risks and returns distributed over time?\n\nCulturally, what does the site mean to the people who live with it: does it contain ancestral or sacred places, support customary access or livelihoods, or carry local knowledge and identity that a project plan may overlook? Who gets to define what counts as a loss, and can affected people shape the design? On governance, who proposed the project, who has authority to approve it, whose participation is meaningful rather than ceremonial, and what information, conflict-of-interest rules, grievance channels, independent review, and enforceable conditions are in place? Are groups with less political or economic power represented before decisions are made?\n\nThen compare the proposal with realistic alternatives: no project, another site or scale, a different technology or ownership model, or a mix of energy and demand-side options. Which harms can be avoided, which can be reduced, and which are irreversible or cannot fairly be compensated? Who carries the remaining costs, what benefits are guaranteed locally, and what evidence will be monitored after approval? A sound decision makes these trade-offs visible, protects rights that should not simply be exchanged for aggregate benefits, and sets conditions for review, correction, or stopping the project if its actual effects depart from what was promised."
 
 
+def is_external_discernment_outsourcing_question(question):
+    """Recognize questions auditing reliance on external authorities for personal discernment."""
+    q = _clean(question).casefold()
+    discernment = bool(re.search(r"\b(?:discernment|discern|judgment|judgement)\b", q))
+    outsourcing = bool(re.search(
+        r"\b(?:outsourc(?:e|ing|ed)|defer(?:ring)?|surrender(?:ing)?|"
+        r"hand(?:ing)?\s+over|rely(?:ing)?\s+on|depend(?:ing)?\s+on)\b", q
+    ))
+    external_authority = bool(re.search(
+        r"\b(?:external|outside|teacher|guru|leader|system|sign|omen|"
+        r"synchronicit\w*|spiritual framework|religious framework|ideology|doctrine)\b", q
+    ))
+    asks_where_or_how = bool(re.search(
+        r"\b(?:where|how|when|which|recogniz\w*|identify|notice|detect)\b", q
+    ))
+    return discernment and outsourcing and external_authority and asks_where_or_how
+
+
+def _external_discernment_outsourcing_recovery():
+    """Map possible sites of outsourced discernment without presuming the visitor's situation."""
+    return (
+        "Discernment is being outsourced when an outside source stops being something you consult and becomes the authority that decides what you are allowed to see, believe, or choose. The issue is not learning from a teacher, using a framework, or noticing a sign; it is whether you still examine the interpretation, can disagree with it, and remain responsible for your decision. The following are places to examine, not conclusions about you.\n\n"
+        "With a teacher or spiritual leader, look for whether their confidence, status, or approval has begun to outweigh your own observation—or whether disagreement feels like disloyalty. With a system or doctrine, ask whether you are using it as a lens or forcing every experience to fit its categories. With signs, dreams, or synchronicities, notice whether you treat an event as a prompt for reflection or as an instruction that bypasses evidence and choice. With a spiritual framework, ask whether its explanations can be questioned and revised, or whether every outcome is interpreted to confirm it, even when it asks you to ignore boundaries, facts, or harm.\n\n"
+        "A useful audit is to separate four things: what you directly observed; what meaning you are assigning to it; whose interpretation is influencing you; and what evidence could make you reconsider. Then ask whether you can say no, wait, seek another perspective, or choose differently without fear of punishment or spiritual failure. Guidance can widen perception and help you think; outsourcing begins when it replaces that thinking. You do not have to reject outside wisdom to reclaim discernment—you have to keep your judgment, boundaries, and responsibility in the process."
+    )
+
+
 def is_personality_soul_oversoul_question(question):
     """Recognize the three-part personality/soul/Oversoul discernment question narrowly."""
     q = _clean(question).casefold()
@@ -728,11 +755,55 @@ def _personality_soul_oversoul_recovery():
     )
 
 
+def is_resonance_confirmation_bias_question(question):
+    """Recognize a request to distinguish intuitive resonance from confirmation bias."""
+    q = _clean(question).casefold()
+    names_both = (
+        bool(re.search(r"\bresonan(?:ce|t)\w*\b", q))
+        and bool(re.search(r"\bconfirmation\s+bias\b", q))
+    )
+    discernment_task = bool(re.search(
+        r"\b(?:distinguish|tell\s+(?:the\s+)?difference|differentiate|"
+        r"separate|discern|test|check|audit)\b", q
+    ))
+    intuition_context = bool(re.search(
+        r"\b(?:intuit(?:ion|ive|ively)|impression|gut\s+feeling|"
+        r"inner\s+knowing|resonat(?:es|ed|ing))\b", q
+    ))
+    action_context = bool(re.search(
+        r"\b(?:before\s+acting|before\s+i\s+act|act(?:ing)?\s+on|"
+        r"decision|choose|choice|believ(?:e|ing))\b", q
+    ))
+    return names_both and discernment_task and (intuition_context or action_context)
+
+
+def _resonance_confirmation_bias_recovery():
+    """Separate subjective recognition from evidence and give a usable bias check."""
+    return (
+        "You can treat resonance and confirmation bias as different things, but not by relying on the strength of the feeling alone. "
+        "Resonance is a felt sense of recognition, coherence, or fit: something seems to connect with your experience or understanding. "
+        "It can be a useful signal that an idea deserves attention, but it is not proof that the idea is true. "
+        "Confirmation bias is a pattern in how you evaluate that signal: you notice, interpret, or remember what supports an existing expectation more readily than what challenges it. "
+        "The two can coexist. An impression may feel genuinely resonant while the explanation you attach to it is still being selectively protected.\n\n"
+        "Before acting, separate four layers: what you directly observed; what you felt or noticed; the meaning you are assigning to it; and the conclusion or action you are considering. "
+        "Then test the interpretation rather than trying to suppress the feeling. State the strongest alternative explanation. "
+        "Ask what specific evidence would weaken your preferred reading, and give that evidence the same scrutiny you give confirming evidence. "
+        "Check whether apparently independent sources really are independent, rather than repeating the same original claim. "
+        "Notice whether you are changing the standard of proof when evidence agrees with you versus when it does not.\n\n"
+        "A useful rule is: let resonance open an inquiry; let evidence, alternatives, and consequences govern the conclusion. "
+        "If the decision is consequential, delay irreversible action, seek a genuinely independent perspective, and choose a small, reversible way to test the impression where possible. "
+        "Be willing to revise the interpretation if the expected evidence does not appear. "
+        "You do not need to dismiss intuition, but you should not ask intuition alone to certify its own accuracy."
+    )
+
+
 def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
     return bool(
         is_guide_personal_decision_agency_question(question)
+        or is_resonance_confirmation_bias_question(question)
         or is_oversoul_ego_authority_question(question)
+        or is_external_discernment_outsourcing_question(question)
         or is_personality_soul_oversoul_question(question)
         or is_oversoul_free_will_question(question)
         or is_spiritual_community_accountability_question(question)
@@ -774,6 +845,12 @@ def registered_recovery_recommendation(question):
             "title": "Community Accountability Systems",
             "url": "https://geralddaquila.com/2026/05/16/community-accountability-systems/",
             "rationale": "This Archive essay examines how communities prevent power from becoming insulated from feedback through transparent, distributed accountability, clear boundaries, protected dissent, and repair. It directly addresses the risks of charismatic leadership and weak accountability without treating spiritual belief or practice itself as the problem.",
+        }
+    if is_external_discernment_outsourcing_question(question):
+        return {
+            "title": "Being in the Driver's Seat (Without Pretending You Control the Road)",
+            "url": "https://geralddaquila.com/being-in-the-drivers-seat-without-pretending-you-control-the-road/",
+            "rationale": "This essay offers a grounded continuation on exercising personal agency within real conditions and limits. It supports the distinction between receiving orientation and surrendering responsibility for one's own choices; it does not prescribe the decision a visitor should make.",
         }
     if is_personality_soul_oversoul_question(question):
         return {"title":"Eternal / Oversoul Law – The Immutable Jurisdiction","url":"https://geralddaquila.com/oversoul-law","rationale":"This is the Archive's directly named Oversoul doorway for examining the question of spiritual invitation and jurisdiction. It offers the Archive's own framework for inspection; it is not independent evidence that an Oversoul exists or that a perceived invitation is objectively authoritative."}
@@ -954,6 +1031,10 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
 
+    # Evidence-discernment questions must not fall through to generic reflection.
+    if is_resonance_confirmation_bias_question(q):
+        return _resonance_confirmation_bias_recovery()
+
     # Retrospective accountability must outrank generic decision advice:
     # evaluate process using what was knowable then, not the outcome known now.
     # Only answer the Archive-definition question with the Archive-definition
@@ -983,7 +1064,9 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         re.search(r"\baccountable\s+retrieval\b", lower)
         and re.search(r"\b(?:what does|what is|define|explain|look like)\b", lower)
     )
-    if is_personality_soul_oversoul_question(q):
+    if is_external_discernment_outsourcing_question(q):
+        answer = _external_discernment_outsourcing_recovery()
+    elif is_personality_soul_oversoul_question(q):
         answer = _personality_soul_oversoul_recovery()
     elif is_guide_personal_decision_agency_question(q):
         answer = _guide_personal_decision_agency_recovery()

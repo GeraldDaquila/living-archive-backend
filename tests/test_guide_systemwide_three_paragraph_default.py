@@ -700,3 +700,56 @@ def test_specialist_semantic_contracts_accept_task_complete_single_paragraph_ans
         "will correct harm?"
     )
     assert composition._has_community_project_tradeoff_analysis(tradeoffs)
+
+
+
+def test_basic_inquiry_round1_uses_universal_quality_floor_with_task_adaptive_shape():
+    source = (ROOT / "main.py").read_text(encoding="utf-8")
+    start = source.index("_BASIC_INQUIRY_ROUND1_SYSTEM =")
+    end = source.index("\n\n\ndef _sanitize_basic_inquiry_response", start)
+    prompt = source[start:end]
+    assert "quality floor, not as a fixed answer template" in prompt
+    assert "Do not impose a fixed paragraph count, universal sequence, or closing question" in prompt
+    assert "exactly one natural opening question" not in prompt
+    assert '2–4 short paragraphs ending with exactly one opening question' not in prompt
+    assert 'response.count("?") != 1' not in source
+    assert "Round 1 response must contain exactly one opening question" not in source
+
+
+def test_external_discernment_outsourcing_question_is_answered_as_a_bounded_diagnostic():
+    from deterministic_answer_recovery import (
+        _external_discernment_outsourcing_recovery,
+        compose_recovery,
+        has_registered_recovery,
+        is_external_discernment_outsourcing_question,
+        registered_recovery_recommendation,
+    )
+
+    query = "Where am I outsourcing discernment to an external teacher, system, sign, or spiritual framework?"
+    assert is_external_discernment_outsourcing_question(query)
+    assert has_registered_recovery(query)
+    answer = compose_recovery(query)
+    assert answer == _external_discernment_outsourcing_recovery()
+    for marker in (
+        "teacher or spiritual leader",
+        "system or doctrine",
+        "signs, dreams, or synchronicities",
+        "spiritual framework",
+        "what you directly observed",
+        "what evidence could make you reconsider",
+        "Guidance can widen perception",
+    ):
+        assert marker in answer
+    assert "not conclusions about you" in answer
+    doorway = registered_recovery_recommendation(query)
+    assert doorway["title"] == "Being in the Driver's Seat (Without Pretending You Control the Road)"
+    assert doorway["url"] == "https://geralddaquila.com/being-in-the-drivers-seat-without-pretending-you-control-the-road/"
+
+
+def test_external_discernment_classifier_does_not_overmatch_general_spiritual_questions():
+    from deterministic_answer_recovery import is_external_discernment_outsourcing_question
+
+    assert not is_external_discernment_outsourcing_question("What is spiritual discernment?")
+    assert not is_external_discernment_outsourcing_question("How can I learn from a teacher?")
+    assert not is_external_discernment_outsourcing_question("What are common spiritual signs?")
+    assert not is_external_discernment_outsourcing_question("How do I make a difficult decision?")
