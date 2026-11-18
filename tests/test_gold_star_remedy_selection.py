@@ -82,6 +82,6 @@ def test_remedy_selection_approved_record_has_unique_identity_and_reconciled_inv
     assert record["freeze_policy"] == "immutable_user_approved_gold_standard"
     assert record["runtime_transfer"] is True
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == registry["integrity_audit"]["approved_gold_star_count"] == 112
-    assert len(registry["records"]) == registry["integrity_audit"]["registry_record_count"] == 150
+    assert len(approved) == registry["integrity_audit"]["approved_gold_star_count"] == 113
+    assert len(registry["records"]) == registry["integrity_audit"]["registry_record_count"] == 151
     assert len({r["benchmark_id"] for r in registry["records"]}) == len(registry["records"])
