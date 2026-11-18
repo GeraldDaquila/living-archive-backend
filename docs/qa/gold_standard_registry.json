@@ -6901,9 +6901,60 @@
       },
       "rating_out_of_10": 9.8,
       "freeze_policy": "Do not promote to USER_APPROVED_GOLD_STANDARD or activate runtime transfer until the corrected visitor-facing response has been reviewed and explicitly approved."
+    },
+    {
+      "benchmark_id": "general-guide-calibration-vs-validation-promotion-decision-gold-star-2026-11-18",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "A revised Guide performs better on the calibration set but worse on the validation set. Which result should govern the decision to promote the revision, and why?",
+      "expected_response": "The validation result should govern promotion. The calibration set is used to fit or tune the revision; the validation set provides a more independent test of whether the improvement generalizes beyond that calibration data. Better calibration performance accompanied by worse validation performance is a warning that the revision may have learned calibration-specific patterns rather than improved general performance. On the evidence given, the revision should not be promoted.\n\nThe discrepancy should be investigated rather than explained away. Check that both results use comparable metrics and evaluation procedures, and examine sample size, uncertainty, data leakage, split integrity, and possible distribution differences. Determine whether the validation regression is reproducible and whether it affects particular cases or groups disproportionately.\n\nPromotion should require reproducible improvement on the relevant held-out evaluation, without an unacceptable validation regression. If further testing shows that the apparent deterioration was sampling noise or a flawed evaluation, reconsider the decision with that evidence. Otherwise, revise or reject the candidate. A gain on the data used for tuning is not sufficient evidence of generalization.",
+      "expected_doorway": null,
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+      "doorway_omission_exception_reason": "This is a technical model-evaluation decision. No verified canonical Living Archive destination has been established as a direct continuation; the Sovereign Sensemaking Compass would be a generic handoff rather than a subject-relevant next step. Keep the answer complete without a doorway.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User explicitly instructed the two-level structural correction and asked that this question-specific response be turned into a Gold Star on 2026-11-18.",
+      "elevation_approval_evidence": "User reviewed the live Guide response to the exact calibration-versus-validation promotion question, identified both the literal Gold Star template failure and the question-specific failure, and explicitly instructed: fix both levels structurally and turn the response into a Gold Star.",
+      "rating_out_of_10": 9.8,
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "held_out_validation_and_generalization_decision",
+      "transferable_lesson": "For model-revision promotion questions, distinguish data used to fit or tune a revision from independent held-out evaluation. Let relevant validation performance govern generalization and promotion; interpret calibration gains paired with validation regression as a warning requiring investigation, not as evidence of improvement. Check metric and protocol comparability, sample size and uncertainty, leakage and split integrity, distribution differences, reproducibility, and subgroup effects. Do not promote on calibration gains alone; require reproducible held-out improvement without an unacceptable regression.",
+      "transfer_boundary": "Apply only when a question compares performance on calibration/tuning data with held-out validation data for a model or system revision. Do not assume the dataset labels or metrics are comparable without checking; do not treat one noisy validation result as conclusive without examining uncertainty and reproducibility; do not confuse this with probability-calibration metrics unless the question establishes that meaning; and do not transfer the answer or technical details to unrelated decision questions.",
+      "known_theme": "model evaluation, calibration set, validation set, held-out evaluation, generalization, overfitting, model revision, promotion decision, evaluation integrity, regression analysis",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "held_out_validation_and_generalization_decision",
+        "transferable_discipline": "Distinguish tuning data from held-out validation; let validation govern generalization and promotion; investigate calibration/validation divergence for overfitting, noise, leakage, split or distribution problems; require reproducible held-out improvement without unacceptable regression.",
+        "abstention_boundary": "Do not infer comparable metrics or valid data splits from labels alone; do not promote on calibration gains alone; investigate uncertainty and reproducibility; distinguish held-out validation from probability-calibration metrics."
+      },
+      "assertions": [
+        "State directly that held-out validation performance governs the promotion decision, not calibration-set improvement alone.",
+        "Explain that calibration/tuning performance is not independent evidence of generalization.",
+        "Interpret better calibration with worse validation as a warning of possible overfitting or calibration-specific fit, not proof of improvement.",
+        "Investigate metric and protocol comparability, sample size, uncertainty, leakage, split integrity, distribution differences, reproducibility, and subgroup effects.",
+        "Do not promote on the evidence given; reconsider only if further evaluation shows the regression is noise or an evaluation defect.",
+        "Require reproducible held-out improvement without unacceptable validation regression before promotion.",
+        "Do not force unrelated stewardship, governance, or generic sensemaking material into the technical answer.",
+        "Do not attach the generic Sovereign Sensemaking Compass; no verified subject-specific doorway is established."
+      ],
+      "provenance": {
+        "source": "User-provided live visitor-facing Guide screenshot and explicit two-level structural correction instruction.",
+        "source_date": "2026-11-18",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the exact visitor question and the off-task answer that discussed generic system causes rather than model-evaluation promotion. The corrected response is newly authored and explicitly approved for Gold Star elevation; it is not misrepresented as the original live wording.",
+        "doorway_decision": "No doorway is approved because no verified canonical destination directly advances this technical model-evaluation question."
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent.",
+      "forbids_doorway": true
     }
   ],
-  "last_reconciliation_note": "2026-11-18: Reconciled the concurrent USE doorway-warrant Gold Star and the cross-question pattern-recognition/candidate-lesson Gold Star as two distinct additions. Canonical inventory: 107 approved Gold Stars across 144 registry records; 105 active runtime-transfer contributors, 38 numbered, 69 UNASSIGNED. Each new benchmark has one unique active qualitative-transfer review. No existing benchmark identity or serial changed; neither new benchmark received a display serial. 2026-11-18 follow-up: Added one distinct remedy-selection CANDIDATE pending corrected live-response review; registry now has 145 records while approved Gold Stars remain 107 and active transfer reviews remain unchanged. No serial allocated.",
+  "last_reconciliation_note": "2026-11-18: Added one distinct user-approved Gold Star for calibration-versus-validation model-revision promotion. Canonical inventory: 108 approved Gold Stars across 146 registry records; 106 active runtime-transfer contributors, 38 numbered, 70 UNASSIGNED. The new benchmark is exact-query resolvable, contributes only its bounded model-evaluation reasoning discipline, and intentionally has no doorway. No existing benchmark identity or serial changed.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -7033,13 +7084,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 107,
-    "registry_record_count": 145,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 107 approved Gold Stars across 145 registry records. 105 are active quality contributors with matching qualitative-transfer reviews; one is an exact-query-only successor and one migrated duplicate is preserved as a superseded historical reference only. The USE doorway-warrant and cross-question pattern-learning benchmarks are distinct approved active contributors. No display serial was allocated to either addition.",
+    "approved_gold_star_count": 108,
+    "registry_record_count": 146,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 108 approved Gold Stars across 146 registry records. 106 are active quality contributors with matching qualitative-transfer reviews; one is an exact-query-only successor and one migrated duplicate is preserved as a superseded historical reference only. The calibration-versus-validation promotion benchmark is a distinct approved active contributor and remains UNASSIGNED. No existing benchmark identity or serial changed.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
     "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 107 approved Gold Stars; 38 assigned display serials #56–#93; 69 approved records explicitly UNASSIGNED with reasons. No existing serial changed and no new serial was allocated.",
-    "unassigned_approved_gold_star_count": 69,
+    "unassigned_approved_gold_star_count": 70,
     "documented_numbering_gap_count": 0
   },
   "numbering_policy": {
