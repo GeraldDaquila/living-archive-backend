@@ -832,3 +832,13 @@ def test_regeneration_participation_deterministic_path_returns_answer_and_doorwa
     assert result["recommendation"] == registered_recovery_recommendation(query)
     assert result["doorway_title"] == "Stewardship as Human Maturity"
     assert result["doorway_url"] == "https://geralddaquila.com/2026/07/06/stewardship-as-human-maturity/"
+
+
+
+def test_compact_provider_prompt_carries_the_sitewide_gold_star_floor_without_fixed_shape():
+    import general_guide_composition as guide
+
+    prompt = guide._GENERAL_GUIDE_SYSTEM_COMPACT
+    assert "A polished non-answer is still a failed answer" in prompt
+    assert "the response form remains task-dependent" in prompt
+    assert "Do not impose a fixed paragraph count" in prompt
