@@ -103,9 +103,10 @@ def test_basic_inquiry_uses_deterministic_recovery_before_provider_or_retrieval(
     start = MAIN_SOURCE.index("def _basic_inquiry_response(")
     end = MAIN_SOURCE.index("def _v48831_basic_inquiry_seam_self_audit(", start)
     block = MAIN_SOURCE[start:end]
+    exact_standard = block.index("_resolve_exact_guide_gold_standard(query)")
     recovery = block.index("_autonomy_evidence_evaluation_recovery(query)")
     provider_fallback = block.index("_gold_star_remedy_selection_recovery(query)")
-    assert recovery < provider_fallback
+    assert exact_standard < recovery < provider_fallback
     assert "provider_invoked=false" in block
     assert "retrieval_invoked=false" in block
 
