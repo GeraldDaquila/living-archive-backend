@@ -67,15 +67,30 @@ def test_question_is_registered_as_a_user_approved_gold_star_and_transfer_lesson
 def test_final_visitor_boundary_overrides_provider_output_for_this_task():
     import main
 
+    paraphrase = "Which beliefs feel empowering or beautiful, and how can I test the evidence behind them?"
     result = main._guide_finalize_visitor_payload(
         {"ok": True, "response": "After Awakening is a good starting point.", "recommendation": None},
-        QUERY,
+        paraphrase,
     )
     assert result["processing"] == "final_visitor_boundary_felt_truth_claim_discernment"
     assert "seven steps" in result["response"]
     assert result["recommendation"]["title"] == "Seeing Patterns Without Fooling Yourself"
     assert result["answer_basis"]["kind"] == "general_knowledge"
 
+
+def test_exact_gold_star_answer_is_terminal_and_uses_its_approved_doorway():
+    import main
+    from general_guide_gold_standards import resolve_exact_gold_standard
+
+    standard = resolve_exact_gold_standard(QUERY)
+    assert standard is not None
+    result = main._guide_finalize_visitor_payload(
+        {"ok": True, "response": "After Awakening is a good starting point.", "recommendation": None},
+        QUERY,
+    )
+    assert result["processing"] == "final_visitor_boundary_exact_gold_standard"
+    assert result["response"] == standard["expected_response"]
+    assert result["recommendation"]["title"] == "Seeing Patterns Without Fooling Yourself"
 
 def test_qa_browser_route_is_registered_and_posts_to_real_visitor_endpoint():
     import main
