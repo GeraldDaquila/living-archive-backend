@@ -540,7 +540,7 @@ def _select_guide_node_fallback_doorway(query):
     # A single lexical overlap is adjacency, not evidence of a useful doorway.
     # Require at least two distinct query terms unless a reviewed conceptual-family
     # rule above has already established the direct canonical destination.
-    return best if best_score >= 2 else None
+    return best if best_score else None
 
 
 def _select_reflective_balance_doorway(query):
@@ -5649,7 +5649,7 @@ def _guide_restore_verified_doorway(payload, query):
                 "rationale": safe.get("doorway_rationale"),
             }
         )
-    if not doorway:
+    if not doorway and general_guide_composition._requires_concrete_concept_explanation(query):
         try:
             candidate = _select_guide_node_fallback_doorway(query)
         except Exception:
@@ -6368,7 +6368,7 @@ def _guide_finalize_visitor_payload(payload, query):
         # Preserve an already-verified recommendation; if none survives, ask the
         # same verified doorway selector used by the composition layer.
         _preserved = _normalize_authoritative_recommendation(safe.get("recommendation"))
-        if not _preserved:
+        if not _preserved and general_guide_composition._requires_concrete_concept_explanation(query):
             try:
                 _docs = safe.get("documents") or safe.get("retrieved_documents") or safe.get("sources") or []
                 _selected = general_guide_composition._select_verified_recovery_doorway(query, _docs)
@@ -6432,7 +6432,7 @@ def _guide_finalize_visitor_payload(payload, query):
             _preserved = _pinned or _normalize_authoritative_recommendation(
                 safe.get("recommendation")
             )
-            if not _preserved:
+            if not _preserved and general_guide_composition._requires_concrete_concept_explanation(query):
                 try:
                     _docs = safe.get("documents") or safe.get("retrieved_documents") or safe.get("sources") or []
                     _selected = general_guide_composition._select_verified_recovery_doorway(query, _docs)
