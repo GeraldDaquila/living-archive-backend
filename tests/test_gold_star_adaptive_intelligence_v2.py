@@ -121,7 +121,25 @@ def test_v2_live_evaluator_has_question_specific_contracts_for_new_classes():
             "query": "Explain the difference between a policy and a procedure in plain language. Do not recommend resources, links, or follow-up steps.",
         },
     ]
+    expected_checks = {
+        "heldout-strategic-governance-001": {
+            "compares_both_models", "makes_tradeoffs_visible",
+            "uses_conditional_reasoning", "offers_reasoned_direction",
+        },
+        "heldout-technical-verification-001": {
+            "safe_presence_check", "secret_not_printed", "configuration_vs_usage",
+        },
+        "heldout-uncertain-causation-001": {
+            "calibrates_uncertainty", "names_discriminating_evidence",
+            "offers_investigation", "avoids_false_causation",
+        },
+        "heldout-explicit-no-handoff-001": {
+            "explains_policy_procedure", "no_links_or_doorways",
+            "no_unrequested_followup",
+        },
+    }
     for case in cases:
         result = evaluate_held(case, {"status": 200, "body": {"ok": True, "response": "Test answer."}})
-        assert result and result[-1]["name"] != "known_heldout_case"
-        assert all(item["name"] != "known_heldout_case" for item in result)
+        names = {item["name"] for item in result}
+        assert "known_heldout_case" not in names
+        assert expected_checks[case["case_id"]] <= names
