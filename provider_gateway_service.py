@@ -27,6 +27,7 @@ ALLOWED_OPERATIONS = frozenset({
     "atlas_vision",
     "mini_use",
     "stewardship_pathway",
+    "living_archive_navigator",
     "fsd_report_composition",
     "safety_conversation",
 })

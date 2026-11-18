@@ -265,6 +265,7 @@ OPERATION_TOKEN_FLOORS = {
     "atlas_vision": 700,
     "mini_use": 500,
     "stewardship_pathway": 900,
+    "living_archive_navigator": 900,
     "general_guide_composition": 900,
     "fsd_report_composition": 1100,
 }
@@ -283,6 +284,7 @@ OPERATION_REQUIREMENTS = {
     "atlas_vision": frozenset({"json_object", "vision"}),
     "mini_use": frozenset({"json_object"}),
     "stewardship_pathway": frozenset({"json_object", "long_context", "reasoning"}),
+    "living_archive_navigator": frozenset({"json_object", "long_context", "reasoning", "composition"}),
     # The all-purpose Guide requires composition and enough context to answer
     # the visitor directly, but does not depend on any provider-specific
     # reasoning feature. Provider selection remains entirely bank-owned.
