@@ -113,18 +113,24 @@ def test_spiritual_interpretation_recovery_separates_experience_from_explanation
     answer = compose_recovery(REVISION_QUERY)
     assert answer == _interpretation_revision_evidence_recovery()
     for required in (
-        "separate the experience from the interpretation",
-        "Name the claim.",
-        "Check the evidence.",
-        "Test alternatives.",
-        "Specify disconfirmation.",
-        "Apply one standard.",
-        "independently",
-        "what particular observation would count against your interpretation",
-        "metaphysical claim or one about personal meaning",
-        "may remain meaningful",
+        "separate the experience from the explanation",
+        "what kind of claim you are making",
+        "State the claim precisely.",
+        "Trace the evidence.",
+        "Compare alternatives.",
+        "Name what could change your mind.",
+        "Choose a proportionate update.",
+        "independent corroboration",
+        "ordinary explanations",
+        "faith or meaning",
+        "lower your confidence",
         "suspend judgment",
-        "strengthen the interpretation, weaken it, or leave it unresolved",
+        "record every instance",
+        "including times you think of them and they do not contact you",
+        "personal significance",
+        "strengthen the interpretation",
+        "what would weaken it",
+        "leave it unresolved",
     ):
         assert required.casefold() in answer.casefold()
     assert len([line for line in answer.splitlines() if line[:1].isdigit() and ". " in line]) == 5
