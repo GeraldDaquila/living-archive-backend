@@ -101,6 +101,7 @@ def test_terminal_doorway_restoration_keeps_relevant_doorways_for_ordinary_quest
 
 
 def test_exact_approved_gold_star_encodes_the_intentional_no_doorway_exception():
+    import main
     from general_guide_gold_standards import resolve_exact_gold_standard
 
     record = resolve_exact_gold_standard(QUERY)
