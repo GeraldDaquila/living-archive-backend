@@ -13,18 +13,13 @@ QUERY = (
 )
 
 
-def test_remedy_selection_recovery_returns_three_question_specific_paragraphs():
+def test_remedy_selection_recovery_covers_the_question_without_a_paragraph_count_contract():
     result = composition._gold_star_remedy_selection_recovery(QUERY)
     assert result is not None
-    paragraphs = [p.strip() for p in result["response"].split("\n\n") if p.strip()]
-    assert len(paragraphs) == 3
-    assert paragraphs[0].startswith("USE should create a Gold Star only when")
-    assert "Diagnose the earliest failed layer" in paragraphs[1]
-    for marker in ("improve retrieval", "source metadata", "deterministic logic"):
-        assert marker in paragraphs[1]
-    assert "residual failure" in paragraphs[2]
-    assert "human review" in paragraphs[2]
-    assert "If an engineering correction removes the failure, do not create a Gold Star." in paragraphs[2]
+    answer = result["response"]
+    assert answer.startswith("USE should create a Gold Star only when")
+    for marker in ("Diagnose the earliest failed layer", "improve retrieval", "source metadata", "deterministic logic", "residual failure", "human review", "If an engineering correction removes the failure, do not create a Gold Star."):
+        assert marker in answer
     assert result["doorway_title"] == ""
     assert result["doorway_url"] == ""
     assert result["provider"] == "bounded_gold_star_remedy_selection_recovery"
@@ -56,10 +51,11 @@ def test_remedy_selection_recovery_does_not_capture_adjacent_questions():
     ) is None
 
 
-def test_compose_dispatches_remedy_selection_without_provider_or_retrieval():
+def test_compose_dispatches_approved_remedy_selection_registry_reference():
     result = composition.compose(use_core=None, query=QUERY, context_data={})
     assert result is not None
-    assert result["provider"] == "bounded_gold_star_remedy_selection_recovery"
+    assert result["provider"] == "gold_standard_registry"
+    assert result["model"] == "approved-reference"
     assert result["response"].startswith("USE should create a Gold Star only when")
 
 
@@ -69,18 +65,21 @@ def test_remedy_selection_meta_governance_is_in_both_provider_prompts():
     assert source.count("Repair engineering defects first and evaluate only any remaining reasoning gap.") == 2
 
 
-def test_remedy_selection_candidate_is_unique_and_not_activated_before_live_review():
+def test_remedy_selection_approved_record_has_unique_identity_and_reconciled_inventory():
     registry = json.loads((ROOT / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
     benchmark_id = "general-guide-gold-star-remedy-selection-vs-engineering-defect-2026-11-18"
     records = [r for r in registry["records"] if r.get("benchmark_id") == benchmark_id]
     assert len(records) == 1
     record = records[0]
-    assert record["status"] == "CANDIDATE"
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["query"] == QUERY
     assert record["expected_response"].startswith("USE should create a Gold Star only when")
     assert record["expected_doorway"] is None
-    assert "pending live review" in record["provenance"]["evidence_boundary"]
-    assert "Do not promote" in record["freeze_policy"]
+    assert record["doorway_status"] == "INTENTIONALLY_NONE_APPROVED"
+    assert record["forbids_doorway"] is True
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["freeze_policy"] == "immutable_user_approved_gold_standard"
+    assert record["runtime_transfer"] is True
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
     assert len(approved) == registry["integrity_audit"]["approved_gold_star_count"] == 109
     assert len(registry["records"]) == registry["integrity_audit"]["registry_record_count"] == 146
