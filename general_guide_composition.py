@@ -1201,7 +1201,8 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
     ))
     retrieval_only_disclaimer = bool(re.search(
         r"\bi (?:do not|don't) have enough grounded material\b|"
-        r"\bnot enough grounded material\b.{0,120}\b(?:specific|archive[- ]based) answer\b",
+        r"\bnot enough grounded material\b.{0,120}\b(?:specific|archive[- ]based) answer\b|"
+        r"\bthe (?:living )?archive does not appear to provide (?:a single )?(?:formal )?definition for\b",
         text,
         re.I,
     ))
