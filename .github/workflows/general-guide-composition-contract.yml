@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "main.py"
+      - "guide_runtime.py"
       - "gold_star_response_floor.py"
       - "tests/test_gold_star_response_floor.py"
       - "guide_direct_attribute_evidence.py"
@@ -61,6 +62,7 @@ on:
     branches: [main]
     paths:
       - "main.py"
+      - "guide_runtime.py"
       - "general_guide_composition.py"
       - "gold_star_lessons.py"
       - "tests/test_gold_star_multi_candidate_adjudication.py"
@@ -100,7 +102,7 @@ jobs:
       - name: Install runtime dependencies and test runner
         run: python -m pip install -r requirements.txt pytest
       - name: Compile Guide runtime modules
-        run: python -m compileall -q main.py gold_star_response_floor.py guide_direct_attribute_evidence.py general_guide_composition.py general_guide_gold_standards.py comparative_traditions_contract.py deterministic_answer_recovery.py streaming_transport.py
+        run: python -m compileall -q main.py guide_runtime.py gold_star_response_floor.py guide_direct_attribute_evidence.py general_guide_composition.py general_guide_gold_standards.py comparative_traditions_contract.py deterministic_answer_recovery.py streaming_transport.py
       - name: Run multi-candidate Gold Star adjudication contract
         run: python -m pytest -q tests/test_gold_star_multi_candidate_adjudication.py tests/test_gold_star_cross_question_pattern_learning.py tests/test_gold_star_lessons.py
       - name: Run composition regression tests
