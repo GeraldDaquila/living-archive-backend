@@ -92,12 +92,12 @@ def test_terminal_doorway_restoration_keeps_relevant_doorways_for_ordinary_quest
 
     result = main._guide_restore_verified_doorway(
         {"response": "A normal answer.", "recommendation": None, "canonical_doorway": None},
-        "How do organizations create conditions for learning from failure?",
+        "How do formal rules and informal norms jointly shape organizational behavior?",
     )
     assert result["recommendation"] is not None
-    assert result["recommendation"]["title"] == (
-        "The Social Architecture of Thriving: Conditions That Allow Human Potential to Expand"
-    )
+    assert result["recommendation"]["title"] == "Institutional Consciousness"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/institutional-consciousness/"
+    assert result["recommendation"]["rationale"]
 
 
 def test_exact_approved_gold_star_encodes_the_intentional_no_doorway_exception():
