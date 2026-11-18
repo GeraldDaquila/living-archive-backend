@@ -11970,15 +11970,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 re.I,
                             ))
                         )
-                        # Explanatory questions keep the three-paragraph Gold Star default;
-                        # explicit short/factual/navigation requests retain the form this question requires.
-                        _systemwide_shape_valid = False
-                        if len(_systemwide_paragraphs) >= 3:
-                            _systemwide_shape_valid = True
-                        elif not general_guide_composition._requires_three_paragraph_default(query):
-                            _systemwide_shape_valid = True
-                        if not _systemwide_shape_valid:
-                            _systemwide_recovery = ""
                         if _systemwide_recovery and not _systemwide_is_meta and not _systemwide_nonanswer and (
                             not general_guide_composition._requires_three_paragraph_default(query)
                             or len([
