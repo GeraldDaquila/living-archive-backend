@@ -5887,6 +5887,43 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
 
+    # Interpretation-revision questions need a claim-sensitive evidence standard.
+    # Enforce it after every provider and recovery route so a generic failure,
+    # glossary fallback, or fluent but non-responsive answer cannot escape.
+    from deterministic_answer_recovery import (
+        is_interpretation_revision_evidence_question,
+        _interpretation_revision_evidence_recovery,
+        registered_recovery_recommendation as _registered_recovery_doorway,
+    )
+    if is_interpretation_revision_evidence_question(query):
+        safe = dict(payload)
+        answer = _interpretation_revision_evidence_recovery()
+        safe["response"] = answer
+        if "answer" in safe:
+            safe["answer"] = answer
+        doorway = _normalize_authoritative_recommendation(
+            _registered_recovery_doorway(query)
+        )
+        safe["recommendation"] = doorway
+        safe["canonical_doorway"] = doorway
+        safe["doorway_title"] = doorway.get("title") if doorway else None
+        safe["doorway_url"] = doorway.get("url") if doorway else None
+        safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
+        safe.pop("doorway_omission_exception_reason", None)
+        safe["answer_basis"] = {
+            "kind": "general_knowledge",
+            "label": "General knowledge",
+            "explanation": (
+                "This is a claim-sensitive evidence framework. The linked Archive essay "
+                "offers a method for examining perceived patterns; it is not evidence "
+                "that establishes or disproves the visitor's particular spiritual claim."
+            ),
+        }
+        safe["processing"] = "final_visitor_boundary_interpretation_revision_evidence"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
     # This narrow discernment contract is enforced after every non-exact route,
     # so provider fluency cannot turn a question about confirmation bias into
     # generic reflection or unrelated organizational orientation.
