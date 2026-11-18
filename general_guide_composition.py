@@ -745,7 +745,7 @@ def _requires_conflicting_information_discernment(query: str) -> bool:
 def _has_conflicting_information_discernment(response: str) -> bool:
     """Require epistemic recognition first, then a usable test for action."""
     paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", str(response or "")) if part.strip()]
-    if len(paragraphs) < 3:
+    if not paragraphs:
         return False
     opening = paragraphs[0].casefold()
     whole = " ".join(paragraphs).casefold()
@@ -1191,13 +1191,12 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
 
     paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", response) if p.strip()]
     if _requires_substantive_answer_contract(query):
-        # A three-paragraph answer must develop, not merely repeat, its thesis.
-        if len(paragraphs) != 3:
-            return True
+        # Multi-part prose may use any task-appropriate length. Reject only
+        # repeated blocks or a redundant comparison reopening when 3+ parts exist.
         normalized = [_normalize_space(p).casefold() for p in paragraphs]
-        if len(set(normalized)) != 3:
+        if len(normalized) > 1 and len(set(normalized)) < len(normalized):
             return True
-        if _paragraph_three_reopens_comparison(query, paragraphs):
+        if len(paragraphs) >= 3 and _paragraph_three_reopens_comparison(query, paragraphs):
             return True
         # Reject answers whose paragraphs are mostly abstract metadiscourse.
         meta_sentences = sum(
@@ -3481,21 +3480,14 @@ def _archive_grounding_boundary_recovery() -> str:
 
 
 def _has_archive_grounding_boundary(response: str) -> bool:
-    """Require the complete three-part epistemic distinction, not scattered keywords."""
-    paragraphs = [
-        _normalize_space(part).casefold()
-        for part in re.split(r"\n\s*\n+", str(response or ""))
-        if _normalize_space(part)
-    ]
-    if len(paragraphs) < 3:
-        return False
-    archive_grounding, external_context, provenance = paragraphs[:3]
-    return (
-        re.search(r"\b(?:living archive|archive-grounded guidance)\b", archive_grounding)
-        and re.search(r"\b(?:traceable|published archive material|canonical resources?|archive's own orientation)\b", archive_grounding)
-        and re.search(r"\b(?:external|general)\s+(?:knowledge|context|information)\b", external_context)
-        and re.search(r"\b(?:not be presented|not present).*\barchive (?:position|name|doctrine)\b|\bunder the archive's name\b", external_context)
-        and re.search(r"\b(?:provenance|trustworthy navigator|tell what the living archive itself supports)\b", provenance)
+    """Require all epistemic distinctions without prescribing separate paragraphs."""
+    whole = _normalize_space(response).casefold()
+    return bool(
+        re.search(r"\b(?:living archive|archive-grounded guidance)\b", whole)
+        and re.search(r"\b(?:traceable|published archive material|canonical resources?|archive's own orientation)\b", whole)
+        and re.search(r"\b(?:external|general)\s+(?:knowledge|context|information)\b", whole)
+        and re.search(r"\b(?:not be presented|not present).*\barchive (?:position|name|doctrine)\b|\bunder the archive's name\b", whole)
+        and re.search(r"\b(?:provenance|trustworthy navigator|tell what the living archive itself supports)\b", whole)
     )
 
 
