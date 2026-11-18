@@ -248,9 +248,9 @@ def test_historical_origin_and_evolution_questions_use_explanatory_shape():
 
 
 
-def test_gold_standard_is_system_wide_floor_and_task_formats_must_earn_exception():
+def test_gold_star_structural_template_is_system_wide_and_task_formats_must_earn_exception():
     prompt = guide._GENERAL_GUIDE_SYSTEM
-    assert "SYSTEM-WIDE GOLD STANDARD FLOOR (default across the entire Guide)" in prompt
+    assert "SYSTEM-WIDE GOLD STAR STRUCTURAL TEMPLATE (default across the entire Guide)" in prompt
     assert "every visitor-facing response, regardless of topic or specialist route" in prompt
     assert "The task format changes the shape, never lowers the quality floor" in prompt
     assert "A specialist's preferred format is not an exception merely because it is specialist-specific" in prompt
