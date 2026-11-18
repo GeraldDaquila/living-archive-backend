@@ -29,3 +29,13 @@ def test_retrieval_outage_gold_star_is_exact_and_has_no_forced_doorway():
     assert standard["doorway_title"] == ""
     assert "fresh search" in standard["expected_response"].casefold()
     assert len(standard["expected_response"].split("\n\n")) == 3
+
+
+def test_provider_exhaustion_uses_the_exact_retrieval_outage_gold_star_without_context():
+    question = "A retrieval service fails, but the Guide can still access previously verified source references and deterministic recovery mechanisms. What should it do, and what should it disclose?"
+    result = main._basic_inquiry_provider_exhaustion_response(
+        question, {}, {}, recommendation_available=False
+    )
+    assert result["provider"] == "gold_standard_registry_deterministic_fallback"
+    assert "previously verified source references" in result["response"]
+    assert result["recommendation"] is None
