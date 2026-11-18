@@ -251,12 +251,12 @@ def _select_verified_doorway_conceptual_family(query):
     # relevance, access, URL, and explicit-omission contract.
     worldview_frame = bool(
         re.search(
-            r"\\b(?:cosmolog(?:y|ies)|worldview|worldviews|assumptions about reality|understanding of reality)\\b",
+            r"\b(?:cosmolog(?:y|ies)|worldview|worldviews|assumptions about reality|understanding of reality)\b",
             text,
             re.I,
         )
         and re.search(
-            r"\\b(?:human|people|life|live|living|everyday|relationships|decisions|society)\\b",
+            r"\b(?:human|people|life|live|living|everyday|relationships|decisions|society)\b",
             text,
             re.I,
         )
