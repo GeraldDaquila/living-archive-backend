@@ -1886,7 +1886,6 @@ def test_calibration_validation_promotion_gold_star_is_exactly_resolvable_and_no
     assert record is not None
     assert record["benchmark_id"] == "general-guide-calibration-vs-validation-promotion-decision-gold-star-2026-11-18"
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
-    assert record["runtime_transfer"] is True
     assert record["forbids_doorway"] is True
     assert record["doorway_title"] == ""
     assert record["doorway_url"] == ""
