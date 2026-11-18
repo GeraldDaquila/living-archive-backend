@@ -923,6 +923,15 @@
       "qualifying_context": "Questions about how USE or another governed answer system should apply, combine, or reject multiple retrieved exemplars, Gold Stars, or structural lessons with different reasoning disciplines.",
       "abstention_boundary": "Do not infer approval from similarity, rank, or candidate count; do not force synthesis or transfer exemplar content; do not refuse or select an unrelated doorway when all candidates are rejected.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-cross-question-pattern-learning-candidate-gold-star-2026-11-18",
+      "question": "Several visitors ask different questions that expose the same recurring reasoning weakness. How should USE recognize the shared pattern and formulate a candidate Gold Star lesson?",
+      "reasoning_family": "cross_question_pattern_recognition_and_candidate_lesson_formulation",
+      "transferable_discipline": "Compare distinct questions for a shared missing reasoning operation; ground the candidate in authorized de-identified examples; define corrective behavior and abstention boundary; test target, adjacent, and unrelated controls; require human approval before activation.",
+      "qualifying_context": "Questions explicitly asking how a governed answer system should recognize recurring reasoning failures across different visitors' questions and formulate a candidate structural lesson or Gold Star. Does not apply to ordinary questions about recurring topics or to a single visitor's isolated reasoning difficulty.",
+      "abstention_boundary": "Do not infer recurrence from lexical or topical overlap, claim access to unavailable cross-visitor data, retain unnecessary personal conversation content, automatically promote a candidate, or activate this meta-learning discipline for ordinary visitor questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
