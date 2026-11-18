@@ -38,3 +38,30 @@ def test_unrelated_personal_topic_is_not_captured():
     assert not main._is_healthy_community_orientation_question(
         "I'm new to the Living Archive and want to understand trust in close relationships."
     )
+
+
+def test_healthy_community_canonical_doorway_has_renderer_required_rationale():
+    doorway = main._healthy_community_canonical_recommendation(QUERY, {})
+    assert doorway is not None
+    assert doorway["title"] == "What Healthy Communities Actually Look Like"
+    assert doorway["url"] == (
+        "https://geralddaquila.com/2025/10/07/"
+        "t4-codex-overflow-communities-governance-by-resonance/"
+    )
+    assert doorway["rationale"]
+    assert "healthier communities" in doorway["rationale"].casefold()
+
+
+def test_terminal_doorway_boundary_preserves_healthy_community_recommendation():
+    doorway = main._healthy_community_canonical_recommendation(QUERY, {})
+    result = main._guide_restore_verified_doorway(
+        {"response": main._healthy_community_answer_recovery(),
+         "recommendation": doorway},
+        QUERY,
+    )
+    normalized_doorway = main._normalize_authoritative_recommendation(doorway)
+    assert result["recommendation"] == normalized_doorway
+    assert result["canonical_doorway"] == normalized_doorway
+    assert result["doorway_title"] == doorway["title"]
+    assert result["doorway_url"] == doorway["url"]
+    assert result["doorway_rationale"] == doorway["rationale"]

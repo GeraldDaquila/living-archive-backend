@@ -4214,6 +4214,12 @@ def _healthy_community_canonical_recommendation(query, context_data=None):
             "t4-codex-overflow-communities-governance-by-resonance/"
         ),
         "kind": "archive_resource",
+        "rationale": (
+            "This is the Archive's selected entry point for the question of what "
+            "healthier communities look like. It offers a concrete place to explore "
+            "community governance and the conditions shaping shared life, without "
+            "requiring prior familiarity with the Archive's vocabulary."
+        ),
     }
 
 

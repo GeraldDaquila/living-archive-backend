@@ -19,6 +19,7 @@ on:
       - "tests/test_gold_standard_registry.py"
       - "tests/test_gold_star_remedy_selection_runtime_boundary.py"
       - "tests/test_guide_systemwide_three_paragraph_default.py"
+      - "tests/test_guide_healthy_community_answer_contract.py"
       - "tests/test_retrieval_failure_gold_star.py"
       - "docs/qa/gold_standard_registry.json"
       - "docs/qa/gold_star_qualitative_transfer_review.json"
@@ -39,6 +40,7 @@ on:
       - "tests/test_gold_standard_registry.py"
       - "tests/test_gold_star_remedy_selection_runtime_boundary.py"
       - "tests/test_guide_systemwide_three_paragraph_default.py"
+      - "tests/test_guide_healthy_community_answer_contract.py"
       - "tests/test_retrieval_failure_gold_star.py"
       - "docs/qa/gold_standard_registry.json"
       - "docs/qa/gold_star_qualitative_transfer_review.json"
@@ -81,3 +83,5 @@ jobs:
         run: PYTHONPATH=. python -m pytest -q tests/test_general_guide_perception_contract.py
       - name: Run bounded HRN relational-return QA
         run: python QA/V489_82_HRN_RELATIONAL_RETURN_QA.py
+      - name: Run healthy-community answer and doorway regressions
+        run: PYTHONPATH=. python -m pytest -q tests/test_guide_healthy_community_answer_contract.py
