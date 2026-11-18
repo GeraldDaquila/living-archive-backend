@@ -110,7 +110,7 @@ def test_gold_star_adjudication_question_has_provider_independent_three_paragrap
     assert result["provider"] == "bounded_gold_star_candidate_adjudication_recovery"
     assert result["doorway_title"] == ""
     assert result["doorway_url"] == ""
-    paragraphs = [p for p in result["response"].split("\\n\\n") if p.strip()]
+    paragraphs = [p for p in result["response"].split("\n\n") if p.strip()]
     assert len(paragraphs) == 3
     assert "similarity" in result["response"]
     assert "Select one" in result["response"]
