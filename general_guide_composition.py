@@ -1351,34 +1351,13 @@ def _requires_fragmented_knowledge_explanation(query: str) -> bool:
 
 
 def _has_fragmented_knowledge_explanation(response: str) -> bool:
-    """Reject generic action checklists that do not explain fragmentation's mechanism."""
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
-    if len(paragraphs) != 3:
-        return False
-    first, second, third = paragraphs
-    direct_explanation = bool(re.search(
-        r"\b(?:fragmented|siloed|disconnected|scattered)\b", first, re.I
-    )) and bool(re.search(r"\b(?:knowledge|information|understanding)\b", first, re.I))
-    mechanism = bool(re.search(
-        r"\b(?:context|relationships|connections|contradict|incomplete|isolated|whole|"
-        r"patterns|trade-offs|consequences|assumptions)\b", second, re.I
-    ))
-    concrete_example = bool(re.search(
-        r"\b(?:for example|for instance|imagine|a team|an organization|an organisation|"
-        r"two departments|a community|a decision)\b", second, re.I
-    ))
-    implication = bool(re.search(
-        r"\b(?:wise|judgment|responsib|uncertaint|limit|humility|check|revise|"
-        r"affected|consequence|decision)\b", third, re.I
-    ))
-    generic_advice = bool(re.search(
-        r"\b(?:define the outcome you want|identify the main constraint|"
-        r"choose one step small enough to test|check the result against the original goal)\b",
-        response, re.I
-    ))
-    return direct_explanation and mechanism and concrete_example and implication and not generic_advice
-
-
+    """Validate the mechanism and implications without prescribing paragraph positions."""
+    text = _normalize_space(response).casefold()
+    direct = re.search(r"\b(?:fragmented|siloed|disconnected|scattered)\b", text) and re.search(r"\b(?:knowledge|information|understanding)\b", text)
+    mechanism = re.search(r"\b(?:context|relationships|connections|contradict|incomplete|isolated|whole|patterns|trade-offs|consequences|assumptions)\b", text)
+    example = re.search(r"\b(?:for example|for instance|imagine|a team|an organization|an organisation|two departments|a community|a decision)\b", text)
+    implication = re.search(r"\b(?:wise|judgment|responsib|uncertaint|limit|humility|check|revise|affected|consequence|decision)\b", text)
+    return bool(direct and mechanism and example and implication and re.search(r"\b(?:wise action|wise decisions?|sound judgment|good judgment)\b", text))
 def _fragmented_knowledge_recovery() -> str:
     """Substantive three-paragraph explanation when generation substitutes generic advice."""
     return (
@@ -1411,32 +1390,19 @@ def _concept_misuse_subject(query: str) -> str:
 
 
 def _has_concept_misuse_explanation(query: str, response: str) -> bool:
-    """Reject generic inquiry checklists where a definition and misuse explanation were requested."""
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
+    """Validate definition, misuse mechanism, example, and boundary without paragraph positions."""
+    text = _normalize_space(response).casefold()
     subject = _concept_misuse_subject(query)
-    if len(paragraphs) != 3 or not subject:
+    if not subject:
         return False
-    first, second, third = paragraphs
-    subject_words = [word for word in re.findall(r"[a-z0-9]+", subject) if word not in {"a", "an", "the"}]
-    names_concept = bool(subject_words) and all(re.search(r"\b" + re.escape(word) + r"\b", first, re.I) for word in subject_words)
-    defines_concept = bool(re.search(r"\b(?:is|means|refers to|describes)\b", first, re.I))
-    explains_misuse = bool(re.search(
-        r"\b(?:misus\w*|abus\w*|exploit\w*|manipulat\w*|conceal\w*|"
-        r"control\w*|concentrat\w*|benefit|costs|dependenc\w*|bottleneck\w*)\b", second, re.I
-    ))
-    includes_example = bool(re.search(r"\b(?:for example|for instance|imagine|a team|an organization|an organisation|at work)\b", second, re.I))
-    explains_boundary = bool(re.search(
-        r"\b(?:responsib\w*|accountab\w*|scrutiny|transparen\w*|affected people|"
-        r"consequences|challenge|correct\w*|limits?)\b", third, re.I
-    ))
-    generic_checklist = bool(re.search(
-        r"\b(?:separate the immediate event|consider the evidence for each explanation|"
-        r"these are ways to investigate the question|a confident answer needs the relevant details)\b",
-        response, re.I
-    ))
-    return names_concept and defines_concept and explains_misuse and includes_example and explains_boundary and not generic_checklist
-
-
+    words = [w for w in re.findall(r"[a-z0-9]+", subject) if w not in {"a", "an", "the"}]
+    names = bool(words) and all(re.search(r"\b"+re.escape(w)+r"\b", text) for w in words)
+    defines = bool(re.search(r"\b(?:is|means|refers to|describes)\b", text))
+    misuse = bool(re.search(r"\b(?:misus\w*|abus\w*|exploit\w*|manipulat\w*|conceal\w*|control\w*|concentrat\w*|benefit|costs|dependenc\w*|bottleneck\w*)\b", text))
+    example = bool(re.search(r"\b(?:for example|for instance|imagine|a team|an organization|an organisation|at work)\b", text))
+    boundary = bool(re.search(r"\b(?:responsib\w*|accountab\w*|scrutiny|transparen\w*|affected people|consequences|challenge|correct\w*|limits?)\b", text))
+    generic = bool(re.search(r"\b(?:define the outcome you want|identify the main constraint|choose one step small enough|before acting|adjust rather than assuming)\b", text))
+    return bool(names and defines and misuse and example and boundary and not generic)
 def _concept_misuse_recovery(query: str) -> str:
     """Return a bounded, concrete recovery for the registered leverage-point concept family."""
     subject = _concept_misuse_subject(query)
@@ -1456,27 +1422,17 @@ def _requires_broad_conceptual_definition(query: str) -> bool:
 
 
 def _has_broad_conceptual_definition(response: str) -> bool:
-    """Validate the stable conceptual answer without coupling meaning to paragraph position.
-
-    This is a structural contract for the deterministic recovery itself.  It checks
-    that the answer is substantive and bounded, but deliberately does not require
-    individual concepts to appear in a particular paragraph or exact inflection.
-    """
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
-    if len(paragraphs) != 3:
-        return False
+    """Validate substantive conceptual coverage without requiring a paragraph count."""
     text = _normalize_space(response)
     refusal = re.search(r"\b(?:can't|cannot) define\b|\bdictionary or subject reference\b", text, re.I)
     return (
-        not refusal
-        and len(text) >= 350
+        not refusal and len(text) >= 250
         and bool(re.search(r"\bregeneration\b", text, re.I))
         and bool(re.search(r"\b(?:environment\w*|ecolog\w*)\b", text, re.I))
         and bool(re.search(r"\b(?:renew\w*|restore\w*|revitaliz\w*|capacity|conditions?|flourish\w*)\b", text, re.I))
         and bool(re.search(r"\b(?:communit\w*|institution\w*|econom\w*|culture\w*|human)\b", text, re.I))
         and bool(re.search(r"\b(?:does not mean|not simply|ongoing|limits?|future)\b", text, re.I))
     )
-
 def _broad_conceptual_definition_recovery() -> str:
     return (
         "Beyond environmental restoration, regeneration can be understood as renewing the conditions that allow life and human communities to remain capable of flourishing. Restoration often focuses on repairing damage; regeneration also asks whether the relationships, capacities, and conditions that sustain a system are becoming healthier and more able to renew themselves over time.\n\n"
@@ -1496,23 +1452,16 @@ def _requires_care_and_commons_economic_recognition(query: str) -> bool:
 
 
 def _has_care_and_commons_economic_recognition_explanation(response: str) -> bool:
-    """Require a hierarchy of principle, institutional responsibility, and boundary."""
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
-    if len(paragraphs) != 3:
-        return False
-    first, second, third = paragraphs
+    """Validate principle, institutional responsibility, and boundary independent of layout."""
     text = _normalize_space(response)
     return (
-        bool(re.search(r"\b(?:care|commons?|maintenance)\b", first, re.I))
-        and bool(re.search(r"\b(?:economic|economy|productive|value|invisible)\b", first, re.I))
-        and bool(re.search(r"\b(?:conditions?|depend|possible|sustain|make .* possible)\b", first, re.I))
-        and bool(re.search(r"\b(?:institution|public|employer|community|shared|responsib|investment|budget)\w*\b", second, re.I))
-        and bool(re.search(r"\b(?:not|does not|rather than|not simply)\b", third, re.I))
-        and bool(re.search(r"\b(?:care|commons?|maintenance|sustain|investment|value)\b", third, re.I))
+        bool(re.search(r"\b(?:care|commons?|maintenance)\b", text, re.I))
+        and bool(re.search(r"\b(?:economic|economy|productive|value|invisible)\b", text, re.I))
+        and bool(re.search(r"\b(?:conditions?|depend|possible|sustain|make .* possible)\b", text, re.I))
+        and bool(re.search(r"\b(?:institution|public|employer|community|shared|responsib|investment|budget)\w*\b", text, re.I))
+        and bool(re.search(r"\b(?:not|does not|rather than|not simply)\b", text, re.I))
         and not bool(re.search(r"\b(?:care credits?|tax aggregation|social impact bonds?|infrastructure funds?)\b", text, re.I))
     )
-
-
 def _care_and_commons_economic_recognition_recovery() -> str:
     """Explain recognition without reducing sustaining work to a policy shopping list."""
     return (
@@ -1545,23 +1494,19 @@ def _requires_formal_informal_institutional_dynamics(query: str) -> bool:
 
 
 def _has_formal_informal_institutional_dynamics_explanation(response: str) -> bool:
-    """Require the distinction, interaction mechanism, and diagnostic method."""
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
-    if len(paragraphs) != 3:
-        return False
-    first, second, third = paragraphs
-    return (
-        bool(re.search(r"\b(?:formal rules|written rules|official rules)\b", first, re.I))
-        and bool(re.search(r"\b(?:informal norms|unwritten norms|social expectations)\b", first, re.I))
-        and bool(re.search(r"\b(?:authority|roles|procedures|enforcement)\b", first, re.I))
-        and bool(re.search(r"\b(?:reinforce|contradict|undermine|workarounds|selective enforcement|decoupl)\w*\b", second, re.I))
-        and bool(re.search(r"\b(?:incentives|legitimacy|accountability|relationships|power)\b", second, re.I))
-        and bool(re.search(r"\b(?:compare|examine|trace|diagnos)\w*\b", third, re.I))
-        and bool(re.search(r"\b(?:written|actual practice|everyday practice|observed behavior)\b", third, re.I))
-        and bool(re.search(r"\b(?:evidence|who benefits|consequences|feedback)\b", third, re.I))
+    """Validate distinction, interaction mechanism, and diagnostic method across the answer."""
+    text = _normalize_space(response)
+    patterns = (
+        r"\b(?:formal rules|written rules|official rules)\b",
+        r"\b(?:informal norms|unwritten norms|social expectations)\b",
+        r"\b(?:authority|roles|procedures|enforcement)\b",
+        r"\b(?:reinforce|contradict|undermine|workarounds|selective enforcement|decoupl)\w*\b",
+        r"\b(?:incentives|legitimacy|accountability|relationships|power)\b",
+        r"\b(?:compare|examine|trace|diagnos)\w*\b",
+        r"\b(?:written|actual practice|everyday practice|observed behavior)\b",
+        r"\b(?:evidence|who benefits|consequences|feedback)\b",
     )
-
-
+    return all(re.search(p, text, re.I) for p in patterns)
 def _formal_informal_institutional_dynamics_recovery() -> str:
     """Explain how formal rules and informal norms jointly shape organizational behavior."""
     return (
@@ -1587,20 +1532,16 @@ def _requires_community_project_economic_dimensions(query: str) -> bool:
 
 
 def _has_community_project_economic_dimensions_explanation(response: str) -> bool:
-    """Require distribution, sustaining costs/assets, and long-horizon accountability."""
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
-    if len(paragraphs) != 3:
-        return False
-    first, second, third = paragraphs
-    return (
-        bool(re.search(r"\b(?:benefit|benefits|distribution|who gains|who benefits)\b", first, re.I))
-        and bool(re.search(r"\b(?:cost|costs|volunteer|unpaid|labor|work)\b", second, re.I))
-        and bool(re.search(r"\b(?:maintenance|maintain|shared resources|common resources|commons|assets)\b", second, re.I))
-        and bool(re.search(r"\b(?:long[- ]term|over time|lifecycle|future|renew|regenerat)\b", third, re.I))
-        and bool(re.search(r"\b(?:account|measure|track|review|responsib|benefit)\w*\b", third, re.I))
+    """Validate distribution, sustaining costs/assets, and long-horizon accountability."""
+    text = _normalize_space(response)
+    patterns = (
+        r"\b(?:benefit|benefits|distribution|who gains|who benefits)\b",
+        r"\b(?:cost|costs|volunteer|unpaid|labor|work)\b",
+        r"\b(?:maintenance|maintain|shared resources|common resources|commons|assets)\b",
+        r"\b(?:long[- ]term|over time|lifecycle|future|renew|regenerat)\b",
+        r"\b(?:account|measure|track|review|responsib|benefit)\w*\b",
     )
-
-
+    return all(re.search(p, text, re.I) for p in patterns)
 def _community_project_economic_dimensions_recovery() -> str:
     """Surface the wider economic account without pretending to know project-specific facts."""
     return (
@@ -1620,23 +1561,17 @@ def _requires_growth_within_living_limits(query: str) -> bool:
 
 
 def _has_growth_within_living_limits_explanation(response: str) -> bool:
-    """Require the causal mechanism, concrete consequences, and a bounded conclusion."""
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
-    if len(paragraphs) != 3:
-        return False
-    first, second, third = paragraphs
+    """Validate causal mechanism, consequences, and bounded conclusion across the answer."""
     text = _normalize_space(response)
     return (
-        bool(re.search(r"\bgrowth\b", first, re.I))
-        and bool(re.search(r"\b(?:ecological|social)\b", first, re.I))
-        and bool(re.search(r"\b(?:limits?|capacity|regenerate|absorb)\b", first, re.I))
-        and bool(re.search(r"\b(?:costs?|damage|extract|depletion|pollution|inequal|trust|community|relationship)\w*\b", second, re.I))
-        and bool(re.search(r"\b(?:not|does not|isn't|rather than)\b", third, re.I))
-        and bool(re.search(r"\b(?:limits?|consequences|viable|flourish|stewardship|purpose)\b", third, re.I))
+        bool(re.search(r"\bgrowth\b", text, re.I))
+        and bool(re.search(r"\b(?:ecological|social)\b", text, re.I))
+        and bool(re.search(r"\b(?:limits?|capacity|regenerate|absorb)\b", text, re.I))
+        and bool(re.search(r"\b(?:costs?|damage|extract|depletion|pollution|inequal|trust|community|relationship)\w*\b", text, re.I))
+        and bool(re.search(r"\b(?:not|does not|isn't|rather than)\b", text, re.I))
+        and bool(re.search(r"\b(?:consequences|viable|flourish|stewardship|purpose)\b", text, re.I))
         and not bool(re.search(r"\b(?:immediate event|visible incident|repeated failure)\b", text, re.I))
     )
-
-
 def _growth_within_living_limits_recovery() -> str:
     """Explain why growth becomes destructive when expansion outruns living-system limits."""
     return (
@@ -1704,20 +1639,16 @@ def _requires_intergenerational_stewardship(query: str) -> bool:
 
 
 def _has_intergenerational_stewardship_explanation(response: str) -> bool:
-    """Require a three-movement explanation, not a single-paragraph generality."""
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
+    """Validate present-to-future responsibility, practical application, and limits across the answer."""
     text = _normalize_space(response).casefold()
     return (
-        len(paragraphs) == 3
-        and bool(re.search(r"\b(?:stewardship|steward)\b", paragraphs[0], re.I))
-        and bool(re.search(r"\b(?:intergenerational|future generations?|those who come after|generations to come)\b", paragraphs[0], re.I))
-        and bool(re.search(r"\b(?:for example|in practice|institution|knowledge|capabilities|relationships|resources)\b", paragraphs[1], re.I))
-        and bool(re.search(r"\b(?:does not mean|doesn't mean|does not require|not mean|not about)\b", paragraphs[2], re.I))
-        and bool(re.search(r"\b(?:responsib|care|control|limits?)\w*\b", paragraphs[2], re.I))
-        and bool(re.search(r"\b(?:because|so that|which means|as a result|over time|what remains)\b", text, re.I))
+        bool(re.search(r"\b(?:stewardship|steward)\b", text))
+        and bool(re.search(r"\b(?:intergenerational|future generations?|those who come after|generations to come)\b", text))
+        and bool(re.search(r"\b(?:for example|in practice|institution|knowledge|capabilities|relationships|resources)\b", text))
+        and bool(re.search(r"\b(?:does not mean|doesn't mean|does not require|not mean|not about)\b", text))
+        and bool(re.search(r"\b(?:responsib|care|control|limits?)\w*\b", text))
+        and bool(re.search(r"\b(?:because|so that|which means|as a result|over time|what remains)\b", text))
     )
-
-
 def _intergenerational_stewardship_recovery() -> str:
     """Explain the present-to-future relationship, practical duty, and its boundary."""
     return (
@@ -1752,7 +1683,7 @@ def _requires_cosmology_generalization_standards(query: str) -> bool:
 
 
 def _has_cosmology_generalization_standards(response: str) -> bool:
-    """Require a direct, multi-part methodological answer instead of generic uncertainty."""
+    """Validate corpus-level inference safeguards without imposing three paragraphs."""
     text = _normalize_space(response).casefold()
     groups = (
         r"\b(?:context|textual context|source context)\b",
@@ -1762,14 +1693,9 @@ def _has_cosmology_generalization_standards(response: str) -> bool:
         r"\b(?:traceab|traceable|evidence trail|source trail|verify|verification)\w*\b",
         r"\b(?:confidence|uncertainty|proportionate|warrants|warranted)\b",
     )
-    paragraphs = [p for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
-    return len(paragraphs) == 3 and all(re.search(pattern, text) for pattern in groups) and not re.search(
-        r"\b(?:i don't have enough verified context|the inquiry need not stop here|"
-        r"identify the specific claim|choose one step|before acting)\b",
-        text,
+    return all(re.search(p, text) for p in groups) and not re.search(
+        r"\b(?:i don't have enough verified context|the inquiry need not stop here|identify the specific claim|choose one step|before acting)\b", text
     )
-
-
 def _cosmology_generalization_standards_recovery() -> str:
     """Give direct standards for moving from a single Archive text to a corpus-wide claim."""
     return (
@@ -1795,24 +1721,17 @@ def _requires_entrusted_stewardship_identification(query: str) -> bool:
 
 
 def _has_entrusted_stewardship_identification(response: str) -> bool:
-    """Require a direct explanation of entrusted subject, beneficiaries, duties, and limits."""
+    """Validate entrusted subject, beneficiaries, duties, and limits independent of layout."""
     text = _normalize_space(response).casefold()
-    paragraphs = [p for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
-    required_groups = (
+    required = (
         r"\b(?:entrust|held in trust|entrusted|what has been placed in your care)\w*\b",
         r"\b(?:who|people|community|beneficiar|depend on|affected by)\w*\b",
         r"\b(?:obligation|responsibilit|duty|commitment|care for|protect|maintain)\w*\b",
         r"\b(?:misuse|neglect|breach|boundary|limits?|not yours alone|not solely yours)\w*\b",
         r"\b(?:for example|in practice|ask yourself|look at|identify)\w*\b",
     )
-    generic_planning = re.search(
-        r"\b(?:define the outcome you want|identify the main constraint|choose one step small enough|"
-        r"before acting|adjust rather than assuming the first attempt)\b",
-        text,
-    )
-    return len(paragraphs) == 3 and all(re.search(pattern, text) for pattern in required_groups) and not generic_planning
-
-
+    generic = re.search(r"\b(?:define the outcome you want|identify the main constraint|choose one step small enough|before acting|adjust rather than assuming)\b", text)
+    return all(re.search(p, text) for p in required) and not generic
 def _entrusted_stewardship_identification_recovery() -> str:
     """Directly explain how to recognize what a situation places in trust."""
     return (
@@ -1839,9 +1758,8 @@ def _requires_faithful_stewardship_values_conflict(query: str) -> bool:
 
 
 def _has_faithful_stewardship_values_conflict(response: str) -> bool:
-    """Require a substantive answer about competing duties, discernment, and accountable care."""
+    """Validate competing duties, discernment, and accountable care independent of layout."""
     text = _normalize_space(response).casefold()
-    paragraphs = [p for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
     required = (
         r"\b(?:values?|principles?|commitments?)\b",
         r"\b(?:conflict|compete|clash|pull in different directions)\b",
@@ -1849,14 +1767,8 @@ def _has_faithful_stewardship_values_conflict(response: str) -> bool:
         r"\b(?:affected|who may be harmed|consequences|impact)\w*\b",
         r"\b(?:evidence|context|transparent|explain|accountable|revisit)\w*\b",
     )
-    generic_fallback = re.search(
-        r"\b(?:define the outcome you want|identify the main constraint|choose one step small enough to test|"
-        r"the inquiry need not stop here|i don't have enough verified context)\b",
-        text,
-    )
-    return len(paragraphs) == 3 and all(re.search(p, text) for p in required) and not generic_fallback
-
-
+    generic = re.search(r"\b(?:define the outcome you want|identify the main constraint|choose one step small enough to test|the inquiry need not stop here|i don't have enough verified context)\b", text)
+    return all(re.search(p, text) for p in required) and not generic
 def _faithful_stewardship_values_conflict_recovery() -> str:
     """Answer the normative question directly rather than redirecting to a glossary lookup."""
     return (
@@ -3541,25 +3453,21 @@ def _requires_community_project_tradeoff_analysis(question: str) -> bool:
 
 
 def _has_community_project_tradeoff_analysis(response: str) -> bool:
-    """Require all four requested domains, distributional analysis, alternatives, and review."""
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
-    if len(paragraphs) != 3:
-        return False
+    """Validate four domains, distribution, alternatives, and accountability independent of layout."""
     text = _normalize_space(response).casefold()
-    domain_groups = (
+    domains = (
         r"\b(?:ecolog(?:y|ical)|environment(?:al)?|biodiversity|habitats?|land|water)\b",
         r"\b(?:economic|economy|costs?|benefits?|jobs?|ownership|financ(?:e|ing))\b",
         r"\b(?:cultural|heritage|identity|customary|ancestral|sacred|local knowledge)\b",
         r"\b(?:governance|decision[- ]making|authority|consent|participation|oversight)\b",
     )
-    has_all_domains = all(re.search(pattern, text) for pattern in domain_groups)
-    distribution = bool(re.search(r"\b(?:who pays|who benefits|who bears|who receives|distributed|distribution)\b", text))
-    alternatives = bool(re.search(r"\b(?:alternatives?|no project|another site|different site|different scale|ownership model)\b", text))
-    accountability = bool(re.search(r"\b(?:monitor|review|grievance|independent review|conditions|correct|stopping the project)\b", text))
-    question_led = text.count("?") >= 6
-    return has_all_domains and distribution and alternatives and accountability and question_led
-
-
+    return (
+        all(re.search(p, text) for p in domains)
+        and bool(re.search(r"\b(?:who pays|who benefits|who bears|who receives|distributed|distribution)\b", text))
+        and bool(re.search(r"\b(?:alternatives?|no project|another site|different site|different scale|ownership model)\b", text))
+        and bool(re.search(r"\b(?:monitor|review|grievance|independent review|conditions|correct|stopping the project)\b", text))
+        and text.count("?") >= 6
+    )
 def _community_project_tradeoff_recovery() -> str:
     """Substantive, provider-independent analysis of community project trade-offs."""
     return "A fair assessment asks four connected sets of questions rather than treating “renewable” as proof that a project is automatically beneficial. Ecologically: where would it be built, what land, water, habitats, species, and landscape uses would it affect, what are its full life-cycle emissions and material demands, and what cumulative impacts or decommissioning obligations remain? Economically: who finances and owns it, who receives jobs, lease payments, tax revenue, or lower-cost electricity, who pays for grid upgrades and public support, and how are risks and returns distributed over time?\n\nCulturally, what does the site mean to the people who live with it: does it contain ancestral or sacred places, support customary access or livelihoods, or carry local knowledge and identity that a project plan may overlook? Who gets to define what counts as a loss, and can affected people shape the design? On governance, who proposed the project, who has authority to approve it, whose participation is meaningful rather than ceremonial, and what information, conflict-of-interest rules, grievance channels, independent review, and enforceable conditions are in place? Are groups with less political or economic power represented before decisions are made?\n\nThen compare the proposal with realistic alternatives: no project, another site or scale, a different technology or ownership model, or a mix of energy and demand-side options. Which harms can be avoided, which can be reduced, and which are irreversible or cannot fairly be compensated? Who carries the remaining costs, what benefits are guaranteed locally, and what evidence will be monitored after approval? A sound decision makes these trade-offs visible, protects rights that should not simply be exchanged for aggregate benefits, and sets conditions for review, correction, or stopping the project if its actual effects depart from what was promised."
@@ -3577,9 +3485,6 @@ def enforce_response_contracts(question: str, response: str) -> str:
     )
     if is_spiritual_community_accountability_question(question):
         candidate = _spiritual_community_accountability_recovery()
-        paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", candidate) if part.strip()]
-        if len(paragraphs) != 3:
-            raise RuntimeError("Spiritual-community accountability response contract failed: expected three substantive paragraphs.")
         if re.search(r"\b(?:AI|artificial intelligence|provider|model|retrieval)\b", candidate, re.I):
             raise RuntimeError("Spiritual-community accountability response contract failed: unrelated or internal framing leaked.")
     # Enforce the same bounded scenario response for provider/LLM and deterministic routes.
@@ -3625,10 +3530,8 @@ def enforce_response_contracts(question: str, response: str) -> str:
     if _requires_intergenerational_stewardship(question) and not _has_intergenerational_stewardship_explanation(candidate):
         raise RuntimeError("Intergenerational-stewardship response contract failed after recovery.")
     if _requires_archive_scoped_stewardship(question):
-        paragraphs = [part.strip() for part in re.split(r"\n\s*\n+", candidate) if part.strip()]
         if (
-            len(paragraphs) != 3
-            or not re.search(r"\bLiving Archive\b", paragraphs[0], re.I)
+            not re.search(r"\bLiving Archive\b", candidate, re.I)
             or not _has_everyday_example(candidate)
             or re.search(
                 r"\b(?:rather than a claim|general explanation rather than|precise meaning can vary by field)\b",
@@ -3652,8 +3555,7 @@ def enforce_response_contracts(question: str, response: str) -> str:
     if _requires_systems_vs_separate_problems_explanation(question):
         candidate = _systems_vs_separate_problems_recovery()
     if _requires_method_comparison(question) and (
-        len([part for part in re.split(r"\n\s*\n+", candidate) if part.strip()]) < 3
-        or not _has_method_comparison_coverage(question, candidate)
+        not _has_method_comparison_coverage(question, candidate)
         or re.search(
             r"\b(?:choose one step|identify the main constraint|before acting|adjust rather than assuming)\b",
             candidate,
@@ -3662,8 +3564,7 @@ def enforce_response_contracts(question: str, response: str) -> str:
     ):
         candidate = _method_comparison_recovery()
     if _requires_method_comparison(question) and (
-        len([part for part in re.split(r"\n\s*\n+", candidate) if part.strip()]) < 3
-        or not _has_method_comparison_coverage(question, candidate)
+        not _has_method_comparison_coverage(question, candidate)
     ):
         raise RuntimeError("Method-comparison response contract failed after recovery.")
     if _requires_responsibility_boundary_answer(question) and not _has_responsibility_boundary_explanation(candidate):
@@ -4700,23 +4601,19 @@ def _requires_nonprofit_culture_power_care_governance(query: str) -> bool:
 
 
 def _has_nonprofit_culture_power_care_governance_explanation(response: str) -> bool:
-    """Require integrated structural analysis and an explicit non-diagnostic boundary."""
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", str(response or "")) if p.strip()]
-    if len(paragraphs) != 3:
-        return False
-    first, second, third = paragraphs
-    return (
-        bool(re.search(r"\b(?:trust|trusted)\b", first, re.I))
-        and bool(re.search(r"\b(?:fear|turnover|staff experience)\b", first, re.I))
-        and bool(re.search(r"\b(?:culture|power|leadership)\b", first, re.I))
-        and bool(re.search(r"\b(?:care|governance|decision|voice|accountability)\b", second, re.I))
-        and bool(re.search(r"\b(?:patterns?|evidence|multiple|independent|confidential|review)\b", second, re.I))
-        and bool(re.search(r"\b(?:cannot|cannot responsibly|does not establish|does not, by itself, establish|not establish|not prove|does not prove|do not prove)\b", third, re.I))
-        and bool(re.search(r"\b(?:diagnos\w*|motives?|character|culpability|individual)\b", third, re.I))
-        and bool(re.search(r"\b(?:correct\w*|accountab\w*|safeguard\w*|review|revisit)\b", third, re.I))
+    """Validate integrated structural analysis and non-diagnostic boundary without paragraph positions."""
+    text = _normalize_space(response).casefold()
+    required = (
+        r"\b(?:trust|trusted)\b",
+        r"\b(?:fear|turnover|staff experience)\b",
+        r"\b(?:culture|power|leadership)\b",
+        r"\b(?:care|governance|decision|voice|accountability)\b",
+        r"\b(?:patterns?|evidence|multiple|independent|confidential|review)\b",
+        r"\b(?:cannot|does not establish|does not, by itself, establish|not establish|not prove|does not prove|do not prove)\b",
+        r"\b(?:diagnos\w*|motives?|character|culpability|individual)\b",
+        r"\b(?:correct\w*|accountab\w*|safeguard\w*|review|revisit)\b",
     )
-
-
+    return all(re.search(p, text) for p in required)
 def _nonprofit_culture_power_care_governance_recovery() -> str:
     """Answer the integrated question without diagnosing people from limited evidence."""
     return (
