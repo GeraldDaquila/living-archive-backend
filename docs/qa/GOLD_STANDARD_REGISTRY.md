@@ -1,9 +1,9 @@
 # Living Archive Gold-Standard Registry
 
-## Current Gold Star numbering authority — 2026-11-17
+## Current Gold Star numbering authority — 2026-11-18
 
-- **Canonical inventory:** 130 records total; 93 approved Gold Stars; 92 matching qualitative-transfer reviews. The AI-workforce restructuring successor is now an approved Gold Star; its predecessor remains preserved as a separate learning exemplar.
-- **Serial inventory:** 35 approved records carry display serials, #56–#84 and #87–#92. 58 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity. The AI-workforce restructuring Gold Star remains unnumbered.
+- **Canonical inventory:** 143 records total; 106 approved Gold Stars; 104 matching qualitative-transfer reviews. All approved records are reconciled to the canonical transfer-review ledger.
+- **Serial inventory:** 38 approved records carry display serials #56–#93. 68 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity.
 - **Restored 2026-11-17:** `gs-2026-11-17-structural-change-vs-disruption` retains its original three-paragraph answer and unassigned serial. Its doorway is now verified as Systems, Governance, and Organizational Design — https://geralddaquila.com/systems-structure/ — with a visitor-facing relevance rationale.
 - **Overwritten 2026-11-17:** The same benchmark now has one canonical current answer version: three distinct moves (distinction; disruption's causal role; post-event operational test), with the opening clause boundary corrected. The verified doorway, active exact/adaptive/deterministic capabilities, provenance, and `UNASSIGNED` serial are preserved. See `revision_history` in the machine-readable record.
 - **Newly elevated 2026-11-17:** `gs-2026-11-17-consequential-action-under-uncertainty` preserves the exact three-paragraph visitor answer and the verified **The Sovereign Sensemaking Compass** doorway, including its relevance rationale. It is an active structural-learning contributor; its display serial remains `UNASSIGNED`.
