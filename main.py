@@ -5667,8 +5667,8 @@ def _guide_restore_verified_doorway(payload, query):
             str(exact_standard.get("doorway_omission_exception_reason") or "").strip()
             if exact_gold_star_omission else (
                 "The answer is complete general-knowledge guidance about an internal "
-                "USE learning-governance method; no verified direct Archive continuation exists that "
-                "materially advances the inquiry."
+                "USE learning-governance method. There is no verified direct Archive continuation "
+                "that materially advances the inquiry."
             )
         )
         return safe
