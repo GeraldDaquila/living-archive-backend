@@ -185,7 +185,7 @@ def test_exact_water_gold_star_preserves_explicit_unapproved_doorway_omission():
     standard = main._resolve_exact_guide_gold_standard(query)
     assert standard is not None
     assert standard["forbids_doorway"] is True
-    assert "no canonical URL is inferred" in standard["doorway_omission_exception_reason"].casefold()
+    assert "no canonical url is inferred" in standard["doorway_omission_exception_reason"].casefold()
     assert main._gold_star_doorway_omission_is_justified(standard)
 
     default_doorway = main._gold_star_default_doorway()
