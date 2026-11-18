@@ -1,4 +1,5 @@
 name: General Guide Composition Contract
+# Candidate ranking, adjudication, and structural-transfer regressions are gated together.
 
 on:
   pull_request:
