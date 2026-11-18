@@ -803,22 +803,22 @@ def is_resonance_confirmation_bias_question(question):
 
 
 def _resonance_confirmation_bias_recovery():
-    """Separate subjective recognition from evidence and give a usable bias check."""
+    """Separate intuitive signal from interpretation, then test the proposed pattern."""
     return (
-        "You can treat resonance and confirmation bias as different things, but not by relying on the strength of the feeling alone. "
-        "Resonance is a felt sense of recognition, coherence, or fit: something seems to connect with your experience or understanding. "
-        "It can be a useful signal that an idea deserves attention, but it is not proof that the idea is true. "
-        "Confirmation bias is a pattern in how you evaluate that signal: you notice, interpret, or remember what supports an existing expectation more readily than what challenges it. "
-        "The two can coexist. An impression may feel genuinely resonant while the explanation you attach to it is still being selectively protected.\n\n"
-        "Before acting, separate four layers: what you directly observed; what you felt or noticed; the meaning you are assigning to it; and the conclusion or action you are considering. "
-        "Then test the interpretation rather than trying to suppress the feeling. State the strongest alternative explanation. "
-        "Ask what specific evidence would weaken your preferred reading, and give that evidence the same scrutiny you give confirming evidence. "
-        "Check whether apparently independent sources really are independent, rather than repeating the same original claim. "
-        "Notice whether you are changing the standard of proof when evidence agrees with you versus when it does not.\n\n"
-        "A useful rule is: let resonance open an inquiry; let evidence, alternatives, and consequences govern the conclusion. "
-        "If the decision is consequential, delay irreversible action, seek a genuinely independent perspective, and choose a small, reversible way to test the impression where possible. "
-        "Be willing to revise the interpretation if the expected evidence does not appear. "
-        "You do not need to dismiss intuition, but you should not ask intuition alone to certify its own accuracy."
+        "Resonance and confirmation bias are not opposites. Resonance is a felt sense of recognition or fit: an idea connects with something in your experience or understanding. "
+        "That feeling can alert you to a possibility worth examining, but it cannot establish that your explanation is true. "
+        "Confirmation bias is what can happen next: you give supporting details more attention or weight, while overlooking, discounting, or explaining away details that challenge the interpretation. "
+        "So an impression can feel genuinely resonant and still be interpreted through confirmation bias. The key distinction is between the signal you experience and the truth of the explanation you attach to it.\\n\\n"
+        "Before acting, write down four things separately: what you directly observed; what you felt; what you think it means; and what conclusion or action you are considering. "
+        "Then test the proposed pattern rather than trying to suppress the feeling. Ask four questions: Does it recur under comparable conditions, or is it resting on one striking coincidence? "
+        "What is the strongest alternative explanation? What plausible mechanism connects the observations, rather than merely making them feel coherent? "
+        "What constraints or alternative explanations could produce the same result, and where might the pattern stop applying? "
+        "Most importantly, what specific observation would count against your interpretation? If no possible evidence could change your mind, you are protecting a belief rather than testing a claim.\\n\\n"
+        "Apply the same standard in both directions: do not accept weak evidence because it agrees with you, or demand impossible certainty because it does not. "
+        "When several sources appear to corroborate the impression, trace them back to their origins; five reports repeating one original claim are not five independent confirmations. "
+        "A useful rule is: let resonance generate a hypothesis, let repeatability and a plausible mechanism make it worth considering, and let disconfirming evidence decide whether it survives. "
+        "For a consequential decision, pause before irreversible action and use a small, reversible test where possible. Revise or release the interpretation if the expected pattern does not recur or the contrary evidence is stronger. "
+        "You do not need to distrust intuition. You need to keep intuition in its proper role: a starting signal, not its own proof."
     )
 
 
@@ -860,6 +860,16 @@ def _public_predictive_system_recovery():
 
 def registered_recovery_recommendation(question):
     """Return an evidence-backed doorway for a narrow registered recovery."""
+    if is_resonance_confirmation_bias_question(question):
+        return {
+            "title": "Seeing Patterns Without Fooling Yourself",
+            "url": "https://geralddaquila.com/2026/04/06/seeing-patterns-without-fooling-yourself/",
+            "rationale": (
+                "This essay examines how to distinguish real patterns from meaning projected onto ambiguous evidence. "
+                "Its practical filters—repeatability, mechanism, constraints, and disconfirmation—directly extend the question "
+                "of how to test an intuitive impression without letting confirmation bias decide the result."
+            ),
+        }
     if is_guide_personal_decision_agency_question(question):
         return {
             "title": "Being in the Driver's Seat (Without Pretending You Control the Road)",

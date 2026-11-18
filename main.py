@@ -5865,6 +5865,7 @@ def _guide_finalize_visitor_payload(payload, query):
     from deterministic_answer_recovery import (
         is_resonance_confirmation_bias_question,
         compose_recovery as _compose_resonance_confirmation_bias_recovery,
+        registered_recovery_recommendation as _registered_recovery_doorway,
     )
     if is_resonance_confirmation_bias_question(query):
         safe = dict(payload)
@@ -5872,14 +5873,24 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["response"] = answer
         if "answer" in safe:
             safe["answer"] = answer
-        safe["recommendation"] = None
-        safe["canonical_doorway"] = None
-        safe["doorway_title"] = None
-        safe["doorway_url"] = None
-        safe["doorway_rationale"] = None
-        safe["doorway_omission_exception_reason"] = (
-            "No directly verified Archive destination is established for this specific discernment question; do not force a keyword-adjacent doorway."
+        doorway = _normalize_authoritative_recommendation(
+            _registered_recovery_doorway(query)
         )
+        safe["recommendation"] = doorway
+        safe["canonical_doorway"] = doorway
+        safe["doorway_title"] = doorway.get("title") if doorway else None
+        safe["doorway_url"] = doorway.get("url") if doorway else None
+        safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
+        safe.pop("doorway_omission_exception_reason", None)
+        safe["answer_basis"] = {
+            "kind": "general_knowledge",
+            "label": "General knowledge",
+            "explanation": (
+                "The answer provides a practical evidence-testing method. The linked Archive essay "
+                "offers a related framework for testing patterns; it is a continuation, not independent "
+                "proof of the visitor's particular impression."
+            ),
+        }
         safe["processing"] = "final_visitor_boundary_resonance_confirmation_bias_recovery"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION

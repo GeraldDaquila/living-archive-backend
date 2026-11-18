@@ -21,6 +21,7 @@ on:
       - "tests/test_gold_star_remedy_selection_runtime_boundary.py"
       - "tests/test_guide_systemwide_three_paragraph_default.py"
       - "tests/test_guide_healthy_community_answer_contract.py"
+      - "tests/test_resonance_confirmation_bias_recovery.py"
       - "tests/test_general_guide_gold_standard_doorway_policy.py"
       - "tests/test_retrieval_failure_gold_star.py"
       - "docs/qa/gold_standard_registry.json"
@@ -44,6 +45,7 @@ on:
       - "tests/test_gold_star_remedy_selection_runtime_boundary.py"
       - "tests/test_guide_systemwide_three_paragraph_default.py"
       - "tests/test_guide_healthy_community_answer_contract.py"
+      - "tests/test_resonance_confirmation_bias_recovery.py"
       - "tests/test_general_guide_gold_standard_doorway_policy.py"
       - "tests/test_retrieval_failure_gold_star.py"
       - "docs/qa/gold_standard_registry.json"
@@ -89,5 +91,7 @@ jobs:
         run: python QA/V489_82_HRN_RELATIONAL_RETURN_QA.py
       - name: Run healthy-community answer and doorway regressions
         run: PYTHONPATH=. python -m pytest -q tests/test_guide_healthy_community_answer_contract.py
+      - name: Run resonance and confirmation-bias discernment regressions
+        run: PYTHONPATH=. python -m pytest -q tests/test_resonance_confirmation_bias_recovery.py
       - name: Run exact Gold Star doorway authority regressions
         run: PYTHONPATH=. python -m pytest -q tests/test_general_guide_gold_standard_doorway_policy.py
