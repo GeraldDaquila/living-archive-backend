@@ -1,6 +1,9 @@
 """Regression tests for task-specific evaluation of Guide capability claims."""
 
 import general_guide_composition as guide
+from pathlib import Path
+
+MAIN_SOURCE = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
 
 
 def test_autonomy_question_is_routed_to_an_evidence_evaluation_framework():
@@ -93,3 +96,26 @@ def test_incomplete_provider_answer_fails_the_evidence_contract():
     assert not guide._has_autonomy_evidence_evaluation(
         "The Guide has been running for a long time and has produced many responses."
     )
+
+
+
+def test_basic_inquiry_uses_deterministic_recovery_before_provider_or_retrieval():
+    start = MAIN_SOURCE.index("def _basic_inquiry_response(")
+    end = MAIN_SOURCE.index("def _v48831_basic_inquiry_seam_self_audit(", start)
+    block = MAIN_SOURCE[start:end]
+    recovery = block.index("_autonomy_evidence_evaluation_recovery(query)")
+    provider_fallback = block.index("_gold_star_remedy_selection_recovery(query)")
+    assert recovery < provider_fallback
+    assert "provider_invoked=false" in block
+    assert "retrieval_invoked=false" in block
+
+
+def test_final_visitor_boundary_repairs_provider_and_legacy_route_failures():
+    start = MAIN_SOURCE.index("def _guide_finalize_visitor_payload(")
+    end = MAIN_SOURCE.index("def ", start + 5)
+    block = MAIN_SOURCE[start:end]
+    assert "_requires_autonomy_evidence_evaluation(query)" in block
+    assert "_has_autonomy_evidence_evaluation(response_text)" in block
+    assert "_autonomy_evidence_evaluation_recovery(query)" in block
+    assert 'safe["recommendation"] = None' in block
+    assert "final_visitor_boundary_autonomy_evidence_evaluation" in block
