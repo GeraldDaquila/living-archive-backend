@@ -30,6 +30,7 @@ permissions:
 jobs:
   deterministic-safety:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,4 +52,4 @@ jobs:
         run: python QA/V488_SAFETY_BOUNDARY_QA.py
 
       - name: Safety state machine regression tests
-        run: pytest -q tests/test_safety_first_turn_resource_handoff.py tests/test_safety_session.py
+        run: timeout --signal=TERM --kill-after=30s 8m pytest -q tests/test_safety_first_turn_resource_handoff.py tests/test_safety_session.py
