@@ -23,7 +23,7 @@ def classify_question(query: str) -> dict[str, Any]:
     if not q:
         return {"version": VERSION, "type": "unknown", "confidence": "none"}
     # Explicit user constraints take precedence over generic task verbs.
-    for kind in ("explicit_no_handoff", "technical_verification", "uncertain_causation", "strategic_tradeoff", "comparison", "practical_application", "general_fact"):
+    for kind in ("explicit_no_handoff", "technical_verification", "uncertain_causation", "strategic_tradeoff", "comparison", "conceptual_explanation", "practical_application", "general_fact"):
         if _PATTERNS[kind].search(q):
             return {"version": VERSION, "type": kind, "confidence": "high"}
     return {"version": VERSION, "type": "unknown", "confidence": "none"}
@@ -66,6 +66,10 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
         add("comparative_structure", _has(low, ("whereas", "while", "by contrast", "unlike", "both", "difference", "compared with")), "Make the distinction explicit.")
     elif kind == "practical_application":
         add("actionable_content", _has(low, ("first", "start by", "begin by", "for example", "such as", "you can", "the organization can", "one practical")), "Provide an actionable operation or example.")
+    elif kind == "conceptual_explanation":
+        add("plain_language_definition", _has(low, (" is the study of", " is a way of understanding", " refers to", " means ", " is the study", " is concerned with")), "Define the central concept before extending it.")
+        add("significance_or_implication", _has(low, ("matters because", "shapes", "influences", "affects", "helps people", "can shape", "choices", "values", "relationships")), "Connect the concept to the significance asked about.")
+        add("concrete_application", _has(low, ("for example", "such as", "in practice", "for instance", "a person", "a community")), "Use a concrete example or practical implication where the question asks why it matters.")
     elif kind == "general_fact":
         return {"version": VERSION, "status": "review_required", "reason": "fact_accuracy_requires_evidence_or_case_rubric", "question_type": kind, "checks": []}
     failed = [c["name"] for c in checks if not c["passed"]]
