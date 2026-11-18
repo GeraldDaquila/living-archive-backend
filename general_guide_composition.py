@@ -1212,6 +1212,11 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
     # the evidence boundary is part of the requested answer.
     if _requires_substantive_answer_contract(query) and retrieval_only_disclaimer and not explicit_archive_authority_request:
         return True
+    if retrieval_only_disclaimer and explicit_archive_authority_request:
+        # The visitor asked specifically for the Archive's established position.
+        # A transparent evidence-boundary statement is the requested deliverable;
+        # do not force it through the ordinary conceptual-answer definition gate.
+        return False
     if not _has_direct_definition_for_subject(query, response):
         return True
     if any(re.search(pattern, text, re.I) for pattern in _GENERIC_NONANSWER_PATTERNS):
