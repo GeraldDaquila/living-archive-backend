@@ -818,19 +818,21 @@ def is_interpretation_revision_evidence_question(question):
 
 
 def _interpretation_revision_evidence_recovery():
-    """Offer a proportionate evidence standard without deciding the visitor's belief."""
+    """Make a claim-sensitive evidence method visible without judging the visitor's belief."""
     return (
-        "A useful starting point is to separate the experience from the interpretation placed on it. "
-        "The experience may be real as an experience—something you felt, noticed, or lived through—without every explanation of its source being established. "
-        "You do not have to dismiss the experience to examine the conclusion you have drawn from it. "
-        "The question is what kind of claim the interpretation makes, because different claims can be tested in different ways.\n\n"
-        "If it makes a claim about an observable event, another person’s actions, a cause, or a pattern in the world, look for evidence that is independently checkable: records or observations whose origins can be traced, corroboration that does not all repeat one source, and results that recur under comparable conditions. "
-        "Ask what else could explain the same experience, what the interpretation would lead you to expect, and what specific observation would count against it. "
-        "Apply the same standard to evidence that supports the interpretation and evidence that challenges it; do not lower the bar for one side or demand impossible certainty from the other.\n\n"
-        "If the interpretation is metaphysical or concerns personal meaning, be clear about what can and cannot be established by public evidence. "
-        "A meaningful experience may remain meaningful even when its supernatural explanation is uncertain; equally, a claim that makes observable predictions should not be shielded from testing merely because it is described as spiritual. "
-        "You might revise the factual explanation while retaining the personal significance, or suspend judgment where the evidence cannot decide the matter. "
-        "A sound standard is not to force belief or disbelief, but to state in advance what would strengthen, weaken, or leave the interpretation unresolved—and then let the evidence, including contrary evidence, matter."
+        "Start by separating the experience from the interpretation you have placed on it. "
+        "What you felt, noticed, or lived through may be real and important without every explanation of its source being established. "
+        "Examining an explanation does not require you to dismiss the experience. The right test depends on the kind of claim being made.\\n\\n"
+        "For a claim about an observable event, another person's actions, a cause, or a pattern in the world, work through five checks:\\n\\n"
+        "1. **Name the claim.** What, exactly, are you saying happened or caused what? Separate what you directly experienced from what you infer it means.\\n"
+        "2. **Check the evidence.** What records or observations can be checked independently, and can their origins be traced? Do apparently separate sources actually repeat one original account?\\n"
+        "3. **Test alternatives.** What else could explain the same experience? What would your interpretation lead you to expect, and does that expectation recur under comparable conditions?\\n"
+        "4. **Specify disconfirmation.** What particular observation would count against your interpretation? If no possible observation could change your view, you are protecting the claim from testing.\\n"
+        "5. **Apply one standard.** Give supporting and challenging evidence the same scrutiny. Do not lower the bar for evidence that agrees with you or demand impossible certainty from evidence that does not.\\n\\n"
+        "For a metaphysical claim or one about personal meaning, be clear about what public evidence can and cannot establish. "
+        "An experience may remain meaningful even when its supernatural explanation is uncertain. But if a spiritual claim makes observable predictions, describing it as spiritual does not exempt those predictions from examination. "
+        "You can revise the factual explanation while retaining the experience's personal significance, or suspend judgment when the evidence cannot decide the matter. "
+        "The practical standard is this: say in advance what would strengthen the interpretation, weaken it, or leave it unresolved—and allow the evidence, including contrary evidence, to make a difference."
     )
 
 
