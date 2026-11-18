@@ -4254,7 +4254,8 @@ def compose(
                 f"{index}. ID={item.get('benchmark_id')}; similarity={item.get('score')}; "
                 f"question={item.get('query')}; theme={item.get('known_theme')}; "
                 f"reasoning discipline={item.get('reasoning_family')}: {item.get('discipline')}; "
-                f"boundary={item.get('abstention_boundary')}"
+                f"qualifying context={item.get('qualifying_context')}; "
+                f"abstention boundary={item.get('abstention_boundary')}"
             )
         candidate_evidence = "\n".join(candidate_lines)
         gold_star_quality_instruction = (
@@ -4262,9 +4263,12 @@ def compose(
             "These ranked retrieval candidates are possibilities, not approved selections. Similarity scores "
             "identify candidates but do not establish relevance, compatibility, or permission to combine. "
             "First identify the visitor's actual subject and reasoning task independently. Assess each candidate "
-            "separately: does its subject and discipline materially serve the task beyond shared broad vocabulary; "
-            "what distinct reasoning contribution would it add; is that contribution already supplied by the "
-            "question, reliable knowledge, or another candidate; and does its abstention boundary fit? Select one "
+            "separately against BOTH its reviewed qualifying context and abstention boundary: the candidate must "
+            "fit the qualifying context in substance, and the current question must not fall within its abstention "
+            "boundary. Shared vocabulary, a similar reasoning family, or a high similarity score is insufficient. "
+            "Then ask whether its subject and discipline materially serve this task; what distinct reasoning "
+            "contribution it adds; and whether that contribution is already supplied by the question, reliable "
+            "knowledge, or another candidate. Select one "
             "only when it is the single sufficient fit. Combine candidates only when each contributes a distinct, "
             "necessary, mutually compatible reasoning operation and integration adds no repetition, conflict, or "
             "subject drift. Reject all when none materially improves the answer or relevance is merely lexical. "
