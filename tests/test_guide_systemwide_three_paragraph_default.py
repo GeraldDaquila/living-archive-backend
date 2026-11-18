@@ -900,6 +900,8 @@ def test_trust_community_stewardship_recovery_matches_live_acceptance_contract()
     result = _basic_inquiry_round1_deterministic_response(query, {}, {"context_blocks": ""})
     assert result["response"] == answer
     assert result["recommendation"] == registered_recovery_recommendation(query)
+    assert result["doorway_title"] == "Trust Architecture: The Missing Infrastructure Behind Functional Societies"
+    assert result["doorway_url"] == "https://geralddaquila.com/2026/09/07/trust-architecture-the-missing-infrastructure-behind-functional-societies/"
 
     doorway = registered_recovery_recommendation(query)
     assert doorway["title"] == "Trust Architecture: The Missing Infrastructure Behind Functional Societies"
