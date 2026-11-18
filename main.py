@@ -4279,7 +4279,7 @@ def _trust_community_stewardship_canonical_recommendation(query, context_data=No
 
 
 def _healthy_community_answer_recovery():
-    """Three-paragraph, answer-first entry point for newcomers asking about healthy communities."""
+    """Task-appropriate, answer-first entry point for newcomers asking about healthy communities."""
     return (
         "A healthy community is not simply one where people always agree or where conflict never happens. "
         "It is one where people can participate, raise concerns, work through differences, and have a meaningful say "
@@ -10701,13 +10701,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     response = _sanitize_basic_inquiry_response(
         general_guide_composition.enforce_response_contracts(query, response)
     )
-    # Apply the default paragraph contract at the final visitor boundary too:
-    # this single final payload gate is authoritative; no earlier composition retry.
-    # The removed early gate used three-paragraph fail-honest recovery only after
-    # starting another provider turn; that redundant turn is now eliminated.
-    # Paragraph quality is enforced at the final payload boundary below. Do not
-    # run a second composition here: the later, single final repair is the only
-    # allowed paragraph-contract recovery after downstream response rewrites.
+    # Apply the shared task-dependent quality contract at the final visitor boundary.
+    # This gate checks answer relevance and substantive quality, never paragraph count.
+    # Do not run a second composition merely to satisfy a prescribed answer shape.
     if general_guide_composition._requires_responsibility_boundary_answer(query) and not general_guide_composition._has_responsibility_boundary_explanation(response):
         raise RuntimeError("Responsibility-boundary contract failed at final visitor boundary.")
 
@@ -11800,7 +11796,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     )
     # LAST-MILE DEFAULT PRESENTATION CONTRACT: downstream fail-closed handlers,
     # specialist fallbacks, and integrity recovery may rewrite the answer after
-    # the earlier composition boundary. Enforce the three-paragraph default here,
+    # the earlier composition boundary. Enforce task-appropriate answer quality here,
     # immediately before payload assembly, so no late single-paragraph template
     # can escape to a substantive explanatory question.
     _final_comparative_subjects = _comparative_subject_terms(query)
@@ -11848,13 +11844,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             response,
             re.I,
         ))
-        _last_paragraphs = [
-            part.strip()
-            for part in re.split(r"\n\s*\n+", response)
-            if part.strip()
-        ]
         _current_response_nonanswer = general_guide_composition.is_generic_nonanswer(query, response) or general_guide_composition.is_meta_answer_failure(response)
-        if len(_last_paragraphs) < 3 or _meta_answer or _current_response_nonanswer:
+        if _meta_answer or _current_response_nonanswer:
             # A known regression query gets a deterministic, direct answer at
             # the final visitor boundary. This is a semantic recovery, not a
             # paragraph-count filler; it prevents provider failure from turning
@@ -11905,35 +11896,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 _last_retry_text = _sanitize_basic_inquiry_response(
                     str((_last_retry or {}).get("response") or "").strip()
                 )
-                _last_retry_paragraphs = [
-                    part.strip()
-                    for part in re.split(r"\n\s*\n+", _last_retry_text)
-                    if part.strip()
-                ]
-                _retry_is_meta_answer = general_guide_composition.is_meta_answer_failure(
+                                _retry_is_meta_answer = general_guide_composition.is_meta_answer_failure(
                     _last_retry_text
                 )
                 _retry_nonanswer = general_guide_composition.is_generic_nonanswer(query, _last_retry_text)
-                if len(_last_retry_paragraphs) >= 3 and not _retry_is_meta_answer and not _retry_nonanswer:
+                if _last_retry_text and not _retry_is_meta_answer and not _retry_nonanswer:
                     response = _last_retry_text
-                    print("The Guide final payload boundary: evidence-grounded three-paragraph recomposition PASS.")
+                    print("The Guide final payload boundary: evidence-grounded task-appropriate recomposition PASS.")
                 else:
                     _bounded_recovery = general_guide_composition.operational_discipline_humane_leadership_recovery(query)
                     _bounded_recovery_text = _sanitize_basic_inquiry_response(_bounded_recovery or "")
-                    _bounded_recovery_paragraphs = [
-                        part.strip()
-                        for part in re.split(r"\n\s*\n+", _bounded_recovery_text)
-                        if part.strip()
-                    ]
-                    _bounded_recovery_is_substantive = bool(
+                                        _bounded_recovery_is_substantive = bool(
                         _bounded_recovery_text
-                        and len(_bounded_recovery_paragraphs) == 3
-                        and not general_guide_composition.is_meta_answer_failure(_bounded_recovery_text)
+                         and not general_guide_composition.is_meta_answer_failure(_bounded_recovery_text)
                         and not general_guide_composition.is_generic_nonanswer(query, _bounded_recovery_text)
                     )
                     if _bounded_recovery_is_substantive:
                         response = _bounded_recovery_text
-                        print("The Guide final payload boundary: substantive three-paragraph bounded recovery PASS.")
+                        print("The Guide final payload boundary: substantive bounded recovery PASS.")
                     else:
                         if _bounded_recovery:
                             print("The Guide final payload boundary: rejected bounded recovery that failed the shared Gold Standard contract.")
@@ -11978,7 +11958,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 if part.strip()
                             ]) >= 3
                         ):
-                            # The default explanatory shape is three paragraphs (len(_systemwide_paragraphs) >= 3);
+                            # Recovery shape follows the actual question and is not paragraph-count gated;
                             # explicit short, factual, and navigation requests retain the form this question requires.
                             response = _systemwide_recovery
                             # A final answer recovery changes the prose, not the
@@ -11999,8 +11979,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                     "explanation": "A bounded general-knowledge recovery was used after the primary composition path failed; no Archive source attribution is implied.",
                                 }
                             print(
-                                "The Guide final payload boundary: system-wide three-paragraph "
-                                "recovery PASS; existing verified doorway preserved="
+                                "The Guide final payload boundary: task-appropriate recovery "
+                                "PASS; existing verified doorway preserved="
                                 f"{bool(authoritative_doorway)}."
                             )
                         else:
@@ -12040,14 +12020,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                             _answer_only_text = _sanitize_basic_inquiry_response(
                                 str((_answer_only_retry or {}).get("response") or "").strip()
                             )
-                            _answer_only_paragraphs = [
-                                part.strip()
-                                for part in re.split(r"\n\s*\n+", _answer_only_text)
-                                if part.strip()
-                            ]
-                            _answer_only_valid = bool(
-                                len(_answer_only_paragraphs) >= 3
-                                and not general_guide_composition.is_meta_answer_failure(_answer_only_text)
+                                                        _answer_only_valid = bool(
+                                 and not general_guide_composition.is_meta_answer_failure(_answer_only_text)
                                 and not general_guide_composition.is_generic_nonanswer(query, _answer_only_text)
                             )
                             # A protected deterministic recovery is an
@@ -12081,8 +12055,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 and (
                                     _deterministic_registered_mechanism
                                     or (
-                                        len([p for p in re.split(r"\n\s*\n+", _deterministic_text) if p.strip()]) >= 3
-                                        and not general_guide_composition.is_generic_nonanswer(query, _deterministic_text)
+                                                                                and not general_guide_composition.is_generic_nonanswer(query, _deterministic_text)
                                     )
                                 )
                             )
