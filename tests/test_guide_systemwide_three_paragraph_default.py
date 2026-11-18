@@ -815,7 +815,7 @@ def test_regeneration_participation_question_has_specific_recovery_and_verified_
     assert paragraphs[3].startswith("3. PREMATURE OR UNSUPPORTED INVITATION")
     assert paragraphs[4].startswith("A practical first move:")
     assert paragraphs[0].startswith("Regeneration becomes participation when insight turns into responsible care")
-    assert "what has been entrusted to my care" in paragraphs[0]
+    assert "what is already entrusted to your care" in paragraphs[0]
     assert "who should help define the need" in paragraphs[2]
     assert "feedback" in paragraphs[2]
     assert "supernatural invitation" in paragraphs[2]
