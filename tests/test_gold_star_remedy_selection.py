@@ -89,5 +89,5 @@ def test_remedy_selection_candidate_is_unique_and_approved_record_has_unique_ide
     assert record["runtime_transfer"] is True
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
     assert len(approved) == registry["integrity_audit"]["approved_gold_star_count"] == 109
-    assert len(registry["records"]) == registry["integrity_audit"]["registry_record_count"] == 146
+    assert len(registry["records"]) == registry["integrity_audit"]["registry_record_count"] == 147
     assert len({r["benchmark_id"] for r in registry["records"]}) == len(registry["records"])
