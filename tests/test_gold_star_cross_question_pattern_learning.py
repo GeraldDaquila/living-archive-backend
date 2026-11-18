@@ -10,7 +10,7 @@ QUERY = (
     "Several visitors ask different questions that expose the same recurring reasoning "
     "weakness. How should USE recognize the shared pattern and formulate a candidate Gold Star lesson?"
 )
-EXPECTED_OPENING = "Different questions reveal the same reasoning weakness"
+EXPECTED_OPENING = "USE should recognize a shared reasoning weakness"
 
 
 def test_gold_star_structural_template_is_default_in_both_live_and_editorial_prompts():
@@ -34,6 +34,10 @@ def test_cross_question_pattern_learning_query_has_provider_independent_gold_sta
     assert len(paragraphs) == 3
     assert paragraphs[0].startswith(EXPECTED_OPENING)
     assert "consented and de-identified examples" in paragraphs[1]
+    assert "USE should recognize" in paragraphs[0]
+    assert "The learning sequence is:" in paragraphs[1]
+    assert "Promotion must remain governed" in paragraphs[2]
+    assert "The Guide should compare" not in result["response"]
     assert "human reviewer" in paragraphs[2]
     assert result["doorway_title"] == ""
     assert result["doorway_url"] == ""
@@ -73,6 +77,8 @@ def test_cross_question_gold_star_registry_and_review_are_unique_and_reconciled(
     assert records[0]["numbering_status"] == "UNASSIGNED"
     assert records[0]["forbids_doorway"] is True
     assert records[0]["doorway_omission_exception_reason"]
+    assert "USE recognizes recurring reasoning weaknesses" in records[0]["transferable_lesson"]
+    assert "The learning sequence is:" in records[0]["expected_response"]
     assert records[0]["gold_star_capabilities"]["active_quality_contributor"] is True
     assert records[0]["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
     assert reviews[0]["activation"] == "active_quality_contributor"
