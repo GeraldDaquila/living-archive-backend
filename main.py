@@ -299,6 +299,15 @@ def _select_verified_doorway_conceptual_family(query):
     ))
     if re.search(r"\barchive\b", text, re.I) and archive_commons_terms >= 3:
         return "public_commons_stewardship"
+    # USE doorway-governance questions have a verified navigation-oriented
+    # destination. Require combined intent signals; generic mentions of links
+    # or destinations alone are insufficient.
+    if (
+        re.search(r"\b(?:use|the guide|search engine)\b", text, re.I)
+        and re.search(r"\b(?:doorway|destination|navigation)\b", text, re.I)
+        and re.search(r"\barchive\b", text, re.I)
+    ):
+        return "use_doorway_selection"
     if (
         re.search(r"\barchive(?:-grounded|\s+grounded)?\b", text, re.I)
         and re.search(r"\b(?:guidance|knowledge|evidence|synthesis|orientation)\b", text, re.I)
@@ -428,6 +437,11 @@ _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
     "regeneration_beyond_restoration": {
         "title": "Regenerative Governance: What Comes After Extraction-Based Systems?",
         "url": "https://geralddaquila.com/2026/06/08/regenerative-governance-what-comes-after-extraction-based-systems/",
+    },
+    "use_doorway_selection": {
+        "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
+        "rationale": "This Navigator was created to help readers navigate the Archive through curated Reference Maps, Guide Notes, and reading pathways. It connects knowledge, systems thinking, discernment, and sensemaking—the exact orientation needed to understand how a visitor should move from an answer to a relevant next resource.",
     },
     "archive_guidance_provenance": {
         "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
