@@ -270,7 +270,8 @@ def test_final_doorway_fallback_requires_frontend_renderable_rationale():
     end = main_source.index("def _guide_finalize_visitor_payload", start)
     function_source = main_source[start:end]
     assert "not str(doorway.get(\"rationale\") or \"\").strip()" in function_source
-    assert "_gold_star_default_doorway()" in function_source
+    assert "_gold_star_default_doorway()" not in function_source
+    assert "No topic-specific match means no doorway" in function_source
 
 
 
