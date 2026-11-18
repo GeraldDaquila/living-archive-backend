@@ -710,6 +710,25 @@ def _regeneration_participation_recovery():
     )
 
 
+def is_trust_community_stewardship_question(question):
+    """Recognize a direct conceptual question about trust in community stewardship."""
+    q = _clean(question).casefold()
+    return bool(
+        re.search(r"\btrust\b", q)
+        and re.search(r"\bcommunities?\b", q)
+        and re.search(r"\bstewardship\b", q)
+        and re.search(r"\b(?:what is|what role|role of|how does|why does|why is)\b", q)
+    )
+
+
+def _trust_community_stewardship_recovery():
+    """Explain trust as enabling infrastructure for accountable shared care."""
+    return (
+        "Trust helps people in a community rely on one another without having to supervise every small act. It makes cooperation possible: people can share knowledge, coordinate work, honor commitments, and accept some vulnerability because they have reason to expect competence, consistency, fairness, and reciprocity. Trust is therefore more than a warm feeling between individuals; it is part of the social infrastructure that allows a community to act together.\n\n"
+        "Think of a shared garden. The soil, water, tools, and harvest are common concerns, but no one person can tend every bed or watch every action. People need confidence that others will contribute, that decisions about water and harvest will be fair, and that problems can be raised without punishment. Stewardship is tending the garden together: caring for what is shared, noticing what is being depleted, and making sure the conditions for future growth are not sacrificed for an immediate private gain.\n\n"
+        "That trust must not be blind. It is earned and renewed through observable practices: capable work, kept commitments, transparent decisions, fair distribution of costs and benefits, accountability when mistakes happen, and meaningful ways for affected people to question and correct decisions. Without those safeguards, calls for trust can shield power from scrutiny; without enough trust, even good plans become harder to coordinate. The practical test is whether people can cooperate while remaining free to ask questions, disagree, and repair what is not working."
+    )
+
 def is_spiritual_community_accountability_question(question):
     """Recognize spiritual-community questions that explicitly pair charismatic authority with weak accountability."""
     q = _clean(question).casefold()
@@ -831,6 +850,7 @@ def has_registered_recovery(question):
         or is_external_discernment_outsourcing_question(question)
         or is_personality_soul_oversoul_question(question)
         or is_oversoul_free_will_question(question)
+        or is_trust_community_stewardship_question(question)
         or is_spiritual_community_accountability_question(question)
         or is_regeneration_participation_question(question)
         or is_complex_future_scenario_question(question)
@@ -881,6 +901,12 @@ def registered_recovery_recommendation(question):
             "title": "Stewardship as Human Maturity",
             "url": "https://geralddaquila.com/2026/07/06/stewardship-as-human-maturity/",
             "rationale": "This published cornerstone traces the movement from self-development toward responsibility and contribution beyond the self. It asks what has been entrusted to a person's care and describes stewardship as participation in relationships, communities, institutions, ecosystems, and generations; it is a grounded continuation from spiritual inspiration toward lived responsibility, not a claim about a supernatural calling."
+        }
+    if is_trust_community_stewardship_question(question):
+        return {
+            "title": "Trust Architecture: The Missing Infrastructure Behind Functional Societies",
+            "url": "https://geralddaquila.com/2026/09/07/trust-architecture-the-missing-infrastructure-behind-functional-societies/",
+            "rationale": "This published essay explains trust as social infrastructure: it enables coordination, reduces the costs of cooperation, supports institutional legitimacy, and depends on competence, consistency, transparency, accountability, reciprocity, and fairness. It is a direct continuation for understanding trust in shared community stewardship."
         }
     if is_spiritual_community_accountability_question(question):
         return {
@@ -1114,6 +1140,8 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         answer = _guide_personal_decision_agency_recovery()
     elif is_regeneration_participation_question(q):
         answer = _regeneration_participation_recovery()
+    elif is_trust_community_stewardship_question(q):
+        answer = _trust_community_stewardship_recovery()
     elif is_spiritual_community_accountability_question(q):
         answer = _spiritual_community_accountability_recovery()
     elif is_oversoul_free_will_question(q):
