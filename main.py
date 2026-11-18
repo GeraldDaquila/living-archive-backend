@@ -11896,7 +11896,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 _last_retry_text = _sanitize_basic_inquiry_response(
                     str((_last_retry or {}).get("response") or "").strip()
                 )
-                                _retry_is_meta_answer = general_guide_composition.is_meta_answer_failure(
+                _retry_is_meta_answer = general_guide_composition.is_meta_answer_failure(
                     _last_retry_text
                 )
                 _retry_nonanswer = general_guide_composition.is_generic_nonanswer(query, _last_retry_text)
@@ -11906,9 +11906,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 else:
                     _bounded_recovery = general_guide_composition.operational_discipline_humane_leadership_recovery(query)
                     _bounded_recovery_text = _sanitize_basic_inquiry_response(_bounded_recovery or "")
-                                        _bounded_recovery_is_substantive = bool(
+                    _bounded_recovery_is_substantive = bool(
                         _bounded_recovery_text
-                         and not general_guide_composition.is_meta_answer_failure(_bounded_recovery_text)
+                        and not general_guide_composition.is_meta_answer_failure(_bounded_recovery_text)
                         and not general_guide_composition.is_generic_nonanswer(query, _bounded_recovery_text)
                     )
                     if _bounded_recovery_is_substantive:
