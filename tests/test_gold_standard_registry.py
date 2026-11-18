@@ -228,6 +228,21 @@ def test_identity_report_pins_registry_hash_and_explicit_application_identity(tm
     ]
     assert report["authoritative_gold_star_count"] == len(approved)
     assert report["active_runtime_gold_star_count"] == len(active)
+    exact_only = [
+        item for item in approved
+        if item.get("runtime_transfer") is False and not item.get("superseded_by_benchmark_id")
+    ]
+    superseded = [item for item in approved if item.get("superseded_by_benchmark_id")]
+    pending = [
+        item for item in _registry()["records"]
+        if item.get("status") == "RECOVERED_HISTORICAL_RESPONSE_PENDING_APPROVAL_EVIDENCE"
+    ]
+    assert report["exact_query_only_successor_count"] == len(exact_only) == 1
+    assert report["superseded_historical_reference_count"] == len(superseded) == 1
+    assert report["pending_approval_evidence_count"] == len(pending) == 1
+    assert report["authoritative_gold_star_count"] == 112
+    assert report["active_runtime_gold_star_count"] == 110
+    assert report["counting_note"].find("Pending approval evidence is excluded") >= 0
     numbered = [item for item in approved if item.get("numbering_status") == "ASSIGNED"]
     unassigned = [item for item in approved if item.get("numbering_status") == "UNASSIGNED"]
     assert report["numbered_gold_star_count"] == len(numbered) == 39

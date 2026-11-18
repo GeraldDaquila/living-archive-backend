@@ -728,9 +728,17 @@ def main():
     # Audit metadata is descriptive only. When present, it must match the
     # record-level inventory; it is never consulted to select a number.
     audit = registry.get("integrity_audit") or {}
+    pending_approval = [
+        r for r in records
+        if r.get("status") == "RECOVERED_HISTORICAL_RESPONSE_PENDING_APPROVAL_EVIDENCE"
+    ]
     expected_audit = {
         "approved_gold_star_count": len(approved),
         "registry_record_count": len(records),
+        "active_quality_contributor_count": len(active),
+        "exact_query_only_successor_count": len(exact_only),
+        "superseded_historical_reference_count": len(superseded),
+        "pending_approval_evidence_count": len(pending_approval),
         "numbered_gold_star_record_count": len(current_numbers),
         "highest_assigned_gold_star_number": max(current_numbers.values(), default=0),
         "unassigned_approved_gold_star_count": sum(1 for r in approved if r.get("gold_star_number") is None),
