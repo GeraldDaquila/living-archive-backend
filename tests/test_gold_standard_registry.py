@@ -786,7 +786,7 @@ def test_methods_comparison_gold_star_orients_method_choice_without_collapsing_d
     )
     response = record["expected_response"]
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
-    assert record["runtime_transfer"] is True
+    assert record["forbids_doorway"] is True
     assert len(response.split(chr(10) * 2)) == 3
     assert "what happened or whether a claim is supported" in response
     assert "how conditions influence one another" in response
