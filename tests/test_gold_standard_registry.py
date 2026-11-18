@@ -1046,7 +1046,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
     import json
     registry = json.loads((ROOT / "docs" / "qa" / "gold_standard_registry.json").read_text(encoding="utf-8"))
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == 111
+    assert len(approved) == 112
     for record in approved:
         if isinstance(record.get("gold_star_number"), int) and not isinstance(record.get("gold_star_number"), bool):
             assert record.get("numbering_status") == "ASSIGNED"
@@ -1529,7 +1529,7 @@ def test_formal_informal_institutional_dynamics_gold_star_preserves_exact_live_a
     assert record["numbering_status"] == "UNASSIGNED"
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 111
     assert registry["integrity_audit"]["approved_gold_star_count"] == 111
-    assert registry["integrity_audit"]["registry_record_count"] == 149
+    assert registry["integrity_audit"]["registry_record_count"] == 150
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 73
     entry = next(item for item in review["entries"] if item["benchmark_id"] == benchmark_id)
     assert entry["activation"] == "active_quality_contributor"
@@ -1994,3 +1994,33 @@ def test_personality_soul_oversoul_gold_star_has_bounded_transfer_review():
     assert "lived evidence" in review["transferable_discipline"]
     assert "independently verified facts" in review["transferable_discipline"]
     assert "transfer this answer text or doorway" in review["abstention_boundary"].casefold()
+
+
+def test_autonomy_capability_evidence_question_is_registered_as_immutable_gold_star():
+    registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+    benchmark_id = "gs-2026-11-18-autonomy-adaptivity-resilience-improvement-evidence"
+    record = next(item for item in registry["records"] if item["benchmark_id"] == benchmark_id)
+
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["freeze_policy"] == "immutable_user_approved_gold_standard"
+    assert record["runtime_transfer"] is True
+    assert record["rating_out_of_10"] == 10
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["forbids_doorway"] is True
+    assert record["expected_doorway"] is None
+    assert "pre-registered" in record["expected_response"]
+    assert "a strong score in one dimension cannot compensate" in record["expected_response"]
+    assert "do not invent a universal sample count" in record["expected_response"]
+
+
+def test_autonomy_capability_evidence_gold_star_has_bounded_transfer_review():
+    benchmark_id = "gs-2026-11-18-autonomy-adaptivity-resilience-improvement-evidence"
+    reviews = json.loads(
+        (ROOT / "docs" / "qa" / "gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8")
+    )
+    review = next(item for item in reviews["entries"] if item["benchmark_id"] == benchmark_id)
+
+    assert review["activation"] == "active_quality_contributor"
+    assert "pre-registered" in review["transferable_discipline"]
+    assert "independently verified" in review["transferable_discipline"]
+    assert "Do not transfer the answer text" in review["abstention_boundary"]
