@@ -28,8 +28,8 @@ def test_personality_soul_oversoul_question_has_exact_provider_independent_gold_
     assert is_personality_soul_oversoul_question(query)
     assert has_registered_recovery(query)
     assert compose_recovery(query) == record["expected_response"]
-    assert len(record["expected_response"].split("\\n\\n")) == 3
-    for phrase in ("personality", "soul is learning", "Oversoul", "not a command", "without surrendering my judgment"):
+    assert len(record["expected_response"].split("\n\n")) == 3
+    for phrase in ("personality", "soul is learning", "Oversoul", "not a command", "without surrendering your judgment"):
         assert phrase.casefold() in record["expected_response"].casefold()
     assert registered_recovery_recommendation(query) == record["expected_doorway"]
     assert record["expected_doorway"]["title"] == "Eternal / Oversoul Law – The Immutable Jurisdiction"
