@@ -11939,8 +11939,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                             print("The Guide final payload boundary: rejected bounded recovery that failed the shared Gold Standard contract.")
                         # System-wide Gold Standard recovery: when provider composition and
                         # the evidence-grounded retry both fail, use the shared deterministic
-                        # composer rather than a one-off apology template. Only accept a
-                        # substantive three-paragraph answer; never imply Archive sourcing.
+                        # composer rather than a one-off apology template. Preserve the form
+                        # this question requires; never imply Archive sourcing.
                         # The shared Gold Standard recovery is answer-only. A
                         # verified doorway is independent navigation, but the
                         # final non-answer boundary must clear it if every answer
@@ -11957,11 +11957,6 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # visitor doorway selector below.
                         # If every recovery below also fails, the visitor-facing
                         # boundary explicitly returns: I couldn’t produce a reliable answer to that question just now.
-                        _systemwide_paragraphs = [
-                            part.strip()
-                            for part in re.split(r"\n\s*\n+", _systemwide_recovery)
-                            if part.strip()
-                        ]
                         _systemwide_is_meta = general_guide_composition.is_meta_answer_failure(
                             _systemwide_recovery
                         )
@@ -11975,7 +11970,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 re.I,
                             ))
                         )
-                        if len(_systemwide_paragraphs) >= 3 and not _systemwide_is_meta and not _systemwide_nonanswer:
+                        if _systemwide_recovery and not _systemwide_is_meta and not _systemwide_nonanswer:
                             response = _systemwide_recovery
                             # A final answer recovery changes the prose, not the
                             # independently verified navigation decision. Preserve
