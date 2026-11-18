@@ -6678,7 +6678,8 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent.",
-      "rating_out_of_10": 9.8
+      "rating_out_of_10": 9.8,
+      "gold_star_number": null
     }
   ],
   "last_reconciliation_note": "2026-11-18: Added quoted-passage context restoration alongside the parallel semantic-ambiguity Gold Star. Canonical inventory: 103 approved Gold Stars across 140 registry records; 101 active quality contributors, 38 numbered, 65 UNASSIGNED. Both distinct exemplars are retained; neither received a display serial.",
@@ -6811,13 +6812,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 103,
-    "registry_record_count": 140,
-    "review_reconciliation": "Canonical inventory reconciled after parallel merge on 2026-11-18: 103 approved Gold Stars across 140 registry records. 101 are active quality contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. Both same-term semantic ambiguity and quoted-passage context restoration are retained as distinct approved benchmarks: one disambiguates a shared term across sources; the other restores the source argument around a quotation before interpretation.",
+    "approved_gold_star_count": 104,
+    "registry_record_count": 141,
+    "review_reconciliation": "Canonical inventory reconciled after parallel merge on 2026-11-18: 104 approved Gold Stars across 141 registry records. 102 are active quality contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. Both same-term semantic ambiguity and quoted-passage context restoration are retained as distinct approved benchmarks: one disambiguates a shared term across sources; the other restores the source argument around a quotation before interpretation.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation after parallel merge: 103 approved Gold Stars; 38 assigned display serials #56–#93; 65 approved records explicitly UNASSIGNED with reasons. Historical serials #85 and #86 remain assigned to their existing records; no open numbering gaps. Neither the semantic-ambiguity nor quoted-passage context-restoration exemplar received a display serial.",
-    "unassigned_approved_gold_star_count": 65,
+    "numbering_reconciliation": "Record-level reconciliation after parallel merge: 104 approved Gold Stars; 38 assigned display serials #56–#93; 66 approved records explicitly UNASSIGNED with reasons. Historical serials #85 and #86 remain assigned to their existing records; no open numbering gaps. Neither the semantic-ambiguity nor quoted-passage context-restoration exemplar received a display serial.",
+    "unassigned_approved_gold_star_count": 66,
     "documented_numbering_gap_count": 0
   },
   "numbering_policy": {
