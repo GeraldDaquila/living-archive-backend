@@ -755,10 +755,53 @@ def _personality_soul_oversoul_recovery():
     )
 
 
+def is_resonance_confirmation_bias_question(question):
+    """Recognize a request to distinguish intuitive resonance from confirmation bias."""
+    q = _clean(question).casefold()
+    names_both = (
+        bool(re.search(r"\\bresonan(?:ce|t)\\w*\\b", q))
+        and bool(re.search(r"\\bconfirmation\\s+bias\\b", q))
+    )
+    discernment_task = bool(re.search(
+        r"\\b(?:distinguish|tell\\s+(?:the\\s+)?difference|differentiate|"
+        r"separate|discern|test|check|audit)\\b", q
+    ))
+    intuition_context = bool(re.search(
+        r"\\b(?:intuit(?:ion|ive|ively)|impression|gut\\s+feeling|"
+        r"inner\\s+knowing|resonat(?:es|ed|ing))\\b", q
+    ))
+    action_context = bool(re.search(
+        r"\\b(?:before\\s+acting|before\\s+i\\s+act|act(?:ing)?\\s+on|"
+        r"decision|choose|choice|believ(?:e|ing))\\b", q
+    ))
+    return names_both and discernment_task and (intuition_context or action_context)
+
+
+def _resonance_confirmation_bias_recovery():
+    """Separate subjective recognition from evidence and give a usable bias check."""
+    return (
+        "You can treat resonance and confirmation bias as different things, but not by relying on the strength of the feeling alone. "
+        "Resonance is a felt sense of recognition, coherence, or fit: something seems to connect with your experience or understanding. "
+        "It can be a useful signal that an idea deserves attention, but it is not proof that the idea is true. "
+        "Confirmation bias is a pattern in how you evaluate that signal: you notice, interpret, or remember what supports an existing expectation more readily than what challenges it. "
+        "The two can coexist. An impression may feel genuinely resonant while the explanation you attach to it is still being selectively protected.\n\n"
+        "Before acting, separate four layers: what you directly observed; what you felt or noticed; the meaning you are assigning to it; and the conclusion or action you are considering. "
+        "Then test the interpretation rather than trying to suppress the feeling. State the strongest alternative explanation. "
+        "Ask what specific evidence would weaken your preferred reading, and give that evidence the same scrutiny you give confirming evidence. "
+        "Check whether apparently independent sources really are independent, rather than repeating the same original claim. "
+        "Notice whether you are changing the standard of proof when evidence agrees with you versus when it does not.\n\n"
+        "A useful rule is: let resonance open an inquiry; let evidence, alternatives, and consequences govern the conclusion. "
+        "If the decision is consequential, delay irreversible action, seek a genuinely independent perspective, and choose a small, reversible way to test the impression where possible. "
+        "Be willing to revise the interpretation if the expected evidence does not appear. "
+        "You do not need to dismiss intuition, but you should not ask intuition alone to certify its own accuracy."
+    )
+
+
 def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
     return bool(
         is_guide_personal_decision_agency_question(question)
+        or is_resonance_confirmation_bias_question(question)
         or is_oversoul_ego_authority_question(question)
         or is_external_discernment_outsourcing_question(question)
         or is_personality_soul_oversoul_question(question)
@@ -987,6 +1030,10 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         return "What would you like to understand or work through?"
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
+
+    # Evidence-discernment questions must not fall through to generic reflection.
+    if is_resonance_confirmation_bias_question(q):
+        return _resonance_confirmation_bias_recovery()
 
     # Retrospective accountability must outrank generic decision advice:
     # evaluate process using what was knowable then, not the outcome known now.
