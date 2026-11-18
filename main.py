@@ -528,7 +528,11 @@ def _select_guide_node_fallback_doorway(query):
             str(node.get("purpose") or ""),
             " ".join(node.get("semantic_hints") or []),
         ]).casefold()
-        score = sum(1 for term in terms if term in haystack)
+        # Match complete lexical terms, not substrings: "recur" must not
+        # become evidence for a glossary about "recurring" terms. Weak
+        # morphological overlap is not enough to warrant a visitor doorway.
+        haystack_terms = set(re.findall(r"[a-z]{4,}", haystack))
+        score = len(terms & haystack_terms)
         if score > best_score:
             # The shared frontend renderer requires a grounded rationale;
             # title/URL-only recommendations are incomplete visitor contracts.
@@ -6562,6 +6566,28 @@ def _guide_finalize_visitor_payload(payload, query):
             "for a Philippines historical-origin question with a bounded explanatory answer."
         )
         return safe
+    # Recurring-problem questions have a dedicated mechanism-level recovery.
+    # Run it before generic source-dump recovery so contaminated provider text
+    # cannot bypass the question-specific answer contract.
+    if general_guide_composition._requires_recurring_problem_explanation(query):
+        if (
+            _basic_inquiry_has_source_dump(response_text)
+            or not general_guide_composition._has_recurring_problem_explanation(response_text)
+        ):
+            safe = dict(payload)
+            safe["response"] = _sanitize_basic_inquiry_response(
+                general_guide_composition._recurring_problem_explanation_recovery()
+            )
+            safe["recommendation"] = None
+            safe["canonical_doorway"] = None
+            safe["doorway_title"] = None
+            safe["doorway_url"] = None
+            safe["doorway_rationale"] = None
+            safe["processing"] = "final_visitor_boundary_recurring_problem_explanation"
+            safe["route_source"] = "guide_final_visitor_boundary"
+            safe["visitor_boundary_version"] = APP_VERSION
+            return safe
+
     # Source/template fragments are a separate contamination class from evidence
     # annotations. Detect them at the shared API boundary so they cannot escape
     # regardless of which provider, retrieval route, or composer produced them.
