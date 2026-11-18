@@ -139,6 +139,9 @@ The Gold Star standard is the default structural template across every visitor-f
 GOLD STAR SCOPE GOVERNANCE (META-GOVERNANCE TASKS ONLY):
 When the visitor is explicitly asking how USE should evaluate a Gold Star's scope, distinguish the validity of the local improvement from the safety of transferring it. Require controlled comparison across target-domain cases, adjacent domains, and unrelated negative controls; assess correctness, relevance, completeness, calibration, directness, and doorway fit; and inspect regression severity, repeatability, and mechanism. Narrow when demonstrated benefit is reliable but bounded; revise when the underlying insight is useful and the overreach is correctable; reject when benefit is not reproducible or serious regressions cannot be contained. Preserve benchmark identity and provenance, and require new evidence before scope expands. This is a specialized meta-governance lesson: never impose it on ordinary visitor questions, and never infer applicability from broad keyword overlap.
 
+GOLD STAR REMEDY SELECTION (META-GOVERNANCE TASKS ONLY):
+When asked whether a recurring weakness warrants a new Gold Star, diagnose the earliest failed layer before proposing learning. If a needed source is absent from the candidate set or poorly ranked, correct retrieval. If a source is present but its identity, canonical URL, type, version, permissions, or provenance is wrong or missing, correct source metadata and indexing. If a repeatable known rule, route, threshold, validation, access boundary, or serialization behavior is failing, correct deterministic logic and add regression coverage. Consider a Gold Star only when evidence and metadata are correct, deterministic rules are functioning, and a residual reasoning-capability weakness recurs across materially different questions. State the missing reasoning operation, qualifying conditions, and abstention boundary; test held-out target cases, adjacent cases, and unrelated negative controls; compare quality and regressions; require human review before activation. Repair engineering defects first and evaluate only any remaining reasoning gap. Do not use Gold Stars to encode known code rules, retrieval repairs, metadata corrections, or one-off failures. This meta-governance discipline applies only when the visitor explicitly asks how to choose between learning and engineering remedies; never impose it on ordinary questions.
+
 SEMANTIC AMBIGUITY BEFORE ANSWERING:
 When sources use the same term differently, do not assume a shared meaning. Identify the term; examine each source in context; compare its referent, definition or operational use, scope, and criteria; explain overlap and divergence; and distinguish a genuine contradiction from different scope or distinct senses. Preserve each source's own meaning. Answer only once the visitor's intended sense is clear; otherwise state the plausible readings and ask one focused clarifying question. Do not replace this task with generic decision, stewardship, or governance advice.
 
@@ -196,6 +199,9 @@ The Gold Star standard is the default structural template across every visitor-f
 
 GOLD STAR SCOPE GOVERNANCE (META-GOVERNANCE TASKS ONLY):
 When the visitor is explicitly asking how USE should evaluate a Gold Star's scope, distinguish the validity of the local improvement from the safety of transferring it. Require controlled comparison across target-domain cases, adjacent domains, and unrelated negative controls; assess correctness, relevance, completeness, calibration, directness, and doorway fit; and inspect regression severity, repeatability, and mechanism. Narrow when demonstrated benefit is reliable but bounded; revise when the underlying insight is useful and the overreach is correctable; reject when benefit is not reproducible or serious regressions cannot be contained. Preserve benchmark identity and provenance, and require new evidence before scope expands. This is a specialized meta-governance lesson: never impose it on ordinary visitor questions, and never infer applicability from broad keyword overlap.
+
+GOLD STAR REMEDY SELECTION (META-GOVERNANCE TASKS ONLY):
+When asked whether a recurring weakness warrants a new Gold Star, diagnose the earliest failed layer before proposing learning. If a needed source is absent from the candidate set or poorly ranked, correct retrieval. If a source is present but its identity, canonical URL, type, version, permissions, or provenance is wrong or missing, correct source metadata and indexing. If a repeatable known rule, route, threshold, validation, access boundary, or serialization behavior is failing, correct deterministic logic and add regression coverage. Consider a Gold Star only when evidence and metadata are correct, deterministic rules are functioning, and a residual reasoning-capability weakness recurs across materially different questions. State the missing reasoning operation, qualifying conditions, and abstention boundary; test held-out target cases, adjacent cases, and unrelated negative controls; compare quality and regressions; require human review before activation. Repair engineering defects first and evaluate only any remaining reasoning gap. Do not use Gold Stars to encode known code rules, retrieval repairs, metadata corrections, or one-off failures. This meta-governance discipline applies only when the visitor explicitly asks how to choose between learning and engineering remedies; never impose it on ordinary questions.
 
 SEMANTIC AMBIGUITY BEFORE ANSWERING:
 When sources use the same term differently, do not assume a shared meaning. Identify the term; examine each source in context; compare its referent, definition or operational use, scope, and criteria; explain overlap and divergence; and distinguish a genuine contradiction from different scope or distinct senses. Preserve each source's own meaning. Answer only once the visitor's intended sense is clear; otherwise state the plausible readings and ask one focused clarifying question. Do not replace this task with generic decision, stewardship, or governance advice.
@@ -3930,6 +3936,36 @@ def _comparative_traditions_recovery(question: str) -> Optional[Dict[str, Any]]:
     }
 
 
+
+def _gold_star_remedy_selection_recovery(query: str) -> Optional[Dict[str, Any]]:
+    """Separate reasoning-learning candidates from retrieval/metadata/logic defects."""
+    text = _normalize_space(query)
+    asks_gold_star = bool(re.search(r"\\bgold\\s+stars?\\b", text, re.I))
+    names_failure = bool(re.search(r"\\b(?:weakness|failure|defect|problem|gap)\\b", text, re.I))
+    names_engineering_layers = bool(
+        re.search(r"\\b(?:retrieval|metadata|deterministic|engineering|routing|indexing)\\b", text, re.I)
+    )
+    asks_remedy_selection = bool(
+        re.search(r"\\b(?:distinguish|decide|determine|deserve|warrant|address|fix|correct|choose)\\w*\\b", text, re.I)
+    )
+    if not (asks_gold_star and names_failure and names_engineering_layers and asks_remedy_selection):
+        return None
+
+    response = (
+        "USE should create a Gold Star only when the recurring failure is a genuine reasoning-capability gap: the system has the right evidence, the source information is accurate, and the applicable deterministic rules are working, yet it still repeatedly fails to perform a reasoning operation that matters across distinct questions. A Gold Star teaches a transferable way to reason; it is not a general-purpose container for defects that belong to the software or knowledge infrastructure.\\n\\n"
+        "Diagnose the earliest failed layer before choosing a remedy. If the needed source exists but is missing from the candidate set or ranked out, improve retrieval coverage, queries, or ranking. If the source is found but its title, canonical URL, type, version, permissions, or provenance is missing or wrong, repair the source metadata and its indexing. If the failure is reproducible under a known rule—such as routing, validation, thresholds, access boundaries, or response serialization—correct the deterministic logic and add a regression test. These are engineering corrections, even when they repeatedly produce poor answers.\\n\\n"
+        "A Gold Star becomes justified only when those lower layers have been checked and the residual failure is still a recurring reasoning weakness across materially different, independently evaluated questions. Isolate the missing reasoning operation, state the corrective discipline and its qualifying conditions and abstention boundary, then test it on held-out target cases, adjacent cases, and unrelated negative controls. Compare correctness, relevance, completeness, calibration, and regressions before and after; require human review before activation. If an engineering correction removes the failure, do not create a Gold Star. If both defects coexist, repair the infrastructure first and evaluate only the remaining reasoning gap."
+    )
+    return {
+        "response": response,
+        "doorway_title": "",
+        "doorway_url": "",
+        "response_shape": "explanatory",
+        "provider": "bounded_gold_star_remedy_selection_recovery",
+        "model": "deterministic-contract-recovery",
+    }
+
+
 def _cross_question_pattern_learning_recovery(query: str) -> Optional[Dict[str, Any]]:
     """Explain evidence-led cross-question learning without claiming unseen data access."""
     text = _normalize_space(query)
@@ -4084,6 +4120,14 @@ def compose(
     if cross_question_learning_recovery is not None:
         _emit_guide_outcome("deterministic_boundary", source="cross_question_pattern_learning")
         return cross_question_learning_recovery
+
+    # Remedy selection is distinct from cross-question pattern discovery: a
+    # repeated failure may still belong to retrieval, source metadata, or code.
+    remedy_selection_recovery = _gold_star_remedy_selection_recovery(question)
+    if remedy_selection_recovery is not None:
+        _emit_guide_outcome("deterministic_boundary", source="gold_star_remedy_selection")
+        return remedy_selection_recovery
+
 
     # A broad existential question is answerable without asking the visitor to
     # disclose personal context. Give a substantive, pluralistic first answer
