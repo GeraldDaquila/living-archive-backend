@@ -5633,6 +5633,36 @@ def _guide_restore_verified_doorway(payload, query):
     including the rationale required by the shared frontend renderer.
     """
     safe = dict(payload) if isinstance(payload, dict) else {}
+    # Some completed answers intentionally have no Archive continuation. Keep
+    # that decision intact at the terminal boundary: otherwise the generic
+    # fallback selector can attach an unrelated Learning Arc/Compass after the
+    # answer has explicitly declared itself general knowledge with no verified
+    # direct Archive destination.
+    answer_basis = safe.get("answer_basis")
+    response_provenance = safe.get("response_provenance")
+    explicit_general_knowledge_omission = (
+        safe.get("processing") == "gold_star_remedy_selection_recovery"
+        and isinstance(answer_basis, dict)
+        and answer_basis.get("kind") == "general_knowledge"
+        and isinstance(response_provenance, dict)
+        and response_provenance.get("class") == "deterministic_recovery"
+        and safe.get("doorway_omission_reason") == "no_verified_direct_archive_continuation"
+        and not _normalize_authoritative_recommendation(safe.get("recommendation"))
+        and not _normalize_authoritative_recommendation(safe.get("canonical_doorway"))
+    )
+    if explicit_general_knowledge_omission:
+        safe["recommendation"] = None
+        safe["canonical_doorway"] = None
+        safe["doorway_title"] = None
+        safe["doorway_url"] = None
+        safe["doorway_rationale"] = None
+        safe["doorway_omission_exception_reason"] = (
+            "The answer is complete general-knowledge guidance about an internal "
+            "USE learning-governance method; no verified direct Archive continuation "
+            "materially advances the inquiry."
+        )
+        return safe
+
     family = _select_verified_doorway_conceptual_family(query)
     family_candidate = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     doorway = _normalize_authoritative_recommendation(family_candidate) if family_candidate else None
