@@ -5737,6 +5737,20 @@ def _guide_finalize_visitor_payload(payload, query):
             safe["response"] = exact_answer
             if "answer" in safe:
                 safe["answer"] = exact_answer
+        # Exact approved direct-fact standards carry their own provenance class.
+        # Do not let a broad Archive search or an unrelated doorway relabel a
+        # self-contained general-knowledge answer as Archive-supported.
+        if exact_standard.get("reasoning_family") == "direct_factual_answer":
+            safe["answer_basis"] = {
+                "kind": "general_knowledge",
+                "label": "General knowledge",
+                "explanation": (
+                    "This is a direct general-knowledge answer, not a claim drawn "
+                    "from or presented as canonical Living Archive doctrine. The "
+                    "Guide can help orient further exploration of related Archive "
+                    "themes separately."
+                ),
+            }
         if not _gold_star_doorway_omission_is_justified(exact_standard):
             exact_title = str(exact_standard.get("doorway_title") or "").strip()
             exact_url = str(exact_standard.get("doorway_url") or "").strip()
