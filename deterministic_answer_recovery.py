@@ -879,7 +879,7 @@ def _felt_truth_claim_discernment_recovery():
     return (
         "A claim can feel deeply true without necessarily being true. An idea may resonate with your experience, offer a beautiful explanation of the world, or restore a sense of purpose and agency. Those experiences deserve attention, but they are not themselves proof of the claims attached to them. The first discipline is to distinguish the value of an experience from the accuracy of the interpretation built around it.\n\n"
         "Emotionally attractive beliefs can become self-protecting. We notice confirming experiences, overlook contradictions, interpret ambiguity in our favor, and mistake the comfort a belief provides for evidence that it is correct. This does not mean beautiful, spiritual, hopeful, or empowering ideas are necessarily false. It means their appeal should not exempt them from examination.\n\n"
-        "A practical examination has seven steps:\n"
+        "A practical examination has seven steps:\n\n"
         "1. **State the claim precisely.** What exactly are you accepting? Separate the proposition from the emotions, promises, and implications surrounding it.\n"
         "2. **Separate experience from interpretation.** What did you directly observe or experience? What meaning did you assign to it? Both matter, but they are different kinds of information.\n"
         "3. **Identify the evidence.** What supports the claim independently of how compelling it feels? Is the evidence appropriate to the kind of claim being made, independently corroborated where possible, sufficiently reliable, and open to examination?\n"
