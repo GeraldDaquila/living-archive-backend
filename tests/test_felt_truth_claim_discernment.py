@@ -174,3 +174,27 @@ def test_felt_truth_discernment_is_registered_as_an_approved_gold_star():
     assert record["expected_response"] == recovery.compose_recovery(QUERY)
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
+
+
+def test_registered_gold_star_fixture_matches_the_frozen_registry_answer():
+    from pathlib import Path
+    import json
+
+    root = Path(recovery.__file__).resolve().parent
+    fixture = json.loads(
+        (root / "tests" / "fixtures" / "felt_truth_claim_discernment_gold_star.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    registry = json.loads(
+        (root / "docs" / "qa" / "gold_standard_registry.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == fixture["benchmark_id"]
+    )
+    assert fixture["expected_response"] == record["expected_response"]
+    assert fixture["expected_doorway"] == record["expected_doorway"]
+    assert fixture["expected_response"] == recovery.compose_recovery(QUERY)
