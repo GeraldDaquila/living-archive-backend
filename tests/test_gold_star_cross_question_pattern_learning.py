@@ -53,7 +53,8 @@ def test_cross_question_pattern_learning_recovery_is_narrow_and_does_not_capture
 
 
 def test_compose_returns_cross_question_learning_answer_without_calling_provider_or_retrieval():
-    result = composition.compose(use_core=None, query=QUERY, context_data={})
+    paraphrase = "Multiple users submit varied questions that reveal a repeated reasoning gap. How should the Guide identify it and develop a lesson candidate?"
+    result = composition.compose(use_core=None, query=paraphrase, context_data={})
     assert result is not None
     assert result["provider"] == "bounded_cross_question_pattern_learning_recovery"
     assert result["response"].startswith(EXPECTED_OPENING)
