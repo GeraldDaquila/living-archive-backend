@@ -3946,7 +3946,7 @@ def _gold_star_remedy_selection_recovery(query: str) -> Optional[Dict[str, Any]]
         re.search(r"\b(?:retrieval|metadata|deterministic|engineering|routing|indexing)\b", text, re.I)
     )
     asks_remedy_selection = bool(
-        re.search(r"\b(?:distinguish|decide|determine|deserve|warrant|address|fix|correct|choose)\w*\b", text, re.I)
+        re.search(r"\b(?:distinguish|decide|determine|deserve|warrant|address|fix|correct|choose|promot)\w*\b", text, re.I)
     )
     if not (asks_gold_star and names_failure and names_engineering_layers and asks_remedy_selection):
         return None
