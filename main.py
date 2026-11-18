@@ -612,6 +612,66 @@ def _verified_archive_doorway_fallback(query, docs, profile):
     # legitimate condition under which the Guide suppresses its doorway.
     return None
 
+def _guide_enforce_terminal_doorway_policy(payload, query):
+    """Make an explicit no-doorway decision terminal across every response path.
+
+    Answer composition, canonical retrieval, and visitor navigation are separate
+    stages. When an upstream recovery explicitly records that no relevant
+    destination is verified, later retrieval or fallback stages must not
+    reintroduce a generic link at the final visitor boundary.
+    """
+    safe = dict(payload) if isinstance(payload, dict) else {}
+    exact_standard = _resolve_exact_guide_gold_standard(query)
+    explicit_no_doorway = bool(re.search(
+        r"\b(?:do not|don't|without|no)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
+        str(query or ""),
+        re.I,
+    ))
+    reviewed_omission = _gold_star_doorway_omission_is_justified(exact_standard)
+    recovery_omission_reason = str(
+        safe.get("doorway_omission_reason")
+        or safe.get("doorway_omission_exception_reason")
+        or ""
+    ).strip()
+    cosmology_doorway_not_verified = bool(
+        re.search(r"\b(?:cosmology|worldview)\b", str(query or ""), re.I)
+        and re.search(
+            r"\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\b",
+            str(query or ""),
+            re.I,
+        )
+    )
+
+    if reviewed_omission or explicit_no_doorway or recovery_omission_reason or cosmology_doorway_not_verified:
+        # Clear every public doorway alias together. Leaving even one populated
+        # field allows a frontend renderer or compatibility path to resurrect
+        # the same recommendation under a different field name.
+        for key in (
+            "recommendation",
+            "recommendations",
+            "canonical_doorway",
+            "doorway",
+            "doorway_title",
+            "doorway_url",
+            "doorway_rationale",
+            "recommendation_title",
+            "recommendation_url",
+            "recommendation_canonical_primary",
+            "recommendation_canonical_secondary",
+        ):
+            if key in safe:
+                safe[key] = None
+        if not recovery_omission_reason:
+            safe["doorway_omission_reason"] = (
+                str(exact_standard.get("doorway_omission_exception_reason") or "").strip()
+                if reviewed_omission and isinstance(exact_standard, dict)
+                else "No directly relevant canonical destination has been verified for this inquiry."
+            )
+        return safe
+
+    return _guide_restore_verified_doorway(safe, query)
+
+
 def _guide_node_by_id(node_id):
     target = str(node_id or "").strip()
     if not target:
@@ -14848,26 +14908,13 @@ async def _use_request_boundary(scope, receive, send):
                         "message": "The response did not pass the minimum integrity checks. Please try again.",
                     }
                     _final_status = 503
-            # Enforce the doorway invariant after every inner early return, not
-            # only on the ordinary provider path. Exact approved exceptions and
-            # an explicit visitor refusal of navigation remain authoritative.
-            exact_doorway_standard = _resolve_exact_guide_gold_standard(query)
-            explicit_no_doorway = bool(re.search(
-                r"\b(?:do not|don't|without|no)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
-                query,
-                re.I,
-            ))
-            reviewed_omission = _gold_star_doorway_omission_is_justified(
-                exact_doorway_standard
-            )
-            _cosmology_doorway_not_verified = bool(
-                re.search(r"\b(?:cosmology|worldview)\b", str(query or ""), re.I)
-                and re.search(r"\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\b", str(query or ""), re.I)
-            )
-            if isinstance(safe_payload, dict) and not (
-                reviewed_omission or explicit_no_doorway or _cosmology_doorway_not_verified
-            ):
-                safe_payload = _guide_restore_verified_doorway(safe_payload, query)
+            # One terminal doorway policy governs ordinary responses and every
+            # inner early-return path. Explicit omissions are preserved and cannot
+            # be undone by a later generic fallback or compatibility field.
+            if isinstance(safe_payload, dict):
+                safe_payload = _guide_enforce_terminal_doorway_policy(
+                    safe_payload, query
+                )
             # Response provenance is attached at the single outer boundary so
             # every production acceptance result can be traced to its serving
             # build without exposing implementation detail in the visitor UI.
