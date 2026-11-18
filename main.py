@@ -11977,13 +11977,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 re.I,
                             ))
                         )
-                        if _systemwide_recovery and not _systemwide_is_meta and not _systemwide_nonanswer and (
-                            not general_guide_composition._requires_substantive_answer_contract(query)
-                            or len([
-                                part for part in re.split(r"\n\s*\n+", _systemwide_recovery)
-                                if part.strip()
-                            ]) >= 3
-                        ):
+                        if _systemwide_recovery and not _systemwide_is_meta and not _systemwide_nonanswer:
                             # Recovery shape follows the actual question and is not paragraph-count gated;
                             # explicit short, factual, and navigation requests retain the form this question requires.
                             response = _systemwide_recovery
