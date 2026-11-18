@@ -905,6 +905,15 @@
       "transferable_discipline": "When a retrieved quotation may be out of context, treat it as a fragment: verify its original source and exact wording; recover the surrounding paragraph, adjacent paragraphs, headings, definitions, qualifications, notes, and relevant argument; compare the excerpt against the original for omissions or alterations; separate explicit source claims from contextual implications and user framing; analyze only after reconstruction; disclose unavailable context and keep dependent conclusions provisional.",
       "abstention_boundary": "Transfer only the context-restoration sequence to genuine quoted-passage or excerpt interpretation tasks. Do not assume quotations are inaccurate, invent missing source context, infer author intent beyond evidence, conflate separate sources, or impose this sequence on unrelated factual or conceptual questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-gold-star-candidate-adjudication-2026-11-18",
+      "question": "A question has moderate similarity to three Gold Stars, each addressing a different reasoning discipline. How should USE decide whether to select one, combine several, or reject all three?",
+      "reasoning_family": "multi_candidate_adjudication_before_structural_transfer",
+      "transferable_discipline": "Treat similarity as candidate retrieval only. Independently test subject fit, incremental contribution, necessity, compatibility, and boundary fit; select one only when uniquely sufficient; combine only necessary compatible disciplines; reject all when relevance is merely lexical or outside scope. Continue answering after rejection and select any doorway independently.",
+      "qualifying_context": "Questions about how USE or another governed answer system should apply, combine, or reject multiple retrieved exemplars, Gold Stars, or structural lessons with different reasoning disciplines.",
+      "abstention_boundary": "Do not infer approval from similarity, rank, or candidate count; do not force synthesis or transfer exemplar content; do not refuse or select an unrelated doorway when all candidates are rejected.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
