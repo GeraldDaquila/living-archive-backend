@@ -941,6 +941,15 @@
       "qualifying_context": "Questions explicitly asking how USE should recognize recurring reasoning weaknesses across different visitors' questions and formulate a governed candidate Gold Star lesson. Requires explicit operational sequence and must not claim unavailable cross-visitor evidence.",
       "abstention_boundary": "Transfer only the evidence-led method for identifying and validating recurring reasoning weaknesses across distinct questions. Do not infer recurrence from lexical similarity or one example; do not claim access to conversations or telemetry not available; do not retain unnecessary personal conversation data; do not auto-promote a candidate; and do not apply this meta-learning method to ordinary visitor questions that are not about cross-question learning.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-calibration-vs-validation-promotion-decision-gold-star-2026-11-18",
+      "question": "A revised Guide performs better on the calibration set but worse on the validation set. Which result should govern the decision to promote the revision, and why?",
+      "reasoning_family": "held_out_validation_and_generalization_decision",
+      "transferable_discipline": "For model-revision promotion questions, distinguish data used to fit or tune a revision from independent held-out evaluation. Let relevant validation performance govern generalization and promotion; interpret calibration gains paired with validation regression as a warning requiring investigation, not as evidence of improvement. Check metric and protocol comparability, sample size and uncertainty, leakage and split integrity, distribution differences, reproducibility, and subgroup effects. Do not promote on calibration gains alone; require reproducible held-out improvement without an unacceptable regression.",
+      "qualifying_context": "Questions asking whether a model, Guide, or system revision should be promoted when performance improves on calibration/tuning data but declines on a held-out validation set.",
+      "abstention_boundary": "Apply only when a question compares performance on calibration/tuning data with held-out validation data for a model or system revision. Do not assume the dataset labels or metrics are comparable without checking; do not treat one noisy validation result as conclusive without examining uncertainty and reproducibility; do not confuse this with probability-calibration metrics unless the question establishes that meaning; and do not transfer the answer or technical details to unrelated decision questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
