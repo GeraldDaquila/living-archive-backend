@@ -48,7 +48,7 @@ const apiFinished = [];
 const pageErrors = [];
 const consoleErrors = [];
 page.on("pageerror", error => {
-  pageErrors.push({ message: error.message, stack: error.stack || "" });
+  pageErrors.push({ name: error.name || "Error", message: error.message, stack: error.stack || "" });
 });
 page.on("console", message => {
   if (message.type() === "error") {
@@ -96,6 +96,30 @@ try {
   });
   await page.goto(GUIDE_URL, { waitUntil: "domcontentloaded" });
   await page.waitForLoadState("load").catch(() => {});
+  const inlineScriptSyntaxDiagnostics = await page.locator("script:not([src])").evaluateAll(scripts =>
+    scripts.map((script, index) => {
+      const type = (script.getAttribute("type") || "text/javascript").toLowerCase();
+      if (!["text/javascript", "application/javascript", "module", ""].includes(type)) return null;
+      const source = script.textContent || "";
+      if (!source.trim()) return null;
+      try {
+        new Function(source);
+        return null;
+      } catch (error) {
+        return { index, type, id: script.id || null, bytes: source.length, message: error.message };
+      }
+    }).filter(Boolean)
+  );
+  const externalScriptSyntaxDiagnostics = [];
+  for (const script of await page.locator('script[src*="guide-controller"], script[src*="marked"]').evaluateAll(nodes => nodes.map(node => node.src))) {
+    try {
+      const response = await page.request.get(script);
+      const source = await response.text();
+      new Function(source);
+    } catch (error) {
+      externalScriptSyntaxDiagnostics.push({ url: script, message: error.message || String(error) });
+    }
+  }
   const root = page.locator(ROOT);
   await root.waitFor({ state: "attached" });
   const input = root.locator("#archive-query-input");
@@ -226,7 +250,7 @@ try {
     const visibleText = await answer.innerText().catch(() => "");
     throw new Error(
       "Conceptual trust/stewardship response did not render in the active Woody instance. " +
-      JSON.stringify({ visibleText, conceptualDiagnostics, pageErrors, waitError: error.message })
+      JSON.stringify({ visibleText, conceptualDiagnostics, pageErrors, inlineScriptSyntaxDiagnostics, externalScriptSyntaxDiagnostics, waitError: error.message })
     );
   }
   const conceptualText = await answer.innerText();
@@ -348,6 +372,8 @@ try {
     apiFailures,
     apiFinished,
     pageErrors,
+    inlineScriptSyntaxDiagnostics,
+    externalScriptSyntaxDiagnostics,
     consoleErrors
   }));
   process.exitCode = 1;
