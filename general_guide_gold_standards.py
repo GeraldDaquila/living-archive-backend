@@ -154,6 +154,7 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
             "expected_response": answer,
             "benchmark_id": str(record.get("benchmark_id") or ""),
             "status": str(record.get("status") or ""),
+            "reasoning_family": str(capabilities.get("reasoning_family") or ""),
             "doorway_title": doorway_title,
             "doorway_url": str(doorway_url) if doorway_url else "",
             "doorway_rationale": doorway_rationale,

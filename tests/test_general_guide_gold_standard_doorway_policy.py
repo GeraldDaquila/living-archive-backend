@@ -201,6 +201,9 @@ def test_exact_water_gold_star_preserves_explicit_unapproved_doorway_omission():
     restored = main._guide_restore_verified_doorway(finalized, query)
 
     assert finalized["recommendation"] is None
+    assert finalized["answer_basis"]["kind"] == "general_knowledge"
+    assert finalized["answer_basis"]["label"] == "General knowledge"
+    assert "not a claim drawn from" in finalized["answer_basis"]["explanation"]
     assert finalized["canonical_doorway"] is None
     assert restored["recommendation"] is None
     assert restored["canonical_doorway"] is None
