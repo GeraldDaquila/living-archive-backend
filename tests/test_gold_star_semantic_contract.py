@@ -73,3 +73,29 @@ def test_quoted_followup_phrase_is_reviewed_not_hard_rejected():
     assert result["status"] == "review_required"
     assert result["hard_failures"] == []
     assert "no_unrequested_followup" in result["review_flags"]
+
+
+def test_semantic_shadow_is_visible_but_never_enforced_or_rewritten():
+    from gold_star_response_floor import evaluate_response_floor
+
+    query = "Explain policy versus procedure. Do not recommend links or resources."
+    answer = "A policy sets the rule; a procedure explains the steps. https://example.org"
+    payload = {"ok": True, "response": answer}
+    result = evaluate_response_floor(query, payload)
+
+    assert result["status"] == "pass"  # Existing v2 gate remains authoritative.
+    assert result["semantic_shadow"]["mode"] == "shadow_only"
+    assert result["semantic_shadow"]["status"] == "fail"
+    assert result["semantic_shadow"]["enforced"] is False
+    assert result["semantic_shadow"]["semantic_certification"] is False
+    assert payload["response"] == answer  # Observer never rewrites visitor content.
+
+
+def test_semantic_shadow_does_not_break_existing_integrity_regexes():
+    from gold_star_response_floor import evaluate_response_floor
+
+    safe = evaluate_response_floor("Explain the concept.", {"ok": True, "response": "A clear answer."})
+    unsafe = evaluate_response_floor("Explain the concept.", {"ok": True, "response": "<script>alert(1)</script>"})
+    assert safe["status"] == "pass"
+    assert safe["semantic_shadow"]["mode"] == "shadow_only"
+    assert unsafe["status"] == "fail"
