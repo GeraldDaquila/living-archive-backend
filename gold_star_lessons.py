@@ -411,48 +411,57 @@ def _load_lessons() -> List[Dict[str, Any]]:
 
 _LESSONS = _load_lessons()
 
-def select_lesson(
+def _lesson_candidate_payload(x: Dict[str, Any], score: float, *, exact: bool = False) -> Dict[str, Any]:
+    return {
+        "benchmark_id": x["id"], "score": round(float(score), 3), "exact": exact,
+        "runtime_transfer": bool(x.get("runtime_transfer")),
+        "deterministic_fallback_eligible": bool(x.get("deterministic_fallback_eligible")),
+        "query": x["query"], "known_theme": x["known_theme"],
+        "assertions": x["assertions"],
+        "reasoning_family": x.get("reasoning_family", ""),
+        "transferable_discipline": x.get("transferable_discipline", ""),
+        "abstention_boundary": x.get("abstention_boundary", ""),
+    }
+
+
+def select_lesson_candidates(
     query: str,
     *,
     required_capability: Optional[str] = None,
-) -> Optional[Dict[str, Any]]:
-    """Select one approved structural analogue, optionally capability-gated."""
+    limit: int = 3,
+) -> List[Dict[str, Any]]:
+    """Return a small ranked candidate set; ranking is not an adjudication.
+
+    Exact approved matches retain exclusive authority. Cross-question candidates
+    are returned independently so the composition layer can assess fit,
+    complementarity, redundancy, and exclusion against the visitor's actual task.
+    """
     normalized = _normalized_phrase(query)
-    if not normalized:
-        return None
+    if not normalized or limit < 1:
+        return []
+
     def eligible(item: Dict[str, Any]) -> bool:
-        # Preserve the original exact-match semantics for ordinary adaptive
-        # selection. A required capability is a stricter, independent gate.
         return not required_capability or (
             bool(item.get("runtime_transfer")) and bool(item.get(required_capability))
         )
+
     exact = [
         x for x in _LESSONS
         if _normalized_phrase(x["query"]) == normalized and eligible(x)
     ]
     if len(exact) == 1:
-        x = exact[0]
-        return {"benchmark_id": x["id"], "score": 1.0, "exact": True,
-                "runtime_transfer": bool(x["runtime_transfer"]),
-                "deterministic_fallback_eligible": bool(x.get("deterministic_fallback_eligible")),
-                "query": x["query"], "known_theme": x["known_theme"],
-                "assertions": x["assertions"],
-                "reasoning_family": x.get("reasoning_family", ""),
-                "transferable_discipline": x.get("transferable_discipline", ""),
-                "abstention_boundary": x.get("abstention_boundary", "")}
-    candidates = [
-        x for x in _LESSONS
-        if x["runtime_transfer"] and eligible(x)
-    ]
+        return [_lesson_candidate_payload(exact[0], 1.0, exact=True)]
+    duplicate_exact = len(exact) > 1
+    # Preserve the historical selector's deterministic ranking for legacy
+    # normalized-query collisions. Such collisions are not exposed as a
+    # multi-candidate synthesis opportunity: retain one legacy winner only.
+    candidates = [x for x in _LESSONS if x["runtime_transfer"] and eligible(x)]
     query_terms = _tokens(query)
     if len(query_terms) < 2:
-        return None
-    ranked = []
+        return []
     normalized_query_terms = _concept_terms(query)
+    ranked = []
     for x in candidates:
-        # All lesson-side signatures are precomputed by _load_lessons().
-        # This keeps per-request work proportional to query length and avoids
-        # repeated tokenization/stemming of the full registry.
         shared_signature = normalized_query_terms & x.get("signature_terms", set())
         shared_variant = normalized_query_terms & x.get("variant_terms", set())
         shared_family = normalized_query_terms & x.get("reasoning_terms", set())
@@ -461,30 +470,30 @@ def select_lesson(
         coverage = len(shared_signature) / max(1, len(normalized_query_terms))
         if coverage < 0.20:
             continue
-        # Reasoning-family overlap is a stronger signal than incidental topic
-        # overlap; variants provide a modest bonus. Keep the score below exact
-        # authority and abstain rather than forcing weak analogues.
         score = min(
             0.94,
-            0.42
-            + 0.08 * len(shared_signature)
-            + 0.08 * len(shared_family)
-            + 0.04 * len(shared_variant)
+            0.42 + 0.08 * len(shared_signature)
+            + 0.08 * len(shared_family) + 0.04 * len(shared_variant)
             + 0.12 * coverage,
         )
         ranked.append((score, len(shared_signature), x["id"], x))
-    if not ranked:
-        return None
     ranked.sort(key=lambda item: (-item[0], -item[1], item[2]))
-    score, _, _, x = ranked[0]
-    return {"benchmark_id": x["id"], "score": round(score, 3), "exact": False,
-            "runtime_transfer": True,
-            "deterministic_fallback_eligible": bool(x.get("deterministic_fallback_eligible")),
-            "query": x["query"],
-            "known_theme": x["known_theme"], "assertions": x["assertions"],
-            "reasoning_family": x.get("reasoning_family", ""),
-            "transferable_discipline": x.get("transferable_discipline", ""),
-            "abstention_boundary": x.get("abstention_boundary", "")}
+    return [
+        _lesson_candidate_payload(item[3], item[0])
+        for item in ranked[:limit]
+    ]
+
+
+def select_lesson(
+    query: str,
+    *,
+    required_capability: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """Backward-compatible single-best selector; never implies multi-candidate approval."""
+    candidates = select_lesson_candidates(
+        query, required_capability=required_capability, limit=1
+    )
+    return candidates[0] if candidates else None
 
 def shadow_observation(query: str) -> Tuple[Optional[str], Optional[float]]:
     """Return minimal non-content metadata and emit a structured shadow event.
@@ -512,17 +521,42 @@ def shadow_observation(query: str) -> Tuple[Optional[str], Optional[float]]:
 
 
 def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
-    """Return bounded structural guidance for real-time composition."""
-    selected = select_lesson(query)
-    if not selected or not selected.get("runtime_transfer"):
+    """Return up to three ranked structural candidates for explicit adjudication."""
+    candidates = select_lesson_candidates(query, limit=3)
+    if not candidates:
         return None
-    discipline = str(selected.get("transferable_discipline") or "").strip()
+    primary = candidates[0]
+    discipline = str(primary.get("transferable_discipline") or "").strip()
     if not discipline:
         return None
-    contribution = {"benchmark_id": str(selected.get("benchmark_id") or ""), "reasoning_family": str(selected.get("reasoning_family") or ""), "discipline": discipline, "abstention_boundary": str(selected.get("abstention_boundary") or ""), "score": float(selected.get("score") or 0.0), "exact": bool(selected.get("exact")), "authority_mode": "structural_guidance_only"}
-    print(f"gold_star_quality active benchmark_id={contribution['benchmark_id']} score={contribution['score']:.3f}", flush=True)
+    contribution = {
+        "benchmark_id": primary["benchmark_id"],
+        "reasoning_family": primary.get("reasoning_family", ""),
+        "discipline": discipline,
+        "abstention_boundary": primary.get("abstention_boundary", ""),
+        "score": float(primary.get("score") or 0.0),
+        "exact": bool(primary.get("exact")),
+        "authority_mode": "structural_guidance_only",
+        "candidates": [
+            {
+                "benchmark_id": item["benchmark_id"],
+                "score": item["score"],
+                "exact": item["exact"],
+                "query": item["query"],
+                "known_theme": item["known_theme"],
+                "reasoning_family": item["reasoning_family"],
+                "discipline": item["transferable_discipline"],
+                "abstention_boundary": item["abstention_boundary"],
+            }
+            for item in candidates
+        ],
+    }
+    print(
+        f"gold_star_quality candidates={len(candidates)} "
+        f"top={primary['benchmark_id']} score={primary['score']:.3f}",
+        flush=True,
+    )
     return contribution
-
 
 def deterministic_fallback_contribution(query: str) -> Optional[Dict[str, Any]]:
     """Return reviewed guidance only when the Gold Star explicitly permits deterministic use.
