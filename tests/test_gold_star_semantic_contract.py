@@ -43,3 +43,16 @@ def test_conceptual_explanation_is_not_misclassified_as_general_fact():
     result = evaluate_semantic_contract(q, {"ok": True, "response": good})
     assert result["status"] == "review_required"
     assert all(check["passed"] for check in result["checks"])
+
+def test_all_seven_heldout_questions_receive_the_intended_contract():
+    cases = {
+        "At standard atmospheric pressure, what temperature does water boil at?": "general_fact",
+        "What is cosmology, and why does it matter to how people live?": "conceptual_explanation",
+        "How can an organization put trust into practice?": "practical_application",
+        "Should a growing nonprofit centralize decisions or distribute authority across its teams?": "strategic_tradeoff",
+        "How can I verify that a Python service has a required environment variable configured without exposing its secret value?": "technical_verification",
+        "What caused the sudden increase in our website traffic last week?": "uncertain_causation",
+        "Explain the difference between a policy and a procedure in plain language. Do not recommend resources, links, or follow-up steps.": "explicit_no_handoff",
+    }
+    for query, expected in cases.items():
+        assert classify_question(query)["type"] == expected, query
