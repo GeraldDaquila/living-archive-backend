@@ -21,7 +21,7 @@ def test_gold_star_structural_template_is_default_in_both_live_and_editorial_pro
     assert "SYSTEM-WIDE GOLD STAR STRUCTURAL TEMPLATE (default across the entire Guide)" in source
     assert "Subject adaptation changes what each structural move contains; it does not make the default architecture optional." in source
     compact_start = source.index("_GENERAL_GUIDE_SYSTEM_COMPACT =")
-    compact_end = source.index("\n\n_GENERAL_GUIDE_SYSTEM =", compact_start)
+    compact_end = source.index("\n_GENERAL_GUIDE_SYSTEM =", compact_start)
     compact = source[compact_start:compact_end]
     assert "default structural template across every visitor-facing Guide path" in compact
     assert "specialist routes, retrieval-grounded composition, deterministic recovery, provider-exhaustion fallback" in compact
