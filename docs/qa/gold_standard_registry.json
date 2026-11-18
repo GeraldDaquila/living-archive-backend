@@ -6561,9 +6561,67 @@
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent.",
       "rating_out_of_10": 9.6
+    },
+    {
+      "benchmark_id": "general-guide-quoted-passage-context-restoration-gold-star-2026-11-18",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "A retrieved passage is quoted out of context in a user prompt. How should the Guide restore the surrounding context before analyzing it?",
+      "expected_response": "A quotation cannot be interpreted responsibly until it has been restored to the argument it came from. Treat the retrieved excerpt as a fragment, not a self-sufficient statement. Identify and verify the original source, author, publication or document, date, and exact location; then recover the complete paragraph, the preceding and following paragraphs, the relevant section heading, and any definitions, notes, or references needed to understand the passage. Extend the search far enough to establish what the author is responding to, what the passage refers to, and what claim it is making.\n\nNext, compare the user's quotation word for word with the verified source. Check for omitted sentences, ellipses, truncation, altered punctuation, missing attribution, paraphrase presented as quotation, and qualifications or conditions left outside the excerpt. Reconstruct the surrounding argument, including relevant limits or counterpoints, while keeping three things distinct: what the source explicitly says, what its context supports, and what the user’s framing assumes. Do not fill gaps with unrelated retrieved material or inferred context. If the original source or necessary surrounding text cannot be verified, disclose exactly what is missing and keep any interpretation provisional.\n\nOnly after that reconstruction should the Guide analyze the passage in relation to the user's question. Explain the passage's role in the original argument, its intended referent and scope, and whether the user's interpretation remains consistent with the recovered context. Then distinguish its original meaning from any application to the present question. If a missing source, attribution, or surrounding section could materially change the interpretation, withhold that conclusion and ask for the source or the missing context rather than guessing.",
+      "expected_doorway": {
+        "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
+        "rationale": "Continue into the Archive’s Knowledge & Sensemaking pathway for a wider orientation to how sources, context, evidence, and interpretation relate. This is a learning doorway, not a substitute for recovering and checking the original passage."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User explicitly instructed structural correction and Gold Star elevation on 2026-11-18 after reviewing the live response failure.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "quoted_passage_context_restoration_before_interpretation",
+      "transferable_lesson": "When a retrieved quotation may be out of context, treat it as a fragment: verify its original source and exact wording; recover the surrounding paragraph, adjacent paragraphs, headings, definitions, qualifications, notes, and relevant argument; compare the excerpt against the original for omissions or alterations; separate explicit source claims from contextual implications and user framing; analyze only after reconstruction; disclose unavailable context and keep dependent conclusions provisional.",
+      "transfer_boundary": "Transfer only the context-restoration sequence to genuine quoted-passage or excerpt interpretation tasks. Do not assume quotations are inaccurate, invent missing source context, infer author intent beyond evidence, conflate separate sources, or impose this sequence on unrelated factual or conceptual questions.",
+      "known_theme": "quoted passage, out-of-context quotation, retrieved excerpt, source verification, surrounding paragraphs, original argument, textual fidelity, omitted qualifications, attribution, contextual interpretation, evidence boundary",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "quoted_passage_context_restoration_before_interpretation",
+        "transferable_discipline": "Verify the source and quotation; restore sufficient surrounding text and argument; compare excerpt fidelity; distinguish source statement, contextual support, and user framing; interpret only afterward; disclose missing context.",
+        "abstention_boundary": "Do not invent source context or author intent. If original source or necessary surrounding text is unavailable, disclose the gap and withhold conclusions that depend on it."
+      },
+      "assertions": [
+        "Begin by stating that an excerpt must be restored to its source argument before interpretation.",
+        "Verify source identity, attribution, date, location, and exact wording.",
+        "Recover the full paragraph, preceding and following paragraphs, section heading, and necessary definitions, notes, references, and qualifications.",
+        "Compare the user quotation against the original for omissions, ellipses, truncation, altered punctuation, attribution errors, or paraphrase presented as quotation.",
+        "Reconstruct the author's argument and preserve relevant limits and counterpoints without mind-reading.",
+        "Separate what the source explicitly says, what its context supports, and what the user prompt assumes.",
+        "Only then analyze the passage in relation to the user's question.",
+        "Disclose unavailable or unverifiable context and keep dependent conclusions provisional.",
+        "Render the verified Knowledge & Sensemaking Navigator doorway after the answer with a bounded rationale."
+      ],
+      "user_approved_at": "2026-11-18",
+      "elevation_approval_evidence": "User reviewed the live Guide response screenshot for the exact quoted-passage context-restoration question and explicitly instructed: “fix structurally and turn this into a gold star” on 2026-11-18.",
+      "provenance": {
+        "source": "User-provided live visitor-facing Guide screenshot and explicit Gold Star elevation instruction.",
+        "source_date": "2026-11-18",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the exact question and the off-topic response failure. The approved answer is a newly authored structural correction; it is not misrepresented as text shown in the screenshot.",
+        "doorway_verification": {
+          "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+          "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
+          "verified_against": "Existing approved Gold Star registry entry for Archive-grounded guidance and canonical Knowledge & Sensemaking Navigator permalink."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent."
     }
   ],
-  "last_reconciliation_note": "2026-11-18: Added the semantic-ambiguity Gold Star. Inventory now reconciles to 102 approved records across 139 registry records; 100 active quality contributors, 38 numbered, 64 unassigned. No display serial allocated.",
+  "last_reconciliation_note": "2026-11-18: Added quoted-passage context restoration alongside the parallel semantic-ambiguity Gold Star. Canonical inventory: 103 approved Gold Stars across 140 registry records; 101 active quality contributors, 38 numbered, 65 UNASSIGNED. Both distinct exemplars are retained; neither received a display serial.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -6693,13 +6751,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 102,
-    "registry_record_count": 139,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 102 approved Gold Stars across 139 registry records. 100 are active learning contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. The semantic-ambiguity exemplar is distinct from symmetric Archive-passage representation: it disambiguates one shared term used with different meanings before answering, while the latter compares different source emphases before synthesis.",
+    "approved_gold_star_count": 103,
+    "registry_record_count": 140,
+    "review_reconciliation": "Canonical inventory reconciled after parallel merge on 2026-11-18: 103 approved Gold Stars across 140 registry records. 101 are active quality contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. Both same-term semantic ambiguity and quoted-passage context restoration are retained as distinct approved benchmarks: one disambiguates a shared term across sources; the other restores the source argument around a quotation before interpretation.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation: 102 approved Gold Stars; 38 assigned display serials #56–#93; 64 approved records explicitly UNASSIGNED with reasons. The explicitly released historical-gap serials #85 and #86 remain allocated to their existing approved records; no open numbering gaps remain. No display serial was allocated to the semantic-ambiguity exemplar.",
-    "unassigned_approved_gold_star_count": 64,
+    "numbering_reconciliation": "Record-level reconciliation after parallel merge: 103 approved Gold Stars; 38 assigned display serials #56–#93; 65 approved records explicitly UNASSIGNED with reasons. Historical serials #85 and #86 remain assigned to their existing records; no open numbering gaps. Neither the semantic-ambiguity nor quoted-passage context-restoration exemplar received a display serial.",
+    "unassigned_approved_gold_star_count": 65,
     "documented_numbering_gap_count": 0
   },
   "numbering_policy": {
