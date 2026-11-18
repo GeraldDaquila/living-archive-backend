@@ -26,10 +26,13 @@ def test_resonance_recovery_distinguishes_signal_from_evidence_and_bias():
         "what you directly observed",
         "the meaning you are assigning to it",
         "strongest alternative explanation",
-        "what specific evidence would weaken your preferred reading",
-        "apparently independent sources really are independent",
-        "let resonance open an inquiry",
-        "delay irreversible action",
+        "Does it recur under comparable conditions",
+        "What plausible mechanism connects the observations",
+        "What constraints or alternative explanations could produce the same result",
+        "what specific observation would count against your interpretation",
+        "five reports repeating one original claim are not five independent confirmations",
+        "let resonance generate a hypothesis",
+        "pause before irreversible action",
         "revise the interpretation",
     ):
         assert required in answer
@@ -37,8 +40,13 @@ def test_resonance_recovery_distinguishes_signal_from_evidence_and_bias():
     assert "organizational" not in answer.casefold()
 
 
-def test_resonance_question_does_not_force_an_unverified_archive_doorway():
-    assert registered_recovery_recommendation(QUERY) is None
+def test_resonance_question_selects_the_directly_relevant_patterns_doorway():
+    doorway = registered_recovery_recommendation(QUERY)
+    assert doorway["title"] == "Seeing Patterns Without Fooling Yourself"
+    assert doorway["url"] == (
+        "https://geralddaquila.com/2026/04/06/seeing-patterns-without-fooling-yourself/"
+    )
+    assert "repeatability, mechanism, constraints, and disconfirmation" in doorway["rationale"]
 
 
 def test_resonance_classifier_has_narrow_negative_controls():
