@@ -95,7 +95,7 @@ def test_exact_gold_star_answer_is_terminal_and_uses_its_approved_doorway():
 def test_qa_browser_route_is_registered_and_posts_to_real_visitor_endpoint():
     import main
 
-    paths = {getattr(route, "path", None) for route in main.app.routes}
+    paths = {getattr(route, "path", None) for route in main._FASTAPI_APP.routes}
     assert "/qa-browser" in paths
     source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert 'fetch("/api/query"' in source
