@@ -90,3 +90,8 @@ QA effort must be proportionate to the change's blast radius and the marginal co
 - Record the reason whenever an expensive production check is retained, and state which uncertainty it resolves.
 
 The detailed operating matrix is maintained in `docs/operations/SMALL_IS_BEAUTIFUL_QA_STANDARD.md`.
+
+
+### 4.2 Gold Star Adaptive Intelligence Standard v2.0
+
+The additive quality umbrella is `docs/qa/GOLD_STAR_ADAPTIVE_INTELLIGENCE_STANDARD_V2.md`. It expands response-quality expectations from the foundational Prose, Structure, and Coherence dimensions to eight integrated dimensions: Prose; Structure; Coherence; Question-fit and competence; Discernment and epistemic integrity; Resolution and practical utility; Continuity and developmental value; and Adaptive learning integrity. These dimensions are question-dependent expectations, not mandatory response sections or a universal template. This elevation does not alter the canonical approved inventory, any existing benchmark identity or evidence, exact-answer authority, transfer review, abstention boundary, deterministic-fallback capability, or numbering. Runtime activation must be demonstrated by behavioral tests; specification presence alone is not activation.
