@@ -143,3 +143,46 @@ def test_v2_live_evaluator_has_question_specific_contracts_for_new_classes():
         names = {item["name"] for item in result}
         assert "known_heldout_case" not in names
         assert expected_checks[case["case_id"]] <= names
+
+
+
+def test_cross_question_gold_star_prompt_receives_and_adjudicates_qualifying_context(monkeypatch):
+    captured = {}
+
+    def fake_route(**kwargs):
+        captured.update(kwargs)
+        return {"parsed": {"response": "Photosynthesis converts light energy into chemical energy."}}
+
+    monkeypatch.setattr(composition, "route_with_model_bank", fake_route)
+    monkeypatch.setattr(
+        composition,
+        "_gold_star_active_quality_contribution",
+        lambda _q: {
+            "authority_mode": "structural_guidance_only",
+            "benchmark_id": "reviewed-example",
+            "score": 0.82,
+            "candidates": [{
+                "benchmark_id": "reviewed-example",
+                "score": 0.82,
+                "query": "How should a team evaluate a consequential decision?",
+                "known_theme": "decision quality",
+                "reasoning_family": "tradeoff_discernment",
+                "discipline": "Make material trade-offs visible.",
+                "qualifying_context": "Questions involving consequential choices with competing obligations.",
+                "abstention_boundary": "Do not impose this frame on simple factual questions.",
+            }],
+        },
+    )
+
+    composition.compose(
+        use_core=object(),
+        query="What is photosynthesis?",
+        context_data={},
+    )
+
+    user_message = next(item["content"] for item in captured["messages"] if item["role"] == "user")
+    assert "qualifying context=Questions involving consequential choices" in user_message
+    assert "abstention boundary=Do not impose this frame on simple factual questions" in user_message
+    system_message = next(item["content"] for item in captured["messages"] if item["role"] == "system")
+    assert "BOTH its reviewed qualifying context and abstention boundary" in user_message
+    assert "Shared vocabulary, a similar reasoning family, or a high similarity score is insufficient" in user_message
