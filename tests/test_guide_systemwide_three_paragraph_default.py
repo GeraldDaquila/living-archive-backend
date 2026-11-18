@@ -575,7 +575,8 @@ def test_complex_future_prediction_is_reframed_into_scenarios_capacities_and_unc
 
 def test_complex_future_scenario_contract_replaces_generic_provider_checklist():
     from deterministic_answer_recovery import compose_recovery
-    from general_guide_composition import enforce_response_contracts
+    from general_guide_composition import is_generic_nonanswer
+    from main import _basic_inquiry_round1_deterministic_response
     query = (
         "A user requests a definitive prediction about a complex future. "
         "How should the Guide reframe the request toward scenarios, capacities, and uncertainty?"
@@ -892,7 +893,12 @@ def test_trust_community_stewardship_recovery_matches_live_acceptance_contract()
         "question and correct decisions",
     ):
         assert phrase in normalized
-    assert enforce_response_contracts(query, "The Archive does not appear to provide a single formal definition for this exact relationship.") == answer
+    refusal = "The Archive does not appear to provide a single formal definition for this exact relationship."
+    assert is_generic_nonanswer(query, refusal)
+
+    result = _basic_inquiry_round1_deterministic_response(query, {}, {"context_blocks": ""})
+    assert result["response"] == answer
+    assert result["recommendation"] == registered_recovery_recommendation(query)
 
     doorway = registered_recovery_recommendation(query)
     assert doorway["title"] == "Trust Architecture: The Missing Infrastructure Behind Functional Societies"
