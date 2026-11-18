@@ -15,6 +15,7 @@ _PATTERNS = {
     "strategic_tradeoff": re.compile(r"\bshould\b.{0,100}\b(?:or|versus|vs\.?|rather than)\b", re.I),
     "practical_application": re.compile(r"\bhow can\b|\bhow do (?:i|we|they)\b|\bhow should\b", re.I),
     "comparison": re.compile(r"\b(?:difference between|differ from|compare|comparison|versus|vs\.?)\b", re.I),
+    "conceptual_explanation": re.compile(r"\bwhat is\b.{0,100}\b(?:and why|why does|why is|how does|what makes)\b", re.I),
     "general_fact": re.compile(r"\b(?:what is|who is|when did|where is|how many|what temperature)\b", re.I),
 }
 
