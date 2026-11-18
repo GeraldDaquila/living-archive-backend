@@ -22,6 +22,9 @@
     },
     "community_project_economic_accounting": {
       "description": "account for who benefits, who contributes and bears costs, and whether shared resources and local value endure"
+    },
+    "personality_soul_oversoul_discernment": {
+      "description": "distinguish immediate personality desire, soul-level developmental learning, and perceived Oversoul invitation while preserving agency and epistemic humility"
     }
   },
   "entries": [
@@ -249,6 +252,15 @@
       "role": "cross_question_candidate",
       "transferability_status": "cross_question_candidate",
       "abstention_boundary": "Do not infer project-specific outcomes or fairness without evidence; do not transfer the exact answer or its Local Resilience Economies doorway to unrelated questions."
+    },
+    {
+      "benchmark_id": "gs-2026-11-18-personality-soul-oversoul-discernment",
+      "question": "What is the difference between what my personality wants, what my soul is learning, and what my Oversoul may be inviting me to become?",
+      "family": "personality_soul_oversoul_discernment",
+      "structural_lesson": "separate immediate desire, developmental learning, and perceived transpersonal invitation before integrating them; test each against lived experience while preserving agency",
+      "role": "cross_question_candidate",
+      "transferability_status": "cross_question_candidate",
+      "abstention_boundary": "Do not transfer the answer text or doorway, demean ordinary needs, treat suffering as cosmically assigned, assert metaphysical certainty, or impose this spiritual framework when the visitor has not introduced it."
     }
   ]
 }
