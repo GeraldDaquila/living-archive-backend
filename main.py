@@ -552,7 +552,7 @@ def _select_guide_node_fallback_doorway(query):
             not title
             or str(node.get("status") or "active").strip().casefold() != "active"
             or str(node.get("access_class") or "public").strip().casefold() not in {"public", "mixed"}
-            or not re.fullmatch(r"https://geralddaquila\\.com/[^\\s]+", url, re.I)
+            or not re.fullmatch(r"https://geralddaquila\.com/[^\s]+", url, re.I)
         ):
             continue
         purpose = str(node.get("purpose") or "").strip()
