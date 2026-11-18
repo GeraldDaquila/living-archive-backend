@@ -6619,6 +6619,65 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent."
+    },
+    {
+      "benchmark_id": "general-guide-gold-star-scope-governance-cross-domain-regression-2026-11-18",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "A new Gold Star appears to improve responses in one domain but degrades responses in another. How should USE determine whether its scope should be narrowed, revised, or rejected?",
+      "expected_response": "An improvement in one domain does not justify a Gold Star with unrestricted scope if it materially degrades responses elsewhere. USE must evaluate the candidate against the task family it is meant to improve and against a deliberate cross-domain regression set. The Gold Star earns authority only within the scope that the evidence supports; success on its target questions is not proof that its reasoning transfers safely.\n\nFirst separate demonstrated benefit from the claim that the benefit generalizes. Compare matched before-and-after responses in the target domain, adjacent domains, and unrelated negative controls. Assess correctness, relevance, completeness, calibration, directness, and doorway fit; then inspect each regression for severity, repeatability, and a plausible mechanism. Keep the question set, evidence, model/runtime, prompt, and registry version controlled so the comparison is attributable. A single weak response is a signal to investigate, not by itself a verdict; repeated, material degradation is evidence against the current scope.\n\nNarrow the scope when the improvement is reliable but applies only to a clearly bounded task or subject, and explicitly prevent activation outside that boundary. Revise when the underlying insight is useful but its wording, qualifying conditions, selector, or transfer mechanism is overgeneralizing and can be corrected; then retest on held-out target cases and non-target controls. Reject when the benefit cannot be reproduced, rests on unsupported claims, or produces serious repeatable regressions that cannot be contained. Preserve the benchmark identity, evidence, and decision history in every case. Scope expands only after new evidence earns it; it never becomes universal merely because a Gold Star accumulates broad keywords.",
+      "expected_doorway": {
+        "title": "The Sovereign Sensemaking Compass",
+        "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass",
+        "rationale": "The Sovereign Sensemaking Compass offers a broad continuation for developing clarity and agency when a question has no narrower verified Archive destination. It is an invitation to examine the Archive’s orientation framework, not a claim that one framework settles every question."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User explicitly instructed structural correction and Gold Star elevation on 2026-11-18 after reviewing the live response failure.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "gold_star_scope_governance_and_cross_domain_regression",
+      "transferable_lesson": "Evaluate a Gold Star's demonstrated benefit separately from its transfer claim. Test target-domain gains against adjacent-domain and unrelated negative controls; compare quality dimensions and regression severity/repeatability; narrow when benefit is valid only within a clear boundary; revise when the insight is sound but activation or framing overgeneralizes; reject when gains are not reproducible or serious regressions cannot be contained. Preserve provenance and require new evidence before expanding scope.",
+      "transfer_boundary": "Transfer only the governance method for evaluating Gold Star scope. Do not impose this decision framework on ordinary visitor questions, treat one weak sample as conclusive, infer universal scope from broad keyword overlap, or transfer this answer's factual claims or doorway into unrelated answers.",
+      "known_theme": "Gold Star scope governance, cross-domain regression, domain transfer, scope boundaries, evaluation, benchmark validation, regression severity, generalization, narrow revise reject",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "gold_star_scope_governance_and_cross_domain_regression",
+        "transferable_discipline": "Compare target-domain gains with adjacent-domain and unrelated controls; bound transfer by demonstrated evidence; distinguish narrowing, revision, and rejection using reproducibility, severity, and correctability.",
+        "abstention_boundary": "Do not infer broad applicability from local gains; do not use this governance sequence for unrelated visitor tasks; do not reject on one unreplicated weak sample."
+      },
+      "assertions": [
+        "Begin with the governing rule: local improvement does not justify unrestricted scope when material degradation appears elsewhere.",
+        "Separate demonstrated target-domain benefit from any claim of cross-domain transfer.",
+        "Use matched target-domain cases, adjacent-domain cases, and unrelated negative controls.",
+        "Assess correctness, relevance, completeness, calibration, directness, and doorway fit.",
+        "Evaluate regression severity, repeatability, and mechanism under controlled model, prompt, evidence, and registry conditions.",
+        "Narrow when the benefit is reliable but bounded; revise when a correctable transfer or activation defect exists; reject when benefit is not reproducible or serious regressions cannot be contained.",
+        "Preserve benchmark identity, provenance, and decision history; scope expansion requires new evidence.",
+        "Do not impose this specialized governance frame on unrelated visitor questions.",
+        "Render the verified Sovereign Sensemaking Compass doorway as a broad continuation, not as a claim that it resolves every domain-specific issue."
+      ],
+      "user_approved_at": "2026-11-18",
+      "elevation_approval_evidence": "User reviewed the live visitor-facing Guide screenshot for the exact Gold Star scope-governance question and explicitly instructed: “fix structurally and turn this into a gold star” on 2026-11-18.",
+      "provenance": {
+        "source": "User-provided live visitor-facing Guide screenshot and explicit Gold Star elevation instruction.",
+        "source_date": "2026-11-18",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the exact question and the generic, off-target response failure. The corrected answer is newly authored and explicitly authorized for Gold Star elevation; it is not misrepresented as the text shown in the screenshot.",
+        "doorway_verification": {
+          "title": "The Sovereign Sensemaking Compass",
+          "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass",
+          "verified_against": "Existing approved Gold Star registry entry for the canonical Compass destination."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent.",
+      "rating_out_of_10": 9.8
     }
   ],
   "last_reconciliation_note": "2026-11-18: Added quoted-passage context restoration alongside the parallel semantic-ambiguity Gold Star. Canonical inventory: 103 approved Gold Stars across 140 registry records; 101 active quality contributors, 38 numbered, 65 UNASSIGNED. Both distinct exemplars are retained; neither received a display serial.",
