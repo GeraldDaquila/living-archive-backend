@@ -6927,6 +6927,59 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "Gold Star elevation was explicitly authorized; a separate display serial was not requested. Preserve the benchmark ID as the stable learning identity and leave serial allocation independent."
+    },
+    {
+      "benchmark_id": "general-guide-retrieval-outage-deterministic-recovery-disclosure-gold-star-2026-11-18",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "A retrieval service fails, but the Guide can still access previously verified source references and deterministic recovery mechanisms. What should it do, and what should it disclose?",
+      "expected_response": "When retrieval is unavailable, the Guide must distinguish a failure of the retrieval service from the availability of knowledge and recovery. It should first check whether previously verified source references remain accessible through a trusted cache or request context, then confirm their identity, canonical URL, permissions, and freshness limits before using them. It must not claim that a fresh search occurred or treat an outage as proof that no relevant source exists.\n\nIf verified references cannot be accessed or validated, the Guide should continue through an approved deterministic recovery when one exists. That recovery must answer the visitor's actual question, stay within its supported scope, preserve safety and access boundaries, and avoid inventing citations or Archive doctrine. The system should record the retrieval failure and distinguish source-grounded material from a bounded general-knowledge fallback. A next-step link should appear only when its destination is independently verified as relevant.\n\nThe Guide should disclose what failed, which evidence it could still use, whether the answer relies on previously verified material or deterministic general knowledge, and any resulting limits on freshness or completeness. It must never imply that retrieval succeeded or conceal material uncertainty. If a safe, substantive recovery is available, it should not return a generic failure message; if no reliable recovery remains, it should say so plainly and invite the visitor to try again.",
+      "expected_doorway": null,
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+      "doorway_omission_exception_reason": "This is an internal USE reliability question. No verified public Archive resource is established as a direct continuation; a generic Glossary or Navigator doorway would distract from the operational answer.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER_APPROVED_GOLD_STANDARD — STRUCTURAL RECOVERY CONTRACT",
+      "elevation_approval_evidence": "User reviewed the live Guide screenshot showing a generic 503 failure message and an unrelated Living Glossary continuation, then explicitly instructed: “fix structurally and turn this into gold” on 2026-11-18.",
+      "rating_out_of_10": 10,
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "retrieval_outage_recovery_and_evidence_disclosure",
+      "transferable_lesson": "Treat retrieval failure as a service-layer failure, not automatic loss of all knowledge. Reuse only previously verified references that remain accessible and within freshness, permission, identity, and provenance limits; otherwise invoke an approved deterministic recovery. Label the answer basis, disclose the outage and limitations, and never fabricate fresh retrieval or citations.",
+      "transfer_boundary": "Apply only when retrieval or a supporting source service is unavailable. Do not claim cached references exist unless actually accessible and validated; do not invent citations, Archive doctrine, freshness, or source provenance; do not bypass safety or access controls; and do not force a doorway when no verified direct continuation exists.",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "retrieval_outage_recovery_and_evidence_disclosure",
+        "transferable_discipline": "Separate retrieval-service availability from answerability; validate any retained source references; otherwise use approved deterministic recovery; label provenance and disclose limitations.",
+        "abstention_boundary": "Do not imply fresh retrieval, claim inaccessible cached references, fabricate sources, or bypass safety/access boundaries."
+      },
+      "assertions": [
+        "A retrieval outage is distinguished from the absence of relevant knowledge or recovery.",
+        "Previously verified references are reused only when accessible and their identity, canonical URL, permissions, provenance, and freshness are validated.",
+        "If references cannot be validated, an approved deterministic recovery is used when available.",
+        "The fallback answers the actual question within its supported scope and does not invent citations or Archive doctrine.",
+        "The answer basis distinguishes source-grounded material from bounded general-knowledge recovery.",
+        "The system discloses the service failure and any freshness or completeness limits.",
+        "A doorway is offered only when independently verified as relevant; no generic Glossary doorway is forced.",
+        "A generic failure response is not returned when a safe, substantive deterministic recovery is available.",
+        "If no reliable recovery remains, the Guide says so plainly rather than pretending to have answered."
+      ],
+      "user_approved_at": "2026-11-18",
+      "provenance": {
+        "source": "User-provided live visitor-facing Guide screenshot and explicit Gold Star elevation instruction.",
+        "source_date": "2026-11-18",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the generic failure response and irrelevant Living Glossary continuation. The corrective operational answer and recovery contract are newly authored from the demonstrated runtime failure and the inspected terminal recovery boundary.",
+        "doorway_decision": "INTENTIONALLY_NONE_APPROVED. No verified public Archive resource is established as a direct continuation of this internal reliability question."
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial; preserve the benchmark ID as the stable learning identity.",
+      "legacy_approval_grandfathered": false,
+      "forbids_doorway": true
     }
   ],
   "last_reconciliation_note": "2026-11-18: Reconciled the concurrent USE doorway-warrant Gold Star and the cross-question pattern-recognition/candidate-lesson Gold Star as two distinct additions. Canonical inventory: 107 approved Gold Stars across 144 registry records; 105 active runtime-transfer contributors, 38 numbered, 69 UNASSIGNED. Each new benchmark has one unique active qualitative-transfer review. No existing benchmark identity or serial changed; neither new benchmark received a display serial. 2026-11-18 follow-up: Added one distinct remedy-selection CANDIDATE pending corrected live-response review; registry now has 145 records while approved Gold Stars remain 107 and active transfer reviews remain unchanged. No serial allocated. 2026-11-18: Remedy-selection benchmark promoted to USER_APPROVED_GOLD_STANDARD after user-reviewed live response; no serial assigned; explicit no-doorway exception preserved.",
@@ -7059,13 +7112,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 108,
-    "registry_record_count": 145,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 108 approved Gold Stars across 145 registry records. 106 are active quality contributors with matching qualitative-transfer reviews; one is an exact-query-only successor and one migrated duplicate is preserved as a superseded historical reference only. The USE doorway-warrant, cross-question pattern-learning, and remedy-selection benchmarks are distinct approved active contributors. No display serial was allocated to the remedy-selection Gold Star.",
+    "approved_gold_star_count": 109,
+    "registry_record_count": 146,
+    "review_reconciliation": "Canonical inventory updated on 2026-11-18: 109 approved Gold Stars across 146 registry records. 107 active quality contributors with matching qualitative-transfer reviews; one exact-query-only successor and one migrated duplicate remain excluded from active contribution. The retrieval-outage recovery benchmark is an approved active contributor and remains unnumbered.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 108 approved Gold Stars; 38 assigned display serials #56–#93; 70 approved records explicitly UNASSIGNED with reasons. No existing serial changed and no new serial was allocated.",
-    "unassigned_approved_gold_star_count": 70,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 109 approved Gold Stars; 38 assigned display serials #56–#93; 71 approved records explicitly UNASSIGNED with reasons. No existing serial changed and no new serial was allocated.",
+    "unassigned_approved_gold_star_count": 71,
     "documented_numbering_gap_count": 0
   },
   "numbering_policy": {
