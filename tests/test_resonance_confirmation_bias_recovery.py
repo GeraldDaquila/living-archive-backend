@@ -21,10 +21,10 @@ def test_resonance_recovery_distinguishes_signal_from_evidence_and_bias():
     answer = compose_recovery(QUERY)
     assert answer == _resonance_confirmation_bias_recovery()
     for required in (
-        "felt sense of recognition, coherence, or fit",
-        "it is not proof that the idea is true",
+        "felt sense of recognition or fit",
+        "it cannot establish that your explanation is true",
         "what you directly observed",
-        "the meaning you are assigning to it",
+        "what you think it means",
         "What is the strongest alternative explanation?",
         "Does it recur under comparable conditions",
         "What plausible mechanism connects the observations",
