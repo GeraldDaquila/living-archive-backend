@@ -83,14 +83,18 @@ def test_recovery_omission_is_a_sitewide_terminal_instruction_not_cosmology_only
     assert result["doorway_omission_reason"] == payload["doorway_omission_reason"]
 
 
-def test_cosmology_lived_question_cannot_keep_an_upstream_glossary_candidate():
+def test_cosmology_lived_question_replaces_generic_glossary_with_direct_canonical_continuation():
     payload = {
         "response": "A complete explanation of cosmology and human life.",
         "recommendation": {
-            "title": "The Living Glossary — Cosmology",
+            "title": "Living Glossary",
             "url": "https://geralddaquila.com/glossary/",
         },
-        "doorway_title": "The Living Glossary — Cosmology",
+        "canonical_doorway": {
+            "title": "Living Glossary",
+            "url": "https://geralddaquila.com/glossary/",
+        },
+        "doorway_title": "Living Glossary",
         "doorway_url": "https://geralddaquila.com/glossary/",
     }
 
@@ -99,9 +103,11 @@ def test_cosmology_lived_question_cannot_keep_an_upstream_glossary_candidate():
         "What is cosmology, and why does it matter to how people live?",
     )
 
-    assert result["recommendation"] is None
-    assert result["doorway_title"] is None
-    assert result["doorway_url"] is None
+    assert result["recommendation"]["title"] == "The Hidden Assumptions That Quietly Shape Every Life"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/"
+    assert result["doorway_decision"] == "selected"
+    assert result["doorway_title"] == "The Hidden Assumptions That Quietly Shape Every Life"
+    assert result["doorway_url"] == "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/"
 
 
 def test_upstream_omission_note_does_not_block_sitewide_canonical_selection(monkeypatch):
