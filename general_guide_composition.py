@@ -3933,26 +3933,27 @@ def _comparative_traditions_recovery(question: str) -> Optional[Dict[str, Any]]:
 def _cross_question_pattern_learning_recovery(query: str) -> Optional[Dict[str, Any]]:
     """Explain evidence-led cross-question learning without claiming unseen data access."""
     text = _normalize_space(query)
-    has_multiple_visitors = bool(re.search(
-        r"\\b(?:several|multiple|many|different)\\s+(?:visitors?|users?|people)\\b", text, re.I
-    ) or re.search(r"\\bvisitors?\\b", text, re.I))
-    has_different_questions = bool(re.search(
-        r"\\b(?:different|varied|multiple|several)\\s+questions?\\b", text, re.I
-    ))
+    has_multiple_visitors = bool(
+        re.search(r"\b(?:several|multiple|many|different)\s+(?:visitors?|users?|people)\b", text, re.I)
+        or re.search(r"\bvisitors?\b", text, re.I)
+    )
+    has_different_questions = bool(
+        re.search(r"\b(?:different|varied|multiple|several)\s+questions?\b", text, re.I)
+    )
     has_recurring_weakness = bool(
-        re.search(r"\\b(?:same|shared|recurring|repeated)\\b", text, re.I)
-        and re.search(r"\\b(?:reasoning\\s+(?:weakness|failure|gap)|reasoning\\s+pattern)\\b", text, re.I)
+        re.search(r"\b(?:same|shared|recurring|repeated)\b", text, re.I)
+        and re.search(r"\b(?:reasoning\s+(?:weakness|failure|gap)|reasoning\s+pattern)\b", text, re.I)
     )
     asks_lesson_formulation = bool(
-        re.search(r"\\b(?:gold\\s+stars?|candidate\\s+lesson|lesson\\s+candidate)\\b", text, re.I)
-        and re.search(r"\\b(?:recogniz\\w*|identif\\w*|formulat\\w*|creat\\w*|develop\\w*)\\b", text, re.I)
+        re.search(r"\b(?:gold\s+stars?|candidate\s+lesson|lesson\s+candidate)\b", text, re.I)
+        and re.search(r"\b(?:recogniz\w*|identif\w*|formulat\w*|creat\w*|develop\w*)\b", text, re.I)
     )
     if not (has_multiple_visitors and has_different_questions and has_recurring_weakness and asks_lesson_formulation):
         return None
 
     response = (
-        "Different questions reveal the same reasoning weakness when they share a missing reasoning operation, not merely a topic or vocabulary. The Guide should compare what each question requires an answer to do—such as distinguish evidence from inference, restore context, test a causal claim, or acknowledge a boundary—and identify the smallest recurring failure that explains the misses across otherwise different subjects. Similar wording or a high retrieval score can suggest candidates, but cannot establish that a genuine pattern exists.\\n\\n"
-        "A candidate lesson should be built from traceable, appropriately consented and de-identified examples. Record the distinct questions and the observable failure in each; abstract the common reasoning operation; write a corrective rule with clear qualifying conditions and an explicit abstention boundary; then test it on held-out examples from the target task, adjacent tasks, and unrelated negative controls. Compare correctness, relevance, completeness, calibration, and regressions before and after the proposed lesson. Preserve provenance and versioned evidence without retaining unnecessary personal conversation content.\\n\\n"
+        "Different questions reveal the same reasoning weakness when they share a missing reasoning operation, not merely a topic or vocabulary. The Guide should compare what each question requires an answer to do—such as distinguish evidence from inference, restore context, test a causal claim, or acknowledge a boundary—and identify the smallest recurring failure that explains the misses across otherwise different subjects. Similar wording or a high retrieval score can suggest candidates, but cannot establish that a genuine pattern exists.\n\n"
+        "A candidate lesson should be built from traceable, appropriately consented and de-identified examples. Record the distinct questions and the observable failure in each; abstract the common reasoning operation; write a corrective rule with clear qualifying conditions and an explicit abstention boundary; then test it on held-out examples from the target task, adjacent tasks, and unrelated negative controls. Compare correctness, relevance, completeness, calibration, and regressions before and after the proposed lesson. Preserve provenance and versioned evidence without retaining unnecessary personal conversation content.\n\n"
         "Nothing should be promoted automatically. A human reviewer must confirm that the pattern is real, the corrective rule is specific enough to guide behavior, and its transfer boundary prevents unrelated questions from inheriting it. If authorized cross-visitor evidence is unavailable, describe the method as a proposal rather than claim that a pattern has been detected. Only repeated evaluation showing reliable gains without material regressions should qualify the candidate for approval as a Gold Star."
     )
     return {
