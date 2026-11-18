@@ -20,6 +20,19 @@ def test_explicit_recovery_omission_clears_generic_glossary_from_all_public_fiel
             "title": "Living Glossary",
             "url": "https://geralddaquila.com/glossary/",
         },
+        # These are the exact compatibility aliases read by the live browser.
+        "authoritative_doorway": {
+            "title": "Living Glossary",
+            "url": "https://geralddaquila.com/glossary/",
+        },
+        "canonical_recommendation": {
+            "title": "Living Glossary",
+            "url": "https://geralddaquila.com/glossary/",
+        },
+        "archive_doorway": {
+            "title": "Living Glossary",
+            "url": "https://geralddaquila.com/glossary/",
+        },
         "doorway_omission_reason": (
             "No directly relevant canonical cosmology resource has been verified; "
             "do not substitute a generic glossary link."
@@ -37,6 +50,9 @@ def test_explicit_recovery_omission_clears_generic_glossary_from_all_public_fiel
     assert result["doorway_title"] is None
     assert result["doorway_url"] is None
     assert result["recommendation_canonical_primary"] is None
+    assert result["authoritative_doorway"] is None
+    assert result["canonical_recommendation"] is None
+    assert result["archive_doorway"] is None
     assert "do not substitute a generic glossary link" in result["doorway_omission_reason"]
 
 
