@@ -1836,3 +1836,15 @@ def test_gold_star_scope_governance_contract_is_present_in_both_composition_prom
         assert candidate is None or candidate["benchmark_id"] != (
             "general-guide-gold-star-scope-governance-cross-domain-regression-2026-11-18"
         )
+
+
+def test_scope_governance_gold_star_selects_the_subject_relevant_boundary_doorway():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-gold-star-scope-governance-cross-domain-regression-2026-11-18"
+    )
+    assert record["expected_doorway"]["title"] == "Boundary Conditions"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/boundary-conditions/"
+    assert "suited domain" in record["expected_doorway"]["rationale"]
+    assert record["provenance"]["doorway_verification"]["title"] == "Boundary Conditions"
