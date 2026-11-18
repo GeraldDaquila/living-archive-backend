@@ -23,7 +23,7 @@ from provider_bank import (
     route as route_with_model_bank,
 )
 
-CONTRACT_VERSION = "v1.49"
+CONTRACT_VERSION = "v1.50"
 VISITOR_LANGUAGE_BOUNDARY_VERSION = "v1"
 OPERATION = "general_guide_composition"
 _TELEMETRY_LOG = logging.getLogger("use.guide.telemetry")
@@ -333,6 +333,8 @@ Let the task determine the response form. A simple factual lookup may need one o
 The answer must be complete before any optional doorway appears. Place a verified, directly relevant Archive resource in a distinct section only when it materially advances the visitor's actual question or next need. Do not use the general Compass merely because no narrower destination was found. For Archive-specific claims, distinguish published-source content from general explanation, and answer responsibly when the question permits it.
 
 COMPOSITION QUALITY GATE — mandatory for every substantive answer, not only named question classes:
+
+A polished non-answer is still a failed answer. Never substitute a statement that there is insufficient Archive material, a description of the question's tension, or a generic invitation to reflect for the requested deliverable. When Archive evidence is absent, answer from clearly bounded general knowledge or interpretation when the task permits it, distinguish that basis from Archive claims, and state only the uncertainty that actually remains. This rule applies to every question family and every provider/fallback path; the response form remains task-dependent.
 
 Before finalizing, make sure the answer performs the requested task substantively; formatting alone does not establish quality.
 - For a definition question, the opening sentence must actually define the named subject in plain language and distinguish its core function from the nearest likely confusion. Do not say that a concept is "best understood by what it means," announce that a useful explanation would distinguish it, or describe what definitions do; perform the explanation instead.
@@ -1203,7 +1205,12 @@ def is_generic_nonanswer(query: str, response: str) -> bool:
         text,
         re.I,
     ))
-    if _question_shape(query) == "explanatory" and retrieval_only_disclaimer and not explicit_archive_authority_request:
+    # A retrieval disclaimer is not an answer to any substantive visitor task,
+    # regardless of surface grammar (including reflective, navigationally phrased,
+    # comparative, or decision-oriented questions). Preserve it only when the
+    # visitor explicitly asks what the Archive itself establishes; in that case
+    # the evidence boundary is part of the requested answer.
+    if _requires_substantive_answer_contract(query) and retrieval_only_disclaimer and not explicit_archive_authority_request:
         return True
     if not _has_direct_definition_for_subject(query, response):
         return True
@@ -3487,6 +3494,20 @@ def _community_project_tradeoff_recovery() -> str:
 def enforce_response_contracts(question: str, response: str) -> str:
     """Validate question-specific answer obligations at the final runtime boundary."""
     candidate = _sanitize_candidate(response)
+    # Regeneration/participation is a distinct personal-to-systemic question family.
+    # Keep the response grounded in voluntary stewardship and the verified
+    # cornerstone doorway; do not reduce the inquiry to generic reflection.
+    from deterministic_answer_recovery import (
+        is_regeneration_participation_question,
+        _regeneration_participation_recovery,
+    )
+    if is_regeneration_participation_question(question):
+        candidate = _regeneration_participation_recovery()
+        if not all(re.search(pattern, candidate, re.I) for pattern in (
+            r"\bregeneration\b", r"\bspiritual content\b", r"\bresponsib\w*\b",
+            r"\bpeople affected\b", r"\bfeedback\b"
+        )):
+            raise RuntimeError("Regeneration-participation response contract failed after recovery.")
     # Spiritual-community accountability is a bounded question family. Replace
     # contaminated or off-frame provider prose with the same reviewed recovery
     # used during deterministic/provider-exhaustion paths.

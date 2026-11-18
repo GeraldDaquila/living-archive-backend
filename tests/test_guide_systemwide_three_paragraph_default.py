@@ -760,3 +760,75 @@ def test_external_discernment_classifier_does_not_overmatch_general_spiritual_qu
     assert not is_external_discernment_outsourcing_question("How can I learn from a teacher?")
     assert not is_external_discernment_outsourcing_question("What are common spiritual signs?")
     assert not is_external_discernment_outsourcing_question("How do I make a difficult decision?")
+
+
+
+def test_global_gold_standard_rejects_retrieval_disclaimer_for_every_substantive_question_shape():
+    from general_guide_composition import is_generic_nonanswer, _requires_substantive_answer_contract
+
+    disclaimer = (
+        "I do not have enough grounded material here to give a specific Archive-based answer, "
+        "but the question can still be approached by making its central tension visible: what is at stake, "
+        "who or what is affected, what responsibilities are involved, and what would change if the situation "
+        "were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\n"
+        "A useful next question is where this distinction matters most: in how the organization makes decisions, "
+        "measures success, or responds to consequences."
+    )
+    queries = (
+        "Where am I being invited to participate in regeneration rather than merely consume spiritual content about it?",
+        "What is stewardship and why does it matter?",
+        "How can a community rebuild trust after a serious failure?",
+        "Compare participation with passive consumption in a community.",
+        "What should I do when an institution excludes the people affected by its decisions?",
+    )
+    for query in queries:
+        assert _requires_substantive_answer_contract(query), query
+        assert is_generic_nonanswer(query, disclaimer), query
+
+    # Archive-authority questions must retain the ability to report a genuine
+    # source limitation rather than fabricate an Archive position.
+    archive_query = "What does the Living Archive explicitly establish about this particular spiritual practice?"
+    assert not is_generic_nonanswer(archive_query, disclaimer)
+
+
+def test_regeneration_participation_question_has_specific_recovery_and_verified_doorway():
+    from deterministic_answer_recovery import (
+        compose_recovery,
+        has_registered_recovery,
+        is_regeneration_participation_question,
+        registered_recovery_recommendation,
+    )
+    from general_guide_composition import enforce_response_contracts
+
+    query = "Where am I being invited to participate in regeneration rather than merely consume spiritual content about it?"
+    assert is_regeneration_participation_question(query)
+    assert not is_regeneration_participation_question("What is regeneration?")
+    assert not is_regeneration_participation_question("How can I consume more spiritual content?")
+    assert has_registered_recovery(query)
+
+    answer = compose_recovery(query)
+    paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
+    assert len(paragraphs) == 3
+    assert "The invitation is to let what you take in become a form of care." in paragraphs[0]
+    assert "what has been entrusted to my care" in paragraphs[0]
+    assert "who should help define the need" in paragraphs[2]
+    assert "feedback" in paragraphs[2]
+    assert "supernatural invitation" in paragraphs[2]
+    assert enforce_response_contracts(query, "I do not have enough grounded material here to give a specific Archive-based answer.") == answer
+
+    doorway = registered_recovery_recommendation(query)
+    assert doorway["title"] == "Stewardship as Human Maturity"
+    assert doorway["url"] == "https://geralddaquila.com/2026/07/06/stewardship-as-human-maturity/"
+    assert "what has been entrusted to a person's care" in doorway["rationale"]
+
+
+def test_regeneration_participation_deterministic_path_returns_answer_and_doorway_together():
+    from deterministic_answer_recovery import compose_recovery, registered_recovery_recommendation
+    from main import _basic_inquiry_round1_deterministic_response
+
+    query = "Where am I being invited to participate in regeneration rather than merely consume spiritual content about it?"
+    result = _basic_inquiry_round1_deterministic_response(query, {}, {"context_blocks": ""})
+    assert result["response"] == compose_recovery(query)
+    assert result["recommendation"] == registered_recovery_recommendation(query)
+    assert result["doorway_title"] == "Stewardship as Human Maturity"
+    assert result["doorway_url"] == "https://geralddaquila.com/2026/07/06/stewardship-as-human-maturity/"
