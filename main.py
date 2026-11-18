@@ -245,6 +245,24 @@ def _guide_node_prompt_context():
 def _select_verified_doorway_conceptual_family(query):
     """Return a verified conceptual family only when a canonical doorway applies."""
     text = str(query or "")
+    # Human-worldview/cosmology inquiries need a philosophical continuation,
+    # not the generic terminology glossary. This is a curated resource mapping
+    # inside the shared selector; all questions still pass the same terminal
+    # relevance, access, URL, and explicit-omission contract.
+    worldview_frame = bool(
+        re.search(
+            r"\\b(?:cosmolog(?:y|ies)|worldview|worldviews|assumptions about reality|understanding of reality)\\b",
+            text,
+            re.I,
+        )
+        and re.search(
+            r"\\b(?:human|people|life|live|living|everyday|relationships|decisions|society)\\b",
+            text,
+            re.I,
+        )
+    )
+    if worldview_frame:
+        return "human_worldview_cosmology"
     # Spiritual-community accountability questions have a direct, narrowly
     # relevant Archive doorway. Resolve this before generic community matches.
     from deterministic_answer_recovery import (
@@ -406,6 +424,16 @@ def _select_verified_doorway_conceptual_family(query):
 
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
+    "human_worldview_cosmology": {
+        "title": "The Hidden Assumptions That Quietly Shape Every Life",
+        "url": "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/",
+        "rationale": (
+            "This Cornerstone examines how inherited assumptions about reality shape "
+            "worldview, everyday interpretation, decisions, and the institutions people inhabit. "
+            "It offers a direct philosophical continuation without presenting the Archive's "
+            "interpretive framework as a scientific finding."
+        ),
+    },
     "spiritual_community_accountability": {
         "title": "Community Accountability Systems",
         "url": "https://geralddaquila.com/2026/05/16/community-accountability-systems/",
