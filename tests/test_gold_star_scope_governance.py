@@ -18,8 +18,8 @@ def test_scope_governance_gold_star_is_exactly_resolvable_with_verified_doorway(
     assert "reject when" in answer
     assert "unrelated negative controls" in answer
     assert "scope expands only after new evidence" in answer
-    assert standard["doorway_title"] == "The Sovereign Sensemaking Compass"
-    assert standard["doorway_url"].endswith("/the-sovereign-sensemaking-compass")
+    assert standard["doorway_title"] == "Boundary Conditions"
+    assert standard["doorway_url"].endswith("/boundary-conditions/")
     assert standard["doorway_rationale"]
 
 

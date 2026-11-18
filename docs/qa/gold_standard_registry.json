@@ -6628,9 +6628,9 @@
       "query": "A new Gold Star appears to improve responses in one domain but degrades responses in another. How should USE determine whether its scope should be narrowed, revised, or rejected?",
       "expected_response": "An improvement in one domain does not justify a Gold Star with unrestricted scope if it materially degrades responses elsewhere. USE must evaluate the candidate against the task family it is meant to improve and against a deliberate cross-domain regression set. The Gold Star earns authority only within the scope that the evidence supports; success on its target questions is not proof that its reasoning transfers safely.\n\nFirst separate demonstrated benefit from the claim that the benefit generalizes. Compare matched before-and-after responses in the target domain, adjacent domains, and unrelated negative controls. Assess correctness, relevance, completeness, calibration, directness, and doorway fit; then inspect each regression for severity, repeatability, and a plausible mechanism. Keep the question set, evidence, model/runtime, prompt, and registry version controlled so the comparison is attributable. A single weak response is a signal to investigate, not by itself a verdict; repeated, material degradation is evidence against the current scope.\n\nNarrow the scope when the improvement is reliable but applies only to a clearly bounded task or subject, and explicitly prevent activation outside that boundary. Revise when the underlying insight is useful but its wording, qualifying conditions, selector, or transfer mechanism is overgeneralizing and can be corrected; then retest on held-out target cases and non-target controls. Reject when the benefit cannot be reproduced, rests on unsupported claims, or produces serious repeatable regressions that cannot be contained. Preserve the benchmark identity, evidence, and decision history in every case. Scope expands only after new evidence earns it; it never becomes universal merely because a Gold Star accumulates broad keywords.",
       "expected_doorway": {
-        "title": "The Sovereign Sensemaking Compass",
-        "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass",
-        "rationale": "The Sovereign Sensemaking Compass offers a broad continuation for developing clarity and agency when a question has no narrower verified Archive destination. It is an invitation to examine the Archive’s orientation framework, not a claim that one framework settles every question."
+        "title": "Boundary Conditions",
+        "url": "https://geralddaquila.com/boundary-conditions/",
+        "rationale": "Boundary Conditions is the directly relevant constitutional method: it defines the assumptions, limits, and boundaries within which methods and conclusions operate, warns against extending a method beyond its suited domain, and keeps conclusions open to revision when stronger evidence or reasoning emerges."
       },
       "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
       "user_reviewed_response": true,
@@ -6660,7 +6660,7 @@
         "Narrow when the benefit is reliable but bounded; revise when a correctable transfer or activation defect exists; reject when benefit is not reproducible or serious regressions cannot be contained.",
         "Preserve benchmark identity, provenance, and decision history; scope expansion requires new evidence.",
         "Do not impose this specialized governance frame on unrelated visitor questions.",
-        "Render the verified Sovereign Sensemaking Compass doorway as a broad continuation, not as a claim that it resolves every domain-specific issue."
+        "Render the verified Boundary Conditions doorway because it directly addresses the limits and domain boundaries of methods; do not use it as a claim that the page resolves every operational question."
       ],
       "user_approved_at": "2026-11-18",
       "elevation_approval_evidence": "User reviewed the live visitor-facing Guide screenshot for the exact Gold Star scope-governance question and explicitly instructed: “fix structurally and turn this into a gold star” on 2026-11-18.",
@@ -6670,9 +6670,10 @@
         "live_surface": "The Guide visitor-facing search response",
         "evidence_boundary": "The screenshot establishes the exact question and the generic, off-target response failure. The corrected answer is newly authored and explicitly authorized for Gold Star elevation; it is not misrepresented as the text shown in the screenshot.",
         "doorway_verification": {
-          "title": "The Sovereign Sensemaking Compass",
-          "url": "https://geralddaquila.com/the-sovereign-sensemaking-compass",
-          "verified_against": "Existing approved Gold Star registry entry for the canonical Compass destination."
+          "title": "Boundary Conditions",
+          "url": "https://geralddaquila.com/boundary-conditions/",
+          "verified_against": "Published WordPress page ID 70295, status publish, retrieved through the Living Archive WordPress content connector on 2026-11-18.",
+          "relevant_content": "Defines assumptions, limitations, and boundaries for methods and conclusions; states that no framework applies equally to every question and that conclusions remain open to revision."
         }
       },
       "numbering_status": "UNASSIGNED",
