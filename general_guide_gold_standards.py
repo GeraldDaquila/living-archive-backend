@@ -106,10 +106,19 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
             )
         doorway = raw_doorway or {}
         assertions = record.get("assertions") or []
+        legacy_no_doorway_assertion = any(
+            (
+                "do not attach an unrelated archive doorway or recommendation"
+                in str(assertion).casefold()
+                and "self-contained factual question" in str(assertion).casefold()
+            )
+            for assertion in assertions
+        )
         legacy_doorway_not_authorized = bool(
             doorway_status == "LEGACY_INCOMPLETE_NOT_APPROVED"
             and raw_doorway is None
             and str(record.get("doorway_note") or "").strip()
+            and legacy_no_doorway_assertion
         )
         no_handoff = intentionally_none or legacy_doorway_not_authorized or any(
             "forbids direct page handoff" in str(assertion).casefold()
