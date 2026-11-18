@@ -11957,6 +11957,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                         # visitor doorway selector below.
                         # If every recovery below also fails, the visitor-facing
                         # boundary explicitly returns: I couldn’t produce a reliable answer to that question just now.
+                        # Keep the answer's appropriate structure: preserve the form this question requires.
                         _systemwide_is_meta = general_guide_composition.is_meta_answer_failure(
                             _systemwide_recovery
                         )
