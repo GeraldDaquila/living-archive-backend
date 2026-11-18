@@ -799,6 +799,41 @@ def _personality_soul_oversoul_recovery():
     )
 
 
+def is_interpretation_revision_evidence_question(question):
+    """Recognize a request for evidence that could warrant revising an interpretation."""
+    q = _clean(question).casefold()
+    interpretation = bool(re.search(
+        r"\b(?:interpretation|interpretations|belief|beliefs|conviction|reading|explanation)\b", q
+    ))
+    revision = bool(re.search(
+        r"\b(?:revis(?:e|ing|ion)|reconsider|change\s+my\s+mind|update\s+my\s+view|"
+        r"what\s+would\s+make\s+me|what\s+could\s+make\s+me|"
+        r"count\s+against|disconfirm|falsif\w*)\b", q
+    ))
+    evidence = bool(re.search(
+        r"\b(?:evidence|observation|observations|proof|corroborat\w*|"
+        r"what\s+would\s+show|what\s+would\s+count)\b", q
+    ))
+    return interpretation and revision and evidence
+
+
+def _interpretation_revision_evidence_recovery():
+    """Offer a proportionate evidence standard without deciding the visitor's belief."""
+    return (
+        "A useful starting point is to separate the experience from the interpretation placed on it. "
+        "The experience may be real as an experience—something you felt, noticed, or lived through—without every explanation of its source being established. "
+        "You do not have to dismiss the experience to examine the conclusion you have drawn from it. "
+        "The question is what kind of claim the interpretation makes, because different claims can be tested in different ways.\n\n"
+        "If it makes a claim about an observable event, another person’s actions, a cause, or a pattern in the world, look for evidence that is independently checkable: records or observations whose origins can be traced, corroboration that does not all repeat one source, and results that recur under comparable conditions. "
+        "Ask what else could explain the same experience, what the interpretation would lead you to expect, and what specific observation would count against it. "
+        "Apply the same standard to evidence that supports the interpretation and evidence that challenges it; do not lower the bar for one side or demand impossible certainty from the other.\n\n"
+        "If the interpretation is metaphysical or concerns personal meaning, be clear about what can and cannot be established by public evidence. "
+        "A meaningful experience may remain meaningful even when its supernatural explanation is uncertain; equally, a claim that makes observable predictions should not be shielded from testing merely because it is described as spiritual. "
+        "You might revise the factual explanation while retaining the personal significance, or suspend judgment where the evidence cannot decide the matter. "
+        "A sound standard is not to force belief or disbelief, but to state in advance what would strengthen, weaken, or leave the interpretation unresolved—and then let the evidence, including contrary evidence, matter."
+    )
+
+
 def is_resonance_confirmation_bias_question(question):
     """Recognize a request to distinguish intuitive resonance from confirmation bias."""
     q = _clean(question).casefold()
@@ -845,6 +880,7 @@ def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
     return bool(
         is_guide_personal_decision_agency_question(question)
+        or is_interpretation_revision_evidence_question(question)
         or is_resonance_confirmation_bias_question(question)
         or is_oversoul_ego_authority_question(question)
         or is_external_discernment_outsourcing_question(question)
@@ -880,6 +916,14 @@ def _public_predictive_system_recovery():
 
 def registered_recovery_recommendation(question):
     """Return an evidence-backed doorway for a narrow registered recovery."""
+    if is_interpretation_revision_evidence_question(question):
+        return {
+            "title": "Seeing Patterns Without Fooling Yourself",
+            "url": "https://geralddaquila.com/2026/04/06/seeing-patterns-without-fooling-yourself/",
+            "rationale": (
+                "This essay offers a practical way to examine whether a perceived pattern is supported or projected: repeatability, plausible mechanism, constraints, and disconfirmation. It is a method for testing an interpretation, not independent proof for or against a spiritual claim."
+            ),
+        }
     if is_resonance_confirmation_bias_question(question):
         return {
             "title": "Seeing Patterns Without Fooling Yourself",
@@ -1098,6 +1142,10 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         return "What would you like to understand or work through?"
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
+
+    # Belief/interpretation revision questions need a proportionate, claim-sensitive evidence standard.
+    if is_interpretation_revision_evidence_question(q):
+        return _interpretation_revision_evidence_recovery()
 
     # Evidence-discernment questions must not fall through to generic reflection.
     if is_resonance_confirmation_bias_question(q):
