@@ -95,3 +95,75 @@ def test_final_visitor_boundary_does_not_capture_nearby_but_different_questions(
     original = "A concise explanation of confirmation bias in research."
     result = main._guide_finalize_visitor_payload({"response": original}, query)
     assert result["response"] == original
+
+
+REVISION_QUERY = "What evidence would make me revise a spiritual interpretation I currently hold?"
+
+
+def test_spiritual_interpretation_revision_question_is_classified_as_evidence_discernment():
+    from deterministic_answer_recovery import is_interpretation_revision_evidence_question
+
+    assert is_interpretation_revision_evidence_question(REVISION_QUERY)
+    assert has_registered_recovery(REVISION_QUERY)
+
+
+def test_spiritual_interpretation_recovery_separates_experience_from_explanation():
+    from deterministic_answer_recovery import _interpretation_revision_evidence_recovery
+
+    answer = compose_recovery(REVISION_QUERY)
+    assert answer == _interpretation_revision_evidence_recovery()
+    for required in (
+        "separate the experience from the interpretation",
+        "independently checkable",
+        "what specific observation would count against it",
+        "Apply the same standard",
+        "metaphysical or concerns personal meaning",
+        "may remain meaningful",
+        "suspend judgment",
+    ):
+        assert required.casefold() in answer.casefold()
+    assert "The Guide could not complete" not in answer
+
+
+def test_spiritual_interpretation_revision_restores_relevant_canonical_doorway():
+    doorway = registered_recovery_recommendation(REVISION_QUERY)
+    assert doorway["title"] == "Seeing Patterns Without Fooling Yourself"
+    assert doorway["url"] == (
+        "https://geralddaquila.com/2026/04/06/seeing-patterns-without-fooling-yourself/"
+    )
+    assert "not independent proof" in doorway["rationale"]
+
+
+def test_final_visitor_boundary_repairs_generic_failure_for_spiritual_interpretation_query():
+    import main
+
+    result = main._guide_finalize_visitor_payload(
+        {
+            "response": "The Guide could not complete this question right now.",
+            "recommendation": {
+                "title": "Living Glossary",
+                "url": "https://geralddaquila.com/living-glossary/",
+                "rationale": "Provide bounded meanings for recurring terms.",
+            },
+        },
+        REVISION_QUERY,
+    )
+    assert result["response"] == compose_recovery(REVISION_QUERY)
+    assert result["recommendation"]["title"] == "Seeing Patterns Without Fooling Yourself"
+    assert result["canonical_doorway"] == result["recommendation"]
+    assert result["doorway_rationale"]
+    assert result["answer_basis"]["kind"] == "general_knowledge"
+    assert result["processing"] == "final_visitor_boundary_interpretation_revision_evidence"
+
+
+def test_interpretation_revision_classifier_rejects_unrelated_queries():
+    from deterministic_answer_recovery import is_interpretation_revision_evidence_question
+
+    for query in (
+        "What is spiritual interpretation?",
+        "What evidence supports spiritual traditions?",
+        "How can I interpret a poem?",
+        "What is the evidence for climate change?",
+        "What does confirmation bias mean?",
+    ):
+        assert not is_interpretation_revision_evidence_question(query), query
