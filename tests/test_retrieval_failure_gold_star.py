@@ -28,4 +28,4 @@ def test_retrieval_outage_gold_star_is_exact_and_has_no_forced_doorway():
     assert standard["forbids_doorway"] is True
     assert standard["doorway_title"] == ""
     assert "fresh search" in standard["expected_response"].casefold()
-    assert len(standard["expected_response"].split("\\n\\n")) == 3
+    assert len(standard["expected_response"].split("\n\n")) == 3
