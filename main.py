@@ -13814,7 +13814,7 @@ async def _use_request_boundary(scope, receive, send):
             "request_id": request_id,
         })
 
-# v488.45: ordinary questions get exactly one routing decision.
+    # v488.45: ordinary questions get exactly one routing decision.
     # Native boundaries above remain authoritative. Once those boundaries have
     # been cleared, Basic Inquiry owns the ordinary path. A Basic Inquiry
     # failure must NOT re-enter the legacy capability router: doing so creates
