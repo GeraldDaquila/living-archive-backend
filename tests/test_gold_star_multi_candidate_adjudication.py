@@ -85,3 +85,41 @@ def test_composition_contract_requires_select_combine_or_reject_adjudication():
     )
     for phrase in required:
         assert phrase in source
+
+
+
+def test_gold_star_adjudication_question_has_provider_independent_three_paragraph_answer(monkeypatch):
+    query = (
+        "A question has moderate similarity to three Gold Stars, each addressing a different "
+        "reasoning discipline. How should USE decide whether to select one, combine several, "
+        "or reject all three?"
+    )
+    monkeypatch.setattr(composition, "_gold_star_active_quality_contribution", lambda question: None)
+    monkeypatch.setattr(composition, "_registered_exact_gold_standard", lambda question: None)
+
+    def provider_must_not_run(**kwargs):
+        raise AssertionError("The bounded adjudication answer must not depend on a provider.")
+
+    monkeypatch.setattr(composition, "route_with_model_bank", provider_must_not_run)
+    result = composition.compose(
+        use_core=object(),
+        query=query,
+        context_data={},
+    )
+
+    assert result["provider"] == "bounded_gold_star_candidate_adjudication_recovery"
+    assert result["doorway_title"] == ""
+    assert result["doorway_url"] == ""
+    paragraphs = [p for p in result["response"].split("\\n\\n") if p.strip()]
+    assert len(paragraphs) == 3
+    assert "similarity" in result["response"]
+    assert "Select one" in result["response"]
+    assert "Combine candidates only" in result["response"]
+    assert "Reject all" in result["response"]
+    assert "must not stop USE from answering" in result["response"]
+
+
+def test_gold_star_adjudication_recovery_does_not_capture_unrelated_questions():
+    assert composition._gold_star_candidate_adjudication_recovery(
+        "How should I choose between three leadership approaches?"
+    ) is None
