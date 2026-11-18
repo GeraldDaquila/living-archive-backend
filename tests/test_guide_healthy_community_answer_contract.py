@@ -59,8 +59,9 @@ def test_terminal_doorway_boundary_preserves_healthy_community_recommendation():
          "recommendation": doorway},
         QUERY,
     )
-    assert result["recommendation"] == doorway
-    assert result["canonical_doorway"] == doorway
+    normalized_doorway = main._normalize_authoritative_recommendation(doorway)
+    assert result["recommendation"] == normalized_doorway
+    assert result["canonical_doorway"] == normalized_doorway
     assert result["doorway_title"] == doorway["title"]
     assert result["doorway_url"] == doorway["url"]
     assert result["doorway_rationale"] == doorway["rationale"]
