@@ -126,7 +126,7 @@ def test_semantic_quality_validators_accept_task_complete_single_paragraph_respo
     conflicting_information = (
         "Conflicting claims create a trust problem, not simply a shortage of information. "
         "Separate what is verified from what is inferred, compare source reliability and evidence, "
-        "and act only when the evidence meets a threshold proportionate to the stakes."
+        "ask what evidence would change the conclusion, and act only when the evidence meets a threshold proportionate to the stakes."
     )
     assert _has_conflicting_information_discernment(conflicting_information)
 
