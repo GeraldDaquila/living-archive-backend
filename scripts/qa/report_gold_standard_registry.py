@@ -53,6 +53,19 @@ def main() -> int:
         item for item in approved_gold_stars
         if item.get("runtime_transfer") is True
     ]
+    exact_query_only_successors = [
+        item for item in approved_gold_stars
+        if item.get("runtime_transfer") is False
+        and not item.get("superseded_by_benchmark_id")
+    ]
+    superseded_historical_references = [
+        item for item in approved_gold_stars
+        if bool(item.get("superseded_by_benchmark_id"))
+    ]
+    pending_approval_evidence = [
+        item for item in registry["records"]
+        if item.get("status") == "RECOVERED_HISTORICAL_RESPONSE_PENDING_APPROVAL_EVIDENCE"
+    ]
     numbered_gold_stars = [
         item for item in approved_gold_stars
         if isinstance(item.get("gold_star_number"), int)
@@ -79,6 +92,10 @@ def main() -> int:
         # time and must never split the approved inventory.
         "authoritative_gold_star_count": len(approved_gold_stars),
         "active_runtime_gold_star_count": len(active_runtime_gold_stars),
+        "exact_query_only_successor_count": len(exact_query_only_successors),
+        "superseded_historical_reference_count": len(superseded_historical_references),
+        "pending_approval_evidence_count": len(pending_approval_evidence),
+        "counting_note": "Approved-status inventory includes exact-query-only successors and superseded historical references; active_runtime_gold_star_count counts cross-question structural-learning contributors. Pending approval evidence is excluded.",
         "numbered_gold_star_count": len(numbered_gold_stars),
         "unassigned_approved_gold_star_count": len(unassigned_gold_stars),
         "highest_assigned_gold_star_number": max(
