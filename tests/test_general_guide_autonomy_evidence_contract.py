@@ -1,5 +1,6 @@
 """Regression tests for task-specific evaluation of Guide capability claims."""
 
+import json
 import general_guide_composition as guide
 from pathlib import Path
 
@@ -38,6 +39,45 @@ def test_evidence_credibility_requires_auditable_comparison_and_limits():
     assert "protecting visitor privacy" in contract
     assert "distinguish directly observed results from inference and untested claims" in contract
     assert "do not invent thresholds, measurements, benchmark results" in contract
+
+
+def test_evaluation_protocol_predefines_sampling_metrics_decision_rules_and_independent_repetition():
+    answer = guide._autonomy_evidence_evaluation_recovery(
+        "The Guide has operated without human intervention. What evidence demonstrates autonomy, "
+        "adaptivity, resilience, and improvement rather than continued operation?"
+    )["response"].lower()
+
+    for required in (
+        "pre-registered evaluation protocol",
+        "observation window and test cadence",
+        "numerator, denominator, exclusions, missing records",
+        "precision or statistical power",
+        "human-intervention rate",
+        "paired baseline/changed-condition cases",
+        "safe-degradation rate",
+        "recovery rate and time",
+        "complete regression ledger",
+        "acceptable floors",
+        "material-regression limits",
+        "repeat across the declared time window",
+        "independent",
+        "inconclusive results as inconclusive",
+    ):
+        assert required in answer
+
+
+def test_each_capability_has_non_compensating_measures_and_no_invented_sample_count():
+    answer = guide._autonomy_evidence_evaluation_recovery(
+        "What evidence would demonstrate that the Guide is autonomous, adaptive, resilient, "
+        "and improving rather than merely continuing to run?"
+    )["response"].lower()
+
+    assert "a strong score in one dimension cannot compensate for failure in another" in answer
+    assert "do not invent a universal sample count" in answer
+    assert "boundary violations" in answer
+    assert "held-out transfer cases" in answer
+    assert "permission breach" in answer
+    assert "blinded independent scoring" in answer
 
 
 def test_absent_operational_data_cannot_be_presented_as_proof_of_actual_autonomy():
@@ -213,3 +253,24 @@ def test_final_visitor_boundary_preserves_an_already_compliant_autonomy_answer()
     )
 
     assert result["response"] == answer
+
+
+def test_exact_autonomy_evidence_question_matches_frozen_gold_star_without_doorway():
+    question = (
+        "The Guide has been operating successfully for an extended period without human intervention. "
+        "What evidence should demonstrate that it is genuinely autonomous, adaptive, resilient, "
+        "and improving rather than merely continuing to produce responses?"
+    )
+    recovery = guide._autonomy_evidence_evaluation_recovery(question)
+    registry = json.loads(
+        (Path(__file__).resolve().parents[1] / "docs" / "qa" / "gold_standard_registry.json")
+        .read_text(encoding="utf-8")
+    )
+    benchmark_id = "gs-2026-11-18-autonomy-adaptivity-resilience-improvement-evidence"
+    record = next(item for item in registry["records"] if item["benchmark_id"] == benchmark_id)
+
+    assert recovery is not None
+    assert recovery["response"] == record["expected_response"]
+    assert recovery["doorway_title"] == ""
+    assert recovery["doorway_url"] == ""
+    assert guide._has_autonomy_evidence_evaluation(recovery["response"])

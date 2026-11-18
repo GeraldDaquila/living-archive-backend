@@ -25,6 +25,9 @@
     },
     "personality_soul_oversoul_discernment": {
       "description": "distinguish immediate personality desire, soul-level developmental learning, and perceived Oversoul invitation while preserving agency and epistemic humility"
+    },
+    "bounded_ai_capability_evidence_evaluation": {
+      "description": "separate AI capability claims and require pre-registered, independently verified evidence for each"
     }
   },
   "entries": [

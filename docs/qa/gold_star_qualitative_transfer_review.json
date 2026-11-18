@@ -977,6 +977,15 @@
       "qualifying_context": "Questions that explicitly invoke personality, soul, and Oversoul together and ask how immediate desire, developmental learning, and a wider spiritual invitation differ or relate.",
       "abstention_boundary": "Do not impose this three-lens framework on unrelated questions, demean ordinary needs as merely egoic, claim that suffering was cosmically assigned, assert that an Oversoul objectively exists or has issued an instruction, or transfer this answer text or doorway.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-18-autonomy-adaptivity-resilience-improvement-evidence",
+      "question": "The Guide has been operating successfully for an extended period without human intervention. What evidence should demonstrate that it is genuinely autonomous, adaptive, resilient, and improving rather than merely continuing to produce responses?",
+      "reasoning_family": "bounded_ai_capability_evidence_evaluation",
+      "transferable_discipline": "For claims that an AI system is autonomous, adaptive, resilient, or improving, distinguish the four capabilities and define each within an explicit operating boundary. Require a pre-registered evaluation protocol with representative sampling, denominators and exclusions, capability-specific outcomes, prospective decision rules, uncertainty reporting, repeated tests, independently verified results, and a complete regression record. Do not let one capability's score compensate for another's failure; do not infer capability from uptime or response volume.",
+      "qualifying_context": "Questions asking what evidence would establish genuine autonomy, adaptivity, resilience, or improvement in an AI system, especially when sustained operation or response volume is being offered as proof.",
+      "abstention_boundary": "Do not transfer the answer text. Do not claim the Guide or another system has demonstrated any capability without operational evidence. Do not invent sample sizes, thresholds, benchmark results, or rates. Do not impose this protocol on unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
