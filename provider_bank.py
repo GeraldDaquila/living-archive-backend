@@ -1620,10 +1620,6 @@ def select(use_core, operation="generic", schema=None):
             )
         lanes.sort(key=_hrn_lane_priority)
 
-    if operation == "living_archive_navigator":
-        # Three sequential Navigator stages share one bounded WordPress turn.
-        # Fast-fail a slow model so an independent bank lane can still complete.
-        return 6.0
     if operation == "general_guide_composition":
         # Within the Guide's fixed five-second composition window, current
         # transport health must outrank rotating provider order. Keep operator
@@ -2742,6 +2738,10 @@ def _provider_call_timeout(operation, item=None, attempt_index=1):
         return HRN_GEMMA_4_26B_PROVIDER_CALL_TIMEOUT_SECONDS
     if operation in {"hrn_perception", "hrn_relational", "hrn_voice_repair"}:
         return HRN_PROVIDER_CALL_TIMEOUT_SECONDS
+    if operation == "living_archive_navigator":
+        # Three sequential Navigator stages share one bounded WordPress turn.
+        # Fast-fail a slow model so an independent bank lane can still complete.
+        return 6.0
     if operation == "general_guide_composition":
         capabilities = MODEL_CAPABILITIES.get((provider, model), frozenset())
         baseline = (
