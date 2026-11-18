@@ -13,6 +13,7 @@ def _candidate(benchmark_id, signature, family, discipline):
         "runtime_transfer": True,
         "deterministic_fallback_eligible": False,
         "reasoning_family": family,
+        "qualifying_context": f"Questions about {signature} that require {family}.",
         "transferable_discipline": discipline,
         "abstention_boundary": f"Do not overextend {family}.",
         "variants": [],
@@ -57,8 +58,8 @@ def test_active_quality_contribution_exposes_candidate_comparison_fields_only(mo
         {
             "benchmark_id": f"candidate-{i}", "score": 0.71 - i * 0.02,
             "exact": False, "query": f"question {i}", "known_theme": f"theme {i}",
-            "reasoning_family": f"family {i}", "transferable_discipline": f"discipline {i}",
-            "abstention_boundary": f"boundary {i}",
+            "reasoning_family": f"family {i}", "qualifying_context": f"scope {i}",
+            "transferable_discipline": f"discipline {i}", "abstention_boundary": f"boundary {i}",
         }
         for i in range(1, 4)
     ]
@@ -69,6 +70,7 @@ def test_active_quality_contribution_exposes_candidate_comparison_fields_only(mo
         "candidate-1", "candidate-2", "candidate-3"
     ]
     assert result["authority_mode"] == "structural_guidance_only"
+    assert all(x["qualifying_context"] for x in result["candidates"])
     assert all("expected_response" not in x and "doorway" not in x for x in result["candidates"])
 
 
