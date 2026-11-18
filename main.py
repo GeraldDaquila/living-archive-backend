@@ -5865,6 +5865,7 @@ def _guide_finalize_visitor_payload(payload, query):
     from deterministic_answer_recovery import (
         is_resonance_confirmation_bias_question,
         compose_recovery as _compose_resonance_confirmation_bias_recovery,
+        registered_recovery_recommendation as _registered_recovery_doorway,
     )
     if is_resonance_confirmation_bias_question(query):
         safe = dict(payload)
