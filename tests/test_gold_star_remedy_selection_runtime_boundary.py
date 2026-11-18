@@ -57,3 +57,64 @@ def test_runtime_recovery_still_matches_exact_visitor_question():
     assert result is not None
     assert result["response"].startswith("USE should create a Gold Star only when")
     assert len([p for p in result["response"].split("\n\n") if p.strip()]) == 3
+
+
+
+def test_terminal_doorway_restoration_preserves_explicit_general_knowledge_omission():
+    import main
+
+    payload = {
+        "processing": "gold_star_remedy_selection_recovery",
+        "response": "A complete answer about USE's internal learning-governance method.",
+        "recommendation": None,
+        "canonical_doorway": None,
+        "doorway_title": None,
+        "doorway_url": None,
+        "doorway_omission_reason": "no_verified_direct_archive_continuation",
+        "answer_basis": {
+            "kind": "general_knowledge",
+            "label": "USE learning-governance method",
+        },
+        "response_provenance": {
+            "class": "deterministic_recovery",
+            "provider": "bounded_gold_star_remedy_selection_recovery",
+            "llm_invoked": False,
+        },
+    }
+
+    result = main._guide_restore_verified_doorway(payload, QUERY)
+    assert result["recommendation"] is None
+    assert result["canonical_doorway"] is None
+    assert result["doorway_title"] is None
+    assert result["doorway_url"] is None
+    assert "no verified direct Archive continuation" in result["doorway_omission_exception_reason"]
+
+
+def test_terminal_doorway_restoration_does_not_suppress_normal_relevant_doorways():
+    import main
+
+    payload = {
+        "response": "A normal answer.",
+        "recommendation": None,
+        "canonical_doorway": None,
+    }
+    result = main._guide_restore_verified_doorway(
+        payload,
+        "How do organizations create conditions for learning from failure?",
+    )
+    assert result["recommendation"] is not None
+    assert result["recommendation"]["title"] == (
+        "The Social Architecture of Thriving: Conditions That Allow Human Potential to Expand"
+    )
+
+
+def test_exact_approved_gold_star_encodes_the_intentional_no_doorway_exception():
+    from general_guide_gold_standards import resolve_exact_gold_standard
+
+    record = resolve_exact_gold_standard(QUERY)
+    assert record is not None
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["forbids_doorway"] is True
+    assert record["doorway_title"] == ""
+    assert record["doorway_url"] == ""
+    assert record["expected_doorway"] is None
