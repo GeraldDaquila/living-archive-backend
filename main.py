@@ -537,7 +537,10 @@ def _select_guide_node_fallback_doorway(query):
             if rationale:
                 candidate["rationale"] = rationale
             best, best_score = candidate, score
-    return best if best_score else None
+    # A single lexical overlap is adjacency, not evidence of a useful doorway.
+    # Require at least two distinct query terms unless a reviewed conceptual-family
+    # rule above has already established the direct canonical destination.
+    return best if best_score >= 2 else None
 
 
 def _select_reflective_balance_doorway(query):
@@ -5658,9 +5661,8 @@ def _guide_restore_verified_doorway(payload, query):
     if doorway and not str(doorway.get("rationale") or "").strip():
         doorway = None
 
-    # A missing topic-specific match is not permission to return a navigation dead end.
-    if not doorway:
-        doorway = _normalize_authoritative_recommendation(_gold_star_default_doorway())
+    # No topic-specific match means no doorway. Do not append the broad Compass
+    # merely to avoid an empty navigation slot; relevance is part of the contract.
 
     safe["recommendation"] = doorway
     safe["canonical_doorway"] = doorway
@@ -6354,6 +6356,7 @@ def _guide_finalize_visitor_payload(payload, query):
     _outer_response_failure = bool(
         general_guide_composition.is_generic_nonanswer(query, response_text)
         or general_guide_composition.is_meta_answer_failure(response_text)
+        or _basic_inquiry_has_source_dump(response_text)
         or _outer_legacy_abstention
     )
     if _outer_registered_recovery_valid and _outer_response_failure:
