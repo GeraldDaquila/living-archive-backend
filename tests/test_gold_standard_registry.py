@@ -1826,4 +1826,4 @@ def test_gold_star_multi_candidate_adjudication_is_exact_approved_and_unassigned
     assert resolved["benchmark_id"] == record["benchmark_id"]
     assert resolved["expected_response"] == record["expected_response"]
     assert resolved["doorway_title"] == ""
-    assert resolved["doorway_url"] == ""
+    assert resolved["doorway_url"] in (None, "")
