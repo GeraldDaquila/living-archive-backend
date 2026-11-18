@@ -74,7 +74,7 @@ def test_cosmology_provider_exhaustion_fallback_answers_the_actual_question():
     assert "In science, it is the study of the universe as a whole" in response
     assert "A worldview is not the same thing as scientific cosmology" in response
     assert "not scientific findings that prove one worldview correct" in response
-    assert "The Archive's interpretive framework" in response
+    assert "That is the Archive's interpretive framework" in response
     assert result["doorway_title"] == ""
     assert result["doorway_url"] == ""
     assert result["recommendation"] is None
