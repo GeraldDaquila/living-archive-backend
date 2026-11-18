@@ -7511,27 +7511,31 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         }
 
     _cosmology_lived_question = bool(
-        re.search(r"\b(?:cosmology|worldview)\b", q)
-        and re.search(r"\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\b", q)
+        re.search(r"\\b(?:cosmology|worldview)\\b", q)
+        and re.search(r"\\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\\b", q)
     )
     if _cosmology_lived_question:
         _cosmology_response = (
-            "Cosmology is an understanding of how reality works and how we belong within it—not only a theory about the physical universe. "
-            "The picture we carry of people, nature, change, and our place in the world shapes what we notice and how we make decisions.\n\n"
-            "The Living Archive explores a contrast between a separation-based worldview and a unity-informed worldview. "
-            "A separation-based view tends to organize life around competition, control, earned worth, and fear of loss. "
-            "A unity-informed view sees people as distinct but connected, treats worth as inherent, and understands growth as something that can emerge through relationship, responsibility, and cooperation. "
-            "These are ways of interpreting experience, not labels for judging a person.\n\n"
-            "This matters because a worldview can become an invisible guide for everyday choices. "
-            "If every disagreement is treated as a contest for control, people may protect status instead of looking for a workable answer. "
-            "If people see themselves as distinct but connected, they can recognize differences without treating them as threats. "
-            "This is a useful starting explanation, not a claim that one Archive text exhausts the subject."
+            "Cosmology has two closely related meanings. In science, it is the study of the universe as a whole: its origin, large-scale structure, development, and possible future. "
+            "In philosophy and ordinary human reflection, the word can also refer to a broad account of what reality is like and where human beings belong within it. "
+            "The question you asked about how people live concerns this second, wider use of the term.\\n\\n"
+            "A worldview is not the same thing as scientific cosmology. It is the set of assumptions—often partly unexamined—through which people interpret existence, other people, nature, change, and their own place in the world. "
+            "Those assumptions can shape what people notice, what they regard as possible, what they value, and how they respond to one another.\\n\\n"
+            "This matters in everyday life because assumptions about reality influence how situations are understood. "
+            "If people assume that life is mainly a contest for scarce status or control, disagreement may be treated as a threat and cooperation may be harder to sustain. "
+            "If they understand people as distinct but interdependent, they may be more likely to consider relationships, shared conditions, and mutual consequences when making decisions. "
+            "These are illustrative philosophical interpretations, not scientific findings that prove one worldview correct.\\n\\n"
+            "The Living Archive explores one such interpretation through its distinction between separation-based and unity-informed ways of understanding human life. "
+            "That is the Archive's interpretive framework, which can be examined and questioned; it should not be confused with the scientific discipline of cosmology or presented as a settled description of reality."
         )
         return {
             "response": _cosmology_response,
             "doorway_title": "",
-            "provider": "bounded_archive_informed_cosmology_recovery",
+            "doorway_url": "",
+            "recommendation": None,
+            "provider": "bounded_cosmology_and_worldview_recovery",
             "model": "",
+            "doorway_omission_reason": "No directly relevant canonical cosmology resource has been verified; do not substitute a generic glossary link.",
         }
 
     # Bounded relational uncertainty recovery. A lack of case-specific facts must
@@ -12590,7 +12594,14 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Last-mile recovery is opt-in by a verified conceptual family. A generic
     # lexical fallback must not add navigation to bounded practical/safety
     # responses whose contract intentionally has no recommendation.
-    _final_conceptual_family = _select_verified_doorway_conceptual_family(query)
+    _cosmology_doorway_not_verified = bool(
+        re.search(r"\\b(?:cosmology|worldview)\\b", str(query or ""), re.I)
+        and re.search(r"\\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\\b", str(query or ""), re.I)
+    )
+    _final_conceptual_family = (
+        None if _cosmology_doorway_not_verified
+        else _select_verified_doorway_conceptual_family(query)
+    )
     if (
         not authoritative_doorway
         and _final_conceptual_family
@@ -14848,7 +14859,13 @@ async def _use_request_boundary(scope, receive, send):
             reviewed_omission = _gold_star_doorway_omission_is_justified(
                 exact_doorway_standard
             )
-            if isinstance(safe_payload, dict) and not (reviewed_omission or explicit_no_doorway):
+            _cosmology_doorway_not_verified = bool(
+                re.search(r"\\b(?:cosmology|worldview)\\b", str(query or ""), re.I)
+                and re.search(r"\\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\\b", str(query or ""), re.I)
+            )
+            if isinstance(safe_payload, dict) and not (
+                reviewed_omission or explicit_no_doorway or _cosmology_doorway_not_verified
+            ):
                 safe_payload = _guide_restore_verified_doorway(safe_payload, query)
             # Response provenance is attached at the single outer boundary so
             # every production acceptance result can be traced to its serving
