@@ -60,3 +60,13 @@ def test_markup_and_missing_query_context_fail_closed():
     assert evaluate_response_floor(
         "", {"ok": True, "response": "A complete answer."}
     )["status"] == "fail"
+
+
+def test_structured_specialist_handoff_uses_its_own_contract():
+    result = evaluate_response_floor(
+        "I need help entering the Stewardship Institute.",
+        {"ok": True, "query": "I need help entering the Stewardship Institute.",
+         "handoff": "formation_entrance", "handoff_pending": True, "response": ""},
+    )
+    assert result["status"] == "not_applicable"
+    assert result["reason"] == "structured_handoff"
