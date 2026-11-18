@@ -6930,7 +6930,7 @@
     },
     {
       "benchmark_id": "general-guide-retrieval-outage-deterministic-recovery-disclosure-gold-star-2026-11-18",
-      "status": "USER_APPROVED_GOLD_STANDARD",
+      "status": "SUPERSEDED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "A retrieval service fails, but the Guide can still access previously verified source references and deterministic recovery mechanisms. What should it do, and what should it disclose?",
       "expected_response": "When retrieval is unavailable, the Guide must distinguish a failure of the retrieval service from the availability of knowledge and recovery. It should first check whether previously verified source references remain accessible through a trusted cache or request context, then confirm their identity, canonical URL, permissions, and freshness limits before using them. It must not claim that a fresh search occurred or treat an outage as proof that no relevant source exists.\n\nIf verified references cannot be accessed or validated, the Guide should continue through an approved deterministic recovery when one exists. That recovery must answer the visitor's actual question, stay within its supported scope, preserve safety and access boundaries, and avoid inventing citations or Archive doctrine. The system should record the retrieval failure and distinguish source-grounded material from a bounded general-knowledge fallback. A next-step link should appear only when its destination is independently verified as relevant.\n\nThe Guide should disclose what failed, which evidence it could still use, whether the answer relies on previously verified material or deterministic general knowledge, and any resulting limits on freshness or completeness. It must never imply that retrieval succeeded or conceal material uncertainty. If a safe, substantive recovery is available, it should not return a generic failure message; if no reliable recovery remains, it should say so plainly and invite the visitor to try again.",
@@ -6981,7 +6981,64 @@
       "legacy_approval_grandfathered": false,
       "forbids_doorway": true,
       "known_theme": "retrieval outage, deterministic fallback, cached verified references, answer provenance, uncertainty disclosure, graceful degradation, service resilience",
-      "doorway_omission_reason": "No verified direct public Archive continuation is established for this internal reliability question; avoid unrelated navigation."
+      "doorway_omission_reason": "No verified direct public Archive continuation is established for this internal reliability question; avoid unrelated navigation.",
+      "superseded_by": "general-guide-retrieval-outage-deterministic-recovery-disclosure-gold-star-refined-2026-11-18",
+      "superseded_reason": "Replaced by a tighter question-specific answer that makes the recovery sequence explicit and removes repeated disclosure language; the original remains immutable for audit."
+    },
+    {
+      "benchmark_id": "general-guide-retrieval-outage-deterministic-recovery-disclosure-gold-star-refined-2026-11-18",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "A retrieval service fails, but the Guide can still access previously verified source references and deterministic recovery mechanisms. What should it do, and what should it disclose?",
+      "expected_response": "When retrieval fails, the Guide should treat that first as a service failure—not proof that relevant knowledge is unavailable. It should check whether previously verified references remain accessible, then validate each reference’s identity, canonical URL, permissions, provenance, and freshness. It must not imply that a new search succeeded.\n\nIf no usable reference remains, the Guide should move through the approved recovery sequence: use an authorized deterministic recovery if one exists; answer the visitor’s actual question within that recovery’s supported scope; and preserve safety and access boundaries. It must not invent citations, Archive doctrine, or a destination. A doorway belongs only when its relevance and destination are independently verified.\n\nThe Guide should disclose that retrieval failed, identify the evidence basis it actually used, and state any material limits on freshness or completeness. If a safe, substantive recovery is available, it should answer rather than return a generic failure. If no reliable recovery remains, it should say so plainly and invite the visitor to try again.",
+      "expected_doorway": null,
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+      "doorway_omission_exception_reason": "This is an internal USE reliability question. No verified public Archive resource is established as a direct continuation; a generic Glossary or Navigator doorway would distract from the operational answer.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER_APPROVED_GOLD_STANDARD — QUESTION-SPECIFIC REFINEMENT",
+      "elevation_approval_evidence": "User explicitly instructed: “proceed with refinement, then elevate to gold star” on 2026-11-18, approving a final question-specific refinement and Gold Star elevation.",
+      "rating_out_of_10": 10,
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "retrieval_outage_recovery_and_evidence_disclosure",
+      "transferable_lesson": "Separate retrieval-service failure from answerability. Validate accessible retained references first; if none remain, use an approved deterministic recovery within scope; disclose the actual evidence basis and limitations; never fabricate citations or force an unrelated doorway.",
+      "transfer_boundary": "Apply only when retrieval or a supporting source service is unavailable. Do not claim cached references exist unless actually accessible and validated; do not invent citations, Archive doctrine, freshness, or source provenance; do not bypass safety or access controls; and do not force a doorway when no verified direct continuation exists.",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "retrieval_outage_recovery_and_evidence_disclosure",
+        "transferable_discipline": "Separate retrieval-service availability from answerability; validate any retained source references; otherwise use approved deterministic recovery; label provenance and disclose limitations.",
+        "abstention_boundary": "Do not imply fresh retrieval, claim inaccessible cached references, fabricate sources, or bypass safety/access boundaries."
+      },
+      "assertions": [
+        "A retrieval outage is distinguished from the absence of relevant knowledge or recovery.",
+        "Retained references are used only after accessibility, identity, canonical URL, permissions, provenance, and freshness are validated.",
+        "If no usable reference remains, an approved deterministic recovery is used when available.",
+        "The recovery answers the actual question within supported scope and preserves safety and access boundaries.",
+        "The response does not invent citations, Archive doctrine, or a destination.",
+        "The Guide discloses the retrieval failure, actual evidence basis, and material freshness or completeness limits.",
+        "A safe substantive recovery is provided instead of a generic failure; otherwise inability is disclosed plainly.",
+        "A doorway is offered only when its relevance and destination are independently verified."
+      ],
+      "user_approved_at": "2026-11-18",
+      "provenance": {
+        "source": "User-provided live Guide screenshot, prior approved benchmark, and explicit refinement/elevation instruction.",
+        "source_date": "2026-11-18",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "This refined answer is newly authored to remove repeated explanations and state the recovery sequence clearly. It is a question-specific approved reference, not evidence of a particular live request replay.",
+        "doorway_decision": "INTENTIONALLY_NONE_APPROVED. No verified public Archive resource is established as a direct continuation of this internal reliability question."
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial; preserve the benchmark ID as the stable learning identity.",
+      "legacy_approval_grandfathered": false,
+      "forbids_doorway": true,
+      "known_theme": "retrieval outage, deterministic fallback, cached verified references, answer provenance, uncertainty disclosure, graceful degradation, service resilience",
+      "doorway_omission_reason": "No verified direct public Archive continuation is established for this internal reliability question; avoid unrelated navigation.",
+      "supersedes": "general-guide-retrieval-outage-deterministic-recovery-disclosure-gold-star-2026-11-18"
     }
   ],
   "last_reconciliation_note": "2026-11-18: Reconciled the concurrent USE doorway-warrant Gold Star and the cross-question pattern-recognition/candidate-lesson Gold Star as two distinct additions. Canonical inventory: 107 approved Gold Stars across 144 registry records; 105 active runtime-transfer contributors, 38 numbered, 69 UNASSIGNED. Each new benchmark has one unique active qualitative-transfer review. No existing benchmark identity or serial changed; neither new benchmark received a display serial. 2026-11-18 follow-up: Added one distinct remedy-selection CANDIDATE pending corrected live-response review; registry now has 145 records while approved Gold Stars remain 107 and active transfer reviews remain unchanged. No serial allocated. 2026-11-18: Remedy-selection benchmark promoted to USER_APPROVED_GOLD_STANDARD after user-reviewed live response; no serial assigned; explicit no-doorway exception preserved.",
@@ -7115,7 +7172,7 @@
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
     "approved_gold_star_count": 109,
-    "registry_record_count": 146,
+    "registry_record_count": 147,
     "review_reconciliation": "Canonical inventory updated on 2026-11-18: 109 approved Gold Stars across 146 registry records. 107 active quality contributors with matching qualitative-transfer reviews; one exact-query-only successor and one migrated duplicate remain excluded from active contribution. The retrieval-outage recovery benchmark is an approved active contributor and remains unnumbered.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
