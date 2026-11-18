@@ -594,7 +594,7 @@ def test_gold_standard_default_is_default_on_for_ordinary_questions():
     assert not composition._requires_three_paragraph_default("Please answer in one sentence.")
 
 
-def test_fragmented_knowledge_gold_standard_is_runtime_resolvable_and_three_paragraph_default_is_enforced():
+def test_fragmented_knowledge_gold_standard_is_runtime_resolvable_without_global_paragraph_enforcement():
     registry = _registry()
     record = next(
         item for item in registry["records"]
@@ -608,13 +608,18 @@ def test_fragmented_knowledge_gold_standard_is_runtime_resolvable_and_three_para
     composition_source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
     assert "_registered_exact_gold_standard(question)" in composition_source
     assert "def _requires_three_paragraph_default(query: str) -> bool:" in composition_source
-    assert "substantive explanatory answer must meet the three-paragraph Guide Gold Standard" in composition_source
+    assert "def _requires_substantive_answer_contract(query: str) -> bool:" in composition_source
+    assert "def _requires_three_paragraph_default(query: str) -> bool:" in composition_source
+    assert "never requires three paragraphs or any fixed number of response units" in composition_source
+    assert "substantive explanatory answer must meet the three-paragraph Guide Gold Standard" not in composition_source
     assert 'CONTRACT_VERSION = "v1.46"' in composition_source
     assert "def resolve_exact_gold_standard(question: str)" in standards_source
     main_source = (ROOT / "main.py").read_text(encoding="utf-8")
     assert 'snapshot.get("contract_version") != general_guide_composition.CONTRACT_VERSION' in main_source
-    assert "Apply the default paragraph contract at the final visitor boundary too" in main_source
-    assert "used three-paragraph fail-honest recovery" in main_source
+    assert "Apply the shared task-dependent quality contract at the final visitor boundary" in main_source
+    assert "if _meta_answer or _current_response_nonanswer:" in main_source
+    assert "len(_last_paragraphs) < 3" not in main_source
+    assert "paragraph-count filler" in main_source
 
 
 def test_user_approved_gold_stars_have_explicit_runtime_capability_classification():
@@ -1050,7 +1055,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
             assert record.get("numbering_status") == "UNASSIGNED"
             assert record.get("numbering_unassigned_reason_code")
             assert record.get("numbering_unassigned_reason")
-            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness", "gs-2026-11-17-oversoul-free-will-influence-without-compulsion", "general-guide-public-commons-stewardship-gold-star-2026-11-17", "general-guide-community-project-economic-dimensions-gold-star-2026-11-18", "general-guide-formal-informal-institutional-dynamics-gold-star-2026-11-18", "general-guide-symmetric-source-representation-before-synthesis-gold-star-2026-11-18", "general-guide-nonprofit-culture-power-care-governance-gold-star-2026-11-18", "general-guide-semantic-ambiguity-same-term-different-sources-gold-star-2026-11-18", "general-guide-quoted-passage-context-restoration-gold-star-2026-11-18", "general-guide-gold-star-scope-governance-cross-domain-regression-2026-11-18", "general-guide-gold-star-candidate-adjudication-2026-11-18", "general-guide-use-doorway-warrant-destination-selection-gold-star-2026-11-18", "general-guide-cross-question-pattern-learning-candidate-gold-star-2026-11-18"}:
+            if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness", "gs-2026-11-17-oversoul-free-will-influence-without-compulsion", "general-guide-public-commons-stewardship-gold-star-2026-11-17", "general-guide-community-project-economic-dimensions-gold-star-2026-11-18", "general-guide-formal-informal-institutional-dynamics-gold-star-2026-11-18", "general-guide-symmetric-source-representation-before-synthesis-gold-star-2026-11-18", "general-guide-nonprofit-culture-power-care-governance-gold-star-2026-11-18", "general-guide-semantic-ambiguity-same-term-different-sources-gold-star-2026-11-18", "general-guide-quoted-passage-context-restoration-gold-star-2026-11-18", "general-guide-gold-star-scope-governance-cross-domain-regression-2026-11-18", "general-guide-gold-star-candidate-adjudication-2026-11-18", "general-guide-use-doorway-warrant-destination-selection-gold-star-2026-11-18", "general-guide-cross-question-pattern-learning-candidate-gold-star-2026-11-18", "general-guide-calibration-vs-validation-promotion-decision-gold-star-2026-11-18"}:
                 assert record.get("legacy_approval_grandfathered") is not True
                 assert record.get("numbering_unassigned_reason_code") == "NO_SERIAL_ALLOCATION_REQUESTED"
             elif record["benchmark_id"] not in {"gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing", "gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship", "gs-2026-11-16-collapse-adaptation-regeneration", "gs-2026-11-16-techno-utopian-thinking"}:
