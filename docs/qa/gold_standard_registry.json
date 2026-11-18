@@ -6734,6 +6734,63 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent."
+    },
+    {
+      "benchmark_id": "general-guide-use-doorway-warrant-destination-selection-gold-star-2026-11-18",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "A response contains an accurate explanation but offers no relevant Archive doorway. How should USE determine whether a doorway is warranted and select the appropriate next destination?",
+      "expected_response": "The answer and the doorway are two separate quality decisions. USE must first answer the visitor's actual question completely; a resource link cannot repair an incomplete or off-target answer. It should then identify the visitor's remaining need: deeper explanation, evidence, practical application, or orientation through a larger body of knowledge. A doorway is warranted when a verified Archive resource materially advances that next step—not merely because its title shares keywords with the question.\n\nDestination selection should follow that need. USE should retrieve candidate canonical resources, inspect their actual content and intended audience, and compare their subject fit, depth, access, and specific contribution. It should choose the narrowest verified destination that genuinely helps the visitor continue. If no topic-specific resource meets that standard, the approved Sovereign Sensemaking Compass remains the general continuation; it must be described honestly as broad orientation, not as a precise match. Omission is reserved for a concrete quality or safety reason, or an explicit visitor refusal—not uncertainty about which relevant resource to choose.\n\nFor this question, The Living Archive Navigator: Volume III – Knowledge & Sensemaking is the appropriate next destination. It was created to help readers navigate the Archive through Reference Maps, Guide Notes, and curated reading pathways, and it specifically connects knowledge, systems thinking, discernment, and sensemaking. That is a direct continuation of the question about how USE should judge relevance and guide a visitor to the next useful resource.",
+      "expected_doorway": {
+        "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
+        "rationale": "This Navigator was created to help readers navigate the Archive through curated Reference Maps, Guide Notes, and reading pathways. It connects knowledge, systems thinking, discernment, and sensemaking—the exact orientation needed to understand how a visitor should move from an answer to a relevant next resource."
+      },
+      "doorway_status": "VERIFIED",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User explicitly instructed structural correction and Gold Star elevation on 2026-11-18 after reviewing the live response screenshot.",
+      "elevation_approval_evidence": "User reviewed the live Guide screenshot showing a polished but off-target explanation and a generic Sovereign Sensemaking Compass doorway, then explicitly instructed: “fix structurally and turn this into gold star” on 2026-11-18.",
+      "rating_out_of_10": 10,
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "doorway_warrant_and_destination_selection",
+      "transferable_lesson": "Keep answer quality and doorway quality independent. Complete the visitor's actual question first; identify the remaining need; retrieve and inspect verified canonical candidates; evaluate actual subject fit, contribution, audience, depth, and access; choose the narrowest destination that materially advances the inquiry. If no narrower destination is verified, use the approved Compass only as an honestly labeled general continuation. Omit navigation only for a concrete response-specific quality or safety reason or an explicit visitor refusal.",
+      "transfer_boundary": "Transfer only the two-stage answer/doorway decision discipline. Do not attach resources based on shared keywords, use a doorway to rescue an off-target answer, misrepresent the Compass as a topic-specific match, transfer this answer or its Navigator doorway to unrelated questions, or omit navigation merely because selection is uncertain.",
+      "known_theme": "USE doorway warrant, destination selection, answer-navigation separation, relevance evaluation, canonical Archive navigation, general continuation fallback",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "doorway_warrant_and_destination_selection",
+        "transferable_discipline": "Answer the actual question first; independently identify the visitor's remaining need; inspect verified canonical candidates for genuine contribution and select the narrowest relevant destination; use the Compass only as a transparent general continuation when no narrower match is verified.",
+        "abstention_boundary": "Do not confuse keyword overlap with relevance, use navigation to compensate for a weak answer, mislabel a general fallback as a specific match, or suppress a doorway solely because candidate selection is uncertain."
+      },
+      "assertions": [
+        "Answer is complete and directly responsive before the separate doorway appears.",
+        "Distinguish answer quality from navigation quality; a doorway cannot rescue an off-target answer.",
+        "Identify the visitor's remaining need before selecting a destination.",
+        "Evaluate actual source content, audience, depth, access, and contribution; keyword overlap alone is insufficient.",
+        "Select the narrowest verified resource that materially advances this inquiry.",
+        "Use Navigator Volume III as the exact-query destination because its published content provides maps, guide notes, and pathways for navigating knowledge and sensemaking.",
+        "Use the Sovereign Sensemaking Compass only as an honestly labeled general continuation when no narrower destination is verified.",
+        "Omit navigation only for a concrete response-specific quality or safety reason or an explicit visitor refusal.",
+        "Keep the doorway visually and semantically separate from the substantive answer.",
+        "Preserve three purposeful paragraphs for this substantive conceptual question."
+      ],
+      "user_approved_at": "2026-11-18",
+      "provenance": {
+        "source": "User-provided live visitor-facing Guide screenshot and explicit Gold Star elevation instruction.",
+        "source_date": "2026-11-18",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the exact query and the failure: a polished but off-target explanation plus a generic continuation doorway. The corrected response and Navigator Volume III destination are newly authored using verified published Navigator content and explicitly authorized for Gold Star elevation.",
+        "doorway_decision": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking was verified as a published canonical page. Its published purpose is to orient readers through Reference Maps, Guide Notes, and curated pathways across knowledge and sensemaking."
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial. Preserve benchmark_id as the stable learning identity.",
+      "legacy_approval_grandfathered": false
     }
   ],
   "last_reconciliation_note": "2026-11-18: Added the multi-candidate Gold Star adjudication benchmark after incorporating the concurrent scope-governance doorway update. Canonical inventory: 105 approved Gold Stars across 142 registry records; 103 runtime-transfer contributors, 38 numbered, 67 UNASSIGNED. Review entries reconcile exactly; no serial was allocated or changed.",
@@ -6866,13 +6923,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 105,
-    "registry_record_count": 142,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 105 approved Gold Stars across 142 registry records. 103 are active quality contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. The semantic-ambiguity and quoted-passage context-restoration exemplars remain distinct; scope governance remains separately approved; and multi-candidate Gold Star adjudication is a separate approved benchmark. No display serial was allocated to the new adjudication benchmark.",
+    "approved_gold_star_count": 106,
+    "registry_record_count": 143,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 106 approved Gold Stars across 143 registry records. 104 are active quality contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. The new USE doorway-warrant and destination-selection exemplar is active and separately reviewed; no display serial was allocated. The semantic-ambiguity and quoted-passage context-restoration exemplars remain distinct; scope governance and multi-candidate Gold Star adjudication remain separately approved.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 105 approved Gold Stars; 38 assigned display serials #56–#93; 67 approved records explicitly UNASSIGNED with reasons. Historical serials #85 and #86 remain assigned to their existing records; no open numbering gaps. The multi-candidate adjudication Gold Star remains unnumbered.",
-    "unassigned_approved_gold_star_count": 67,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 106 approved Gold Stars; 38 assigned display serials #56–#93; 68 approved records explicitly UNASSIGNED with reasons. No existing serial changed and no new serial was allocated.",
+    "unassigned_approved_gold_star_count": 68,
     "documented_numbering_gap_count": 0
   },
   "numbering_policy": {

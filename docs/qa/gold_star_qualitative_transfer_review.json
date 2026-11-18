@@ -923,6 +923,15 @@
       "qualifying_context": "Questions about how USE or another governed answer system should apply, combine, or reject multiple retrieved exemplars, Gold Stars, or structural lessons with different reasoning disciplines.",
       "abstention_boundary": "Do not infer approval from similarity, rank, or candidate count; do not force synthesis or transfer exemplar content; do not refuse or select an unrelated doorway when all candidates are rejected.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-use-doorway-warrant-destination-selection-gold-star-2026-11-18",
+      "question": "A response contains an accurate explanation but offers no relevant Archive doorway. How should USE determine whether a doorway is warranted and select the appropriate next destination?",
+      "reasoning_family": "doorway_warrant_and_destination_selection",
+      "transferable_discipline": "Keep answer quality and doorway quality independent. Complete the visitor's actual question first; identify the remaining need; retrieve and inspect verified canonical candidates; evaluate actual subject fit, contribution, audience, depth, and access; choose the narrowest destination that materially advances the inquiry. If no narrower destination is verified, use the approved Compass only as an honestly labeled general continuation. Omit navigation only for a concrete response-specific quality or safety reason or an explicit visitor refusal.",
+      "qualifying_context": "Questions about how USE or another governed knowledge-navigation system should decide whether to offer a resource after answering, evaluate canonical destinations, or distinguish a genuine continuation from a generic or keyword-matched link.",
+      "abstention_boundary": "Transfer only the two-stage answer/doorway decision discipline. Do not attach resources based on shared keywords, use a doorway to rescue an off-target answer, misrepresent the Compass as a topic-specific match, transfer this answer or its Navigator doorway to unrelated questions, or omit navigation merely because selection is uncertain.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
