@@ -656,8 +656,16 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
             "doorway_rationale",
             "recommendation_title",
             "recommendation_url",
+            # The active browser controller and its resilience renderer
+            # consult these compatibility aliases after recommendation is null.
+            "authoritative_doorway",
+            "canonical_recommendation",
+            "archive_doorway",
             "recommendation_canonical_primary",
             "recommendation_canonical_secondary",
+            "recommendation_canonical",
+            "recommended_resource",
+            "recommended_resources",
         ):
             if key in safe:
                 safe[key] = None
