@@ -22,7 +22,11 @@ def test_answer_distinguishes_existing_responsibility_emerging_opportunity_and_p
     answer = compose_recovery(QUERY)
     paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
 
-    assert len(paragraphs) == 3
+    assert len(paragraphs) == 5
+    assert paragraphs[1].startswith("1. EXISTING RESPONSIBILITY")
+    assert paragraphs[2].startswith("2. EMERGING OPPORTUNITY")
+    assert paragraphs[3].startswith("3. PREMATURE OR UNSUPPORTED INVITATION")
+    assert paragraphs[4].startswith("A practical first move:")
     for required in (
         "existing responsibility",
         "emerging opportunity",
@@ -37,7 +41,9 @@ def test_answer_distinguishes_existing_responsibility_emerging_opportunity_and_p
 
 def test_answer_prioritizes_existing_responsibility_and_requires_listening_before_offering():
     answer = compose_recovery(QUERY)
-    assert "Start with the first situation" in answer
+    assert "1. EXISTING RESPONSIBILITY" in answer
+    assert answer.index("1. EXISTING RESPONSIBILITY") < answer.index("2. EMERGING OPPORTUNITY") < answer.index("3. PREMATURE OR UNSUPPORTED INVITATION")
+    assert "A practical first move:" in answer
     assert "explore an emerging opportunity by listening before offering a solution" in answer
     assert "proportionate, reversible step" in answer
     assert "remain answerable to the people affected" in answer
@@ -73,7 +79,7 @@ def test_final_visitor_boundary_restores_refined_answer_and_verified_doorway():
     assert result["response"] == compose_recovery(QUERY)
     assert "existing responsibility" in result["response"]
     assert "emerging opportunity" in result["response"]
-    assert "premature or unsupported invitation" in result["response"]
+    assert "premature or unsupported invitation" in result["response"].casefold()
     assert result["recommendation"]["title"] == "Stewardship as Human Maturity"
     assert result["canonical_doorway"] == result["recommendation"]
     assert result["doorway_title"] == "Stewardship as Human Maturity"

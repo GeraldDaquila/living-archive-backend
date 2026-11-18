@@ -809,9 +809,13 @@ def test_regeneration_participation_question_has_specific_recovery_and_verified_
 
     answer = compose_recovery(query)
     paragraphs = [part.strip() for part in answer.split("\n\n") if part.strip()]
-    assert len(paragraphs) == 3
-    assert "The invitation is to let what you take in become a form of care." in paragraphs[0]
-    assert "what has been entrusted to my care" in paragraphs[0]
+    assert len(paragraphs) == 5
+    assert paragraphs[1].startswith("1. EXISTING RESPONSIBILITY")
+    assert paragraphs[2].startswith("2. EMERGING OPPORTUNITY")
+    assert paragraphs[3].startswith("3. PREMATURE OR UNSUPPORTED INVITATION")
+    assert paragraphs[4].startswith("A practical first move:")
+    assert paragraphs[0].startswith("Regeneration becomes participation when insight turns into responsible care")
+    assert "what is already entrusted to your care" in paragraphs[0]
     assert "who should help define the need" in paragraphs[2]
     assert "feedback" in paragraphs[2]
     assert "supernatural invitation" in paragraphs[2]
