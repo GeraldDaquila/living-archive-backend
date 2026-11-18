@@ -3932,12 +3932,12 @@ def _gold_star_candidate_adjudication_recovery(query: str) -> Optional[Dict[str,
     mentioning Gold Stars should use this recovery.
     """
     text = _normalize_space(query)
-    if not re.search(r"\bgold\\s+stars?\\b", text, re.I):
+    if not re.search(r"\bgold\s+stars?\b", text, re.I):
         return None
     asks_adjudication = (
-        re.search(r"\b(?:select|choose|decide|determine|adjudicat)\\w*\\b", text, re.I)
-        and re.search(r"\bcombin\\w*\\b", text, re.I)
-        and re.search(r"\breject\\w*\\b", text, re.I)
+        re.search(r"\b(?:select|choose|decide|determine|adjudicat)\w*\b", text, re.I)
+        and re.search(r"\bcombin\w*\b", text, re.I)
+        and re.search(r"\breject\w*\b", text, re.I)
     )
     if not asks_adjudication:
         return None
