@@ -52,7 +52,7 @@ def test_v2_contract_does_not_depend_on_a_gold_star_match(monkeypatch):
 
     monkeypatch.setattr(composition, "route_with_model_bank", fake_route)
     monkeypatch.setattr(composition, "_gold_star_active_quality_contribution", lambda _q: None)
-    composition.compose(use_core=object(), query="What is photosynthesis?", context_data={})
+    composition.compose(use_core=object(), query="What is photosynthesis?", context_data={}, integrity_recovery=True)
     system_message = next(
         item["content"] for item in captured["messages"] if item["role"] == "system"
     )
