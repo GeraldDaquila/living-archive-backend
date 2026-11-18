@@ -9,6 +9,7 @@ on:
       - "tests/test_structural_doorway_presence.py"
       - "provider_bank.py"
       - "general_guide_composition.py"
+      - "general_guide_gold_standards.py"
       - "deterministic_answer_recovery.py"
       - "tests/test_archive_constitutional_recovery.py"
       - "tests/test_archive_claim_doorway_authority.py"
