@@ -654,9 +654,9 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
     """Make an explicit no-doorway decision terminal across every response path.
 
     Answer composition, canonical retrieval, and visitor navigation are separate
-    stages. When an upstream recovery explicitly records that no relevant
-    destination is verified, later retrieval or fallback stages must not
-    reintroduce a generic link at the final visitor boundary.
+    stages. Upstream omission notes are advisory; the shared final boundary
+    validates or recovers a relevant canonical destination before deciding to
+    omit. Only reviewed standards and explicit visitor instructions are terminal.
     """
     safe = dict(payload) if isinstance(payload, dict) else {}
     exact_standard = _resolve_exact_guide_gold_standard(query)
