@@ -7213,6 +7213,64 @@
       "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial. Preserve the benchmark ID as the stable identity; serial allocation remains independent.",
       "legacy_approval_grandfathered": false,
       "forbids_doorway": true
+    },
+    {
+      "benchmark_id": "gs-2026-11-19-felt-truth-claim-discernment",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What claims am I accepting because they feel true, beautiful, or empowering—and what would it take to examine them carefully?",
+      "expected_response": "A claim can feel deeply true without necessarily being true. An idea may resonate with your experience, offer a beautiful explanation of the world, or restore a sense of purpose and agency. Those experiences deserve attention, but they are not themselves proof of the claims attached to them. The first discipline is to distinguish the value of an experience from the accuracy of the interpretation built around it.\n\nEmotionally attractive beliefs can become self-protecting. We notice confirming experiences, overlook contradictions, interpret ambiguity in our favor, and mistake the comfort a belief provides for evidence that it is correct. This does not mean beautiful, spiritual, hopeful, or empowering ideas are necessarily false. It means their appeal should not exempt them from examination.\n\nA practical examination has seven steps:\n\n1. **State the claim precisely.** What exactly are you accepting? Separate the proposition from the emotions, promises, and implications surrounding it.\n2. **Separate experience from interpretation.** What did you directly observe or experience? What meaning did you assign to it? Both matter, but they are different kinds of information.\n3. **Identify the evidence.** What supports the claim independently of how compelling it feels? Is the evidence direct, repeatable, independently corroborated, or dependent on one interpretation?\n4. **Look for disconfirming evidence.** What would make the claim less credible? What observation would count against it? A belief that can accommodate every possible outcome without changing is difficult to examine meaningfully.\n5. **Consider alternative explanations.** Could the same experience be explained by expectation, selective attention, coincidence, social reinforcement, personal need, or another plausible mechanism?\n6. **Examine what the belief does.** Does it increase your capacity to think, act responsibly, and remain open to correction? Or does it make you dependent on an authority, resistant to questions, or afraid of contrary evidence?\n7. **Adjust confidence proportionately.** You do not have to accept or reject everything immediately. You can retain an experience's personal significance while suspending judgment about its explanation.\n\nDiscernment does not require becoming cynical. It requires refusing to confuse emotional resonance with epistemic certainty. Something can be beautiful without being factual, empowering without being universally applicable, and personally meaningful without being independently established. Equally, discovering that an explanation is mistaken does not necessarily invalidate the experience that led you to it.\n\nThe aim is not to strip life of meaning. It is to build meanings that can withstand honest examination. Let what resonates invite investigation, let evidence determine confidence, and let the willingness to revise remain part of what makes a belief worth holding.",
+      "expected_doorway": {
+        "title": "Seeing Patterns Without Fooling Yourself",
+        "url": "https://geralddaquila.com/2026/04/06/seeing-patterns-without-fooling-yourself/",
+        "rationale": "This essay offers a practical method for examining whether a perceived pattern is supported or projected. Its filters—repeatability, plausible mechanism, constraints, and disconfirmation—extend the question of how to test emotionally compelling claims without letting confirmation bias decide the result. It is a method for examination, not independent proof for or against any particular belief."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 10,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User explicitly instructed: fix the structural default-quality failure, correct this exact visitor response, and turn the result into a Gold Star. The answer, evidence boundary, and verified canonical continuation are approved for this exact question.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "felt_truth_claim_discernment",
+      "transferable_lesson": "When a visitor questions claims or beliefs because they feel true, beautiful, empowering, resonant, or emotionally compelling, distinguish the lived experience and its personal value from the factual accuracy of the attached interpretation. Require precise claim formulation, separation of observation and interpretation, independent evidence, disconfirming tests, alternative explanations, examination of belief effects, and proportionate confidence. Preserve meaning without treating emotional appeal as proof.",
+      "transfer_boundary": "Do not imply that emotionally compelling, beautiful, spiritual, hopeful, or empowering claims are necessarily false. Do not dismiss or invalidate the visitor's experience. Do not treat resonance, comfort, intensity, or usefulness as evidence that a proposition is factually true. Do not impose a spiritual framework, assume the claim's content, or transfer this answer text or doorway to unrelated questions.",
+      "known_theme": "felt truth, emotional appeal, confirmation bias, epistemic discernment, evidence testing, disconfirmation, alternative explanations, personal meaning, belief revision",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_exact_query_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "felt_truth_claim_discernment",
+        "transferable_discipline": "Separate lived experience from interpretation; examine claims through independent evidence, disconfirmation, alternative explanations, effects, and proportionate confidence while preserving personal meaning.",
+        "abstention_boundary": "Do not impose a spiritual frame, infer the visitor's specific belief, or equate emotional appeal with truth or falsity."
+      },
+      "assertions": [
+        "Answer the question as an epistemic examination task, not generic reflection or resource discovery.",
+        "Distinguish the personal value of an experience from the factual accuracy of the attached claim.",
+        "Explain how emotional appeal can reinforce confirmation bias without declaring attractive beliefs false.",
+        "Provide a usable method covering precise claims, observation versus interpretation, independent evidence, disconfirmation, alternatives, belief effects, and confidence calibration.",
+        "Preserve personal meaning while requiring evidentiary standards for factual claims.",
+        "Recommend the verified Seeing Patterns Without Fooling Yourself essay with a rationale that does not present it as proof."
+      ],
+      "user_approved_at": "2026-11-19",
+      "elevation_approval_evidence": "The user reviewed the live visitor question and inadequate response screenshot, explicitly instructed structural correction at both universal-default and question levels, and directed that the question-level answer be turned into a Gold Star.",
+      "provenance": {
+        "source": "user_reviewed_live_visitor_question_and_explicit_gold_star_elevation",
+        "source_date": "2026-11-19",
+        "live_surface": "Living Archive Guide visitor-facing search interface",
+        "evidence_boundary": "The screenshot establishes the exact visitor question and the inadequate response. The corrected response and acceptance assertions are the approved target; successful live rendering must still be demonstrated in the QA browser.",
+        "doorway_verification": {
+          "source": "Existing registered recovery doorway for interpretation-revision and resonance/confirmation-bias questions",
+          "canonical_title": "Seeing Patterns Without Fooling Yourself",
+          "canonical_url": "https://geralddaquila.com/2026/04/06/seeing-patterns-without-fooling-yourself/",
+          "verification_date": "2026-11-19",
+          "conceptual_fit": "The essay supplies a method for examining perceived patterns through repeatability, mechanism, constraints, and disconfirmation; it is not evidence for or against the visitor's unspecified claim."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request allocation of a display serial. Preserve benchmark_id as the stable identity; serial allocation remains independent."
     }
   ],
   "last_reconciliation_note": "2026-11-18: Added gs-2026-11-18-autonomy-adaptivity-resilience-improvement-evidence as an approved exact-query Gold Star with a bounded, pre-registered AI capability evidence-evaluation protocol and matching qualitative-transfer review. Canonical inventory: 112 approved Gold Stars across 150 registry records; 110 active runtime-transfer contributors, 38 numbered, 74 UNASSIGNED. No existing serial changed; no new serial was allocated.",
@@ -7344,16 +7402,16 @@
     "gold_star_contract": "Gold Star means one thing only: a fully validated, frozen exemplar that actively contributes to adaptive learning. The canonical registry may retain non-Gold-Star evidence and candidate records, but they are excluded from the Gold Star count and runtime Gold Star authority."
   },
   "integrity_audit": {
-    "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 112,
-    "registry_record_count": 150,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 112 approved-status records across 150 registry records. 110 are active structural-learning contributors with matching qualitative-transfer reviews; 1 is an approved exact-query-only successor and 1 is a superseded historical duplicate retained for provenance. 1 recovered response is pending approval evidence and is excluded from every Gold Star count.",
+    "last_audit_date": "2026-11-19",
+    "approved_gold_star_count": 113,
+    "registry_record_count": 151,
+    "review_reconciliation": "Canonical inventory updated on 2026-11-19: 113 approved-status records across 151 registry records. 111 are active structural-learning contributors with matching qualitative-transfer reviews; 1 is an approved exact-query-only successor and 1 is a superseded historical duplicate retained for provenance. 1 recovered response remains pending approval evidence and is excluded from Gold Star counts.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 112 approved Gold Stars; 39 assigned display serials #56–#94; 73 approved records explicitly UNASSIGNED with reasons. Gold Star #94 was allocated to gs-2026-11-18-personality-soul-oversoul-discernment after explicit user elevation. No existing serial changed.",
-    "unassigned_approved_gold_star_count": 73,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-19: 113 approved Gold Stars; 39 assigned display serials #56–#94; 74 approved records explicitly UNASSIGNED with reasons. No existing serial changed.",
+    "unassigned_approved_gold_star_count": 74,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 110,
+    "active_quality_contributor_count": 111,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1
