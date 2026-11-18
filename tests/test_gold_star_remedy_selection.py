@@ -56,11 +56,10 @@ def test_remedy_selection_recovery_does_not_capture_adjacent_questions():
     ) is None
 
 
-def test_compose_uses_approved_registry_reference_for_exact_remedy_selection_question():
+def test_compose_dispatches_remedy_selection_without_provider_or_retrieval():
     result = composition.compose(use_core=None, query=QUERY, context_data={})
     assert result is not None
-    assert result["provider"] == "gold_standard_registry"
-    assert result["model"] == "approved-reference"
+    assert result["provider"] == "bounded_gold_star_remedy_selection_recovery"
     assert result["response"].startswith("USE should create a Gold Star only when")
 
 
@@ -70,24 +69,19 @@ def test_remedy_selection_meta_governance_is_in_both_provider_prompts():
     assert source.count("Repair engineering defects first and evaluate only any remaining reasoning gap.") == 2
 
 
-def test_remedy_selection_candidate_is_unique_and_approved_record_has_unique_identity_and_reconciled_inventory():
+def test_remedy_selection_candidate_is_unique_and_not_activated_before_live_review():
     registry = json.loads((ROOT / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
     benchmark_id = "general-guide-gold-star-remedy-selection-vs-engineering-defect-2026-11-18"
     records = [r for r in registry["records"] if r.get("benchmark_id") == benchmark_id]
     assert len(records) == 1
     record = records[0]
-    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["status"] == "CANDIDATE"
     assert record["query"] == QUERY
     assert record["expected_response"].startswith("USE should create a Gold Star only when")
     assert record["expected_doorway"] is None
-    assert record["doorway_status"] == "INTENTIONALLY_NONE_APPROVED"
-    assert record["forbids_doorway"] is True
-    assert record["expected_doorway"] is None
-    assert record["numbering_status"] == "UNASSIGNED"
-    assert "terminal visitor boundary" in record["provenance"]["evidence_boundary"]
-    assert record["freeze_policy"] == "immutable_user_approved_gold_standard"
-    assert record["runtime_transfer"] is True
+    assert "pending live review" in record["provenance"]["evidence_boundary"]
+    assert "Do not promote" in record["freeze_policy"]
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
     assert len(approved) == registry["integrity_audit"]["approved_gold_star_count"] == 108
-    assert len(registry["records"]) == registry["integrity_audit"]["registry_record_count"] == 145
+    assert len(registry["records"]) == registry["integrity_audit"]["registry_record_count"] == 146
     assert len({r["benchmark_id"] for r in registry["records"]}) == len(registry["records"])
