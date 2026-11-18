@@ -25,7 +25,7 @@ def test_resonance_recovery_distinguishes_signal_from_evidence_and_bias():
         "it is not proof that the idea is true",
         "what you directly observed",
         "the meaning you are assigning to it",
-        "strongest alternative explanation",
+        "What is the strongest alternative explanation?",
         "Does it recur under comparable conditions",
         "What plausible mechanism connects the observations",
         "What constraints or alternative explanations could produce the same result",
@@ -33,9 +33,9 @@ def test_resonance_recovery_distinguishes_signal_from_evidence_and_bias():
         "five reports repeating one original claim are not five independent confirmations",
         "let resonance generate a hypothesis",
         "pause before irreversible action",
-        "revise the interpretation",
+        "revise or release the interpretation",
     ):
-        assert required in answer
+        assert required.casefold() in answer.casefold()
     assert "not enough grounded material" not in answer.casefold()
     assert "organizational" not in answer.casefold()
 
@@ -62,7 +62,7 @@ def test_resonance_classifier_has_narrow_negative_controls():
 
 
 
-def test_final_visitor_boundary_replaces_generic_provider_answer_and_preserves_no_doorway():
+def test_final_visitor_boundary_replaces_generic_answer_and_restores_verified_doorway():
     import main
 
     result = main._guide_finalize_visitor_payload(
@@ -77,9 +77,14 @@ def test_final_visitor_boundary_replaces_generic_provider_answer_and_preserves_n
     )
     assert result["response"] == _resonance_confirmation_bias_recovery()
     assert result["answer"] == result["response"] if "answer" in result else True
-    assert result["recommendation"] is None
-    assert result["canonical_doorway"] is None
-    assert result["doorway_title"] is None
+    assert result["recommendation"]["title"] == "Seeing Patterns Without Fooling Yourself"
+    assert result["canonical_doorway"] == result["recommendation"]
+    assert result["doorway_title"] == "Seeing Patterns Without Fooling Yourself"
+    assert result["doorway_url"] == (
+        "https://geralddaquila.com/2026/04/06/seeing-patterns-without-fooling-yourself/"
+    )
+    assert result["doorway_rationale"]
+    assert result["answer_basis"]["kind"] == "general_knowledge"
     assert result["processing"] == "final_visitor_boundary_resonance_confirmation_bias_recovery"
 
 
