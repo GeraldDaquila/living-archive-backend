@@ -4285,6 +4285,34 @@ def _trust_community_stewardship_canonical_recommendation(query, context_data=No
             "trust-architecture-the-missing-infrastructure-behind-functional-societies/"
         ),
         "kind": "archive_resource",
+        "rationale": (
+            "This essay treats trust as social infrastructure: it enables coordination, "
+            "reduces friction, and supports cooperation across communities and institutions. "
+            "It also emphasizes that trust must coexist with accountability and scrutiny. "
+            "It is a focused continuation of the question, not a formal definition of "
+            "community stewardship."
+        ),
+    }
+
+
+def _trust_community_stewardship_final_contract(query):
+    """Return the complete answer, provenance, and verified doorway for this exact question family."""
+    if not _is_trust_community_stewardship_question(query):
+        return None
+    doorway = _trust_community_stewardship_canonical_recommendation(query)
+    return {
+        "response": _trust_community_stewardship_recovery(),
+        "answer_basis": {
+            "kind": "archive_supported",
+            "label": "Informed by the Living Archive",
+            "explanation": (
+                "The Archive's Trust Architecture essay grounds the framing of trust "
+                "as social infrastructure that enables coordination and cooperation "
+                "while retaining accountability."
+            ),
+            "source_url": doorway["url"] if doorway else None,
+        },
+        "recommendation": doorway,
     }
 
 
@@ -12455,6 +12483,35 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         print("The Guide final integrity boundary blocked cross-question approved-answer leakage.")
     if _glossary_answer_basis:
         answer_basis = _glossary_answer_basis
+
+    # Final semantic contract: this bounded conceptual question has a
+    # registered answer and a directly verified Archive continuation. Do not
+    # allow a fluent provider limitation message to displace that complete answer.
+    _trust_stewardship_contract = _trust_community_stewardship_final_contract(query)
+    if _trust_stewardship_contract:
+        response = _sanitize_basic_inquiry_response(
+            _trust_stewardship_contract["response"]
+        )
+        answer_basis = dict(_trust_stewardship_contract["answer_basis"])
+        authoritative_doorway = _normalize_authoritative_recommendation(
+            _trust_stewardship_contract["recommendation"]
+        )
+        composition_context["authoritative_doorway"] = authoritative_doorway
+        composition_context["authoritative_doorway_title"] = (
+            authoritative_doorway.get("title") if authoritative_doorway else None
+        )
+        deterministic_result = {
+            "response": response,
+            "provider": "bounded_trust_community_stewardship_recovery",
+            "model": "deterministic-contract-recovery",
+        }
+        # The final visitor answer is deterministic even if an earlier provider
+        # attempt produced a fluent but incomplete Archive-limitation response.
+        composition_result = None
+        print(
+            "The Guide final payload boundary: trust-community stewardship "
+            "answer, provenance, and canonical doorway contract enforced."
+        )
 
     # Response provenance metrics: content-free operational accounting for the
     # quality-first provider architecture. These fields distinguish an intentional
