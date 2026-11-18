@@ -1751,7 +1751,7 @@ def test_integrity_audit_numbering_reconciliation_narrative_matches_record_count
     assert len(assigned) + len(unassigned) == len(approved)
     assert "113 approved Gold Stars" in narrative
     assert "39 assigned display serials" in narrative
-    assert "73 approved records explicitly UNASSIGNED" in narrative
+    assert "74 approved records explicitly UNASSIGNED" in narrative
     assert "99 approved Gold Stars" not in narrative
     assert "61 approved records explicitly UNASSIGNED" not in narrative
 
