@@ -9868,16 +9868,17 @@ def _established_archive_cosmology_recovery(query):
     return {
         "recovery_id": "archive_informed_cosmology_lived_significance",
         "response": (
-            "Cosmology is an understanding of how reality works and how we belong within it—not only a theory about the physical universe. "
-            "The picture we carry of people, nature, change, and our place in the world shapes what we notice and how we make decisions.\n\n"
-            "The Living Archive explores a contrast between a separation-based worldview and a unity-informed worldview. "
-            "A separation-based view tends to organize life around competition, control, earned worth, and fear of loss. "
-            "A unity-informed view sees people as distinct but connected, treats worth as inherent, and understands growth as something that can emerge through relationship, responsibility, and cooperation. "
-            "These are ways of interpreting experience, not labels for judging a person.\n\n"
-            "This matters because a worldview can become an invisible guide for everyday choices. "
-            "If every disagreement is treated as a contest for control, people may protect status instead of looking for a workable answer. "
-            "If people see themselves as distinct but connected, they can recognize differences without treating them as threats. "
-            "This is a useful starting explanation, not a claim that one Archive text exhausts the subject."
+            "Cosmology has two closely related meanings. In science, it is the study of the universe as a whole: its origin, large-scale structure, development, and possible future. "
+            "In philosophy and ordinary human reflection, the word can also refer to a broad account of what reality is like and where human beings belong within it. "
+            "The question about how people live concerns this second, wider use of the term.\n\n"
+            "A worldview is not the same thing as scientific cosmology. It is the set of assumptions—often partly unexamined—through which people interpret existence, other people, nature, change, and their own place in the world. "
+            "Those assumptions can shape what people notice, what they regard as possible, what they value, and how they respond to one another.\n\n"
+            "This matters in everyday life because assumptions about reality influence how situations are understood. "
+            "If people assume that life is mainly a contest for scarce status or control, disagreement may be treated as a threat and cooperation may be harder to sustain. "
+            "If they understand people as distinct but interdependent, they may be more likely to consider relationships, shared conditions, and mutual consequences when making decisions. "
+            "These are illustrative philosophical interpretations, not scientific findings that prove one worldview correct.\n\n"
+            "The Living Archive explores one such interpretation through its distinction between separation-based and unity-informed ways of understanding human life. "
+            "That is the Archive's interpretive framework, which can be examined and questioned; it should not be confused with the scientific discipline of cosmology or presented as a settled description of reality."
         ),
     }
 
