@@ -50,6 +50,7 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
         selected_doorway = {
             "title": "Foundational Stewardship Cases",
             "url": "https://geralddaquila.com/level-1-case-catalog/",
+            "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
         }
         standard = resolve_exact_gold_standard(QUESTION)
         self.assertIsNotNone(standard)
@@ -70,6 +71,7 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
         selected_doorway = {
             "title": "Foundational Stewardship Cases",
             "url": "https://geralddaquila.com/level-1-case-catalog/",
+            "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
         }
         standard = resolve_exact_gold_standard(
             "Explain stewardship, but do not send me to another page yet."
@@ -86,6 +88,7 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
         selected_doorway = {
             "title": "Foundational Stewardship Cases",
             "url": "https://geralddaquila.com/level-1-case-catalog/",
+            "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
         }
         payload = {
             "ok": True,
@@ -111,6 +114,7 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
             "recommendation": {
                 "title": "Foundational Stewardship Cases",
                 "url": "https://geralddaquila.com/level-1-case-catalog/",
+            "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
             },
         }
 
