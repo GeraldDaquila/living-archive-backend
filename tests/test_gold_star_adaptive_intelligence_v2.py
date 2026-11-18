@@ -1,0 +1,82 @@
+"""Behavioral contract tests for Gold Star Adaptive Intelligence v2.0."""
+import json
+from pathlib import Path
+
+import general_guide_composition as composition
+
+
+ROOT = Path(__file__).resolve().parents[1]
+REGISTRY_PATH = ROOT / "docs" / "qa" / "gold_standard_registry.json"
+
+
+def test_v2_quality_contract_is_injected_into_actual_provider_system_message(monkeypatch):
+    captured = {}
+
+    def fake_route(**kwargs):
+        captured.update(kwargs)
+        return {"parsed": {"response": "Photosynthesis converts light energy into chemical energy."}}
+
+    monkeypatch.setattr(composition, "route_with_model_bank", fake_route)
+    monkeypatch.setattr(composition, "_gold_star_active_quality_contribution", lambda _q: None)
+    result = composition.compose(
+        use_core=object(),
+        query="What is photosynthesis?",
+        context_data={},
+    )
+
+    assert result is not None
+    messages = captured["messages"]
+    system_message = next(item["content"] for item in messages if item["role"] == "system")
+    assert composition.GOLD_STAR_ADAPTIVE_INTELLIGENCE_STANDARD_VERSION == "2.0"
+    for dimension in (
+        "PROSE",
+        "STRUCTURE",
+        "COHERENCE",
+        "QUESTION-FIT AND COMPETENCE",
+        "DISCERNMENT AND EPISTEMIC INTEGRITY",
+        "RESOLUTION AND PRACTICAL UTILITY",
+        "CONTINUITY AND DEVELOPMENTAL VALUE",
+        "ADAPTIVE LEARNING INTEGRITY",
+    ):
+        assert dimension in system_message
+    assert "not as eight mandatory sections" in system_message
+    assert "does not grant new benchmark authority" in system_message
+
+
+def test_v2_contract_does_not_depend_on_a_gold_star_match(monkeypatch):
+    captured = {}
+
+    def fake_route(**kwargs):
+        captured.update(kwargs)
+        return {"parsed": {"response": "A concise answer."}}
+
+    monkeypatch.setattr(composition, "route_with_model_bank", fake_route)
+    monkeypatch.setattr(composition, "_gold_star_active_quality_contribution", lambda _q: None)
+    composition.compose(use_core=object(), query="What is photosynthesis?", context_data={})
+    system_message = next(
+        item["content"] for item in captured["messages"] if item["role"] == "system"
+    )
+    assert "GOLD STAR ADAPTIVE INTELLIGENCE STANDARD v2.0" in system_message
+
+
+def test_existing_approved_inventory_and_active_contributor_counts_are_preserved():
+    registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+    approved = [
+        item for item in registry["records"]
+        if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
+    ]
+    active = [item for item in approved if item.get("runtime_transfer") is True]
+    assert len(approved) == 112
+    assert len(active) == 110
+    assert len({item["benchmark_id"] for item in approved}) == 112
+
+
+def test_v2_contract_does_not_mutate_canonical_gold_star_records():
+    registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+    approved = [
+        item for item in registry["records"]
+        if item.get("status") == "USER_APPROVED_GOLD_STANDARD"
+    ]
+    assert all(item.get("benchmark_id") for item in approved)
+    assert all(item.get("provenance") for item in approved)
+    assert all(item.get("freeze_policy") for item in approved)
