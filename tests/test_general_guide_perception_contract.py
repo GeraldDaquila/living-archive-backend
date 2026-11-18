@@ -34,21 +34,23 @@ def test_shared_composition_question_intent_fidelity_policy():
 
 
 def test_composition_contract_remains_provider_neutral():
-    assert guide.CONTRACT_VERSION == "v1.46"
+    assert guide.CONTRACT_VERSION == "v1.47"
     snapshot = guide.contract_snapshot()
-    assert snapshot["contract_version"] == "v1.46"
+    assert snapshot["contract_version"] == "v1.47"
     assert snapshot["provider_neutral"] is True
 
 
-def test_stewardship_presentation_is_a_systemwide_explanatory_standard():
+def test_stewardship_presentation_uses_the_task_dependent_quality_standard():
     prompt = guide._GENERAL_GUIDE_SYSTEM
-    assert "System-wide answer presentation standard" in prompt
-    assert "applies to every ordinary Guide topic" in prompt
-    assert "A substantive explanatory or conceptual question defaults to three purposeful paragraphs" in prompt
-    assert "complete before the default Archive doorway appears" in prompt
-    assert "not only stewardship or Archive-specific questions" in prompt
-    assert "simple, self-contained factual lookup may be one or two sentences" in prompt
-    assert "direct navigation request should give a clear destination" in prompt
+    assert "TASK-DEPENDENT PRESENTATION STANDARD" in prompt
+    assert "GOLD STAR QUALITY GOVERNANCE" in prompt
+    assert "every visitor-facing path" in prompt
+    assert "choose the response form that makes the answer easiest to understand and use" in prompt
+    assert "Do not impose a fixed number of paragraphs or a universal sequence" in prompt
+    assert "answer must be complete before any optional Archive doorway appears" in prompt
+    assert "ordinary general-purpose questions" in prompt
+    assert "simple factual lookup may need one or two sentences" in prompt
+    assert "direct navigation request may need a destination" in prompt
 
 
 def test_systemwide_presentation_preserves_humane_voice_and_evidence_boundaries():
@@ -78,12 +80,12 @@ def test_writer_preserves_natural_explanatory_reasoning_without_forced_balance()
     assert "Prefer one earned insight over several generic observations" in prompt
     assert "Use a concrete-example decision rule before composing" in prompt
     assert "preserve the reasoning rather than flattening it into a summary" in prompt
-    assert "Each paragraph must add a new piece of understanding" in prompt
+    assert "Each part must add understanding" in prompt
     assert "stop once the visitor has the understanding they came for" in prompt
     assert "one concrete, plausible situation only if it clarifies the mechanism or consequence" in prompt
 
 
-def test_conceptual_relationships_require_three_paragraph_default():
+def test_conceptual_relationships_require_task_relevant_discernment():
     query = "What is the relationship between personal agency and responsibility to others?"
     assert guide._requires_discernment_synthesis(query)
     parse = guide._parse_factory([], query)
@@ -119,8 +121,8 @@ def test_conceptual_relationships_require_three_paragraph_default():
     assert "does not mean" in compact_parsed
 
 def test_writer_contract_advances_sequentially_after_restoration():
-    assert guide.CONTRACT_VERSION == "v1.46"
-    assert guide.contract_snapshot()["contract_version"] == "v1.46"
+    assert guide.CONTRACT_VERSION == "v1.47"
+    assert guide.contract_snapshot()["contract_version"] == "v1.47"
 
 
 def test_incomplete_comparison_question_clarifies_before_retrieval():
@@ -154,8 +156,8 @@ def test_ordinary_explanatory_question_is_not_interrupted():
 
 
 def test_composition_contract_version_advances_for_clarification_boundary():
-    assert guide.CONTRACT_VERSION == "v1.46"
-    assert guide.contract_snapshot()["contract_version"] == "v1.46"
+    assert guide.CONTRACT_VERSION == "v1.47"
+    assert guide.contract_snapshot()["contract_version"] == "v1.47"
 
 
 def test_plain_stewardship_explanation_rejects_unsolicited_spectrum_list():
@@ -228,14 +230,15 @@ def test_explicit_closing_question_request_is_detected_and_enforced():
 
 
 
-def test_gold_standard_is_the_default_general_presentation_contract():
+def test_gold_standard_is_the_task_dependent_general_quality_contract():
     prompt = guide._GENERAL_GUIDE_SYSTEM
-    assert "DEFAULT PRESENTATION STANDARD (applies to ordinary general-purpose questions)" in prompt
+    assert "TASK-DEPENDENT PRESENTATION STANDARD (applies to ordinary general-purpose questions)" in prompt
     assert "Lead with the answer, not a description of what an answer should contain" in prompt
-    assert "normally three purposeful, readable paragraphs" in prompt
+    assert "Do not impose a fixed number of paragraphs or a universal sequence" in prompt
     assert "Do not append a generic clarification prompt merely to prolong the exchange" in prompt
-    assert "Place any verified, directly relevant Archive resource in a distinct, clearly labeled doorway section" in prompt
-    assert "For a substantive explanatory, conceptual, educational, social, or Archive-related question, present three connected, readable paragraphs by default" in prompt
+    assert "offer a canonical Archive doorway" in prompt
+    assert "do not attach the Compass by default" in prompt
+    assert "choose the response form that makes the answer easiest to understand and use" in prompt
 
 
 
@@ -248,13 +251,13 @@ def test_historical_origin_and_evolution_questions_use_explanatory_shape():
 
 
 
-def test_gold_star_structural_template_is_system_wide_and_task_formats_must_earn_exception():
+def test_gold_star_quality_floor_is_system_wide_but_answer_shape_is_task_dependent():
     prompt = guide._GENERAL_GUIDE_SYSTEM
-    assert "SYSTEM-WIDE GOLD STAR STRUCTURAL TEMPLATE (default across the entire Guide)" in prompt
-    assert "every visitor-facing response, regardless of topic or specialist route" in prompt
-    assert "The task format changes the shape, never lowers the quality floor" in prompt
-    assert "A specialist's preferred format is not an exception merely because it is specialist-specific" in prompt
-    assert "This floor governs fallbacks too" in prompt
+    assert "GOLD STAR QUALITY GOVERNANCE (system-wide, all visitor-facing paths)" in prompt
+    assert "does not dictate a fixed paragraph count, sequence, or output format" in prompt
+    assert "choose the response shape that best performs that task" in prompt
+    assert "A specialist format is appropriate when the task requires it" in prompt
+    assert "This quality floor governs fallbacks too" in prompt
 
 
 
@@ -404,7 +407,8 @@ def test_reflective_conceptual_questions_stay_explanatory_and_subject_anchored()
     for prompt in (guide._GENERAL_GUIDE_SYSTEM_COMPACT, guide._GENERAL_GUIDE_SYSTEM):
         assert "answer the conceptual tension before offering any action" in prompt
         assert "Do not convert the question into a generic decision checklist" in prompt
-        assert "Keep the explanation anchored to the named subject throughout all paragraphs" in prompt
+        assert "Keep the explanation anchored to the named subject" in prompt
+        assert "Use only the amount and form of explanation the question needs" in prompt
         assert "Do not introduce adjacent topics, specialist tools, AI governance, or institutional accountability" in prompt
 
 
