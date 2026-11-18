@@ -54,6 +54,9 @@ def test_compact_composition_contract_is_question_first_and_subject_adaptive():
     assert "QUESTION-FIRST, TASK-DEPENDENT COMPOSITION GOVERNANCE" in prompt
     assert "quality and reasoning-governance standard, not a prescribed answer template" in prompt
     assert "Do not impose a fixed paragraph count, three-move sequence, or prose format" in prompt
+    assert "DEFAULT GOLD STAR STRUCTURAL TEMPLATE" not in prompt
+    assert "three connected, readable paragraphs" not in prompt
+    assert "Paragraphs are a readability tool, not a compliance target" in prompt
     assert "Specialized guidance is conditional" in prompt
     assert "QUESTION-FIRST, TASK-DEPENDENT COMPOSITION GOVERNANCE" in _GENERAL_GUIDE_SYSTEM
     assert "Do not impose a fixed paragraph count" in _GENERAL_GUIDE_SYSTEM
