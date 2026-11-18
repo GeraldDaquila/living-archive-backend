@@ -100,6 +100,33 @@ def test_shared_json_sender_invokes_floor_before_serialization():
     assert serializations
     assert min(node.lineno for node in calls) < min(node.lineno for node in serializations)
 
+    request_boundary = next(
+        node for node in tree.body
+        if isinstance(node, ast.AsyncFunctionDef) and node.name == "_use_request_boundary"
+    )
+    outer_sender = next(
+        node for node in ast.walk(request_boundary)
+        if isinstance(node, ast.AsyncFunctionDef)
+        and node.name == "_send_with_final_visitor_boundary"
+    )
+    outer_calls = [
+        node for node in ast.walk(outer_sender)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "evaluate_response_floor"
+    ]
+    outer_serializations = [
+        node for node in ast.walk(outer_sender)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "json"
+        and node.func.attr == "dumps"
+    ]
+    assert outer_calls
+    assert outer_serializations
+    assert min(node.lineno for node in outer_calls) < min(node.lineno for node in outer_serializations)
+
 
 def test_shared_sender_e2e_allows_valid_answer_and_attaches_floor(monkeypatch):
     import asyncio
