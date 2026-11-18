@@ -1,5 +1,6 @@
 """Regression tests for task-specific evaluation of Guide capability claims."""
 
+import json
 import general_guide_composition as guide
 from pathlib import Path
 
@@ -252,3 +253,24 @@ def test_final_visitor_boundary_preserves_an_already_compliant_autonomy_answer()
     )
 
     assert result["response"] == answer
+
+
+def test_exact_autonomy_evidence_question_matches_frozen_gold_star_without_doorway():
+    question = (
+        "The Guide has been operating successfully for an extended period without human intervention. "
+        "What evidence should demonstrate that it is genuinely autonomous, adaptive, resilient, "
+        "and improving rather than merely continuing to produce responses?"
+    )
+    recovery = guide._autonomy_evidence_evaluation_recovery(question)
+    registry = json.loads(
+        (Path(__file__).resolve().parents[1] / "docs" / "qa" / "gold_standard_registry.json")
+        .read_text(encoding="utf-8")
+    )
+    benchmark_id = "gs-2026-11-18-autonomy-adaptivity-resilience-improvement-evidence"
+    record = next(item for item in registry["records"] if item["benchmark_id"] == benchmark_id)
+
+    assert recovery is not None
+    assert recovery["response"] == record["expected_response"]
+    assert recovery["doorway_title"] == ""
+    assert recovery["doorway_url"] == ""
+    assert guide._has_autonomy_evidence_evaluation(recovery["response"])
