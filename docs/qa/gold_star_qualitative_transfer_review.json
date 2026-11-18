@@ -905,6 +905,15 @@
       "transferable_discipline": "When a retrieved quotation may be out of context, treat it as a fragment: verify its original source and exact wording; recover the surrounding paragraph, adjacent paragraphs, headings, definitions, qualifications, notes, and relevant argument; compare the excerpt against the original for omissions or alterations; separate explicit source claims from contextual implications and user framing; analyze only after reconstruction; disclose unavailable context and keep dependent conclusions provisional.",
       "abstention_boundary": "Transfer only the context-restoration sequence to genuine quoted-passage or excerpt interpretation tasks. Do not assume quotations are inaccurate, invent missing source context, infer author intent beyond evidence, conflate separate sources, or impose this sequence on unrelated factual or conceptual questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-gold-star-scope-governance-cross-domain-regression-2026-11-18",
+      "question": "A new Gold Star appears to improve responses in one domain but degrades responses in another. How should USE determine whether its scope should be narrowed, revised, or rejected?",
+      "reasoning_family": "gold_star_scope_governance_and_cross_domain_regression",
+      "transferable_discipline": "Evaluate a Gold Star's demonstrated benefit separately from its transfer claim. Test target-domain gains against adjacent-domain and unrelated negative controls; compare quality dimensions and regression severity/repeatability; narrow when benefit is valid only within a clear boundary; revise when the insight is sound but activation or framing overgeneralizes; reject when gains are not reproducible or serious regressions cannot be contained. Preserve provenance and require new evidence before expanding scope.",
+      "qualifying_context": "Questions about evaluating whether an approved or proposed Gold Star should retain its current scope when evidence shows gains in one task domain and degradation in another; applies to Gold Star governance, not ordinary visitor decision questions.",
+      "abstention_boundary": "Do not generalize from target-domain gains alone; do not treat one unreplicated weak response as proof of systemic failure; do not activate this governance framework for unrelated visitor questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
