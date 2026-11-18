@@ -27,8 +27,7 @@ def test_remedy_selection_recovery_returns_three_question_specific_paragraphs():
     assert "If an engineering correction removes the failure, do not create a Gold Star." in paragraphs[2]
     assert result["doorway_title"] == ""
     assert result["doorway_url"] == ""
-    assert result["provider"] == "gold_standard_registry"
-    assert result["model"] == "approved-reference"
+    assert result["provider"] == "bounded_gold_star_remedy_selection_recovery"
 
 
 def test_remedy_selection_recovery_accepts_close_paraphrase():
@@ -60,7 +59,8 @@ def test_remedy_selection_recovery_does_not_capture_adjacent_questions():
 def test_compose_uses_approved_registry_reference_for_exact_remedy_selection_question():
     result = composition.compose(use_core=None, query=QUERY, context_data={})
     assert result is not None
-    assert result["provider"] == "bounded_gold_star_remedy_selection_recovery"
+    assert result["provider"] == "gold_standard_registry"
+    assert result["model"] == "approved-reference"
     assert result["response"].startswith("USE should create a Gold Star only when")
 
 
