@@ -124,6 +124,8 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
                 or previous.get("doorway_url", "") != (str(doorway_url) if doorway_url else "")
                 or previous.get("doorway_rationale", "") != doorway_rationale
                 or bool(previous.get("forbids_doorway")) != no_handoff
+                or previous.get("doorway_omission_exception_reason", "")
+                    != (str(record.get("doorway_omission_exception_reason") or "").strip() if no_handoff else "")
             ):
                 raise ValueError(
                     "Conflicting approved gold-standard doorways share an exact question."
@@ -137,6 +139,10 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
             "doorway_url": str(doorway_url) if doorway_url else "",
             "doorway_rationale": doorway_rationale,
             "forbids_doorway": no_handoff,
+            "doorway_omission_exception_reason": (
+                str(record.get("doorway_omission_exception_reason") or "").strip()
+                if no_handoff else ""
+            ),
         }
     return standards
 
