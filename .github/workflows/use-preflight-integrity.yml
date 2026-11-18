@@ -12,6 +12,8 @@ on:
       - 'tests/test_gold_star_qualitative_transfer_review.py'
       - '.github/workflows/use-preflight-integrity.yml'
       - 'main.py'
+      - 'gold_star_response_floor.py'
+      - 'tests/test_gold_star_response_floor.py'
       - 'QA/AI_ROLE_DISTINCTION_DOORWAY_BOUNDARY_TESTS.py'
   push:
     branches: [main]
@@ -45,3 +47,5 @@ jobs:
         run: python -m py_compile main.py
       - name: Run AI role doorway boundary regression
         run: python -m pytest -q QA/AI_ROLE_DISTINCTION_DOORWAY_BOUNDARY_TESTS.py
+      - name: Run Gold Star v2 source-independent response-floor tests
+        run: python -m pytest -q tests/test_gold_star_response_floor.py tests/test_gold_star_adaptive_intelligence_v2.py

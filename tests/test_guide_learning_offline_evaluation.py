@@ -15,8 +15,8 @@ def test_learning_schema_and_evaluation_suite_are_versioned():
     suite = json.loads(SUITE_PATH.read_text(encoding="utf-8"))
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert schema["properties"]["schema_version"]["const"] == "1.0.0"
-    assert suite["suite_version"] == "1.1.0"
-    assert suite["status"] == "LIVE_CAPTURED_HELDOUTS_HAVE_FAILURES_HUMAN_REVIEW_PENDING"
+    assert suite["suite_version"] == "1.2.0"
+    assert suite["status"] == "EXPANDED_SEVEN_CLASS_HELDOUTS_HUMAN_REVIEW_PENDING"
 
 
 def test_registry_is_the_authoritative_gold_standard_floor():
@@ -132,3 +132,17 @@ def test_human_review_rubric_never_promotes_proposed_lessons_automatically():
     assert "pending structured review template" in suite["scoring_policy"]["human_review"]
     assert all(lesson["status"] == "proposed" for lesson in suite["lessons"])
     assert all(lesson["approval"]["human_approved"] is False for lesson in suite["lessons"])
+
+
+def test_heldout_suite_preserves_all_seven_question_classes():
+    suite = json.loads(SUITE_PATH.read_text(encoding="utf-8"))
+    assert {case["question_type"] for case in suite["cases"]} == {
+        "general_fact",
+        "conceptual_explanation",
+        "practical_application",
+        "strategic_tradeoff",
+        "technical_verification",
+        "uncertain_or_insufficient_evidence",
+        "explicit_no_handoff",
+    }
+    assert len(suite["cases"]) == 7

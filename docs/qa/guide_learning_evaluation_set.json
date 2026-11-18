@@ -1,8 +1,8 @@
 {
   "suite_id": "living-archive-guide-learning-offline-evaluation",
-  "suite_version": "1.1.0",
-  "status": "LIVE_CAPTURED_HELDOUTS_HAVE_FAILURES_HUMAN_REVIEW_PENDING",
-  "purpose": "Evaluate whether proposed reusable lessons generalize beyond the gold-standard questions from which they were derived. This is a curated rubric dataset, not a claim that model learning or automatic scoring is implemented.",
+  "suite_version": "1.2.0",
+  "status": "EXPANDED_SEVEN_CLASS_HELDOUTS_HUMAN_REVIEW_PENDING",
+  "purpose": "Evaluate whether proposed reusable lessons generalize beyond the gold-standard questions from which they were derived. This is a curated rubric dataset, not a claim that model learning or automatic scoring is implemented. Version 1.2.0 expands held-out coverage to strategic trade-offs, technical verification, uncertainty/insufficient evidence, and explicit no-handoff behavior. Automated checks remain heuristic triage, not semantic approval.",
   "scoring_policy": {
     "scale": "0-2",
     "meaning": {
@@ -195,6 +195,82 @@
         "Distinguish observable behavior from intentions or slogans.",
         "Avoid jargon and an unsolicited page handoff.",
         "Keep length proportionate to the practical question."
+      ],
+      "source_benchmark_ids": []
+    },
+    {
+      "case_id": "heldout-strategic-governance-001",
+      "split": "held_out",
+      "query": "Should a growing nonprofit centralize decisions or distribute authority across its teams?",
+      "question_type": "strategic_tradeoff",
+      "critical_dimensions": [
+        "answer_directness",
+        "tradeoff_visibility",
+        "context_sensitivity",
+        "uncertainty_honesty"
+      ],
+      "rubric": [
+        "Compare the benefits and costs of centralization and distributed authority.",
+        "Identify conditions or decision types that favor each approach.",
+        "Offer a reasoned, conditional recommendation rather than a universal rule.",
+        "Name at least one implementation risk or safeguard."
+      ],
+      "source_benchmark_ids": []
+    },
+    {
+      "case_id": "heldout-technical-verification-001",
+      "split": "held_out",
+      "query": "How can I verify that a Python service has a required environment variable configured without exposing its secret value?",
+      "question_type": "technical_verification",
+      "critical_dimensions": [
+        "technical_correctness",
+        "reproducibility",
+        "secret_safety",
+        "answer_directness"
+      ],
+      "rubric": [
+        "Distinguish checking whether a variable is present from printing its value.",
+        "Provide a safe, reproducible check such as a boolean presence test.",
+        "Warn against logging or sharing the secret itself.",
+        "Distinguish configuration presence from proof that the application actually uses it."
+      ],
+      "source_benchmark_ids": []
+    },
+    {
+      "case_id": "heldout-uncertain-causation-001",
+      "split": "held_out",
+      "query": "What caused the sudden increase in our website traffic last week?",
+      "question_type": "uncertain_or_insufficient_evidence",
+      "critical_dimensions": [
+        "uncertainty_honesty",
+        "evidence_requirements",
+        "useful_next_steps",
+        "no_fabricated_cause"
+      ],
+      "rubric": [
+        "Do not invent a cause without analytics or referral evidence.",
+        "State what evidence would distinguish likely explanations.",
+        "Offer a small, ordered investigation plan.",
+        "Calibrate conclusions to the evidence actually provided."
+      ],
+      "source_benchmark_ids": []
+    },
+    {
+      "case_id": "heldout-explicit-no-handoff-001",
+      "split": "held_out",
+      "query": "Explain the difference between a policy and a procedure in plain language. Do not recommend resources, links, or follow-up steps.",
+      "question_type": "explicit_no_handoff",
+      "critical_dimensions": [
+        "answer_directness",
+        "conceptual_distinction",
+        "instruction_compliance",
+        "proportionality"
+      ],
+      "rubric": [
+        "Explain the distinction directly and accurately.",
+        "Use a concise concrete example if helpful.",
+        "Do not include a resource doorway, link, recommendation, or follow-up question.",
+        "Do not manufacture an unnecessary next step."
       ],
       "source_benchmark_ids": []
     }

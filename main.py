@@ -13041,6 +13041,41 @@ async def _use_send_json(send, payload, status_code=200):
                     payload["doorway_title"] = _required_title
                     payload["doorway_url"] = _required_url
                     payload["doorway_rationale"] = _required_rationale or None
+    # Gold Star v2.0 is a source-independent minimum at the single JSON exit.
+    # This conservative gate enforces machine-verifiable integrity; route-specific
+    # contracts remain responsible for substantive question-fit and domain adequacy.
+    # Frozen exact answers are audited identically and never silently rewritten.
+    if isinstance(payload, dict) and str(payload.get("intent") or "").upper() != "SAFETY_CONVERSATION":
+        try:
+            from gold_star_response_floor import evaluate_response_floor
+            _floor_query = str(payload.get("query") or "").strip()
+            _floor_exact = _resolve_exact_guide_gold_standard(_floor_query) is not None
+            _floor_result = evaluate_response_floor(
+                _floor_query, payload, exact_standard=_floor_exact
+            )
+        except Exception as _floor_exc:
+            _floor_result = {
+                "version": "2.0",
+                "status": "fail",
+                "reason": "quality_gate_unavailable",
+            }
+            print("Gold Star v2 response-floor gate unavailable: " + type(_floor_exc).__name__)
+        payload["gold_star_v2_quality_floor"] = _floor_result
+        if _floor_result.get("status") == "fail" and 200 <= int(status_code) < 300:
+            print(
+                "Gold Star v2 response-floor gate withheld response: "
+                + str(_floor_result.get("reason") or "unknown")
+            )
+            payload = {
+                "ok": False,
+                "version": APP_VERSION,
+                "query": str(payload.get("query") or ""),
+                "error_type": "gold_star_v2_quality_floor_rejected",
+                "response": "",
+                "gold_star_v2_quality_floor": _floor_result,
+                "message": "The response did not pass the minimum integrity checks. Please try again.",
+            }
+            status_code = 503
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     await send({"type": "http.response.start", "status": status_code,
                 "headers": [(b"content-type", b"application/json; charset=utf-8"),
@@ -14679,6 +14714,31 @@ async def _use_request_boundary(scope, receive, send):
                 payload = None
 
             safe_payload = _guide_finalize_visitor_payload(payload, query)
+            # The ordinary FastAPI JSON path exits here, not through
+            # _use_send_json. Apply the same source-independent v2.0 gate at
+            # this outer capture boundary so no normal provider route bypasses it.
+            _final_status = int((captured_start or {}).get("status") or 200)
+            if isinstance(safe_payload, dict) and str(safe_payload.get("intent") or "").upper() != "SAFETY_CONVERSATION":
+                try:
+                    from gold_star_response_floor import evaluate_response_floor
+                    _floor_exact = _resolve_exact_guide_gold_standard(query) is not None
+                    _floor_result = evaluate_response_floor(query, safe_payload, exact_standard=_floor_exact)
+                except Exception as _floor_exc:
+                    _floor_result = {"version": "2.0", "status": "fail", "reason": "quality_gate_unavailable"}
+                    print("Gold Star v2 outer response-floor gate unavailable: " + type(_floor_exc).__name__)
+                safe_payload["gold_star_v2_quality_floor"] = _floor_result
+                if _floor_result.get("status") == "fail" and 200 <= _final_status < 300:
+                    print("Gold Star v2 outer response-floor gate withheld response: " + str(_floor_result.get("reason") or "unknown"))
+                    safe_payload = {
+                        "ok": False,
+                        "version": APP_VERSION,
+                        "query": query,
+                        "error_type": "gold_star_v2_quality_floor_rejected",
+                        "response": "",
+                        "gold_star_v2_quality_floor": _floor_result,
+                        "message": "The response did not pass the minimum integrity checks. Please try again.",
+                    }
+                    _final_status = 503
             # Enforce the doorway invariant after every inner early return, not
             # only on the ordinary provider path. Exact approved exceptions and
             # an explicit visitor refusal of navigation remain authoritative.
@@ -14720,7 +14780,7 @@ async def _use_request_boundary(scope, receive, send):
                 headers.append((b"x-living-archive-version", str(APP_VERSION).encode("utf-8")))
                 headers.append((b"x-living-archive-fingerprint", str(DEPLOYMENT_FINGERPRINT).encode("utf-8")))
                 start = dict(captured_start)
-                start["status"] = 200
+                start["status"] = _final_status
                 start["headers"] = headers
                 await send(start)
                 await send({"type": "http.response.body", "body": encoded, "more_body": False})

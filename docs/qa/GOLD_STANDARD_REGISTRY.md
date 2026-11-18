@@ -823,3 +823,8 @@ Promotion should require reproducible improvement on the relevant held-out evalu
 - **Adaptive-learning boundary:** Transfer the three-lens discernment discipline only. Do not transfer answer text or doorway to unrelated questions, impose a spiritual frame where the visitor has not introduced one, or claim metaphysical certainty.
 - **Numbering:** **#94**, allocated as the next contiguous serial after #93 following the user's explicit “elevate!” instruction.
 - **Freeze policy:** Preserve the exact approved response and doorway rationale. Changes require explicit user authorization and a separately documented benchmark-version change.
+
+
+## Gold Star Adaptive Intelligence Standard v2.0
+
+The approved additive quality umbrella is [Gold Star Adaptive Intelligence Standard v2.0](GOLD_STAR_ADAPTIVE_INTELLIGENCE_STANDARD_V2.md). It expands the quality expectations while preserving the canonical 112 approved Gold Stars, their benchmark identities and evidence, and the separate 110 active structural-learning contributors. This standard does not grant new transfer or deterministic-fallback authority. Runtime activation requires behavioral evidence; see the v2.0 specification's release gates.
