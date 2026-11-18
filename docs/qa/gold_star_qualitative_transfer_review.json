@@ -986,6 +986,15 @@
       "qualifying_context": "Questions asking what evidence would establish genuine autonomy, adaptivity, resilience, or improvement in an AI system, especially when sustained operation or response volume is being offered as proof.",
       "abstention_boundary": "Do not transfer the answer text. Do not claim the Guide or another system has demonstrated any capability without operational evidence. Do not invent sample sizes, thresholds, benchmark results, or rates. Do not impose this protocol on unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-19-felt-truth-claim-discernment",
+      "question": "What claims am I accepting because they feel true, beautiful, or empowering—and what would it take to examine them carefully?",
+      "reasoning_family": "felt_truth_claim_discernment",
+      "transferable_discipline": "Separate the personal significance of an experience from the factual accuracy of the interpretation attached to it. State the claim precisely; distinguish observation from interpretation; assess evidence using methods appropriate to the claim; seek disconfirmation and alternative explanations; examine whether the belief preserves agency and correctability; and calibrate confidence without forcing premature acceptance or rejection.",
+      "qualifying_context": "Visitors examining claims or beliefs because they feel true, beautiful, empowering, resonant, or emotionally compelling, and who want a careful method of discernment.",
+      "abstention_boundary": "Do not assume emotionally compelling claims are false; do not impose cynicism or a spiritual frame; do not dismiss personal experience; do not use repeatability as a universal evidence test; do not transfer the exact answer or doorway to unrelated questions.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
