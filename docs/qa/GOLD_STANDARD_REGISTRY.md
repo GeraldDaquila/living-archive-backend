@@ -2,8 +2,8 @@
 
 ## Current Gold Star numbering authority — 2026-11-18
 
-- **Canonical inventory:** 144 records total; 107 approved Gold Stars; 105 matching qualitative-transfer reviews. All approved records are reconciled to the canonical transfer-review ledger.
-- **Serial inventory:** 38 approved records carry display serials #56–#93. 69 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity.
+- **Canonical inventory:** 146 records total; 108 approved Gold Stars; 106 matching qualitative-transfer reviews. All approved records are reconciled to the canonical transfer-review ledger.
+- **Serial inventory:** 38 approved records carry display serials #56–#93. 70 approved records are explicitly `UNASSIGNED`; serial allocation remains separate from approval and adaptive-learning identity.
 - **Restored 2026-11-17:** `gs-2026-11-17-structural-change-vs-disruption` retains its original three-paragraph answer and unassigned serial. Its doorway is now verified as Systems, Governance, and Organizational Design — https://geralddaquila.com/systems-structure/ — with a visitor-facing relevance rationale.
 - **Overwritten 2026-11-17:** The same benchmark now has one canonical current answer version: three distinct moves (distinction; disruption's causal role; post-event operational test), with the opening clause boundary corrected. The verified doorway, active exact/adaptive/deterministic capabilities, provenance, and `UNASSIGNED` serial are preserved. See `revision_history` in the machine-readable record.
 - **Newly elevated 2026-11-17:** `gs-2026-11-17-consequential-action-under-uncertainty` preserves the exact three-paragraph visitor answer and the verified **The Sovereign Sensemaking Compass** doorway, including its relevance rationale. It is an active structural-learning contributor; its display serial remains `UNASSIGNED`.
@@ -789,3 +789,20 @@ These entries preserve their live-production provenance and qualitative transfer
 - **Adaptive-learning boundary:** Transfer the integrated organizational-analysis and evidence-discipline method only. Do not transfer answer text or doorway to unrelated questions, infer individual motives or culpability from limited evidence, or treat public confidence as proof of staff safety.
 - **Numbering:** `UNASSIGNED`; no display serial was requested.
 - **Freeze policy:** Preserve the exact approved response and doorway rationale. Changes require explicit user authorization and a separately documented benchmark-version change.
+
+
+## Calibration-versus-validation promotion decision — 2026-11-18
+
+- **Question:** A revised Guide performs better on the calibration set but worse on the validation set. Which result should govern the decision to promote the revision, and why?
+- **Approved answer:**
+
+The validation result should govern promotion. The calibration set is used to fit or tune the revision; the validation set provides a more independent test of whether the improvement generalizes beyond that calibration data. Better calibration performance accompanied by worse validation performance is a warning that the revision may have learned calibration-specific patterns rather than improved general performance. On the evidence given, the revision should not be promoted.
+
+The discrepancy should be investigated rather than explained away. Check that both results use comparable metrics and evaluation procedures, and examine sample size, uncertainty, data leakage, split integrity, and possible distribution differences. Determine whether the validation regression is reproducible and whether it affects particular cases or groups disproportionately.
+
+Promotion should require reproducible improvement on the relevant held-out evaluation, without an unacceptable validation regression. If further testing shows that the apparent deterioration was sampling noise or a flawed evaluation, reconsider the decision with that evidence. Otherwise, revise or reject the candidate. A gain on the data used for tuning is not sufficient evidence of generalization.
+- **Transfer discipline:** Distinguish tuning data from held-out validation; let validation govern generalization and promotion; investigate calibration/validation divergence; require reproducible held-out improvement without unacceptable regression.
+- **Doorway:** Intentionally none. No verified canonical Archive destination directly advances this technical model-evaluation question.
+- **Rating:** 9.8/10.
+- **Approval:** User explicitly requested the two-level structural correction and Gold Star elevation on 2026-11-18.
+- **Numbering:** UNASSIGNED; no display serial was requested.
