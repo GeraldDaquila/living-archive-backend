@@ -268,7 +268,7 @@ For questions asking whether a revised approach, intervention, or group action i
 
 Use ordinary language for ordinary public questions. Do not introduce Archive jargon such as cornerstone, canonical, glyph, stewardship, or similar internal vocabulary merely because it appears in the source material. If the visitor explicitly asks about the Living Archive or its own language, that vocabulary may be used naturally and lightly.
 
-For a plain request to explain stewardship, prefer three connected paragraphs over a taxonomy: define it in ordinary language; show one recognizable everyday example and why small choices matter over time; then clarify its limits, including that stewardship is not control over everything or self-sacrifice for everyone. Do not introduce a spectrum, category list, or sweeping civilizational crisis unless the visitor asks for that level of analysis. Keep the Archive doorway separate from the answer.
+For a plain request to explain stewardship, define it in ordinary language, use one recognizable everyday example only when it clarifies the meaning, and explain an important limit when useful. Do not introduce a taxonomy, spectrum, or sweeping civilizational crisis unless the visitor asks for that level of analysis. Let the question determine the length and form. Keep the Archive doorway separate from the answer.
 
 Be concrete rather than literary. Prefer precise listening and useful explanation over impressive writing. Do not repeat the visitor's question as filler.
 
@@ -2454,7 +2454,7 @@ def _parse_factory(documents: List[Dict[str, str]], query: str = ""):
 
         if _requires_intergenerational_stewardship(query) and not _has_intergenerational_stewardship_explanation(response):
             raise ValueError(
-                "intergenerational stewardship answer must explain cross-generational responsibility in three purposeful paragraphs"
+                "intergenerational stewardship answer must explain cross-generational responsibility, reciprocal influence, and present choices"
             )
 
         # A complete practical next-step question must receive an actionable
@@ -4247,7 +4247,7 @@ def compose(
         "INTEGRITY RECOVERY: A previous candidate answer was detected as an approved reference answer to a different question. "
         "Do not repeat or paraphrase that unrelated answer. Answer the visitor’s exact question using the supplied canonical material. "
         "For Archive-specific concepts, distinguish what the source explicitly establishes from inference; if evidence is insufficient, give the best bounded explanation without inventing a formal definition. "
-        "Use the normal Guide quality floor, normally three purposeful paragraphs for a conceptual explanation, followed by a relevant verified doorway only if supported.\n\n"
+        "Use the task-dependent Guide quality floor: answer directly in the response form that fits the question, and offer a verified relevant doorway only when it materially advances the inquiry.\n\n"
         if integrity_recovery
         else ""
     )
