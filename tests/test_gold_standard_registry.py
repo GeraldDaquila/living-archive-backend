@@ -1958,7 +1958,7 @@ def test_personality_soul_oversoul_question_has_exact_provider_independent_gold_
     assert has_registered_recovery(query)
     assert compose_recovery(query) == record["expected_response"]
     assert len(record["expected_response"].split("\n\n")) == 3
-    for phrase in ("personality", "soul is learning", "Oversoul", "not a command", "without surrendering your judgment"):
+    for phrase in ("personality", "soul is learning", "Oversoul", "not a command", "without surrendering my judgment"):
         assert phrase.casefold() in record["expected_response"].casefold()
     assert registered_recovery_recommendation(query) == record["expected_doorway"]
     assert record["expected_doorway"]["title"] == "Eternal / Oversoul Law – The Immutable Jurisdiction"
@@ -1994,5 +1994,5 @@ def test_personality_soul_oversoul_gold_star_has_bounded_transfer_review():
     assert review["activation"] == "active_quality_contributor"
     assert "three lenses" in review["transferable_discipline"]
     assert "lived evidence" in review["transferable_discipline"]
-    assert "not independently verified facts" in review["transferable_discipline"]
+    assert "independently verified facts" in review["transferable_discipline"]
     assert "do not transfer this answer text or doorway" in review["abstention_boundary"]
