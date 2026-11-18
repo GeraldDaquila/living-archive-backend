@@ -5802,6 +5802,32 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
 
+    # This narrow discernment contract is enforced after every non-exact route,
+    # so provider fluency cannot turn a question about confirmation bias into
+    # generic reflection or unrelated organizational orientation.
+    from deterministic_answer_recovery import (
+        is_resonance_confirmation_bias_question,
+        compose_recovery as _compose_resonance_confirmation_bias_recovery,
+    )
+    if is_resonance_confirmation_bias_question(query):
+        safe = dict(payload)
+        answer = _compose_resonance_confirmation_bias_recovery(query)
+        safe["response"] = answer
+        if "answer" in safe:
+            safe["answer"] = answer
+        safe["recommendation"] = None
+        safe["canonical_doorway"] = None
+        safe["doorway_title"] = None
+        safe["doorway_url"] = None
+        safe["doorway_rationale"] = None
+        safe["doorway_omission_exception_reason"] = (
+            "No directly verified Archive destination is established for this specific discernment question; do not force a keyword-adjacent doorway."
+        )
+        safe["processing"] = "final_visitor_boundary_resonance_confirmation_bias_recovery"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
     # The evidence framework is a final visitor-boundary invariant, not merely
     # a prompt preference. Enforce it after every non-exact route, including
     # provider-exhaustion and legacy deterministic paths.
