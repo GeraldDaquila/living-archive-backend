@@ -71,6 +71,8 @@ def test_cross_question_gold_star_registry_and_review_are_unique_and_reconciled(
     assert len(reviews) == 1
     assert records[0]["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert records[0]["numbering_status"] == "UNASSIGNED"
+    assert records[0]["forbids_doorway"] is True
+    assert records[0]["doorway_omission_exception_reason"]
     assert records[0]["gold_star_capabilities"]["active_quality_contributor"] is True
     assert records[0]["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
     assert reviews[0]["activation"] == "active_quality_contributor"
