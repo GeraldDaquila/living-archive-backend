@@ -616,21 +616,21 @@ def is_personality_soul_oversoul_question(question):
     """Recognize the three-part personality/soul/Oversoul discernment question narrowly."""
     q = _clean(question).casefold()
     has_three_lenses = all(re.search(pattern, q) for pattern in (
-        r"\\bpersonality\\b",
-        r"\\bsoul\\b",
-        r"\\boversoul\\b",
+        r"\bpersonality\b",
+        r"\bsoul\b",
+        r"\boversoul\b",
     ))
     asks_for_distinction = bool(re.search(
-        r"\\b(?:difference|distinguish|distinction|relationship|between)\\b", q
+        r"\b(?:difference|distinguish|distinction|relationship|between)\b", q
     ))
     includes_desire = bool(re.search(
-        r"\\b(?:want|wants|desire|desires|wish|wishes|longing)\\b", q
+        r"\b(?:want|wants|desire|desires|wish|wishes|longing)\b", q
     ))
     includes_learning = bool(re.search(
-        r"\\b(?:learn|learning|lesson|lessons|growth|developing)\\b", q
+        r"\b(?:learn|learning|lesson|lessons|growth|developing)\b", q
     ))
     includes_invitation = bool(re.search(
-        r"\\b(?:inviting|invitation|called|calling|become|becoming|purpose)\\b", q
+        r"\b(?:inviting|invitation|called|calling|become|becoming|purpose)\b", q
     ))
     return (
         has_three_lenses and asks_for_distinction
