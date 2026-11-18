@@ -941,6 +941,15 @@
       "qualifying_context": "Questions explicitly asking how USE should recognize recurring reasoning weaknesses across different visitors' questions and formulate a governed candidate Gold Star lesson. Requires explicit operational sequence and must not claim unavailable cross-visitor evidence.",
       "abstention_boundary": "Transfer only the evidence-led method for identifying and validating recurring reasoning weaknesses across distinct questions. Do not infer recurrence from lexical similarity or one example; do not claim access to conversations or telemetry not available; do not retain unnecessary personal conversation data; do not auto-promote a candidate; and do not apply this meta-learning method to ordinary visitor questions that are not about cross-question learning.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "general-guide-gold-star-remedy-selection-vs-engineering-defect-2026-11-18",
+      "question": "How should USE distinguish a recurring weakness that deserves a new Gold Star from a weakness better addressed through improved retrieval, source metadata, or deterministic logic?",
+      "reasoning_family": "gold_star_remedy_selection_before_learning",
+      "transferable_discipline": "Diagnose the earliest failed layer before proposing learning. Correct missing or misranked evidence through retrieval; incorrect or incomplete source identity/provenance through metadata and indexing; and repeatable known-rule failures through deterministic code plus regression tests. Only consider a Gold Star for a residual reasoning weakness that recurs across materially different, independently evaluated questions after those layers are sound. Define the missing reasoning operation, qualifying conditions, and abstention boundary; validate on held-out target, adjacent, and unrelated negative-control cases; compare quality and regressions; require human review.",
+      "qualifying_context": "Explicit meta-governance questions asking how to decide whether a recurring weakness warrants a new Gold Star or instead belongs in retrieval, source metadata/indexing, or deterministic logic. This is an internal USE learning-governance discipline, not a default frame for ordinary visitor questions.",
+      "abstention_boundary": "Do not infer a reasoning gap from a repeated symptom before checking the owning engineering layer; do not create Gold Stars for code, retrieval, metadata, or indexing repairs; do not infer cross-question recurrence from one case or lexical overlap; do not claim unavailable evaluation evidence; and do not force an Archive doorway when no verified direct continuation materially advances the inquiry.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
