@@ -558,3 +558,40 @@ def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
     )
     return contribution
 
+def deterministic_fallback_contribution(query: str) -> Optional[Dict[str, Any]]:
+    """Return reviewed guidance only when the Gold Star explicitly permits deterministic use.
+
+    Exact matches are accepted; cross-question analogues require a stronger
+    confidence floor. Only structural discipline and its boundary are returned.
+    """
+    selected = select_lesson(query, required_capability="deterministic_fallback_eligible")
+    if not selected:
+        return None
+    score = float(selected.get("score") or 0.0)
+    if not selected.get("exact") and score < 0.65:
+        return None
+    discipline = str(selected.get("transferable_discipline") or "").strip()
+    boundary = str(selected.get("abstention_boundary") or "").strip()
+    if not discipline or not boundary:
+        return None
+    return {
+        "benchmark_id": str(selected.get("benchmark_id") or ""),
+        "score": score,
+        "reasoning_family": str(selected.get("reasoning_family") or ""),
+        "discipline": discipline,
+        "abstention_boundary": boundary,
+        "authority_mode": "deterministic_structural_guidance_only",
+    }
+
+
+def apply_deterministic_fallback_guidance(query: str, response: str) -> str:
+    """Preserve authored deterministic prose; never paste a lesson into paragraph three.
+
+    Deterministic recoveries are pre-authored answer templates, not generative
+    prompts. A Gold Star may inform their design and regression criteria, but
+    appending its discipline and abstention text to an existing answer creates
+    a fourth cognitive move inside the conclusion and can import an unrelated
+    exemplar's subject. Exact Gold Star answers retain their separate registry
+    authority; cross-question deterministic guidance is therefore non-mutating.
+    """
+    return str(response or "").strip()
