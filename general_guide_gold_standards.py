@@ -106,13 +106,32 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
             )
         doorway = raw_doorway or {}
         assertions = record.get("assertions") or []
-        no_handoff = intentionally_none or any(
+        legacy_no_doorway_assertion = any(
+            (
+                "do not attach an unrelated archive doorway or recommendation"
+                in str(assertion).casefold()
+                and "self-contained factual question" in str(assertion).casefold()
+            )
+            for assertion in assertions
+        )
+        legacy_doorway_not_authorized = bool(
+            doorway_status == "LEGACY_INCOMPLETE_NOT_APPROVED"
+            and raw_doorway is None
+            and str(record.get("doorway_note") or "").strip()
+            and legacy_no_doorway_assertion
+        )
+        no_handoff = intentionally_none or legacy_doorway_not_authorized or any(
             "forbids direct page handoff" in str(assertion).casefold()
             for assertion in assertions
         ) or bool(re.search(r"\bdo not send me to another page\b", question))
         doorway_title = "" if no_handoff else str(doorway.get("title") or "")
         doorway_url = None if no_handoff else doorway.get("url")
         doorway_rationale = "" if no_handoff else str(doorway.get("rationale") or "").strip()
+        doorway_omission_reason = str(
+            record.get("doorway_omission_exception_reason")
+            or (record.get("doorway_note") if legacy_doorway_not_authorized else "")
+            or ""
+        ).strip()
         if question in standards:
             previous = standards[question]
             if previous["expected_response"] != answer:
@@ -140,8 +159,7 @@ def load_approved_standards() -> Dict[str, Dict[str, str]]:
             "doorway_rationale": doorway_rationale,
             "forbids_doorway": no_handoff,
             "doorway_omission_exception_reason": (
-                str(record.get("doorway_omission_exception_reason") or "").strip()
-                if no_handoff else ""
+                doorway_omission_reason if no_handoff else ""
             ),
         }
     return standards
