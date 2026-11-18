@@ -870,7 +870,8 @@ def test_trust_community_stewardship_recovery_matches_live_acceptance_contract()
         is_trust_community_stewardship_question,
         registered_recovery_recommendation,
     )
-    from general_guide_composition import enforce_response_contracts
+    from general_guide_composition import is_generic_nonanswer
+    from main import _basic_inquiry_round1_deterministic_response
 
     query = "What is the role of trust in community stewardship?"
     assert is_trust_community_stewardship_question(query)
