@@ -65,3 +65,11 @@ def test_missing_heuristic_phrases_require_review_not_automatic_rejection():
     assert result["status"] == "review_required"
     assert result["hard_failures"] == []
     assert result["review_flags"]
+
+def test_quoted_followup_phrase_is_reviewed_not_hard_rejected():
+    q = "Explain policy versus procedure. Do not recommend resources, links, or follow-up steps."
+    answer = "A policy sets a rule; a procedure describes its steps. The phrase 'would you like' is an example of an unrequested follow-up, not an invitation."
+    result = evaluate_semantic_contract(q, {"ok": True, "response": answer})
+    assert result["status"] == "review_required"
+    assert result["hard_failures"] == []
+    assert "no_unrequested_followup" in result["review_flags"]
