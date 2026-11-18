@@ -43,3 +43,18 @@ def test_doorway_selection_gold_star_and_transfer_review_are_reconciled():
     assert transfer["reasoning_family"] == record["reasoning_family"]
     assert transfer["transferable_discipline"] == record["transferable_lesson"]
     assert transfer["abstention_boundary"] == record["transfer_boundary"]
+
+
+def test_gold_star_uses_user_confirmed_live_render_as_canonical_successor_without_duplicate():
+    root = Path(__file__).resolve().parents[1]
+    registry = json.loads((root / "docs/qa/gold_standard_registry.json").read_text(encoding="utf-8"))
+    benchmark_id = "general-guide-use-doorway-warrant-destination-selection-gold-star-2026-11-18"
+    matches = [item for item in registry["records"] if item["benchmark_id"] == benchmark_id]
+    assert len(matches) == 1
+    record = matches[0]
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["live_render_verification"]["status"] == "USER_CONFIRMED_LIVE_RENDER"
+    assert record["expected_response"].endswith("For this question, The Living Archive Navigator: Volume III – Knowledge & Sensemaking is the appropriate next destination.")
+    assert "Continue Exploring" in " ".join(record["live_render_verification"]["visual_contract"])
+    assert "systems thinking, discernment, and sensemaking" in record["expected_doorway"]["rationale"]
+    assert record["numbering_status"] == "UNASSIGNED"

@@ -6740,7 +6740,7 @@
       "status": "USER_APPROVED_GOLD_STANDARD",
       "subsystem": "general-purpose-guide",
       "query": "A response contains an accurate explanation but offers no relevant Archive doorway. How should USE determine whether a doorway is warranted and select the appropriate next destination?",
-      "expected_response": "The answer and the doorway are two separate quality decisions. USE must first answer the visitor's actual question completely; a resource link cannot repair an incomplete or off-target answer. It should then identify the visitor's remaining need: deeper explanation, evidence, practical application, or orientation through a larger body of knowledge. A doorway is warranted when a verified Archive resource materially advances that next step—not merely because its title shares keywords with the question.\n\nDestination selection should follow that need. USE should retrieve candidate canonical resources, inspect their actual content and intended audience, and compare their subject fit, depth, access, and specific contribution. It should choose the narrowest verified destination that genuinely helps the visitor continue. If no topic-specific resource meets that standard, the approved Sovereign Sensemaking Compass remains the general continuation; it must be described honestly as broad orientation, not as a precise match. Omission is reserved for a concrete quality or safety reason, or an explicit visitor refusal—not uncertainty about which relevant resource to choose.\n\nFor this question, The Living Archive Navigator: Volume III – Knowledge & Sensemaking is the appropriate next destination. It was created to help readers navigate the Archive through Reference Maps, Guide Notes, and curated reading pathways, and it specifically connects knowledge, systems thinking, discernment, and sensemaking. That is a direct continuation of the question about how USE should judge relevance and guide a visitor to the next useful resource.",
+      "expected_response": "The answer and the doorway are two separate quality decisions. USE must first answer the visitor's actual question completely; a resource link cannot repair an incomplete or off-target answer. It should then identify the visitor's remaining need: deeper explanation, evidence, practical application, or orientation through a larger body of knowledge. A doorway is warranted when a verified Archive resource materially advances that next step—not merely because its title shares keywords with the question.\n\nDestination selection should follow that need. USE should retrieve candidate canonical resources, inspect their actual content and intended audience, and compare their subject fit, depth, access, and specific contribution. It should choose the narrowest verified destination that genuinely helps the visitor continue. If no topic-specific resource meets that standard, the approved Sovereign Sensemaking Compass remains the general continuation; it must be described honestly as broad orientation, not as a precise match. Omission is reserved for a concrete quality or safety reason, or an explicit visitor refusal—not uncertainty about which relevant resource to choose.\n\nFor this question, The Living Archive Navigator: Volume III – Knowledge & Sensemaking is the appropriate next destination.",
       "expected_doorway": {
         "title": "The Living Archive Navigator: Volume III – Knowledge & Sensemaking",
         "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iii/",
@@ -6749,8 +6749,8 @@
       "doorway_status": "VERIFIED",
       "user_reviewed_response": true,
       "explicit_user_elevation_approval": true,
-      "approval_state": "User explicitly instructed structural correction and Gold Star elevation on 2026-11-18 after reviewing the live response screenshot.",
-      "elevation_approval_evidence": "User reviewed the live Guide screenshot showing a polished but off-target explanation and a generic Sovereign Sensemaking Compass doorway, then explicitly instructed: “fix structurally and turn this into gold star” on 2026-11-18.",
+      "approval_state": "USER_APPROVED_GOLD_STANDARD — LIVE-RENDERED SUCCESSOR CONFIRMED",
+      "elevation_approval_evidence": "User reviewed the live Guide screenshot showing a polished but off-target explanation and a generic Sovereign Sensemaking Compass doorway, then explicitly instructed: “fix structurally and turn this into gold star” on 2026-11-18. User subsequently reviewed the corrected live visitor-facing rendering with the distinct Navigator Volume III doorway card and explicitly instructed “elevate” on 2026-11-18. The live-rendered concise third paragraph now supersedes the earlier longer expected-response version under the same benchmark_id; no duplicate benchmark was created.",
       "rating_out_of_10": 10,
       "freeze_policy": "immutable_user_approved_gold_standard",
       "runtime_transfer": true,
@@ -6777,7 +6777,9 @@
         "Use the Sovereign Sensemaking Compass only as an honestly labeled general continuation when no narrower destination is verified.",
         "Omit navigation only for a concrete response-specific quality or safety reason or an explicit visitor refusal.",
         "Keep the doorway visually and semantically separate from the substantive answer.",
-        "Preserve three purposeful paragraphs for this substantive conceptual question."
+        "Match the user-confirmed live rendering: three purposeful answer paragraphs, with the third paragraph identifying Navigator Volume III concisely.",
+        "Keep the fuller destination rationale in the separate Continue Exploring doorway card rather than repeating it in the substantive answer.",
+        "Preserve the same benchmark identity when a live-rendered successor supersedes an earlier expected response; do not create a duplicate Gold Star."
       ],
       "user_approved_at": "2026-11-18",
       "provenance": {
@@ -6790,7 +6792,31 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial. Preserve benchmark_id as the stable learning identity.",
-      "legacy_approval_grandfathered": false
+      "legacy_approval_grandfathered": false,
+      "live_render_verification": {
+        "status": "USER_CONFIRMED_LIVE_RENDER",
+        "verified_on": "2026-11-18",
+        "evidence": "User supplied a screenshot of the live visitor-facing Guide showing the exact query, the corrected three-paragraph answer, and the separate Continue Exploring card linking to The Living Archive Navigator: Volume III – Knowledge & Sensemaking.",
+        "supersedes": "The earlier longer third paragraph in this same benchmark. The live answer now ends with a concise destination identification; the separate doorway card carries the fuller relevance explanation.",
+        "visual_contract": [
+          "Substantive answer precedes navigation.",
+          "Three purposeful answer paragraphs are retained.",
+          "Continue Exploring appears as a separate, visibly bordered doorway card.",
+          "The card identifies Navigator Volume III and provides a relevance rationale.",
+          "The Navigator destination is distinct from the generic Sovereign Sensemaking Compass fallback."
+        ]
+      },
+      "revision_history": [
+        {
+          "revision": "live-rendered-gold-star-successor-2026-11-18",
+          "date": "2026-11-18",
+          "action": "SUPERSEDE_PRIOR_EXPECTED_RESPONSE_WITH_USER_CONFIRMED_LIVE_RENDER",
+          "supersedes_expected_response": "The answer and the doorway are two separate quality decisions. USE must first answer the visitor's actual question completely; a resource link cannot repair an incomplete or off-target answer. It should then identify the visitor's remaining need: deeper explanation, evidence, practical application, or orientation through a larger body of knowledge. A doorway is warranted when a verified Archive resource materially advances that next step—not merely because its title shares keywords with the question.\n\nDestination selection should follow that need. USE should retrieve candidate canonical resources, inspect their actual content and intended audience, and compare their subject fit, depth, access, and specific contribution. It should choose the narrowest verified destination that genuinely helps the visitor continue. If no topic-specific resource meets that standard, the approved Sovereign Sensemaking Compass remains the general continuation; it must be described honestly as broad orientation, not as a precise match. Omission is reserved for a concrete quality or safety reason, or an explicit visitor refusal—not uncertainty about which relevant resource to choose.\n\nFor this question, The Living Archive Navigator: Volume III – Knowledge & Sensemaking is the appropriate next destination. It was created to help readers navigate the Archive through Reference Maps, Guide Notes, and curated reading pathways, and it specifically connects knowledge, systems thinking, discernment, and sensemaking. That is a direct continuation of the question about how USE should judge relevance and guide a visitor to the next useful resource.",
+          "current_expected_response": "The answer and the doorway are two separate quality decisions. USE must first answer the visitor's actual question completely; a resource link cannot repair an incomplete or off-target answer. It should then identify the visitor's remaining need: deeper explanation, evidence, practical application, or orientation through a larger body of knowledge. A doorway is warranted when a verified Archive resource materially advances that next step—not merely because its title shares keywords with the question.\n\nDestination selection should follow that need. USE should retrieve candidate canonical resources, inspect their actual content and intended audience, and compare their subject fit, depth, access, and specific contribution. It should choose the narrowest verified destination that genuinely helps the visitor continue. If no topic-specific resource meets that standard, the approved Sovereign Sensemaking Compass remains the general continuation; it must be described honestly as broad orientation, not as a precise match. Omission is reserved for a concrete quality or safety reason, or an explicit visitor refusal—not uncertainty about which relevant resource to choose.\n\nFor this question, The Living Archive Navigator: Volume III – Knowledge & Sensemaking is the appropriate next destination.",
+          "reason": "User reviewed the live Guide screenshot and explicitly instructed elevation. Preserve one benchmark identity while making the actual successful live rendering the canonical exemplar.",
+          "evidence": "User message: “elevate” following the supplied live Guide screenshot."
+        }
+      ]
     },
     {
       "benchmark_id": "general-guide-cross-question-pattern-learning-candidate-gold-star-2026-11-18",
