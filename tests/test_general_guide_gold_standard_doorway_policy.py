@@ -213,7 +213,6 @@ def test_unapproved_legacy_doorway_metadata_does_not_change_other_gold_star_fall
     # The no-doorway rule requires the explicit legacy status, a null expected
     # destination, and an explanatory note. An ordinary absent doorway is not
     # silently promoted into a global no-handoff policy.
-    standards = __import__("general_guide_gold_standards").load_approved_standards()
-    unrelated = standards.get(main._normalize_guide_question("What is governance, beyond administration?"))
+    unrelated = main._resolve_exact_guide_gold_standard("What is governance, beyond administration?")
     assert unrelated is not None
     assert unrelated["forbids_doorway"] is False
