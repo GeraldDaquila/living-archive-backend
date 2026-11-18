@@ -82,6 +82,30 @@ def test_registered_doorway_is_the_verified_patterns_essay():
     assert "not independent proof" in doorway["rationale"]
 
 
+def test_early_boundary_answers_without_retrieval_or_provider_calls(monkeypatch):
+    pytest.importorskip("fastapi")
+    import main
+
+    monkeypatch.setattr(main, "_gold_star_shadow_observation", None)
+    monkeypatch.setattr(
+        main.use_core,
+        "fetch_canonical_context",
+        lambda *args, **kwargs: pytest.fail("retrieval must not run"),
+    )
+    monkeypatch.setattr(
+        main,
+        "route_with_model_bank",
+        lambda **kwargs: pytest.fail("provider selection must not run"),
+    )
+    result = main._basic_inquiry_response(QUERY)
+    assert result["processing"] == "felt_truth_claim_discernment_recovery"
+    assert result["response"] == recovery.compose_recovery(QUERY)
+    assert result["recommendation"]["title"] == (
+        "Seeing Patterns Without Fooling Yourself"
+    )
+    assert result["response_provenance"]["llm_invoked"] is False
+
+
 def test_final_visitor_boundary_overrides_provider_or_generic_recovery_output():
     pytest.importorskip("fastapi")
     import main
