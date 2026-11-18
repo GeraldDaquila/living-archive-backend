@@ -6734,9 +6734,62 @@
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent."
+    },
+    {
+      "benchmark_id": "general-guide-cross-question-pattern-learning-candidate-gold-star-2026-11-18",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "Several visitors ask different questions that expose the same recurring reasoning weakness. How should USE recognize the shared pattern and formulate a candidate Gold Star lesson?",
+      "expected_response": "Different questions reveal the same reasoning weakness when they share a missing reasoning operation, not merely a topic or vocabulary. The Guide should compare what each question requires an answer to do—such as distinguish evidence from inference, restore context, test a causal claim, or acknowledge a boundary—and identify the smallest recurring failure that explains the misses across otherwise different subjects. Similar wording or a high retrieval score can suggest candidates, but cannot establish that a genuine pattern exists.\n\nA candidate lesson should be built from traceable, appropriately consented and de-identified examples. Record the distinct questions and the observable failure in each; abstract the common reasoning operation; write a corrective rule with clear qualifying conditions and an explicit abstention boundary; then test it on held-out examples from the target task, adjacent tasks, and unrelated negative controls. Compare correctness, relevance, completeness, calibration, and regressions before and after the proposed lesson. Preserve provenance and versioned evidence without retaining unnecessary personal conversation content.\n\nNothing should be promoted automatically. A human reviewer must confirm that the pattern is real, the corrective rule is specific enough to guide behavior, and its transfer boundary prevents unrelated questions from inheriting it. If authorized cross-visitor evidence is unavailable, describe the method as a proposal rather than claim that a pattern has been detected. Only repeated evaluation showing reliable gains without material regressions should qualify the candidate for approval as a Gold Star.",
+      "expected_doorway": null,
+      "doorway_status": "INTENTIONALLY_NONE_APPROVED",
+      "doorway_omission_exception_reason": "This question concerns a cross-interaction learning-governance method. No verified canonical Archive resource has been established as a direct continuation; attaching a generic Navigator or Compass would imply a subject-specific fit that has not been demonstrated.",
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User explicitly instructed structural correction of the system-wide Gold Star default template and this question-specific failure, followed by Gold Star elevation on 2026-11-18.",
+      "elevation_approval_evidence": "User reviewed the live Guide screenshot showing provider-exhaustion refusal and an unrelated Leadership Challenge Navigator doorway, then explicitly instructed: “fix structurally both the gold star standard template not being implemented as the default structural template across the board; and second, the question-specific structural error, and turn this into a gold star.”",
+      "rating_out_of_10": 9.8,
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "cross_question_pattern_recognition_and_candidate_lesson_formulation",
+      "transferable_lesson": "Recognize recurring reasoning failures by comparing the reasoning operation required across distinct visitor questions, not by shared topic or vocabulary. Build candidate lessons from authorized, privacy-preserving and de-identified evidence; state the observable failure, common missing operation, corrective rule, qualifying conditions, and abstention boundary; test held-out target and adjacent cases plus unrelated negative controls; compare correctness, relevance, completeness, calibration, and regressions; preserve provenance and versioning; require human approval before activation. If cross-visitor evidence is unavailable, describe a method rather than claim a detected pattern.",
+      "transfer_boundary": "Transfer only the evidence-led method for identifying and validating recurring reasoning weaknesses across distinct questions. Do not infer recurrence from lexical similarity or one example; do not claim access to conversations or telemetry not available; do not retain unnecessary personal conversation data; do not auto-promote a candidate; and do not apply this meta-learning method to ordinary visitor questions that are not about cross-question learning.",
+      "known_theme": "cross-question learning, recurring reasoning weakness, reasoning-pattern recognition, candidate Gold Star formulation, evidence-based lesson creation, transfer boundaries, privacy-preserving evaluation, human review",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "cross_question_pattern_recognition_and_candidate_lesson_formulation",
+        "transferable_discipline": "Compare distinct questions for a shared missing reasoning operation; ground the candidate in authorized de-identified examples; define corrective behavior and abstention boundary; test target, adjacent, and unrelated controls; require human approval before activation.",
+        "abstention_boundary": "Do not infer a pattern from topic or vocabulary overlap, claim unavailable cross-visitor evidence, retain unnecessary personal data, or promote a lesson before controlled evaluation and human review."
+      },
+      "assertions": [
+        "Distinguish a shared reasoning operation from shared topic, wording, or vocabulary.",
+        "Compare what different questions require the answer to do and identify the smallest recurring reasoning failure.",
+        "Treat similarity scores as candidate-discovery signals, not proof of a genuine pattern.",
+        "Use authorized, appropriately consented, de-identified examples and retain only necessary evidence.",
+        "State the observable failure, common missing reasoning operation, corrective rule, qualifying conditions, and abstention boundary.",
+        "Evaluate held-out target-task examples, adjacent-task examples, and unrelated negative controls.",
+        "Compare correctness, relevance, completeness, calibration, and regressions before and after the candidate lesson.",
+        "Preserve provenance and version history; require human review before approval or activation.",
+        "When authorized cross-visitor evidence is unavailable, explain the method without claiming that a pattern has been detected.",
+        "Do not attach a generic Archive doorway when no directly relevant canonical destination is verified."
+      ],
+      "user_approved_at": "2026-11-18",
+      "provenance": {
+        "source": "User-provided live visitor-facing Guide screenshot and explicit Gold Star elevation instruction.",
+        "source_date": "2026-11-18",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the exact question and the failure: provider-exhaustion refusal plus an unrelated Leadership Challenge Navigator doorway. The corrected answer is newly authored, distinguishes a method from a verified cross-visitor finding, and was explicitly authorized for Gold Star elevation.",
+        "doorway_decision": "No doorway is approved. The subject is an internal learning-governance method and no verified canonical resource is established as a direct continuation."
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent."
     }
   ],
-  "last_reconciliation_note": "2026-11-18: Added the multi-candidate Gold Star adjudication benchmark after incorporating the concurrent scope-governance doorway update. Canonical inventory: 105 approved Gold Stars across 142 registry records; 103 runtime-transfer contributors, 38 numbered, 67 UNASSIGNED. Review entries reconcile exactly; no serial was allocated or changed.",
+  "last_reconciliation_note": "2026-11-18: Added the cross-question pattern-recognition and candidate-lesson formulation Gold Star. Canonical inventory: 106 approved Gold Stars across 143 registry records; 104 active runtime-transfer contributors, 38 numbered, 68 UNASSIGNED. The new benchmark is unique, has one matching active qualitative-transfer review, and receives no display serial. Existing benchmark identities and serials are unchanged.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -6866,13 +6919,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 105,
-    "registry_record_count": 142,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 105 approved Gold Stars across 142 registry records. 103 are active quality contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. The semantic-ambiguity and quoted-passage context-restoration exemplars remain distinct; scope governance remains separately approved; and multi-candidate Gold Star adjudication is a separate approved benchmark. No display serial was allocated to the new adjudication benchmark.",
+    "approved_gold_star_count": 106,
+    "registry_record_count": 143,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 106 approved Gold Stars across 143 registry records. 104 are active quality contributors with matching qualitative-transfer reviews; one is an exact-query-only successor and one migrated duplicate is preserved as a superseded historical reference only. The cross-question pattern-learning benchmark is a distinct approved active contributor; no display serial was allocated.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 105 approved Gold Stars; 38 assigned display serials #56–#93; 67 approved records explicitly UNASSIGNED with reasons. Historical serials #85 and #86 remain assigned to their existing records; no open numbering gaps. The multi-candidate adjudication Gold Star remains unnumbered.",
-    "unassigned_approved_gold_star_count": 67,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 106 approved Gold Stars; 38 assigned display serials #56–#93; 68 approved records explicitly UNASSIGNED with reasons. No existing serial changed and no new serial was allocated.",
+    "unassigned_approved_gold_star_count": 68,
     "documented_numbering_gap_count": 0
   },
   "numbering_policy": {
