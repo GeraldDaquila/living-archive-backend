@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "dataset_id": "gold-star-heldout-seven-paired-fixture-capture",
+  "purpose": "Capture actual response snapshots from the LLM and deterministic response paths for the seven canonical held-out questions. Null means no verified fixture has been captured; do not replace null with authored or simulated output.",
+  "source_capture_policy": "Populate only from an actual, attributable execution of the named response path. Record runtime identity, commit/fingerprint, timestamp, request identifier where available, and transport outcome. Preserve raw response text. Never infer a missing path output from the other path.",
+  "cases": [
+    {
+      "case_id": "heldout-water-boiling-point-001",
+      "question_type": "general_fact",
+      "query": "At standard atmospheric pressure, what temperature does water boil at?",
+      "llm": null,
+      "deterministic": null,
+      "fixture_status": "awaiting_source_capture"
+    },
+    {
+      "case_id": "heldout-cosmology-life-001",
+      "question_type": "conceptual_explanation",
+      "query": "What is cosmology, and why does it matter to how people live?",
+      "llm": null,
+      "deterministic": null,
+      "fixture_status": "awaiting_source_capture"
+    },
+    {
+      "case_id": "heldout-practical-trust-001",
+      "question_type": "practical_application",
+      "query": "How can an organization put trust into practice?",
+      "llm": null,
+      "deterministic": null,
+      "fixture_status": "awaiting_source_capture"
+    },
+    {
+      "case_id": "heldout-strategic-governance-001",
+      "question_type": "strategic_tradeoff",
+      "query": "Should a growing nonprofit centralize decisions or distribute authority across its teams?",
+      "llm": null,
+      "deterministic": null,
+      "fixture_status": "awaiting_source_capture"
+    },
+    {
+      "case_id": "heldout-technical-verification-001",
+      "question_type": "technical_verification",
+      "query": "How can I verify that a Python service has a required environment variable configured without exposing its secret value?",
+      "llm": null,
+      "deterministic": null,
+      "fixture_status": "awaiting_source_capture"
+    },
+    {
+      "case_id": "heldout-uncertain-causation-001",
+      "question_type": "uncertain_or_insufficient_evidence",
+      "query": "What caused the sudden increase in our website traffic last week?",
+      "llm": null,
+      "deterministic": null,
+      "fixture_status": "awaiting_source_capture"
+    },
+    {
+      "case_id": "heldout-explicit-no-handoff-001",
+      "question_type": "explicit_no_handoff",
+      "query": "Explain the difference between a policy and a procedure in plain language. Do not recommend resources, links, or follow-up steps.",
+      "llm": null,
+      "deterministic": null,
+      "fixture_status": "awaiting_source_capture"
+    }
+  ]
+}
