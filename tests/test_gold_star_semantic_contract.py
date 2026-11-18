@@ -34,3 +34,12 @@ def test_contract_is_source_independent():
     a = "Use os.getenv('TOKEN') is not None as a presence check. This does not prove the application reads it at runtime."
     results = [evaluate_semantic_contract(q, {"ok": True, "response": a, "response_provenance": {"class": source}}) for source in ("llm", "deterministic_fallback")]
     assert results[0] == results[1]
+def test_conceptual_explanation_is_not_misclassified_as_general_fact():
+    q = "What is cosmology, and why does it matter to how people live?"
+    assert classify_question(q)["type"] == "conceptual_explanation"
+    good = ("Cosmology is the study of the universe as a whole. It matters because "
+            "a picture of reality can shape people's values and choices. For example, "
+            "a community's view of its place in the world can influence how it treats nature.")
+    result = evaluate_semantic_contract(q, {"ok": True, "response": good})
+    assert result["status"] == "review_required"
+    assert all(check["passed"] for check in result["checks"])
