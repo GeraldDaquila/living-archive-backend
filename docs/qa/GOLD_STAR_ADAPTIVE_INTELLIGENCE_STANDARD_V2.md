@@ -131,3 +131,35 @@ Do not optimize answer composition to manufacture repeat visits, clicks, or long
 This v2.0 specification is additive to the existing Gold Star governance. Runtime implementation must be isolated on a feature branch, tested offline, reviewed in a pull request, and promoted only after the gates above pass. No production deployment is authorized by approval of this specification alone.
 
 **Governing principle:** Every answer should be appropriate to its question, excellent in its execution, honest in its reasoning, useful in its outcome, and capable of contributing to a continuously improving intellectual environment.
+
+
+## 10. Runtime enforcement boundary
+
+The v2.0 minimum is source-independent. The Guide's shared visitor JSON sender is
+the final enforcement point for ordinary visitor JSON responses, including
+provider-composed, exact Gold Star, deterministic recovery, and specialist
+responses that use that sender. The sender invokes
+`gold_star_response_floor.evaluate_response_floor` before serialization.
+
+The runtime gate is intentionally conservative and machine-verifiable:
+- a successful response must contain a non-empty answer and its originating query;
+- generic non-answer markers and unsafe HTML/script-shaped content are rejected;
+- the answer must remain within the response-size contract;
+- the same checks run regardless of response provenance;
+- a gate failure is withheld as a controlled 503 rather than returned as a
+  successful answer;
+- exact approved Gold Star text is never silently rewritten. If it fails the
+  same integrity gate, it is withheld and requires governed review.
+
+This runtime gate is a minimum integrity control, not an automated semantic
+judge. It does not claim to prove factual accuracy, question-fit, completeness,
+discernment, or usefulness. Those dimensions remain governed by the existing
+question-specific contracts, benchmark suites, evidence/provenance checks,
+and human audit. The eight dimensions are universal evaluation criteria, not
+eight mandatory visible sections in every answer. The LLM may reach a higher
+ceiling, but no successful response source is exempt from the minimum.
+
+Specialist protocols that intentionally return structured handoffs or explicit
+error payloads are not misrepresented as completed explanatory answers. Their
+own contracts remain authoritative for the handoff or error; completed visitor
+answers are evaluated by the shared floor.
