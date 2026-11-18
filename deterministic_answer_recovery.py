@@ -820,7 +820,7 @@ def is_interpretation_revision_evidence_question(question):
 def _interpretation_revision_evidence_recovery():
     """Make a claim-sensitive evidence method visible without judging the visitor's belief."""
     return (
-        "Start by separating the experience from the interpretation you have placed on it. "
+        "A useful starting point is to separate the experience from the interpretation you have placed on it. "
         "What you felt, noticed, or lived through may be real and important without every explanation of its source being established. "
         "Examining an explanation does not require you to dismiss the experience. The right test depends on the kind of claim being made.\n\n"
         "For a claim about an observable event, another person's actions, a cause, or a pattern in the world, work through five checks:\n\n"
