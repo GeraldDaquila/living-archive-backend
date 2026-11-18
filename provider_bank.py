@@ -2740,8 +2740,8 @@ def _provider_call_timeout(operation, item=None, attempt_index=1):
         return HRN_PROVIDER_CALL_TIMEOUT_SECONDS
     if operation == "living_archive_navigator":
         # Three sequential Navigator stages share one bounded WordPress turn.
-        # Fast-fail a slow model so an independent bank lane can still complete.
-        return 6.0
+        # Fail a slow candidate quickly so the bank can reach a healthy alternative.
+        return 4.0
     if operation == "general_guide_composition":
         capabilities = MODEL_CAPABILITIES.get((provider, model), frozenset())
         baseline = (
@@ -3014,7 +3014,7 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
     elif bounded_fsd_operation:
         operation_attempt_cap = 1
     elif operation == "living_archive_navigator":
-        operation_attempt_cap = 2
+        operation_attempt_cap = 3
     else:
         operation_attempt_cap = configured_attempts
     # Keep each HRN provider-gateway request inside the WordPress transport
