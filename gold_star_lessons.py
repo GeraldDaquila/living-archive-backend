@@ -523,7 +523,15 @@ def shadow_observation(query: str) -> Tuple[Optional[str], Optional[float]]:
 
 def active_quality_contribution(query: str) -> Optional[Dict[str, Any]]:
     """Return up to three ranked structural candidates for explicit adjudication."""
-    candidates = select_lesson_candidates(query, limit=3)
+    candidates = [
+        item for item in select_lesson_candidates(query, limit=3)
+        if str(item.get("qualifying_context") or "").strip()
+        and str(item.get("abstention_boundary") or "").strip()
+        and str(item.get("transferable_discipline") or "").strip()
+    ]
+    # Cross-question transfer is fail-closed: a lesson without its reviewed
+    # qualifying context cannot establish that the current question is in scope.
+    # Exact approved answer authority is resolved separately by the registry.
     if not candidates:
         return None
     primary = candidates[0]
