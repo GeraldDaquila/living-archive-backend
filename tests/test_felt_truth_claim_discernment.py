@@ -3,12 +3,37 @@
 import pytest
 
 import deterministic_answer_recovery as recovery
+import guide_runtime
 
 
 QUERY = (
     "What claims am I accepting because they feel true, beautiful, or "
     "empowering—and what would it take to examine them carefully?"
 )
+
+
+def test_felt_truth_is_classified_as_epistemic_not_resource_discovery():
+    profile = guide_runtime._inquiry_profile(QUERY)
+    assert profile["claim_discernment"] >= 0.80
+    assert profile["action"] == "conceptual"
+    assert profile["recommendation"] is False
+    assert profile["ai_truth"] < 0.80
+
+
+def test_ai_truth_resource_route_requires_an_explicit_ai_information_context():
+    profile = guide_runtime._inquiry_profile(
+        "How can I discern truth when AI-generated misinformation is everywhere?"
+    )
+    assert profile["ai_truth"] >= 0.80
+    assert profile["action"] == "recommendation"
+
+
+def test_general_truth_question_is_not_automatically_an_ai_resource_request():
+    profile = guide_runtime._inquiry_profile(
+        "How do I know what is true when different explanations compete?"
+    )
+    assert profile["ai_truth"] < 0.80
+    assert profile["action"] != "recommendation"
 
 
 def test_live_question_is_classified_as_felt_truth_discernment():
