@@ -32,16 +32,18 @@ def test_no_verified_evidence_keeps_no_doorway(monkeypatch):
     ) is None
 
 
-def test_systemwide_answer_recovery_does_not_clear_verified_navigation():
+def test_systemwide_answer_recovery_does_not_clear_verified_navigation_or_enforce_paragraph_count():
     from pathlib import Path
 
     source = Path("main.py").read_text(encoding="utf-8")
     start = source.index("# System-wide Gold Standard recovery:")
-    end = source.index("if len(_systemwide_paragraphs)", start)
+    end = source.index("if _systemwide_recovery and not", start)
     recovery_boundary = source[start:end]
 
     assert "Preserve an already verified doorway" in recovery_boundary
     assert "authoritative_doorway = None" not in recovery_boundary
+    assert "len(_systemwide_paragraphs)" not in recovery_boundary
+    assert "the form this question requires" in recovery_boundary
 
 
 def test_reflective_balance_question_opens_bounded_canonical_doorway_lookup(monkeypatch):
