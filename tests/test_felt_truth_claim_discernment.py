@@ -2,6 +2,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 import deterministic_answer_recovery as recovery
 
 
@@ -65,6 +67,7 @@ def test_question_is_registered_as_a_user_approved_gold_star_and_transfer_lesson
 
 
 def test_final_visitor_boundary_overrides_provider_output_for_this_task():
+    pytest.importorskip("fastapi")
     import main
 
     paraphrase = "Which beliefs feel empowering or beautiful, and how can I test the evidence behind them?"
@@ -79,6 +82,7 @@ def test_final_visitor_boundary_overrides_provider_output_for_this_task():
 
 
 def test_exact_gold_star_answer_is_terminal_and_uses_its_approved_doorway():
+    pytest.importorskip("fastapi")
     import main
     from general_guide_gold_standards import resolve_exact_gold_standard
 
@@ -93,6 +97,7 @@ def test_exact_gold_star_answer_is_terminal_and_uses_its_approved_doorway():
     assert result["recommendation"]["title"] == "Seeing Patterns Without Fooling Yourself"
 
 def test_qa_browser_route_is_registered_and_posts_to_real_visitor_endpoint():
+    pytest.importorskip("fastapi")
     import main
 
     paths = {getattr(route, "path", None) for route in main._FASTAPI_APP.routes}
