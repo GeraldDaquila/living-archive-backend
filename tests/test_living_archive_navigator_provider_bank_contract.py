@@ -47,5 +47,5 @@ def test_living_archive_navigator_rejects_unknown_or_invalid_contract():
 def test_living_archive_navigator_uses_bounded_provider_attempts():
     from provider_bank import _provider_call_timeout
 
-    assert _provider_call_timeout("living_archive_navigator", {"provider": "workers_ai", "model": "@cf/google/gemma-4-26b-a4b-it"}) == 6.0
+    assert _provider_call_timeout("living_archive_navigator", {"provider": "workers_ai", "model": "@cf/google/gemma-4-26b-a4b-it"}) == 4.0
     assert _provider_call_timeout("living_archive_navigator", {"provider": "groq", "model": "openai/gpt-oss-120b"}) == 6.0
