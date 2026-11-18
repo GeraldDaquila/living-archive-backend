@@ -556,10 +556,8 @@ def _select_guide_node_fallback_doorway(query):
         ):
             continue
         purpose = str(node.get("purpose") or "").strip()
-        hints = node.get("semantic_hints") or []
-        if not isinstance(hints, (list, tuple)):
-            hints = []
-        evidence = " ".join([purpose, *[str(hint) for hint in hints]])
+        semantic_hint_text = " ".join(node.get("semantic_hints") or [])
+        evidence = " ".join([purpose, semantic_hint_text])
         doc = {"title": title, "url": url, "text": evidence}
         # Keyword overlap is only a retrieval hint. A visitor handoff requires
         # the same substantive relevance gates used for canonical documents.
