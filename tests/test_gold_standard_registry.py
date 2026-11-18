@@ -1053,7 +1053,7 @@ def test_every_approved_gold_star_has_explicit_numbering_state_and_reason():
             if record["benchmark_id"] in {"gs-2026-11-17-structural-change-vs-disruption", "gs-2026-11-17-consequential-action-under-uncertainty", "gs-2026-11-17-hope-disciplined-rather-than-naive", "gs-2026-11-17-community-continuity-harmful-inherited-patterns", "gs-2026-11-17-ai-workforce-restructuring-successor-candidate", "general-guide-public-predictive-systems-constitutional-human-stewardship-gold-star-successor-2026-11-17", "gs-2026-11-17-complex-future-scenario-readiness", "gs-2026-11-17-oversoul-free-will-influence-without-compulsion", "general-guide-public-commons-stewardship-gold-star-2026-11-17", "general-guide-community-project-economic-dimensions-gold-star-2026-11-18", "general-guide-formal-informal-institutional-dynamics-gold-star-2026-11-18", "general-guide-symmetric-source-representation-before-synthesis-gold-star-2026-11-18", "general-guide-nonprofit-culture-power-care-governance-gold-star-2026-11-18", "general-guide-semantic-ambiguity-same-term-different-sources-gold-star-2026-11-18", "general-guide-quoted-passage-context-restoration-gold-star-2026-11-18", "general-guide-gold-star-scope-governance-cross-domain-regression-2026-11-18", "general-guide-gold-star-candidate-adjudication-2026-11-18", "general-guide-use-doorway-warrant-destination-selection-gold-star-2026-11-18", "general-guide-cross-question-pattern-learning-candidate-gold-star-2026-11-18", "general-guide-gold-star-remedy-selection-vs-engineering-defect-2026-11-18"}:
                 assert record.get("legacy_approval_grandfathered") is not True
                 assert record.get("numbering_unassigned_reason_code") == "NO_SERIAL_ALLOCATION_REQUESTED"
-            elif record["benchmark_id"] not in {"gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing", "gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship", "gs-2026-11-16-collapse-adaptation-regeneration", "gs-2026-11-16-techno-utopian-thinking"}:
+            elif record["benchmark_id"] not in {"gs-2026-11-14-bounded-conceptual-orientation-spiritual-bypassing", "gs-2026-11-16-community-wisdom-tradition-epistemic-stewardship", "gs-2026-11-16-collapse-adaptation-regeneration", "gs-2026-11-16-techno-utopian-thinking", "general-guide-retrieval-outage-deterministic-recovery-disclosure-gold-star-2026-11-18"}:
                 assert record.get("legacy_approval_grandfathered") is True
                 assert record.get("numbering_unassigned_reason_code") == "LEGACY_APPROVED_NO_SERIAL_ALLOCATION"
             else:
@@ -1524,7 +1524,7 @@ def test_formal_informal_institutional_dynamics_gold_star_preserves_exact_live_a
     assert record["numbering_status"] == "UNASSIGNED"
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 109
     assert registry["integrity_audit"]["approved_gold_star_count"] == 109
-    assert registry["integrity_audit"]["registry_record_count"] == 145
+    assert registry["integrity_audit"]["registry_record_count"] == 146
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 71
     entry = next(item for item in review["entries"] if item["benchmark_id"] == benchmark_id)
     assert entry["activation"] == "active_quality_contributor"
@@ -1584,7 +1584,7 @@ def test_ownership_management_stewardship_gold_star_85_preserves_exact_answer_do
 
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 109
     assert registry["integrity_audit"]["approved_gold_star_count"] == 109
-    assert registry["integrity_audit"]["registry_record_count"] == 145
+    assert registry["integrity_audit"]["registry_record_count"] == 146
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 38
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 71
 
@@ -1655,7 +1655,7 @@ def test_archive_examples_evidence_limits_gold_star_86_preserves_exact_answer_an
 
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 109
     assert registry["integrity_audit"]["approved_gold_star_count"] == 109
-    assert registry["integrity_audit"]["registry_record_count"] == 145
+    assert registry["integrity_audit"]["registry_record_count"] == 146
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 38
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 71
     assert registry["integrity_audit"]["documented_numbering_gap_count"] == 0
@@ -1780,7 +1780,7 @@ def test_nonprofit_culture_power_care_governance_gold_star_preserves_exact_answe
     assert adjacent["benchmark_id"] != fixture["benchmark_id"]
     assert sum(1 for item in registry["records"] if item["status"] == "USER_APPROVED_GOLD_STANDARD") == 109
     assert registry["integrity_audit"]["approved_gold_star_count"] == 109
-    assert registry["integrity_audit"]["registry_record_count"] == 145
+    assert registry["integrity_audit"]["registry_record_count"] == 146
     assert registry["integrity_audit"]["numbered_gold_star_record_count"] == 38
     assert registry["integrity_audit"]["unassigned_approved_gold_star_count"] == 71
 
