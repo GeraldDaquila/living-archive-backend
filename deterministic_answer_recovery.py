@@ -882,7 +882,7 @@ def _felt_truth_claim_discernment_recovery():
         "A practical examination has seven steps:\n"
         "1. **State the claim precisely.** What exactly are you accepting? Separate the proposition from the emotions, promises, and implications surrounding it.\n"
         "2. **Separate experience from interpretation.** What did you directly observe or experience? What meaning did you assign to it? Both matter, but they are different kinds of information.\n"
-        "3. **Identify the evidence.** What supports the claim independently of how compelling it feels? Is the evidence direct, repeatable, independently corroborated, or dependent on one interpretation?\n"
+        "3. **Identify the evidence.** What supports the claim independently of how compelling it feels? Is the evidence appropriate to the kind of claim being made, independently corroborated where possible, sufficiently reliable, and open to examination?\n"
         "4. **Look for disconfirming evidence.** What would make the claim less credible? What observation would count against it? A belief that can accommodate every possible outcome without changing is difficult to examine meaningfully.\n"
         "5. **Consider alternative explanations.** Could the same experience be explained by expectation, selective attention, coincidence, social reinforcement, personal need, or another plausible mechanism?\n"
         "6. **Examine what the belief does.** Does it increase your capacity to think, act responsibly, and remain open to correction? Or does it make you dependent on an authority, resistant to questions, or afraid of contrary evidence?\n"
