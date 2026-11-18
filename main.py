@@ -11825,7 +11825,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         general_knowledge_recovery is None
         and not _final_discovery_only
         and (
-            general_guide_composition._requires_three_paragraph_default(query)
+            general_guide_composition._requires_substantive_answer_contract(query)
             or len(_final_comparative_subjects) == 2
         )
     )
@@ -11952,7 +11952,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                             ))
                         )
                         if _systemwide_recovery and not _systemwide_is_meta and not _systemwide_nonanswer and (
-                            not general_guide_composition._requires_three_paragraph_default(query)
+                            not general_guide_composition._requires_substantive_answer_contract(query)
                             or len([
                                 part for part in re.split(r"\n\s*\n+", _systemwide_recovery)
                                 if part.strip()
