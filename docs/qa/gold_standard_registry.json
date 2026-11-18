@@ -7149,7 +7149,8 @@
       },
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial. Gold Star approval and display numbering remain independent."
+      "numbering_unassigned_reason": "The user authorized Gold Star elevation but did not separately request a display serial. Gold Star approval and display numbering remain independent.",
+      "legacy_approval_grandfathered": false
     }
   ],
   "last_reconciliation_note": "2026-11-18: Added gs-2026-11-18-personality-soul-oversoul-discernment as an approved exact-query Gold Star with a bounded personality/soul/Oversoul discernment contract, a matching active qualitative-transfer review, and the verified Eternal / Oversoul Law doorway. Canonical inventory: 111 approved Gold Stars across 149 registry records; 109 active runtime-transfer contributors, 38 numbered, 73 UNASSIGNED. No existing serial changed and no new serial was allocated.",
