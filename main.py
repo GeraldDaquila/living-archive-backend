@@ -10611,13 +10611,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     response = _sanitize_basic_inquiry_response(
         general_guide_composition.enforce_response_contracts(query, response)
     )
-    # Apply the default paragraph contract at the final visitor boundary too:
-    # this single final payload gate is authoritative; no earlier composition retry.
-    # The removed early gate used three-paragraph fail-honest recovery only after
-    # starting another provider turn; that redundant turn is now eliminated.
-    # Paragraph quality is enforced at the final payload boundary below. Do not
-    # run a second composition here: the later, single final repair is the only
-    # allowed paragraph-contract recovery after downstream response rewrites.
+    # Apply the shared task-dependent quality contract at the final visitor boundary.
+    # This gate checks answer relevance and substantive quality, never paragraph count.
+    # Do not run a second composition merely to satisfy a prescribed answer shape.
     if general_guide_composition._requires_responsibility_boundary_answer(query) and not general_guide_composition._has_responsibility_boundary_explanation(response):
         raise RuntimeError("Responsibility-boundary contract failed at final visitor boundary.")
 
@@ -11739,7 +11735,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         general_knowledge_recovery is None
         and not _final_discovery_only
         and (
-            general_guide_composition._requires_three_paragraph_default(query)
+            general_guide_composition._requires_substantive_answer_contract(query)
             or len(_final_comparative_subjects) == 2
         )
     )
@@ -11758,13 +11754,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             response,
             re.I,
         ))
-        _last_paragraphs = [
-            part.strip()
-            for part in re.split(r"\n\s*\n+", response)
-            if part.strip()
-        ]
         _current_response_nonanswer = general_guide_composition.is_generic_nonanswer(query, response) or general_guide_composition.is_meta_answer_failure(response)
-        if len(_last_paragraphs) < 3 or _meta_answer or _current_response_nonanswer:
+        if _meta_answer or _current_response_nonanswer:
             # A known regression query gets a deterministic, direct answer at
             # the final visitor boundary. This is a semantic recovery, not a
             # paragraph-count filler; it prevents provider failure from turning
