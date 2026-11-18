@@ -3930,6 +3930,54 @@ def _comparative_traditions_recovery(question: str) -> Optional[Dict[str, Any]]:
     }
 
 
+def _gold_star_candidate_adjudication_recovery(query: str) -> Optional[Dict[str, Any]]:
+    """Answer explicit Gold Star selection/synthesis questions without provider dependence.
+
+    This is a narrow, question-specific conceptual contract. It does not select
+    live candidates, transfer exemplar content, or imply that every question
+    mentioning Gold Stars should use this recovery.
+    """
+    text = _normalize_space(query)
+    if not re.search(r"\bgold\s+stars?\b", text, re.I):
+        return None
+    asks_adjudication = (
+        re.search(r"\b(?:select|choose|decide|determine|adjudicat)\w*\b", text, re.I)
+        and re.search(r"\bcombin\w*\b", text, re.I)
+        and re.search(r"\breject\w*\b", text, re.I)
+    )
+    if not asks_adjudication:
+        return None
+    response = (
+        "USE should treat similarity as a way to find candidates, not as a decision to apply them. "
+        "It should first identify the visitor’s actual subject and task, then assess each Gold Star "
+        "independently: does its subject genuinely fit, what distinct reasoning operation would it add, "
+        "is that contribution necessary, and does its stated boundary fit the question? Select one when "
+        "it is the single sufficient fit. Combine candidates only when each contributes a distinct, "
+        "necessary, compatible operation that the question actually requires. Reject all when the match "
+        "is only lexical, the discipline is off-topic, the contribution is redundant or conflicting, "
+        "or its boundary does not fit.\n\n"
+        "This is not a vote, a top-score rule, or a reward for having several plausible matches. "
+        "Similarity ranks what deserves inspection; adjudication determines what deserves use. "
+        "Different disciplines should be combined only when the question has genuinely different "
+        "dimensions that need them. If one discipline resolves the actual task, use that one and leave "
+        "the others unused. Never transfer an exemplar’s answer, claims, examples, citations, or doorway "
+        "into a different question.\n\n"
+        "Rejecting all candidates must not stop USE from answering. It should answer the visitor’s "
+        "question directly from reliable knowledge and relevant evidence, without Gold Star guidance. "
+        "A doorway is a separate decision: include one only when a verified resource materially advances "
+        "this particular inquiry; otherwise, leave it out. Candidate uncertainty is not a reason to refuse "
+        "an answer that can otherwise be given responsibly."
+    )
+    return {
+        "response": response,
+        "doorway_title": "",
+        "doorway_url": "",
+        "response_shape": "explanatory",
+        "provider": "bounded_gold_star_candidate_adjudication_recovery",
+        "model": "deterministic-contract-recovery",
+    }
+
+
 def compose(
 
     *,
@@ -3982,6 +4030,15 @@ def compose(
             "provider": "gold_standard_registry",
             "model": "approved-reference",
         }
+
+    # This narrow meta-question has a substantive provider-independent answer.
+    # Candidate selection rules must remain explainable even when all generation
+    # providers are unavailable; this recovery is not a substitute for ordinary
+    # candidate adjudication on visitor questions about other subjects.
+    gold_star_adjudication_recovery = _gold_star_candidate_adjudication_recovery(question)
+    if gold_star_adjudication_recovery is not None:
+        _emit_guide_outcome("deterministic_boundary", source="gold_star_candidate_adjudication")
+        return gold_star_adjudication_recovery
 
     # A broad existential question is answerable without asking the visitor to
     # disclose personal context. Give a substantive, pluralistic first answer
