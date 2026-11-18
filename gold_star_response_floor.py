@@ -28,6 +28,13 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
         return {"version": VERSION, "status": "not_applicable", "reason": "non_object_payload"}
     if payload.get("ok") is False:
         return {"version": VERSION, "status": "not_applicable", "reason": "explicit_error_payload"}
+    # A specialist may successfully return a structured handoff rather than an
+    # explanatory answer. Its own handoff contract is authoritative; do not
+    # mistake that non-answer payload for a failed completed answer.
+    if payload.get("handoff_pending") is True or (
+        payload.get("handoff") and not any(str(payload.get(key) or "").strip() for key in ANSWER_KEYS)
+    ):
+        return {"version": VERSION, "status": "not_applicable", "reason": "structured_handoff"}
 
     answer = next((str(payload.get(key) or "").strip() for key in ANSWER_KEYS
                    if str(payload.get(key) or "").strip()), "")
