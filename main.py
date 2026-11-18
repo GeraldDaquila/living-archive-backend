@@ -5637,9 +5637,16 @@ def _guide_restore_verified_doorway(payload, query):
     # knowledge recovery. The terminal visitor boundary must not append a
     # generic Learning Arc or Compass after the answer has declared that no
     # verified direct Archive continuation materially advances the inquiry.
+    exact_standard = _resolve_exact_guide_gold_standard(query)
+    exact_gold_star_omission = (
+        exact_standard is not None
+        and _gold_star_doorway_omission_is_justified(exact_standard)
+    )
     answer_basis = safe.get("answer_basis")
     response_provenance = safe.get("response_provenance")
     explicit_general_knowledge_omission = (
+        exact_gold_star_omission
+        or (
         safe.get("processing") == "gold_star_remedy_selection_recovery"
         and isinstance(answer_basis, dict)
         and answer_basis.get("kind") == "general_knowledge"
@@ -5648,6 +5655,7 @@ def _guide_restore_verified_doorway(payload, query):
         and safe.get("doorway_omission_reason") == "no_verified_direct_archive_continuation"
         and not _normalize_authoritative_recommendation(safe.get("recommendation"))
         and not _normalize_authoritative_recommendation(safe.get("canonical_doorway"))
+        )
     )
     if explicit_general_knowledge_omission:
         safe["recommendation"] = None
@@ -5656,9 +5664,12 @@ def _guide_restore_verified_doorway(payload, query):
         safe["doorway_url"] = None
         safe["doorway_rationale"] = None
         safe["doorway_omission_exception_reason"] = (
-            "The answer is complete general-knowledge guidance about an internal "
-            "USE learning-governance method; no verified direct Archive continuation "
-            "materially advances the inquiry."
+            str(exact_standard.get("doorway_omission_exception_reason") or "").strip()
+            if exact_gold_star_omission else (
+                "The answer is complete general-knowledge guidance about an internal "
+                "USE learning-governance method; no verified direct Archive continuation "
+                "materially advances the inquiry."
+            )
         )
         return safe
 
@@ -5687,10 +5698,9 @@ def _guide_restore_verified_doorway(payload, query):
     if doorway and not str(doorway.get("rationale") or "").strip():
         doorway = None
 
-    # A missing topic-specific match is not permission to return a navigation dead end.
-    if not doorway:
-        doorway = _normalize_authoritative_recommendation(_gold_star_default_doorway())
-
+    # Ordinary visitor answers require a verified relevant candidate. The broad
+    # Gold Star default is applied only by the exact Gold Star finalizer, never
+    # as a global substitute for relevance.
     safe["recommendation"] = doorway
     safe["canonical_doorway"] = doorway
     safe["doorway_title"] = doorway.get("title") if doorway else None
@@ -5774,6 +5784,12 @@ def _guide_finalize_visitor_payload(payload, query):
             safe["doorway_title"] = None
             safe["doorway_url"] = None
             safe["doorway_rationale"] = None
+            safe["doorway_omission_exception_reason"] = str(
+                exact_standard.get("doorway_omission_exception_reason") or ""
+            ).strip()
+            safe["doorway_omission_reason"] = str(
+                exact_standard.get("doorway_omission_exception_reason") or ""
+            ).strip()
         safe["processing"] = "final_visitor_boundary_exact_gold_standard"
         safe["route_source"] = "guide_final_visitor_boundary"
         safe["visitor_boundary_version"] = APP_VERSION
