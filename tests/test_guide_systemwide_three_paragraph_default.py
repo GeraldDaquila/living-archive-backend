@@ -1,4 +1,4 @@
-"""Tests for the system-wide three-paragraph Guide default and fragmented-knowledge recovery."""
+"""Tests for task-dependent Guide composition and fragmented-knowledge recovery."""
 
 from pathlib import Path
 
@@ -47,13 +47,14 @@ def test_valid_three_paragraph_fragmented_knowledge_explanation_is_preserved():
     assert enforce_response_contracts(QUERY, valid) == valid
 
 
-def test_general_guide_prompt_makes_three_paragraphs_the_default_without_conflicting_short_answer_rule():
+def test_general_guide_prompt_uses_task_dependent_quality_governance():
     source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
-    assert "A substantive explanatory or conceptual question defaults to three purposeful paragraphs" in source
-    assert "For other substantive explanatory or conceptual answers, use three purposeful paragraphs by default" in source
-    assert "For a substantive explanatory, conceptual, educational, social, or Archive-related question, present three connected, readable paragraphs by default" in source
-    assert "For other explanatory or conceptual answers, use 2–4 purposeful paragraphs when that improves comprehension." not in source
-    assert "a short conceptual question may need only two or three compact paragraphs" not in source
+    assert "GOLD STAR QUALITY GOVERNANCE" in source
+    assert "TASK-DEPENDENT PRESENTATION STANDARD" in source
+    assert "Do not impose a fixed number of paragraphs or a universal sequence" in source
+    assert "choose the response form that makes the answer easiest to understand and use" in source
+    assert "three purposeful paragraphs by default" not in source
+    assert "defaults to three purposeful paragraphs" not in source
 
 def test_final_visitor_boundary_uses_shared_gold_standard_recovery_instead_of_generic_apology():
     source = (ROOT / "main.py").read_text(encoding="utf-8")
@@ -62,18 +63,21 @@ def test_final_visitor_boundary_uses_shared_gold_standard_recovery_instead_of_ge
     boundary_start = source.index(marker)
     boundary = source[boundary_start:boundary_start + 4000]
     assert "_compose_provider_exhaustion_recovery(query)" in boundary
-    assert "len(_systemwide_paragraphs) >= 3" in boundary
+    assert "if _systemwide_recovery and not _systemwide_is_meta and not _systemwide_nonanswer:" in boundary
+    assert "task-appropriate recovery" in boundary
+    assert "len(_systemwide_paragraphs)" not in boundary
     assert "Preserve an already verified doorway" in boundary
     assert "authoritative_doorway = None" not in boundary
     assert '"kind": "general_knowledge"' in boundary
     assert "I couldn’t produce a reliable answer to that question just now." in boundary
 
-def test_default_composition_quality_gate_requires_substance_not_just_three_paragraphs():
+def test_task_dependent_composition_quality_gate_requires_substance_and_relevance():
     source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
     for requirement in (
         "COMPOSITION QUALITY GATE — mandatory for every substantive answer",
         'For a "how can" question, name the practical method or decision principle immediately',
-        "Give each paragraph a different job",
+        "Each part must add understanding",
+        "Do not impose a fixed number of paragraphs or a universal sequence",
         "Do not introduce the name of an Archive assessment, framework, governance instrument, or internal tool into the body of a general answer",
         "every sentence must answer the visitor's question",
     ):
@@ -660,3 +664,39 @@ def test_oversoul_free_will_question_recovers_answer_and_canonical_doorway_acros
 
     # Do not classify every mention of Oversoul as this particular inquiry.
     assert not is_oversoul_free_will_question("What is an Oversoul?")
+
+
+def test_specialist_semantic_contracts_accept_task_complete_single_paragraph_answers():
+    import general_guide_composition as composition
+
+    intergenerational = (
+        "Stewardship is intergenerational because our care shapes what future generations "
+        "inherit. In practice, an institution can pass on knowledge, capabilities, relationships, "
+        "and resources. This does not mean controlling the future; it means taking responsibility "
+        "for reasonable care and recognizing limits."
+    )
+    assert composition._has_intergenerational_stewardship_explanation(intergenerational)
+
+    entrusted = (
+        "What is held in trust is what has been entrusted to someone's care for people or a "
+        "community who depend on it. The obligation is to protect and maintain it responsibly. "
+        "For example, a manager safeguards shared information and recognizes limits on authority, "
+        "misuse, neglect, and duties to affected people."
+    )
+    assert composition._has_entrusted_stewardship_identification(entrusted)
+
+    values_conflict = (
+        "Faithful stewardship requires examining values and principles when they conflict. "
+        "The decision must weigh obligations and duties, consider who is affected and possible "
+        "consequences, and use evidence and context. Explain the choice transparently, remain "
+        "accountable, and revisit it when new information appears."
+    )
+    assert composition._has_faithful_stewardship_values_conflict(values_conflict)
+
+    tradeoffs = (
+        "Ecological effects: what land and water are affected? Economic effects: who pays and "
+        "who benefits? Cultural effects: what heritage and local knowledge matter? Governance: "
+        "who has authority and consent? What alternatives exist? What monitoring and review "
+        "will correct harm?"
+    )
+    assert composition._has_community_project_tradeoff_analysis(tradeoffs)
