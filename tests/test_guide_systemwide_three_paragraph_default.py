@@ -664,3 +664,39 @@ def test_oversoul_free_will_question_recovers_answer_and_canonical_doorway_acros
 
     # Do not classify every mention of Oversoul as this particular inquiry.
     assert not is_oversoul_free_will_question("What is an Oversoul?")
+
+
+def test_specialist_semantic_contracts_accept_task_complete_single_paragraph_answers():
+    import general_guide_composition as composition
+
+    intergenerational = (
+        "Stewardship is intergenerational because our care shapes what future generations "
+        "inherit. In practice, an institution can pass on knowledge, capabilities, relationships, "
+        "and resources. This does not mean controlling the future; it means taking responsibility "
+        "for reasonable care and recognizing limits."
+    )
+    assert composition._has_intergenerational_stewardship_explanation(intergenerational)
+
+    entrusted = (
+        "What is held in trust is what has been entrusted to someone's care for people or a "
+        "community who depend on it. The obligation is to protect and maintain it responsibly. "
+        "For example, a manager safeguards shared information and recognizes limits on authority, "
+        "misuse, neglect, and duties to affected people."
+    )
+    assert composition._has_entrusted_stewardship_identification(entrusted)
+
+    values_conflict = (
+        "Faithful stewardship requires examining values and principles when they conflict. "
+        "The decision must weigh obligations and duties, consider who is affected and possible "
+        "consequences, and use evidence and context. Explain the choice transparently, remain "
+        "accountable, and revisit it when new information appears."
+    )
+    assert composition._has_faithful_stewardship_values_conflict(values_conflict)
+
+    tradeoffs = (
+        "Ecological effects: what land and water are affected? Economic effects: who pays and "
+        "who benefits? Cultural effects: what heritage and local knowledge matter? Governance: "
+        "who has authority and consent? What alternatives exist? What monitoring and review "
+        "will correct harm?"
+    )
+    assert composition._has_community_project_tradeoff_analysis(tradeoffs)
