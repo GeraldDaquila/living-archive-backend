@@ -806,3 +806,19 @@ Promotion should require reproducible improvement on the relevant held-out evalu
 - **Rating:** 9.8/10.
 - **Approval:** User explicitly requested the two-level structural correction and Gold Star elevation on 2026-11-18.
 - **Numbering:** UNASSIGNED; no display serial was requested.
+
+
+### Gold Star #94 — Personality, soul learning, and Oversoul invitation (2026-11-18)
+
+- **Benchmark:** `gs-2026-11-18-personality-soul-oversoul-discernment`
+- **Status:** `USER_APPROVED_GOLD_STANDARD`; exact visitor-facing answer and verified doorway frozen.
+- **Question:** “What is the difference between what my personality wants, what my soul is learning, and what my Oversoul may be inviting me to become?”
+- **Answer:** The exact three-paragraph visitor-facing answer is preserved in `docs/qa/gold_standard_registry.json` and its regression fixture.
+- **Discernment discipline:** Distinguish present personality wants and needs, soul-level developmental learning, and a possible wider Oversoul invitation. Validate each through lived evidence and reflection; integrate without suppressing ordinary needs or treating spiritual interpretation as certainty.
+- **Doorway:** **Eternal / Oversoul Law – The Immutable Jurisdiction** — https://geralddaquila.com/oversoul-law
+- **Epistemic boundary:** The doorway is the Archive's own framework for inspection, not independent proof of metaphysical claims. Do not treat hardship as cosmically assigned or intuition as an authoritative command; preserve agency and responsibility.
+- **Rating:** 9.7/10.
+- **Approval:** User reviewed the live visitor-facing screenshot and explicitly instructed elevation on 2026-11-18.
+- **Adaptive-learning boundary:** Transfer the three-lens discernment discipline only. Do not transfer answer text or doorway to unrelated questions, impose a spiritual frame where the visitor has not introduced one, or claim metaphysical certainty.
+- **Numbering:** **#94**, allocated as the next contiguous serial after #93 following the user's explicit “elevate!” instruction.
+- **Freeze policy:** Preserve the exact approved response and doorway rationale. Changes require explicit user authorization and a separately documented benchmark-version change.
