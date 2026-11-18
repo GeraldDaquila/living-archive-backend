@@ -818,19 +818,21 @@ def is_interpretation_revision_evidence_question(question):
 
 
 def _interpretation_revision_evidence_recovery():
-    """Offer a proportionate evidence standard without deciding the visitor's belief."""
+    """Make a claim-sensitive evidence method visible without judging the visitor's belief."""
     return (
-        "A useful starting point is to separate the experience from the interpretation placed on it. "
-        "The experience may be real as an experience—something you felt, noticed, or lived through—without every explanation of its source being established. "
-        "You do not have to dismiss the experience to examine the conclusion you have drawn from it. "
-        "The question is what kind of claim the interpretation makes, because different claims can be tested in different ways.\n\n"
-        "If it makes a claim about an observable event, another person’s actions, a cause, or a pattern in the world, look for evidence that is independently checkable: records or observations whose origins can be traced, corroboration that does not all repeat one source, and results that recur under comparable conditions. "
-        "Ask what else could explain the same experience, what the interpretation would lead you to expect, and what specific observation would count against it. "
-        "Apply the same standard to evidence that supports the interpretation and evidence that challenges it; do not lower the bar for one side or demand impossible certainty from the other.\n\n"
-        "If the interpretation is metaphysical or concerns personal meaning, be clear about what can and cannot be established by public evidence. "
-        "A meaningful experience may remain meaningful even when its supernatural explanation is uncertain; equally, a claim that makes observable predictions should not be shielded from testing merely because it is described as spiritual. "
-        "You might revise the factual explanation while retaining the personal significance, or suspend judgment where the evidence cannot decide the matter. "
-        "A sound standard is not to force belief or disbelief, but to state in advance what would strengthen, weaken, or leave the interpretation unresolved—and then let the evidence, including contrary evidence, matter."
+        "A useful starting point is to separate the experience from the interpretation you have placed on it. "
+        "What you felt, noticed, or lived through may be real and important without every explanation of its source being established. "
+        "Examining an explanation does not require you to dismiss the experience. The right test depends on the kind of claim being made.\n\n"
+        "For a claim about an observable event, another person's actions, a cause, or a pattern in the world, work through five checks:\n\n"
+        "1. **Name the claim.** What, exactly, are you saying happened or caused what? Separate what you directly experienced from what you infer it means.\n"
+        "2. **Check the evidence.** What records or observations can be checked independently, and can their origins be traced? Do apparently separate sources actually repeat one original account?\n"
+        "3. **Test alternatives.** What else could explain the same experience? What would your interpretation lead you to expect, and does that expectation recur under comparable conditions?\n"
+        "4. **Specify disconfirmation.** What particular observation would count against your interpretation? If no possible observation could change your view, you are protecting the claim from testing.\n"
+        "5. **Apply one standard.** Give supporting and challenging evidence the same scrutiny. Do not lower the bar for evidence that agrees with you or demand impossible certainty from evidence that does not.\n\n"
+        "For a metaphysical claim or one about personal meaning, be clear about what public evidence can and cannot establish. "
+        "An experience may remain meaningful even when its supernatural explanation is uncertain. But if a spiritual claim makes observable predictions, describing it as spiritual does not exempt those predictions from examination. "
+        "You can revise the factual explanation while retaining the experience's personal significance, or suspend judgment when the evidence cannot decide the matter. "
+        "The practical standard is this: say in advance what would strengthen the interpretation, weaken it, or leave it unresolved—and allow the evidence, including contrary evidence, to make a difference."
     )
 
 
@@ -862,12 +864,12 @@ def _resonance_confirmation_bias_recovery():
         "Resonance and confirmation bias are not opposites. Resonance is a felt sense of recognition or fit: an idea connects with something in your experience or understanding. "
         "That feeling can alert you to a possibility worth examining, but it cannot establish that your explanation is true. "
         "Confirmation bias is what can happen next: you give supporting details more attention or weight, while overlooking, discounting, or explaining away details that challenge the interpretation. "
-        "So an impression can feel genuinely resonant and still be interpreted through confirmation bias. The key distinction is between the signal you experience and the truth of the explanation you attach to it.\\n\\n"
+        "So an impression can feel genuinely resonant and still be interpreted through confirmation bias. The key distinction is between the signal you experience and the truth of the explanation you attach to it.\n\n"
         "Before acting, write down four things separately: what you directly observed; what you felt; what you think it means; and what conclusion or action you are considering. "
         "Then test the proposed pattern rather than trying to suppress the feeling. Ask four questions: Does it recur under comparable conditions, or is it resting on one striking coincidence? "
         "What is the strongest alternative explanation? What plausible mechanism connects the observations, rather than merely making them feel coherent? "
         "What constraints or alternative explanations could produce the same result, and where might the pattern stop applying? "
-        "Most importantly, what specific observation would count against your interpretation? If no possible evidence could change your mind, you are protecting a belief rather than testing a claim.\\n\\n"
+        "Most importantly, what specific observation would count against your interpretation? If no possible evidence could change your mind, you are protecting a belief rather than testing a claim.\n\n"
         "Apply the same standard in both directions: do not accept weak evidence because it agrees with you, or demand impossible certainty because it does not. "
         "When several sources appear to corroborate the impression, trace them back to their origins; five reports repeating one original claim are not five independent confirmations. "
         "A useful rule is: let resonance generate a hypothesis, let repeatability and a plausible mechanism make it worth considering, and let disconfirming evidence decide whether it survives. "

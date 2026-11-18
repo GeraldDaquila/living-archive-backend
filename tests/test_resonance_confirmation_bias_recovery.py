@@ -114,14 +114,20 @@ def test_spiritual_interpretation_recovery_separates_experience_from_explanation
     assert answer == _interpretation_revision_evidence_recovery()
     for required in (
         "separate the experience from the interpretation",
-        "independently checkable",
-        "what specific observation would count against it",
-        "Apply the same standard",
-        "metaphysical or concerns personal meaning",
+        "Name the claim.",
+        "Check the evidence.",
+        "Test alternatives.",
+        "Specify disconfirmation.",
+        "Apply one standard.",
+        "independently",
+        "what particular observation would count against your interpretation",
+        "metaphysical claim or one about personal meaning",
         "may remain meaningful",
         "suspend judgment",
+        "strengthen the interpretation, weaken it, or leave it unresolved",
     ):
         assert required.casefold() in answer.casefold()
+    assert len([line for line in answer.splitlines() if line[:1].isdigit() and ". " in line]) == 5
     assert "The Guide could not complete" not in answer
 
 
