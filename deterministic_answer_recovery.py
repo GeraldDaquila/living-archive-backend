@@ -615,17 +615,17 @@ def _community_project_tradeoff_recovery():
 def is_external_discernment_outsourcing_question(question):
     """Recognize questions auditing reliance on external authorities for personal discernment."""
     q = _clean(question).casefold()
-    discernment = bool(re.search(r"\\b(?:discernment|discern|judgment|judgement)\\b", q))
+    discernment = bool(re.search(r"\b(?:discernment|discern|judgment|judgement)\b", q))
     outsourcing = bool(re.search(
-        r"\\b(?:outsourc(?:e|ing|ed)|defer(?:ring)?|surrender(?:ing)?|"
-        r"hand(?:ing)?\\s+over|rely(?:ing)?\\s+on|depend(?:ing)?\\s+on)\\b", q
+        r"\b(?:outsourc(?:e|ing|ed)|defer(?:ring)?|surrender(?:ing)?|"
+        r"hand(?:ing)?\s+over|rely(?:ing)?\s+on|depend(?:ing)?\s+on)\b", q
     ))
     external_authority = bool(re.search(
-        r"\\b(?:external|outside|teacher|guru|leader|system|sign|omen|"
-        r"synchronicit\\w*|spiritual framework|religious framework|ideology|doctrine)\\b", q
+        r"\b(?:external|outside|teacher|guru|leader|system|sign|omen|"
+        r"synchronicit\w*|spiritual framework|religious framework|ideology|doctrine)\b", q
     ))
     asks_where_or_how = bool(re.search(
-        r"\\b(?:where|how|when|which|recogniz\\w*|identify|notice|detect)\\b", q
+        r"\b(?:where|how|when|which|recogniz\w*|identify|notice|detect)\b", q
     ))
     return discernment and outsourcing and external_authority and asks_where_or_how
 
@@ -633,8 +633,8 @@ def is_external_discernment_outsourcing_question(question):
 def _external_discernment_outsourcing_recovery():
     """Map possible sites of outsourced discernment without presuming the visitor's situation."""
     return (
-        "Discernment is being outsourced when an outside source stops being something you consult and becomes the authority that decides what you are allowed to see, believe, or choose. The issue is not learning from a teacher, using a framework, or noticing a sign; it is whether you still examine the interpretation, can disagree with it, and remain responsible for your decision. The following are places to examine, not conclusions about you.\\n\\n"
-        "With a teacher or spiritual leader, look for whether their confidence, status, or approval has begun to outweigh your own observation—or whether disagreement feels like disloyalty. With a system or doctrine, ask whether you are using it as a lens or forcing every experience to fit its categories. With signs, dreams, or synchronicities, notice whether you treat an event as a prompt for reflection or as an instruction that bypasses evidence and choice. With a spiritual framework, ask whether its explanations can be questioned and revised, or whether every outcome is interpreted to confirm it, even when it asks you to ignore boundaries, facts, or harm.\\n\\n"
+        "Discernment is being outsourced when an outside source stops being something you consult and becomes the authority that decides what you are allowed to see, believe, or choose. The issue is not learning from a teacher, using a framework, or noticing a sign; it is whether you still examine the interpretation, can disagree with it, and remain responsible for your decision. The following are places to examine, not conclusions about you.\n\n"
+        "With a teacher or spiritual leader, look for whether their confidence, status, or approval has begun to outweigh your own observation—or whether disagreement feels like disloyalty. With a system or doctrine, ask whether you are using it as a lens or forcing every experience to fit its categories. With signs, dreams, or synchronicities, notice whether you treat an event as a prompt for reflection or as an instruction that bypasses evidence and choice. With a spiritual framework, ask whether its explanations can be questioned and revised, or whether every outcome is interpreted to confirm it, even when it asks you to ignore boundaries, facts, or harm.\n\n"
         "A useful audit is to separate four things: what you directly observed; what meaning you are assigning to it; whose interpretation is influencing you; and what evidence could make you reconsider. Then ask whether you can say no, wait, seek another perspective, or choose differently without fear of punishment or spiritual failure. Guidance can widen perception and help you think; outsourcing begins when it replaces that thinking. You do not have to reject outside wisdom to reclaim discernment—you have to keep your judgment, boundaries, and responsibility in the process."
     )
 
