@@ -628,21 +628,12 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
         re.I,
     ))
     reviewed_omission = _gold_star_doorway_omission_is_justified(exact_standard)
-    recovery_omission_reason = str(
-        safe.get("doorway_omission_reason")
-        or safe.get("doorway_omission_exception_reason")
-        or ""
-    ).strip()
-    cosmology_doorway_not_verified = bool(
-        re.search(r"\b(?:cosmology|worldview)\b", str(query or ""), re.I)
-        and re.search(
-            r"\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\b",
-            str(query or ""),
-            re.I,
-        )
-    )
-
-    if reviewed_omission or explicit_no_doorway or recovery_omission_reason or cosmology_doorway_not_verified:
+    # Provider/recovery omission text is advisory, not a terminal routing decision.
+    # The shared boundary must still attempt canonical retrieval and the approved
+    # Guide Node registry before deciding that no relevant continuation exists.
+    # Only a reviewed Gold Standard or an explicit visitor request may short-circuit
+    # that selection process here.
+    if reviewed_omission or explicit_no_doorway:
         # Clear every public doorway alias together. Leaving even one populated
         # field allows a frontend renderer or compatibility path to resurrect
         # the same recommendation under a different field name.
@@ -669,11 +660,12 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
         ):
             if key in safe:
                 safe[key] = None
-        if not recovery_omission_reason:
+        safe["doorway_decision"] = "omit"
+        if not str(safe.get("doorway_omission_reason") or "").strip():
             safe["doorway_omission_reason"] = (
                 str(exact_standard.get("doorway_omission_exception_reason") or "").strip()
                 if reviewed_omission and isinstance(exact_standard, dict)
-                else "No directly relevant canonical destination has been verified for this inquiry."
+                else "The visitor explicitly requested no navigation handoff."
             )
         return safe
 
@@ -5780,6 +5772,8 @@ def _guide_restore_verified_doorway(payload, query):
                 "that materially advances the inquiry."
             )
         )
+        safe["doorway_decision"] = "omit"
+        safe["doorway_omission_reason"] = safe["doorway_omission_exception_reason"]
         return safe
 
     family = _select_verified_doorway_conceptual_family(query)
@@ -5815,6 +5809,15 @@ def _guide_restore_verified_doorway(payload, query):
     safe["doorway_title"] = doorway.get("title") if doorway else None
     safe["doorway_url"] = doorway.get("url") if doorway else None
     safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
+    safe["doorway_decision"] = "selected" if doorway else "omit"
+    if doorway:
+        # A verified selection supersedes any weaker upstream omission note.
+        safe["doorway_omission_reason"] = None
+        safe["doorway_omission_exception_reason"] = None
+    elif not str(safe.get("doorway_omission_reason") or "").strip():
+        safe["doorway_omission_reason"] = (
+            "No verified canonical Archive resource materially advances this inquiry."
+        )
     return safe
 
 
