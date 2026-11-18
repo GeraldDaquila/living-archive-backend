@@ -1876,3 +1876,18 @@ def test_gold_star_multi_candidate_adjudication_is_exact_approved_and_unassigned
     assert resolved["expected_response"] == record["expected_response"]
     assert resolved["doorway_title"] == ""
     assert resolved["doorway_url"] in (None, "")
+
+
+def test_calibration_validation_promotion_gold_star_is_exactly_resolvable_and_no_doorway():
+    from general_guide_gold_standards import resolve_exact_gold_standard
+
+    query = "A revised Guide performs better on the calibration set but worse on the validation set. Which result should govern the decision to promote the revision, and why?"
+    record = resolve_exact_gold_standard(query)
+    assert record is not None
+    assert record["benchmark_id"] == "general-guide-calibration-vs-validation-promotion-decision-gold-star-2026-11-18"
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["runtime_transfer"] is True
+    assert record["forbids_doorway"] is True
+    assert record["doorway_title"] == ""
+    assert record["doorway_url"] == ""
+    assert record["expected_response"].startswith("The validation result should govern promotion.")
