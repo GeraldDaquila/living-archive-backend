@@ -46,8 +46,14 @@ const apiBodyReads = [];
 const apiFailures = [];
 const apiFinished = [];
 const pageErrors = [];
+const consoleErrors = [];
 page.on("pageerror", error => {
-  pageErrors.push(error.message);
+  pageErrors.push({ message: error.message, stack: error.stack || "" });
+});
+page.on("console", message => {
+  if (message.type() === "error") {
+    consoleErrors.push({ text: message.text(), location: message.location() });
+  }
 });
 page.on("request", request => {
   if (request.method() === "POST" && request.url().includes("/api/query")) {
@@ -103,7 +109,7 @@ try {
   // Playwright auto-waiting on a possible form navigation.
   await submit.evaluate(element => setTimeout(() => element.click(), 0));
 
-  const link = root.locator("#archive-response-text a.archive-recommendation-link");
+  const link = root.locator("#archive-response-text a.la-answer-doorway__link");
   await link.waitFor({ state: "visible", timeout: 60_000 });
   const rendered = await link.evaluate(node => ({
     title: node.innerText.trim(),
@@ -182,7 +188,7 @@ try {
       waterUI.toLowerCase().includes("living archive's available material")) {
     throw new Error("The rendered visitor response did not match the concise general-fact boundary: " + waterUI);
   }
-  if (await root.locator("#archive-response-text a.archive-recommendation-link").count() !== 0) {
+  if (await root.locator("#archive-response-text a.la-answer-doorway__link").count() !== 0) {
     throw new Error("The boiling-point response displayed a doorway even though no relevant canonical resource was verified.");
   }
   if (!waterUI.includes(waterAPI.slice(0, Math.min(48, waterAPI.length)))) {
@@ -285,10 +291,10 @@ try {
   if (/^[^\S\r\n]*[✨🌱🔹🔸✅⚠️]/mu.test(supportedResponse.payload.response)) {
     throw new Error("The conceptual fallback began a response line with decorative emoji.");
   }
-  if (await root.locator("#archive-response-text a.archive-recommendation-link").count() !== 1) {
+  if (await root.locator("#archive-response-text a.la-answer-doorway__link").count() !== 1) {
     throw new Error("The conceptual response must render exactly one canonical recommendation link.");
   }
-  const conceptualLink = await root.locator("#archive-response-text a.archive-recommendation-link").first().evaluate(el=>({href:el.href,text:(el.innerText||el.textContent||"").trim()}));
+  const conceptualLink = await root.locator("#archive-response-text a.la-answer-doorway__link").first().evaluate(el=>({href:el.href,text:(el.innerText||el.textContent||"").trim()}));
   if (conceptualLink.href !== supportedResponse.payload.recommendation.url) {
     throw new Error("The conceptual recommendation URL does not match the API-selected canonical destination.");
   }
@@ -323,7 +329,8 @@ try {
     apiFailures,
     apiFinished,
     answerLength: responseText.length,
-    pageErrors
+    pageErrors,
+    consoleErrors
   }));
 } catch (error) {
   console.error(JSON.stringify({
@@ -340,7 +347,8 @@ try {
     })),
     apiFailures,
     apiFinished,
-    pageErrors
+    pageErrors,
+    consoleErrors
   }));
   process.exitCode = 1;
 } finally {
