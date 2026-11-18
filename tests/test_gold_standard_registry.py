@@ -1788,3 +1788,20 @@ def test_nonprofit_culture_power_care_governance_gold_star_preserves_exact_answe
     entry = next(item for item in review["entries"] if item["benchmark_id"] == fixture["benchmark_id"])
     assert entry["activation"] == "active_quality_contributor"
     assert entry["reasoning_family"] == "nonprofit_culture_power_care_governance_with_evidence_boundaries"
+
+
+def test_scope_governance_gold_star_is_registered_without_serial_allocation():
+    registry = _registry()
+    record = next(
+        item for item in registry["records"]
+        if item["benchmark_id"] == "general-guide-gold-star-scope-governance-cross-domain-regression-2026-11-18"
+    )
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["gold_star_number"] is None
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert len(record["expected_response"].split(chr(10) * 2)) == 3
+    assert "Narrow the scope" in record["expected_response"]
+    assert "Revise when" in record["expected_response"]
+    assert "Reject when" in record["expected_response"]
