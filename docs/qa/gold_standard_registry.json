@@ -7404,16 +7404,16 @@
     "gold_star_contract": "Gold Star means one thing only: a fully validated, frozen exemplar that actively contributes to adaptive learning. The canonical registry may retain non-Gold-Star evidence and candidate records, but they are excluded from the Gold Star count and runtime Gold Star authority."
   },
   "integrity_audit": {
-    "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 112,
-    "registry_record_count": 150,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 112 approved-status records across 150 registry records. 110 are active structural-learning contributors with matching qualitative-transfer reviews; 1 is an approved exact-query-only successor and 1 is a superseded historical duplicate retained for provenance. 1 recovered response is pending approval evidence and is excluded from every Gold Star count.",
+    "last_audit_date": "2026-11-19",
+    "approved_gold_star_count": 113,
+    "registry_record_count": 151,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-19: 113 approved-status records across 151 registry records. 111 are active structural-learning contributors with matching qualitative-transfer reviews; 1 is an approved exact-query-only successor and 1 is a superseded historical duplicate retained for provenance. 1 recovered response is pending approval evidence and is excluded from every Gold Star count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 112 approved Gold Stars; 39 assigned display serials #56–#94; 73 approved records explicitly UNASSIGNED with reasons. Gold Star #94 was allocated to gs-2026-11-18-personality-soul-oversoul-discernment after explicit user elevation. No existing serial changed.",
-    "unassigned_approved_gold_star_count": 73,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-19: 113 approved Gold Stars; 39 assigned display serials #56–#94; 74 approved records explicitly UNASSIGNED with reasons. No existing serial changed; the felt-truth discernment Gold Star remains unnumbered.",
+    "unassigned_approved_gold_star_count": 74,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 110,
+    "active_quality_contributor_count": 111,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1
