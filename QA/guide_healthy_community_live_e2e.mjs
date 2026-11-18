@@ -167,7 +167,7 @@ try {
     /100\s*°?c/i.test(item.payload.response) &&
     /212\s*°?f/i.test(item.payload.response) &&
     /standard atmospheric pressure/i.test(item.payload.response) &&
-    item.payload?.answer_basis?.kind !== "archive_evidence_unavailable" &&
+    item.payload?.answer_basis?.kind === "general_knowledge" &&
     item.payload?.recommendation == null &&
     !/i haven.t found enough support|rather than fill the gap with outside knowledge/i.test(item.payload.response)
   );
