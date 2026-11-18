@@ -329,7 +329,8 @@ try {
     apiFailures,
     apiFinished,
     answerLength: responseText.length,
-    pageErrors
+    pageErrors,
+    consoleErrors
   }));
 } catch (error) {
   console.error(JSON.stringify({
@@ -346,7 +347,8 @@ try {
     })),
     apiFailures,
     apiFinished,
-    pageErrors
+    pageErrors,
+    consoleErrors
   }));
   process.exitCode = 1;
 } finally {
