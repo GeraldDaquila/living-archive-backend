@@ -789,3 +789,20 @@ These entries preserve their live-production provenance and qualitative transfer
 - **Adaptive-learning boundary:** Transfer the integrated organizational-analysis and evidence-discipline method only. Do not transfer answer text or doorway to unrelated questions, infer individual motives or culpability from limited evidence, or treat public confidence as proof of staff safety.
 - **Numbering:** `UNASSIGNED`; no display serial was requested.
 - **Freeze policy:** Preserve the exact approved response and doorway rationale. Changes require explicit user authorization and a separately documented benchmark-version change.
+
+
+## Calibration-versus-validation promotion decision — 2026-11-18
+
+- **Question:** A revised Guide performs better on the calibration set but worse on the validation set. Which result should govern the decision to promote the revision, and why?
+- **Approved answer:**
+
+The validation result should govern promotion. The calibration set is used to fit or tune the revision; the validation set provides a more independent test of whether the improvement generalizes beyond that calibration data. Better calibration performance accompanied by worse validation performance is a warning that the revision may have learned calibration-specific patterns rather than improved general performance. On the evidence given, the revision should not be promoted.
+
+The discrepancy should be investigated rather than explained away. Check that both results use comparable metrics and evaluation procedures, and examine sample size, uncertainty, data leakage, split integrity, and possible distribution differences. Determine whether the validation regression is reproducible and whether it affects particular cases or groups disproportionately.
+
+Promotion should require reproducible improvement on the relevant held-out evaluation, without an unacceptable validation regression. If further testing shows that the apparent deterioration was sampling noise or a flawed evaluation, reconsider the decision with that evidence. Otherwise, revise or reject the candidate. A gain on the data used for tuning is not sufficient evidence of generalization.
+- **Transfer discipline:** Distinguish tuning data from held-out validation; let validation govern generalization and promotion; investigate calibration/validation divergence; require reproducible held-out improvement without unacceptable regression.
+- **Doorway:** Intentionally none. No verified canonical Archive destination directly advances this technical model-evaluation question.
+- **Rating:** 9.8/10.
+- **Approval:** User explicitly requested the two-level structural correction and Gold Star elevation on 2026-11-18.
+- **Numbering:** UNASSIGNED; no display serial was requested.
