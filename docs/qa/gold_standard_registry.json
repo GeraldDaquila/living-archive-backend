@@ -6734,7 +6734,7 @@
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately authorize a display serial. Preserve benchmark_id as the stable learning identity; serial allocation remains independent."
     }
   ],
-  "last_reconciliation_note": "2026-11-18: Added quoted-passage context restoration alongside the parallel semantic-ambiguity Gold Star. Canonical inventory: 103 approved Gold Stars across 140 registry records; 101 active quality contributors, 38 numbered, 65 UNASSIGNED. Both distinct exemplars are retained; neither received a display serial.",
+  "last_reconciliation_note": "2026-11-18: Added the multi-candidate Gold Star adjudication benchmark after the concurrent scope-governance benchmark was merged to main. Canonical inventory: 105 approved Gold Stars across 142 registry records; 103 runtime-transfer contributors, 38 numbered, 67 UNASSIGNED. Review entries reconcile exactly; no serial was allocated or changed.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -6864,13 +6864,13 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-18",
-    "approved_gold_star_count": 104,
-    "registry_record_count": 141,
-    "review_reconciliation": "Canonical inventory reconciled after parallel merge on 2026-11-18: 104 approved Gold Stars across 141 registry records. 102 are active quality contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. Both same-term semantic ambiguity and quoted-passage context restoration are retained as distinct approved benchmarks: one disambiguates a shared term across sources; the other restores the source argument around a quotation before interpretation.",
+    "approved_gold_star_count": 105,
+    "registry_record_count": 142,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-18: 105 approved Gold Stars across 142 registry records. 103 are active quality contributors, one is an exact-query-only successor, and one migrated duplicate is preserved as a superseded historical reference only. The semantic-ambiguity and quoted-passage context-restoration exemplars remain distinct, and multi-candidate Gold Star adjudication is now a separate approved benchmark. No display serial was allocated to the new adjudication benchmark.",
     "numbered_gold_star_record_count": 38,
     "highest_assigned_gold_star_number": 93,
-    "numbering_reconciliation": "Record-level reconciliation after parallel merge: 104 approved Gold Stars; 38 assigned display serials #56–#93; 66 approved records explicitly UNASSIGNED with reasons. Historical serials #85 and #86 remain assigned to their existing records; no open numbering gaps. Neither the semantic-ambiguity nor quoted-passage context-restoration exemplar received a display serial.",
-    "unassigned_approved_gold_star_count": 66,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-18: 105 approved Gold Stars; 38 assigned display serials #56–#93; 67 approved records explicitly UNASSIGNED with reasons. Historical serials #85 and #86 remain assigned to their existing records; no open numbering gaps. The multi-candidate adjudication Gold Star remains unnumbered.",
+    "unassigned_approved_gold_star_count": 67,
     "documented_numbering_gap_count": 0
   },
   "numbering_policy": {
