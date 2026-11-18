@@ -4279,7 +4279,7 @@ def _trust_community_stewardship_canonical_recommendation(query, context_data=No
 
 
 def _healthy_community_answer_recovery():
-    """Three-paragraph, answer-first entry point for newcomers asking about healthy communities."""
+    """Task-appropriate, answer-first entry point for newcomers asking about healthy communities."""
     return (
         "A healthy community is not simply one where people always agree or where conflict never happens. "
         "It is one where people can participate, raise concerns, work through differences, and have a meaningful say "
