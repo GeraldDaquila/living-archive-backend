@@ -5961,6 +5961,40 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
 
+    # Felt-truth discernment is a question-specific intellectual task, not generic
+    # reflection. Enforce it after every provider and fallback route.
+    from deterministic_answer_recovery import (
+        is_felt_truth_claim_discernment_question,
+        _felt_truth_claim_discernment_recovery,
+        registered_recovery_recommendation as _registered_recovery_doorway,
+    )
+    if is_felt_truth_claim_discernment_question(query):
+        safe = dict(payload)
+        answer = _felt_truth_claim_discernment_recovery()
+        safe["response"] = answer
+        if "answer" in safe:
+            safe["answer"] = answer
+        doorway = _normalize_authoritative_recommendation(_registered_recovery_doorway(query))
+        safe["recommendation"] = doorway
+        safe["canonical_doorway"] = doorway
+        safe["doorway_title"] = doorway.get("title") if doorway else None
+        safe["doorway_url"] = doorway.get("url") if doorway else None
+        safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
+        safe.pop("doorway_omission_exception_reason", None)
+        safe["answer_basis"] = {
+            "kind": "general_knowledge",
+            "label": "General knowledge",
+            "explanation": (
+                "This is a practical epistemic-discernment method. The linked Archive essay "
+                "offers a related method for testing perceived patterns; it is a continuation, "
+                "not independent proof of any particular belief."
+            ),
+        }
+        safe["processing"] = "final_visitor_boundary_felt_truth_claim_discernment"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
+
     # The evidence framework is a final visitor-boundary invariant, not merely
     # a prompt preference. Enforce it after every non-exact route, including
     # provider-exhaustion and legacy deterministic paths.
