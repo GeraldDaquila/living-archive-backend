@@ -56,3 +56,12 @@ def test_all_seven_heldout_questions_receive_the_intended_contract():
     }
     for query, expected in cases.items():
         assert classify_question(query)["type"] == expected, query
+
+def test_missing_heuristic_phrases_require_review_not_automatic_rejection():
+    q = "What is cosmology, and why does it matter to how people live?"
+    paraphrase = ("Cosmology is an account of the universe and our place in it. "
+                  "That picture can guide how a society treats the natural world.")
+    result = evaluate_semantic_contract(q, {"ok": True, "response": paraphrase})
+    assert result["status"] == "review_required"
+    assert result["hard_failures"] == []
+    assert result["review_flags"]
