@@ -3940,20 +3940,20 @@ def _comparative_traditions_recovery(question: str) -> Optional[Dict[str, Any]]:
 def _gold_star_remedy_selection_recovery(query: str) -> Optional[Dict[str, Any]]:
     """Separate reasoning-learning candidates from retrieval/metadata/logic defects."""
     text = _normalize_space(query)
-    asks_gold_star = bool(re.search(r"\\bgold\\s+stars?\\b", text, re.I))
-    names_failure = bool(re.search(r"\\b(?:weakness|failure|defect|problem|gap)\\b", text, re.I))
+    asks_gold_star = bool(re.search(r"\bgold\s+stars?\b", text, re.I))
+    names_failure = bool(re.search(r"\b(?:weakness|failure|defect|problem|gap)\b", text, re.I))
     names_engineering_layers = bool(
-        re.search(r"\\b(?:retrieval|metadata|deterministic|engineering|routing|indexing)\\b", text, re.I)
+        re.search(r"\b(?:retrieval|metadata|deterministic|engineering|routing|indexing)\b", text, re.I)
     )
     asks_remedy_selection = bool(
-        re.search(r"\\b(?:distinguish|decide|determine|deserve|warrant|address|fix|correct|choose)\\w*\\b", text, re.I)
+        re.search(r"\b(?:distinguish|decide|determine|deserve|warrant|address|fix|correct|choose)\w*\b", text, re.I)
     )
     if not (asks_gold_star and names_failure and names_engineering_layers and asks_remedy_selection):
         return None
 
     response = (
-        "USE should create a Gold Star only when the recurring failure is a genuine reasoning-capability gap: the system has the right evidence, the source information is accurate, and the applicable deterministic rules are working, yet it still repeatedly fails to perform a reasoning operation that matters across distinct questions. A Gold Star teaches a transferable way to reason; it is not a general-purpose container for defects that belong to the software or knowledge infrastructure.\\n\\n"
-        "Diagnose the earliest failed layer before choosing a remedy. If the needed source exists but is missing from the candidate set or ranked out, improve retrieval coverage, queries, or ranking. If the source is found but its title, canonical URL, type, version, permissions, or provenance is missing or wrong, repair the source metadata and its indexing. If the failure is reproducible under a known rule—such as routing, validation, thresholds, access boundaries, or response serialization—correct the deterministic logic and add a regression test. These are engineering corrections, even when they repeatedly produce poor answers.\\n\\n"
+        "USE should create a Gold Star only when the recurring failure is a genuine reasoning-capability gap: the system has the right evidence, the source information is accurate, and the applicable deterministic rules are working, yet it still repeatedly fails to perform a reasoning operation that matters across distinct questions. A Gold Star teaches a transferable way to reason; it is not a general-purpose container for defects that belong to the software or knowledge infrastructure.\n\n"
+        "Diagnose the earliest failed layer before choosing a remedy. If the needed source exists but is missing from the candidate set or ranked out, improve retrieval coverage, queries, or ranking. If the source is found but its title, canonical URL, type, version, permissions, or provenance is missing or wrong, repair the source metadata and its indexing. If the failure is reproducible under a known rule—such as routing, validation, thresholds, access boundaries, or response serialization—correct the deterministic logic and add a regression test. These are engineering corrections, even when they repeatedly produce poor answers.\n\n"
         "A Gold Star becomes justified only when those lower layers have been checked and the residual failure is still a recurring reasoning weakness across materially different, independently evaluated questions. Isolate the missing reasoning operation, state the corrective discipline and its qualifying conditions and abstention boundary, then test it on held-out target cases, adjacent cases, and unrelated negative controls. Compare correctness, relevance, completeness, calibration, and regressions before and after; require human review before activation. If an engineering correction removes the failure, do not create a Gold Star. If both defects coexist, repair the infrastructure first and evaluate only the remaining reasoning gap."
     )
     return {
