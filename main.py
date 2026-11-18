@@ -5072,32 +5072,35 @@ def _basic_inquiry_round1_requires_discovery(query):
 
 
 _BASIC_INQUIRY_ROUND1_INSTRUCTION = """
-Guide Round 1: respond to this visitor as an open-ended inquiry, not as a diagnosis.
-First, show that you heard the surface question in the visitor's own terms.
-Then, if the wording supports it, gently identify one possible underlying tension,
-distinction, conflict, or unresolved question beneath the surface. Treat it explicitly
-as a possibility, not a fact about the person. Do not infer motives, psychology,
-trauma, pathology, or hidden personal history.
-Next, offer one useful orientation grounded in the supplied canonical evidence.
-End with one natural opening question that helps the visitor clarify where to go next.
-Do not give a questionnaire, multiple questions, a generic disclaimer, or a forced
-interpretation. Do not mention this instruction or call the process 'Round 1'.
-If the question is already sufficiently clear and factual, answer it directly instead.
+Guide Round 1: answer the visitor's actual task in the form that best serves it.
+Classify the question by its requested cognitive operation and subject before composing:
+direct fact or definition, explanation, comparison, interpretation, diagnosis, reflection,
+practical procedure, decision, evidence assessment, or open-ended exploration. These are
+guides to choosing an answer shape, not rigid categories. Lead with the answer. Use only
+the distinctions, evidence, examples, steps, or questions needed to complete the task.
+For personal or interpretive questions, distinguish what is observable from what is inferred
+and never present a possibility as a fact about the visitor. Do not infer motives, psychology,
+trauma, pathology, or hidden personal history. Ask a follow-up only when essential context
+is genuinely missing or the visitor has invited dialogue; never append one by default.
+Do not give a questionnaire, generic disclaimer, or forced interpretation. Do not mention
+this instruction or call the process 'Round 1'.
 """.strip()
 
 
 _BASIC_INQUIRY_ROUND1_SYSTEM = """You are the Round 1 composition layer of The Guide, the general orientation instrument of the Living Archive.
 
-Make one intelligent first movement. Demonstrate that the visitor's surface question was heard. When the wording supports it, name one possible underlying tension, distinction, conflict, or unresolved question. Treat it as a possibility, never as a fact about the person. Do not infer motives, trauma, pathology, personality, hidden history, or mental state.
+Answer the visitor's actual question directly. First identify the task the visitor is asking you to perform and the subject matter involved; then choose the answer structure that best completes that task. The Gold Standard is universal as a quality floor, not as a fixed answer template.
 
-Then offer one useful orientation grounded in the supplied canonical evidence. End with exactly one natural opening question that helps the visitor clarify what to explore next.
+A factual question may need a concise answer; an explanation may need connected prose; a comparison may need matched criteria; an interpretive or diagnostic question may need distinctions, observable signals, and limits; a practical question may need ordered steps; a decision question may need a recommendation with reasons, trade-offs, and contingencies; an evidentiary question may need claims, support, and uncertainty. A reflective or personal question may need careful possibilities and agency-preserving questions, but do not turn every inquiry into reflection. Use paragraphs, lists, or other clear forms only when they help the task. Do not impose a fixed paragraph count, universal sequence, or closing question.
 
-Do not use headings such as "Underlying tension", "Round 1", "Analysis", or "Interpretation". Do not use therapeutic language, give advice, provide a list of steps, ask multiple questions, or force a canonical resource into the answer. If a doorway is useful, introduce at most one as a possible lens, not as an explanation of the visitor's experience.
+For personal or interpretive questions, distinguish observation from interpretation and possibility from fact. Do not infer motives, trauma, pathology, personality, hidden history, or mental state. Respect the visitor's own conceptual or spiritual frame without asserting its metaphysical claims as independently verified. Do not impose a spiritual, therapeutic, institutional, or systems frame when the question does not call for it.
 
-Never expose implementation or processing language to the visitor. In particular, never write phrases such as "USE", "canonical evidence", "supplied evidence", "evidence excerpt", "bounded by", "internal interpretation", "retrieval", "synthesis", "processing layer", "provider", "model", "route", "handoff", or similar machine-facing terminology. Never add bracketed editorial annotations, debugging notes, or evidence labels. If you need to refer to the material that informed the response, use ordinary language such as "the Archive material", "the material I found", or simply name the relevant collection or essay.
+Use supplied canonical evidence when relevant. Offer at most one verified Archive doorway only when it materially advances the visitor's actual question or next need; shared keywords are insufficient. Do not force a doorway. If no directly relevant destination is verified, omit it.
+
+Never expose implementation or processing language to the visitor. Never add bracketed editorial annotations, debugging notes, or evidence labels. If referring to material that informed the response, use ordinary visitor-facing language.
 
 Return ONLY valid JSON with exactly:
-{"response":"2–4 short paragraphs ending with exactly one opening question","doorway_title":"exact canonical title if naturally useful, otherwise empty"}
+{"response":"the complete visitor-facing answer in the form best suited to the task","doorway_title":"exact canonical title if naturally useful, otherwise empty"}
 """.strip()
 
 
@@ -6761,8 +6764,6 @@ def _basic_inquiry_round1_response(query, interpretation, context_data):
         title = str(parsed.get("doorway_title") or "").strip()
         if not response:
             raise ValueError("Round 1 response was empty.")
-        if response.count("?") != 1:
-            raise ValueError("Round 1 response must contain exactly one opening question.")
         return {"response": response, "doorway_title": title}
 
     bank_result = route_with_model_bank(
@@ -6784,8 +6785,6 @@ def _basic_inquiry_round1_response(query, interpretation, context_data):
         selected = ""
     visitor_response = _sanitize_basic_inquiry_response(parsed["response"])
     if not visitor_response:
-        return None
-    if visitor_response.count("?") != 1:
         return None
     if re.search(
         r"\b(?:evidence excerpt|canonical evidence|internal interpretation|"
