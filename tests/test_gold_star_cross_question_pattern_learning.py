@@ -15,7 +15,7 @@ EXPECTED_OPENING = "Different questions reveal the same reasoning weakness"
 
 def test_gold_star_structural_template_is_default_in_both_live_and_editorial_prompts():
     source = (ROOT / "general_guide_composition.py").read_text(encoding="utf-8")
-    assert source.count("default structural template across every visitor-facing Guide path") == 1
+    assert source.count("default structural template across every visitor-facing Guide path") == 2
     assert source.count("default structural template, not a universal subject-matter template") == 0
     assert source.count("QUESTION-FIRST, DEFAULT GOLD STAR STRUCTURAL TEMPLATE") == 2
     assert "SYSTEM-WIDE GOLD STAR STRUCTURAL TEMPLATE (default across the entire Guide)" in source
@@ -30,7 +30,7 @@ def test_gold_star_structural_template_is_default_in_both_live_and_editorial_pro
 def test_cross_question_pattern_learning_query_has_provider_independent_gold_standard_recovery():
     result = composition._cross_question_pattern_learning_recovery(QUERY)
     assert result is not None
-    paragraphs = [p.strip() for p in result["response"].split("\\n\\n") if p.strip()]
+    paragraphs = [p.strip() for p in result["response"].split("\n\n") if p.strip()]
     assert len(paragraphs) == 3
     assert paragraphs[0].startswith(EXPECTED_OPENING)
     assert "consented and de-identified examples" in paragraphs[1]
@@ -57,7 +57,7 @@ def test_compose_returns_cross_question_learning_answer_without_calling_provider
     assert result is not None
     assert result["provider"] == "bounded_cross_question_pattern_learning_recovery"
     assert result["response"].startswith(EXPECTED_OPENING)
-    assert len([p for p in result["response"].split("\\n\\n") if p.strip()]) == 3
+    assert len([p for p in result["response"].split("\n\n") if p.strip()]) == 3
 
 
 def test_cross_question_gold_star_registry_and_review_are_unique_and_reconciled():
