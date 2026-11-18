@@ -1066,7 +1066,7 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
     )
     if is_external_discernment_outsourcing_question(q):
         answer = _external_discernment_outsourcing_recovery()
-    if is_personality_soul_oversoul_question(q):
+    elif is_personality_soul_oversoul_question(q):
         answer = _personality_soul_oversoul_recovery()
     elif is_guide_personal_decision_agency_question(q):
         answer = _guide_personal_decision_agency_recovery()
