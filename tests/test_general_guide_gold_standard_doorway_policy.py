@@ -178,3 +178,42 @@ def test_reviewed_gold_star_exception_is_the_only_registry_based_suppression():
         "forbids_doorway": False,
         "doorway_omission_exception_reason": "No reason to omit.",
     })
+
+
+def test_exact_water_gold_star_preserves_explicit_unapproved_doorway_omission():
+    query = "What is the boiling point of water at sea level?"
+    standard = main._resolve_exact_guide_gold_standard(query)
+    assert standard is not None
+    assert standard["forbids_doorway"] is True
+    assert "no canonical URL is inferred" in standard["doorway_omission_exception_reason"].casefold()
+    assert main._gold_star_doorway_omission_is_justified(standard)
+
+    default_doorway = main._gold_star_default_doorway()
+    payload = {
+        "response": standard["expected_response"],
+        "recommendation": default_doorway,
+        "canonical_doorway": default_doorway,
+        "doorway_title": default_doorway["title"],
+        "doorway_url": default_doorway["url"],
+        "doorway_rationale": default_doorway["rationale"],
+    }
+    finalized = main._guide_finalize_visitor_payload(payload, query)
+    restored = main._guide_restore_verified_doorway(finalized, query)
+
+    assert finalized["recommendation"] is None
+    assert finalized["canonical_doorway"] is None
+    assert restored["recommendation"] is None
+    assert restored["canonical_doorway"] is None
+    assert restored["doorway_title"] is None
+    assert restored["doorway_url"] is None
+    assert restored["doorway_rationale"] is None
+
+
+def test_unapproved_legacy_doorway_metadata_does_not_change_other_gold_star_fallbacks():
+    # The no-doorway rule requires the explicit legacy status, a null expected
+    # destination, and an explanatory note. An ordinary absent doorway is not
+    # silently promoted into a global no-handoff policy.
+    standards = __import__("general_guide_gold_standards").load_approved_standards()
+    unrelated = standards.get(main._normalize_guide_question("What is governance, beyond administration?"))
+    assert unrelated is not None
+    assert unrelated["forbids_doorway"] is False
