@@ -1620,6 +1620,10 @@ def select(use_core, operation="generic", schema=None):
             )
         lanes.sort(key=_hrn_lane_priority)
 
+    if operation == "living_archive_navigator":
+        # Three sequential Navigator stages share one bounded WordPress turn.
+        # Fast-fail a slow model so an independent bank lane can still complete.
+        return 6.0
     if operation == "general_guide_composition":
         # Within the Guide's fixed five-second composition window, current
         # transport health must outrank rotating provider order. Keep operator
@@ -3009,6 +3013,8 @@ def route(*, use_core, messages, max_tokens, parse, operation="generic", schema=
         operation_attempt_cap = 1
     elif bounded_fsd_operation:
         operation_attempt_cap = 1
+    elif operation == "living_archive_navigator":
+        operation_attempt_cap = 2
     else:
         operation_attempt_cap = configured_attempts
     # Keep each HRN provider-gateway request inside the WordPress transport

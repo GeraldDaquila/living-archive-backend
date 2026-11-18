@@ -42,3 +42,9 @@ def test_living_archive_navigator_rejects_unknown_or_invalid_contract():
         assert "Unsupported Provider Bank operation" in str(exc)
     else:
         raise AssertionError("Unknown operation was not rejected")
+
+
+def test_living_archive_navigator_uses_bounded_provider_attempts():
+    from provider_bank import _provider_call_timeout
+
+    assert _provider_call_timeout("living_archive_navigator", {"provider": "workers_ai", "model": "@cf/google/gemma-4-26b-a4b-it"}) == 6.0
