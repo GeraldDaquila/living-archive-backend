@@ -11955,9 +11955,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 _deterministic_quality_valid
                                 and (
                                     _deterministic_registered_mechanism
-                                    or (
-                                        and not general_guide_composition.is_generic_nonanswer(query, _deterministic_text)
-                                    )
+                                    or not general_guide_composition.is_generic_nonanswer(query, _deterministic_text)
                                 )
                             )
                             if _answer_only_valid:
