@@ -335,3 +335,22 @@ def test_active_quality_candidate_preserves_qualifying_context_and_abstention_bo
     for candidate in result["candidates"]:
         assert candidate["qualifying_context"]
         assert candidate["abstention_boundary"]
+
+
+
+def test_cross_question_transfer_abstains_when_qualifying_context_is_missing(monkeypatch):
+    monkeypatch.setattr(
+        lessons,
+        "select_lesson_candidates",
+        lambda _query, limit=3: [{
+            "benchmark_id": "incomplete-review",
+            "score": 0.91,
+            "exact": False,
+            "reasoning_family": "generic_reasoning",
+            "transferable_discipline": "Consider the consequences.",
+            "qualifying_context": "",
+            "abstention_boundary": "Do not apply outside the reviewed scope.",
+            "candidates": [],
+        }],
+    )
+    assert lessons.active_quality_contribution("A new visitor question") is None
