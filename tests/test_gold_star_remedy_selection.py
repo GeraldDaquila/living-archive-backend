@@ -82,6 +82,6 @@ def test_remedy_selection_candidate_is_unique_and_not_activated_before_live_revi
     assert "pending live review" in record["provenance"]["evidence_boundary"]
     assert "Do not promote" in record["freeze_policy"]
     approved = [r for r in registry["records"] if r.get("status") == "USER_APPROVED_GOLD_STANDARD"]
-    assert len(approved) == registry["integrity_audit"]["approved_gold_star_count"] == 107
-    assert len(registry["records"]) == registry["integrity_audit"]["registry_record_count"] == 145
+    assert len(approved) == registry["integrity_audit"]["approved_gold_star_count"] == 108
+    assert len(registry["records"]) == registry["integrity_audit"]["registry_record_count"] == 146
     assert len({r["benchmark_id"] for r in registry["records"]}) == len(registry["records"])
