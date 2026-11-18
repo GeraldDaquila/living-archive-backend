@@ -7,6 +7,8 @@ import importlib
 import re
 from pathlib import Path
 
+from deterministic_answer_recovery import is_felt_truth_claim_discernment_question
+
 EXPECTED_CORE_BLOB_SHA = "d09654ef19b41c3a4da204758ea199715e848df8"
 _MAIN_PATH = Path(__file__).resolve()
 _CORE_PATH = _MAIN_PATH.with_name("use_core.py")
@@ -57,7 +59,7 @@ def _context_blocks_from_kwargs(args,kwargs):
 def _has(q,patterns): return bool(re.search(r"(?:^|\b)(?:"+"|".join(patterns)+r")(?:\b|$)",q))
 
 def _weighted_inquiry_profile(query):
-    q=re.sub(r"\s+"," ",str(query or "").strip().casefold()); p={"risk":0.0,"recommendation":0.0,"navigation":0.0,"foundation":0.0,"lived":0.0,"conceptual":0.0,"grief":0.0,"specialized":0.0,"ai_truth":0.0}
+    q=re.sub(r"\s+"," ",str(query or "").strip().casefold()); p={"risk":0.0,"recommendation":0.0,"navigation":0.0,"foundation":0.0,"lived":0.0,"conceptual":0.0,"grief":0.0,"specialized":0.0,"ai_truth":0.0,"claim_discernment":0.0}
     if _has(q,[r"suicid\w*",r"self[- ]harm",r"overdose",r"immediate danger",r"unsafe",r"threatened",r"kill(?:ing)? myself",r"kill(?:ing)? yourself",r"want(?:ing)? to die",r"end my life",r"take my own life",r"harm myself",r"hurt myself"]): p["risk"]=1.0
     if _has(q,[r"recommend\w*",r"advise",r"advice",r"essay\w*",r"article\w*",r"read(?:ing)?",r"what should i read",r"what can i read",r"where can i start",r"where should i start",r"where should i begin",r"where do i begin",r"where do i start",r"what should i begin with",r"what should i start with",r"what would you recommend"]): p["recommendation"]+=0.82
     if _has(q,[r"which .*read",r"which .*essay",r"which .*article"]): p["recommendation"]+=0.18
@@ -68,13 +70,17 @@ def _weighted_inquiry_profile(query):
     if re.match(r"^(?:what is|what's|who is|who was|when did|where is|where was|why is|why does|how does|what does|what are|define|explain)\b",q): p["conceptual"]=0.72
     if _has(q,[r"grief",r"grieving",r"bereavement",r"death of",r"died",r"loss of",r"lost (?:a|my|someone)",r"mourning",r"love one",r"loved one"]): p["grief"]=0.95
     if _has(q,[r"afterlife",r"reincarnation",r"spiritual",r"spirituality",r"cosmic",r"mystical",r"metaphysical",r"transcendence",r"near-death",r"nde"]): p["specialized"]=0.92
-    if _has(q,[r"\bai\b",r"artificial intelligence",r"machine intelligence",r"generated",r"deepfake",r"misinformation",r"disinformation",r"truth",r"true",r"know what is actually true",r"discernment"]): p["ai_truth"]=0.92
+    if is_felt_truth_claim_discernment_question(q): p["claim_discernment"]=1.0
+    ai_context=_has(q,[r"\bai\b",r"artificial intelligence",r"machine intelligence",r"generated",r"deepfake",r"misinformation",r"disinformation"])
+    truth_context=_has(q,[r"truth",r"true",r"know what is actually true",r"discernment"])
+    if ai_context and truth_context: p["ai_truth"]=0.92
     if p["grief"]: p["lived"]=max(p["lived"],0.90)
     if p["recommendation"] and p["grief"]: p["recommendation"]=min(1.0,p["recommendation"]+0.10)
     return p
 
 def _weighted_action(profile):
     if profile["risk"]>=0.80: return "risk"
+    if profile.get("claim_discernment",0.0)>=0.80: return "conceptual"
     if profile["ai_truth"]>=0.80: return "recommendation"
     if profile["grief"]>=0.80 and profile["recommendation"]>=0.70: return "recommendation"
     if profile["recommendation"]>=0.70: return "recommendation"
