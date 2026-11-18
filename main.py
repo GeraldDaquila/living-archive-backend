@@ -12020,8 +12020,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                             _answer_only_text = _sanitize_basic_inquiry_response(
                                 str((_answer_only_retry or {}).get("response") or "").strip()
                             )
-                                                        _answer_only_valid = bool(
-                                 and not general_guide_composition.is_meta_answer_failure(_answer_only_text)
+                            _answer_only_valid = bool(
+                                _answer_only_text
+                                and not general_guide_composition.is_meta_answer_failure(_answer_only_text)
                                 and not general_guide_composition.is_generic_nonanswer(query, _answer_only_text)
                             )
                             # A protected deterministic recovery is an
@@ -12054,9 +12055,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                                 _deterministic_quality_valid
                                 and (
                                     _deterministic_registered_mechanism
-                                    or (
-                                                                                and not general_guide_composition.is_generic_nonanswer(query, _deterministic_text)
-                                    )
+                                    or not general_guide_composition.is_generic_nonanswer(query, _deterministic_text)
                                 )
                             )
                             if _answer_only_valid:
