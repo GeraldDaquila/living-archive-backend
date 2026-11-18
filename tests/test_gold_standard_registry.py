@@ -1376,7 +1376,7 @@ def test_personal_decision_agency_gold_star_93_preserves_exact_live_answer_and_d
     )
 
     assert record["status"] == fixture["status"] == "USER_APPROVED_GOLD_STANDARD"
-    assert record["gold_star_number"] == fixture["gold_star_number"] == 94
+    assert record["gold_star_number"] == fixture["gold_star_number"] == 93
     assert record["numbering_status"] == "ASSIGNED"
     assert record["query"] == fixture["query"]
     assert record["expected_response"] == fixture["expected_response"]
