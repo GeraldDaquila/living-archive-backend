@@ -51,3 +51,34 @@ def test_resonance_classifier_has_narrow_negative_controls():
         "How can I recognize confirmation bias in a research project?",
     ):
         assert not is_resonance_confirmation_bias_question(query), query
+
+
+
+def test_final_visitor_boundary_replaces_generic_provider_answer_and_preserves_no_doorway():
+    import main
+
+    result = main._guide_finalize_visitor_payload(
+        {
+            "response": (
+                "The question raises a real issue. Consider what is at stake, "
+                "who is affected, and what would change if the situation were understood differently."
+            ),
+            "recommendation": {"title": "Unrelated resource", "url": "https://example.com/unrelated"},
+        },
+        QUERY,
+    )
+    assert result["response"] == _resonance_confirmation_bias_recovery()
+    assert result["answer"] == result["response"] if "answer" in result else True
+    assert result["recommendation"] is None
+    assert result["canonical_doorway"] is None
+    assert result["doorway_title"] is None
+    assert result["processing"] == "final_visitor_boundary_resonance_confirmation_bias_recovery"
+
+
+def test_final_visitor_boundary_does_not_capture_nearby_but_different_questions():
+    import main
+
+    query = "How can I recognize confirmation bias in a research project?"
+    original = "A concise explanation of confirmation bias in research."
+    result = main._guide_finalize_visitor_payload({"response": original}, query)
+    assert result["response"] == original
