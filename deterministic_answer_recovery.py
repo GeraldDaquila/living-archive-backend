@@ -1023,6 +1023,16 @@ def _public_predictive_system_recovery():
 
 def registered_recovery_recommendation(question):
     """Return an evidence-backed doorway for a narrow registered recovery."""
+    if is_orientation_information_contrast_question(question):
+        return {
+            "title": "When Knowledge Is Everywhere",
+            "url": "https://geralddaquila.com/when-knowledge-is-everywhere/",
+            "rationale": (
+                "This published Living Archive Cornerstone directly develops the distinction between accumulating "
+                "information and cultivating orientation, judgment, discernment, responsibility, and wise participation. "
+                "It also explains that orientation makes ambiguity more navigable rather than promising certainty."
+            ),
+        }
     if is_interpretation_revision_evidence_question(question):
         return {
             "title": "Seeing Patterns Without Fooling Yourself",
@@ -1449,18 +1459,20 @@ def has_orientation_information_explanation(response):
 
 
 def _orientation_information_contrast_recovery():
-    """Explain orientation as the contextual use of information for judgment and action."""
+    """Explain the practical distinction using the Archive's published Cornerstone."""
     return (
-        "Information gives you facts, data, or details. Orientation helps you understand where those facts fit: "
-        "what they relate to, why they matter, what is at stake, and which possibilities or responsibilities follow. "
-        "Information adds to what you know; orientation helps you find your bearings within what you know.\n\n"
-        "In practice, imagine a school receiving test scores that show falling performance. The scores are information. "
-        "Orientation means examining them alongside attendance, teaching conditions, access to learning materials, "
-        "students' circumstances, and changes over time. That wider view helps people see which factors may be connected "
-        "and which responses are worth considering, rather than reacting to one number in isolation.\n\n"
-        "The distinction is not that information is unimportant. Orientation depends on information, but places it in "
-        "context so people can judge what deserves attention and what a proportionate next step might be. It does not "
-        "decide for them; it helps make a more informed decision possible."
+        "Information gives you facts, data, or claims. Orientation helps you understand what that information means "
+        "in the situation you are actually facing: what matters, what is reliable, how the relevant parts relate, "
+        "and what responsibilities or possible actions follow. Orientation uses information; it does not reject it. "
+        "It connects what you know to the context in which you must judge and act.\n\n"
+        "For example, an AI system may give you a fluent, detailed answer. The text is information, but orientation "
+        "means asking whether its claims are reliable and adequately supported, whether they address the real question, "
+        "what important context or consequences may be missing, and what should responsibly be done with the answer. "
+        "A confident response is not a substitute for human judgment.\n\n"
+        "This is the distinction developed in the Living Archive Cornerstone “When Knowledge Is Everywhere”: "
+        "the aim is not simply to accumulate more knowledge, but to cultivate orientation, judgment, discernment, "
+        "responsibility, and wise participation in complex systems. Orientation does not eliminate ambiguity; "
+        "it makes ambiguity more navigable."
     )
 
 
