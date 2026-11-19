@@ -189,3 +189,77 @@ def validate_route_capability_registry(
         "registered_unobserved": sorted(registered - observed) if observed else [],
         "semantic_certification": False,
     }
+
+
+
+_SPECIALIST_CAPABILITIES: Dict[str, Dict[str, Any]] = {
+    "relationship": {
+        "status": "available_native_guide_path",
+        "supported_task_families": ["bounded_relational_perspective"],
+        "unsupported_task_families": ["clinical_diagnosis", "unbounded_third_party_mind_reading"],
+        "evidence_modes": ["visitor_supplied_context", "bounded_relational_contract"],
+        "abstention_modes": ["insufficient_context", "safety_handoff", "scope_limit"],
+        "scope": "Relationship capability is retained in the native Guide path; no separate visitor-facing HRN adapter is invoked.",
+    },
+    "formation": {
+        "status": "available_adapter_backed",
+        "supported_task_families": ["stewardship_formation_orientation", "learning_and_practice_reflection"],
+        "unsupported_task_families": ["unrelated_domain_tasks", "unbounded_general_research"],
+        "evidence_modes": ["formation_contribution_contract", "visitor_supplied_context"],
+        "abstention_modes": ["specialist_unavailable", "invalid_contribution", "scope_mismatch"],
+        "scope": "Bounded formation contribution returned to the Guide for integration; the specialist does not own the final visitor response.",
+    },
+    "catalogue": {
+        "status": "available_native_navigation",
+        "supported_task_families": ["explicit_stewardship_catalogue_navigation"],
+        "unsupported_task_families": ["substantive_domain_answer"],
+        "evidence_modes": ["canonical_catalogue_search"],
+        "abstention_modes": ["no_verified_catalogue_destination", "ambiguous_request"],
+        "scope": "Native catalogue navigation surface; it is not a registered adapter-backed reasoning route.",
+    },
+    "systems_ph": {
+        "status": "available_adapter_backed",
+        "supported_task_families": ["bounded_philippine_systems_orientation", "interacting_systems_analysis"],
+        "unsupported_task_families": ["unrelated_geographies_without_evidence", "unbounded_general_research"],
+        "evidence_modes": ["philippine_systems_contribution_contract", "visitor_supplied_context"],
+        "abstention_modes": ["specialist_unavailable", "invalid_contribution", "scope_mismatch"],
+        "scope": "Bounded Philippine systems contribution returned to the Guide for integration; the Guide retains final visitor-response authority.",
+    },
+    "safety": {
+        "status": "available_adapter_backed_utility",
+        "supported_task_families": ["bounded_safety_utility", "resource_and_state_support"],
+        "unsupported_task_families": ["ordinary_archive_retrieval", "clinical_diagnosis"],
+        "evidence_modes": ["safety_utility_contract", "verified_emergency_resource_contract"],
+        "abstention_modes": ["location_required_for_local_resource", "emergency_service_handoff", "scope_limit"],
+        "scope": "Bounded safety utility contribution under the Guide safety state machine; not a general-purpose answer specialist.",
+    },
+}
+
+
+def specialist_capability(specialist_id: str) -> Dict[str, Any]:
+    """Return bounded capability metadata for a registered specialist identity."""
+    key = str(specialist_id or "").strip()
+    record = _SPECIALIST_CAPABILITIES.get(key)
+    if record is None:
+        return {
+            "version": VERSION,
+            "specialist_id": key or "not_declared",
+            "declaration_status": "not_declared",
+            "supported_task_families": [],
+            "unsupported_task_families": [],
+            "evidence_modes": [],
+            "abstention_modes": ["unknown_specialist"],
+            "scope": "No specialist capability declaration is registered.",
+            "semantic_competence_certified": False,
+        }
+    return {
+        "version": VERSION,
+        "specialist_id": key,
+        "declaration_status": "declared",
+        **{name: list(value) if isinstance(value, list) else value for name, value in record.items()},
+        "semantic_competence_certified": False,
+    }
+
+
+def registered_specialist_ids() -> tuple[str, ...]:
+    return tuple(sorted(_SPECIALIST_CAPABILITIES))
