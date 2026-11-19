@@ -10,6 +10,8 @@ from __future__ import annotations
 import re
 from typing import Any, Dict
 
+from gold_star_semantic_contract import classify_question as _classify_question_candidate
+
 from personal_reference_resolution import (
     PERSONAL_REFERENCE_VERSION,
     is_personal_reference_question,
@@ -45,6 +47,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
     no_handoff = _matches_any(normalized, _NO_HANDOFF_PATTERNS)
     no_external_research = _matches_any(normalized, _NO_EXTERNAL_RESEARCH)
     multi_intent = _matches_any(normalized, _MULTI_INTENT_MARKERS)
+    task_candidate = _classify_question_candidate(normalized)
     personal_reference = is_personal_reference_question(normalized)
     teaching_conflict_reference = is_teaching_conflict_reference(normalized)
     has_question = "?" in normalized or bool(
@@ -57,9 +60,10 @@ def build_question_contract(query: str) -> Dict[str, Any]:
         "version": VERSION,
         "state": "multi_intent_candidate" if multi_intent else ("single_intent_candidate" if normalized else "unknown"),
         "task": {
-            "primary": "unresolved",
+            "primary": (f"{task_candidate.get('type')}_candidate" if task_candidate.get("type") != "unknown" else "unresolved"),
             "secondary": [],
             "semantic_resolution": "required",
+            "candidate_source": "conservative_surface_signal" if task_candidate.get("type") != "unknown" else "none",
             "surface_form": "question" if has_question else ("instruction_or_statement" if normalized else "empty"),
         },
         "domain": {"primary": "unknown", "subdomain": "unknown"},
@@ -77,6 +81,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
         "constraints": {
             "no_handoff": no_handoff,
             "no_external_research": no_external_research,
+            "no_followup": no_handoff,
         },
         "reasoning_mode": "unresolved",
         "evidence": {
@@ -86,6 +91,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
         "uncertainty": {
             "material_unknowns": ["task", "domain", "stakes", "requested_outcome"],
             "classification_confidence": "not_scored",
+            "task_candidate_confidence": "not_semantically_certified",
         },
         "response": {
             "shape": "task_adaptive",
@@ -95,6 +101,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
             "clarification": "only_if_materially_needed",
             "abstention": "if_reliable_completion_is_not_possible",
             "handoff": "prohibited" if no_handoff else "optional_if_relevant_and_verified",
+            "followup": "prohibited" if no_handoff else "only_if_materially_useful",
         },
     }
 
