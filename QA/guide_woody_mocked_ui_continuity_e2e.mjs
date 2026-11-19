@@ -197,7 +197,7 @@ try {
   const syntaxDiagnostics = await page.evaluate(async () => {
     const results = [];
     for (const [index, node] of Array.from(document.scripts).entries()) {
-      if (node.type === "application/ld+json" || node.type === "application/json") continue;
+      if (["application/ld+json", "application/json", "importmap", "speculationrules", "module"].includes(node.type)) continue;
       if (node.src) {
         try {
           const response = await fetch(node.src, { cache: "no-store" });
@@ -273,16 +273,13 @@ try {
       // but the browser stopped processing all tasks before that Promise settled.
       // This mock tests the controller/UI continuity without testing the browser's
       // ReadableStream implementation.
-      const result = Promise.resolve({
+      const makeResponse = () => ({
         ok: Boolean(answer),
         status: answer ? 200 : 400,
-        json: function() {
-              return Promise.resolve(payload).then(value => {
-              return value;
-          });
-        }
+        json: () => Promise.resolve(payload),
+        clone: () => makeResponse()
       });
-      return result;
+      return Promise.resolve(makeResponse());
     };
   });
   mark("submit_trace_installed", { note: "Capture click, form-submit, fetch and XHR before first interaction." });
