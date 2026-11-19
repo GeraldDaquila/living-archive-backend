@@ -100,3 +100,27 @@ def test_mirror_registry_request_does_not_repeat_wordpress_retrieval():
 
     assert result["mirror_source_body_count"] == 1
     assert result["mirror_orientation_metadata_only"] is False
+
+
+def test_personal_stewardship_invitation_uses_bounded_answer_and_canonical_doorway():
+    from deterministic_answer_recovery import (
+        compose_recovery,
+        has_registered_recovery,
+        is_personal_stewardship_invitation_question,
+    )
+
+    query = "Who or what is asking for responsible care through me?"
+    assert is_personal_stewardship_invitation_question(query)
+    assert has_registered_recovery(query)
+
+    answer = compose_recovery(query)
+    assert "does not establish that a separate person" in answer
+    assert "responsible care for what is entrusted to you" in answer
+    assert "Care is not self-erasure or unlimited obligation" in answer
+    assert len([part for part in answer.split("\\n\\n") if part.strip()]) == 3
+
+    result = main._basic_inquiry_round1_deterministic_response(query, {}, {})
+    assert result["provider"] == "bounded_personal_stewardship_invitation_recovery"
+    assert result["recommendation"]["title"] == "Stewardship"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/stewardship/"
+    assert result["response"] == answer
