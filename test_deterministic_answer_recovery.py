@@ -383,3 +383,15 @@ def test_weekly_stewardship_action_uses_api_deterministic_boundary():
     assert "One concrete act you can complete this week" in result["response"]
     assert result["recommendation"]["title"] == "Stewardship"
     assert result["recommendation"]["url"] == "https://geralddaquila.com/stewardship/"
+
+
+def test_weekly_stewardship_action_final_boundary_restores_answer_and_doorway():
+    import main
+    query = "What is one concrete act of stewardship I can complete this week that makes an inner insight real?"
+    result = main._weekly_stewardship_action_final_boundary(query)
+    assert result is not None
+    assert result["provider"] == "bounded_weekly_stewardship_action_recovery"
+    assert "One concrete act you can complete this week" in result["response"]
+    assert result["answer_basis"]["kind"] == "practical_application"
+    assert result["recommendation"]["title"] == "Stewardship"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/stewardship/"
