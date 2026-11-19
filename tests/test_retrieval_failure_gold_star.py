@@ -175,3 +175,47 @@ def test_relationship_doorway_search_keeps_one_sided_subject_discovery():
         ("efficiency", 10),
         ("effectiveness", 10),
     ]
+
+
+def test_efficiency_effectiveness_difference_has_substantive_deterministic_recovery():
+    from general_guide_composition import _conceptual_relationship_recovery
+
+    query = "What is the difference between efficiency and effectiveness?"
+    answer = _conceptual_relationship_recovery(query)
+    assert answer
+    assert len(answer.split()) >= 65
+    assert "Efficiency is how economically a process uses resources" in answer
+    assert "Effectiveness is whether the action produces the intended result" in answer
+    assert "ineffective because" in answer
+
+    result = main._basic_inquiry_round1_deterministic_response(query, {}, {})
+    assert result["provider"] == "bounded_conceptual_relationship_recovery"
+    assert result["response"] == answer
+
+
+def test_recommendation_first_fetch_marks_request_scoped_doorway_search_attempt():
+    query = "What is the difference between efficiency and effectiveness?"
+    document = {
+        "title": "A verified public resource",
+        "url": "https://geralddaquila.com/example-resource/",
+        "text": "A substantive source body about an unrelated subject.",
+    }
+    canonical_context = (
+        "Title: A verified public resource\n"
+        "URL: https://geralddaquila.com/example-resource/\n"
+        "Content: A substantive source body about an unrelated subject."
+    )
+    with (
+        patch.object(main, "_PINECONE_RETRIEVAL_BYPASS", False),
+        patch.object(main._base, "_inquiry_profile", return_value={"risk": False, "action": "none", "grief": False}),
+        patch.object(main, "_original_fetch_canonical_context", return_value={
+            "canonical_link_context": canonical_context,
+            "context_blocks": canonical_context,
+        }),
+        patch.object(main, "_parse_context_documents", return_value=[document]),
+        patch.object(main, "_general_guide_authoritative_doorway", return_value=None),
+        patch.object(main, "_verified_archive_doorway_fallback", return_value=None),
+    ):
+        result = main._recommendation_first_fetch(query)
+
+    assert result["canonical_doorway_search_attempted"] is True
