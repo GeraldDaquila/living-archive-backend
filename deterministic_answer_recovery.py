@@ -1425,17 +1425,22 @@ def compose_task_specific_recovery(question):
 
 
 def is_orientation_information_contrast_question(question):
-    """Recognize the specific conceptual contrast without capturing generic information queries."""
+    """Recognize common phrasings of the orientation/information conceptual contrast."""
     q = re.sub(r"\s+", " ", _clean(question)).casefold()
     contrast = bool(re.search(
-        r"\borientation\s+(?:rather than|instead of|over|vs\.?|versus)\s+information\b"
-        r"|\binformation\s+(?:rather than|instead of)\s+orientation\b"
-        r"|\bdifference between orientation and information\b",
+        r"\b(?:orientation|being oriented|orienting)\b.{0,70}"
+        r"\b(?:rather than|instead of|over|vs\.?|versus|different from|distinct from|as opposed to)\b"
+        r".{0,40}\b(?:information|being informed|informing)\b"
+        r"|\b(?:information|being informed|informing)\b.{0,70}"
+        r"\b(?:rather than|instead of|over|vs\.?|versus|different from|distinct from|as opposed to)\b"
+        r".{0,40}\b(?:orientation|being oriented|orienting)\b"
+        r"|\bdifference between (?:orientation and information|being oriented and being informed)\b"
+        r"|\bhow (?:is|does) orientation differ(?:ent)? from information\b",
         q,
     ))
     asks_meaning = bool(re.search(
-        r"\b(?:what does|what do|what is|explain|meaning of|mean in practice|difference between|"
-        r"understand|put .* into practice)\b",
+        r"\b(?:what does|what do|what is|how is|how does|explain|meaning of|mean in practice|"
+        r"difference between|understand|put .* into practice)\b",
         q,
     ))
     return contrast and asks_meaning
