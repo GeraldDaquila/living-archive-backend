@@ -301,13 +301,17 @@ If this document and repository state disagree, inspect the source and correct t
 - Fixed a scorecard defect: case-specific critical dimensions were previously listed as critical but absent from the score map. They are now included as unscored fields, so a human reviewer can assess each case's declared critical criteria.
 - Confirmed all scorecards remain pending, unassigned, unreviewed, and unapproved until a human completes them.
 - Confirmed the paired capture template remains honestly empty: seven LLM outputs and seven deterministic outputs are still null. Offline fixture evaluation reports zero paired cases, zero parity claims, and no semantic certification.
+- The new WP3 calibration-contract suite passed within the 86-test shared Gold Star regression run. The broader exact-head CI set passed 29 workflows; one live-browser workflow was skipped.
 - These tests validate the WP3 evaluation machinery only. They do not constitute real paired runtime captures, blinded human review, or proof of LLM/deterministic parity. Those remain required before WP3 can be closed.
 
 ### CI status
 
 - Verified WP1 source commit: `b19e715e6d213591bcb3aa57e4190e41273fa959`.
 - Verified WP2 source commit: `ec8285e118dfa3faf0ae7a0e1d579a835a127153`.
+- Verified WP3 offline calibration-contract test commit: `827a0a0436da0bb3a1666bb247fd6d0b87ffb7a5`.
 - Observed workflow set for the exact WP2 source commit: 31 workflow runs; 30 completed successfully and one live-browser workflow was skipped.
+- Observed workflow set for the WP3 offline calibration-contract test commit: 30 workflow runs; 29 completed successfully and one live-browser workflow was skipped.
+- WP3 shared-contract regression run: 86 passed, 0 failed.
 - Gold Star v2 shared-contract regression suite: 80 passed, 0 failed. This includes the new evidence-provenance and bounded-repair execution tests.
 - Practical stewardship request-boundary recovery: 16 passed, 1 skipped.
 - v487 protected-runtime compatibility validation: passed, including sitewide safety-boundary QA, specialist-pipe checks, and paired Guide selection/visitor-boundary calibration regressions.
