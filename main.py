@@ -5807,8 +5807,29 @@ def _guide_restore_verified_doorway(payload, query):
             return safe
     answer_basis = safe.get("answer_basis")
     response_provenance = safe.get("response_provenance")
+    try:
+        from deterministic_answer_recovery import (
+            registered_recovery_recommendation as _registered_recovery_doorway,
+        )
+        registered_candidate = _normalize_authoritative_recommendation(
+            _registered_recovery_doorway(query)
+        )
+    except Exception:
+        registered_candidate = None
+    verified_family = _select_verified_doorway_conceptual_family(query)
+    no_archive_destination_was_declared = (
+        safe.get("processing") == "basic_inquiry"
+        and isinstance(answer_basis, dict)
+        and answer_basis.get("kind") == "general_knowledge"
+        and not verified_family
+        and not registered_candidate
+        and not _normalize_authoritative_recommendation(safe.get("recommendation"))
+        and not _normalize_authoritative_recommendation(safe.get("canonical_doorway"))
+        and not str(safe.get("canonical_link_context") or "").strip()
+    )
     explicit_general_knowledge_omission = (
         exact_gold_star_omission
+        or no_archive_destination_was_declared
         or (
         safe.get("processing") == "gold_star_remedy_selection_recovery"
         and isinstance(answer_basis, dict)
@@ -5841,6 +5862,8 @@ def _guide_restore_verified_doorway(payload, query):
     family = _select_verified_doorway_conceptual_family(query)
     family_candidate = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     doorway = _normalize_authoritative_recommendation(family_candidate) if family_candidate else None
+    if not doorway and registered_candidate:
+        doorway = registered_candidate
     if not doorway:
         # Preserve reviewed, query-specific selectors that are authoritative
         # but are not represented as ordinary Guide Node records. They remain
