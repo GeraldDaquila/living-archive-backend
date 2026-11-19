@@ -59,7 +59,7 @@ def test_deterministic_capture_executes_named_function_and_shared_finalizer():
     assert calls[0][0] == "deterministic"
     assert calls[1] == ("finalizer", "A held-out question?")
     assert payload["response"] == "A deterministic answer. Finalized."
-    assert payload["response_provenance"]["class"] == "deterministic_fallback"
+    assert payload["response_provenance"]["class"] == "deterministic_recovery"
     assert payload["capture"]["raw_response"] == "A deterministic answer."
 
 
