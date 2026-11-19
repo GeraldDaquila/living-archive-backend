@@ -13372,7 +13372,15 @@ def _gold_star_attach_route_context(payload, query, boundary=None):
 async def _use_send_json(send, payload, status_code=200):
     # Stamp every visitor-facing JSON payload with the actual Render deployment
     # identity so E2E can reject responses served by a stale instance during rollout.
-    payload = _apply_exact_gold_standard_authority_to_payload(payload)
+    _safety_intervention = (
+        isinstance(payload, dict)
+        and str(payload.get("intent") or "").strip().upper()
+        in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}
+    )
+    payload = (
+        dict(payload) if _safety_intervention
+        else _apply_exact_gold_standard_authority_to_payload(payload)
+    )
     if isinstance(payload, dict):
         payload.setdefault(
             "deployment_commit_sha", os.environ.get("RENDER_GIT_COMMIT", "").strip()
@@ -13384,11 +13392,17 @@ async def _use_send_json(send, payload, status_code=200):
     # override the shared answer-then-doorway contract.
     if isinstance(payload, dict):
         _boundary_query = str(payload.get("query") or "").strip()
-        _boundary_standard = _resolve_exact_guide_gold_standard(_boundary_query)
+        _boundary_safety = str(payload.get("intent") or "").strip().upper() in {
+            "SAFETY_INTERRUPT", "SAFETY_CONVERSATION"
+        }
+        _boundary_standard = (
+            None if _boundary_safety
+            else _resolve_exact_guide_gold_standard(_boundary_query)
+        )
         # Exact approved Gold Stars remain terminal. Otherwise, enforce this
         # registered answer-and-doorway pair at the shared JSON sender so
         # provider exhaustion and early deterministic returns cannot bypass it.
-        if _boundary_query and _boundary_standard is None:
+        if _boundary_query and _boundary_standard is None and not _boundary_safety:
             payload = _apply_registered_personal_decision_agency_contract(
                 payload, _boundary_query
             )
@@ -13397,6 +13411,7 @@ async def _use_send_json(send, payload, status_code=200):
         if (
             _boundary_query
             and _boundary_standard is None
+            and not _boundary_safety
             and is_ai_workforce_restructuring_question(_boundary_query)
         ):
             _answer = str(payload.get("response") or payload.get("answer") or "")
@@ -13587,7 +13602,7 @@ async def _use_send_json(send, payload, status_code=200):
             _floor_query,
             payload,
             status_code,
-            exact_standard=_resolve_exact_guide_gold_standard(_floor_query) is not None,
+            exact_standard=_boundary_standard is not None,
         )
         _floor_result = payload.get("gold_star_v2_quality_floor") if isinstance(payload, dict) else {}
         if _floor_result and _floor_result.get("status") == "fail" and 200 <= _previous_status < 300:
@@ -15252,7 +15267,12 @@ async def _use_request_boundary(scope, receive, send):
                     query,
                     safe_payload,
                     _final_status,
-                    exact_standard=_resolve_exact_guide_gold_standard(query) is not None,
+                    exact_standard=(
+                        _resolve_exact_guide_gold_standard(query) is not None
+                        if str(safe_payload.get("intent") or "").upper()
+                        not in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}
+                        else False
+                    ),
                 )
                 _floor_result = safe_payload.get("gold_star_v2_quality_floor") or {}
                 if _floor_result.get("status") == "fail" and 200 <= _previous_status < 300:
@@ -15768,7 +15788,12 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
                     query,
                     safe_payload,
                     _outer_status,
-                    exact_standard=_resolve_exact_guide_gold_standard(query) is not None,
+                    exact_standard=(
+                        _resolve_exact_guide_gold_standard(query) is not None
+                        if str(safe_payload.get("intent") or "").upper()
+                        not in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}
+                        else False
+                    ),
                 )
                 if (
                     str(safe_payload.get("intent") or "").upper()

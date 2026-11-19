@@ -116,3 +116,94 @@ def test_safety_interventions_are_excluded_from_generic_doorway_restoration():
     exact = source.index("_resolve_exact_guide_gold_standard(query)", start)
     assert guard < exact
     assert source.count('"SAFETY_CONVERSATION", "SAFETY_INTERRUPT"') >= 3
+
+
+
+def _run_outer_visitor_boundary(monkeypatch, payload, *, exact_standard=None):
+    import asyncio
+    import json
+    import main
+
+    if exact_standard is None:
+        monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda query: None)
+        monkeypatch.setattr(main, "_apply_exact_gold_standard_authority_to_payload", lambda value: value)
+    else:
+        monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda query: exact_standard)
+        monkeypatch.setattr(
+            main, "_apply_exact_gold_standard_authority_to_payload",
+            lambda value: (_ for _ in ()).throw(AssertionError("safety payload reached exact-answer authority")),
+        )
+    monkeypatch.setattr(main, "_apply_registered_personal_decision_agency_contract", lambda value, query: value)
+    monkeypatch.setattr(main, "is_ai_workforce_restructuring_question", lambda query: False)
+    monkeypatch.setattr(main, "_guide_enforce_terminal_doorway_policy", lambda value, query: value)
+    monkeypatch.setattr(main, "_gold_star_doorway_omission_is_justified", lambda standard: False)
+
+    async def fake_request_boundary(scope, receive, send):
+        await main._use_send_json(send, payload)
+
+    monkeypatch.setattr(main, "_use_request_boundary", fake_request_boundary)
+    request_body = json.dumps({"query": payload["query"]}).encode("utf-8")
+    received = False
+
+    async def receive():
+        nonlocal received
+        if received:
+            return {"type": "http.disconnect"}
+        received = True
+        return {"type": "http.request", "body": request_body, "more_body": False}
+
+    sent = []
+
+    async def send(message):
+        sent.append(message)
+
+    scope = {"type": "http", "method": "POST", "path": "/api/query"}
+    asyncio.run(main._guide_outer_visitor_response_boundary(scope, receive, send))
+    raw = next(item["body"] for item in sent if item["type"] == "http.response.body")
+    status = next(item["status"] for item in sent if item["type"] == "http.response.start")
+    return json.loads(raw), status
+
+
+def test_actual_outer_visitor_boundary_preserves_deterministic_route_and_floor(monkeypatch):
+    query = "What is a deterministic route?"
+    payload = {
+        "ok": True, "query": query, "intent": "TOPICAL_INQUIRY",
+        "response": "A deterministic route uses predefined, bounded rules to resolve a supported task.",
+        "route_source": "guide_early_deterministic_boundary",
+        "response_provenance": {"class": "deterministic_recovery"},
+    }
+    result, status = _run_outer_visitor_boundary(monkeypatch, payload)
+    assert status == 200
+    assert result["gold_star_v2_quality_floor"]["status"] == "pass"
+    envelope = result["gold_star_v2_quality_floor"]["answer_envelope"]
+    assert envelope["route"]["source"] == "guide_early_deterministic_boundary"
+    assert "guide_outer_visitor_response_boundary" in envelope["route"]["visitor_boundaries"]
+
+
+def test_actual_outer_visitor_boundary_keeps_safety_ahead_of_exact_answer_and_doorways(monkeypatch):
+    query = "I may hurt myself tonight."
+    safety_response = "Please contact your local emergency service or go to the nearest emergency department."
+    payload = {
+        "ok": True, "query": query, "intent": "SAFETY_INTERRUPT",
+        "response": safety_response,
+        "route_source": "guide_sitewide_safety_boundary",
+        "handoff": "safety", "handoff_mode": "interrupt",
+        "safety": {"interrupt": True, "bypasses_llm": True, "bypasses_retrieval": True},
+        "recommendation": {"title": "Must not appear", "url": "https://example.org/"},
+    }
+    fake_exact = {
+        "expected_response": "This unrelated frozen answer must never replace an active safety intervention.",
+        "doorway_title": "Unrelated", "doorway_url": "https://example.org/",
+    }
+    result, status = _run_outer_visitor_boundary(monkeypatch, payload, exact_standard=fake_exact)
+    assert status == 200
+    assert result["response"] == safety_response
+    assert result["intent"] == "SAFETY_INTERRUPT"
+    assert result["safety"]["interrupt"] is True
+    assert result["recommendation"] is None
+    assert result["doorway_decision"] == "omit"
+    assert result["gold_star_v2_quality_floor"]["status"] == "not_applicable"
+    envelope = result["gold_star_v2_quality_floor"]["answer_envelope"]
+    assert envelope["state"] == "safety_intervention"
+    assert envelope["route"]["source"] == "guide_sitewide_safety_boundary"
+    assert "guide_outer_visitor_response_boundary" in envelope["route"]["visitor_boundaries"]

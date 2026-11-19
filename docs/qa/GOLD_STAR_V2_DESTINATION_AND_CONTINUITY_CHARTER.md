@@ -277,8 +277,8 @@ If this document and repository state disagree, inspect the source and correct t
 - Preserved originating route identity separately when final visitor finalizers record their own boundary route; answer-envelope attribution records originating route and visitor-boundary traversal separately.
 - Unified response-floor application in one reusable helper and wired it at the orchestration JSON sender, inner FastAPI response capture, and outer visitor-response capture.
 - Safety interrupts and bounded safety-conversation responses are represented as safety-intervention envelopes and are not subjected to the ordinary completed-answer floor. Hypothetical safety calibration remains an informational answer and continues through the floor.
-- Active safety interventions bypass ordinary exact-answer recovery and generic canonical-doorway restoration.
-- Added cross-boundary tests for deterministic success/failure, safety-interruption preservation, bounded safety conversation, hypothetical calibration, handoff/error distinction, route attribution, and all three runtime wiring points.
+- Active safety interventions bypass exact-answer authority, personal-decision/workforce recovery, and generic canonical-doorway restoration at both orchestration and visitor boundaries.
+- Added cross-boundary tests for deterministic success/failure, safety-interruption preservation, bounded safety conversation, hypothetical calibration, handoff/error distinction, route attribution, all three runtime wiring points, and actual ASGI outer-boundary visitor responses.
 - Candidate only until the exact commit's CI completes. Production remains untouched; no merge or deployment is authorized.
 
 ### CI status
