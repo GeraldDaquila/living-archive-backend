@@ -6101,6 +6101,38 @@ def _guide_finalize_visitor_payload(payload, query):
         safe["visitor_boundary_version"] = APP_VERSION
         return safe
 
+    # Personal-reference requests are retrieval tasks, not unfamiliar-term
+    # definition requests. This shared finalizer protects LLM, deterministic,
+    # and specialist routes from the known generic-definition failure mode.
+    from personal_reference_resolution import (
+        is_personal_reference_question,
+        personal_reference_fallback,
+    )
+    if is_personal_reference_question(query):
+        current_answer = str(payload.get("response") or payload.get("answer") or "").strip()
+        folded_answer = re.sub(r"\s+", " ", current_answer.casefold())
+        generic_definition_failure = bool(
+            re.search(r"\b(?:i can't|i cannot|i am unable to) define\b", folded_answer)
+            or "reliable dictionary" in folded_answer
+            or "dictionary or subject reference" in folded_answer
+            or "ordinary meaning, any formal definition" in folded_answer
+        )
+        if generic_definition_failure:
+            safe = dict(payload)
+            recovered = personal_reference_fallback(query)
+            safe["response"] = recovered
+            if "answer" in safe:
+                safe["answer"] = recovered
+            safe["personal_reference_resolution"] = {
+                "status": "not_verified_in_available_context",
+                "source_verified": False,
+                "scope": "this_request_context_and_retrieved_sources",
+            }
+            safe["processing"] = "final_visitor_boundary_personal_reference_recovery"
+            safe["route_source"] = "guide_final_visitor_boundary"
+            safe["visitor_boundary_version"] = APP_VERSION
+            payload = safe
+
     # External-discernment questions are a diagnostic task, not a prompt for
     # generic reflection or a resource-first answer. Enforce the complete
     # question-specific audit after every successful provider route as well as
