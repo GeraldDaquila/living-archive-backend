@@ -1008,6 +1008,7 @@ def has_registered_recovery(question):
         or is_stewardship_failure_repair_question(question)
         or is_community_continuity_revision_question(question)
         or is_community_project_tradeoff_question(question)
+        or is_orientation_information_contrast_question(question)
     )
 
 
@@ -1413,6 +1414,53 @@ def compose_task_specific_recovery(question):
     return None
 
 
+def is_orientation_information_contrast_question(question):
+    """Recognize the specific conceptual contrast without capturing generic information queries."""
+    q = re.sub(r"\\s+", " ", _clean(question)).casefold()
+    contrast = bool(re.search(
+        r"\\borientation\\s+(?:rather than|instead of|over|vs\\.?|versus)\\s+information\\b"
+        r"|\\binformation\\s+(?:rather than|instead of)\\s+orientation\\b"
+        r"|\\bdifference between orientation and information\\b"
+        r"|\\borientation rather than information\\b",
+        q,
+    ))
+    asks_meaning = bool(re.search(
+        r"\\b(?:what does|what do|what is|explain|meaning of|mean in practice|"
+        r"understand|put .* into practice)\\b",
+        q,
+    ))
+    return contrast and asks_meaning
+
+
+def has_orientation_information_explanation(response):
+    """Check that both terms, their relationship, and practical application are explained."""
+    text = _clean(response).casefold()
+    return bool(
+        re.search(r"\\binformation\\b", text)
+        and re.search(r"\\borientation\\b", text)
+        and re.search(r"\\b(?:facts|data|details|knowledge)\\b", text)
+        and re.search(r"\\b(?:context|relationships|stakes|conditions)\\b", text)
+        and re.search(r"\\b(?:decide|judg|act|navigate|prioriti[sz])\\w*\\b", text)
+        and re.search(r"\\b(?:for example|in practice|imagine|suppose)\\b", text)
+    )
+
+
+def _orientation_information_contrast_recovery():
+    """Explain orientation as the contextual use of information for judgment and action."""
+    return (
+        "Information gives you facts, data, or details. Orientation helps you understand where those facts fit: "
+        "what they relate to, why they matter, what is at stake, and which possibilities or responsibilities follow. "
+        "Information adds to what you know; orientation helps you find your bearings within what you know.\\n\\n"
+        "In practice, imagine a school receiving test scores that show falling performance. The scores are information. "
+        "Orientation means examining them alongside attendance, teaching conditions, access to learning materials, "
+        "students' circumstances, and changes over time. That wider view helps people see which factors may be connected "
+        "and which responses are worth considering, rather than reacting to one number in isolation.\\n\\n"
+        "The distinction is not that information is unimportant. Orientation depends on information, but places it in "
+        "context so people can judge what deserves attention and what a proportionate next step might be. It does not "
+        "decide for them; it helps make a more informed decision possible."
+    )
+
+
 def compose_recovery(question, *, underlying_question="", desired_movement=""):
     """Offer a useful bounded response without inventing facts or sources."""
     q = _clean(question)
@@ -1420,6 +1468,11 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         return "What would you like to understand or work through?"
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
+
+    # This conceptual contrast is an ordinary explanatory task, not an unfamiliar
+    # Archive term requiring a formal-definition abstention.
+    if is_orientation_information_contrast_question(q):
+        return _orientation_information_contrast_recovery()
 
     # A request for one near-term stewardship act needs a practical, bounded
     # application of the public Stewardship gateway, not a generic reflection.
