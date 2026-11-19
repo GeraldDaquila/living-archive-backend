@@ -99,7 +99,7 @@ def evaluate_held(case, transport):
     elif cid=="heldout-strategic-governance-001":
         central=any(x in low for x in ("centraliz","centralis","consistent direction","coordination","oversight"))
         distributed=any(x in low for x in ("distribut","decentral","delegat","local decision","team-level"))
-        tradeoffs=any(x in low for x in ("trade-off","tradeoff","however","but ","risk","cost","benefit","advantage","disadvantage"))
+        tradeoffs=any(x in low for x in ("trade-off","tradeoff","risks","risk","costs","cost","benefits","benefit","advantages","advantage","disadvantages","disadvantage"))
         conditions=any(x in low for x in ("when decisions","if the decision","depends on","as it grows","decision type","routine local decisions","strategic decisions"))
         recommendation=any(x in low for x in ("hybrid","balance","retain","delegate","recommend","should"))
         out += [check("compares_both_models",central and distributed,"Address both centralized and distributed authority."),check("makes_tradeoffs_visible",tradeoffs,"Surface meaningful costs, benefits, or risks."),check("uses_conditional_reasoning",conditions,"Explain when each arrangement is appropriate."),check("offers_reasoned_direction",recommendation,"Give a conditional recommendation, not just a list.")]

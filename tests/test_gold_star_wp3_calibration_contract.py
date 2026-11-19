@@ -117,16 +117,17 @@ def test_heldout_evaluator_fails_closed_for_unregistered_case_ids():
     assert any(item["name"] == "known_heldout_case" and not item["passed"] for item in checks)
 
 
-def test_uncaptured_paired_outputs_remain_missing_and_are_not_counted_as_parity():
+def test_unverified_llm_outputs_remain_missing_and_are_not_counted_as_parity():
     paired = _load_json(PAIRED_TEMPLATE)
-    assert all(case["llm"] is None and case["deterministic"] is None for case in paired["cases"])
+    assert all(case["llm"] is None and case["deterministic"] is not None for case in paired["cases"])
     report = evaluate_dataset(paired)
     assert report["evaluation_mode"] == "offline_fixture_only"
     assert report["paired_cases"] == 0
     assert report["status_parity"] == 0
     assert report["status_disagreement"] == 0
     assert report["coverage"]["llm"]["not_applicable"] == 7
-    assert report["coverage"]["deterministic"]["not_applicable"] == 7
+    assert report["coverage"]["deterministic"]["applicable"] == 7
+    assert report["coverage"]["deterministic"]["not_applicable"] == 0
     assert report["semantic_certification"] is False
 
 
