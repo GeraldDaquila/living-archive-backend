@@ -4308,6 +4308,11 @@ def compose(
         + "\nInterpret unresolved fields from the visitor's full request and available evidence. "
         "Treat detected constraints as binding; do not infer domain, stakes, or intent from surface wording alone. "
         "If multiple tasks are present, address each; if the request cannot be responsibly completed, clarify or state the limit.\n\n"
+        + (
+            "PERSONAL-REFERENCE RESOLUTION: This visitor is asking to recover something personal or previously established. Treat this as a retrieval-and-verification task, not a request to define an unfamiliar term. Inspect recent conversation context and retrieved Archive material for the actual protocol, framework, decision, position, or agreement. State it only when an available source explicitly supports it; identify whether it came from the visitor's own words or a canonical Archive source. Do not infer that a personal protocol exists from the wording alone, and do not substitute generic advice, a dictionary definition, or an invented procedure. If the exact item is not present in the available context, say only that you could not verify it from the material available to this response, then ask for the teaching/source or where the item was recorded. Distinguish retrieval of an existing protocol from formulating a new one.\n\n"
+            if question_contract.get("personal_reference", {}).get("detected")
+            else ""
+        )
         + integrity_recovery_instruction
         + archive_contrast_instruction
         + gold_star_quality_instruction
