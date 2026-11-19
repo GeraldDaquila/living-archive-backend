@@ -69,3 +69,5 @@ def test_llm_attribution_requires_the_final_answer_to_match_the_provider_candida
     assert "_final_response_text = _sanitize_basic_inquiry_response(str(response or \"\")" in source
     assert "_final_response_text == _llm_candidate_text" in source
     assert '_provider_name = "deterministic_final_boundary"' in source
+    assert 'if composition_result and not _llm_invoked:' in source
+    assert '_provider_name = str(deterministic_result.get("provider") or "deterministic_recovery").strip()' in source
