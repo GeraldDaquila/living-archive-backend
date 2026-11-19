@@ -180,17 +180,20 @@ Implement together:
 
 **Acceptance:** No fabricated fixtures; no parity claims from missing outputs; no automated quality certification without calibration; reviewers can reproduce which code and contract produced each answer.
 
-### WP4 — Governed learning and question-specific elevation (one package)
+### WP4 governed learning and question-specific elevation (governance foundation implemented; evidence cohort and CI pending)
 
-Implement together:
-- evidence-backed recurring-pattern detection;
-- reusable structural correction before question-specific refinement;
-- qualifying context and abstention boundary;
-- target, adjacent, and unrelated negative-control tests;
-- explicit human/user approval;
-- registry/provenance/freeze/numbering preservation.
+- The canonical registry contains 114 explicitly user-approved Gold Stars. The 112 approved records with `runtime_transfer: true` reconcile one-to-one with 112 qualitative transfer reviews; all 112 are active structural-quality contributors. Of those, 107 separately declare deterministic-fallback structural-guidance eligibility. These capabilities are distinct and are not inferred from one another.
+- Existing runtime learning in `gold_star_lessons.py` loads only `USER_APPROVED_GOLD_STANDARD` records, reconciles each runtime-transfer record to its qualitative review, and requires reasoning family, transferable discipline, qualifying context, and abstention boundary. Exact answer authority remains separate from cross-question structural guidance.
+- Candidate selection returns a bounded ranked set, not a verdict. The composer must select one only when it is the single sufficient fit, combine only distinct complementary disciplines, or reject all when relevance is merely lexical. Candidate contribution excludes exemplar answer text, facts, examples, citations, and doorways.
+- Deterministic fallback guidance requires a separate explicit capability flag. Active quality contribution does not imply deterministic answer authority. Exact approved questions retain their own exact-answer authority.
+- Existing tests cover exact-match precedence, positive target matches, adjacent and unrelated abstention, candidate ranking, select/combine/reject adjudication, registry/review reconciliation, immutable exact-answer and numbering rules, and scope regression controls.
+- Added `gold_star_pattern_detection.py`: an offline candidate detector that accepts only consented, de-identified, human-reviewed, confirmed-defect metadata with a VERIFIED evidence status and SHA-256 evidence digest. It requires at least three distinct cases and evidence references across at least two domains and two task families. It rejects raw question/answer/identity fields, unreviewed or unconsented records, duplicate cases, weak evidence, and weakened thresholds.
+- Pattern detection creates candidates only. It cannot generate lesson text, choose doorways, write the canonical registry, certify semantics, or activate runtime learning. Adjudication requires target, adjacent, and unrelated negative-control results plus explicit owner approval; even an approved result is only eligible for a separate registry review with provenance, freeze, and numbering checks.
+- Added `tests/test_gold_star_pattern_detection.py` for consent/de-identification, evidence verification/digests, multi-domain and multi-task support, raw-content rejection, duplicate evidence, minimum thresholds, forged-candidate rejection, and non-activation.
+- No consented cross-visitor evidence cohort has been supplied or detected in this work. The new detector is a governed intake mechanism, not a claim that a real recurring visitor pattern has already been observed. The seven WP3 held-out cases are evaluation fixtures, not cross-visitor evidence and are not used to infer a new Gold Star.
+- The Gold Star v2 contract workflow now compiles the detector and runs the dossier, learning, transfer, adjudication, registry-governance, and pattern-detection tests together. Exact-head CI remains pending; WP4 must not be declared accepted until that suite passes.
 
-**Acceptance:** A new lesson cannot become active or a Gold Star without all governance gates; unrelated questions remain unaffected; approved records remain immutable.
+
 
 ### WP5 — Controlled release and live acceptance
 
@@ -310,13 +313,12 @@ If this document and repository state disagree, inspect the source and correct t
 
 ### CI status
 
-- WP1 and WP2 implementation checkpoints and their recorded verification remain as documented above.
-- Latest PR head after delegated review documentation and its governance test: `367c3086d5a484ee7365b064e5a24db7cc1a9465`.
-- GitHub Actions was triggered for this exact head. The Gold Star v2 shared-contract workflow and the PR regression set were queued at the last check; their results must be read from the exact-head runs before claiming the new dossier test passed.
-- The preceding verified WP3 implementation head `7c0b9fcf471a37b4d27c7177c4ee273fcca0ee0d` had 30 successful workflow runs and one skipped live-browser workflow in the observed set. This does not substitute for CI on the new head.
-- Earlier shared-contract regression suites, semantic contract tests, route/safety validation, and other checks passed as recorded in the preceding checkpoint. These are implementation/contract results, not semantic quality certification.
-- Guide Healthy Community Live Browser Acceptance was skipped on the preceding head. Live browser acceptance remains outstanding; do not report it as completed.
-- CI success is not proof of semantic answer quality, paired model parity, independent human calibration, live browser acceptance, or production release.
+- Latest PR head: `366e24c75e498566750d7a92fadc8216882ab5c1`.
+- The Gold Star v2 shared-contract workflow now compiles `gold_star_pattern_detection.py` and runs the WP3 delegated-review test plus the WP4 lesson, cross-question, multi-candidate, transfer-review, transferability-map, scope-governance, runtime-authority, selector-equivalence, and pattern-detection tests.
+- Exact-head Gold Star v2 workflow run #44465028036 and PR regression runs were queued at the last check; they have not completed. The exact head is not yet test-passed.
+- Earlier verified implementation checkpoints remain as recorded above, including WP1/WP2 verification and the previous 30-success/one-skipped workflow set on head `7c0b9fcf471a37b4d27c7177c4ee273fcca0ee0d`. Those earlier results do not substitute for exact-head verification.
+- Live browser acceptance workflow #44465036257 was skipped. It is not browser acceptance evidence for WP5.
+- CI success will not establish semantic answer quality, LLM parity, independent human calibration, actual visitor/browser acceptance, or production release.
 
 
 
@@ -324,26 +326,25 @@ If this document and repository state disagree, inspect the source and correct t
 
 - WP1: complete and verified on its implementation checkpoint, including deterministic/safety orchestration and final visitor boundaries.
 - WP2: complete and verified on its implementation checkpoint, including evidence provenance and one-attempt bounded repair.
-- WP3: delegated deterministic review completed and recorded; exact-head regression CI pending at the time of this checkpoint. Same-source attributable LLM capture, paired evaluation, independent human/evaluator calibration, and false-positive/false-negative calibration remain outstanding.
-- WP4: the repository already contains a governed learning foundation: `gold_star_lessons.py`, the canonical qualitative transfer review, candidate ranking/adjudication, explicit qualifying context and abstention boundaries, structural-guidance-only contributions, exact-answer separation, and tests for target/adjacent/unrelated cases and registry/freeze/numbering integrity. At this checkpoint, 114 approved Gold Stars reconcile to 112 active structural-learning contributors; 107 explicitly declare deterministic-fallback eligibility. The latest exact-head CI is still pending, so WP4 must not yet be declared accepted as a complete work package.
-- WP5: controlled secondary-mirror deployment of the PR branch, exact runtime identity verification, real browser acceptance, primary/secondary acceptance, release authorization, and rollback verification remain outstanding. The current mirror is configured to deploy `main`; no supported service-branch update action is available in the connected Render operations. Do not trigger a mirror deploy until the branch target is safely changed and verified.
-
+- WP3: delegated deterministic review completed and recorded; same-source attributable LLM capture, paired evaluation, and independent human/evaluator calibration remain outstanding.
+- WP4: governed learning architecture, registry/review reconciliation, bounded selection/adjudication, and consent/evidence-gated pattern-candidate intake are implemented. Exact-head CI is pending. No real consented cross-visitor evidence cohort was available; no new lesson was detected or elevated.
+- WP5: controlled secondary-mirror deployment of the PR branch, exact runtime identity verification, actual visitor/browser acceptance, primary/secondary acceptance, release authorization, and rollback verification remain outstanding. The mirror is currently configured to deploy `main`; the connected Render actions expose no service-branch update operation. Do not trigger a mirror deploy until the branch target is safely changed and verified.
 
 
 
 ### Production status
 
-No merge or production deployment was performed. The only live capture batch remains the previously recorded seven-question evaluation batch. The secondary mirror service is configured to deploy `main`; the PR candidate has not been deployed there. The delegated review and its test were committed only to the isolated feature branch. Primary production, mirror configuration, environment variables, Pinecone, and service state remain unchanged.
+No merge or production deployment was performed. The secondary mirror remains configured to deploy `main`; the PR candidate has not been deployed there. All changes in this continuation are isolated to `gold-star-v2-complete-architecture`. Primary production, mirror configuration, environment variables, Pinecone, and service state remain unchanged.
 
 
 
 ### Immediate next action
 
-1. Verify all GitHub Actions runs for exact PR head `367c3086d5a484ee7365b064e5a24db7cc1a9465`, including the new delegated-review integrity test; repair any failures without weakening existing controls.
-2. Finish WP4 acceptance by reconciling the full approved registry, qualitative transfer review, selector/adjudication behavior, negative controls, and exact-head CI.
-3. Resolve the secondary-mirror branch-control limitation without creating another Render service or deploying `main`. Then deploy the exact PR head to the secondary mirror under the already-authorized controlled test scope, verify its deployment SHA and integration audit, and perform one bounded same-source LLM capture batch.
-4. Complete paired evaluation and clearly separate delegated scoring from independent human/evaluator calibration. Do not claim parity if either path is missing or unverified.
-5. Complete WP5 browser acceptance on the secondary mirror, then seek the separate release gate for primary/secondary production promotion. No merge or production deployment is authorized by this work alone.
+1. Allow exact-head GitHub Actions for `366e24c75e498566750d7a92fadc8216882ab5c1` to complete. Inspect and repair any failure without weakening governance or skipping tests.
+2. If WP3/WP4 contract CI passes, preserve that exact tested checkpoint and reconcile all test/workflow results in this charter.
+3. Resolve the secondary-mirror branch-control limitation through a supported Render service-branch operation. The current connector does not expose one; do not use `trigger_deploy` while the mirror points at `main`.
+4. Once the mirror is safely configured to the PR branch, deploy the exact tested head, verify runtime SHA and integration audit, then run one bounded same-source LLM capture batch.
+5. Complete paired evaluation, independent human/evaluator calibration, and WP5 browser acceptance. Seek the separate release gate before merge or primary production promotion.
 
 
 
