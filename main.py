@@ -13326,6 +13326,34 @@ async def _use_send_json(send, payload, status_code=200):
                     payload["doorway_title"] = _required_title
                     payload["doorway_url"] = _required_url
                     payload["doorway_rationale"] = _required_rationale or None
+    # Every JSON route must expose the same explicit terminal doorway decision.
+    # Exact Gold Stars can bypass the ordinary outer response wrapper, so stamp
+    # the final decision here as well. This does not choose a destination: it
+    # records the already-final recommendation/omission after all route-specific
+    # and canonical boundary work above has completed.
+    if isinstance(payload, dict) and str(payload.get("intent") or "").upper() != "SAFETY_CONVERSATION":
+        _sender_reviewed_omission = _gold_star_doorway_omission_is_justified(
+            _boundary_standard
+        )
+        _sender_explicit_omission = bool(re.search(
+            r"\\b(?:do not|don't|without|no)\\b.{0,48}\\b(?:doorway|link|page|resource|handoff|recommendation)\\b",
+            _boundary_query,
+            re.I,
+        ))
+        if _sender_reviewed_omission or _sender_explicit_omission:
+            payload["doorway_decision"] = "omit"
+        else:
+            _sender_doorway = _normalize_authoritative_recommendation(
+                payload.get("recommendation")
+            )
+            payload["doorway_decision"] = "selected" if _sender_doorway else "omit"
+            if _sender_doorway:
+                payload["doorway_omission_reason"] = None
+            elif not str(payload.get("doorway_omission_reason") or "").strip():
+                payload["doorway_omission_reason"] = (
+                    "No verified canonical Archive resource materially advances this inquiry."
+                )
+
     # Gold Star v2.0 is a source-independent minimum at the single JSON exit.
     # This conservative gate enforces machine-verifiable integrity; route-specific
     # contracts remain responsible for substantive question-fit and domain adequacy.
