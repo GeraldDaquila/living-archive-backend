@@ -14,9 +14,12 @@ def test_trust_community_stewardship_contract_answers_with_humane_concrete_langu
     response = contract["response"]
     assert len(response.split("\n\n")) == 3
     for phrase in (
-        "Trust helps people in a community rely on one another",
+        "Trust is what lets a community share responsibility",
+        "confidence built through conduct",
         "Think of a shared garden",
-        "Stewardship is tending the garden together",
+        "People name what happened, listen to its impact",
+        "accountability makes trust dependable",
+        "question decisions and see that commitments are honoured",
     ):
         assert phrase in response
     assert contract["answer_basis"]["kind"] == "general_knowledge"
@@ -83,3 +86,21 @@ def test_trust_recovery_keeps_related_archive_doorway_separate():
     assert contract["answer_basis"]["kind"] == "general_knowledge"
     assert "source_url" not in contract["answer_basis"]
     assert contract["recommendation"]["kind"] == "archive_resource"
+
+
+def test_trust_recovery_explains_accountability_as_the_condition_for_dependable_trust():
+    response = main._trust_community_stewardship_recovery()
+    assert "Trust makes cooperation possible" in response
+    assert "accountability makes trust dependable" in response
+    assert "not a substitute for scrutiny or safeguards" in response
+
+
+def test_trust_recovery_makes_repair_and_shared_responsibility_observable():
+    response = main._trust_community_stewardship_recovery()
+    for phrase in (
+        "People name what happened",
+        "listen to its impact",
+        "agree on a repair",
+        "make responsibilities clear",
+    ):
+        assert phrase in response
