@@ -48,6 +48,9 @@ _WP_REGISTRY_PAGE_SIZE = 100
 _WP_REGISTRY_MAX_PAGES = 50
 _WP_REGISTRY_TIMEOUT_SECONDS = 3.0
 _WP_CONTENT_TIMEOUT_SECONDS = 2.0
+_WP_SEARCH_TIMEOUT_SECONDS = 2.0
+_MAX_WP_SEARCH_RESULTS = 20
+_WP_SOURCE_MAX_BYTES = 524288
 _MAX_WP_SOURCE_ASSETS_PER_QUERY = 4
 _WP_REGISTRY_CACHE_TTL_SECONDS = 21600
 _REFRESH_THREAD: threading.Thread | None = None
@@ -999,6 +1002,86 @@ def _wordpress_rendered_text(value: Any) -> str:
     return re.sub(r"\s+", " ", raw).strip()[:12000]
 
 
+def search_wordpress_canonical_assets(
+    query: str,
+    snapshot: dict[str, Any] | None,
+    *,
+    limit: int = _MAX_WP_SOURCE_ASSETS_PER_QUERY,
+) -> list[dict[str, Any]]:
+    """Use WordPress' own published-content search when Pinecone is bypassed.
+
+    Search results are only candidate identifiers. A result is accepted only
+    when its ID and canonical URL match a public asset in the validated
+    versioned snapshot; source content is fetched and checked separately.
+    """
+    if not isinstance(snapshot, dict) or not snapshot.get("crosslink_ready"):
+        return []
+    search_query = _text(query, 300)
+    if not search_query:
+        return []
+    request_url = (
+        "https://geralddaquila.com/wp-json/wp/v2/search?"
+        f"search={quote(search_query, safe='')}&per_page={_MAX_WP_SEARCH_RESULTS}"
+        "&_fields=id,url,subtype,title"
+    )
+    request = UrlRequest(
+        request_url,
+        headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
+        method="GET",
+    )
+    try:
+        with urlopen(request, timeout=_WP_SEARCH_TIMEOUT_SECONDS) as response:
+            raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
+        if len(raw_bytes) > _WP_SOURCE_MAX_BYTES:
+            raise ValueError("WordPress search response exceeds size bound")
+        payload = json.loads(raw_bytes.decode("utf-8"))
+        if not isinstance(payload, list):
+            return []
+        if len(payload) > _MAX_WP_SEARCH_RESULTS:
+            payload = payload[:_MAX_WP_SEARCH_RESULTS]
+    except Exception as exc:
+        _log(
+            "USE archive meta-crosslink WordPress search: "
+            f"status=unavailable, error={type(exc).__name__}"
+        )
+        return []
+
+    assets_by_id = {
+        str(asset.get("wp_id")): asset
+        for asset in snapshot.get("assets", [])
+        if isinstance(asset, dict) and str(asset.get("wp_id") or "").isdigit()
+    }
+    selected: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    for result in payload:
+        if not isinstance(result, dict):
+            continue
+        wp_id = str(result.get("id") or "").strip()
+        asset = assets_by_id.get(wp_id)
+        if not asset or wp_id in seen_ids:
+            continue
+        access_class = str(asset.get("access_class") or "public").strip().casefold()
+        tier = str(asset.get("tier") or "").strip().upper()
+        resource_type = str(asset.get("resource_type") or "").strip().casefold()
+        result_subtype = str(result.get("subtype") or "").strip().casefold()
+        if (
+            access_class not in {"public", "open", "open_access"}
+            or tier == "T4"
+            or resource_type not in {"page", "post"}
+            or (result_subtype and result_subtype != resource_type)
+        ):
+            continue
+        result_url = _normalize_url(result.get("url"))
+        snapshot_url = _normalize_url(asset.get("url"))
+        if not result_url or result_url != snapshot_url:
+            continue
+        selected.append(asset)
+        seen_ids.add(wp_id)
+        if len(selected) >= max(0, min(int(limit), _MAX_WP_SOURCE_ASSETS_PER_QUERY)):
+            break
+    return selected
+
+
 def fetch_wordpress_source_documents(
     assets: list[dict[str, Any]],
     core: Any,
@@ -1039,7 +1122,10 @@ def fetch_wordpress_source_documents(
         )
         try:
             with urlopen(request, timeout=_WP_CONTENT_TIMEOUT_SECONDS) as response:
-                payload = json.loads(response.read().decode("utf-8"))
+                raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
+            if len(raw_bytes) > _WP_SOURCE_MAX_BYTES:
+                raise ValueError("WordPress source response exceeds size bound")
+            payload = json.loads(raw_bytes.decode("utf-8"))
             if not isinstance(payload, dict) or str(payload.get("status") or "").casefold() != "publish":
                 continue
             if str(payload.get("id") or "") != wp_id:
@@ -1047,7 +1133,7 @@ def fetch_wordpress_source_documents(
             fetched_url = _normalize_url(payload.get("link"))
             if not fetched_url or fetched_url != expected_url:
                 continue
-            title = _text(_field(payload.get("title"), "rendered", ""), 300)
+            title = _wordpress_rendered_text(payload.get("title"))[:300]
             body = _wordpress_rendered_text(payload.get("content"))
             if not title or len(body) < 120:
                 continue
@@ -1109,7 +1195,18 @@ def expand_context(
             "pinecone_fallback=disabled; publisher_required=true"
         )
         return []
-    assets = select_crosslinks(query, seed_documents, snapshot)
+    # WordPress search indexes published page bodies, so it remains a useful
+    # source-grounded retrieval path while Pinecone is intentionally bypassed.
+    # Search results are intersected with the validated public snapshot before
+    # any source body is fetched; the lexical snapshot ranker remains fallback.
+    assets = search_wordpress_canonical_assets(query, snapshot)
+    if assets:
+        _log(
+            "USE archive meta-crosslink WordPress search: "
+            f"verified_snapshot_candidates={len(assets)}"
+        )
+    else:
+        assets = select_crosslinks(query, seed_documents, snapshot)
     if not assets:
         _log("USE archive meta-crosslink: no_canonical_candidates=true")
         return []
@@ -1147,6 +1244,7 @@ __all__ = [
     "expand_context",
     "fetch_crosslink_documents",
     "fetch_wordpress_source_documents",
+    "search_wordpress_canonical_assets",
     "inventory_snapshot",
     "select_crosslinks",
     "should_start_refresh",
