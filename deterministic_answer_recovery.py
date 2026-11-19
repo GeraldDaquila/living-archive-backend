@@ -1217,6 +1217,29 @@ def compose_task_specific_recovery(question):
             ),
         }
 
+    # Trust-as-practice is an implementation question: answer with observable
+    # organizational behaviors and feedback, not an abstract definition alone.
+    if (
+        re.search(r"\\btrust\\b", q)
+        and re.search(r"\\b(?:organization|organisation|team|community)\\b", q)
+        and re.search(r"\\b(?:practice|put|build|apply|improve|operationalize|operationalise)\\b", q)
+    ):
+        return {
+            "recovery_id": "task_practical_trust_in_organizations",
+            "response": (
+                "Trust becomes practical when an organization makes its decisions and commitments observable and dependable. "
+                "Start with a decision that affects people: ask those affected what they see before deciding, distinguish "
+                "observed facts from assumptions, explain the reasons for the decision, and name who owns the decision and "
+                "the next action. Then follow through when promised, and tell people promptly when something changes.\\n\\n"
+                "Create safe ways to raise concerns and disagree. Respond without retaliation, correct mistakes openly, and "
+                "repair harm rather than asking people simply to trust the organization. Share the information people need "
+                "to act responsibly, and apply agreed rules consistently across roles and teams.\\n\\n"
+                "Check whether trust is actually improving: are commitments kept, are concerns raised earlier, do people "
+                "understand how decisions were made, and are mistakes addressed? These observable behaviors are more reliable "
+                "indicators than statements of good intent alone."
+            ),
+        }
+
     # Decision-rights allocation: centralize what needs common authority; delegate
     # reversible, context-dependent choices to the people closest to the work.
     if (
@@ -1271,7 +1294,7 @@ def compose_task_specific_recovery(question):
         return {
             "recovery_id": "task_uncertain_website_traffic_causation",
             "response": (
-                "The cause cannot be established from the traffic increase alone. A rise in visits can come from several "
+                "The cause cannot be established from the information provided; the traffic increase alone is not enough to identify what changed. A rise in visits can come from several "
                 "different sources—search visibility, referrals, a campaign, a newly shared page, direct traffic, automated "
                 "bots, or a measurement change—and more than one may be operating at once.\n\n"
                 "Start by comparing the affected week with the preceding weeks and the same period where seasonality matters. "
