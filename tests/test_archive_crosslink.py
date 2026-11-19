@@ -817,5 +817,5 @@ def test_wordpress_source_fetch_falls_back_to_public_api_after_site_edge_http_er
     assert len(documents) == 1
     assert documents[0]["wp_id"] == "21767"
     assert documents[0]["source_body_verified"] is True
-    assert documents[0]["url"] == "https://geralddaquila.com/stewardship/"
+    assert documents[0]["url"] == "https://geralddaquila.com/stewardship"
     assert any("wordpress_com_public_api_fallback" in entry for entry in logs)
