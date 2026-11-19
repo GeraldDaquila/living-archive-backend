@@ -251,8 +251,8 @@ def _select_verified_doorway_conceptual_family(query):
     # relevance, access, URL, and explicit-omission contract.
     stewardship_significance = bool(
         re.search(r"\\bstewardship\\b", text, re.I)
-        and re.search(r"\\b(?:why does it matter|why it matters|why does stewardship matter|significance of stewardship)\\b", text, re.I)
-        and not re.search(r"\\b(?:compare|comparison|versus|vs\\.?|difference between|stewardship vs)\\b", text, re.I)
+        and re.search(r"\b(?:why does it matter|why it matters|why does stewardship matter|significance of stewardship)\b", text, re.I)
+        and not re.search(r"\b(?:compare|comparison|versus|vs\.?|difference between|stewardship vs)\b", text, re.I)
     )
     if stewardship_significance:
         return "stewardship_significance"
