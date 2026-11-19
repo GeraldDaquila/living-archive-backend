@@ -44,6 +44,41 @@ def _body_text(document: dict[str, Any]) -> str:
     return ""
 
 
+def verify_retrieved_source_document(
+    document: Any,
+    *,
+    min_body_chars: int = 80,
+) -> dict[str, Any]:
+    """Verify the minimum identity/body contract for any retrieved source.
+
+    This shared gate is used by canonical WordPress retrieval paths across
+    question families. It does not certify relevance or factual correctness;
+    those remain the responsibility of the question-fit and reasoning layers.
+    """
+    if not isinstance(document, dict):
+        return {"verified": False, "reason": "invalid_record"}
+    title = str(document.get("title") or "").strip()
+    url = str(document.get("url") or document.get("canonical_url") or "").strip()
+    normalized_url = normalize_source_url(url)
+    body = _body_text(document)
+    if not title or not normalized_url:
+        return {"verified": False, "reason": "source_identity_missing"}
+    if len(body) < max(1, int(min_body_chars)):
+        return {"verified": False, "reason": "source_body_too_short"}
+    return {
+        "verified": True,
+        "reason": "retrieved_source_identity_and_body_verified",
+        "document": {
+            **document,
+            "title": title,
+            "url": url,
+            "text": body,
+            "source_evidence_contract": VERSION,
+            "source_provenance": "retrieved_canonical_body",
+        },
+    }
+
+
 def verify_source_document(
     expected: dict[str, Any],
     document: Any,
