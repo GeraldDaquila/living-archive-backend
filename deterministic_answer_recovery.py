@@ -1220,9 +1220,9 @@ def compose_task_specific_recovery(question):
     # Trust-as-practice is an implementation question: answer with observable
     # organizational behaviors and feedback, not an abstract definition alone.
     if (
-        re.search(r"\\btrust\\b", q)
-        and re.search(r"\\b(?:organization|organisation|team|community)\\b", q)
-        and re.search(r"\\b(?:practice|put|build|apply|improve|operationalize|operationalise)\\b", q)
+        re.search(r"\btrust\b", q)
+        and re.search(r"\b(?:organization|organisation|team|community)\b", q)
+        and re.search(r"\b(?:practice|put|build|apply|improve|operationalize|operationalise)\b", q)
     ):
         return {
             "recovery_id": "task_practical_trust_in_organizations",
@@ -1250,9 +1250,9 @@ def compose_task_specific_recovery(question):
         return {
             "recovery_id": "task_decision_rights_distribution_tradeoff",
             "response": (
-                "Neither full centralization nor unrestricted distribution is a sound default. Centralize decisions that create "
+                "Neither full centralization nor unrestricted distribution is a sound default. Use centralization when a decision creates "
                 "organization-wide obligations, carry legal or material financial risk, require consistent standards, or affect "
-                "several teams at once. Distribute routine and reversible decisions when the relevant knowledge sits with the "
+                "several teams at once. Use distributed authority when a decision is routine and reversible, and the relevant knowledge sits with the "
                 "team doing the work and the consequences can be contained locally.\n\n"
                 "Centralization can improve consistency, coordination, and accountability, but it can also create bottlenecks, "
                 "distance decisions from local knowledge, and weaken initiative. Distributed authority can improve speed, "
