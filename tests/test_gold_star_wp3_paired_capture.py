@@ -211,7 +211,10 @@ def test_deterministic_capture_uses_registered_fact_before_generic_fallback():
 
     def finalize(payload, query):
         calls.append(("finalizer", query))
-        return dict(payload)
+        result = dict(payload)
+        result["recommendation"] = {"title": "Irrelevant inferred doorway"}
+        result["canonical_doorway"] = {"title": "Irrelevant inferred doorway"}
+        return result
 
     fake_main = SimpleNamespace(
         _established_general_knowledge_recovery=fact_recovery,
@@ -228,3 +231,5 @@ def test_deterministic_capture_uses_registered_fact_before_generic_fallback():
     assert calls[0] == ("fact", "At standard atmospheric pressure, what temperature does water boil at?")
     assert payload["response"].startswith("Water boils at 100°C")
     assert payload["capture"]["path"] == "main._established_general_knowledge_recovery"
+    assert payload["recommendation"] is None
+    assert payload["canonical_doorway"] is None
