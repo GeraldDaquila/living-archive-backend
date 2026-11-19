@@ -55,6 +55,8 @@ def test_capture_report_retains_original_outputs_and_attaches_review_without_cla
     assert capture["paired_summary"]["paired_cases"] == 0
     assert capture["semantic_certification"] is False
     assert capture["human_review_summary"]["independent_human_review"] is False
+    assert dossier["registry"]["content_sha"] == capture["human_review_summary"]["registry_content_sha"]
+    assert len(dossier["registry"]["content_sha"]) == 40
     assert {case["case_id"] for case in capture["cases"]} == EXPECTED
     for case in capture["cases"]:
         review = next(item for item in dossier["cases"] if item["case_id"] == case["case_id"])
