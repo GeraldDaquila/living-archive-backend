@@ -8473,13 +8473,22 @@ def _wordpress_fetch_selected_canonical_body(url):
         article_match = re.search(r"(?is)<article\b[^>]*>(.*?)</article>", raw_html)
         content_html = (main_match or article_match).group(1) if (main_match or article_match) else raw_html
         content = _guide_html_to_source_text(content_html)
-        if len(content) < 80:
+        from source_evidence_contract import verify_retrieved_source_document
+        verification = verify_retrieved_source_document(
+            {
+                "title": title or parsed.path.strip("/").replace("-", " ").title(),
+                "url": final_url,
+                "text": content[:6000],
+            },
+            min_body_chars=80,
+        )
+        if not verification.get("verified"):
+            print(
+                "The Guide canonical body verification rejected a fetched source: "
+                f"reason={verification.get('reason') or 'unknown'}."
+            )
             return None
-        return {
-            "title": title or parsed.path.strip("/").replace("-", " ").title(),
-            "url": final_url,
-            "text": content[:6000],
-        }
+        return verification["document"]
     except Exception as exc:
         print(f"The Guide selected canonical body fetch skipped ({type(exc).__name__}).")
         return None
@@ -8604,9 +8613,24 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
             raw_content = content_html or excerpt_html
             raw_content = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", raw_content)
             content = _guide_html_to_source_text(raw_content)
-            if not content or not re.match(r"^https://geralddaquila\.com/\S+$", resource_url, re.I):
+            if not content or not re.match(r"^https://geralddaquila\\.com/\\S+$", resource_url, re.I):
                 return None
-            return {"title": html.unescape(resource_title), "url": resource_url, "text": content[:6000]}
+            from source_evidence_contract import verify_retrieved_source_document
+            verification = verify_retrieved_source_document(
+                {
+                    "title": html.unescape(resource_title),
+                    "url": resource_url,
+                    "text": content[:6000],
+                },
+                min_body_chars=80,
+            )
+            if not verification.get("verified"):
+                print(
+                    "The Guide canonical search source verification rejected a candidate: "
+                    f"reason={verification.get('reason') or 'unknown'}."
+                )
+                return None
+            return verification["document"]
         except Exception as exc:
             print(f"The Guide canonical search recovery: resource fetch skipped ({type(exc).__name__}).")
             return None
