@@ -2,11 +2,6 @@ name: Gold Star WP3 paired capture (Standalone QA)
 
 on:
   workflow_dispatch:
-    inputs:
-      expected_commit:
-        description: "Exact deployed Standalone QA commit SHA to verify and capture"
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -16,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - name: Check out the exact deployed candidate source
+      - name: Check out the exact deployed QA candidate
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.expected_commit }}
+          ref: de2cb3d858f300053578f3065dc581d43decb007
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
