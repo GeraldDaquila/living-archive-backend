@@ -191,7 +191,7 @@ def test_practical_stewardship_guard_cannot_override_a_conceptual_question_after
 
 
 def test_practical_deterministic_route_does_not_bypass_conceptual_recovery():
-    start = SOURCE.index("    if (\n        _is_practical_stewardship_question(query)", SOURCE.index("def _basic_inquiry_response"))
+    start = SOURCE.index("    elif (\n        _is_practical_stewardship_question(query)", SOURCE.index("def _basic_inquiry_response"))
     end = SOURCE.index('    elif reasoning_mode == "deterministic_only"', start)
     guard = SOURCE[start:end]
     assert "and not _is_conceptual_explanatory_request(query)" in guard
