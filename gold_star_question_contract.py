@@ -23,7 +23,7 @@ VERSION = "1.2"
 _NO_HANDOFF_PATTERNS = (
     r"\bdo not\b.{0,50}\b(?:recommend|suggest|link|refer|follow[- ]?up)\b",
     r"\bno\s+(?:links?|resources?|recommendations?|follow[- ]?ups?)\b",
-    r"\bwithout\s+(?:a\s+)?(?:link|resource|recommendation|follow[- ]?up)\b",
+    r"\bwithout\s+(?:any\s+)?(?:links?|resources?|recommendations?|follow[- ]?ups?)\b",
 )
 _NO_EXTERNAL_RESEARCH = (
     r"\bdo not\b.{0,50}\b(?:search|browse|use the web|look online)\b",
@@ -60,7 +60,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
         "version": VERSION,
         "state": "multi_intent_candidate" if multi_intent else ("single_intent_candidate" if normalized else "unknown"),
         "task": {
-            "primary": (f"{task_candidate.get('type')}_candidate" if task_candidate.get("type") != "unknown" else "unresolved"),
+            "primary": (f"{task_candidate.get('type')}_candidate" if task_candidate.get("type") != "unknown" and not multi_intent else "unresolved"),
             "secondary": [],
             "semantic_resolution": "required",
             "candidate_source": "conservative_surface_signal" if task_candidate.get("type") != "unknown" else "none",
