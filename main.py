@@ -21,6 +21,9 @@ from boundary_resilience import CONTRACT_VERSION as BOUNDARY_RESILIENCE_CONTRACT
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from gold_star_question_contract import build_question_contract as _build_gold_star_question_contract
+from gold_star_route_capabilities import route_capability as _gold_star_route_capability
+
 from hub_contracts import (
     build_hub_request,
     hub_contract_snapshot,
@@ -5048,7 +5051,12 @@ def _philippine_systems_specialist_response(query, history, route, request_id):
         original_question=query,
         recognized_territory="Philippine systems",
         processing_purpose="bounded Philippine systems orientation",
-        guide_context={"conversation": _history_text(history), "route_interpretation": interpretation},
+        guide_context={
+            "conversation": _history_text(history),
+            "route_interpretation": interpretation,
+            "gold_star_question_contract": _build_gold_star_question_contract(query),
+            "gold_star_route_capability": _gold_star_route_capability("deterministic-formation-preparation-entry"),
+        },
         safety_state="green",
     )
     contribution = route_spoke(
@@ -5084,6 +5092,8 @@ def _formation_specialist_response(query, history, route, request_id):
         "situation": str(interpretation.get("presenting_situation") or query),
         "possibility": str(interpretation.get("desired_movement") or ""),
         "desired_movement": str(interpretation.get("desired_movement") or ""),
+        "gold_star_question_contract": _build_gold_star_question_contract(query),
+        "gold_star_route_capability": _gold_star_route_capability("deterministic-formation-preparation-entry"),
     }
     hub_request = build_hub_request(
         request_id=request_id,
