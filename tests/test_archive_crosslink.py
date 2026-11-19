@@ -307,7 +307,7 @@ def test_wordpress_registry_loads_published_post_and_page_identity(monkeypatch):
         def __exit__(self, *_args):
             return False
 
-        def read(self):
+        def read(self, size=-1):
             import json
             return json.dumps(self.payload).encode("utf-8")
 
@@ -531,7 +531,7 @@ def test_wordpress_source_fetch_requires_matching_published_public_identity(monk
         def __exit__(self, *_args):
             return False
 
-        def read(self):
+        def read(self, size=-1):
             return json.dumps({
                 "id": 21767,
                 "status": "publish",
@@ -595,7 +595,7 @@ def test_wordpress_source_fetch_rejects_canonical_url_mismatch(monkeypatch):
         def __exit__(self, *_args):
             return False
 
-        def read(self):
+        def read(self, size=-1):
             return json.dumps({
                 "id": 21767,
                 "status": "publish",
@@ -614,3 +614,111 @@ def test_wordpress_source_fetch_rejects_canonical_url_mismatch(monkeypatch):
         "access_class": "public",
     }
     assert archive_crosslink.fetch_wordpress_source_documents([asset], FakeCore()) == []
+
+
+def test_wordpress_search_recovers_full_text_candidates_without_pinecone(monkeypatch):
+    import json
+
+    class Response:
+        def __init__(self, payload):
+            self.payload = payload
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self, size=-1):
+            return json.dumps(self.payload).encode("utf-8")
+
+    calls = []
+    source_text = (
+        "Stewardship begins when life is held in trust rather than consumed or controlled. "
+        "It becomes responsibility without collapse, expressed through conscience, care, "
+        "boundaries, and sustainable participation in the lives and systems around us."
+    )
+
+    def fake_urlopen(request, timeout):
+        calls.append((request.full_url, timeout))
+        if "/wp/v2/search?" in request.full_url:
+            return Response([{
+                "id": 75307,
+                "url": "https://geralddaquila.com/2026/08/10/why-stewardship/",
+                "subtype": "post",
+                "title": "Why Stewardship?",
+            }])
+        return Response({
+            "id": 75307,
+            "status": "publish",
+            "link": "https://geralddaquila.com/2026/08/10/why-stewardship/",
+            "title": {"rendered": "Why Stewardship?"},
+            "excerpt": {"rendered": "Stewardship as responsible participation."},
+            "content": {"rendered": "<p>" + source_text + "</p>"},
+        })
+
+    snapshot = {
+        "contract": "archive-crosslink-inventory-v2",
+        "crosslink_ready": True,
+        "assets": [{
+            "title": "Why Stewardship?",
+            "url": "https://geralddaquila.com/2026/08/10/why-stewardship/",
+            "wp_id": "75307",
+            "resource_type": "post",
+            "tier": "T1",
+            "access_class": "public",
+        }],
+    }
+    monkeypatch.setattr(archive_crosslink, "urlopen", fake_urlopen)
+    monkeypatch.setattr(archive_crosslink, "_SNAPSHOT", snapshot)
+
+    docs = archive_crosslink.expand_context(
+        "Who or what is asking for responsible care through me?",
+        [],
+        None,
+        FakeCore(),
+    )
+
+    assert len(docs) == 1
+    assert docs[0]["wp_id"] == "75307"
+    assert docs[0]["source_body_verified"] is True
+    assert source_text in docs[0]["content"]
+    assert len(calls) == 2
+    assert "/wp/v2/search?" in calls[0][0]
+    assert calls[0][1] == 2.0
+    assert calls[1][1] == 2.0
+
+
+def test_wordpress_search_intersects_results_with_public_snapshot_identity(monkeypatch):
+    import json
+
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self, size=-1):
+            return json.dumps([{
+                "id": 90001,
+                "url": "https://geralddaquila.com/protected-codex/",
+                "subtype": "page",
+                "title": "Protected Codex",
+            }]).encode("utf-8")
+
+    monkeypatch.setattr(archive_crosslink, "urlopen", lambda *_args, **_kwargs: Response())
+    snapshot = {
+        "crosslink_ready": True,
+        "assets": [{
+            "title": "Protected Codex",
+            "url": "https://geralddaquila.com/protected-codex/",
+            "wp_id": "90001",
+            "resource_type": "page",
+            "tier": "T4",
+            "access_class": "protected",
+        }],
+    }
+    assert archive_crosslink.search_wordpress_canonical_assets(
+        "responsible care", snapshot
+    ) == []
