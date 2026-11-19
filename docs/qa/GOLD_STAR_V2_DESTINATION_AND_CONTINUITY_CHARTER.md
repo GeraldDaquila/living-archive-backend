@@ -463,3 +463,10 @@ This addendum supersedes the earlier WP5 deployment-target and immediate-next-ac
 - The harness covers a general-knowledge answer with doorway omission, an explicit no-handoff request, and the safety interrupt boundary.
 - It is intentionally not represented as the production WordPress UI or a full frontend visual acceptance. No WordPress page, visitor routing, primary backend, or USE2-Mirror is touched.
 - The browser job runs even if the provider-attribution capture job fails, so deterministic/safety browser acceptance remains independently observable. Its artifact is separate from the paired LLM capture report.
+
+
+
+### Browser-test regression wiring and failure-artifact hardening (2026-11-19)
+
+- The Chromium harness's unit tests are included in the shared Gold Star contract workflow and the browser script is syntax-compiled in CI.
+- Browser acceptance now writes a machine-readable failure report even when the QA identity, root transport, or browser startup fails before any case executes. This prevents a missing artifact from hiding the reason a browser gate did not complete.

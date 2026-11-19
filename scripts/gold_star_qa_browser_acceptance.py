@@ -187,13 +187,24 @@ def main() -> int:
     args = parser.parse_args()
     if not args.expected_commit.strip():
         parser.error("--expected-commit is required.")
-    report = None
     try:
         report = run_browser_acceptance(args.base_url, args.expected_commit.strip())
-    finally:
-        if report is not None:
-            args.output.parent.mkdir(parents=True, exist_ok=True)
-            args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    except Exception as exc:
+        report = {
+            "schema_version": "1.0",
+            "acceptance_type": "real_chromium_same_origin_qa_visitor_harness",
+            "not_production_wordpress_ui": True,
+            "target": args.base_url.rstrip("/"),
+            "expected_commit": args.expected_commit.strip(),
+            "captured_at": datetime.now(timezone.utc).isoformat(),
+            "fatal_error": {"type": type(exc).__name__, "message": str(exc)},
+            "cases_total": 0,
+            "cases_passed": 0,
+            "cases_failed": 1,
+            "cases": [],
+        }
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + chr(10), encoding="utf-8")
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if report and report["cases_failed"] == 0 else 1
 
