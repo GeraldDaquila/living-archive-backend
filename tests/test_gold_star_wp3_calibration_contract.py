@@ -40,7 +40,7 @@ def test_human_review_rubric_has_all_critical_dimensions_and_valid_scale():
     dimension_ids = {item["id"] for item in rubric["dimensions"]}
     assert set(rubric["critical_dimensions"]).issubset(dimension_ids)
     assert set(rubric["scale"]) == {"0", "1", "2", "NA"}
-    assert "human review" in rubric["human_review"].casefold()
+    assert "human review" in rubric["review_gate"].casefold()
     for case in evaluation["cases"]:
         assert case["split"] == "held_out"
         assert case["critical_dimensions"]
