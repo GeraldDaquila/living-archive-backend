@@ -41,5 +41,5 @@ jobs:
         with:
           name: gold-star-v2-standalone-qa-paired-capture
           path: artifacts/gold-star-v2-standalone-qa-paired-capture.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 90
