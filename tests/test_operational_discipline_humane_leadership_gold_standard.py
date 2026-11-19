@@ -116,8 +116,8 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
                 "title": "Applied Stewardship Toolkit",
                 "url": "https://geralddaquila.com/applied-toolkit-governance-layers/",
                 "content": (
-                    "A practical toolkit for stewardship in everyday decisions and shared resources. "
-                    "It provides governance instruments and templates for responsibility, "
+                    "This resource explains how to practice stewardship in everyday decisions and shared resources. "
+                    "It provides practical governance instruments and templates for responsibility, "
                     "community practice, and long-term stewardship."
                 ),
             }],
