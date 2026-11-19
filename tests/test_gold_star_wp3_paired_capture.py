@@ -67,3 +67,18 @@ def test_runtime_identity_mismatch_fails_closed(monkeypatch):
         assert "Source mismatch" in str(exc)
     else:
         raise AssertionError("Mismatched runtime source must not be paired.")
+
+
+def test_persisted_capture_fixture_keeps_unverified_llm_outputs_null():
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    dataset = json.loads(
+        (root / "docs/qa/gold_star_paired_fixture_template.json").read_text(encoding="utf-8")
+    )
+    assert dataset["source_code_commit"] == "93c2d3a31405ec8b193e8d7a986ed764415ef8d3"
+    assert len(dataset["cases"]) == 7
+    assert all(case["llm"] is None for case in dataset["cases"])
+    assert all(case["deterministic"] for case in dataset["cases"])
+    assert all(case["fixture_status"] == "deterministic_captured_llm_unverified" for case in dataset["cases"])

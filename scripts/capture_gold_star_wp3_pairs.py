@@ -274,6 +274,16 @@ def main() -> int:
                 "error": transport.get("error"),
                 "request_id": live_body.get("request_id"),
                 "provider_provenance": llm_provenance,
+                "response_provenance": live_body.get("response_provenance"),
+                "unverified_response": live_body.get("response") if llm_payload is None else None,
+                "unverified_recommendation": live_body.get("recommendation") if llm_payload is None else None,
+                "answer_basis": live_body.get("answer_basis"),
+                "processing": live_body.get("processing"),
+                "route_source": live_body.get("route_source") or live_body.get("origin_route_source"),
+                "unverified_response_capture_status": (
+                    "captured_unverified" if llm_payload is None and isinstance(live_body.get("response"), str)
+                    else "not_available"
+                ),
                 "runtime_identity": runtime,
             },
             "heldout_checks": {

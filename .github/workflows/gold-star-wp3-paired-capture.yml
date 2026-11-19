@@ -1,15 +1,7 @@
 name: Gold Star WP3 paired capture (secondary mirror)
 
 on:
-  push:
-    branches: [gold-star-v2-complete-architecture]
-    paths:
-      - "scripts/capture_gold_star_wp3_pairs.py"
-      - "tests/test_gold_star_wp3_paired_capture.py"
-      - ".github/workflows/gold-star-wp3-paired-capture.yml"
-      - "docs/qa/guide_learning_evaluation_set.json"
-      - "scripts/guide_live_evaluation.py"
-      - "scripts/gold_star_paired_offline_evaluation.py"
+  workflow_dispatch:
 
 permissions:
   contents: read

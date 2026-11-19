@@ -99,7 +99,7 @@ def test_every_heldout_question_has_a_registered_positive_evaluator_contract():
     assert set(samples) == set(cases)
     for case_id, answer in samples.items():
         checks = evaluate_held(
-            {"case_id": case_id},
+            {"case_id": case_id, "query": cases[case_id]["query"]},
             {"status": 200, "error": None, "body": {
                 "ok": True, "response": answer, "recommendation": None
             }},
@@ -150,3 +150,85 @@ def test_human_scorecard_is_pending_and_case_critical_dimensions_are_scoreable()
         assert set(case["critical_dimensions"]).issubset(case_scorecard["scores"])
         assert case_scorecard["status"] == "PENDING"
         assert case_scorecard["decision"] == "PENDING"
+
+
+def test_strategic_question_echo_does_not_count_as_a_comparison_or_recommendation():
+    evaluation = _load_json(EVALUATION_SET)
+    case = next(
+        item for item in evaluation["cases"]
+        if item["case_id"] == "heldout-strategic-governance-001"
+    )
+    echoed_only = (
+        "The question raises a real issue: "
+        + case["query"].rstrip("?")
+        + ". I do not have enough grounded material here to give a specific answer. "
+        "A useful next question is what would change if the situation were understood differently."
+    )
+    checks = evaluate_held(
+        {"case_id": case["case_id"], "query": case["query"]},
+        {"status": 200, "error": None, "body": {
+            "ok": True, "response": echoed_only, "recommendation": None
+        }},
+    )
+    by_name = {item["name"]: item["passed"] for item in checks}
+    assert by_name["compares_both_models"] is False
+    assert by_name["makes_tradeoffs_visible"] is False
+    assert by_name["uses_conditional_reasoning"] is False
+    assert by_name["offers_reasoned_direction"] is False
+
+
+def test_real_conditional_governance_analysis_still_passes_after_echo_removal():
+    evaluation = _load_json(EVALUATION_SET)
+    case = next(
+        item for item in evaluation["cases"]
+        if item["case_id"] == "heldout-strategic-governance-001"
+    )
+    answer = (
+        "Centralized authority can provide coordination and oversight, while distributed "
+        "authority delegates local decisions to teams. However, both models have costs "
+        "and risks. When decisions carry organization-wide risk, consistent direction "
+        "may help; routine local decisions can be delegated. I recommend a hybrid: retain "
+        "strategic safeguards centrally and delegate bounded operational authority."
+    )
+    checks = evaluate_held(
+        {"case_id": case["case_id"], "query": case["query"]},
+        {"status": 200, "error": None, "body": {
+            "ok": True, "response": answer, "recommendation": None
+        }},
+    )
+    assert all(item["passed"] for item in checks), checks
+
+
+def test_frozen_live_deterministic_captures_are_scored_without_question_echo_credit():
+    root = Path(__file__).resolve().parents[1]
+    fixture = _load_json(root / "docs/qa/gold_star_paired_fixture_template.json")
+    expected_failures = {
+        "heldout-water-boiling-point-001": {
+            "general_fact_celsius", "general_fact_fahrenheit", "no_irrelevant_doorway"
+        },
+        "heldout-cosmology-life-001": {
+            "defines_cosmology", "concrete_implication"
+        },
+        "heldout-practical-trust-001": {"concrete_actions"},
+        "heldout-strategic-governance-001": {
+            "compares_both_models", "makes_tradeoffs_visible",
+            "uses_conditional_reasoning", "offers_reasoned_direction"
+        },
+        "heldout-technical-verification-001": {
+            "safe_presence_check", "configuration_vs_usage"
+        },
+        "heldout-uncertain-causation-001": {
+            "calibrates_uncertainty", "names_discriminating_evidence", "offers_investigation"
+        },
+        "heldout-explicit-no-handoff-001": {"explains_policy_procedure"},
+    }
+    for case in fixture["cases"]:
+        checks = evaluate_held(
+            {"case_id": case["case_id"], "query": case["query"]},
+            {"status": 200, "error": None, "body": case["deterministic"]},
+        )
+        failed = {item["name"] for item in checks if not item["passed"]}
+        assert expected_failures[case["case_id"]].issubset(failed), {
+            "case_id": case["case_id"], "expected_failures": expected_failures[case["case_id"]],
+            "actual_failures": failed,
+        }

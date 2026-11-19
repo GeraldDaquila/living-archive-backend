@@ -65,11 +65,22 @@ def evaluate_gold(record, transport):
             out.append(check("doorway_url",observed.get("url")==expected.get("url"),f"Expected {expected.get('url')!r}; observed {observed.get('url')!r}."))
     return out
 
+def _remove_question_echo(query, answer):
+    """Do not let a response earn semantic credit by repeating the visitor's question."""
+    tokens = re.findall(r"[a-z0-9]+", str(query or "").casefold())
+    if len(tokens) < 4:
+        return str(answer or "")
+    phrase = r"[\W_]+".join(re.escape(token) for token in tokens)
+    pattern = r"(?<![a-z0-9])" + phrase + r"(?![a-z0-9])"
+    return re.sub(pattern, " ", str(answer or ""), count=1, flags=re.I)
+
+
 def evaluate_held(case, transport):
     body=transport.get("body") if isinstance(transport.get("body"),dict) else {}
     answer=body.get("response","")
     answer=answer if isinstance(answer,str) else ""
-    low=answer.casefold()
+    scoring_answer = _remove_question_echo(case.get("query", ""), answer)
+    low = scoring_answer.casefold()
     rec=body.get("recommendation")
     out=[check("http_200",transport.get("status")==200,f"HTTP status {transport.get('status')}; {transport.get('error') or ''}"),check("api_ok",body.get("ok") is True,"API must return ok=true."),check("nonempty_answer",bool(answer.strip()),"Answer must be non-empty.")]
     cid=case.get("case_id","")
@@ -89,7 +100,7 @@ def evaluate_held(case, transport):
         central=any(x in low for x in ("centraliz","centralis","consistent direction","coordination","oversight"))
         distributed=any(x in low for x in ("distribut","decentral","delegat","local decision","team-level"))
         tradeoffs=any(x in low for x in ("trade-off","tradeoff","however","but ","risk","cost","benefit","advantage","disadvantage"))
-        conditions=any(x in low for x in ("when ","if ","depends on","as it grows","decision type","routine","strategic"))
+        conditions=any(x in low for x in ("when decisions","if the decision","depends on","as it grows","decision type","routine local decisions","strategic decisions"))
         recommendation=any(x in low for x in ("hybrid","balance","retain","delegate","recommend","should"))
         out += [check("compares_both_models",central and distributed,"Address both centralized and distributed authority."),check("makes_tradeoffs_visible",tradeoffs,"Surface meaningful costs, benefits, or risks."),check("uses_conditional_reasoning",conditions,"Explain when each arrangement is appropriate."),check("offers_reasoned_direction",recommendation,"Give a conditional recommendation, not just a list.")]
     elif cid=="heldout-technical-verification-001":
