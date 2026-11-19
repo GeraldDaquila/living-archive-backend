@@ -10,9 +10,9 @@ from __future__ import annotations
 import re
 from typing import Any, Dict
 
-from personal_reference_resolution import PERSONAL_REFERENCE_VERSION, is_personal_reference_question
+from personal_reference_resolution import (\n    PERSONAL_REFERENCE_VERSION,\n    is_personal_reference_question,\n    is_teaching_conflict_reference,\n)
 
-VERSION = "1.1"
+VERSION = "1.2"
 
 _NO_HANDOFF_PATTERNS = (
     r"\bdo not\b.{0,50}\b(?:recommend|suggest|link|refer|follow[- ]?up)\b",
