@@ -1251,7 +1251,7 @@ def compose_task_specific_recovery(question):
             "recovery_id": "task_decision_rights_distribution_tradeoff",
             "response": (
                 "Neither full centralization nor unrestricted distribution is a sound default. Use centralization when a decision creates "
-                "organization-wide obligations, carry legal or material financial risk, require consistent standards, or affect "
+                "organization-wide obligations, carries legal or material financial risk, requires consistent standards, or affects "
                 "several teams at once. Use distributed authority when a decision is routine and reversible, and the relevant knowledge sits with the "
                 "team doing the work and the consequences can be contained locally.\n\n"
                 "Centralization can improve consistency, coordination, and accountability, but it can also create bottlenecks, "
