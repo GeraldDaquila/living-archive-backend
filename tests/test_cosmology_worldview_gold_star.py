@@ -1,5 +1,6 @@
 """Frozen Gold Star contract for cosmology, worldview, and human life."""
 
+import asyncio
 import json
 from pathlib import Path
 
@@ -77,6 +78,31 @@ def test_final_visitor_boundary_overrides_stale_provider_answer_and_doorway():
     assert result["recommendation"]["url"] == DOORWAY_URL
     assert result["canonical_doorway"]["title"] == DOORWAY_TITLE
     assert result["canonical_doorway"]["url"] == DOORWAY_URL
+
+
+def test_universal_json_sender_preserves_the_exact_gold_star_and_doorway():
+    messages = []
+    fixture = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
+    payload = {
+        "ok": True,
+        "query": QUERY,
+        "response": "A stale provider answer.",
+        "recommendation": {
+            "title": "Living Glossary",
+            "url": "https://geralddaquila.com/glossary/",
+        },
+    }
+
+    async def fake_send(message):
+        messages.append(message)
+
+    asyncio.run(main._use_send_json(fake_send, payload))
+    body = json.loads(messages[-1]["body"].decode("utf-8"))
+    assert body["response"] == fixture["expected_response"]
+    assert body["recommendation"]["title"] == DOORWAY_TITLE
+    assert body["recommendation"]["url"] == DOORWAY_URL
+    assert body["canonical_doorway"]["title"] == DOORWAY_TITLE
+    assert body["canonical_doorway"]["url"] == DOORWAY_URL
 
 
 def test_scientific_cosmology_and_adjacent_worldview_questions_are_not_captured():
