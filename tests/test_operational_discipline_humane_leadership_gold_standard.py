@@ -48,9 +48,9 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
 
     def test_blank_gold_standard_doorway_preserves_independently_selected_doorway(self):
         selected_doorway = {
-            "title": "Foundational Stewardship Cases",
-            "url": "https://geralddaquila.com/level-1-case-catalog/",
-            "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
+            "title": "Applied Stewardship Toolkit",
+            "url": "https://geralddaquila.com/applied-toolkit-governance-layers/",
+            "rationale": "Provide practical governance instruments and templates for intentional communities and stewardship practice.",
         }
         standard = resolve_exact_gold_standard(QUESTION)
         self.assertIsNotNone(standard)
@@ -69,8 +69,8 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
 
     def test_historical_no_handoff_reference_does_not_control_doorway(self):
         selected_doorway = {
-            "title": "Foundational Stewardship Cases",
-            "url": "https://geralddaquila.com/level-1-case-catalog/",
+            "title": "Applied Stewardship Toolkit",
+            "url": "https://geralddaquila.com/applied-toolkit-governance-layers/",
             "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
         }
         standard = resolve_exact_gold_standard(
@@ -86,8 +86,8 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
     def test_universal_json_sender_preserves_default_doorway_for_approved_answer(self):
         messages = []
         selected_doorway = {
-            "title": "Foundational Stewardship Cases",
-            "url": "https://geralddaquila.com/level-1-case-catalog/",
+            "title": "Applied Stewardship Toolkit",
+            "url": "https://geralddaquila.com/applied-toolkit-governance-layers/",
             "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
         }
         payload = {
@@ -107,15 +107,17 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
 
     def test_universal_json_sender_does_not_apply_historical_no_handoff_reference(self):
         messages = []
+        selected_doorway = {
+            "title": "Applied Stewardship Toolkit",
+            "url": "https://geralddaquila.com/applied-toolkit-governance-layers/",
+            "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
+        }
         payload = {
             "ok": True,
-            "query": "Explain stewardship, but do not send me to another page yet.",
-            "response": "A substantive answer.",
-            "recommendation": {
-                "title": "Foundational Stewardship Cases",
-                "url": "https://geralddaquila.com/level-1-case-catalog/",
-            "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
-            },
+            "query": QUESTION,
+            "prior_context": "In an earlier session I preferred to keep reading on one page.",
+            "response": operational_discipline_humane_leadership_recovery(QUESTION),
+            "recommendation": selected_doorway,
         }
 
         async def fake_send(message):
@@ -123,8 +125,7 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
 
         asyncio.run(main._use_send_json(fake_send, payload))
         body = json.loads(messages[-1]["body"].decode("utf-8"))
-        self.assertEqual(body["recommendation"], payload["recommendation"])
-
+        self.assertEqual(body["recommendation"], selected_doorway)
     def test_recovery_is_narrowly_scoped(self):
         self.assertIsNone(
             operational_discipline_humane_leadership_recovery("What is humane leadership?")

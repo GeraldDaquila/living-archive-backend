@@ -241,3 +241,38 @@ def test_json_sender_emits_explicit_selection_for_exact_gold_star_doorway():
     assert result["recommendation"]["title"] == standard["doorway_title"]
     assert result["doorway_omission_reason"] is None
 
+def test_json_sender_honors_explicit_no_handoff_instruction():
+    import asyncio
+    import json
+
+    query = (
+        "What is cosmology, and why does it matter to how people live? "
+        "Please do not show a doorway or link."
+    )
+    sent = []
+
+    async def capture(message):
+        sent.append(message)
+
+    payload = {
+        "query": query,
+        "response": (
+            "Cosmology can refer to the scientific study of the universe or, "
+            "in a broader philosophical sense, assumptions about reality."
+        ),
+        "recommendation": {
+            "title": "The Hidden Assumptions That Quietly Shape Every Life",
+            "url": "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/",
+            "rationale": "A related philosophical continuation.",
+        },
+    }
+    asyncio.run(main._use_send_json(capture, payload, status_code=503))
+    body = next(item["body"] for item in sent if item.get("type") == "http.response.body")
+    result = json.loads(body.decode("utf-8"))
+
+    assert result["doorway_decision"] == "omit"
+    assert result["recommendation"] is None
+    assert result["canonical_doorway"] is None
+    assert result["doorway_title"] is None
+    assert result["doorway_url"] is None
+

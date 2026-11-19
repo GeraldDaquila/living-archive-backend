@@ -249,6 +249,13 @@ def _select_verified_doorway_conceptual_family(query):
     # not the generic terminology glossary. This is a curated resource mapping
     # inside the shared selector; all questions still pass the same terminal
     # relevance, access, URL, and explicit-omission contract.
+    stewardship_significance = bool(
+        re.search(r"\bstewardship\b", text, re.I)
+        and re.search(r"\b(?:why does it matter|why it matters|why does stewardship matter|significance of stewardship)\b", text, re.I)
+        and not re.search(r"\b(?:compare|comparison|versus|vs\.?|difference between|stewardship vs)\b", text, re.I)
+    )
+    if stewardship_significance:
+        return "stewardship_significance"
     worldview_frame = bool(
         re.search(
             r"\b(?:cosmolog(?:y|ies)|worldview|worldviews|assumptions about reality|understanding of reality)\b",
@@ -434,6 +441,16 @@ def _select_verified_doorway_conceptual_family(query):
 
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
+    "stewardship_significance": {
+        "title": "The Living Archive Navigator: Volume IV – Stewardship & Exchange",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iv-stewardship-exchange/",
+        "rationale": (
+            "This Navigator provides a direct route into the Archive's stewardship "
+            "framework and its application to responsibility, exchange, and shared "
+            "conditions. It is a deeper continuation for a visitor asking not only "
+            "what stewardship means, but why it matters."
+        ),
+    },
     "human_worldview_cosmology": {
         "title": "The Hidden Assumptions That Quietly Shape Every Life",
         "url": "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/",
@@ -658,6 +675,18 @@ def _verified_archive_doorway_fallback(query, docs, profile):
     # legitimate condition under which the Guide suppresses its doorway.
     return None
 
+def _guide_query_explicitly_forbids_handoff(query):
+    """Recognize direct no-link instructions without mistaking answer-first wording for refusal."""
+    value = str(query or "")
+    patterns = (
+        r"\b(?:do not|don't|please don't)\s+(?:show|include|provide|offer|give)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
+        r"\bno\s+(?:doorway|links?|pages?|resources?|handoffs?|recommendations)\b",
+        r"\bwithout\s+(?:a\s+)?(?:doorway|link|page|resource|handoff|recommendation)\b",
+        r"\b(?:i|we)\s+(?:do not|don't)\s+(?:want|need|require)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
+    )
+    return any(re.search(pattern, value, re.I) for pattern in patterns)
+
+
 def _guide_enforce_terminal_doorway_policy(payload, query):
     """Make an explicit no-doorway decision terminal across every response path.
 
@@ -668,11 +697,7 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
     """
     safe = dict(payload) if isinstance(payload, dict) else {}
     exact_standard = _resolve_exact_guide_gold_standard(query)
-    explicit_no_doorway = bool(re.search(
-        r"\b(?:do not|don't|without|no)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
-        str(query or ""),
-        re.I,
-    ))
+    explicit_no_doorway = _guide_query_explicitly_forbids_handoff(query)
     reviewed_omission = _gold_star_doorway_omission_is_justified(exact_standard)
     # Provider/recovery omission text is advisory, not a terminal routing decision.
     # The shared boundary must still attempt canonical retrieval and the approved
@@ -5791,8 +5816,29 @@ def _guide_restore_verified_doorway(payload, query):
     )
     answer_basis = safe.get("answer_basis")
     response_provenance = safe.get("response_provenance")
+    try:
+        from deterministic_answer_recovery import (
+            registered_recovery_recommendation as _registered_recovery_doorway,
+        )
+        registered_candidate = _normalize_authoritative_recommendation(
+            _registered_recovery_doorway(query)
+        )
+    except Exception:
+        registered_candidate = None
+    verified_family = _select_verified_doorway_conceptual_family(query)
+    no_archive_destination_was_declared = (
+        safe.get("processing") == "basic_inquiry"
+        and isinstance(answer_basis, dict)
+        and answer_basis.get("kind") == "general_knowledge"
+        and not verified_family
+        and not registered_candidate
+        and not _normalize_authoritative_recommendation(safe.get("recommendation"))
+        and not _normalize_authoritative_recommendation(safe.get("canonical_doorway"))
+        and not str(safe.get("canonical_link_context") or "").strip()
+    )
     explicit_general_knowledge_omission = (
         exact_gold_star_omission
+        or no_archive_destination_was_declared
         or (
         safe.get("processing") == "gold_star_remedy_selection_recovery"
         and isinstance(answer_basis, dict)
@@ -5813,9 +5859,12 @@ def _guide_restore_verified_doorway(payload, query):
         safe["doorway_omission_exception_reason"] = (
             str(exact_standard.get("doorway_omission_exception_reason") or "").strip()
             if exact_gold_star_omission else (
-                "The answer is complete general-knowledge guidance about an internal "
-                "USE learning-governance method. There is no verified direct Archive continuation "
-                "that materially advances the inquiry."
+                "No directly relevant canonical Archive destination has been verified for this inquiry."
+                if no_archive_destination_was_declared else (
+                    "The answer is complete general-knowledge guidance about an internal "
+                    "USE learning-governance method. There is no verified direct Archive continuation "
+                    "that materially advances the inquiry."
+                )
             )
         )
         safe["doorway_decision"] = "omit"
@@ -5825,10 +5874,25 @@ def _guide_restore_verified_doorway(payload, query):
     family = _select_verified_doorway_conceptual_family(query)
     family_candidate = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     doorway = _normalize_authoritative_recommendation(family_candidate) if family_candidate else None
+    if not doorway and (
+        safe.get("generation_authority_protected_docs")
+        or safe.get("question_authority_protected_docs")
+        or safe.get("canonical_link_context")
+        or safe.get("context_blocks")
+    ):
+        try:
+            evidence_context = dict(safe)
+            evidence_context["_skip_doorway_search_recovery"] = True
+            evidence_candidate = _general_guide_authoritative_doorway(
+                query, evidence_context
+            )
+        except Exception:
+            evidence_candidate = None
+        doorway = _normalize_authoritative_recommendation(evidence_candidate)
     if not doorway:
-        # Preserve reviewed, query-specific selectors that are authoritative
-        # but are not represented as ordinary Guide Node records. They remain
-        # subject to the same canonical URL/rationale normalization.
+        # Reviewed query-specific selectors are more precise than generic
+        # registered recovery candidates. Give them priority so their
+        # question-calibrated rationale is preserved for the visitor.
         for selector_name in (
             "_healthy_community_canonical_recommendation",
             "_trust_community_stewardship_canonical_recommendation",
@@ -5845,6 +5909,8 @@ def _guide_restore_verified_doorway(payload, query):
             if specialized:
                 doorway = specialized
                 break
+    if not doorway and registered_candidate:
+        doorway = registered_candidate
     if not doorway:
         upstream_candidate = _normalize_authoritative_recommendation(safe.get("recommendation"))
         if not upstream_candidate:
@@ -5859,6 +5925,15 @@ def _guide_restore_verified_doorway(payload, query):
             # Validate the candidate against its canonical source, not merely its
             # provider-supplied title, URL, or rationale.
             candidate_docs = []
+            for evidence_key in (
+                "generation_authority_protected_docs",
+                "question_authority_protected_docs",
+            ):
+                evidence_items = safe.get(evidence_key) or []
+                if isinstance(evidence_items, list):
+                    candidate_docs.extend(
+                        item for item in evidence_items if isinstance(item, dict)
+                    )
             context = str(
                 safe.get("canonical_link_context")
                 or safe.get("context_blocks")
@@ -13326,22 +13401,29 @@ async def _use_send_json(send, payload, status_code=200):
                     payload["doorway_title"] = _required_title
                     payload["doorway_url"] = _required_url
                     payload["doorway_rationale"] = _required_rationale or None
-    # Every JSON route must expose the same explicit terminal doorway decision.
-    # Exact Gold Stars can bypass the ordinary outer response wrapper, so stamp
-    # the final decision here as well. This does not choose a destination: it
-    # records the already-final recommendation/omission after all route-specific
-    # and canonical boundary work above has completed.
+    # Route-specific composers can return before the ordinary ASGI response
+    # wrapper. Run the shared policy here for ordinary responses, while frozen
+    # exact Gold Stars retain their immutable answer-and-doorway pair.
     if isinstance(payload, dict) and str(payload.get("intent") or "").upper() != "SAFETY_CONVERSATION":
+        _sender_explicit_no_handoff = _guide_query_explicitly_forbids_handoff(
+            _boundary_query
+        )
         _sender_reviewed_omission = _gold_star_doorway_omission_is_justified(
             _boundary_standard
         )
-        _sender_explicit_omission = bool(re.search(
-            r"\b(?:do not|don't|without|no)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
-            _boundary_query,
-            re.I,
-        ))
-        if _sender_reviewed_omission or _sender_explicit_omission:
-            payload["doorway_decision"] = "omit"
+        if _archive_claim_final:
+            _sender_doorway = _normalize_authoritative_recommendation(
+                payload.get("recommendation")
+            )
+            payload["doorway_decision"] = "selected" if _sender_doorway else "omit"
+        elif _boundary_query and (
+            _boundary_standard is None
+            or _sender_explicit_no_handoff
+            or _sender_reviewed_omission
+        ):
+            payload = _guide_enforce_terminal_doorway_policy(
+                payload, _boundary_query
+            )
         else:
             _sender_doorway = _normalize_authoritative_recommendation(
                 payload.get("recommendation")
@@ -13349,10 +13431,6 @@ async def _use_send_json(send, payload, status_code=200):
             payload["doorway_decision"] = "selected" if _sender_doorway else "omit"
             if _sender_doorway:
                 payload["doorway_omission_reason"] = None
-            elif not str(payload.get("doorway_omission_reason") or "").strip():
-                payload["doorway_omission_reason"] = (
-                    "No verified canonical Archive resource materially advances this inquiry."
-                )
 
     # Gold Star v2.0 is a source-independent minimum at the single JSON exit.
     # This conservative gate enforces machine-verifiable integrity; route-specific
