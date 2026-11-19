@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Mapping
 
-from gold_star_route_capabilities import route_capability
+from gold_star_route_capabilities import route_capability, specialist_capability
 
 VERSION = "1.0"
 
@@ -45,6 +45,22 @@ def build_answer_envelope(
     provider = str(body.get("provider") or provenance.get("provider") or "").strip()
     model = str(body.get("model") or provenance.get("model") or "").strip()
 
+    specialist_payload = _mapping(
+        body.get("formation_delegation") or body.get("systems_delegation")
+    )
+    specialist_id = str(specialist_payload.get("specialist_id") or "").strip()
+    specialist_declaration = specialist_capability(specialist_id) if specialist_id else {
+        "version": "",
+        "specialist_id": "not_declared",
+        "declaration_status": "not_declared",
+        "supported_task_families": [],
+        "unsupported_task_families": [],
+        "evidence_modes": [],
+        "abstention_modes": [],
+        "scope": "No specialist contribution is declared on this response.",
+        "semantic_competence_certified": False,
+    }
+
     doorway = body.get("recommendation") or body.get("doorway")
     if isinstance(doorway, Mapping) and str(doorway.get("url") or "").strip():
         doorway_state = "present_requires_canonical_validation"
@@ -77,6 +93,17 @@ def build_answer_envelope(
             "provenance_class": str(provenance.get("class") or "not_declared"),
             "references_present": bool(body.get("evidence") or body.get("sources") or body.get("source_documents")),
         },
+        "specialist": {
+            "id": specialist_declaration.get("specialist_id", "not_declared"),
+            "declaration_status": specialist_declaration.get("declaration_status", "not_declared"),
+            "registry_version": specialist_declaration.get("version", ""),
+            "supported_task_families": list(specialist_declaration.get("supported_task_families") or []),
+            "unsupported_task_families": list(specialist_declaration.get("unsupported_task_families") or []),
+            "evidence_modes": list(specialist_declaration.get("evidence_modes") or []),
+            "abstention_modes": list(specialist_declaration.get("abstention_modes") or []),
+            "scope": specialist_declaration.get("scope", ""),
+            "semantic_competence_certified": False,
+        },
         "doorway": {
             "state": doorway_state,
             "separate_from_answer": True,
@@ -96,7 +123,7 @@ def validate_answer_envelope(envelope: Any) -> Dict[str, Any]:
     if not isinstance(envelope, dict):
         return {"valid": False, "reason": "not_object"}
     required = ("version", "state", "question_contract_version", "route",
-                "capability", "evidence", "doorway", "governance")
+                "capability", "evidence", "specialist", "doorway", "governance")
     missing = [key for key in required if key not in envelope]
     if missing:
         return {"valid": False, "reason": "missing_fields", "missing": missing}
