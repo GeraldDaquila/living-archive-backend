@@ -9,34 +9,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, Mapping
 
+from gold_star_route_capabilities import route_capability
+
 VERSION = "1.0"
-
-# These are transport/route classifications, not claims of semantic quality.
-_ROUTE_CLASSES = {
-    "guide_basic_inquiry": "guide_composition",
-    "guide_basic_inquiry_recovery": "deterministic_recovery",
-    "guide_broad_conceptual_boundary": "purpose_built_deterministic",
-    "guide_early_deterministic_boundary": "purpose_built_deterministic",
-    "guide_direct_attribute_fail_closed": "controlled_failure",
-    "guide_final_visitor_boundary": "visitor_boundary_recovery",
-    "guide_missing_context_guard": "controlled_recovery",
-    "guide_explicit_home_navigation": "navigation_handoff",
-    "registry_specific_destination": "registered_destination",
-    "deterministic-formation-preparation-entry": "specialist_handoff",
-    "guide_sitewide_safety_boundary": "safety_route",
-    "guide_hypothetical_safety_calibration": "safety_calibration",
-    "bounded_safety_conversation": "safety_route",
-}
-
-# The response route may provide a capability declaration in future versions.
-# Absence is not interpreted as support for every task.
-_REQUIRED_CAPABILITY_FIELDS = (
-    "supported_task_families",
-    "unsupported_task_families",
-    "evidence_modes",
-    "abstention_modes",
-)
-
 
 def _mapping(value: Any) -> Mapping[str, Any]:
     return value if isinstance(value, Mapping) else {}
@@ -64,15 +39,11 @@ def build_answer_envelope(
         state = "incomplete"
 
     route_source = str(body.get("route_source") or "").strip()
-    route_class = _ROUTE_CLASSES.get(route_source, "unclassified")
+    declared_capability = route_capability(route_source)
+    route_class = str(declared_capability.get("route_class") or "unclassified")
     provenance = _mapping(body.get("response_provenance"))
     provider = str(body.get("provider") or provenance.get("provider") or "").strip()
     model = str(body.get("model") or provenance.get("model") or "").strip()
-    declared = _mapping(body.get("answer_capabilities"))
-    declaration_complete = all(
-        isinstance(declared.get(key), (list, tuple))
-        for key in _REQUIRED_CAPABILITY_FIELDS
-    )
 
     doorway = body.get("recommendation") or body.get("doorway")
     if isinstance(doorway, Mapping) and str(doorway.get("url") or "").strip():
@@ -93,11 +64,13 @@ def build_answer_envelope(
             "model_present": bool(model),
         },
         "capability": {
-            "declaration_status": "complete" if declaration_complete else "not_declared",
-            "supported_task_families": list(declared.get("supported_task_families") or []) if declaration_complete else [],
-            "unsupported_task_families": list(declared.get("unsupported_task_families") or []) if declaration_complete else [],
-            "evidence_modes": list(declared.get("evidence_modes") or []) if declaration_complete else [],
-            "abstention_modes": list(declared.get("abstention_modes") or []) if declaration_complete else [],
+            "registry_version": declared_capability.get("version", ""),
+            "declaration_status": declared_capability.get("declaration_status", "not_declared"),
+            "supported_task_families": list(declared_capability.get("supported_task_families") or []),
+            "unsupported_task_families": list(declared_capability.get("unsupported_task_families") or []),
+            "evidence_modes": list(declared_capability.get("evidence_modes") or []),
+            "abstention_modes": list(declared_capability.get("abstention_modes") or []),
+            "scope": declared_capability.get("scope", ""),
             "semantic_competence_certified": False,
         },
         "evidence": {
