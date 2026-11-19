@@ -23,7 +23,7 @@ def test_mixed_intent_is_preserved_as_candidate_not_forced_into_single_class():
     )
     assert contract["state"] == "multi_intent_candidate"
     assert contract["task"]["semantic_resolution"] == "required"
-    assert contract["task"]["primary"] == "comparison_candidate"
+    assert contract["task"]["primary"] == "unresolved"
     assert contract["task"]["candidate_source"] == "conservative_surface_signal"
     assert contract["uncertainty"]["task_candidate_confidence"] == "not_semantically_certified"
 
