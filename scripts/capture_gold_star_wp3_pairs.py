@@ -148,11 +148,27 @@ def capture_deterministic_payload(main_module, query: str) -> dict:
 
 
 def verify_runtime_identity(base_url: str, expected_commit: str) -> dict:
-    audit = _http_json(base_url.rstrip("/") + "/api/integration-audit")
-    body = audit.get("body")
+    # Standalone QA may be cold-starting on its free Render instance. Retry only
+    # transport failures and transient 5xx responses; never retry or bypass a
+    # valid identity response that reports a different deployment commit.
+    audit = None
+    for attempt in range(3):
+        audit = _http_json(
+            base_url.rstrip("/") + "/api/integration-audit",
+            timeout=90,
+        )
+        body = audit.get("body")
+        if audit.get("status") == 200 and isinstance(body, dict):
+            break
+        status = audit.get("status")
+        transient = status is None or (isinstance(status, int) and status >= 500)
+        if not transient or attempt == 2:
+            break
+        time.sleep(5)
+    body = audit.get("body") if isinstance(audit, dict) else None
     if audit.get("status") != 200 or not isinstance(body, dict):
         raise RuntimeError(
-            "Target integration audit unavailable: "
+            "Target integration audit unavailable after bounded retries: "
             f"status={audit.get('status')} error={audit.get('error')} "
             f"body={str(audit.get('raw_body') or '')[:1200]}"
         )
