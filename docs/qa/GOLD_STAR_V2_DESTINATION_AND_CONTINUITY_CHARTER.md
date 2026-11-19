@@ -252,6 +252,7 @@ If this document and repository state disagree, inspect the source and correct t
 - PR: [#1732 — Gold Star v2: operational question contracts across Guide routes](https://github.com/GeraldDaquila/living-archive-backend/pull/1732)
 - PR state at last check: open, draft, unmerged; mergeable reported true.
 - Verified WP1 implementation source commit: `b19e715e6d213591bcb3aa57e4190e41273fa959`
+- Verified WP2 implementation source commit: `ec8285e118dfa3faf0ae7a0e1d579a835a127153`
 - This close-out is a documentation-only follow-up; verify the latest PR head from GitHub metadata.
 - Base: `93c2d3a31405ec8b193e8d7a986ed764415ef8d3`
 - Specialist adapter source remains unchanged and protected.
@@ -282,7 +283,7 @@ If this document and repository state disagree, inspect the source and correct t
 - Verified on implementation commit `b19e715e6d213591bcb3aa57e4190e41273fa959`. The same source commit passed the complete observed CI set. No merge or deployment was performed.
 
 
-### WP2 evidence-aware validation and bounded repair (candidate)
+### WP2 evidence-aware validation and bounded repair (verified complete)
 
 - Added canonical-source evidence references from the actual protected retrieval document collections and context blocks, with HTTPS/domain validation, title/body requirements, content digests, duplicate suppression, and a strict distinction between source provenance and claim entailment.
 - Archive-attributed answers now require verified evidence references. General-knowledge answers and immutable exact standards are not forced to fabricate Archive citations. Approved deterministic Archive-reference contracts can be represented without inventing a public URL.
@@ -290,26 +291,28 @@ If this document and repository state disagree, inspect the source and correct t
 - Added a single bounded composition-repair eligibility and execution contract: one attempt maximum, only for observable composition defects, only on the capable provider-composition route, never for deterministic-only or frozen exact answers, and only when the shared request deadline preserves its repair reserve. The helper accepts a candidate only after full revalidation and preserves the original doorway/evidence.
 - Integrated the bounded attempt into Basic Inquiry before payload return. It revalidates the candidate against the same response floor and preserves the original doorway; failed repairs remain withheld by the final visitor floor.
 - New tests cover evidence provenance, source tampering, approved reference contracts, temporal uncertainty, and repair eligibility/abstention boundaries.
-- Candidate only until the exact WP2 implementation commit passes the complete relevant CI suite. Initial integration tests exposed that protected retrieval documents were not being carried into the evidence envelope; the runtime now consumes those protected document collections rather than treating the doorway as evidence.
+- Verified on implementation commit `ec8285e118dfa3faf0ae7a0e1d579a835a127153`. Initial integration tests exposed that protected retrieval documents were not being carried into the evidence envelope; the runtime was corrected to consume those protected document collections rather than treating the doorway as evidence. The bounded-repair executor was then extracted and behaviorally tested for one-attempt enforcement, revalidation, rejection, exception handling, and preservation of the original doorway/evidence.
 
 ### CI status
 
-- Verified source commit: `b19e715e6d213591bcb3aa57e4190e41273fa959`.
-- Observed workflow set for that exact source commit: 31 workflow runs; 30 completed successfully and one live-browser workflow was skipped.
-- Gold Star v2 shared-contract regression suite: 64 passed, 0 failed. This includes the route-registry audit, specialist context tests, answer-envelope tests, response-floor tests, and the new deterministic/safety visitor-boundary integration tests.
+- Verified WP1 source commit: `b19e715e6d213591bcb3aa57e4190e41273fa959`.
+- Verified WP2 source commit: `ec8285e118dfa3faf0ae7a0e1d579a835a127153`.
+- Observed workflow set for the exact WP2 source commit: 31 workflow runs; 30 completed successfully and one live-browser workflow was skipped.
+- Gold Star v2 shared-contract regression suite: 80 passed, 0 failed. This includes the new evidence-provenance and bounded-repair execution tests.
+- Practical stewardship request-boundary recovery: 16 passed, 1 skipped.
+- v487 protected-runtime compatibility validation: passed, including sitewide safety-boundary QA, specialist-pipe checks, and paired Guide selection/visitor-boundary calibration regressions.
 - Dedicated Standalone Deterministic Safety Validation: passed.
 - USE Preflight Integrity: passed.
 - General Guide Composition Validation and General Guide Composition Contract: passed.
 - Structural Validation: passed.
-- v487 protected-runtime compatibility validation: passed, including the sitewide safety-boundary QA, specialist-pipe checks, and paired Guide selection/visitor-boundary calibration regressions.
-- Mocked UI continuity, provider-health, provider-contract, request-boundary, resource-discovery, sovereignty, stewardship-routing, and other triggered regressions: passed.
+- USE Runtime Recovery Invariants, provider health, provider contract, resource-discovery, sovereignty, stewardship-routing, mocked UI continuity, and other triggered regressions: passed.
 - Guide Healthy Community Live Browser Acceptance was skipped. Do not report live-browser acceptance as completed; it remains a WP5 release gate.
 
 CI success is not proof of semantic answer quality, human calibration, live browser acceptance, or production release.
 ### Not yet completed
 
 - WP1: complete. Deterministic and safety orchestration and final visitor boundaries are verified on the exact implementation commit.
-- WP2: evidence-aware validation and bounded repair.
+- WP2: complete. Evidence provenance and one-attempt bounded repair are verified on the exact implementation commit.
 - WP3: real paired captures and human/evaluator calibration.
 - WP4: governed learning/elevation loop.
 - WP5: primary/secondary live browser acceptance and controlled release.
@@ -320,7 +323,7 @@ No production merge or deployment was performed. PR #1732 remains open and unmer
 
 ### Immediate next action
 
-Complete WP2 tests on the exact candidate commit. Repair failures without weakening evidence or bounded-repair constraints. Only then mark WP2 complete and proceed to WP3 representative evaluation and human calibration.
+Begin WP3 representative evaluation and human calibration. Use attributable paired captures on supported routes only; do not fabricate missing captures or claim automated semantic certification. Prepare the held-out review set and human scoring protocol before making parity or quality claims.
 
 ## 10. Definition of completion
 
