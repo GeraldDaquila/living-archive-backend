@@ -149,10 +149,9 @@ def test_compound_stewardship_question_completes_request_composition_and_recomme
     assert payload["response"] == ANSWER
     assert len(payload["response"].split("\n\n")) == 3
     assert isinstance(payload.get("recommendation"), dict)
-    assert payload["recommendation"] == {
-        "title": CANONICAL_TITLE,
-        "url": CANONICAL_URL,
-    }
+    assert payload["recommendation"]["title"] == CANONICAL_TITLE
+    assert payload["recommendation"]["url"] == CANONICAL_URL
+    assert payload["recommendation"].get("rationale")
     assert payload["answer_basis"] == {
         "kind": "archive_supported",
         "label": "Informed by the Living Archive",
@@ -325,10 +324,9 @@ def test_model_selected_guide_node_cannot_bypass_explicit_destination_boundary(m
     assert payload["processing"] == "basic_inquiry"
     assert len(payload["response"].strip()) >= 80
     assert payload.get("handoff") != "guide_node"
-    assert payload["recommendation"] == {
-        "title": CANONICAL_TITLE,
-        "url": CANONICAL_URL,
-    }
+    assert payload["recommendation"]["title"] == CANONICAL_TITLE
+    assert payload["recommendation"]["url"] == CANONICAL_URL
+    assert payload["recommendation"].get("rationale")
 
 
 def test_bounded_stewardship_definition_keeps_native_glossary_handoff():
@@ -410,10 +408,9 @@ def test_supported_evidence_preserves_structured_recommendation_title_and_url(mo
     assert status == 200
     assert payload["response"] == ANSWER
     assert len(payload["response"].split("\n\n")) == 3
-    assert payload["recommendation"] == {
-        "title": CANONICAL_TITLE,
-        "url": CANONICAL_URL,
-    }
+    assert payload["recommendation"]["title"] == CANONICAL_TITLE
+    assert payload["recommendation"]["url"] == CANONICAL_URL
+    assert payload["recommendation"].get("rationale")
 
 
 
