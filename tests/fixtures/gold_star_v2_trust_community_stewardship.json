@@ -1,0 +1,44 @@
+{
+  "benchmark_id": "gold-star-v2-trust-community-stewardship-2026-11-19",
+  "status": "FROZEN_REFERENCE_ONLY",
+  "purpose": "Versioned visitor-facing reference benchmark for the Gold Star v2 trust/community stewardship answer, captured from the live Guide after promotion of merge commit a2f16162db391b17ce6b93d2d1cce0b350d19872.",
+  "observed_query": "What is the role of trust in community stewardship?",
+  "expected_response": "Trust is what lets a community share responsibility without having to supervise every action. It is not simply believing that people mean well; it is confidence built through conduct: clear commitments, follow-through, honest communication, and a willingness to acknowledge when something has gone wrong. In community stewardship, that confidence matters because no one person can care for a shared place or resource alone.\n\nThink of a shared garden. People depend on one another to tend their plots, share tools and information, notice what is being neglected, and speak up when a promise is missed. Good stewardship does not conceal the failure or leave the burden with the person affected. People name what happened, listen to its impact, agree on a repair, and make responsibilities clear. That is how cooperation survives friction instead of turning into resentment.\n\nTrust makes cooperation possible; accountability makes trust dependable; and stewardship is the shared practice that keeps both alive. Over time, people learn whether others return, keep their word, share decisions fairly, and repair harm. Trust is therefore not a substitute for scrutiny or safeguards: it grows stronger when people can question decisions and see that commitments are honoured. The Living Archive's Trust Architecture essay offers a related path for exploring trust as social infrastructure.",
+  "answer_basis": {
+    "kind": "general_knowledge",
+    "label": "Conceptual explanation",
+    "source_url": null
+  },
+  "recommendation": {
+    "kind": "archive_resource",
+    "title": "Trust Architecture: The Missing Infrastructure Behind Functional Societies",
+    "url": "https://geralddaquila.com/2026/09/07/trust-architecture-the-missing-infrastructure-behind-functional-societies/"
+  },
+  "invariants": [
+    "The answer is complete before the optional Archive resource is presented.",
+    "Define trust through observable conduct rather than good intentions alone.",
+    "Explain why trust enables shared responsibility without constant supervision.",
+    "Use the shared-garden example to make community stewardship concrete.",
+    "Make accountability operational: name what happened, listen to impact, agree on repair, and clarify responsibilities.",
+    "Distinguish trust, accountability, and stewardship without collapsing them into synonyms.",
+    "State that trust does not replace scrutiny or safeguards.",
+    "Preserve general_knowledge answer provenance; the Archive essay is a separate optional archive_resource, not the evidence basis.",
+    "One Search submission renders the answer and doorway; no second submission is required."
+  ],
+  "evaluation_boundary": {
+    "visitor_observation": "A live visitor-facing screenshot was supplied by the user on 2026-11-19 after both production services reported the Gold Star elevation merge commit live.",
+    "automated_regression": "The benchmark fixture and contract tests verify exact answer text, provenance classification, and separate Archive recommendation.",
+    "not_established_by_fixture": [
+      "Independent human calibration",
+      "Semantic certification of the wider Guide",
+      "Performance across unrelated questions or domains",
+      "A stored repository copy of the original screenshot"
+    ]
+  },
+  "freeze_policy": [
+    "This is a separately versioned Gold Star v2 benchmark; it does not replace or modify the 2026-10-14 General Purpose Guide frozen benchmark.",
+    "Treat this expected response as read-only. Do not edit it to make a regression pass.",
+    "Any future replacement requires explicit authorization and a new benchmark version with rationale.",
+    "Automated exact-match and structural tests do not substitute for independent human calibration."
+  ]
+}
