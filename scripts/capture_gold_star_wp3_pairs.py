@@ -202,7 +202,15 @@ def main() -> int:
     parser.add_argument("--base-url", default=os.getenv("WP3_CAPTURE_BASE_URL", MIRROR))
     parser.add_argument("--output", type=Path, default=Path("artifacts/gold-star-wp3-paired-capture.json"))
     parser.add_argument("--delay-seconds", type=float, default=0.5)
+    parser.add_argument(
+        "--min-llm-captures",
+        type=int,
+        default=0,
+        help="Fail after saving the report if fewer attributable LLM outputs are captured.",
+    )
     args = parser.parse_args()
+    if args.min_llm_captures < 0:
+        parser.error("--min-llm-captures must be zero or greater.")
 
     base_url = args.base_url.rstrip("/")
     if base_url not in APPROVED_TARGETS:
@@ -376,6 +384,13 @@ def main() -> int:
     print(json.dumps(report, ensure_ascii=False, separators=(",", ":")))
     print("WP3_PAIRED_CAPTURE_JSON_END")
     print(json.dumps(report["paired_summary"], indent=2))
+    if report["paired_summary"]["llm_captured"] < args.min_llm_captures:
+        print(
+            "Insufficient attributable LLM captures: "
+            f"{report['paired_summary']['llm_captured']} < {args.min_llm_captures}",
+            file=sys.stderr,
+        )
+        return 2
     return 0
 
 
