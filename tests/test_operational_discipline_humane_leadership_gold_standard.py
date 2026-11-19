@@ -109,14 +109,15 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
         messages = []
         payload = {
             "ok": True,
-            "query": "Explain stewardship, but do not send me to another page yet.",
+            "query": "Explain stewardship and how it shapes everyday responsibilities and shared resources, but do not send me to another page yet.",
             "response": "A substantive answer.",
             "generation_authority_protected_docs": [{
                 "title": "Foundational Stewardship Cases",
                 "url": "https://geralddaquila.com/level-1-case-catalog/",
                 "content": (
-                    "Canonical case studies about stewardship, operational responsibility, "
-                    "leadership practice, governance, and the consequences of decisions."
+                    "Stewardship is the practice of taking responsibility for what is entrusted to us. "
+                    "It shapes everyday responsibilities and shared resources, preserving trust "
+                    "and long-term wellbeing."
                 ),
             }],
             "recommendation": {
