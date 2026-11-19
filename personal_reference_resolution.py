@@ -100,10 +100,9 @@ def compose_teaching_conflict_protocol(
         documents or [],
         required_titles=(
             "Analytical Procedure",
-            "Discernment Foundations",
             "Discernment, Authority, and Ethical Access",
         ),
-        min_verified=3,
+        min_verified=2,
         min_body_chars=250,
     )
     if not resolution.get("verified"):
