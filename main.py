@@ -21,6 +21,7 @@ from boundary_resilience import CONTRACT_VERSION as BOUNDARY_RESILIENCE_CONTRACT
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
+# Gold Star v2 route contract is passed through Guide-owned specialist context; adapter source remains protected.
 from gold_star_question_contract import build_question_contract as _build_gold_star_question_contract
 from gold_star_route_capabilities import route_capability as _gold_star_route_capability
 
