@@ -40,7 +40,7 @@ def test_specialist_receives_validated_shared_question_contract(monkeypatch):
         request_id="qa-request-1",
         guide_version="qa",
         specialist_id="fake_specialist",
-        original_question="How can a team verify that a configuration change worked?",
+        original_question="How can I verify that a Python service has a required environment variable configured without exposing its secret value?",
         recognized_territory="testing",
         processing_purpose="verification",
     )
