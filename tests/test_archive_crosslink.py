@@ -566,7 +566,7 @@ def test_wordpress_source_fetch_requires_matching_published_public_identity(monk
     assert "responsible care" in docs[0]["text"].casefold()
     assert "<p>" not in docs[0]["text"]
     assert calls[0][1] == 2.0
-    assert "/wp/v2/page/21767?" in calls[0][0]
+    assert "/wp/v2/pages/21767?" in calls[0][0]
 
 
 def test_wordpress_source_fetch_rejects_protected_assets_without_network_call(monkeypatch):
