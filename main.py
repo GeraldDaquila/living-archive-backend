@@ -23,7 +23,7 @@ from fastapi.responses import JSONResponse
 
 # Gold Star v2 route contract is passed through Guide-owned specialist context; adapter source remains protected.
 from gold_star_question_contract import build_question_contract as _build_gold_star_question_contract
-from gold_star_route_capabilities import route_capability as _gold_star_route_capability
+from gold_star_route_capabilities import route_capability as _gold_star_route_capability, specialist_capability as _gold_star_specialist_capability
 
 from hub_contracts import (
     build_hub_request,
@@ -5056,7 +5056,8 @@ def _philippine_systems_specialist_response(query, history, route, request_id):
             "conversation": _history_text(history),
             "route_interpretation": interpretation,
             "gold_star_question_contract": _build_gold_star_question_contract(query),
-            "gold_star_route_capability": _gold_star_route_capability("deterministic-formation-preparation-entry"),
+            "gold_star_route_capability": _gold_star_route_capability("deterministic-systems-preparation-entry"),
+            "gold_star_specialist_capability": _gold_star_specialist_capability("systems_ph"),
         },
         safety_state="green",
     )
@@ -5095,6 +5096,7 @@ def _formation_specialist_response(query, history, route, request_id):
         "desired_movement": str(interpretation.get("desired_movement") or ""),
         "gold_star_question_contract": _build_gold_star_question_contract(query),
         "gold_star_route_capability": _gold_star_route_capability("deterministic-formation-preparation-entry"),
+        "gold_star_specialist_capability": _gold_star_specialist_capability("formation"),
     }
     hub_request = build_hub_request(
         request_id=request_id,
