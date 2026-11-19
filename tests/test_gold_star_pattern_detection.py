@@ -146,3 +146,26 @@ def test_revision_and_rejection_are_non_mutating():
         assert result["status"] == expected
         assert result["registry_write_performed"] is False
         assert result["runtime_activated"] is False
+
+def test_forged_candidate_without_evidence_coverage_cannot_be_adjudicated():
+    forged = {
+        "candidate_id": "pattern-answer_directness",
+        "status": "CANDIDATE_REQUIRES_HUMAN_ADJUDICATION",
+        "support_count": 1,
+        "evidence_case_ids": ["case-1"],
+        "evidence_refs": ["review:1:sha256"],
+        "domain_coverage": ["governance"],
+        "task_family_coverage": ["strategic"],
+        "runtime_eligible": False,
+    }
+    with pytest.raises(ValueError, match="evidence floor"):
+        adjudicate_pattern_candidate(
+            forged,
+            decision="APPROVE",
+            reviewer="reviewer",
+            rationale="Insufficient support.",
+            target_tests_passed=True,
+            adjacent_tests_passed=True,
+            unrelated_negative_controls_passed=True,
+            explicit_owner_approval=True,
+        )
