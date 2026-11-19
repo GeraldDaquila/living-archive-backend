@@ -58,7 +58,7 @@ def test_personal_reference_detector_selects_teaching_conflict_family():
 def test_teaching_conflict_resolution_requires_all_verified_source_bodies():
     result = compose_teaching_conflict_protocol(QUERY, _documents())
     assert result is not None
-    assert len(result["documents"]) == 4
+    assert len(result["documents"]) == 5
     assert result["doorway"]["title"] == "Analytical Procedure"
     assert "faithful synthesis" in result["response"]
     assert "conscience matters as an ethical signal" in result["response"].casefold()
