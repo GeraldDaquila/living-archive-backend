@@ -2058,7 +2058,7 @@ def test_weekly_stewardship_insight_to_action_is_an_immutable_gold_star():
     assert record["freeze_policy"] == "immutable_user_approved_gold_standard"
     assert record["runtime_transfer"] is True
     assert record["numbering_status"] == "UNASSIGNED"
-    assert record["gold_star_capabilities"]["exact_answer_authority"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
     assert record["expected_doorway"]["title"] == "Stewardship"
