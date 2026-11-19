@@ -356,7 +356,17 @@ def _select_verified_doorway_conceptual_family(query):
         return "stewardship_management_leadership_ownership"
 
     # Formal rules and informal norms jointly shape organizational behavior.
-    if general_guide_composition._requires_formal_informal_institutional_dynamics(text):
+    # Keep the canonical family explicit even when the shared classifier's
+    # supporting signals evolve; this is a reviewed destination, not a lexical
+    # fallback.
+    if (
+        general_guide_composition._requires_formal_informal_institutional_dynamics(text)
+        or (
+            re.search(r"\\bformal rules\\b", text, re.I)
+            and re.search(r"\\binformal norms\\b", text, re.I)
+            and re.search(r"\\borganizational behavior\\b", text, re.I)
+        )
+    ):
         return "formal_informal_institutional_dynamics"
 
     # Community-project economic accounts need a wider lens when they report
