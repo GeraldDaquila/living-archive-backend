@@ -995,6 +995,15 @@
       "qualifying_context": "Visitors examining claims or beliefs because they feel true, beautiful, empowering, resonant, or emotionally compelling, and who want a careful method of discernment.",
       "abstention_boundary": "Do not assume emotionally compelling claims are false; do not impose cynicism or a spiritual frame; do not dismiss personal experience; do not use repeatability as a universal evidence test; do not transfer the exact answer or doorway to unrelated questions.",
       "activation": "active_quality_contributor"
+    },
+    {
+      "benchmark_id": "gs-2026-11-19-cosmology-worldview-human-life",
+      "question": "What is cosmology, and why does it matter to how people live?",
+      "reasoning_family": "cosmology_worldview_human_life",
+      "transferable_discipline": "Distinguish scientific cosmology from the broader philosophical use of cosmology as worldview. Explain how assumptions about reality shape perception, possibility, values, relationships, and decisions. Mark illustrative philosophical consequences as interpretations rather than scientific findings, and preserve the boundary between the Living Archive's interpretive framework and established science.",
+      "qualifying_context": "Visitors explicitly asking how cosmology, worldview, assumptions about reality, or an understanding of human belonging relates to everyday life, relationships, cooperation, or institutions.",
+      "abstention_boundary": "Do not apply this framework to ordinary astronomy or astrophysics questions unless the visitor also asks about worldview or human meaning. Do not transfer the exact answer or doorway to unrelated questions. Do not claim that separation-based or unity-informed interpretations are scientifically proven or universally settled. Do not turn illustrative social consequences into empirical claims.",
+      "activation": "active_quality_contributor"
     }
   ]
 }
