@@ -559,7 +559,7 @@ def test_mirror_registry_context_enters_composition_as_metadata_orientation():
     source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
     assert "Canonical territorial orientation — metadata only" in source
     assert '"mirror_orientation_metadata_only": verified_source_count == 0' in source
-    assert 'context_blocks": "\\n\\n".join(orientation_blocks)' in source
+    assert 'context_blocks": "\\n\\n---\\n\\n".join(orientation_blocks)' in source
     assert "Use this to orient an original response; do not attribute" in source
 
 
