@@ -162,10 +162,23 @@ def adjudicate_pattern_candidate(
     """Record a bounded adjudication without changing registry or runtime state."""
     if candidate.get("status") != "CANDIDATE_REQUIRES_HUMAN_ADJUDICATION":
         raise ValueError("Only an unapproved pattern candidate can be adjudicated.")
+    if (
+        isinstance(candidate.get("support_count"), bool)
+        or not isinstance(candidate.get("support_count"), int)
+        or candidate["support_count"] < 3
+        or len(set(candidate.get("evidence_case_ids") or [])) < 3
+        or len(set(candidate.get("evidence_refs") or [])) < 3
+        or len(set(candidate.get("domain_coverage") or [])) < 2
+        or len(set(candidate.get("task_family_coverage") or [])) < 2
+        or candidate.get("runtime_eligible") is not False
+    ):
+        raise ValueError("Candidate does not satisfy the governed evidence floor.")
     if decision not in {"APPROVE", "REVISE", "REJECT"}:
         raise ValueError("Decision must be APPROVE, REVISE, or REJECT.")
-    if not reviewer.strip() or not rationale.strip():
-        raise ValueError("Reviewer and rationale are required.")
+    if not isinstance(reviewer, str) or not reviewer.strip():
+        raise ValueError("Reviewer is required.")
+    if not isinstance(rationale, str) or not rationale.strip():
+        raise ValueError("Rationale is required.")
 
     if decision == "REJECT":
         status = "REJECTED"
