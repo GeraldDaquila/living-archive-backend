@@ -16,11 +16,10 @@ canonical selection, and final presentation.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, Mapping, Optional, Protocol, Tuple
 
 from boundary_resilience import preserve_specialist_payload
-from gold_star_question_contract import build_question_contract, validate_question_contract
 
 from specialist_registry import (
     SPECIALIST_PIPE_CONTRACT_VERSION,
@@ -46,7 +45,6 @@ class SpecialistAdapterContext:
     processing_purpose: str
     guide_context: Mapping[str, Any]
     safety_state: Optional[str]
-    question_contract: Mapping[str, Any] = field(default_factory=dict)
 
 
 class SpecialistAdapter(Protocol):
@@ -147,11 +145,6 @@ def invoke_specialist(
             f"No adapter is registered for specialist: {specialist_id!r}"
         )
 
-    question_contract = build_question_contract(original_question)
-    contract_status = validate_question_contract(question_contract)
-    if not contract_status.get("valid"):
-        raise SpecialistAdapterError("Shared question contract failed validation before specialist invocation.")
-
     context = SpecialistAdapterContext(
         request_id=str(request_id),
         guide_version=str(guide_version),
@@ -161,7 +154,6 @@ def invoke_specialist(
         processing_purpose=str(processing_purpose),
         guide_context=dict(guide_context or {}),
         safety_state=safety_state,
-        question_contract=question_contract,
     )
 
     try:
