@@ -45,7 +45,8 @@
     "decision_rule": "Any critical dimension scoring 0 prevents acceptance. All seven frozen deterministic answers require revision.",
     "semantic_certification": false,
     "independent_human_review": false,
-    "limitation": "This is a delegated AI technical and stewardship assessment authorized by the project owner. It is not represented as independent human scoring or an independent second reviewer."
+    "limitation": "This is a delegated AI technical and stewardship assessment authorized by the project owner. It is not represented as independent human scoring or an independent second reviewer.",
+    "correction_policy": "Corrective directions are task-completion requirements synthesized from the pinned approved/frozen references or ordinary domain knowledge. They are not new Gold Star answers, are not registry elevations, and must not be inserted into runtime as exact-query fixtures without separate approval."
   },
   "summary": {
     "cases_reviewed": 7,
@@ -90,7 +91,12 @@
         "answer_first": 0,
         "general_knowledge_accuracy": 0,
         "uncertainty_honesty": 0
-      }
+      },
+      "supporting_benchmarks": [
+        "general-guide-water-boiling-point-general-knowledge-gold-standard-2026-10-24"
+      ],
+      "corrective_direction": "Answer directly: water boils at 100°C (212°F) at standard sea-level atmospheric pressure. Briefly note that lower atmospheric pressure lowers the boiling temperature. Keep this as general knowledge, not Archive doctrine, and omit the unrelated doorway.",
+      "corrective_direction_is_new_gold_star_text": false
     },
     {
       "case_id": "heldout-cosmology-life-001",
@@ -129,7 +135,13 @@
         "concrete_clarity": 0,
         "archive_grounding": 1,
         "doorway_relevance": 2
-      }
+      },
+      "supporting_benchmarks": [
+        "gs-2026-11-19-cosmology-worldview-human-life",
+        "general-guide-living-archive-cosmology-gold-standard-2026-10-25"
+      ],
+      "corrective_direction": "Define scientific cosmology and distinguish it from the broader philosophical use concerning reality and human belonging. Explain worldview as assumptions shaping perception, values, choices, and relationships. Use a concrete example, mark separation-based/unity-informed framing as the Archive's interpretive lens rather than scientific proof, and offer the verified Hidden Assumptions doorway only after the answer.",
+      "corrective_direction_is_new_gold_star_text": false
     },
     {
       "case_id": "heldout-practical-trust-001",
@@ -165,7 +177,13 @@
         "human_voice": 1,
         "concrete_clarity": 0,
         "doorway_relevance": 2
-      }
+      },
+      "supporting_benchmarks": [
+        "general-guide-practical-trust-application-2026-10-22",
+        "general-guide-identifying-what-is-held-in-trust-gold-standard-2026-10-25"
+      ],
+      "corrective_direction": "Give observable actions: ask affected people what they see; distinguish observations from assumptions; explain decisions and reasons; name responsibility; follow through; and check whether people's experience changed. Intentions alone do not demonstrate trust. No unsolicited resource doorway.",
+      "corrective_direction_is_new_gold_star_text": false
     },
     {
       "case_id": "heldout-strategic-governance-001",
@@ -201,7 +219,15 @@
         "tradeoff_visibility": 0,
         "context_sensitivity": 0,
         "uncertainty_honesty": 1
-      }
+      },
+      "supporting_benchmarks": [
+        "general-guide-governance-beyond-administration-gold-standard-2026-10-26",
+        "general-guide-governance-redesign-preaction-questions-gold-standard-2026-10-26",
+        "general-guide-actionable-ethical-responsibility-gold-standard-2026-11-15",
+        "general-guide-nonprofit-culture-power-care-governance-gold-star-2026-11-18"
+      ],
+      "corrective_direction": "Compare both models. Centralize decisions with organization-wide legal, fiduciary, safety, strategic, or irreversible consequences; distribute bounded, reversible, locally informed operational decisions. Recommend a hybrid with explicit decision rights, escalation thresholds, transparent rationale, safeguards, and review. Explain the risks of bottlenecks and detached central control as well as fragmentation and inconsistent local practice.",
+      "corrective_direction_is_new_gold_star_text": false
     },
     {
       "case_id": "heldout-technical-verification-001",
@@ -237,7 +263,10 @@
         "reproducibility": 0,
         "secret_safety": 0,
         "answer_directness": 0
-      }
+      },
+      "supporting_benchmarks": [],
+      "corrective_direction": "Use a boolean/presence check without revealing the value, for example: `if \"API_TOKEN\" not in os.environ: raise RuntimeError(\"Missing required API_TOKEN\")`. If empty values must also fail, use `if not os.getenv(\"API_TOKEN\")`. Never print, log, or return the secret. Explain that presence at process startup does not prove the application reads or successfully uses it. This is general Python guidance; no Archive Gold Star is claimed as its source.",
+      "corrective_direction_is_new_gold_star_text": false
     },
     {
       "case_id": "heldout-uncertain-causation-001",
@@ -273,7 +302,13 @@
         "evidence_requirements": 0,
         "useful_next_steps": 0,
         "no_fabricated_cause": 2
-      }
+      },
+      "supporting_benchmarks": [
+        "general-guide-complexity-and-uncertainty-gold-standard-2026-10-26",
+        "gs-2026-11-17-complex-future-scenario-readiness"
+      ],
+      "corrective_direction": "Do not assign a cause without data. Compare traffic by source/referrer, landing page, timestamp, UTM campaign, Search Console, server logs, and bot filtering. Check whether the increase is concentrated in particular pages, regions, devices, or hours; compare against campaigns and known events. State which hypotheses are supported, weakened, or unresolved, and what evidence would distinguish them.",
+      "corrective_direction_is_new_gold_star_text": false
     },
     {
       "case_id": "heldout-explicit-no-handoff-001",
@@ -311,7 +346,10 @@
         "conceptual_distinction": 0,
         "instruction_compliance": 0,
         "proportionality": 0
-      }
+      },
+      "supporting_benchmarks": [],
+      "corrective_direction": "Explain briefly: a policy states the rule or principle that guides a decision; a procedure gives the steps for carrying it out. Example: a policy may require secure handling of records, while a procedure explains how staff store and access them. Stop after the answer. Do not add a link, recommendation, or follow-up question. No exact Archive Gold Star is claimed for this distinction.",
+      "corrective_direction_is_new_gold_star_text": false
     }
   ]
 }
