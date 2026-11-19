@@ -293,57 +293,59 @@ If this document and repository state disagree, inspect the source and correct t
 - New tests cover evidence provenance, source tampering, approved reference contracts, temporal uncertainty, and repair eligibility/abstention boundaries.
 - Verified on implementation commit `ec8285e118dfa3faf0ae7a0e1d579a835a127153`. Initial integration tests exposed that protected retrieval documents were not being carried into the evidence envelope; the runtime was corrected to consume those protected document collections rather than treating the doorway as evidence. The bounded-repair executor was then extracted and behaviorally tested for one-attempt enforcement, revalidation, rejection, exception handling, and preservation of the original doorway/evidence.
 
-### WP3 representative evaluation and human calibration (partial; deterministic captures complete; LLM attribution and human scoring pending)
+### WP3 representative evaluation and delegated deterministic review (partial; LLM pairing remains blocked)
 
-- The seven held-out questions and rubric are aligned across the evaluation set and paired fixture.
-- A bounded one-time capture run (#44459060627) queried the secondary mirror once for each held-out question. All seven requests returned HTTP 200.
-- Render deployment metadata showed primary and secondary running source commit `93c2d3a31405ec8b193e8d7a986ed764415ef8d3`; the mirror integration-audit endpoint independently reported the same deployment SHA.
-- Seven deterministic fallback outputs were executed locally from that exact deployed source commit and passed through its shared visitor finalizer. All seven are preserved in `docs/qa/gold_star_paired_fixture_template.json`; the full attributable capture report is `docs/qa/gold_star_wp3_paired_capture_2026-11-19.json`.
-- Zero of seven live API outputs qualified as verified LLM captures. The final response provenance was unresolved and provider/model attribution was absent. Provider attempts appeared in service logs, but provider activity is not proof that the final visitor answer came from an LLM. Therefore: zero paired cases, zero parity claims, and no semantic certification.
-- The integration audit returned `ok: false` because the relationship capability lacked an adapter. This is recorded separately from the verified deployment SHA; it was not treated as a source-identity mismatch.
-- The capture runner now requires explicit final-answer provenance (or the equivalent answer-envelope declaration), preserves unverified response text on future runs, and is `workflow_dispatch` only. Commits will not trigger more live provider calls.
-- The captured deterministic answers reveal substantive gaps: the general-fact and practical-trust questions fall back to generic Archive-limitation language; the cosmology answer is malformed/off-task; the strategic answer echoes the question instead of comparing governance models; the technical answer omits a safe configuration check; the uncertain-causation answer omits discriminating evidence and investigation steps; and the explicit no-handoff answer appends a generic next question.
-- Evaluation false positives and false negatives were found and corrected. Shared evaluator v1.2 removes exact question echoes before scoring, requires substantive trade-off/conditional language, and flags generic next-question prompts when follow-up is prohibited. The frozen captures are regression-tested against these rules.
-- The case-specific human scorecards remain pending, unassigned, unreviewed, and unapproved. Human judgment is still required; automated checks do not promote answers.
-- WP3 is not closed until a same-source LLM response can be attributed, paired outputs can be compared, and the human review set is completed.
+- Seven held-out question IDs, task-specific acceptance criteria, and the paired fixture are aligned.
+- A bounded one-time capture run queried the secondary mirror once per held-out question. All seven API requests returned HTTP 200, but none had verifiable final provider/model provenance. The seven live API outputs therefore remain unclassified as LLM answers; the deterministic path has seven attributable frozen captures.
+- The deterministic captures are preserved unchanged in `docs/qa/gold_star_wp3_paired_capture_2026-11-19.json`. Their source runtime was deployment commit `93c2d3a31405ec8b193e8d7a986ed764415ef8d3`, version `v489.311`, fingerprint `USE-v489.311-source-derived`.
+- On 2026-11-19, the project owner explicitly authorized a delegated evidence-based technical and stewardship review using the canonical Gold Star registry. The review is recorded in `docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json` and attached to each case in the capture report. It is expressly identified as delegated AI review, not independent human review.
+- The review pins registry commit `eb972d9e3312011ef90db111dde209a0a4764cd4`: 152 total registry records, 114 `USER_APPROVED_GOLD_STANDARD` records, four `FROZEN_REFERENCE_ONLY` records, and 34 records in other statuses. The 114 approved standards are not conflated with the four frozen references.
+- All seven deterministic answers were assessed across the 12 shared quality dimensions and their case-specific critical criteria. Result: 0 ACCEPT, 7 REVISE, 0 REJECT. Every case has at least one critical failure. The common defect is substitution of generic Archive-limitation language for task completion; the cosmology answer also contains a malformed opening sentence, and the explicit no-handoff answer violates its no-follow-up constraint.
+- Added `tests/test_gold_star_wp3_delegated_review.py` to verify complete seven-case coverage, score integrity, consistency between dossier and capture report, preservation of frozen response text, and honest zero-LLM/zero-pair reporting.
+- The dossier is complete under the owner's delegation, but it is not an independent human calibration sample. The separate WP3 requirement for human/evaluator agreement and false-positive/false-negative calibration is therefore not certified.
+- LLM capture and paired comparison remain outstanding. The identified Render mirror service is currently configured to deploy `main`; the available Render integration exposes service inspection and deploy triggering but no service-branch update action. Triggering a deploy now would deploy `main`, not the PR branch. No deployment was triggered and no production resource was changed. A controlled PR-branch mirror deployment requires a supported branch-change operation or an authorized dashboard operation, followed by runtime identity verification.
+- Do not claim LLM/deterministic parity, semantic certification, or WP3 closure until the same-source LLM capture and paired evaluation are complete.
+
+
 
 ### CI status
 
-- Verified WP1 source commit: `b19e715e6d213591bcb3aa57e4190e41273fa959`.
-- Verified WP2 source commit: `ec8285e118dfa3faf0ae7a0e1d579a835a127153`.
-- Verified WP3 offline calibration-contract test commit: `827a0a0436da0bb3a1666bb247fd6d0b87ffb7a5`.
-- Verified WP3 deterministic capture/evaluator commits through latest head: `7c0b9fcf471a37b4d27c7177c4ee273fcca0ee0d`.
-- Observed workflow set for the exact WP2 source commit: 31 workflow runs; 30 completed successfully and one live-browser workflow was skipped.
-- Observed workflow set for the latest verified WP3 head (`7c0b9fcf471a37b4d27c7177c4ee273fcca0ee0d`): 31 workflow runs; 30 completed successfully and one live-browser workflow was skipped.
-- Latest Gold Star v2 shared-contract regression suite: 111 passed, 0 failed.
-- Gold Star Semantic Contract Tests: 15 passed, 0 failed.
-- WP3 paired capture workflow #44459060627: completed successfully; 7 live API requests returned HTTP 200; 7 deterministic outputs captured; 0 verified LLM outputs; 0 paired cases. This is capture coverage, not parity or semantic certification.
-- Gold Star v2 shared-contract regression suite: 80 passed, 0 failed. This includes the new evidence-provenance and bounded-repair execution tests.
-- Practical stewardship request-boundary recovery: 16 passed, 1 skipped.
-- v487 protected-runtime compatibility validation: passed, including sitewide safety-boundary QA, specialist-pipe checks, and paired Guide selection/visitor-boundary calibration regressions.
-- Dedicated Standalone Deterministic Safety Validation: passed.
-- USE Preflight Integrity: passed.
-- General Guide Composition Validation and General Guide Composition Contract: passed.
-- Structural Validation: passed.
-- USE Runtime Recovery Invariants, provider health, provider contract, resource-discovery, sovereignty, stewardship-routing, mocked UI continuity, and other triggered regressions: passed.
-- Guide Healthy Community Live Browser Acceptance was skipped. Do not report live-browser acceptance as completed; it remains a WP5 release gate.
+- WP1 and WP2 implementation checkpoints and their recorded verification remain as documented above.
+- Latest PR head after delegated review documentation and its governance test: `367c3086d5a484ee7365b064e5a24db7cc1a9465`.
+- GitHub Actions was triggered for this exact head. The Gold Star v2 shared-contract workflow and the PR regression set were queued at the last check; their results must be read from the exact-head runs before claiming the new dossier test passed.
+- The preceding verified WP3 implementation head `7c0b9fcf471a37b4d27c7177c4ee273fcca0ee0d` had 30 successful workflow runs and one skipped live-browser workflow in the observed set. This does not substitute for CI on the new head.
+- Earlier shared-contract regression suites, semantic contract tests, route/safety validation, and other checks passed as recorded in the preceding checkpoint. These are implementation/contract results, not semantic quality certification.
+- Guide Healthy Community Live Browser Acceptance was skipped on the preceding head. Live browser acceptance remains outstanding; do not report it as completed.
+- CI success is not proof of semantic answer quality, paired model parity, independent human calibration, live browser acceptance, or production release.
 
-CI success is not proof of semantic answer quality, human calibration, live browser acceptance, or production release.
+
+
 ### Not yet completed
 
-- WP1: complete. Deterministic and safety orchestration and final visitor boundaries are verified on the exact implementation commit.
-- WP2: complete. Evidence provenance and one-attempt bounded repair are verified on the exact implementation commit.
-- WP3: seven deterministic captures and evaluator v1.2 are committed and tested; attributable LLM captures, paired comparison, and blinded human scoring remain outstanding.
-- WP4: governed learning/elevation loop.
-- WP5: primary/secondary live browser acceptance and controlled release.
+- WP1: complete and verified on its implementation checkpoint, including deterministic/safety orchestration and final visitor boundaries.
+- WP2: complete and verified on its implementation checkpoint, including evidence provenance and one-attempt bounded repair.
+- WP3: delegated deterministic review completed and recorded; exact-head regression CI pending at the time of this checkpoint. Same-source attributable LLM capture, paired evaluation, independent human/evaluator calibration, and false-positive/false-negative calibration remain outstanding.
+- WP4: the repository already contains a governed learning foundation: `gold_star_lessons.py`, the canonical qualitative transfer review, candidate ranking/adjudication, explicit qualifying context and abstention boundaries, structural-guidance-only contributions, exact-answer separation, and tests for target/adjacent/unrelated cases and registry/freeze/numbering integrity. At this checkpoint, 114 approved Gold Stars reconcile to 112 active structural-learning contributors; 107 explicitly declare deterministic-fallback eligibility. The latest exact-head CI is still pending, so WP4 must not yet be declared accepted as a complete work package.
+- WP5: controlled secondary-mirror deployment of the PR branch, exact runtime identity verification, real browser acceptance, primary/secondary acceptance, release authorization, and rollback verification remain outstanding. The current mirror is configured to deploy `main`; no supported service-branch update action is available in the connected Render operations. Do not trigger a mirror deploy until the branch target is safely changed and verified.
+
+
+
 
 ### Production status
 
-No production merge/deployment or service configuration change was performed. One bounded seven-question evaluation batch was sent to the secondary mirror; no persistent service state was changed. PR #1732 remains open and unmerged.
+No merge or production deployment was performed. The only live capture batch remains the previously recorded seven-question evaluation batch. The secondary mirror service is configured to deploy `main`; the PR candidate has not been deployed there. The delegated review and its test were committed only to the isolated feature branch. Primary production, mirror configuration, environment variables, Pinecone, and service state remain unchanged.
+
+
 
 ### Immediate next action
 
-Complete human scoring of the seven frozen deterministic captures using the 0/1/2/NA rubric. Before any further live capture, obtain approval for a controlled secondary-mirror deployment of the PR branch so the same-source LLM provenance envelope can be exercised. Then run the manual capture workflow once, preserving unsupported or unverified LLM outputs as null. Do not claim parity or semantic certification until both paths are attributable and human review is complete.
+1. Verify all GitHub Actions runs for exact PR head `367c3086d5a484ee7365b064e5a24db7cc1a9465`, including the new delegated-review integrity test; repair any failures without weakening existing controls.
+2. Finish WP4 acceptance by reconciling the full approved registry, qualitative transfer review, selector/adjudication behavior, negative controls, and exact-head CI.
+3. Resolve the secondary-mirror branch-control limitation without creating another Render service or deploying `main`. Then deploy the exact PR head to the secondary mirror under the already-authorized controlled test scope, verify its deployment SHA and integration audit, and perform one bounded same-source LLM capture batch.
+4. Complete paired evaluation and clearly separate delegated scoring from independent human/evaluator calibration. Do not claim parity if either path is missing or unverified.
+5. Complete WP5 browser acceptance on the secondary mirror, then seek the separate release gate for primary/secondary production promotion. No merge or production deployment is authorized by this work alone.
+
+
 
 ## 10. Definition of completion
 
