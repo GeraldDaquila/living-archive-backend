@@ -123,7 +123,7 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
             "recommendation": {
                 "title": "Applied Stewardship Toolkit",
                 "url": "https://geralddaquila.com/applied-toolkit-governance-layers/",
-            "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
+                "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
             },
         }
 
