@@ -727,6 +727,40 @@ def is_trust_community_stewardship_question(question):
     )
 
 
+def is_weekly_stewardship_action_question(question):
+    """Recognize a request to turn an inner insight into one bounded act this week."""
+    q = _clean(question).casefold()
+    asks_for_one_act = bool(re.search(
+        r"\b(?:one|a single)\s+(?:concrete|practical|specific)\s+act\b"
+        r"|\bwhat\s+(?:is|would be)\s+one\s+(?:concrete|practical|specific)\s+(?:thing|action|step)\b",
+        q,
+    ))
+    stewardship_frame = bool(re.search(r"\bstewardship\b", q))
+    near_term = bool(re.search(r"\b(?:this week|during the week|in the next seven days)\b", q))
+    insight_to_action = bool(re.search(
+        r"\b(?:inner insight|insight|real|into practice|put .* into action)\b", q
+    ))
+    return asks_for_one_act and stewardship_frame and near_term and insight_to_action
+
+
+def _weekly_stewardship_action_recovery():
+    """Translate the public Stewardship gateway into one bounded, visitor-owned practice."""
+    return (
+        "One concrete act you can complete this week is to choose one responsibility already entrusted to you "
+        "and carry out a short stewardship check before acting. Set aside 20 minutes: name what you are holding, "
+        "who or what is affected, and what is genuinely yours to hold rather than yours to control. "
+        "Then complete one proportionate follow-through—clarify a commitment, ask for consent, repair a small "
+        "neglect, protect something vulnerable, or set a needed boundary. Choose the action that fits the real "
+        "responsibility in front of you; do not invent a duty just to prove an insight.\n\n"
+        "This applies the Stewardship page's emphasis on what is entrusted to your care, quiet and repeated "
+        "responsibility, and the need to distinguish sustainable care from sacrifice. Restraint can be the act: "
+        "rest, withdraw, or relinquish what is not yours to carry.\n\n"
+        "At the end of the week, review one observable result: did your action support the person, relationship, "
+        "knowledge, place, or system affected without overreach or depletion? Keep, revise, or stop the practice "
+        "based on that result. The 20-minute check is a practical exercise, not a prescribed Archive rule."
+    )
+
+
 def is_personal_stewardship_invitation_question(question):
     """Recognize a personal agency question about what calls for responsible care."""
     q = _clean(question).casefold()
@@ -1021,6 +1055,12 @@ def registered_recovery_recommendation(question):
             "title": "Being in the Driver's Seat (Without Pretending You Control the Road)",
             "url": "https://geralddaquila.com/being-in-the-drivers-seat-without-pretending-you-control-the-road/",
             "rationale": "This essay offers a grounded continuation on exercising personal agency within real conditions and limits. It supports the distinction between receiving orientation and surrendering responsibility for one's own choices; it does not prescribe the decision a visitor should make.",
+        }
+    if is_weekly_stewardship_action_question(question):
+        return {
+            "title": "Stewardship",
+            "url": "https://geralddaquila.com/stewardship/",
+            "rationale": "This public gateway grounds the response in what is entrusted to a person's care, sustainable responsibility, consent, boundaries, and the distinction between stewardship and self-sacrifice. The suggested weekly exercise is a practical application, not a quotation or prescribed rule from the page.",
         }
     if is_personal_stewardship_invitation_question(question):
         return {
@@ -1379,6 +1419,11 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         return "What would you like to understand or work through?"
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
+
+    # A request for one near-term stewardship act needs a practical, bounded
+    # application of the public Stewardship gateway, not a generic reflection.
+    if is_weekly_stewardship_action_question(q):
+        return _weekly_stewardship_action_recovery()
 
     # Personal stewardship-invitation questions ask about agency and bounded
     # responsibility, not for a dictionary definition of the entire sentence.
