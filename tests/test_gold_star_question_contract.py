@@ -10,6 +10,7 @@ def test_contract_is_versioned_and_preserves_unknowns_instead_of_guessing():
     contract = build_question_contract("Tell me something useful.")
     assert contract["version"] == VERSION
     assert contract["task"]["primary"] == "unresolved"
+    assert contract["task"]["candidate_source"] == "none"
     assert contract["domain"]["primary"] == "unknown"
     assert contract["stakes"]["level"] == "unknown"
     assert contract["uncertainty"]["classification_confidence"] == "not_scored"
@@ -22,6 +23,9 @@ def test_mixed_intent_is_preserved_as_candidate_not_forced_into_single_class():
     )
     assert contract["state"] == "multi_intent_candidate"
     assert contract["task"]["semantic_resolution"] == "required"
+    assert contract["task"]["primary"] == "comparison_candidate"
+    assert contract["task"]["candidate_source"] == "conservative_surface_signal"
+    assert contract["uncertainty"]["task_candidate_confidence"] == "not_semantically_certified"
 
 
 def test_explicit_no_handoff_and_no_web_constraints_are_captured():
@@ -31,6 +35,8 @@ def test_explicit_no_handoff_and_no_web_constraints_are_captured():
     assert contract["constraints"]["no_handoff"] is True
     assert contract["constraints"]["no_external_research"] is True
     assert contract["resolution"]["handoff"] == "prohibited"
+    assert contract["constraints"]["no_followup"] is True
+    assert contract["resolution"]["followup"] == "prohibited"
 
 
 def test_question_contract_does_not_claim_semantic_confidence_or_completion():
