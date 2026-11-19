@@ -389,3 +389,16 @@ This addendum supersedes the earlier WP5 deployment-target and immediate-next-ac
 6. Keep production primary and USE2-Mirror untouched throughout this work. Any later production release requires its own explicit release gate, rollback evidence, and controlled deployment plan.
 
 **Safety invariant:** Standalone QA may be changed for experimentation; the live primary and USE2-Mirror must not be used as laboratories. A QA deployment is not a production release and must never be routed into live visitor traffic.
+
+### QA deployment and exact-head verification update (2026-11-19)
+
+- Render Blueprint sync completed for the Standalone QA service. The QA service now tracks `gold-star-v2-complete-architecture`, with `autoDeploy=no` and Blueprint `autoSync=false`.
+- The sync initiated a QA deployment (rather than a configuration-only update). This was confined to Standalone QA and is now complete: deployment `dep-dbv8ugmk1f9s73brdhtg`, status `live`, deployed commit `2918ae960e83bc87dcc54380c7ce5c8c530ec3df`. The deployment build succeeded and application startup completed.
+- Runtime startup evidence: app `USE` version `v489.311`, fingerprint `USE-v489.311-source-derived`, build ID `USE-BUILD-v489.311-canonical`; the root HEAD request returned HTTP 200. The Render logs also report `USE Pinecone retrieval budget self-audit: PASS` and `index_unavailable=true`. The branch contains a temporary Pinecone retrieval-bypass mechanism through 2026-12-01; do not interpret the index-unavailable log alone as proof of missing credentials or alter Pinecone to address it.
+- The first boot emitted a provider hard-rejection diagnostic for a response containing navigation URLs in visitor prose. No user query was issued during this startup observation; treat this as a diagnostic to investigate during bounded QA, not as a successful visitor test or a confirmed user-facing failure.
+- Exact commit `2918ae960e83bc87dcc54380c7ce5c8c530ec3df` completed its PR regression set: 29 succeeded, one live-browser acceptance workflow skipped by its pull-request condition, and no failures.
+- The continuity-charter follow-up commit `b9ee0a6dd0a41e5e169fd741a518bcc356959e2a` also completed its exact-head PR regression set: 29 succeeded, one live-browser acceptance workflow skipped, and no failures. It is documentation-only relative to the deployed code commit.
+- The QA deployment is therefore a verified boot and transport smoke test, not full visitor acceptance. No actual POST `/api/query` visitor interaction, attributable LLM capture, paired evaluation, or real browser acceptance has yet been performed against this QA deployment.
+- Production protection rechecked: USE2-Mirror remains on `main` with auto-deploy enabled; no branch, environment, deployment, or traffic change was made there. Primary production remains untouched.
+
+**Next:** Use a real browser/HTTP-capable test harness against the Standalone QA URL to exercise `POST /api/query` with deterministic, safety, and LLM-capable cases. Capture exact request/response, route, provider/model provenance, runtime commit and fingerprint. Do not route the live WordPress visitor UI to QA and do not treat a root HEAD 200 as semantic acceptance.
