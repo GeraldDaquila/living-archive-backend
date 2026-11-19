@@ -7273,9 +7273,71 @@
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately request a display serial. Preserve the benchmark ID as the stable learning identity; serial allocation remains independent.",
       "legacy_approval_grandfathered": false
+    },
+    {
+      "benchmark_id": "gs-2026-11-19-cosmology-worldview-human-life",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is cosmology, and why does it matter to how people live?",
+      "expected_response": "Cosmology has two closely related meanings. In science, it is the study of the universe as a whole: its origin, large-scale structure, development, and possible future. In philosophy and ordinary human reflection, the word can also refer to a broad account of what reality is like and where human beings belong within it. The question you asked about how people live concerns this second, wider use of the term.\n\nA worldview is not the same thing as scientific cosmology. It is the set of assumptions—often partly unexamined—through which people interpret existence, other people, nature, change, and their own place in the world. Those assumptions can shape what people notice, what they regard as possible, what they value, and how they respond to one another.\n\nThis matters in everyday life because assumptions about reality influence how situations are understood. If people assume that life is mainly a contest for scarce status or control, disagreement may be treated as a threat and cooperation may be harder to sustain. If they understand people as distinct but interdependent, they may be more likely to consider relationships, shared conditions, and mutual consequences when making decisions. These are illustrative philosophical interpretations, not scientific findings that prove one worldview correct.\n\nThe Living Archive explores one such interpretation through its distinction between separation-based and unity-informed ways of understanding human life. That is the Archive's interpretive framework, which can be examined and questioned; it should not be confused with the scientific discipline of cosmology or presented as a settled description of reality.",
+      "expected_doorway": {
+        "title": "The Hidden Assumptions That Quietly Shape Every Life",
+        "url": "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/",
+        "rationale": "This Cornerstone examines how inherited assumptions about reality shape worldview, everyday interpretation, decisions, and the institutions people inhabit. It offers a direct philosophical continuation without presenting the Archive's interpretive framework as a scientific finding."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.2,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "USER_APPROVED_GOLD_STANDARD — COSMOLOGY, WORLDVIEW, AND HUMAN LIFE",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "cosmology_worldview_human_life",
+      "transferable_lesson": "When a visitor asks how cosmology matters to human life, distinguish scientific cosmology from the broader philosophical use of cosmology as a worldview. Explain how assumptions about reality shape perception, possibility, values, relationships, and decisions. Keep illustrative philosophical consequences distinct from scientific findings, and describe the Living Archive's separation-based and unity-informed distinction as its interpretive framework rather than an established scientific description.",
+      "transfer_boundary": "Apply when a visitor asks about cosmology in relation to worldview, human life, assumptions, or lived social consequences. Do not transfer this answer or doorway to ordinary astronomy, astrophysics, or unrelated philosophical questions. Do not conflate scientific cosmology with worldview, present the Archive's interpretive framework as scientific fact, or imply that the examples prove one worldview correct.",
+      "known_theme": "cosmology, worldview, assumptions about reality, ontology, human life, philosophical interpretation, social consequences, epistemic boundaries",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_exact_query_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": true,
+        "reasoning_family": "cosmology_worldview_human_life",
+        "transferable_discipline": "Distinguish the scientific and philosophical meanings of cosmology; connect worldview assumptions to lived interpretation and conduct; mark illustrative philosophical claims as such; preserve the boundary between the Archive's interpretive framework and scientific findings.",
+        "abstention_boundary": "Do not force a worldview interpretation onto scientific astronomy questions; do not present the Archive's separation-based/unity-informed framework as settled fact; do not transfer the exact answer or doorway to unrelated questions."
+      },
+      "assertions": [
+        "Define scientific cosmology accurately as the study of the universe as a whole, including its origin, large-scale structure, development, and possible future.",
+        "Distinguish scientific cosmology from the broader philosophical use of cosmology as an account of reality and human belonging.",
+        "Explain worldview as assumptions through which people interpret existence, other people, nature, change, and their place in the world.",
+        "Connect assumptions about reality to perception, possibility, values, relationships, disagreement, cooperation, and decisions.",
+        "Mark the examples about scarcity, status, control, interdependence, and cooperation as illustrative philosophical interpretations, not scientific findings proving one worldview correct.",
+        "Identify separation-based and unity-informed understanding as the Living Archive's interpretive framework, open to examination and questioning rather than a settled scientific description.",
+        "Offer The Hidden Assumptions That Quietly Shape Every Life as an optional, verified philosophical continuation with an accurate scope explanation."
+      ],
+      "user_approved_at": "2026-11-19",
+      "elevation_approval_evidence": "The user reviewed the live visitor-facing answer and its Continue Exploring doorway in the browser screenshot, then explicitly instructed: “yes. elevate this as a gold star, complete tests, then commit.” The previously reviewed assessment rated the response 9.2/10. No display serial was requested.",
+      "provenance": {
+        "source": "User-reviewed live visitor-facing browser response and explicit Gold Star elevation approval.",
+        "source_date": "2026-11-19",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the exact visitor question, rendered answer, and doorway. The user explicitly approved elevation after reviewing the live response. This approval freezes the displayed answer and bounded transferable discipline; it does not certify unrelated question families or system-wide quality-floor performance.",
+        "doorway_verification": {
+          "source": "Published WordPress Cornerstone inspected through the Living Archive WordPress content record.",
+          "post_id": 73195,
+          "canonical_title": "✨ The Hidden Assumptions That Quietly Shape Every Life",
+          "visitor_rendered_title": "The Hidden Assumptions That Quietly Shape Every Life",
+          "canonical_url": "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/",
+          "verification_date": "2026-11-19",
+          "conceptual_fit": "The published Cornerstone examines inherited assumptions, worldview, interpretation, decisions, institutions, and the assumptions beneath conclusions. It is a direct philosophical continuation of the visitor's question, not a scientific cosmology reference."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately request a display serial. Preserve the benchmark ID as the stable identity; serial allocation remains independent.",
+      "legacy_approval_grandfathered": false
     }
   ],
-  "last_reconciliation_note": "2026-11-19: Added gs-2026-11-19-felt-truth-claim-discernment as an approved, immutable exact-query Gold Star with evidence standards calibrated to the type of claim. Canonical inventory: 113 approved Gold Stars across 151 registry records; display serial remains UNASSIGNED. The approval does not certify system-wide LLM/deterministic quality-floor performance.",
+  "last_reconciliation_note": "2026-11-19: Added gs-2026-11-19-cosmology-worldview-human-life as an approved, immutable exact-query Gold Star with a verified philosophical Cornerstone continuation and explicit science/worldview boundaries. Canonical inventory: 114 approved Gold Stars across 152 registry records; 112 active runtime-transfer contributors, 39 numbered, 75 UNASSIGNED. No existing serial changed; the cosmology/worldview benchmark remains unnumbered.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -7405,15 +7467,15 @@
   },
   "integrity_audit": {
     "last_audit_date": "2026-11-19",
-    "approved_gold_star_count": 113,
-    "registry_record_count": 151,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-19: 113 approved-status records across 151 registry records. 111 are active structural-learning contributors with matching qualitative-transfer reviews; 1 is an approved exact-query-only successor and 1 is a superseded historical duplicate retained for provenance. 1 recovered response is pending approval evidence and is excluded from every Gold Star count.",
+    "approved_gold_star_count": 114,
+    "registry_record_count": 152,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-19: 114 approved-status records across 152 registry records. 112 are active structural-learning contributors with matching qualitative-transfer reviews; 1 is an approved exact-query-only successor and 1 is a superseded historical duplicate retained for provenance. 1 recovered response is pending approval evidence and is excluded from every Gold Star count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-19: 113 approved Gold Stars; 39 assigned display serials #56–#94; 74 approved records explicitly UNASSIGNED with reasons. No existing serial changed; the felt-truth discernment Gold Star remains unnumbered.",
-    "unassigned_approved_gold_star_count": 74,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-19: 114 approved Gold Stars; 39 assigned display serials #56–#94; 75 approved records explicitly UNASSIGNED with reasons. No existing serial changed; the cosmology/worldview Gold Star remains unnumbered.",
+    "unassigned_approved_gold_star_count": 75,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 111,
+    "active_quality_contributor_count": 112,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1
