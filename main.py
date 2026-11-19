@@ -9049,9 +9049,12 @@ def _general_guide_authoritative_doorway(query, context_data):
                         if isinstance(_bridge_doc, dict):
                             _bridge_doc["_conceptual_bridge_query"] = _bridge_query
                     fallback_docs.extend(_bridge_docs)
-            if comparative_subjects:
-                # Broaden discovery by each compared subject, then retain the
-                # same direct-fit gates below before any doorway is selected.
+            if comparative_subjects and relationship_query:
+                # A direct comparison requires a candidate that covers both
+                # subjects, so separate one-subject searches cannot qualify and
+                # only add serial WordPress latency. Keep subject-specific
+                # discovery for relationship questions, where a one-sided
+                # doorway can legitimately illuminate one side of the relation.
                 for _subject in comparative_subjects:
                     fallback_docs.extend(
                         _wordpress_search_canonical_candidates(_subject, limit=10)
