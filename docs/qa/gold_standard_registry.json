@@ -7393,7 +7393,8 @@
       },
       "numbering_status": "UNASSIGNED",
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
-      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately request a display serial. Preserve the benchmark ID as the stable identity; serial allocation remains independent."
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately request a display serial. Preserve the benchmark ID as the stable identity; serial allocation remains independent.",
+      "legacy_approval_grandfathered": false
     }
   ],
   "last_reconciliation_note": "Added user-approved weekly stewardship insight-to-action Gold Star on 2026-11-20. The exact live three-paragraph response and verified public Stewardship doorway are frozen; transfer is limited to proportionate action within entrusted responsibility, sustainable care, boundaries, consent, rest, and end-of-week review. No display serial was allocated.",
