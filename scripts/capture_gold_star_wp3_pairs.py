@@ -103,10 +103,49 @@ def classify_llm_payload(body: dict | None) -> tuple[bool, dict]:
 
 
 def capture_deterministic_payload(main_module, query: str) -> dict:
-    """Execute the deployed deterministic fallback and its shared visitor finalizer."""
-    result = main_module._basic_inquiry_round1_deterministic_response(
-        query, {}, {"context_blocks": ""}, recommendation_available=False
-    )
+    """Execute the same provider-independent deterministic path used by visitors."""
+    result = None
+    capture_path = ""
+
+    task_recovery_fn = getattr(main_module, "_compose_task_specific_recovery", None)
+    task_recovery = task_recovery_fn(query) if callable(task_recovery_fn) else None
+    if isinstance(task_recovery, dict) and str(task_recovery.get("response") or "").strip():
+        result = {
+            "response": task_recovery["response"],
+            "recommendation": None,
+            "provider": str(task_recovery.get("recovery_id") or "task_specific_deterministic_recovery"),
+            "model": "",
+        }
+        capture_path = "main._compose_task_specific_recovery"
+    else:
+        fact_recovery_fn = getattr(main_module, "_established_general_knowledge_recovery", None)
+        fact_recovery = fact_recovery_fn(query) if callable(fact_recovery_fn) else None
+        if isinstance(fact_recovery, dict) and str(fact_recovery.get("response") or "").strip():
+            result = {
+                "response": fact_recovery["response"],
+                "recommendation": fact_recovery.get("doorway"),
+                "provider": str(fact_recovery.get("fact_id") or "registered_general_knowledge_recovery"),
+                "model": "",
+            }
+            capture_path = "main._established_general_knowledge_recovery"
+        else:
+            trust_contract_fn = getattr(main_module, "_trust_community_stewardship_final_contract", None)
+            trust_contract = trust_contract_fn(query) if callable(trust_contract_fn) else None
+            if isinstance(trust_contract, dict) and str(trust_contract.get("response") or "").strip():
+                result = {
+                    "response": trust_contract["response"],
+                    "recommendation": trust_contract.get("recommendation"),
+                    "provider": "bounded_trust_community_stewardship_recovery",
+                    "model": "",
+                }
+                capture_path = "main._trust_community_stewardship_final_contract"
+
+    if result is None:
+        result = main_module._basic_inquiry_round1_deterministic_response(
+            query, {}, {"context_blocks": ""}, recommendation_available=False
+        )
+        capture_path = "main._basic_inquiry_round1_deterministic_response"
+
     if isinstance(result, dict):
         raw_response = str(result.get("response") or "").strip()
         provider = str(result.get("provider") or "deterministic_fallback")
@@ -126,12 +165,13 @@ def capture_deterministic_payload(main_module, query: str) -> dict:
         "provider": provider,
         "model": model,
         "response_provenance": {
-            "class": "deterministic_fallback",
+            "class": "deterministic_recovery",
             "provider": provider,
             "model": model,
+            "llm_invoked": False,
         },
         "capture": {
-            "path": "main._basic_inquiry_round1_deterministic_response",
+            "path": capture_path,
             "raw_response": raw_response,
             "visitor_sanitized_response": visitor_response,
         },
