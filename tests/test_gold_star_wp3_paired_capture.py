@@ -1,6 +1,7 @@
 """Safety and provenance tests for the one-shot WP3 paired capture runner."""
 from types import SimpleNamespace
 
+from scripts.guide_live_evaluation import evaluate_held
 from scripts.capture_gold_star_wp3_pairs import (
     capture_deterministic_payload,
     capture_live_deterministic_payload,
@@ -335,3 +336,44 @@ def test_missing_llm_invocation_flag_is_not_accepted_as_deterministic():
         "response_provenance": {"class": "unresolved"},
     }
     assert classify_deterministic_payload(body)[0] is False
+
+
+
+def test_heldout_evaluator_accepts_explicit_conditional_centralization_and_delegation():
+    case = {
+        "case_id": "heldout-strategic-governance-001",
+        "query": "Should a growing nonprofit centralize decisions or distribute authority across its teams?",
+    }
+    response = (
+        "Use centralization when a decision creates organization-wide obligations, carries legal "
+        "or material financial risk, requires consistent standards, or affects several teams at once. "
+        "Use distributed authority when a decision is routine and reversible, and the relevant knowledge "
+        "sits with the team doing the work and the consequences can be contained locally. A hybrid is "
+        "usually the best arrangement."
+    )
+    checks = evaluate_held(case, {
+        "status": 200,
+        "error": None,
+        "body": {"ok": True, "response": response, "recommendation": None},
+    })
+    failed = [item for item in checks if not item["passed"]]
+    assert failed == []
+
+
+def test_heldout_evaluator_accepts_explicit_cause_cannot_be_established_language():
+    case = {
+        "case_id": "heldout-uncertain-causation-001",
+        "query": "What caused the sudden increase in our website traffic last week?",
+    }
+    response = (
+        "The cause cannot be established from the information provided; the traffic increase alone "
+        "is not enough to identify what changed. Compare acquisition sources, landing pages, campaigns, "
+        "referrals, and server logs before drawing a conclusion."
+    )
+    checks = evaluate_held(case, {
+        "status": 200,
+        "error": None,
+        "body": {"ok": True, "response": response, "recommendation": None},
+    })
+    failed = [item for item in checks if not item["passed"]]
+    assert failed == []

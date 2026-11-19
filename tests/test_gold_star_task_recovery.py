@@ -145,3 +145,35 @@ def test_registered_fact_is_preserved_only_for_its_own_query_at_final_integrity_
         "A different approved answer that does not answer the boiling-point question.",
         recovery,
     )
+
+
+
+def test_general_knowledge_answer_discards_incidental_unverified_doorway(monkeypatch):
+    question = "At standard atmospheric pressure, what temperature does water boil at?"
+    monkeypatch.setattr(main, "_resolve_exact_guide_gold_standard", lambda _query: None)
+    monkeypatch.setattr(main, "_select_verified_doorway_conceptual_family", lambda _query: None)
+    monkeypatch.setattr(
+        "deterministic_answer_recovery.registered_recovery_recommendation",
+        lambda _query: None,
+    )
+    incidental = {
+        "title": "Life Under Pressure",
+        "url": "https://geralddaquila.com/life-under-pressure/",
+        "rationale": "An adjacent but unrelated pressure theme.",
+    }
+    payload = {
+        "ok": True,
+        "processing": "basic_inquiry",
+        "answer_basis": {"kind": "general_knowledge", "label": "General knowledge"},
+        "response": "Water boils at 100°C (212°F) at standard atmospheric pressure.",
+        "recommendation": incidental,
+        "canonical_doorway": incidental,
+    }
+
+    result = main._guide_restore_verified_doorway(payload, question)
+
+    assert result["recommendation"] is None
+    assert result["canonical_doorway"] is None
+    assert result["doorway_title"] is None
+    assert result["doorway_url"] is None
+    assert result["doorway_decision"] == "omit"

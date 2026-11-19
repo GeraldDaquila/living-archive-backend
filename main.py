@@ -5864,8 +5864,9 @@ def _guide_restore_verified_doorway(payload, query):
         and answer_basis.get("kind") == "general_knowledge"
         and not verified_family
         and not registered_candidate
-        and not _normalize_authoritative_recommendation(safe.get("recommendation"))
-        and not _normalize_authoritative_recommendation(safe.get("canonical_doorway"))
+        # An incidental upstream recommendation is not proof of relevance.
+        # Only an independently verified conceptual family, registered recovery
+        # doorway, or canonical source context can authorize navigation here.
         and not str(safe.get("canonical_link_context") or "").strip()
     )
     explicit_general_knowledge_omission = (
