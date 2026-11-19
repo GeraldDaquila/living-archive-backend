@@ -37,15 +37,16 @@ def _http_json(url: str, *, payload: dict | None = None, timeout: int = 45) -> d
         raw, status = exc.read(), exc.code
     except (URLError, TimeoutError, OSError) as exc:
         return {"status": None, "error": f"{type(exc).__name__}: {exc}", "body": None}
+    raw_text = raw.decode("utf-8", errors="replace")
     try:
-        body = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError):
+        body = json.loads(raw_text)
+    except json.JSONDecodeError:
         body = None
     return {
         "status": status,
         "error": None,
-        "body": body if isinstance(body, dict) else None,
-        "raw_body": raw.decode("utf-8", errors="replace")[:12000] if body is None else None,
+        "body": body,
+        "raw_body": raw_text[:12000],
     }
 
 
@@ -124,9 +125,13 @@ def capture_deterministic_payload(main_module, query: str) -> dict:
 
 def verify_runtime_identity(base_url: str, expected_commit: str) -> dict:
     audit = _http_json(base_url.rstrip("/") + "/api/integration-audit")
-    body = audit.get("body") or {}
-    if audit.get("status") != 200 or body.get("ok") is not True:
-        raise RuntimeError(f"Mirror integration audit unavailable: {audit.get('status')} {audit.get('error')}")
+    body = audit.get("body")
+    if audit.get("status") != 200 or not isinstance(body, dict) or body.get("ok") is not True:
+        raise RuntimeError(
+            "Mirror integration audit unavailable: "
+            f"status={audit.get('status')} error={audit.get('error')} "
+            f"body={str(audit.get('raw_body') or '')[:1200]}"
+        )
     deployed_commit = str(body.get("deployment_commit_sha") or "").strip()
     if not deployed_commit:
         raise RuntimeError("Mirror did not expose deployment_commit_sha; refusing unaligned capture.")
