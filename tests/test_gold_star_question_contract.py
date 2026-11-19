@@ -64,3 +64,51 @@ def test_composer_and_shared_response_floor_consume_the_contract():
     assert "QUESTION CONTRACT (conservative machine-readable planning input)" in composer
     assert "build_question_contract" in floor
     assert "question_contract" in floor
+
+
+
+def test_personal_reference_is_a_retrieval_task_not_an_unfamiliar_definition():
+    contract = build_question_contract(
+        "What is my protocol when a teaching conflicts with my conscience, lived experience, or care for others?"
+    )
+    assert contract["personal_reference"]["detected"] is True
+    assert contract["personal_reference"]["resolution"] == "retrieve_and_verify_before_answering"
+    assert contract["requested_outcome"] == "recover_existing_personal_reference"
+    assert contract["personal_reference"]["absence_claim_boundary"] == "not_found_in_available_context_only"
+
+
+def test_personal_reference_detection_covers_prior_agreements_but_not_generic_concepts():
+    assert build_question_contract("What did we agree about the framework?")["personal_reference"]["detected"]
+    assert build_question_contract("What is a teaching protocol?")["personal_reference"]["detected"] is False
+
+
+def test_deterministic_definition_fallback_does_not_turn_personal_reference_into_dictionary_advice():
+    from deterministic_answer_recovery import compose_definition_significance
+
+    answer = compose_definition_significance(
+        "my protocol when a teaching conflicts with my conscience, lived experience, or care for others"
+    )
+    assert "I can help recover your protocol" in answer
+    assert "dictionary" not in answer.casefold()
+    assert "I won't replace your established position with a protocol I invent" in answer
+
+
+def test_composer_has_explicit_personal_reference_retrieval_instructions():
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert "PERSONAL-REFERENCE RESOLUTION" in source
+    assert "Do not infer that a personal protocol exists" in source
+
+
+
+def test_personal_reference_contract_is_exposed_to_the_shared_response_floor():
+    from gold_star_response_floor import evaluate_response_floor
+
+    query = "What is my protocol when a teaching conflicts with my conscience?"
+    result = evaluate_response_floor(
+        query,
+        {"ok": True, "query": query, "response": "A protocol is a set of rules."},
+    )
+    assert result["personal_reference_resolution"]["detected"] is True
+    assert result["personal_reference_resolution"]["resolution"] == "retrieve_and_verify_before_answering"

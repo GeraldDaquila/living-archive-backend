@@ -1,6 +1,8 @@
 """Bounded provider-independent recovery for The Guide."""
 import re
 
+from personal_reference_resolution import is_personal_reference_question, personal_reference_fallback
+
 
 def _clean(value):
     # Preserve deliberate paragraph breaks in canonical bounded recoveries.
@@ -31,6 +33,8 @@ def _subject(question):
 def compose_definition_significance(subject):
     """Return a bounded three-paragraph definition without claiming Archive doctrine."""
     subject = _clean(subject).strip(" ,;:") or "the concept"
+    if is_personal_reference_question(subject):
+        return personal_reference_fallback(subject)
     display_subject = subject[:1].upper() + subject[1:]
     # Archive-specific terminology is governed by the published Living Glossary.
     # Retrieve an exact source entry instead of maintaining a competing local copy.

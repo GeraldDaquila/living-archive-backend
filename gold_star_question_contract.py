@@ -10,7 +10,9 @@ from __future__ import annotations
 import re
 from typing import Any, Dict
 
-VERSION = "1.0"
+from personal_reference_resolution import PERSONAL_REFERENCE_VERSION, is_personal_reference_question
+
+VERSION = "1.1"
 
 _NO_HANDOFF_PATTERNS = (
     r"\bdo not\b.{0,50}\b(?:recommend|suggest|link|refer|follow[- ]?up)\b",
@@ -39,6 +41,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
     no_handoff = _matches_any(normalized, _NO_HANDOFF_PATTERNS)
     no_external_research = _matches_any(normalized, _NO_EXTERNAL_RESEARCH)
     multi_intent = _matches_any(normalized, _MULTI_INTENT_MARKERS)
+    personal_reference = is_personal_reference_question(normalized)
     has_question = "?" in normalized or bool(
         re.match(r"^(?:who|what|when|where|why|how|which|can|could|should|would|is|are|does|do)\b", normalized, re.I)
     )
@@ -56,7 +59,14 @@ def build_question_contract(query: str) -> Dict[str, Any]:
         },
         "domain": {"primary": "unknown", "subdomain": "unknown"},
         "stakes": {"level": "unknown", "consequence_of_error": "not_assessed"},
-        "requested_outcome": "unresolved",
+        "requested_outcome": "recover_existing_personal_reference" if personal_reference else "unresolved",
+        "personal_reference": {
+            "detected": personal_reference,
+            "version": PERSONAL_REFERENCE_VERSION,
+            "resolution": "retrieve_and_verify_before_answering" if personal_reference else "not_applicable",
+            "evidence_scope": "available_conversation_and_retrieved_sources",
+            "absence_claim_boundary": "not_found_in_available_context_only",
+        },
         "audience": "unspecified",
         "constraints": {
             "no_handoff": no_handoff,
@@ -87,7 +97,7 @@ def validate_question_contract(contract: Any) -> Dict[str, Any]:
     """Validate contract shape; this is schema integrity, not semantic adequacy."""
     if not isinstance(contract, dict):
         return {"valid": False, "reason": "not_object"}
-    required = ("version", "state", "task", "domain", "stakes", "requested_outcome",
+    required = ("version", "state", "task", "domain", "stakes", "requested_outcome", "personal_reference",
                 "constraints", "reasoning_mode", "evidence", "uncertainty", "response", "resolution")
     missing = [key for key in required if key not in contract]
     if missing:
@@ -96,6 +106,6 @@ def validate_question_contract(contract: Any) -> Dict[str, Any]:
         return {"valid": False, "reason": "unsupported_version"}
     if contract.get("state") not in {"unknown", "single_intent_candidate", "multi_intent_candidate"}:
         return {"valid": False, "reason": "invalid_state"}
-    if not isinstance(contract.get("constraints"), dict) or not isinstance(contract.get("resolution"), dict):
+    if not isinstance(contract.get("personal_reference"), dict) or not isinstance(contract.get("constraints"), dict) or not isinstance(contract.get("resolution"), dict):
         return {"valid": False, "reason": "invalid_nested_shape"}
     return {"valid": True, "reason": "schema_valid_not_semantically_certified"}
