@@ -1439,7 +1439,7 @@ def has_orientation_information_explanation(response):
         and re.search(r"\borientation\b.{0,180}\b(?:context|relationships|stakes|conditions)\b", text)
         and re.search(
             r"\b(?:orientation|it)\b.{0,100}\b(?:depends on|uses|places|organizes|organises|"
-            r"puts|situates|connects)\b.{0,100}\binformation\b"
+            r"puts|situates|connects|place)\b.{0,100}\binformation\b"
             r"|\binformation\b.{0,100}\b(?:is placed|is put|is situated|is organized|is organised)\b",
             text,
         )
