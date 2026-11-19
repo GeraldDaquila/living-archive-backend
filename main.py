@@ -658,6 +658,18 @@ def _verified_archive_doorway_fallback(query, docs, profile):
     # legitimate condition under which the Guide suppresses its doorway.
     return None
 
+def _guide_query_explicitly_forbids_handoff(query):
+    """Recognize direct no-link instructions without mistaking answer-first wording for refusal."""
+    value = str(query or "")
+    patterns = (
+        r"\b(?:do not|don't|please don't)\s+(?:show|include|provide|offer|give)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
+        r"\bno\s+(?:doorway|links?|pages?|resources?|handoffs?|recommendations)\b",
+        r"\bwithout\s+(?:a\s+)?(?:doorway|link|page|resource|handoff|recommendation)\b",
+        r"\b(?:i|we)\s+(?:do not|don't)\s+(?:want|need|require)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
+    )
+    return any(re.search(pattern, value, re.I) for pattern in patterns)
+
+
 def _guide_enforce_terminal_doorway_policy(payload, query):
     """Make an explicit no-doorway decision terminal across every response path.
 
@@ -668,11 +680,7 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
     """
     safe = dict(payload) if isinstance(payload, dict) else {}
     exact_standard = _resolve_exact_guide_gold_standard(query)
-    explicit_no_doorway = bool(re.search(
-        r"\b(?:do not|don't|without|no)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
-        str(query or ""),
-        re.I,
-    ))
+    explicit_no_doorway = _guide_query_explicitly_forbids_handoff(query)
     reviewed_omission = _gold_star_doorway_omission_is_justified(exact_standard)
     # Provider/recovery omission text is advisory, not a terminal routing decision.
     # The shared boundary must still attempt canonical retrieval and the approved
@@ -5789,22 +5797,6 @@ def _guide_restore_verified_doorway(payload, query):
         exact_standard is not None
         and _gold_star_doorway_omission_is_justified(exact_standard)
     )
-    if exact_standard is not None and not exact_gold_star_omission:
-        exact_doorway = _normalize_authoritative_recommendation({
-            "title": exact_standard.get("doorway_title"),
-            "url": exact_standard.get("doorway_url"),
-            "rationale": exact_standard.get("doorway_rationale"),
-        })
-        if exact_doorway:
-            # A frozen exact Gold Star owns its canonical answer-and-doorway pair.
-            safe["recommendation"] = exact_doorway
-            safe["canonical_doorway"] = exact_doorway
-            safe["doorway_title"] = exact_doorway.get("title")
-            safe["doorway_url"] = exact_doorway.get("url")
-            safe["doorway_rationale"] = exact_doorway.get("rationale")
-            safe["doorway_decision"] = "selected"
-            safe["doorway_omission_reason"] = None
-            return safe
     answer_basis = safe.get("answer_basis")
     response_provenance = safe.get("response_provenance")
     try:
@@ -13384,16 +13376,25 @@ async def _use_send_json(send, payload, status_code=200):
                     payload["doorway_url"] = _required_url
                     payload["doorway_rationale"] = _required_rationale or None
     # Route-specific composers can return before the ordinary ASGI response
-    # wrapper. Run the same shared doorway policy at this final JSON exit so
-    # exact standards, ordinary provider answers, and deterministic recoveries
-    # cannot diverge in their selected/omit decision.
+    # wrapper. Run the shared policy here for ordinary responses, while frozen
+    # exact Gold Stars retain their immutable answer-and-doorway pair.
     if isinstance(payload, dict) and str(payload.get("intent") or "").upper() != "SAFETY_CONVERSATION":
+        _sender_explicit_no_handoff = _guide_query_explicitly_forbids_handoff(
+            _boundary_query
+        )
+        _sender_reviewed_omission = _gold_star_doorway_omission_is_justified(
+            _boundary_standard
+        )
         if _archive_claim_final:
             _sender_doorway = _normalize_authoritative_recommendation(
                 payload.get("recommendation")
             )
             payload["doorway_decision"] = "selected" if _sender_doorway else "omit"
-        elif _boundary_query:
+        elif _boundary_query and (
+            _boundary_standard is None
+            or _sender_explicit_no_handoff
+            or _sender_reviewed_omission
+        ):
             payload = _guide_enforce_terminal_doorway_policy(
                 payload, _boundary_query
             )
@@ -13402,6 +13403,8 @@ async def _use_send_json(send, payload, status_code=200):
                 payload.get("recommendation")
             )
             payload["doorway_decision"] = "selected" if _sender_doorway else "omit"
+            if _sender_doorway:
+                payload["doorway_omission_reason"] = None
 
     # Gold Star v2.0 is a source-independent minimum at the single JSON exit.
     # This conservative gate enforces machine-verifiable integrity; route-specific
