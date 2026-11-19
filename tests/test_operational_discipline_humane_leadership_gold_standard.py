@@ -109,7 +109,8 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
         messages = []
         payload = {
             "ok": True,
-            "query": "In an earlier session I preferred to keep reading on one page. For this new question, how can I practice stewardship in everyday decisions and shared resources?",
+            "query": "How can I practice stewardship in everyday decisions and shared resources?",
+            "prior_context": "In an earlier session I preferred to keep reading on one page.",
             "response": "A substantive answer.",
             "generation_authority_protected_docs": [{
                 "title": "Applied Stewardship Toolkit",
