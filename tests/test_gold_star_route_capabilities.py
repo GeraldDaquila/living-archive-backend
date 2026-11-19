@@ -104,3 +104,13 @@ def test_specialist_capability_unknown_identity_remains_unresolved():
     assert declaration["declaration_status"] == "not_declared"
     assert declaration["supported_task_families"] == []
     assert declaration["semantic_competence_certified"] is False
+
+
+
+def test_route_registry_stays_reconciled_with_main_runtime_route_sources():
+    import re
+    from pathlib import Path
+
+    source = Path(__file__).resolve().parents[1].joinpath("main.py").read_text(encoding="utf-8")
+    observed = set(re.findall(r'["\\']route_source["\\']\\s*:\\s*["\\']([^"\\']+)["\\']', source))
+    assert observed == set(registered_route_sources())
