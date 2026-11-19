@@ -11,6 +11,28 @@ Every response should demonstrate question-appropriate intellectual competence, 
 
 The standard evaluates the quality of the response, not conformity to a universal answer template. Its dimensions are universal expectations whose expression must be selected according to the visitor's actual question, domain, intent, complexity, stakes, and requested outcome.
 
+
+
+## 1.1 Capability Accumulation Principle
+
+**Governing principle:** Every proposed code change must first be evaluated for its capacity to improve a reusable architectural capability.
+
+The Guide must become more capable through governed learning from real questions and approved evidence—not merely accumulate question-specific patches or memorized answers.
+
+Operational requirements:
+
+1. **Treat questions as capability probes.** New visitor questions, calibration cases, failures, and successful answers provide evidence about the engine's strengths, limits, and unmet reasoning demands. Volume alone does not constitute learning.
+2. **Prefer structural learning over answer patching.** When a weakness appears, identify the earliest responsible layer—question understanding, task/domain classification, capability routing, evidence and provenance, composition, validation, or visitor-boundary enforcement. Correct the shared layer when the evidence supports a reusable correction.
+3. **Preserve exact-query knowledge without confusing it with general capability.** Gold Star answers remain question-specific authorities unless a separately reviewed reasoning discipline has explicit transfer permission, qualifying context, and abstention boundaries. Never generalize by copying answer text, examples, facts, citations, or doorways.
+4. **Require demonstrated transfer.** A proposed architectural improvement must be tested against the triggering case, previously approved/frozen Gold Stars, relevant negative and abstention controls, and unfamiliar held-out questions. A local pass is not proof of broader capability.
+5. **Make improvements cumulative and governed.** Promote reusable improvements through version-controlled, reviewable changes with regression evidence. Observation, candidate lesson generation, or a higher Gold Star count does not authorize runtime learning or autonomous registry changes.
+6. **Reduce corrective intervention as capability grows.** The intended trajectory is increasing Gold Star-quality coverage and success on unfamiliar questions, with fewer isolated answer patches and fewer regressions. This is an evidence-based direction, not a quota or a claim that every new question must become a Gold Star.
+7. **Preserve subject-specific judgment and correctability.** Generalization must not flatten domain differences, erase uncertainty, widen authority, or prevent future correction. When transfer is uncertain, retain exact-query behavior or abstain.
+
+A successful iteration leaves the engine more capable across a defined class of questions—not merely one answer better. The measure of adaptation is improved performance on questions the engine has not been specifically taught to answer, without degrading established behavior.
+
+**Non-claim:** More questions do not automatically make the engine more intelligent. They create opportunities for learning. Capability accumulates only when evidence is interpreted, a reusable improvement is authorized, and transfer is demonstrated through evaluation.
+
 ## 2. Eight integrated quality dimensions
 
 ### Layer I — Communication excellence
