@@ -64,3 +64,22 @@ def test_trust_contract_is_enforced_at_the_final_visitor_boundary():
     payload_index = source.index("payload = {", provenance_index)
     assert contract_index < provenance_index < payload_index
     assert "composition_result = None" in source[contract_index:provenance_index]
+
+
+def test_trust_recovery_is_not_misrepresented_as_archive_evidence():
+    from gold_star_evidence_validation import build_evidence_assessment
+
+    contract = main._trust_community_stewardship_final_contract(QUERY)
+    refs, assessment = build_evidence_assessment(
+        QUERY, contract["response"], contract["answer_basis"], []
+    )
+    assert refs == []
+    assert assessment["status"] == "not_applicable"
+    assert assessment["reason"] == "answer_not_attributed_to_archive"
+
+
+def test_trust_recovery_keeps_related_archive_doorway_separate():
+    contract = main._trust_community_stewardship_final_contract(QUERY)
+    assert contract["answer_basis"]["kind"] == "general_knowledge"
+    assert "source_url" not in contract["answer_basis"]
+    assert contract["recommendation"]["kind"] == "archive_resource"
