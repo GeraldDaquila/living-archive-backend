@@ -6,11 +6,11 @@
   "authorized_by": "Repository owner / project steward; explicit authorization to complete the dossier and proceed toward Gold Star v2 completion on 2026-11-19.",
   "registry": {
     "path": "docs/qa/gold_standard_registry.json",
-    "commit": "eb972d9e3312011ef90db111dde209a0a4764cd4",
     "total_records": 152,
     "user_approved_gold_standards": 114,
     "frozen_reference_only": 4,
-    "approved_or_frozen_total": 118
+    "approved_or_frozen_total": 118,
+    "content_sha": "eb972d9e3312011ef90db111dde209a0a4764cd4"
   },
   "capture": {
     "path": "docs/qa/gold_star_wp3_paired_capture_2026-11-19.json",
