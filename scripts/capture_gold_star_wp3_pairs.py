@@ -232,7 +232,7 @@ def verify_runtime_identity(base_url: str, expected_commit: str) -> dict:
         raise RuntimeError("Target did not expose deployment_commit_sha; refusing unaligned capture.")
     if deployed_commit != expected_commit:
         raise RuntimeError(
-            f"Source mismatch: mirror runs {deployed_commit}, local baseline is {expected_commit}; "
+            f"Source mismatch: target runs {deployed_commit}, local baseline is {expected_commit}; "
             "refusing to create a misleading pair."
         )
     return {
@@ -248,6 +248,30 @@ def verify_runtime_identity(base_url: str, expected_commit: str) -> dict:
         },
         "verified_at": datetime.now(timezone.utc).isoformat(),
     }
+
+
+def wait_for_runtime_identity(base_url: str, expected_commit: str, timeout_seconds: int = 0) -> dict:
+    """Wait for an explicitly expected QA deployment; never capture against a stale SHA."""
+    if timeout_seconds < 0:
+        raise ValueError("timeout_seconds must be zero or greater.")
+    deadline = time.monotonic() + timeout_seconds
+    last_error = None
+    while True:
+        try:
+            return verify_runtime_identity(base_url, expected_commit)
+        except RuntimeError as exc:
+            last_error = exc
+            if timeout_seconds == 0:
+                raise
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise RuntimeError(
+                    f"Timed out waiting for Standalone QA commit {expected_commit}: {last_error}"
+                ) from last_error
+            # A valid but old SHA means Render has not finished the explicitly
+            # triggered QA deployment. Keep waiting only within this bounded
+            # window; never issue visitor queries while it is stale.
+            time.sleep(min(10, remaining))
 
 
 def _path_capture_metadata(runtime: dict, *, path: str, transport: dict | None = None, provenance: dict | None = None) -> dict:
@@ -271,6 +295,12 @@ def main() -> int:
     parser.add_argument("--output", type=Path, default=Path("artifacts/gold-star-wp3-paired-capture.json"))
     parser.add_argument("--delay-seconds", type=float, default=0.5)
     parser.add_argument(
+        "--identity-wait-seconds",
+        type=int,
+        default=0,
+        help="Bounded wait for Standalone QA to finish deploying this exact checked-out commit.",
+    )
+    parser.add_argument(
         "--min-llm-captures",
         type=int,
         default=0,
@@ -279,6 +309,8 @@ def main() -> int:
     args = parser.parse_args()
     if args.min_llm_captures < 0:
         parser.error("--min-llm-captures must be zero or greater.")
+    if args.identity_wait_seconds < 0:
+        parser.error("--identity-wait-seconds must be zero or greater.")
 
     base_url = args.base_url.rstrip("/")
     if base_url not in APPROVED_TARGETS:
@@ -298,7 +330,7 @@ def main() -> int:
     except (OSError, subprocess.CalledProcessError) as exc:
         raise RuntimeError("Could not identify the checked-out baseline commit.") from exc
 
-    runtime = verify_runtime_identity(base_url, baseline_commit)
+    runtime = wait_for_runtime_identity(base_url, baseline_commit, args.identity_wait_seconds)
 
     # Import the exact source revision reported by the live mirror.
     import main as baseline_main
@@ -336,7 +368,7 @@ def main() -> int:
                     "verification_basis": llm_provenance["verification_basis"],
                 },
                 "capture": _path_capture_metadata(
-                    runtime, path="mirror_POST_api_query", transport=transport,
+                    runtime, path=f"{target_kind}_POST_api_query", transport=transport,
                     provenance=llm_provenance,
                 ),
             }

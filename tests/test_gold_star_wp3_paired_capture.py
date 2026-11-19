@@ -5,6 +5,7 @@ from scripts.capture_gold_star_wp3_pairs import (
     capture_deterministic_payload,
     classify_llm_payload,
     verify_runtime_identity,
+    wait_for_runtime_identity,
 )
 
 
@@ -233,3 +234,53 @@ def test_deterministic_capture_uses_registered_fact_before_generic_fallback():
     assert payload["capture"]["path"] == "main._established_general_knowledge_recovery"
     assert payload["recommendation"] is None
     assert payload["canonical_doorway"] is None
+
+
+
+def test_wait_for_runtime_identity_retries_stale_qa_commit_then_accepts_exact_sha(monkeypatch):
+    import scripts.capture_gold_star_wp3_pairs as capture
+
+    calls = []
+    responses = [
+        {"status": 200, "body": {"deployment_commit_sha": "previous-sha"}},
+        {"status": 200, "body": {
+            "deployment_commit_sha": "candidate-sha",
+            "version": "test",
+            "fingerprint": "fingerprint",
+        }},
+    ]
+    monkeypatch.setattr(
+        capture, "_http_json",
+        lambda url, **kwargs: (calls.append(url) or responses.pop(0)),
+    )
+    monkeypatch.setattr(capture.time, "sleep", lambda seconds: None)
+
+    identity = wait_for_runtime_identity(
+        "https://living-archive-gold-star-v2-qa.onrender.com",
+        "candidate-sha",
+        timeout_seconds=30,
+    )
+
+    assert len(calls) == 2
+    assert identity["deployment_commit_sha"] == "candidate-sha"
+
+
+def test_wait_for_runtime_identity_fails_closed_when_qa_never_reaches_candidate(monkeypatch):
+    import scripts.capture_gold_star_wp3_pairs as capture
+
+    monkeypatch.setattr(capture, "_http_json", lambda url, **kwargs: {
+        "status": 200, "body": {"deployment_commit_sha": "previous-sha"}
+    })
+    monkeypatch.setattr(capture.time, "monotonic", iter([0.0, 0.0, 31.0]).__next__)
+    monkeypatch.setattr(capture.time, "sleep", lambda seconds: None)
+
+    try:
+        wait_for_runtime_identity(
+            "https://living-archive-gold-star-v2-qa.onrender.com",
+            "candidate-sha",
+            timeout_seconds=30,
+        )
+    except RuntimeError as exc:
+        assert "Source mismatch" in str(exc) or "Timed out waiting" in str(exc)
+    else:
+        raise AssertionError("Capture must not proceed while QA serves an older commit.")

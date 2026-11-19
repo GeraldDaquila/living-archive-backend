@@ -9,12 +9,12 @@ permissions:
 jobs:
   paired-capture:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 25
     steps:
       - name: Check out the exact deployed QA candidate
         uses: actions/checkout@v4
         with:
-          ref: de2cb3d858f300053578f3065dc581d43decb007
+          ref: ${{ github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -29,6 +29,8 @@ jobs:
         run: |
           python scripts/capture_gold_star_wp3_pairs.py \
             --base-url "$WP3_CAPTURE_BASE_URL" \
+            --identity-wait-seconds 900 \
+            --min-llm-captures 1 \
             --output artifacts/gold-star-wp3-paired-capture.json
       - name: Upload attributable capture report
         if: always()

@@ -416,3 +416,15 @@ This addendum supersedes the earlier WP5 deployment-target and immediate-next-ac
 - Production primary and USE2-Mirror remain outside the test path. No production deployment, service configuration change, traffic change, or Pinecone mutation is authorized or performed by this simulation.
 
 **Acceptance interpretation:** The seven-case simulated evaluator run is a valid offline test milestone. It does not close the outstanding live paired capture, attributable LLM evaluation, live-browser acceptance, or independent human calibration gates. Keep PR #1732 in draft until those separate gates are satisfied.
+
+
+
+### QA deployment and capture-workflow correction (2026-11-19)
+
+- Standalone QA deployment `dep-dbva1d2jnfac73d2rn40` is confirmed `live` on exact source commit `1caa73a2250ffa41d47ea5052efb77e68e62f9c0`. Build succeeded; application startup completed; the root transport check returned HTTP 200.
+- Exact-head PR checks for `1caa73a2250ffa41d47ea5052efb77e68e62f9c0`: 29 succeeded, 0 failed, and 1 production-bound live-browser workflow skipped by its pull-request condition. Mocked UI continuity passed.
+- Review identified a stale SHA pinned in `.github/workflows/gold-star-wp3-paired-capture.yml` (`de2cb3d858f300053578f3065dc581d43decb007`). Both QA capture workflows are corrected to check out the triggering commit and wait, within a bounded 15-minute window, for Standalone QA's independently reported deployment SHA to match before issuing any visitor requests.
+- Capture remains restricted by the script's explicit allowlist to Standalone QA or USE2-Mirror; the workflows set Standalone QA only. The workflows require at least one attributable LLM output, retain incomplete reports, and do not treat provider attempts or unverified output as LLM captures.
+- The paired capture makes seven bounded visitor requests to Standalone QA and performs same-commit deterministic execution locally. It does not query the primary or USE2-Mirror, alter service settings, or change visitor traffic.
+- Human scorecards remain pending. Automated held-out checks are triage only; no semantic certification or independent human calibration is implied by a passing workflow.
+- No primary production, USE2-Mirror, WordPress, Pinecone, or traffic configuration has been modified.
