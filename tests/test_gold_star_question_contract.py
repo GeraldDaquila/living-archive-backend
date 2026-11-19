@@ -112,3 +112,12 @@ def test_personal_reference_contract_is_exposed_to_the_shared_response_floor():
     )
     assert result["personal_reference_resolution"]["detected"] is True
     assert result["personal_reference_resolution"]["resolution"] == "retrieve_and_verify_before_answering"
+
+
+
+def test_teaching_conflict_personal_reference_receives_specific_retrieval_route_candidate():
+    contract = build_question_contract(
+        "What is my protocol when a teaching conflicts with my conscience, lived experience, or care for others?"
+    )
+    assert contract["personal_reference"]["route_candidate"] == "teaching_conflict_discernment"
+    assert contract["personal_reference"]["resolution"] == "retrieve_and_verify_before_answering"
