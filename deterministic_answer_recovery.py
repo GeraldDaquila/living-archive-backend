@@ -983,6 +983,7 @@ def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
     return bool(
         is_guide_personal_decision_agency_question(question)
+        or is_weekly_stewardship_action_question(question)
         or is_personal_stewardship_invitation_question(question)
         or is_interpretation_revision_evidence_question(question)
         or is_resonance_confirmation_bias_question(question)
