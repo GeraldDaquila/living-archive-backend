@@ -2100,6 +2100,11 @@ def _recommendation_first_fetch(query_str):
     authoritative = []
     selected_doorway = None
     if not profile.get("grief"):
+        # Record that this request has already attempted canonical doorway
+        # selection against its complete retrieved context. Later composition
+        # recovery must reuse that result rather than repeat the same WordPress
+        # search when no doorway was found.
+        data["canonical_doorway_search_attempted"] = True
         try:
             selected_doorway = _normalize_authoritative_recommendation(
                 _general_guide_authoritative_doorway(query_str, data)
@@ -11055,6 +11060,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         and not discovery_subject
         and not authoritative_doorway
         and not recovered_docs
+        and not context_data.get("canonical_doorway_search_attempted")
     ):
         try:
             recovered_docs = _wordpress_search_canonical_candidates(
