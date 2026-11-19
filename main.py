@@ -7677,6 +7677,28 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "model": "",
         }
 
+    # Personal stewardship-invitation questions ask what calls for care
+    # through the visitor's participation; do not misread the full sentence as
+    # an unfamiliar term to define.
+    from deterministic_answer_recovery import (
+        is_personal_stewardship_invitation_question,
+        compose_recovery as _compose_personal_stewardship_invitation_recovery,
+        registered_recovery_recommendation as _personal_stewardship_recommendation,
+    )
+    if is_personal_stewardship_invitation_question(query):
+        _personal_stewardship_answer = _compose_personal_stewardship_invitation_recovery(query)
+        _personal_stewardship_doorway = _personal_stewardship_recommendation(query)
+        return {
+            "response": _personal_stewardship_answer,
+            "doorway_title": str((_personal_stewardship_doorway or {}).get("title") or ""),
+            "doorway_url": str((_personal_stewardship_doorway or {}).get("url") or ""),
+            "doorway_rationale": str((_personal_stewardship_doorway or {}).get("rationale") or ""),
+            "recommendation": _personal_stewardship_doorway,
+            "canonical_doorway": _personal_stewardship_doorway,
+            "provider": "bounded_personal_stewardship_invitation_recovery",
+            "model": "",
+        }
+
     # Trust-in-community-stewardship is a narrower question family than
     # generic stewardship. Resolve it before the broader stewardship recovery
     # can capture the query and replace the visitor's actual question.
