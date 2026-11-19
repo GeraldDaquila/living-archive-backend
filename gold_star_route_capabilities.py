@@ -86,6 +86,14 @@ _ROUTE_CAPABILITIES: Dict[str, Dict[str, Any]] = {
         "abstention_modes": ["no_verified_destination", "ambiguous_destination"],
         "scope": "Routes only explicit destination requests to a canonical registered node.",
     },
+    "deterministic-systems-preparation-entry": {
+        "route_class": "specialist_handoff",
+        "supported_task_families": ["bounded_philippine_systems_orientation"],
+        "unsupported_task_families": ["unrelated_domain_tasks", "unbounded_general_research"],
+        "evidence_modes": ["philippine_systems_specialist_contribution_contract"],
+        "abstention_modes": ["specialist_unavailable", "invalid_contribution", "scope_mismatch"],
+        "scope": "Guide-owned entry to the bounded Philippine Systems Lens contribution; the Guide retains final visitor-response authority.",
+    },
     "deterministic-formation-preparation-entry": {
         "route_class": "specialist_handoff",
         "supported_task_families": ["stewardship_formation_orientation"],
