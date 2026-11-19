@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import main
+from general_guide_gold_standards import resolve_exact_gold_standard
 
 
 FIXTURE = Path(__file__).parent / "fixtures" / "general_guide_elementary_factual_gold_standards.json"
@@ -63,22 +64,27 @@ def test_simple_cosmology_definition_is_not_forced_into_compound_classifier():
     assert not main._is_conceptual_explanatory_request("What does cosmology mean?")
 
 
-def test_cosmology_provider_exhaustion_fallback_answers_the_actual_question():
+def test_cosmology_provider_exhaustion_fallback_uses_the_approved_gold_star():
     query = "What is cosmology, and why does it matter to how people live?"
     result = main._basic_inquiry_round1_deterministic_response(
         query, {}, {"context_blocks": ""}
     )
-    assert result["provider"] == "bounded_cosmology_and_worldview_recovery"
-    response = result["response"]
-    assert len(response.split("\n\n")) == 4
-    assert "In science, it is the study of the universe as a whole" in response
-    assert "A worldview is not the same thing as scientific cosmology" in response
-    assert "not scientific findings that prove one worldview correct" in response
-    assert "That is the Archive's interpretive framework" in response
-    assert result["doorway_title"] == ""
-    assert result["doorway_url"] == ""
-    assert result["recommendation"] is None
-    assert "No directly relevant canonical cosmology resource has been verified" in result["doorway_omission_reason"]
+    standard = resolve_exact_gold_standard(query)
+    assert standard is not None
+    assert standard["benchmark_id"] == "gs-2026-11-19-cosmology-worldview-human-life"
+    assert result["provider"] == "gold_standard_registry_deterministic_fallback"
+    assert result["response"] == standard["expected_response"]
+    assert len(result["response"].split("\\n\\n")) == 4
+    assert "In science, it is the study of the universe as a whole" in result["response"]
+    assert "A worldview is not the same thing as scientific cosmology" in result["response"]
+    assert "not scientific findings that prove one worldview correct" in result["response"]
+    assert "That is the Archive's interpretive framework" in result["response"]
+    assert result["doorway_title"] == "The Hidden Assumptions That Quietly Shape Every Life"
+    assert result["doorway_url"] == (
+        "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/"
+    )
+    assert result["recommendation"]["title"] == result["doorway_title"]
+    assert result["recommendation"]["url"] == result["doorway_url"]
 
 
 def test_cosmology_recovery_is_limited_to_lived_significance_questions():
