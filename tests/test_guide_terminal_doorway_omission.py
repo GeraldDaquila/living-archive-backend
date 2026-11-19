@@ -212,3 +212,32 @@ def test_reviewed_no_doorway_standard_remains_terminal_and_explicit():
     assert result["doorway_decision"] == "omit"
     assert "interrupt" in result["doorway_omission_reason"]
 
+def test_json_sender_emits_explicit_selection_for_exact_gold_star_doorway():
+    import asyncio
+    import json
+
+    query = "What does stewardship mean in the Living Archive?"
+    standard = main._resolve_exact_guide_gold_standard(query)
+    assert standard is not None
+    sent = []
+
+    async def capture(message):
+        sent.append(message)
+
+    payload = {
+        "query": query,
+        "response": standard.get("expected_response") or "A complete answer.",
+        "recommendation": {
+            "title": standard.get("doorway_title"),
+            "url": standard.get("doorway_url"),
+            "rationale": standard.get("doorway_rationale"),
+        },
+    }
+    asyncio.run(main._use_send_json(capture, payload))
+    body = next(item["body"] for item in sent if item.get("type") == "http.response.body")
+    result = json.loads(body.decode("utf-8"))
+
+    assert result["doorway_decision"] == "selected"
+    assert result["recommendation"]["title"] == standard["doorway_title"]
+    assert result["doorway_omission_reason"] is None
+
