@@ -5850,9 +5850,12 @@ def _guide_restore_verified_doorway(payload, query):
         safe["doorway_omission_exception_reason"] = (
             str(exact_standard.get("doorway_omission_exception_reason") or "").strip()
             if exact_gold_star_omission else (
-                "The answer is complete general-knowledge guidance about an internal "
-                "USE learning-governance method. There is no verified direct Archive continuation "
-                "that materially advances the inquiry."
+                "No directly relevant canonical Archive destination has been verified for this inquiry."
+                if no_archive_destination_was_declared else (
+                    "The answer is complete general-knowledge guidance about an internal "
+                    "USE learning-governance method. There is no verified direct Archive continuation "
+                    "that materially advances the inquiry."
+                )
             )
         )
         safe["doorway_decision"] = "omit"
