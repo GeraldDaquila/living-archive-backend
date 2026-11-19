@@ -2950,21 +2950,11 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "A useful comparison holds the same dimensions constant: the source of authority, the scope of responsibility, the time horizon, and whose interests or consequences count. Ask who has the right to decide, who organizes the daily work, who must account for long-term effects, and who bears the costs if the asset or relationship is diminished. That makes it possible to see where ownership, management, and stewardship reinforce one another—and where they pull in different directions."
         )
 
-    _open_question_recovery = _open_question_orientation_recovery(question)
-    if _open_question_recovery:
-        return _open_question_recovery
-    # Recognized distinction questions should receive a direct bounded orientation
-    # even when no Archive source establishes one side of the distinction. This
-    # belongs in the shared conceptual composer so the capability generalizes
-    # across provider and deterministic recovery paths rather than being added as
-    # a one-off terminal fallback.
-    asks_difference = bool(re.search(
-        r"\b(?:difference|distinction|differ|distinguish)\b",
-        normalized,
-    ))
-    names_efficiency = bool(re.search(r"\befficien(?:cy|t)\b", normalized))
-    names_effectiveness = bool(re.search(r"\beffectiveness\b", normalized))
-    if asks_difference and names_efficiency and names_effectiveness:
+    if (
+        re.search(r"\b(?:difference|distinction|differ|distinguish)\b", normalized)
+        and re.search(r"\befficien(?:cy|t)\b", normalized)
+        and re.search(r"\beffectiveness\b", normalized)
+    ):
         return (
             "Efficiency is how economically a process uses resources—time, effort, "
             "money, or materials—to produce an output. Effectiveness is whether the "
@@ -2983,6 +2973,19 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "pursuing effectiveness without regard to efficiency can waste resources "
             "that could support other important work."
         )
+
+    _open_question_recovery = _open_question_orientation_recovery(question)
+    if _open_question_recovery:
+        return _open_question_recovery
+    # Recognized distinction questions should receive a direct bounded orientation
+    # even when no Archive source establishes one side of the distinction. This
+    # belongs in the shared conceptual composer so the capability generalizes
+    # across provider and deterministic recovery paths rather than being added as
+    # a one-off terminal fallback.
+    asks_difference = bool(re.search(
+        r"\b(?:difference|distinction|differ|distinguish)\b",
+        normalized,
+    ))
     names_meaning_making = bool(re.search(
         r"\bmeaning[ -]?making\b|\bmake(?:s|ing)? meaning\b",
         normalized,
