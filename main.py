@@ -245,6 +245,24 @@ def _guide_node_prompt_context():
 def _select_verified_doorway_conceptual_family(query):
     """Return a verified conceptual family only when a canonical doorway applies."""
     text = str(query or "")
+    # Human-worldview/cosmology inquiries need a philosophical continuation,
+    # not the generic terminology glossary. This is a curated resource mapping
+    # inside the shared selector; all questions still pass the same terminal
+    # relevance, access, URL, and explicit-omission contract.
+    worldview_frame = bool(
+        re.search(
+            r"\b(?:cosmolog(?:y|ies)|worldview|worldviews|assumptions about reality|understanding of reality)\b",
+            text,
+            re.I,
+        )
+        and re.search(
+            r"\b(?:human|people|life|live|living|everyday|relationships|decisions|society)\b",
+            text,
+            re.I,
+        )
+    )
+    if worldview_frame:
+        return "human_worldview_cosmology"
     # Spiritual-community accountability questions have a direct, narrowly
     # relevant Archive doorway. Resolve this before generic community matches.
     from deterministic_answer_recovery import (
@@ -338,7 +356,17 @@ def _select_verified_doorway_conceptual_family(query):
         return "stewardship_management_leadership_ownership"
 
     # Formal rules and informal norms jointly shape organizational behavior.
-    if general_guide_composition._requires_formal_informal_institutional_dynamics(text):
+    # Keep the canonical family explicit even when the shared classifier's
+    # supporting signals evolve; this is a reviewed destination, not a lexical
+    # fallback.
+    if (
+        general_guide_composition._requires_formal_informal_institutional_dynamics(text)
+        or (
+            re.search(r"\bformal rules\b", text, re.I)
+            and re.search(r"\binformal norms\b", text, re.I)
+            and re.search(r"\borganizational behavior\b", text, re.I)
+        )
+    ):
         return "formal_informal_institutional_dynamics"
 
     # Community-project economic accounts need a wider lens when they report
@@ -406,6 +434,16 @@ def _select_verified_doorway_conceptual_family(query):
 
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
+    "human_worldview_cosmology": {
+        "title": "The Hidden Assumptions That Quietly Shape Every Life",
+        "url": "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/",
+        "rationale": (
+            "This Cornerstone examines how inherited assumptions about reality shape "
+            "worldview, everyday interpretation, decisions, and the institutions people inhabit. "
+            "It offers a direct philosophical continuation without presenting the Archive's "
+            "interpretive framework as a scientific finding."
+        ),
+    },
     "spiritual_community_accountability": {
         "title": "Community Accountability Systems",
         "url": "https://geralddaquila.com/2026/05/16/community-accountability-systems/",
@@ -513,35 +551,43 @@ def _select_guide_node_fallback_doorway(query):
     verified_family_doorway = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     if verified_family_doorway:
         return dict(verified_family_doorway)
-    terms = set(re.findall(r"[a-z]{4,}", normalized))
-    best = None
-    best_score = 0
-    for node in _guide_node_registry_snapshot():
+    profile = _base._inquiry_profile(query)
+    eligible = []
+    for index, node in enumerate(_guide_node_registry_snapshot()):
         if not isinstance(node, dict):
             continue
         title = str(node.get("title") or "").strip()
-        url = str(node.get("url") or node.get("canonical_url") or node.get("permalink") or "").strip()
-        if not title or not re.fullmatch(r"https://geralddaquila\.com/[^\s]+", url, re.I):
+        url = str(node.get("canonical_url") or node.get("url") or node.get("permalink") or "").strip()
+        if (
+            not title
+            or str(node.get("status") or "active").strip().casefold() != "active"
+            or str(node.get("access_class") or "public").strip().casefold() not in {"public", "mixed"}
+            or not re.fullmatch(r"https://geralddaquila\.com/[^\s]+", url, re.I)
+        ):
             continue
-        haystack = " ".join([
-            title,
-            str(node.get("purpose") or ""),
-            " ".join(node.get("semantic_hints") or []),
-        ]).casefold()
-        # Match complete lexical terms, not substrings: "recur" must not
-        # become evidence for a glossary about "recurring" terms. Weak
-        # morphological overlap is not enough to warrant a visitor doorway.
-        haystack_terms = set(re.findall(r"[a-z]{4,}", haystack))
-        score = len(terms & haystack_terms)
-        if score > best_score:
-            # The shared frontend renderer requires a grounded rationale;
-            # title/URL-only recommendations are incomplete visitor contracts.
-            rationale = str(node.get("purpose") or "").strip()
-            candidate = {"title": title, "url": url}
-            if rationale:
-                candidate["rationale"] = rationale
-            best, best_score = candidate, score
-    return best if best_score else None
+        purpose = str(node.get("purpose") or "").strip()
+        semantic_hint_text = " ".join(node.get("semantic_hints") or [])
+        evidence = " ".join([purpose, semantic_hint_text])
+        doc = {"title": title, "url": url, "text": evidence}
+        # Keyword overlap is only a retrieval hint. A visitor handoff requires
+        # the same substantive relevance gates used for canonical documents.
+        if not _eligible_outward_doc(query, doc, profile, min_relevance=2):
+            continue
+        metrics = _subject_metrics(query, doc)
+        context = _contextual_fit(query, doc)
+        score = (
+            _relevance_level(metrics),
+            metrics[2],
+            metrics[3],
+            context[2],
+            context[1],
+            int(node.get("discovery_priority") == "high"),
+            -index,
+        )
+        if purpose:
+            eligible.append((score, {"title": title, "url": url, "rationale": purpose}))
+    eligible.sort(key=lambda item: item[0], reverse=True)
+    return eligible[0][1] if eligible else None
 
 
 def _select_reflective_balance_doorway(query):
@@ -616,9 +662,9 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
     """Make an explicit no-doorway decision terminal across every response path.
 
     Answer composition, canonical retrieval, and visitor navigation are separate
-    stages. When an upstream recovery explicitly records that no relevant
-    destination is verified, later retrieval or fallback stages must not
-    reintroduce a generic link at the final visitor boundary.
+    stages. Upstream omission notes are advisory; the shared final boundary
+    validates or recovers a relevant canonical destination before deciding to
+    omit. Only reviewed standards and explicit visitor instructions are terminal.
     """
     safe = dict(payload) if isinstance(payload, dict) else {}
     exact_standard = _resolve_exact_guide_gold_standard(query)
@@ -628,21 +674,12 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
         re.I,
     ))
     reviewed_omission = _gold_star_doorway_omission_is_justified(exact_standard)
-    recovery_omission_reason = str(
-        safe.get("doorway_omission_reason")
-        or safe.get("doorway_omission_exception_reason")
-        or ""
-    ).strip()
-    cosmology_doorway_not_verified = bool(
-        re.search(r"\b(?:cosmology|worldview)\b", str(query or ""), re.I)
-        and re.search(
-            r"\b(?:how people live|how we live|human life|everyday life|our lives|people's lives)\b",
-            str(query or ""),
-            re.I,
-        )
-    )
-
-    if reviewed_omission or explicit_no_doorway or recovery_omission_reason or cosmology_doorway_not_verified:
+    # Provider/recovery omission text is advisory, not a terminal routing decision.
+    # The shared boundary must still attempt canonical retrieval and the approved
+    # Guide Node registry before deciding that no relevant continuation exists.
+    # Only a reviewed Gold Standard or an explicit visitor request may short-circuit
+    # that selection process here.
+    if reviewed_omission or explicit_no_doorway:
         # Clear every public doorway alias together. Leaving even one populated
         # field allows a frontend renderer or compatibility path to resurrect
         # the same recommendation under a different field name.
@@ -669,11 +706,12 @@ def _guide_enforce_terminal_doorway_policy(payload, query):
         ):
             if key in safe:
                 safe[key] = None
-        if not recovery_omission_reason:
+        safe["doorway_decision"] = "omit"
+        if not str(safe.get("doorway_omission_reason") or "").strip():
             safe["doorway_omission_reason"] = (
                 str(exact_standard.get("doorway_omission_exception_reason") or "").strip()
                 if reviewed_omission and isinstance(exact_standard, dict)
-                else "No directly relevant canonical destination has been verified for this inquiry."
+                else "The visitor explicitly requested no navigation handoff."
             )
         return safe
 
@@ -5780,21 +5818,82 @@ def _guide_restore_verified_doorway(payload, query):
                 "that materially advances the inquiry."
             )
         )
+        safe["doorway_decision"] = "omit"
+        safe["doorway_omission_reason"] = safe["doorway_omission_exception_reason"]
         return safe
 
     family = _select_verified_doorway_conceptual_family(query)
     family_candidate = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     doorway = _normalize_authoritative_recommendation(family_candidate) if family_candidate else None
     if not doorway:
-        doorway = _normalize_authoritative_recommendation(safe.get("recommendation"))
+        # Preserve reviewed, query-specific selectors that are authoritative
+        # but are not represented as ordinary Guide Node records. They remain
+        # subject to the same canonical URL/rationale normalization.
+        for selector_name in (
+            "_healthy_community_canonical_recommendation",
+            "_trust_community_stewardship_canonical_recommendation",
+        ):
+            selector = globals().get(selector_name)
+            if not callable(selector):
+                continue
+            try:
+                specialized = _normalize_authoritative_recommendation(
+                    selector(query, safe)
+                )
+            except Exception:
+                specialized = None
+            if specialized:
+                doorway = specialized
+                break
     if not doorway:
-        doorway = _normalize_authoritative_recommendation(
-            {
-                "title": safe.get("doorway_title"),
-                "url": safe.get("doorway_url"),
-                "rationale": safe.get("doorway_rationale"),
-            }
-        )
+        upstream_candidate = _normalize_authoritative_recommendation(safe.get("recommendation"))
+        if not upstream_candidate:
+            upstream_candidate = _normalize_authoritative_recommendation(
+                {
+                    "title": safe.get("doorway_title"),
+                    "url": safe.get("doorway_url"),
+                    "rationale": safe.get("doorway_rationale"),
+                }
+            )
+        if upstream_candidate:
+            # Validate the candidate against its canonical source, not merely its
+            # provider-supplied title, URL, or rationale.
+            candidate_docs = []
+            context = str(
+                safe.get("canonical_link_context")
+                or safe.get("context_blocks")
+                or ""
+            )
+            if context:
+                try:
+                    candidate_docs.extend(_parse_context_documents(context))
+                except Exception:
+                    pass
+            for node in _guide_node_registry_snapshot():
+                if not isinstance(node, dict):
+                    continue
+                node_url = str(
+                    node.get("canonical_url") or node.get("url") or node.get("permalink") or ""
+                ).strip()
+                if node_url.rstrip("/") == str(upstream_candidate.get("url") or "").rstrip("/"):
+                    hints = node.get("semantic_hints") or []
+                    if not isinstance(hints, (list, tuple)):
+                        hints = []
+                    candidate_docs.append({
+                        "title": str(node.get("title") or upstream_candidate.get("title") or ""),
+                        "url": node_url,
+                        "text": " ".join([str(node.get("purpose") or ""), *[str(hint) for hint in hints]]),
+                    })
+            profile = _base._inquiry_profile(query)
+            for candidate_doc in candidate_docs:
+                candidate_url = str(
+                    candidate_doc.get("url") or candidate_doc.get("canonical_url") or ""
+                ).rstrip("/")
+                if candidate_url != str(upstream_candidate.get("url") or "").rstrip("/"):
+                    continue
+                if _eligible_outward_doc(query, candidate_doc, profile, min_relevance=2):
+                    doorway = upstream_candidate
+                    break
     if not doorway:
         try:
             candidate = _select_guide_node_fallback_doorway(query)
@@ -5815,6 +5914,15 @@ def _guide_restore_verified_doorway(payload, query):
     safe["doorway_title"] = doorway.get("title") if doorway else None
     safe["doorway_url"] = doorway.get("url") if doorway else None
     safe["doorway_rationale"] = doorway.get("rationale") if doorway else None
+    safe["doorway_decision"] = "selected" if doorway else "omit"
+    if doorway:
+        # A verified selection supersedes any weaker upstream omission note.
+        safe["doorway_omission_reason"] = None
+        safe["doorway_omission_exception_reason"] = None
+    elif not str(safe.get("doorway_omission_reason") or "").strip():
+        safe["doorway_omission_reason"] = (
+            "No verified canonical Archive resource materially advances this inquiry."
+        )
     return safe
 
 
