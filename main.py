@@ -11205,6 +11205,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         reasoning_mode = "deterministic_only"
 
     composition_result = None
+    deterministic_result = None
     # This narrow practical-question class has a bounded, provider-independent
     # answer. Do not send it through the general composition envelope: that
     # envelope can exceed provider token budgets before the fallback is reached.
@@ -11629,10 +11630,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         raise RuntimeError("Responsibility-boundary contract failed at final visitor boundary.")
 
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
-    # Initialize provenance inputs before any branch can consult them at the final metrics boundary.
-    # These defaults are intentionally overwritten later by the actual composition/deterministic path.
-    composition_result = None
-    deterministic_result = None
+    # Provenance inputs were initialized before the composition and deterministic
+    # routing branches above. Preserve their actual results through the final
+    # visitor-boundary checks so successful provider calls remain attributable.
     # Final evidence contract for deterministic relational-burden recovery.
     # This is deliberately enforced at payload assembly, after every composition,
     # sanitization, and discovery path. A broad doorway selected by earlier retrieval
