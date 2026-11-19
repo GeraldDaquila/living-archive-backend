@@ -294,5 +294,6 @@ def test_teaching_conflict_personal_reference_requires_verified_source_bodies():
     assert len(result["documents"]) == 5
     assert result["doorway"]["title"] == "Analytical Procedure"
     assert "source-grounded synthesis" in result["response"]
+    assert "public Guide cannot retrieve that source" in result["response"]
     assert "remain correctable" in result["response"].casefold()
     assert compose_teaching_conflict_protocol(query, docs[:-1]) is None
