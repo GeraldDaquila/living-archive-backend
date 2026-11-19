@@ -251,8 +251,8 @@ If this document and repository state disagree, inspect the source and correct t
 - Feature branch: `gold-star-v2-complete-architecture`
 - PR: [#1732 — Gold Star v2: operational question contracts across Guide routes](https://github.com/GeraldDaquila/living-archive-backend/pull/1732)
 - PR state at last check: open, draft, unmerged; mergeable reported true.
-- Current branch head before this checkpoint documentation update: `9c8b019f0e9a13816a2c1de55f8f1571c7f3ec7c`
-- Current PR head after this documentation update: verify from GitHub PR metadata.
+- Verified WP1 implementation source commit: `b19e715e6d213591bcb3aa57e4190e41273fa959`
+- This close-out is a documentation-only follow-up; verify the latest PR head from GitHub metadata.
 - Base: `93c2d3a31405ec8b193e8d7a986ed764415ef8d3`
 - Specialist adapter source remains unchanged and protected.
 
@@ -271,7 +271,7 @@ If this document and repository state disagree, inspect the source and correct t
 - The specialist adapter implementation itself was not modified.
 
 
-### WP1 deterministic and safety boundary hardening (candidate implementation)
+### WP1 deterministic and safety boundary hardening (verified complete)
 
 - Added a shared route-context attachment helper so deterministic, safety, specialist, and provider JSON exits carry the same versioned question contract and route capability declaration at the orchestration sender.
 - Preserved originating route identity separately when final visitor finalizers record their own boundary route; answer-envelope attribution records originating route and visitor-boundary traversal separately.
@@ -279,19 +279,25 @@ If this document and repository state disagree, inspect the source and correct t
 - Safety interrupts and bounded safety-conversation responses are represented as safety-intervention envelopes and are not subjected to the ordinary completed-answer floor. Hypothetical safety calibration remains an informational answer and continues through the floor.
 - Active safety interventions bypass exact-answer authority, personal-decision/workforce recovery, and generic canonical-doorway restoration at both orchestration and visitor boundaries.
 - Added cross-boundary tests for deterministic success/failure, safety-interruption preservation, bounded safety conversation, hypothetical calibration, handoff/error distinction, route attribution, all three runtime wiring points, and actual ASGI outer-boundary visitor responses.
-- Candidate only until the exact commit's CI completes. Production remains untouched; no merge or deployment is authorized.
+- Verified on implementation commit `b19e715e6d213591bcb3aa57e4190e41273fa959`. The same source commit passed the complete observed CI set. No merge or deployment was performed.
 
 ### CI status
 
-- Previous answer-envelope checkpoint `8302badcd8689d4b619e4508f69978036e139199` passed its six listed CI workflows.
-- The current route/specialist implementation added new tests and changed the Guide runtime. GitHub Actions workflows were created for the current code, but the runs observed during this session remained queued; they have not yet completed. Do not report this newer implementation as test-passed.
-- Static repository reconciliation confirmed that the 14 literal route sources in `main.py` match the 14 route declarations in `gold_star_route_capabilities.py`. This is a source audit, not a substitute for CI execution.
+- Verified source commit: `b19e715e6d213591bcb3aa57e4190e41273fa959`.
+- Observed workflow set for that exact source commit: 31 workflow runs; 30 completed successfully and one live-browser workflow was skipped.
+- Gold Star v2 shared-contract regression suite: 64 passed, 0 failed. This includes the route-registry audit, specialist context tests, answer-envelope tests, response-floor tests, and the new deterministic/safety visitor-boundary integration tests.
+- Dedicated Standalone Deterministic Safety Validation: passed.
+- USE Preflight Integrity: passed.
+- General Guide Composition Validation and General Guide Composition Contract: passed.
+- Structural Validation: passed.
+- v487 protected-runtime compatibility validation: passed, including the sitewide safety-boundary QA, specialist-pipe checks, and paired Guide selection/visitor-boundary calibration regressions.
+- Mocked UI continuity, provider-health, provider-contract, request-boundary, resource-discovery, sovereignty, stewardship-routing, and other triggered regressions: passed.
+- Guide Healthy Community Live Browser Acceptance was skipped. Do not report live-browser acceptance as completed; it remains a WP5 release gate.
 
 CI success is not proof of semantic answer quality, human calibration, live browser acceptance, or production release.
-
 ### Not yet completed
 
-- WP1 deterministic and safety boundary integration is implemented as a candidate; awaiting complete CI verification on the candidate commit.
+- WP1: complete. Deterministic and safety orchestration and final visitor boundaries are verified on the exact implementation commit.
 - WP2: evidence-aware validation and bounded repair.
 - WP3: real paired captures and human/evaluator calibration.
 - WP4: governed learning/elevation loop.
@@ -299,11 +305,11 @@ CI success is not proof of semantic answer quality, human calibration, live brow
 
 ### Production status
 
-No production merge or deployment is authorized. The PR remains open and unmerged. Verify current deployment state from Render before making any live-status claim.
+No production merge or deployment was performed. PR #1732 remains open and unmerged. This work changed only the feature branch; live deployment state remains a separate release verification.
 
 ### Immediate next action
 
-Run all relevant CI and regression suites on the exact candidate commit. Repair any failure and rerun. Close WP1 only after orchestration and final visitor-boundary acceptance passes for deterministic and safety routes, then proceed directly to WP2.
+Begin WP2: implement evidence-aware validation and bounded repair as one integrated work package. Preserve WP1's verified baseline and do not reopen route-specific answer polishing unless a WP2 regression demonstrates a structural dependency.
 
 ## 10. Definition of completion
 
