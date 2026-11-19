@@ -5925,6 +5925,15 @@ def _guide_restore_verified_doorway(payload, query):
             # Validate the candidate against its canonical source, not merely its
             # provider-supplied title, URL, or rationale.
             candidate_docs = []
+            for evidence_key in (
+                "generation_authority_protected_docs",
+                "question_authority_protected_docs",
+            ):
+                evidence_items = safe.get(evidence_key) or []
+                if isinstance(evidence_items, list):
+                    candidate_docs.extend(
+                        item for item in evidence_items if isinstance(item, dict)
+                    )
             context = str(
                 safe.get("canonical_link_context")
                 or safe.get("context_blocks")
