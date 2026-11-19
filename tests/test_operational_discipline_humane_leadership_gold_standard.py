@@ -111,6 +111,14 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
             "ok": True,
             "query": "Explain stewardship, but do not send me to another page yet.",
             "response": "A substantive answer.",
+            "generation_authority_protected_docs": [{
+                "title": "Foundational Stewardship Cases",
+                "url": "https://geralddaquila.com/level-1-case-catalog/",
+                "content": (
+                    "Canonical case studies about stewardship, operational responsibility, "
+                    "leadership practice, governance, and the consequences of decisions."
+                ),
+            }],
             "recommendation": {
                 "title": "Foundational Stewardship Cases",
                 "url": "https://geralddaquila.com/level-1-case-catalog/",
