@@ -24,10 +24,10 @@ def test_retrieval_outage_gold_star_is_exact_and_has_no_forced_doorway():
     question = "A retrieval service fails, but the Guide can still access previously verified source references and deterministic recovery mechanisms. What should it do, and what should it disclose?"
     standard = resolve_exact_gold_standard(question)
     assert standard is not None
-    assert standard["benchmark_id"] == "general-guide-retrieval-outage-deterministic-recovery-disclosure-gold-star-2026-11-18"
+    assert standard["benchmark_id"] == "general-guide-retrieval-outage-deterministic-recovery-disclosure-gold-star-refined-2026-11-18"
     assert standard["forbids_doorway"] is True
     assert standard["doorway_title"] == ""
-    assert "fresh search" in standard["expected_response"].casefold()
+    assert "new search succeeded" in standard["expected_response"].casefold()
     assert len(standard["expected_response"].split("\n\n")) == 3
 
 
@@ -37,7 +37,7 @@ def test_provider_exhaustion_uses_the_exact_retrieval_outage_gold_star_without_c
         question, {}, {}, recommendation_available=False
     )
     assert result["provider"] == "gold_standard_registry_deterministic_fallback"
-    assert "previously verified source references" in result["response"]
+    assert "previously verified references remain accessible" in result["response"]
     assert result["recommendation"] is None
 
 
