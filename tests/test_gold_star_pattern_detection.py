@@ -1,4 +1,5 @@
 """Tests for consent-gated recurring-pattern detection and non-automatic elevation."""
+import hashlib
 import pytest
 
 from gold_star_pattern_detection import (
@@ -11,6 +12,8 @@ def _evidence(case, domain, task, ref=None):
     return {
         "case_id": f"case-{case}",
         "evidence_ref": ref or f"review:{case}:sha256",
+        "evidence_verification_status": "VERIFIED",
+        "evidence_digest_sha256": hashlib.sha256(str(case).encode()).hexdigest(),
         "consent_status": "CONSENTED",
         "deidentified": True,
         "human_review_status": "COMPLETE",
@@ -37,6 +40,7 @@ def test_recurring_pattern_requires_distinct_consented_reviewed_cases_across_dom
     assert candidate["support_count"] == 3
     assert len(candidate["domain_coverage"]) == 3
     assert len(candidate["task_family_coverage"]) == 3
+    assert len(candidate["evidence_digests_sha256"]) == 3
     assert candidate["status"] == "CANDIDATE_REQUIRES_HUMAN_ADJUDICATION"
     assert candidate["runtime_eligible"] is False
     assert candidate["lesson_text"] is None
@@ -169,3 +173,18 @@ def test_forged_candidate_without_evidence_coverage_cannot_be_adjudicated():
             unrelated_negative_controls_passed=True,
             explicit_owner_approval=True,
         )
+
+def test_unverified_or_malformed_evidence_digest_cannot_support_a_candidate():
+    records = _qualifying_set()
+    records[0]["evidence_verification_status"] = "PENDING"
+    records[1]["evidence_digest_sha256"] = "not-a-sha256"
+    result = detect_recurring_patterns(records)
+    assert result["candidates"] == []
+    assert result["excluded_observations"] == 2
+
+
+def test_reused_evidence_digest_cannot_manufacture_independent_support():
+    records = _qualifying_set()
+    records[1]["evidence_digest_sha256"] = records[0]["evidence_digest_sha256"]
+    result = detect_recurring_patterns(records)
+    assert result["candidates"] == []
