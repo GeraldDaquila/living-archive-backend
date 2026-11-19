@@ -14,6 +14,8 @@ import time
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
+from gold_star_question_contract import build_question_contract, validate_question_contract
+
 from general_guide_gold_standards import resolve_exact_gold_standard as _registered_exact_gold_standard
 import comparative_traditions_contract as _comparative_traditions_contract
 from gold_star_lessons import (shadow_observation as _gold_star_shadow_observation, active_quality_contribution as _gold_star_active_quality_contribution)
@@ -4072,6 +4074,14 @@ def compose(
     if not question:
         return None
 
+    # The same conservative, versioned contract is consumed by the composer
+    # and the shared response floor. Unknown fields stay explicitly unresolved;
+    # the model must interpret them rather than treating phrase hints as facts.
+    question_contract = build_question_contract(question)
+    if not validate_question_contract(question_contract).get("valid"):
+        raise RuntimeError("General Guide question contract failed schema validation.")
+    question_contract_json = json.dumps(question_contract, ensure_ascii=False, sort_keys=True)
+
     # Gold Star quality memory: an approved analogue may contribute reviewed
     # structural discipline to a new answer without transferring content.
     gold_star_quality = _gold_star_active_quality_contribution(question)
@@ -4293,6 +4303,11 @@ def compose(
     )
     user_content = (
         f"Visitor question:\n{question}\n\n"
+        "QUESTION CONTRACT (conservative machine-readable planning input):\n"
+        + question_contract_json
+        + "\nInterpret unresolved fields from the visitor's full request and available evidence. "
+        "Treat detected constraints as binding; do not infer domain, stakes, or intent from surface wording alone. "
+        "If multiple tasks are present, address each; if the request cannot be responsibly completed, clarify or state the limit.\n\n"
         + integrity_recovery_instruction
         + archive_contrast_instruction
         + gold_star_quality_instruction
