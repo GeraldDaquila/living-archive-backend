@@ -15145,6 +15145,7 @@ async def _use_request_boundary(scope, receive, send):
                     "handoff": "systems_ph", "handoff_mode": "specialist",
                     "systems_delegation": result["systems_delegation"],
                     "visitor_boundary_version": APP_VERSION, "request_id": request_id,
+                    "route_source": "deterministic-systems-preparation-entry",
                 })
             except Exception as exc:
                 print(f"USE Philippine Systems Lens failed safely: exception={type(exc).__name__}")
@@ -15156,6 +15157,7 @@ async def _use_request_boundary(scope, receive, send):
                     "intent": "FORMATION_HANDOFF", "response": result["response"],
                     "formation_delegation": result["formation_delegation"],
                     "visitor_boundary_version": APP_VERSION, "request_id": request_id,
+                    "route_source": "deterministic-formation-preparation-entry",
                 })
             except Exception as exc:
                 print(f"USE Formation specialist failed safely: exception={type(exc).__name__}")
