@@ -19,6 +19,15 @@ def test_query_level_recognizes_the_original_question_and_paraphrases():
     assert is_orientation_information_contrast_question(
         "Explain orientation instead of information in practice."
     )
+    assert is_orientation_information_contrast_question(
+        "How is orientation different from information?"
+    )
+    assert is_orientation_information_contrast_question(
+        "What does it mean to orient someone rather than simply inform them?"
+    )
+    assert is_orientation_information_contrast_question(
+        "What is the difference between being oriented and being informed?"
+    )
 
 
 def test_query_classifier_does_not_capture_unrelated_information_questions():
