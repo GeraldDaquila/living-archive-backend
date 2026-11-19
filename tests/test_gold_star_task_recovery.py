@@ -2,6 +2,7 @@ import pytest
 
 import main
 from deterministic_answer_recovery import compose_task_specific_recovery
+from gold_star_semantic_contract import evaluate_semantic_contract
 
 
 CASES = [
@@ -42,6 +43,13 @@ def test_task_specific_recovery_is_complete_and_question_fit(question, recovery_
     answer = result["response"].casefold()
     for phrase in required:
         assert phrase.casefold() in answer
+    semantic = evaluate_semantic_contract(question, {
+        "ok": True,
+        "response": result["response"],
+        "recommendation": None,
+    })
+    assert semantic["status"] != "fail"
+    assert not semantic.get("hard_failures")
 
 
 @pytest.mark.parametrize("question,recovery_id,_required", CASES)
@@ -109,3 +117,12 @@ def test_final_visitor_boundary_removes_unrequested_resource_and_followup_prose(
     assert "explore further" not in result["response"]
     assert "Where would" not in result["response"]
     assert "policy states the rule" in result["response"]
+
+
+def test_water_boiling_point_uses_a_query_matched_registered_fact():
+    question = "At standard atmospheric pressure, what temperature does water boil at?"
+    result = main._established_general_knowledge_recovery(question)
+
+    assert result["fact_id"] == "water_boiling_point_sea_level"
+    assert "100°C" in result["response"]
+    assert "212°F" in result["response"]
