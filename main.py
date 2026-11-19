@@ -249,6 +249,13 @@ def _select_verified_doorway_conceptual_family(query):
     # not the generic terminology glossary. This is a curated resource mapping
     # inside the shared selector; all questions still pass the same terminal
     # relevance, access, URL, and explicit-omission contract.
+    stewardship_significance = bool(
+        re.search(r"\\bstewardship\\b", text, re.I)
+        and re.search(r"\\b(?:why does it matter|why it matters|why does stewardship matter|significance of stewardship)\\b", text, re.I)
+        and not re.search(r"\\b(?:compare|comparison|versus|vs\\.?|difference between|stewardship vs)\\b", text, re.I)
+    )
+    if stewardship_significance:
+        return "stewardship_significance"
     worldview_frame = bool(
         re.search(
             r"\b(?:cosmolog(?:y|ies)|worldview|worldviews|assumptions about reality|understanding of reality)\b",
@@ -434,6 +441,16 @@ def _select_verified_doorway_conceptual_family(query):
 
 
 _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS = {
+    "stewardship_significance": {
+        "title": "The Living Archive Navigator: Volume IV – Stewardship & Exchange",
+        "url": "https://geralddaquila.com/the-living-archive-navigator-volume-iv-stewardship-exchange/",
+        "rationale": (
+            "This Navigator provides a direct route into the Archive's stewardship "
+            "framework and its application to responsibility, exchange, and shared "
+            "conditions. It is a deeper continuation for a visitor asking not only "
+            "what stewardship means, but why it matters."
+        ),
+    },
     "human_worldview_cosmology": {
         "title": "The Hidden Assumptions That Quietly Shape Every Life",
         "url": "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/",
