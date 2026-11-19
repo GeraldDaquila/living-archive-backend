@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 
-const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_verify=guide-continuity-20261018c";
+const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_verify=guide-continuity-20261018c&qa_run=20261119b";
 const API_PATTERN = /\/api\/query(?:\/|\?|$)/;
 const EXPECTED_CONTROLLER_ARTIFACT = "living-archive-guide-v489.249-payload-integrity-doorway.js";
 const ROOT = ".archive-stage-wrapper[data-guide-instance='woody']";
@@ -213,6 +213,8 @@ try {
     return results;
   });
   mark("script_syntax_diagnostics", { scripts: syntaxDiagnostics });
+  const syntaxFailures = syntaxDiagnostics.filter(item => item.syntax === "fail");
+  if (syntaxFailures.length) throw new Error("Browser script syntax failures: " + JSON.stringify(syntaxFailures.map(item => ({ index: item.index, src: item.src || "", message: item.message }))));
   mark("controller_ready_diagnostics", {
     rootCount: await root.count(),
     inputCount: await input.count(),
@@ -404,6 +406,7 @@ try {
   if (apiRequests.length !== 5) throw new Error("Expected exactly 5 intercepted API requests, got " + apiRequests.length);
   if (!continuityPassed) throw new Error("Ordinary Reply request did not carry the expected prior conversation history.");
   if (guideControllerErrors.length) throw new Error("Guide controller browser errors: " + JSON.stringify(guideControllerErrors));
+  if (pageErrors.length) throw new Error("Uncaught browser errors: " + JSON.stringify(pageErrors));
   mark("test_passed", { requestCount: apiRequests.length, continuityPassed, consoleErrors, failedRequests });
 } catch (error) {
   mark("test_failed", { message: error.message, requestCount: apiRequests.length, pageErrors });
