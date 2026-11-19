@@ -687,8 +687,9 @@ def _guide_query_explicitly_forbids_handoff(query):
     """Recognize direct no-link instructions without mistaking answer-first wording for refusal."""
     value = str(query or "")
     patterns = (
-        r"\b(?:do not|don't|please don't)\s+(?:show|include|provide|offer|give)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
-        r"\bno\s+(?:doorway|links?|pages?|resources?|handoffs?|recommendations)\b",
+        r"\b(?:do not|don't|please don't)\s+(?:show|include|provide|offer|give|recommend|suggest)\b.{0,96}\b(?:doorway|links?|pages?|resources?|handoffs?|recommendations?)\b",
+        r"\b(?:do not|don't|please don't)\s+(?:include|offer|provide|add|recommend|suggest)\b.{0,96}\b(?:follow[- ]?ups?|next[- ]?steps?|further reading)\b",
+        r"\bno\s+(?:doorway|links?|pages?|resources?|handoffs?|recommendations?|follow[- ]?ups?|next[- ]?steps?)\b",
         r"\bwithout\s+(?:a\s+)?(?:doorway|link|page|resource|handoff|recommendation)\b",
         r"\b(?:i|we)\s+(?:do not|don't)\s+(?:want|need|require)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
     )
@@ -7159,6 +7160,42 @@ def _guide_finalize_visitor_payload(payload, query):
             safe["route_source"] = "guide_final_visitor_boundary"
             safe["visitor_boundary_version"] = APP_VERSION
             return safe
+
+    # Explicit no-handoff instructions constrain both structured navigation
+    # and prose. Remove resource/follow-up sentences after every composer or
+    # recovery path; do not rely on the doorway fields alone.
+    if _guide_query_explicitly_forbids_handoff(query):
+        safe = dict(payload)
+        original_response = str(safe.get("response") or safe.get("answer") or "")
+        handoff_phrases = (
+            r"\b(?:archive material|separately selected resource|resource offers|place to explore|explore further|"
+            r"read more|visit the|open the link|follow[- ]?up|next[- ]?step|next question|"
+            r"where would|would you like|if you want,? i can|you may want to)\b"
+        )
+        kept_paragraphs = []
+        for paragraph in re.split(r"\n\s*\n+", original_response):
+            kept_sentences = [
+                sentence.strip()
+                for sentence in re.split(r"(?<=[.!?])\s+", paragraph)
+                if sentence.strip()
+                and not any(re.search(pattern, sentence, re.I) for pattern in handoff_phrases)
+            ]
+            if kept_sentences:
+                kept_paragraphs.append(" ".join(kept_sentences))
+        bounded_response = "\n\n".join(kept_paragraphs).strip()
+        if not bounded_response:
+            task_recovery = _compose_task_specific_recovery(query)
+            if isinstance(task_recovery, dict):
+                bounded_response = str(task_recovery.get("response") or "").strip()
+        if bounded_response:
+            safe["response"] = bounded_response
+            if "answer" in safe:
+                safe["answer"] = bounded_response
+        safe = _guide_enforce_terminal_doorway_policy(safe, query)
+        safe["processing"] = "final_visitor_boundary_explicit_no_handoff"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
 
     # Source/template fragments are a separate contamination class from evidence
     # annotations. Detect them at the shared API boundary so they cannot escape
