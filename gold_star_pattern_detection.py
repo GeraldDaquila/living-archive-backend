@@ -14,6 +14,8 @@ from typing import Any, Dict, Iterable, List, Mapping
 _ALLOWED_FIELDS = frozenset({
     "case_id",
     "evidence_ref",
+    "evidence_verification_status",
+    "evidence_digest_sha256",
     "consent_status",
     "deidentified",
     "human_review_status",
@@ -29,6 +31,7 @@ _FORBIDDEN_CONTENT_FIELDS = frozenset({
 })
 _LABEL = re.compile(r"^[a-z0-9][a-z0-9_-]{1,63}$")
 _EVIDENCE_REF = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/-]{2,127}$")
+_SHA256 = re.compile(r"^[a-f0-9]{64}$")
 
 
 def _label(value: Any) -> str:
@@ -52,6 +55,11 @@ def _valid_evidence(item: Any) -> bool:
     if item.get("human_review_status") != "COMPLETE":
         return False
     if item.get("review_outcome") != "CONFIRMED_DEFECT":
+        return False
+    if item.get("evidence_verification_status") != "VERIFIED":
+        return False
+    digest = item.get("evidence_digest_sha256")
+    if not isinstance(digest, str) or not _SHA256.fullmatch(digest.strip()):
         return False
     if not _label(item.get("case_id")):
         return False
@@ -103,6 +111,7 @@ def detect_recurring_patterns(
         groups[operation].append({
             "case_id": case_id,
             "evidence_ref": str(item["evidence_ref"]).strip(),
+            "evidence_digest_sha256": str(item["evidence_digest_sha256"]).strip(),
             "task_family": _label(item["task_family"]),
             "domain": _label(item["domain"]),
             "failed_criterion": _label(item["failed_criterion"]),
@@ -112,11 +121,13 @@ def detect_recurring_patterns(
     for operation, observations in sorted(groups.items()):
         case_ids = sorted({x["case_id"] for x in observations})
         evidence_refs = sorted({x["evidence_ref"] for x in observations})
+        evidence_digests = sorted({x["evidence_digest_sha256"] for x in observations})
         domains = sorted({x["domain"] for x in observations})
         task_families = sorted({x["task_family"] for x in observations})
         if (
             len(case_ids) < min_support
             or len(evidence_refs) < min_support
+            or len(evidence_digests) < min_support
             or len(domains) < min_domains
             or len(task_families) < min_task_families
         ):
@@ -128,6 +139,7 @@ def detect_recurring_patterns(
             "support_count": len(case_ids),
             "evidence_case_ids": case_ids,
             "evidence_refs": evidence_refs,
+            "evidence_digests_sha256": evidence_digests,
             "domain_coverage": domains,
             "task_family_coverage": task_families,
             "failed_criteria": sorted({x["failed_criterion"] for x in observations}),
@@ -168,6 +180,7 @@ def adjudicate_pattern_candidate(
         or candidate["support_count"] < 3
         or len(set(candidate.get("evidence_case_ids") or [])) < 3
         or len(set(candidate.get("evidence_refs") or [])) < 3
+        or len(set(candidate.get("evidence_digests_sha256") or [])) < 3
         or len(set(candidate.get("domain_coverage") or [])) < 2
         or len(set(candidate.get("task_family_coverage") or [])) < 2
         or candidate.get("runtime_eligible") is not False
