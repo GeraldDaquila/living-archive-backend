@@ -261,11 +261,15 @@ If this document and repository state disagree, inspect the source and correct t
 - Explicit no-handoff/no-follow-up/no-external-research constraint detection.
 - Unknown and mixed-intent states preserved; no claim of semantic certification.
 - Shared contract consumed by the ordinary composer and shared response-floor evaluator.
-- Added `gold_star_answer_envelope.py` v1.0: privacy-conscious answer state, route class, provider/model presence, provenance presence, capability declaration status, doorway separation, and frozen-answer governance metadata.
+- Added `gold_star_answer_envelope.py` v1.0: privacy-conscious answer state, route class, provider/model presence, provenance presence, route capability, specialist capability, doorway separation, and frozen-answer governance metadata.
 - Integrated answer-envelope construction and schema validation into `gold_star_response_floor.py`; completed answers, structured handoffs, errors, and incomplete responses are distinguished.
-- Added `tests/test_gold_star_answer_envelope.py` and extended the Gold Star v2 CI workflow to compile and run the new contract tests.
-- The envelope intentionally reports unregistered routes and undeclared capabilities as unknown; it does not certify semantic competence.
-- Specialist adapter source remains unchanged and hash-protected.
+- Added `gold_star_route_capabilities.py` with bounded declarations for every currently observed Guide route source (14 identifiers) and all five registered specialist identities.
+- Reconciled the route capability registry against literal `route_source` values in `main.py`; a regression test now detects future route additions or removals that are not reflected in the registry.
+- Guide-owned Systems and Formation hub requests now receive the shared question contract, route capability declaration, and specialist capability declaration through `guide_context`. The specialist adapter module itself remains unchanged and hash-protected.
+- Added explicit `route_source` identity to both Systems and Formation specialist handoff response paths so the final envelope can attribute them consistently.
+- Added regression tests for route registry coverage, specialist declarations, specialist context preservation through the hub, Guide runtime wiring, and separate specialist provenance in the answer envelope.
+- Extended the Gold Star v2 CI workflow to compile the changed runtime modules and run the new route/specialist tests.
+- All capability metadata explicitly disclaims semantic competence certification. Unknown routes and specialists remain unknown.
 
 ### Verified CI at the current checkpoint head
 
@@ -291,7 +295,7 @@ These are historical checkpoint results. Recheck CI after any new commit. They d
 
 ### Not yet completed at this checkpoint
 
-- Remaining WP1 route-wide capability declarations and upstream consumption by deterministic and specialist routes; current envelope reports missing declarations honestly.
+- Remaining WP1 work: verify contract/capability consumption for all deterministic and safety routes, not only ordinary composition and the Systems/Formation specialist hub paths; test every route's actual handoff/answer state at the final visitor boundary.
 - WP2 evidence-aware validation and bounded repair.
 - WP3 real paired captures and human/evaluator calibration.
 - WP4 governed learning/elevation loop.
@@ -303,7 +307,7 @@ No production merge or deployment is authorized by this charter. The previous PR
 
 ### Immediate next action
 
-Continue WP1 by completing the verified route inventory and introducing explicit, versioned capability declarations at the Guide-owned route boundaries. Cover deterministic recovery, purpose-built deterministic handlers, and specialist orchestration without changing the protected adapter module. Add route-level tests proving that declarations match actual handler capabilities and that unsupported work is declined or handed off. Only after this is complete should WP1 be marked done and WP2 begin.
+Complete the remaining WP1 integration by verifying the shared contract and capability declarations on every deterministic and safety route at both orchestration and final visitor boundaries. Ensure handoffs remain handoffs, fail-closed paths do not claim answer capability, and every completed answer carries correct route/specialist provenance. Wait for all CI runs on the current head to finish; repair any failures and rerun before marking this checkpoint verified. Only then close WP1 and begin WP2.
 
 ## 10. Definition of completion
 
