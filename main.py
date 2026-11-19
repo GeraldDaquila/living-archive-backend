@@ -13375,7 +13375,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             "provider": _weekly_stewardship_final["provider"],
             "model": _weekly_stewardship_final["model"],
         }
-        composition_result = None
+        composition_result = {}
         print(
             "The Guide final weekly-stewardship boundary: restored bounded action "
             "answer and canonical Stewardship doorway after provider exhaustion."
