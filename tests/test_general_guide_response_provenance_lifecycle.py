@@ -15,7 +15,7 @@ def _basic_inquiry_ast():
 
 
 def test_basic_inquiry_preserves_composition_until_an_explicit_deterministic_override():
-    _, function = _basic_inquiry_ast()
+    source, function = _basic_inquiry_ast()
     assignments = {"composition_result": [], "deterministic_result": []}
     for node in ast.walk(function):
         if not isinstance(node, (ast.Assign, ast.AnnAssign)):
@@ -47,9 +47,8 @@ def test_basic_inquiry_preserves_composition_until_an_explicit_deterministic_ove
         if isinstance(node, ast.Call)
         and isinstance(node.func, ast.Name)
         and node.func.id == "print"
-        and isinstance(node.args[0] if node.args else None, ast.Constant)
-        and isinstance(node.args[0].value, str)
-        and "USE RESPONSE METRIC:" in node.args[0].value
+        and bool(node.args)
+        and "USE RESPONSE METRIC:" in (ast.get_source_segment(source, node.args[0]) or "")
     )
     first_init, explicit_override_clear = sorted(composition_initializers)
     assert first_init < first_compose < explicit_override_clear < metric_line
