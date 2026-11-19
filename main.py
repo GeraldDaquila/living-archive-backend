@@ -5865,6 +5865,21 @@ def _guide_restore_verified_doorway(payload, query):
     family = _select_verified_doorway_conceptual_family(query)
     family_candidate = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     doorway = _normalize_authoritative_recommendation(family_candidate) if family_candidate else None
+    if not doorway and (
+        safe.get("generation_authority_protected_docs")
+        or safe.get("question_authority_protected_docs")
+        or safe.get("canonical_link_context")
+        or safe.get("context_blocks")
+    ):
+        try:
+            evidence_context = dict(safe)
+            evidence_context["_skip_doorway_search_recovery"] = True
+            evidence_candidate = _general_guide_authoritative_doorway(
+                query, evidence_context
+            )
+        except Exception:
+            evidence_candidate = None
+        doorway = _normalize_authoritative_recommendation(evidence_candidate)
     if not doorway and registered_candidate:
         doorway = registered_candidate
     if not doorway:
