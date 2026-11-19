@@ -3,6 +3,8 @@ from gold_star_route_capabilities import (
     VERSION,
     registered_route_sources,
     route_capability,
+    specialist_capability,
+    registered_specialist_ids,
     validate_route_capability_registry,
 )
 
@@ -77,3 +79,28 @@ def test_systems_specialist_entry_is_bounded_and_guide_owned():
     assert declaration["supported_task_families"] == ["bounded_philippine_systems_orientation"]
     assert "specialist_unavailable" in declaration["abstention_modes"]
     assert "Guide retains final visitor-response authority" in declaration["scope"]
+
+
+
+def test_registered_specialist_capabilities_are_explicit_and_bounded():
+    expected = {"relationship", "formation", "catalogue", "systems_ph", "safety"}
+    assert set(registered_specialist_ids()) == expected
+    for specialist_id in expected:
+        declaration = specialist_capability(specialist_id)
+        assert declaration["declaration_status"] == "declared"
+        assert declaration["scope"]
+        assert declaration["semantic_competence_certified"] is False
+        for field in (
+            "supported_task_families",
+            "unsupported_task_families",
+            "evidence_modes",
+            "abstention_modes",
+        ):
+            assert isinstance(declaration[field], list)
+
+
+def test_specialist_capability_unknown_identity_remains_unresolved():
+    declaration = specialist_capability("future_specialist")
+    assert declaration["declaration_status"] == "not_declared"
+    assert declaration["supported_task_families"] == []
+    assert declaration["semantic_competence_certified"] is False
