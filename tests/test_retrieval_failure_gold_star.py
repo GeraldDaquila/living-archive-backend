@@ -67,6 +67,9 @@ def test_mirror_registry_passes_verified_wordpress_body_as_evidence_not_metadata
     assert source in result["canonical_link_context"]
     assert "[Verified canonical source body" in result["context_blocks"]
     assert "metadata only" not in result["context_blocks"]
+    parsed_evidence = main.use_core.context_blocks_to_documents(result["context_blocks"])
+    assert parsed_evidence
+    assert source in parsed_evidence[0]["text"]
 
 
 def test_mirror_registry_request_does_not_repeat_wordpress_retrieval():
