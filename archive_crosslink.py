@@ -1047,8 +1047,32 @@ def fetch_wordpress_source_documents(
         request_url = f"https://geralddaquila.com/wp-json/wp/v2/{wp_endpoint}/{quote(wp_id, safe='')}?_fields=id,link,title,excerpt,content,status"
         request = UrlRequest(request_url, headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"}, method="GET")
         try:
-            with urlopen(request, timeout=_WP_CONTENT_TIMEOUT_SECONDS) as response:
-                raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
+            try:
+                with urlopen(request, timeout=_WP_CONTENT_TIMEOUT_SECONDS) as response:
+                    raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
+            except Exception as primary_exc:
+                # WordPress.com can reject requests from some cloud egress IPs
+                # at the site-domain edge. Retry through its public REST API,
+                # then apply the identical publication/ID/canonical checks.
+                if getattr(primary_exc, "code", None) is None:
+                    raise
+                fallback_url = (
+                    "https://public-api.wordpress.com/wp/v2/sites/geralddaquila.com/"
+                    f"{wp_endpoint}/{quote(wp_id, safe='')}?"
+                    "_fields=id,link,title,excerpt,content,status"
+                )
+                fallback_request = UrlRequest(
+                    fallback_url,
+                    headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
+                    method="GET",
+                )
+                with urlopen(fallback_request, timeout=_WP_CONTENT_TIMEOUT_SECONDS) as response:
+                    raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
+                _log(
+                    "USE archive meta-crosslink WordPress source fetch: "
+                    f"id={wp_id}, transport=wordpress_com_public_api_fallback, "
+                    f"primary_http_status={getattr(primary_exc, 'code', 'unknown')}"
+                )
             if len(raw_bytes) > _WP_SOURCE_MAX_BYTES:
                 raise ValueError("WordPress source response exceeds size bound")
             payload = json.loads(raw_bytes.decode("utf-8"))
