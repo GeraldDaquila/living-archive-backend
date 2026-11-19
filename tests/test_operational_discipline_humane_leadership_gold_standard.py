@@ -109,15 +109,15 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
         messages = []
         payload = {
             "ok": True,
-            "query": "Explain stewardship and how it shapes everyday responsibilities and shared resources, but do not send me to another page yet.",
+            "query": "What does stewardship mean for everyday responsibilities and shared resources? Do not send me to another page yet.",
             "response": "A substantive answer.",
             "generation_authority_protected_docs": [{
                 "title": "Foundational Stewardship Cases",
                 "url": "https://geralddaquila.com/level-1-case-catalog/",
                 "content": (
-                    "Stewardship is the practice of taking responsibility for what is entrusted to us. "
-                    "It shapes everyday responsibilities and shared resources, preserving trust "
-                    "and long-term wellbeing."
+                    "The meaning of stewardship is taking responsibility for what is entrusted to us. "
+                    "It guides everyday responsibilities and the care of shared resources, "
+                    "preserving trust and long-term wellbeing."
                 ),
             }],
             "recommendation": {
