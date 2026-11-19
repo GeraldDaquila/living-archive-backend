@@ -2962,6 +2962,27 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
         r"\b(?:difference|distinction|differ|distinguish)\b",
         normalized,
     ))
+    names_efficiency = bool(re.search(r"\befficien(?:cy|t)\b", normalized))
+    names_effectiveness = bool(re.search(r"\beffectiveness\b", normalized))
+    if asks_difference and names_efficiency and names_effectiveness:
+        return (
+            "Efficiency is how economically a process uses resources—time, effort, "
+            "money, or materials—to produce an output. Effectiveness is whether the "
+            "action produces the intended result. Efficiency asks how well the work "
+            "is done; effectiveness asks whether it is the right work and whether it "
+            "achieves what matters.\n\n"
+            "For example, a team can process applications quickly and use little staff "
+            "time, yet still be ineffective because many cases remain unresolved or "
+            "errors rise. Another team may resolve cases accurately but use more time "
+            "and effort than necessary. The first needs to improve its aim or outcome; "
+            "the second needs to improve its process.\n\n"
+            "The two qualities are complementary, not interchangeable. Effectiveness "
+            "establishes whether the outcome is worth achieving; efficiency improves "
+            "how well resources are used to achieve it. Improving efficiency without "
+            "checking effectiveness can make an unhelpful activity faster, while "
+            "pursuing effectiveness without regard to efficiency can waste resources "
+            "that could support other important work."
+        )
     names_meaning_making = bool(re.search(
         r"\bmeaning[ -]?making\b|\bmake(?:s|ing)? meaning\b",
         normalized,
