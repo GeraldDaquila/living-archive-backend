@@ -107,25 +107,17 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
 
     def test_universal_json_sender_does_not_apply_historical_no_handoff_reference(self):
         messages = []
+        selected_doorway = {
+            "title": "Applied Stewardship Toolkit",
+            "url": "https://geralddaquila.com/applied-toolkit-governance-layers/",
+            "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
+        }
         payload = {
             "ok": True,
-            "query": "How can I practice stewardship in everyday decisions and shared resources?",
+            "query": QUESTION,
             "prior_context": "In an earlier session I preferred to keep reading on one page.",
-            "response": "A substantive answer.",
-            "generation_authority_protected_docs": [{
-                "title": "Applied Stewardship Toolkit",
-                "url": "https://geralddaquila.com/applied-toolkit-governance-layers/",
-                "content": (
-                    "This resource explains how to practice stewardship in everyday decisions and shared resources. "
-                    "It provides practical governance instruments and templates for responsibility, "
-                    "community practice, and long-term stewardship."
-                ),
-            }],
-            "recommendation": {
-                "title": "Applied Stewardship Toolkit",
-                "url": "https://geralddaquila.com/applied-toolkit-governance-layers/",
-                "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
-            },
+            "response": operational_discipline_humane_leadership_recovery(QUESTION),
+            "recommendation": selected_doorway,
         }
 
         async def fake_send(message):
@@ -133,8 +125,7 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
 
         asyncio.run(main._use_send_json(fake_send, payload))
         body = json.loads(messages[-1]["body"].decode("utf-8"))
-        self.assertEqual(body["recommendation"], payload["recommendation"])
-
+        self.assertEqual(body["recommendation"], selected_doorway)
     def test_recovery_is_narrowly_scoped(self):
         self.assertIsNone(
             operational_discipline_humane_leadership_recovery("What is humane leadership?")
