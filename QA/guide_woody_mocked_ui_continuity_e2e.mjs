@@ -77,6 +77,18 @@ page.on("pageerror", error => {
   if ((entry.stack || "").includes("living-archive-guide-v489.318-edge-confirmation.js")) guideControllerErrors.push(entry);
 });
 
+await page.addInitScript(() => {
+  window.addEventListener("error", event => {
+    console.log("[Guide QA WINDOW ERROR] " + JSON.stringify({
+      message: event.message || "",
+      filename: event.filename || "",
+      line: event.lineno || null,
+      column: event.colno || null,
+      target: event.target && event.target.src ? event.target.src : ""
+    }));
+  }, true);
+});
+
 await page.route("**/*", async route => {
   const routeUrl = new URL(route.request().url());
   if (!["living-archive-backend.onrender.com", "living-archive-backend-mirror.onrender.com"].includes(routeUrl.hostname) || routeUrl.pathname.replace(/\/$/, "") !== "/api/query") {
