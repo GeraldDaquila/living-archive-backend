@@ -1,7 +1,6 @@
 """Two-level regression contract for orientation rather than information."""
 import general_guide_composition as guide
 from deterministic_answer_recovery import (
-    _orientation_information_contrast_recovery,
     compose_recovery,
     has_orientation_information_explanation,
     is_orientation_information_contrast_question,
@@ -56,3 +55,11 @@ def test_architectural_boundary_preserves_a_valid_provider_explanation():
         "conditions helps a school decide what response is appropriate."
     )
     assert guide.enforce_response_contracts(QUESTION, valid) == valid
+
+
+def test_semantic_acceptance_rejects_keyword_stuffing_without_the_actual_distinction():
+    superficial = (
+        "Information and orientation involve facts, context, relationships, and judgment. "
+        "For example, these ideas can be important."
+    )
+    assert not has_orientation_information_explanation(superficial)
