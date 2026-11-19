@@ -14,6 +14,8 @@ from __future__ import annotations
 import re
 from typing import Any, Dict
 
+from gold_star_question_contract import build_question_contract, validate_question_contract
+
 VERSION = "2.0"
 SEMANTIC_SHADOW_VERSION = "1.0"
 ANSWER_KEYS = ("response", "answer")
@@ -68,6 +70,11 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
     ):
         return {"version": VERSION, "status": "not_applicable", "reason": "structured_handoff"}
 
+    question_contract = build_question_contract(query)
+    contract_validation = validate_question_contract(question_contract)
+    if not contract_validation.get("valid"):
+        return {"version": VERSION, "status": "fail", "reason": "question_contract_invalid"}
+
     answer = next((str(payload.get(key) or "").strip() for key in ANSWER_KEYS
                    if str(payload.get(key) or "").strip()), "")
     if not answer:
@@ -88,6 +95,8 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
         "reason": "minimum_response_integrity_satisfied",
         "source_independent": True,
         "exact_standard_immutable": bool(exact_standard),
+        "question_contract": question_contract,
+        "question_contract_validation": contract_validation,
     }
     # Shadow diagnostics are metadata only. A semantic hard failure is not
     # promoted into the v2 enforcement status and cannot change the answer.
