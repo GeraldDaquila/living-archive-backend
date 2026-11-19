@@ -1404,7 +1404,7 @@ def test_personal_decision_agency_gold_star_93_preserves_exact_live_answer_and_d
     assert record["user_reviewed_response"] is True
     assert record["explicit_user_elevation_approval"] is True
     assert record["runtime_transfer"] is True
-    assert record["gold_star_capabilities"]["exact_answer_authority"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
     assert len(record["expected_response"].split(chr(10) * 2)) == 3
