@@ -454,3 +454,12 @@ This addendum supersedes the earlier WP5 deployment-target and immediate-next-ac
 - The QA integration audit also continues to report `available_capabilities_missing_adapters=["relationship"]`; investigate and resolve before claiming complete integration acceptance.
 - The exact QA capture artifact is `gold-star-v2-standalone-qa-paired-capture`, run `44478923351`, artifact ID `14507458353`, SHA-256 `c109813cc1d62455b00d398839449630b1ccfaa5dd8d79f53e2ff43e9b570cc3`. It records seven deterministic visitor captures, zero attributable LLM captures, zero paired cases, and the separate provider-probe result.
 - The QA capture workflow correctly failed its minimum attributable-LLM gate. That failure is an accurate representation of missing provider configuration, not a code regression and not a reason to lower the gate.
+
+
+
+### Isolated browser acceptance harness added (2026-11-19)
+
+- Added a real Chromium browser test that visits only the Standalone QA origin, verifies its runtime SHA against the triggering commit, and creates an ephemeral same-origin visitor form in the browser page. The form submits through browser `fetch('/api/query')`, not a direct Python HTTP client.
+- The harness covers a general-knowledge answer with doorway omission, an explicit no-handoff request, and the safety interrupt boundary.
+- It is intentionally not represented as the production WordPress UI or a full frontend visual acceptance. No WordPress page, visitor routing, primary backend, or USE2-Mirror is touched.
+- The browser job runs even if the provider-attribution capture job fails, so deterministic/safety browser acceptance remains independently observable. Its artifact is separate from the paired LLM capture report.
