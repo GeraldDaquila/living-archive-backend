@@ -837,7 +837,7 @@ Promotion should require reproducible improvement on the relevant held-out evalu
 - **Doorway:** **Stewardship** — https://geralddaquila.com/stewardship/
 - **Rating:** 9.7/10.
 - **Approval:** User supplied the live Guide screenshot and explicitly instructed “elevate to gold star!” on 2026-11-20.
-- **Adaptive-learning boundary:** Transfer the bounded insight-to-action discipline only. Do not invent an obligation or external authority, equate stewardship with self-sacrifice, or transfer the exact answer or doorway to unrelated questions.
+- **Runtime authority:** The existing `bounded_weekly_stewardship_action_recovery` remains the exact-query runtime owner; this Gold Star contributes bounded structural learning and does not replace or rename that provider.\n- **Adaptive-learning boundary:** Transfer the bounded insight-to-action discipline only. Do not invent an obligation or external authority, equate stewardship with self-sacrifice, or transfer the exact answer or doorway to unrelated questions.
 - **Numbering:** `UNASSIGNED`; no display serial was separately requested.
 - **Freeze policy:** Preserve the exact approved answer and doorway rationale. Changes require explicit user authorization and a separately documented benchmark-version change.
 
