@@ -7625,6 +7625,40 @@ def _basic_inquiry_provider_exhaustion_response(query, interpretation, context_d
     return result
 
 
+
+def _weekly_stewardship_action_final_boundary(query):
+    """Return the provider-independent final answer contract for the weekly stewardship action."""
+    from deterministic_answer_recovery import (
+        is_weekly_stewardship_action_question,
+        compose_recovery,
+        registered_recovery_recommendation,
+    )
+    if not is_weekly_stewardship_action_question(query):
+        return None
+    recommendation = registered_recovery_recommendation(query)
+    recommendation = (
+        _normalize_authoritative_recommendation(recommendation)
+        if isinstance(recommendation, dict) else None
+    )
+    if not recommendation:
+        return None
+    return {
+        "response": compose_recovery(query),
+        "answer_basis": {
+            "kind": "practical_application",
+            "label": "Practical application",
+            "explanation": (
+                "A bounded exercise applying the public Stewardship gateway's stated principles. "
+                "The 20-minute structure and suggested follow-through actions are practical suggestions, "
+                "not prescribed Archive instructions."
+            ),
+        },
+        "recommendation": recommendation,
+        "provider": "bounded_weekly_stewardship_action_recovery",
+        "model": "deterministic-contract-recovery",
+    }
+
+
 def _basic_inquiry_round1_deterministic_response(query, interpretation, context_data, *, recommendation_available=False):
     """Question-aware last-resort answer; never promise an answer and then refuse."""
     interpretation = interpretation or {}
@@ -7687,6 +7721,28 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "doorway_rationale": str((_oversoul_doorway or {}).get("rationale") or ""),
             "recommendation": _oversoul_doorway,
             "provider": "bounded_oversoul_free_will_recovery",
+            "model": "",
+        }
+
+    # A visitor asking for one practical act this week needs a provider-independent
+    # action answer grounded in the public Stewardship gateway. This must run
+    # before generic provider exhaustion or terminal abstention can erase it.
+    from deterministic_answer_recovery import (
+        is_weekly_stewardship_action_question,
+        compose_recovery as _compose_weekly_stewardship_action,
+        registered_recovery_recommendation as _weekly_stewardship_doorway,
+    )
+    if is_weekly_stewardship_action_question(query):
+        _weekly_answer = _compose_weekly_stewardship_action(query)
+        _weekly_doorway = _weekly_stewardship_doorway(query)
+        return {
+            "response": _weekly_answer,
+            "doorway_title": str((_weekly_doorway or {}).get("title") or ""),
+            "doorway_url": str((_weekly_doorway or {}).get("url") or ""),
+            "doorway_rationale": str((_weekly_doorway or {}).get("rationale") or ""),
+            "recommendation": _weekly_doorway,
+            "canonical_doorway": _weekly_doorway,
+            "provider": "bounded_weekly_stewardship_action_recovery",
             "model": "",
         }
 
@@ -13297,6 +13353,32 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         print(
             "The Guide final payload boundary: trust-community stewardship "
             "answer, provenance, and canonical doorway contract enforced."
+        )
+
+
+    # Final exact-question recovery: the provider-exhaustion evidence fallback can
+    # still leave a generic abstention even after it selects the correct doorway.
+    # For this narrowly registered request, restore the bounded practical answer
+    # and its separately validated Stewardship doorway after all generic rewrites.
+    _weekly_stewardship_final = _weekly_stewardship_action_final_boundary(query)
+    if _weekly_stewardship_final:
+        response = _sanitize_basic_inquiry_response(
+            _weekly_stewardship_final["response"]
+        )
+        answer_basis = dict(_weekly_stewardship_final["answer_basis"])
+        authoritative_doorway = _weekly_stewardship_final["recommendation"]
+        composition_context["authoritative_doorway"] = authoritative_doorway
+        composition_context["authoritative_doorway_title"] = authoritative_doorway["title"]
+        archive_evidence_unavailable = False
+        deterministic_result = {
+            "response": response,
+            "provider": _weekly_stewardship_final["provider"],
+            "model": _weekly_stewardship_final["model"],
+        }
+        composition_result = {}
+        print(
+            "The Guide final weekly-stewardship boundary: restored bounded action "
+            "answer and canonical Stewardship doorway after provider exhaustion."
         )
 
     # Response provenance metrics: content-free operational accounting for the

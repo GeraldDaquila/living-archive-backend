@@ -343,3 +343,55 @@ def test_authoritative_recommendation_rejects_markup_in_rationale():
         "rationale": "<script>alert(1)</script>",
     }
     assert main._normalize_authoritative_recommendation(candidate) is None
+
+
+def test_weekly_stewardship_action_question_gets_bounded_concrete_practice():
+    from deterministic_answer_recovery import (
+        compose_recovery,
+        has_registered_recovery,
+        is_weekly_stewardship_action_question,
+        registered_recovery_recommendation,
+    )
+    question = "What is one concrete act of stewardship I can complete this week that makes an inner insight real?"
+    assert is_weekly_stewardship_action_question(question)
+    assert has_registered_recovery(question)
+    answer = compose_recovery(question)
+    assert "choose one responsibility already entrusted to you" in answer
+    assert "20 minutes" in answer
+    assert "ask for consent" in answer
+    assert "rest, withdraw, or relinquish" in answer
+    assert "not a prescribed Archive rule" in answer
+    doorway = registered_recovery_recommendation(question)
+    assert doorway["title"] == "Stewardship"
+    assert doorway["url"] == "https://geralddaquila.com/stewardship/"
+
+
+def test_weekly_stewardship_action_matcher_does_not_capture_generic_stewardship_questions():
+    from deterministic_answer_recovery import is_weekly_stewardship_action_question
+    assert not is_weekly_stewardship_action_question("What is stewardship?")
+    assert not is_weekly_stewardship_action_question("What is one act of kindness I can do today?")
+    assert not is_weekly_stewardship_action_question("What is one concrete act of stewardship I can complete this month?")
+
+
+def test_weekly_stewardship_action_uses_api_deterministic_boundary():
+    import main
+    query = "What is one concrete act of stewardship I can complete this week that makes an inner insight real?"
+    result = main._basic_inquiry_round1_deterministic_response(
+        query, {}, {"context_blocks": ""}, recommendation_available=False
+    )
+    assert result["provider"] == "bounded_weekly_stewardship_action_recovery"
+    assert "One concrete act you can complete this week" in result["response"]
+    assert result["recommendation"]["title"] == "Stewardship"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/stewardship/"
+
+
+def test_weekly_stewardship_action_final_boundary_restores_answer_and_doorway():
+    import main
+    query = "What is one concrete act of stewardship I can complete this week that makes an inner insight real?"
+    result = main._weekly_stewardship_action_final_boundary(query)
+    assert result is not None
+    assert result["provider"] == "bounded_weekly_stewardship_action_recovery"
+    assert "One concrete act you can complete this week" in result["response"]
+    assert result["answer_basis"]["kind"] == "practical_application"
+    assert result["recommendation"]["title"] == "Stewardship"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/stewardship/"
