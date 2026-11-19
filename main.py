@@ -13263,9 +13263,13 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         and _llm_candidate_text
         and _final_response_text == _llm_candidate_text
     )
-    if composition_result and not _llm_invoked and not deterministic_result:
-        _provider_name = "deterministic_final_boundary"
-        _model_name = ""
+    if composition_result and not _llm_invoked:
+        if deterministic_result:
+            _provider_name = str(deterministic_result.get("provider") or "deterministic_recovery").strip()
+            _model_name = str(deterministic_result.get("model") or "").strip()
+        else:
+            _provider_name = "deterministic_final_boundary"
+            _model_name = ""
 
     _deterministic_by_design = bool(
         deterministic_result
