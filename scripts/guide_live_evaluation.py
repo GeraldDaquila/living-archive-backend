@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from gold_star_semantic_contract import remove_question_echo as _remove_question_echo
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "docs/qa/gold_standard_registry.json"
@@ -64,16 +65,6 @@ def evaluate_gold(record, transport):
         if expected.get("url") is not None:
             out.append(check("doorway_url",observed.get("url")==expected.get("url"),f"Expected {expected.get('url')!r}; observed {observed.get('url')!r}."))
     return out
-
-def _remove_question_echo(query, answer):
-    """Do not let a response earn semantic credit by repeating the visitor's question."""
-    tokens = re.findall(r"[a-z0-9]+", str(query or "").casefold())
-    if len(tokens) < 4:
-        return str(answer or "")
-    phrase = r"[\W_]+".join(re.escape(token) for token in tokens)
-    pattern = r"(?<![a-z0-9])" + phrase + r"(?![a-z0-9])"
-    return re.sub(pattern, " ", str(answer or ""), count=1, flags=re.I)
-
 
 def evaluate_held(case, transport):
     body=transport.get("body") if isinstance(transport.get("body"),dict) else {}

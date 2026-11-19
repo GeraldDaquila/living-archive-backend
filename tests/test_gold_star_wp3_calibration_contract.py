@@ -233,3 +233,55 @@ def test_frozen_live_deterministic_captures_are_scored_without_question_echo_cre
             "case_id": case["case_id"], "expected_failures": expected_failures[case["case_id"]],
             "actual_failures": failed,
         }
+
+
+def test_shared_semantic_contract_does_not_credit_echoed_governance_question():
+    from gold_star_semantic_contract import evaluate_semantic_contract
+    evaluation = _load_json(EVALUATION_SET)
+    query = next(
+        item["query"] for item in evaluation["cases"]
+        if item["case_id"] == "heldout-strategic-governance-001"
+    )
+    answer = (
+        "The question raises a real issue: " + query.rstrip("?") + ". "
+        "I do not have enough grounded material here to give a specific answer. "
+        "A useful next question is what would change if the situation were understood differently."
+    )
+    result = evaluate_semantic_contract(query, {"ok": True, "response": answer})
+    checks = {item["name"]: item["passed"] for item in result["checks"]}
+    assert checks["alternatives_visible"] is False
+    assert checks["tradeoffs_visible"] is False
+    assert checks["conditional_judgment"] is False
+
+
+def test_shared_semantic_contract_retains_substantive_governance_analysis():
+    from gold_star_semantic_contract import evaluate_semantic_contract
+    evaluation = _load_json(EVALUATION_SET)
+    query = next(
+        item["query"] for item in evaluation["cases"]
+        if item["case_id"] == "heldout-strategic-governance-001"
+    )
+    answer = (
+        "Centralized authority can provide coordination and oversight, while distributed "
+        "authority delegates local decisions to teams. Both models have costs and risks. "
+        "When decisions carry organization-wide risk, consistent direction may help; "
+        "routine local decisions can be delegated. I recommend a hybrid: retain strategic "
+        "safeguards centrally and delegate bounded operational authority."
+    )
+    result = evaluate_semantic_contract(query, {"ok": True, "response": answer})
+    assert all(item["passed"] for item in result["checks"]), result["checks"]
+
+
+def test_frozen_capture_semantic_contract_does_not_credit_echoed_governance_alternatives():
+    from gold_star_semantic_contract import evaluate_semantic_contract
+    root = Path(__file__).resolve().parents[1]
+    fixture = _load_json(root / "docs/qa/gold_star_paired_fixture_template.json")
+    case = next(
+        item for item in fixture["cases"]
+        if item["case_id"] == "heldout-strategic-governance-001"
+    )
+    result = evaluate_semantic_contract(case["query"], case["deterministic"])
+    checks = {item["name"]: item["passed"] for item in result["checks"]}
+    assert checks["alternatives_visible"] is False
+    assert checks["tradeoffs_visible"] is False
+    assert checks["conditional_judgment"] is False

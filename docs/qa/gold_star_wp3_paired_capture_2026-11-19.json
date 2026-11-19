@@ -26,282 +26,6 @@
     "status_parity": 0,
     "status_disagreement": 0
   },
-  "paired_contract_evaluation": {
-    "schema_version": "1.0",
-    "evaluation_mode": "offline_fixture_only",
-    "semantic_certification": false,
-    "paired_cases": 0,
-    "status_parity": 0,
-    "status_disagreement": 0,
-    "coverage": {
-      "llm": {
-        "applicable": 0,
-        "not_applicable": 7,
-        "contract_violations": 0,
-        "review_required": 0,
-        "heuristic_passes_are_not_certifications": true
-      },
-      "deterministic": {
-        "applicable": 7,
-        "not_applicable": 0,
-        "contract_violations": 0,
-        "review_required": 7,
-        "heuristic_passes_are_not_certifications": true
-      }
-    },
-    "results": [
-      {
-        "case_id": "heldout-water-boiling-point-001",
-        "question_type": "general_fact",
-        "paths": {
-          "llm": {
-            "status": "not_applicable",
-            "reason": "no_supported_fixture"
-          },
-          "deterministic": {
-            "version": "1.0",
-            "status": "review_required",
-            "reason": "fact_accuracy_requires_evidence_or_case_rubric",
-            "question_type": "general_fact",
-            "checks": []
-          }
-        },
-        "parity": null
-      },
-      {
-        "case_id": "heldout-cosmology-life-001",
-        "question_type": "conceptual_explanation",
-        "paths": {
-          "llm": {
-            "status": "not_applicable",
-            "reason": "no_supported_fixture"
-          },
-          "deterministic": {
-            "version": "1.0",
-            "status": "review_required",
-            "reason": "no_confident_task_contract",
-            "question_type": "unknown",
-            "checks": []
-          }
-        },
-        "parity": null
-      },
-      {
-        "case_id": "heldout-practical-trust-001",
-        "question_type": "practical_application",
-        "paths": {
-          "llm": {
-            "status": "not_applicable",
-            "reason": "no_supported_fixture"
-          },
-          "deterministic": {
-            "version": "1.0",
-            "status": "review_required",
-            "reason": "human_review_required",
-            "question_type": "practical_application",
-            "checks": [
-              {
-                "name": "actionable_content",
-                "passed": false,
-                "rationale": "Provide an actionable operation or example.",
-                "severity": "review"
-              }
-            ],
-            "failed_checks": [
-              "actionable_content"
-            ],
-            "hard_failures": [],
-            "review_flags": [
-              "actionable_content"
-            ],
-            "semantic_certification": false
-          }
-        },
-        "parity": null
-      },
-      {
-        "case_id": "heldout-strategic-governance-001",
-        "question_type": "strategic_tradeoff",
-        "paths": {
-          "llm": {
-            "status": "not_applicable",
-            "reason": "no_supported_fixture"
-          },
-          "deterministic": {
-            "version": "1.0",
-            "status": "review_required",
-            "reason": "human_review_required",
-            "question_type": "strategic_tradeoff",
-            "checks": [
-              {
-                "name": "alternatives_visible",
-                "passed": true,
-                "rationale": "Address the alternatives named in the question.",
-                "severity": "review"
-              },
-              {
-                "name": "tradeoffs_visible",
-                "passed": false,
-                "rationale": "Make material costs and benefits visible.",
-                "severity": "review"
-              },
-              {
-                "name": "conditional_judgment",
-                "passed": true,
-                "rationale": "Give conditional reasoning rather than a universal slogan.",
-                "severity": "review"
-              }
-            ],
-            "failed_checks": [
-              "tradeoffs_visible"
-            ],
-            "hard_failures": [],
-            "review_flags": [
-              "tradeoffs_visible"
-            ],
-            "semantic_certification": false
-          }
-        },
-        "parity": null
-      },
-      {
-        "case_id": "heldout-technical-verification-001",
-        "question_type": "technical_verification",
-        "paths": {
-          "llm": {
-            "status": "not_applicable",
-            "reason": "no_supported_fixture"
-          },
-          "deterministic": {
-            "version": "1.0",
-            "status": "review_required",
-            "reason": "human_review_required",
-            "question_type": "technical_verification",
-            "checks": [
-              {
-                "name": "presence_not_disclosure",
-                "passed": true,
-                "rationale": "Explain a boolean/presence check.",
-                "severity": "review"
-              },
-              {
-                "name": "secret_not_printed",
-                "passed": true,
-                "rationale": "Do not expose secret values.",
-                "severity": "review"
-              },
-              {
-                "name": "config_vs_runtime_use",
-                "passed": false,
-                "rationale": "Distinguish configuration presence from application use.",
-                "severity": "review"
-              }
-            ],
-            "failed_checks": [
-              "config_vs_runtime_use"
-            ],
-            "hard_failures": [],
-            "review_flags": [
-              "config_vs_runtime_use"
-            ],
-            "semantic_certification": false
-          }
-        },
-        "parity": null
-      },
-      {
-        "case_id": "heldout-uncertain-causation-001",
-        "question_type": "uncertain_or_insufficient_evidence",
-        "paths": {
-          "llm": {
-            "status": "not_applicable",
-            "reason": "no_supported_fixture"
-          },
-          "deterministic": {
-            "version": "1.0",
-            "status": "review_required",
-            "reason": "human_review_required",
-            "question_type": "uncertain_causation",
-            "checks": [
-              {
-                "name": "no_asserted_cause_without_evidence",
-                "passed": true,
-                "rationale": "Do not state a definite cause without supporting evidence.",
-                "severity": "review"
-              },
-              {
-                "name": "calibrated_uncertainty",
-                "passed": false,
-                "rationale": "Do not invent a cause without evidence.",
-                "severity": "review"
-              },
-              {
-                "name": "discriminating_evidence",
-                "passed": false,
-                "rationale": "Name evidence that distinguishes explanations.",
-                "severity": "review"
-              },
-              {
-                "name": "useful_investigation",
-                "passed": false,
-                "rationale": "Offer a practical evidence-gathering step.",
-                "severity": "review"
-              }
-            ],
-            "failed_checks": [
-              "calibrated_uncertainty",
-              "discriminating_evidence",
-              "useful_investigation"
-            ],
-            "hard_failures": [],
-            "review_flags": [
-              "calibrated_uncertainty",
-              "discriminating_evidence",
-              "useful_investigation"
-            ],
-            "semantic_certification": false
-          }
-        },
-        "parity": null
-      },
-      {
-        "case_id": "heldout-explicit-no-handoff-001",
-        "question_type": "explicit_no_handoff",
-        "paths": {
-          "llm": {
-            "status": "not_applicable",
-            "reason": "no_supported_fixture"
-          },
-          "deterministic": {
-            "version": "1.0",
-            "status": "review_required",
-            "reason": "human_review_required",
-            "question_type": "explicit_no_handoff",
-            "checks": [
-              {
-                "name": "no_resource_handoff",
-                "passed": true,
-                "rationale": "Respect explicit no-resource/no-link instructions.",
-                "severity": "hard"
-              },
-              {
-                "name": "no_unrequested_followup",
-                "passed": true,
-                "rationale": "Do not append an unrequested next step.",
-                "severity": "review"
-              }
-            ],
-            "failed_checks": [],
-            "hard_failures": [],
-            "review_flags": [],
-            "semantic_certification": false
-          }
-        },
-        "parity": null
-      }
-    ],
-    "interpretation": "This harness checks observable task-contract failures on supplied fixtures. It does not generate answers, verify factual truth, or replace blinded human review."
-  },
   "cases": [
     {
       "case_id": "heldout-water-boiling-point-001",
@@ -1147,5 +871,291 @@
     "human_review": "pending",
     "note": "The initial capture runner did not preserve raw response text for unverified live outputs. It preserved status, request IDs, runtime identity, and provenance classification. The runner has been amended to preserve unverified response text in future manually triggered captures."
   },
-  "evaluation_note": "Per-case deterministic heuristic scores from the initial capture run are intentionally omitted. The first run exposed a false-positive in the strategic-governance evaluator: it credited echoed question wording as answer content. Evaluator v2 strips exact question echoes and is covered by the updated regression tests. Re-evaluate the frozen deterministic fixtures with evaluator v2; do not reuse the superseded initial scores."
+  "evaluation_note": "The first live capture established deterministic-only coverage. The original offline semantic results were produced by baseline evaluator v1.0 and are retained only as a historical record. PR evaluator v1.1 strips exact question echoes before task checks; its treatment of the frozen captures is now regression-tested. No LLM output is attributed and no parity or semantic certification is claimed.",
+  "initial_baseline_contract_evaluation_v1_0": {
+    "schema_version": "1.0",
+    "evaluation_mode": "offline_fixture_only",
+    "semantic_certification": false,
+    "paired_cases": 0,
+    "status_parity": 0,
+    "status_disagreement": 0,
+    "coverage": {
+      "llm": {
+        "applicable": 0,
+        "not_applicable": 7,
+        "contract_violations": 0,
+        "review_required": 0,
+        "heuristic_passes_are_not_certifications": true
+      },
+      "deterministic": {
+        "applicable": 7,
+        "not_applicable": 0,
+        "contract_violations": 0,
+        "review_required": 7,
+        "heuristic_passes_are_not_certifications": true
+      }
+    },
+    "results": [
+      {
+        "case_id": "heldout-water-boiling-point-001",
+        "question_type": "general_fact",
+        "paths": {
+          "llm": {
+            "status": "not_applicable",
+            "reason": "no_supported_fixture"
+          },
+          "deterministic": {
+            "version": "1.0",
+            "status": "review_required",
+            "reason": "fact_accuracy_requires_evidence_or_case_rubric",
+            "question_type": "general_fact",
+            "checks": []
+          }
+        },
+        "parity": null
+      },
+      {
+        "case_id": "heldout-cosmology-life-001",
+        "question_type": "conceptual_explanation",
+        "paths": {
+          "llm": {
+            "status": "not_applicable",
+            "reason": "no_supported_fixture"
+          },
+          "deterministic": {
+            "version": "1.0",
+            "status": "review_required",
+            "reason": "no_confident_task_contract",
+            "question_type": "unknown",
+            "checks": []
+          }
+        },
+        "parity": null
+      },
+      {
+        "case_id": "heldout-practical-trust-001",
+        "question_type": "practical_application",
+        "paths": {
+          "llm": {
+            "status": "not_applicable",
+            "reason": "no_supported_fixture"
+          },
+          "deterministic": {
+            "version": "1.0",
+            "status": "review_required",
+            "reason": "human_review_required",
+            "question_type": "practical_application",
+            "checks": [
+              {
+                "name": "actionable_content",
+                "passed": false,
+                "rationale": "Provide an actionable operation or example.",
+                "severity": "review"
+              }
+            ],
+            "failed_checks": [
+              "actionable_content"
+            ],
+            "hard_failures": [],
+            "review_flags": [
+              "actionable_content"
+            ],
+            "semantic_certification": false
+          }
+        },
+        "parity": null
+      },
+      {
+        "case_id": "heldout-strategic-governance-001",
+        "question_type": "strategic_tradeoff",
+        "paths": {
+          "llm": {
+            "status": "not_applicable",
+            "reason": "no_supported_fixture"
+          },
+          "deterministic": {
+            "version": "1.0",
+            "status": "review_required",
+            "reason": "human_review_required",
+            "question_type": "strategic_tradeoff",
+            "checks": [
+              {
+                "name": "alternatives_visible",
+                "passed": true,
+                "rationale": "Address the alternatives named in the question.",
+                "severity": "review"
+              },
+              {
+                "name": "tradeoffs_visible",
+                "passed": false,
+                "rationale": "Make material costs and benefits visible.",
+                "severity": "review"
+              },
+              {
+                "name": "conditional_judgment",
+                "passed": true,
+                "rationale": "Give conditional reasoning rather than a universal slogan.",
+                "severity": "review"
+              }
+            ],
+            "failed_checks": [
+              "tradeoffs_visible"
+            ],
+            "hard_failures": [],
+            "review_flags": [
+              "tradeoffs_visible"
+            ],
+            "semantic_certification": false
+          }
+        },
+        "parity": null
+      },
+      {
+        "case_id": "heldout-technical-verification-001",
+        "question_type": "technical_verification",
+        "paths": {
+          "llm": {
+            "status": "not_applicable",
+            "reason": "no_supported_fixture"
+          },
+          "deterministic": {
+            "version": "1.0",
+            "status": "review_required",
+            "reason": "human_review_required",
+            "question_type": "technical_verification",
+            "checks": [
+              {
+                "name": "presence_not_disclosure",
+                "passed": true,
+                "rationale": "Explain a boolean/presence check.",
+                "severity": "review"
+              },
+              {
+                "name": "secret_not_printed",
+                "passed": true,
+                "rationale": "Do not expose secret values.",
+                "severity": "review"
+              },
+              {
+                "name": "config_vs_runtime_use",
+                "passed": false,
+                "rationale": "Distinguish configuration presence from application use.",
+                "severity": "review"
+              }
+            ],
+            "failed_checks": [
+              "config_vs_runtime_use"
+            ],
+            "hard_failures": [],
+            "review_flags": [
+              "config_vs_runtime_use"
+            ],
+            "semantic_certification": false
+          }
+        },
+        "parity": null
+      },
+      {
+        "case_id": "heldout-uncertain-causation-001",
+        "question_type": "uncertain_or_insufficient_evidence",
+        "paths": {
+          "llm": {
+            "status": "not_applicable",
+            "reason": "no_supported_fixture"
+          },
+          "deterministic": {
+            "version": "1.0",
+            "status": "review_required",
+            "reason": "human_review_required",
+            "question_type": "uncertain_causation",
+            "checks": [
+              {
+                "name": "no_asserted_cause_without_evidence",
+                "passed": true,
+                "rationale": "Do not state a definite cause without supporting evidence.",
+                "severity": "review"
+              },
+              {
+                "name": "calibrated_uncertainty",
+                "passed": false,
+                "rationale": "Do not invent a cause without evidence.",
+                "severity": "review"
+              },
+              {
+                "name": "discriminating_evidence",
+                "passed": false,
+                "rationale": "Name evidence that distinguishes explanations.",
+                "severity": "review"
+              },
+              {
+                "name": "useful_investigation",
+                "passed": false,
+                "rationale": "Offer a practical evidence-gathering step.",
+                "severity": "review"
+              }
+            ],
+            "failed_checks": [
+              "calibrated_uncertainty",
+              "discriminating_evidence",
+              "useful_investigation"
+            ],
+            "hard_failures": [],
+            "review_flags": [
+              "calibrated_uncertainty",
+              "discriminating_evidence",
+              "useful_investigation"
+            ],
+            "semantic_certification": false
+          }
+        },
+        "parity": null
+      },
+      {
+        "case_id": "heldout-explicit-no-handoff-001",
+        "question_type": "explicit_no_handoff",
+        "paths": {
+          "llm": {
+            "status": "not_applicable",
+            "reason": "no_supported_fixture"
+          },
+          "deterministic": {
+            "version": "1.0",
+            "status": "review_required",
+            "reason": "human_review_required",
+            "question_type": "explicit_no_handoff",
+            "checks": [
+              {
+                "name": "no_resource_handoff",
+                "passed": true,
+                "rationale": "Respect explicit no-resource/no-link instructions.",
+                "severity": "hard"
+              },
+              {
+                "name": "no_unrequested_followup",
+                "passed": true,
+                "rationale": "Do not append an unrequested next step.",
+                "severity": "review"
+              }
+            ],
+            "failed_checks": [],
+            "hard_failures": [],
+            "review_flags": [],
+            "semantic_certification": false
+          }
+        },
+        "parity": null
+      }
+    ],
+    "interpretation": "This harness checks observable task-contract failures on supplied fixtures. It does not generate answers, verify factual truth, or replace blinded human review."
+  },
+  "current_pr_evaluator_version": "1.1",
+  "current_pr_evaluator_revalidation": {
+    "status": "covered_by_offline_regression_tests",
+    "tests": [
+      "test_strategic_question_echo_does_not_count_as_a_comparison_or_recommendation",
+      "test_shared_semantic_contract_does_not_credit_echoed_governance_question",
+      "test_frozen_capture_semantic_contract_does_not_credit_echoed_governance_alternatives"
+    ],
+    "note": "The original v1.0 offline evaluation is retained as a historical baseline only. It credited repeated question wording as evidence of alternatives; evaluator v1.1 strips exact question echoes before substantive checks."
+  }
 }
