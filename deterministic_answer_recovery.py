@@ -1199,19 +1199,19 @@ def compose_task_specific_recovery(question):
 
     # Policy/procedure is a plain-language distinction, not a resource-discovery task.
     if (
-        re.search(r"\\bpolicy\\b", q)
-        and re.search(r"\\bprocedures?\\b", q)
-        and re.search(r"\\b(?:difference|distinguish|compare|versus|vs\\.?|explain)\\b", q)
+        re.search(r"\bpolicy\b", q)
+        and re.search(r"\bprocedures?\b", q)
+        and re.search(r"\b(?:difference|distinguish|compare|versus|vs\\.?|explain)\b", q)
     ):
         return {
             "recovery_id": "task_comparison_policy_procedure",
             "response": (
                 "A policy states the rule, principle, or requirement that guides a decision: what should happen and why. "
                 "A procedure describes the steps people follow to put that policy into practice: how the work is carried out. "
-                "In short, policy sets direction; procedure explains the method.\\n\\n"
+                "In short, policy sets direction; procedure explains the method.\n\n"
                 "For example, a leave policy may state who is eligible for leave and the conditions that apply. "
                 "The procedure explains how an employee submits a request, who reviews it, how the decision is recorded, "
-                "and how the employee is notified.\\n\\n"
+                "and how the employee is notified.\n\n"
                 "The two should support one another, but they are not interchangeable. A policy can remain stable while "
                 "a procedure is improved; a procedure cannot legitimately override the policy it is meant to implement."
             ),
@@ -1220,9 +1220,9 @@ def compose_task_specific_recovery(question):
     # Decision-rights allocation: centralize what needs common authority; delegate
     # reversible, context-dependent choices to the people closest to the work.
     if (
-        re.search(r"\\bcentraliz(?:e|es|ed|ing|ation)|centralis(?:e|es|ed|ing|ation)\\b", q)
-        and re.search(r"\\bdistribut(?:e|es|ed|ing)|decentraliz(?:e|es|ed|ing|ation)|decentralis(?:e|es|ed|ing|ation)|delegat(?:e|es|ed|ing|ion)\\b", q)
-        and re.search(r"\\b(?:authority|decision|decisions|decision-making|power)\\b", q)
+        re.search(r"\bcentraliz(?:e|es|ed|ing|ation)|centralis(?:e|es|ed|ing|ation)\b", q)
+        and re.search(r"\bdistribut(?:e|es|ed|ing)|decentraliz(?:e|es|ed|ing|ation)|decentralis(?:e|es|ed|ing|ation)|delegat(?:e|es|ed|ing|ion)\b", q)
+        and re.search(r"\b(?:authority|decision|decisions|decision-making|power)\b", q)
     ):
         return {
             "recovery_id": "task_decision_rights_distribution_tradeoff",
@@ -1230,11 +1230,11 @@ def compose_task_specific_recovery(question):
                 "Neither full centralization nor unrestricted distribution is a sound default. Centralize decisions that create "
                 "organization-wide obligations, carry legal or material financial risk, require consistent standards, or affect "
                 "several teams at once. Distribute routine and reversible decisions when the relevant knowledge sits with the "
-                "team doing the work and the consequences can be contained locally.\\n\\n"
+                "team doing the work and the consequences can be contained locally.\n\n"
                 "Centralization can improve consistency, coordination, and accountability, but it can also create bottlenecks, "
                 "distance decisions from local knowledge, and weaken initiative. Distributed authority can improve speed, "
                 "ownership, and responsiveness, but it can produce uneven practice, duplicated effort, or conflicting commitments "
-                "if teams lack shared boundaries.\\n\\n"
+                "if teams lack shared boundaries.\n\n"
                 "A growing nonprofit will usually benefit from a clear hybrid: define a small set of reserved organization-wide "
                 "decisions, establish financial and safeguarding thresholds, and delegate day-to-day choices within those limits. "
                 "Make decision ownership and escalation rules visible, then review whether the arrangement is producing timely, "
@@ -1244,17 +1244,17 @@ def compose_task_specific_recovery(question):
 
     # Safe verification of environment-variable presence without exposing the value.
     if (
-        re.search(r"\\b(?:environment\\s+variables?|env\\s+vars?)\\b", q)
-        and re.search(r"\\bpython\\b", q)
-        and re.search(r"\\b(?:verify|check|configured|present|set)\\b", q)
-        and re.search(r"\\b(?:secret|value|expos(?:e|ing)|print|log)\\b", q)
+        re.search(r"\b(?:environment\\s+variables?|env\\s+vars?)\b", q)
+        and re.search(r"\bpython\b", q)
+        and re.search(r"\b(?:verify|check|configured|present|set)\b", q)
+        and re.search(r"\b(?:secret|value|expos(?:e|ing)|print|log)\b", q)
     ):
         return {
             "recovery_id": "task_safe_environment_variable_presence_check",
             "response": (
                 "Check whether the variable is present, but never print or log its value. In Python, test the value as a "
-                "boolean and report only the variable name and the result:\\n\\n"
-                "```python\\nimport os\\n\\nname = \"SERVICE_API_KEY\"\\nconfigured = bool(os.getenv(name, \"\").strip())\\nprint(f\"{name} configured: {configured}\")\\n```\\n\\n"
+                "boolean and report only the variable name and the result:\n\n"
+                "```python\nimport os\n\nname = \"SERVICE_API_KEY\"\nconfigured = bool(os.getenv(name, \"\").strip())\nprint(f\"{name} configured: {configured}\")\n```\n\n"
                 "This confirms that the process environment contains a non-empty value at the time of the check; it does not "
                 "prove that the application reads the variable or that the credential is valid. To verify use, test the code "
                 "path that loads the setting and perform a safe integration check that reports success or failure without "
@@ -1264,21 +1264,21 @@ def compose_task_specific_recovery(question):
 
     # Causal attribution from aggregate traffic changes requires evidence, not a guess.
     if (
-        re.search(r"\\btraffic\\b", q)
-        and re.search(r"\\b(?:increase|increased|spike|surge|jump|rise|higher)\\b", q)
-        and re.search(r"\\b(?:website|site|visitors?|sessions?|analytics)\\b", q)
+        re.search(r"\btraffic\b", q)
+        and re.search(r"\b(?:increase|increased|spike|surge|jump|rise|higher)\b", q)
+        and re.search(r"\b(?:website|site|visitors?|sessions?|analytics)\b", q)
     ):
         return {
             "recovery_id": "task_uncertain_website_traffic_causation",
             "response": (
                 "The cause cannot be established from the traffic increase alone. A rise in visits can come from several "
                 "different sources—search visibility, referrals, a campaign, a newly shared page, direct traffic, automated "
-                "bots, or a measurement change—and more than one may be operating at once.\\n\\n"
+                "bots, or a measurement change—and more than one may be operating at once.\n\n"
                 "Start by comparing the affected week with the preceding weeks and the same period where seasonality matters. "
                 "Segment the change by acquisition source and medium, landing page, geography, device, and new versus returning "
                 "visitors. Identify which segment accounts for most of the increase, then compare its timing with published "
                 "content, campaigns, backlinks, search impressions and clicks, site changes, and referral activity. Check server "
-                "logs and bot indicators as well: a rise in requests is not necessarily a rise in people.\\n\\n"
+                "logs and bot indicators as well: a rise in requests is not necessarily a rise in people.\n\n"
                 "Treat a cause as supported only when the timing and segment-level evidence converge. Record competing "
                 "explanations and what would distinguish them; without that evidence, report the increase as observed and its "
                 "cause as undetermined rather than assigning it to the most visible event."
@@ -1288,21 +1288,21 @@ def compose_task_specific_recovery(question):
     # A worldview/assumption question needs a clear relationship and lived example,
     # not a generic mechanism paragraph with the entire interrogative pasted in.
     if (
-        re.search(r"\\b(?:assumptions? about reality|worldview|worldviews|beliefs about how the world works)\\b", q)
-        and re.search(r"\\b(?:decisions?|choices|cooperat(?:e|ion)|everyday|daily|relationships?)\\b", q)
-        and re.search(r"\\b(?:shape|shapes|influence|influences|affect|affects|guide|guides)\\b", q)
+        re.search(r"\b(?:assumptions? about reality|worldview|worldviews|beliefs about how the world works)\b", q)
+        and re.search(r"\b(?:decisions?|choices|cooperat(?:e|ion)|everyday|daily|relationships?)\b", q)
+        and re.search(r"\b(?:shape|shapes|influence|influences|affect|affects|guide|guides)\b", q)
     ):
         return {
             "recovery_id": "task_worldview_everyday_decisions_and_cooperation",
             "response": (
                 "Assumptions about reality shape everyday decisions by influencing what people notice, what they regard as "
                 "possible, whose interests they consider, and which consequences they expect. These assumptions form part of "
-                "a worldview: a background picture of how the world works and how people are related to one another.\\n\\n"
+                "a worldview: a background picture of how the world works and how people are related to one another.\n\n"
                 "For example, if people assume that resources are always scarce and others are mainly competitors, they may "
                 "protect information, avoid sharing risk, or treat disagreement as a threat. If they see people as distinct "
                 "but interdependent, they may be more inclined to share information, coordinate contributions, and consider "
                 "how a decision affects the wider group. Neither assumption determines behavior by itself; incentives, trust, "
-                "institutions, and material conditions also matter.\\n\\n"
+                "institutions, and material conditions also matter.\n\n"
                 "The practical influence is reciprocal. A worldview shapes how people interpret a situation, while repeated "
                 "experiences and the consequences of their choices can reinforce or revise that worldview. Cooperation becomes "
                 "more likely when people can make their assumptions visible, test them against experience, and build conditions "
