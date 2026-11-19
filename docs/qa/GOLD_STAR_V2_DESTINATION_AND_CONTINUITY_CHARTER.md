@@ -293,25 +293,31 @@ If this document and repository state disagree, inspect the source and correct t
 - New tests cover evidence provenance, source tampering, approved reference contracts, temporal uncertainty, and repair eligibility/abstention boundaries.
 - Verified on implementation commit `ec8285e118dfa3faf0ae7a0e1d579a835a127153`. Initial integration tests exposed that protected retrieval documents were not being carried into the evidence envelope; the runtime was corrected to consume those protected document collections rather than treating the doorway as evidence. The bounded-repair executor was then extracted and behaviorally tested for one-attempt enforcement, revalidation, rejection, exception handling, and preservation of the original doorway/evidence.
 
-### WP3 representative evaluation and human calibration (offline contract tests verified; live evidence pending)
+### WP3 representative evaluation and human calibration (partial; deterministic captures complete; LLM attribution and human scoring pending)
 
-- Reconciled the seven held-out question IDs across the evaluation rubric and paired LLM/deterministic capture template.
-- Added positive evaluator-contract coverage for all seven held-out question classes and a negative control for unregistered cases.
-- Verified the rubric's 0/1/2/NA scale and critical-dimension declarations.
-- Fixed a scorecard defect: case-specific critical dimensions were previously listed as critical but absent from the score map. They are now included as unscored fields, so a human reviewer can assess each case's declared critical criteria.
-- Confirmed all scorecards remain pending, unassigned, unreviewed, and unapproved until a human completes them.
-- Confirmed the paired capture template remains honestly empty: seven LLM outputs and seven deterministic outputs are still null. Offline fixture evaluation reports zero paired cases, zero parity claims, and no semantic certification.
-- The new WP3 calibration-contract suite passed within the 86-test shared Gold Star regression run. The broader exact-head CI set passed 29 workflows; one live-browser workflow was skipped.
-- These tests validate the WP3 evaluation machinery only. They do not constitute real paired runtime captures, blinded human review, or proof of LLM/deterministic parity. Those remain required before WP3 can be closed.
+- The seven held-out questions and rubric are aligned across the evaluation set and paired fixture.
+- A bounded one-time capture run (#44459060627) queried the secondary mirror once for each held-out question. All seven requests returned HTTP 200.
+- Render deployment metadata showed primary and secondary running source commit `93c2d3a31405ec8b193e8d7a986ed764415ef8d3`; the mirror integration-audit endpoint independently reported the same deployment SHA.
+- Seven deterministic fallback outputs were executed locally from that exact deployed source commit and passed through its shared visitor finalizer. All seven are preserved in `docs/qa/gold_star_paired_fixture_template.json`; the full attributable capture report is `docs/qa/gold_star_wp3_paired_capture_2026-11-19.json`.
+- Zero of seven live API outputs qualified as verified LLM captures. The final response provenance was unresolved and provider/model attribution was absent. Provider attempts appeared in service logs, but provider activity is not proof that the final visitor answer came from an LLM. Therefore: zero paired cases, zero parity claims, and no semantic certification.
+- The integration audit returned `ok: false` because the relationship capability lacked an adapter. This is recorded separately from the verified deployment SHA; it was not treated as a source-identity mismatch.
+- The capture runner now requires explicit final-answer provenance (or the equivalent answer-envelope declaration), preserves unverified response text on future runs, and is `workflow_dispatch` only. Commits will not trigger more live provider calls.
+- The captured deterministic answers reveal substantive gaps: the general-fact and practical-trust questions fall back to generic Archive-limitation language; the cosmology answer is malformed/off-task; the strategic answer echoes the question instead of comparing governance models; the technical answer omits a safe configuration check; the uncertain-causation answer omits discriminating evidence and investigation steps; and the explicit no-handoff answer appends a generic next question.
+- Evaluation false positives and false negatives were found and corrected. Shared evaluator v1.2 removes exact question echoes before scoring, requires substantive trade-off/conditional language, and flags generic next-question prompts when follow-up is prohibited. The frozen captures are regression-tested against these rules.
+- The case-specific human scorecards remain pending, unassigned, unreviewed, and unapproved. Human judgment is still required; automated checks do not promote answers.
+- WP3 is not closed until a same-source LLM response can be attributed, paired outputs can be compared, and the human review set is completed.
 
 ### CI status
 
 - Verified WP1 source commit: `b19e715e6d213591bcb3aa57e4190e41273fa959`.
 - Verified WP2 source commit: `ec8285e118dfa3faf0ae7a0e1d579a835a127153`.
 - Verified WP3 offline calibration-contract test commit: `827a0a0436da0bb3a1666bb247fd6d0b87ffb7a5`.
+- Verified WP3 deterministic capture/evaluator commits through latest head: `7c0b9fcf471a37b4d27c7177c4ee273fcca0ee0d`.
 - Observed workflow set for the exact WP2 source commit: 31 workflow runs; 30 completed successfully and one live-browser workflow was skipped.
-- Observed workflow set for the WP3 offline calibration-contract test commit: 30 workflow runs; 29 completed successfully and one live-browser workflow was skipped.
-- WP3 shared-contract regression run: 86 passed, 0 failed.
+- Observed workflow set for the latest verified WP3 head (`7c0b9fcf471a37b4d27c7177c4ee273fcca0ee0d`): 31 workflow runs; 30 completed successfully and one live-browser workflow was skipped.
+- Latest Gold Star v2 shared-contract regression suite: 111 passed, 0 failed.
+- Gold Star Semantic Contract Tests: 15 passed, 0 failed.
+- WP3 paired capture workflow #44459060627: completed successfully; 7 live API requests returned HTTP 200; 7 deterministic outputs captured; 0 verified LLM outputs; 0 paired cases. This is capture coverage, not parity or semantic certification.
 - Gold Star v2 shared-contract regression suite: 80 passed, 0 failed. This includes the new evidence-provenance and bounded-repair execution tests.
 - Practical stewardship request-boundary recovery: 16 passed, 1 skipped.
 - v487 protected-runtime compatibility validation: passed, including sitewide safety-boundary QA, specialist-pipe checks, and paired Guide selection/visitor-boundary calibration regressions.
@@ -327,17 +333,17 @@ CI success is not proof of semantic answer quality, human calibration, live brow
 
 - WP1: complete. Deterministic and safety orchestration and final visitor boundaries are verified on the exact implementation commit.
 - WP2: complete. Evidence provenance and one-attempt bounded repair are verified on the exact implementation commit.
-- WP3: offline evaluation-contract tests committed; attributable paired runtime captures and blinded human/evaluator calibration remain outstanding.
+- WP3: seven deterministic captures and evaluator v1.2 are committed and tested; attributable LLM captures, paired comparison, and blinded human scoring remain outstanding.
 - WP4: governed learning/elevation loop.
 - WP5: primary/secondary live browser acceptance and controlled release.
 
 ### Production status
 
-No production merge or deployment was performed. PR #1732 remains open and unmerged. This work changed only the feature branch; live deployment state remains a separate release verification.
+No production merge/deployment or service configuration change was performed. One bounded seven-question evaluation batch was sent to the secondary mirror; no persistent service state was changed. PR #1732 remains open and unmerged.
 
 ### Immediate next action
 
-Obtain attributable paired runtime captures for the seven held-out questions only where both named paths are genuinely supported, then conduct blinded human scoring using the versioned rubric. Preserve unsupported path/case combinations as not applicable. Do not fabricate missing captures or claim automated semantic certification.
+Complete human scoring of the seven frozen deterministic captures using the 0/1/2/NA rubric. Before any further live capture, obtain approval for a controlled secondary-mirror deployment of the PR branch so the same-source LLM provenance envelope can be exercised. Then run the manual capture workflow once, preserving unsupported or unverified LLM outputs as null. Do not claim parity or semantic certification until both paths are attributable and human review is complete.
 
 ## 10. Definition of completion
 
