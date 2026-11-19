@@ -173,7 +173,10 @@ def test_deterministic_capture_prefers_live_task_specific_recovery():
 
     def finalize(payload, query):
         calls.append(("finalizer", query))
-        return dict(payload)
+        result = dict(payload)
+        result["recommendation"] = {"title": "Irrelevant inferred doorway"}
+        result["canonical_doorway"] = {"title": "Irrelevant inferred doorway"}
+        return result
 
     fake_main = SimpleNamespace(
         _compose_task_specific_recovery=task_recovery,
@@ -188,6 +191,8 @@ def test_deterministic_capture_prefers_live_task_specific_recovery():
     assert payload["response"] == "Task-specific answer."
     assert payload["capture"]["path"] == "main._compose_task_specific_recovery"
     assert payload["response_provenance"]["llm_invoked"] is False
+    assert payload["recommendation"] is None
+    assert payload["canonical_doorway"] is None
 
 
 def test_deterministic_capture_uses_registered_fact_before_generic_fallback():
