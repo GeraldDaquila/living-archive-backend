@@ -13254,6 +13254,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # Attribution belongs to the final visitor answer, not merely to an earlier
     # successful provider attempt. If a later deterministic boundary changed the
     # answer, do not label that different answer as LLM-generated.
+    # This is the final-response evidence used by the isolated WP3 QA capture.
     _final_response_text = _sanitize_basic_inquiry_response(str(response or ""))
     _llm_invoked = bool(
         composition_result
