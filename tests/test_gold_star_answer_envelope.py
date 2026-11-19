@@ -87,3 +87,19 @@ def test_envelope_validator_rejects_unknown_versions_and_missing_sections():
     )
     wrong = dict(envelope, version="99.0")
     assert validate_answer_envelope(wrong)["reason"] == "unsupported_version"
+
+
+
+def test_answer_envelope_uses_route_owned_capability_declaration():
+    query = "Explain a concept."
+    payload = {
+        "ok": True,
+        "response": "A bounded explanation.",
+        "route_source": "guide_broad_conceptual_boundary",
+    }
+    envelope = build_answer_envelope(query, payload, build_question_contract(query))
+    capability = envelope["capability"]
+    assert capability["declaration_status"] == "declared"
+    assert capability["registry_version"] == "1.0"
+    assert capability["supported_task_families"] == ["bounded_conceptual_definition"]
+    assert capability["semantic_competence_certified"] is False
