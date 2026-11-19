@@ -2041,3 +2041,37 @@ def test_autonomy_capability_evidence_gold_star_has_bounded_transfer_review():
     assert "pre-registered" in review["transferable_discipline"]
     assert "independently verified" in review["transferable_discipline"]
     assert "Do not transfer the answer text" in review["abstention_boundary"]
+
+
+
+def test_weekly_stewardship_insight_to_action_is_an_immutable_gold_star():
+    benchmark_id = "gs-2026-11-20-weekly-stewardship-insight-to-action"
+    registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+    record = next(item for item in registry["records"] if item["benchmark_id"] == benchmark_id)
+    query = "What is one concrete act of stewardship I can complete this week that makes an inner insight real?"
+    expected = "One concrete act you can complete this week is to choose one responsibility already entrusted to your care and carry out a short stewardship check before acting. Set aside 20 minutes: name what you are holding, who or what is affected, and what is genuinely yours to hold rather than yours to control. Then complete one proportionate follow-through—clarify a commitment, ask for consent, repair a small neglect, protect something vulnerable, or set a needed boundary. Choose the action that fits the real responsibility in front of you; do not invent a duty just to prove an insight.\n\nThis applies the Stewardship page’s emphasis on what is entrusted to your care, quiet and repeated responsibility, and the need to distinguish sustainable care from sacrifice. Restraint can be the act: rest, withdraw, or relinquish what is not yours to carry.\n\nAt the end of the week, review one observable result: did your action support the person, relationship, knowledge, place, or system affected without overreach or depletion? Keep, revise, or stop the practice based on that result. The 20-minute check is a practical exercise, not a prescribed Archive rule."
+
+    assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
+    assert record["query"] == query
+    assert record["expected_response"] == expected
+    assert record["explicit_user_elevation_approval"] is True
+    assert record["freeze_policy"] == "immutable_user_approved_gold_standard"
+    assert record["runtime_transfer"] is True
+    assert record["numbering_status"] == "UNASSIGNED"
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is True
+    assert record["gold_star_capabilities"]["active_quality_contributor"] is True
+    assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is False
+    assert record["expected_doorway"]["title"] == "Stewardship"
+    assert record["expected_doorway"]["url"] == "https://geralddaquila.com/stewardship/"
+    assert "not a prescribed Archive rule" in expected
+    assert len(expected.split("\\n\\n")) == 3
+
+
+def test_weekly_stewardship_gold_star_has_bounded_qualitative_transfer_review():
+    benchmark_id = "gs-2026-11-20-weekly-stewardship-insight-to-action"
+    reviews = json.loads((ROOT / "docs" / "qa" / "gold_star_qualitative_transfer_review.json").read_text(encoding="utf-8"))
+    review = next(item for item in reviews["entries"] if item["benchmark_id"] == benchmark_id)
+    assert review["activation"] == "active_quality_contributor"
+    assert "already entrusted" in review["transferable_discipline"]
+    assert "rest" in review["transferable_discipline"]
+    assert "Do not invent a personal duty" in review["abstention_boundary"]
