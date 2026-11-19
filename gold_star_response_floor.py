@@ -97,6 +97,7 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
         "exact_standard_immutable": bool(exact_standard),
         "question_contract": question_contract,
         "question_contract_validation": contract_validation,
+        "personal_reference_resolution": question_contract.get("personal_reference"),
     }
     # Shadow diagnostics are metadata only. A semantic hard failure is not
     # promoted into the v2 enforcement status and cannot change the answer.
