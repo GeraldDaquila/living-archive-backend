@@ -13240,13 +13240,31 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # deterministic answer from an LLM opportunity that fell through to recovery.
     _provider_name = ""
     _model_name = ""
-    _llm_invoked = bool(composition_result)
+    _llm_candidate_text = ""
     if composition_result:
-        _provider_name = str(composition_result.get("provider") or "")
-        _model_name = str(composition_result.get("model") or "")
+        _provider_name = str(composition_result.get("provider") or "").strip()
+        _model_name = str(composition_result.get("model") or "").strip()
+        _llm_candidate_text = _sanitize_basic_inquiry_response(
+            str(composition_result.get("response") or "")
+        )
     elif deterministic_result:
-        _provider_name = str(deterministic_result.get("provider") or "")
-        _model_name = str(deterministic_result.get("model") or "")
+        _provider_name = str(deterministic_result.get("provider") or "").strip()
+        _model_name = str(deterministic_result.get("model") or "").strip()
+
+    # Attribution belongs to the final visitor answer, not merely to an earlier
+    # successful provider attempt. If a later deterministic boundary changed the
+    # answer, do not label that different answer as LLM-generated.
+    _final_response_text = _sanitize_basic_inquiry_response(str(response or ""))
+    _llm_invoked = bool(
+        composition_result
+        and _provider_name
+        and _model_name
+        and _llm_candidate_text
+        and _final_response_text == _llm_candidate_text
+    )
+    if composition_result and not _llm_invoked and not deterministic_result:
+        _provider_name = "deterministic_final_boundary"
+        _model_name = ""
 
     _deterministic_by_design = bool(
         deterministic_result
