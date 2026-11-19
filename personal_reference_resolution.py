@@ -111,7 +111,7 @@ def compose_teaching_conflict_protocol(
     verified = resolution["verified_sources"]
     source_names = ", ".join(f"**{item['title']}**" for item in verified)
     response = (
-        "I can recover a **source-grounded discernment synthesis** from the published "
+        "I can recover a **source-grounded synthesis** of discernment from the published "
         f"Living Archive methods: {source_names}. I cannot verify from this bounded "
         "source set that this is the exact wording of a separately established personal "
         "protocol, or that it exhausts anything recorded in private conversations or files. "
@@ -171,7 +171,7 @@ def compose_teaching_conflict_protocol(
 def personal_reference_fallback(query: str) -> str:
     """State the bounded retrieval limit without claiming global source absence."""
     return (
-        "I can help recover an established reference, but I could not verify its exact "
+        "I can help recover your protocol or established reference, but I could not verify its exact "
         "wording in the conversation and source material available to this response. "
         "That is a limit of this retrieval, not proof that no such record exists. I will "
         "not invent or replace an established position.\n\n"
