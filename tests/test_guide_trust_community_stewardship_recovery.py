@@ -1,18 +1,36 @@
 """Final visitor contract for the trust/community stewardship question."""
 
+import json
 from pathlib import Path
 
 import main
 
 
 QUERY = "What is the role of trust in community stewardship?"
+FIXTURE_PATH = Path(__file__).parent / "fixtures" / "gold_star_v2_trust_community_stewardship.json"
+
+
+def test_trust_community_stewardship_matches_frozen_gold_star_v2_visitor_reference():
+    fixture = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
+    contract = main._trust_community_stewardship_final_contract(QUERY)
+
+    assert fixture["status"] == "FROZEN_REFERENCE_ONLY"
+    assert fixture["observed_query"] == QUERY
+    assert contract is not None
+    assert contract["response"] == fixture["expected_response"]
+    assert contract["answer_basis"]["kind"] == fixture["answer_basis"]["kind"]
+    assert contract["answer_basis"]["label"] == fixture["answer_basis"]["label"]
+    assert "source_url" not in contract["answer_basis"]
+    assert contract["recommendation"]["kind"] == fixture["recommendation"]["kind"]
+    assert contract["recommendation"]["title"] == fixture["recommendation"]["title"]
+    assert contract["recommendation"]["url"] == fixture["recommendation"]["url"]
 
 
 def test_trust_community_stewardship_contract_answers_with_humane_concrete_language():
     contract = main._trust_community_stewardship_final_contract(QUERY)
     assert contract is not None
     response = contract["response"]
-    assert len(response.split("\n\n")) == 3
+    assert len(response.split("\\n\\n")) == 3
     for phrase in (
         "Trust is what lets a community share responsibility",
         "confidence built through conduct",
