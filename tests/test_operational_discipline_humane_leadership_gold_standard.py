@@ -48,9 +48,9 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
 
     def test_blank_gold_standard_doorway_preserves_independently_selected_doorway(self):
         selected_doorway = {
-            "title": "Foundational Stewardship Cases",
-            "url": "https://geralddaquila.com/level-1-case-catalog/",
-            "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
+            "title": "Applied Stewardship Toolkit",
+            "url": "https://geralddaquila.com/applied-toolkit-governance-layers/",
+            "rationale": "Provide practical governance instruments and templates for intentional communities and stewardship practice.",
         }
         standard = resolve_exact_gold_standard(QUESTION)
         self.assertIsNotNone(standard)
@@ -69,8 +69,8 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
 
     def test_historical_no_handoff_reference_does_not_control_doorway(self):
         selected_doorway = {
-            "title": "Foundational Stewardship Cases",
-            "url": "https://geralddaquila.com/level-1-case-catalog/",
+            "title": "Applied Stewardship Toolkit",
+            "url": "https://geralddaquila.com/applied-toolkit-governance-layers/",
             "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
         }
         standard = resolve_exact_gold_standard(
@@ -86,8 +86,8 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
     def test_universal_json_sender_preserves_default_doorway_for_approved_answer(self):
         messages = []
         selected_doorway = {
-            "title": "Foundational Stewardship Cases",
-            "url": "https://geralddaquila.com/level-1-case-catalog/",
+            "title": "Applied Stewardship Toolkit",
+            "url": "https://geralddaquila.com/applied-toolkit-governance-layers/",
             "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
         }
         payload = {
@@ -112,17 +112,17 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
             "query": "How can I practice stewardship in everyday decisions and shared resources? Do not send me to another page yet.",
             "response": "A substantive answer.",
             "generation_authority_protected_docs": [{
-                "title": "Foundational Stewardship Cases",
-                "url": "https://geralddaquila.com/level-1-case-catalog/",
+                "title": "Applied Stewardship Toolkit",
+                "url": "https://geralddaquila.com/applied-toolkit-governance-layers/",
                 "content": (
-                    "These case studies explore how stewardship is practiced in everyday decisions, "
-                    "shared resources, and responsibilities. They examine how people "
-                    "preserve trust and long-term wellbeing through responsible action."
+                    "A practical toolkit for stewardship in everyday decisions and shared resources. "
+                    "It provides governance instruments and templates for responsibility, "
+                    "community practice, and long-term stewardship."
                 ),
             }],
             "recommendation": {
-                "title": "Foundational Stewardship Cases",
-                "url": "https://geralddaquila.com/level-1-case-catalog/",
+                "title": "Applied Stewardship Toolkit",
+                "url": "https://geralddaquila.com/applied-toolkit-governance-layers/",
             "rationale": "This fixture represents an independently selected canonical destination with an explicit visitor-facing scope explanation.",
             },
         }
