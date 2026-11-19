@@ -8441,7 +8441,7 @@ def _wordpress_fetch_selected_canonical_body(url):
     parsed = urlparse(candidate_url)
     if (
         parsed.scheme != "https"
-        or parsed.hostname != "geralddaquila.com"
+        or (parsed.hostname or "").casefold().removeprefix("www.") != "geralddaquila.com"
         or parsed.username
         or parsed.password
         or not parsed.path.startswith("/")
@@ -8461,7 +8461,7 @@ def _wordpress_fetch_selected_canonical_body(url):
         final = urlparse(final_url)
         if (
             final.scheme != "https"
-            or final.hostname != "geralddaquila.com"
+            or (final.hostname or "").casefold().removeprefix("www.") != "geralddaquila.com"
             or final.path.rstrip("/").casefold() != parsed.path.rstrip("/").casefold()
         ):
             return None
@@ -8613,7 +8613,7 @@ def _wordpress_search_canonical_candidates(query, *, limit=3):
             raw_content = content_html or excerpt_html
             raw_content = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", raw_content)
             content = _guide_html_to_source_text(raw_content)
-            if not content or not re.match(r"^https://geralddaquila\\.com/\\S+$", resource_url, re.I):
+            if not content or not re.match(r"^https://(?:www\\.)?geralddaquila\\.com/\\S+$", resource_url, re.I):
                 return None
             from source_evidence_contract import verify_retrieved_source_document
             verification = verify_retrieved_source_document(
