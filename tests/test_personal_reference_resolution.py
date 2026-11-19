@@ -27,6 +27,11 @@ SOURCE_TEXT = {
         "Consent of those affected. Willingness to be corrected. "
         "Transparency about limits. " + "Ethical authority is accountable. " * 20
     ),
+    "My Approach": (
+        "Different questions require different methods of inquiry. "
+        "I do not present contemplative work as scientific proof. "
+        "The goal is never to replace a person's judgment. " + "Inquiry. " * 20
+    ),
     "Revision Protocol": (
         "Revision follows understanding. Revision welcomes criticism. "
         "Better evidence can require reconsideration. " + "Revision preserves continuity. " * 20
