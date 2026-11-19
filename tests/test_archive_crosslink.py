@@ -651,8 +651,8 @@ def test_wordpress_search_recovers_full_text_candidates_without_pinecone(monkeyp
         return Response({
             "id": 21767,
             "status": "publish",
-            "link": "https://geralddaquila.com/2026/08/10/why-stewardship/",
-            "title": {"rendered": "Why Stewardship?"},
+            "link": "https://geralddaquila.com/stewardship/",
+            "title": {"rendered": "Stewardship"},
             "excerpt": {"rendered": "Stewardship as responsible participation."},
             "content": {"rendered": "<p>" + source_text + "</p>"},
         })
@@ -661,7 +661,7 @@ def test_wordpress_search_recovers_full_text_candidates_without_pinecone(monkeyp
         "contract": "archive-crosslink-inventory-v2",
         "crosslink_ready": True,
         "assets": [{
-            "title": "Why Stewardship?",
+            "title": "Stewardship",
             "url": "https://geralddaquila.com/stewardship/",
             "wp_id": "21767",
             "resource_type": "page",
