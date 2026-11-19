@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Capture attributable LLM and deterministic Guide outputs against one deployed source commit.
 
-This is a bounded, manually reviewed calibration capture. It queries the secondary
-mirror once per held-out question and executes the exact deployed deterministic
-fallback locally from the same source commit. It never deploys or changes services.
+This is a bounded, manually reviewed calibration capture. It queries one explicitly
+allowlisted isolated target (the secondary mirror or Standalone QA) once per held-out
+question and executes the exact deployed deterministic fallback locally from the
+same source commit. It never deploys or changes services or targets the primary.
 """
 from __future__ import annotations
 
@@ -20,6 +21,8 @@ from urllib.request import Request, urlopen
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MIRROR = "https://living-archive-backend-mirror.onrender.com"
+STANDALONE_QA = "https://living-archive-gold-star-v2-qa.onrender.com"
+APPROVED_TARGETS = {MIRROR, STANDALONE_QA}
 EVALUATION_SET = REPO_ROOT / "docs/qa/guide_learning_evaluation_set.json"
 
 
@@ -149,7 +152,7 @@ def verify_runtime_identity(base_url: str, expected_commit: str) -> dict:
     body = audit.get("body")
     if audit.get("status") != 200 or not isinstance(body, dict):
         raise RuntimeError(
-            "Mirror integration audit unavailable: "
+            "Target integration audit unavailable: "
             f"status={audit.get('status')} error={audit.get('error')} "
             f"body={str(audit.get('raw_body') or '')[:1200]}"
         )
@@ -158,7 +161,7 @@ def verify_runtime_identity(base_url: str, expected_commit: str) -> dict:
     # its independently reported immutable deployment SHA.
     deployed_commit = str(body.get("deployment_commit_sha") or "").strip()
     if not deployed_commit:
-        raise RuntimeError("Mirror did not expose deployment_commit_sha; refusing unaligned capture.")
+        raise RuntimeError("Target did not expose deployment_commit_sha; refusing unaligned capture.")
     if deployed_commit != expected_commit:
         raise RuntimeError(
             f"Source mismatch: mirror runs {deployed_commit}, local baseline is {expected_commit}; "
@@ -202,8 +205,12 @@ def main() -> int:
     args = parser.parse_args()
 
     base_url = args.base_url.rstrip("/")
-    if base_url != MIRROR:
-        parser.error("WP3 capture is restricted to the secondary mirror; primary is not queried.")
+    if base_url not in APPROVED_TARGETS:
+        parser.error(
+            "WP3 capture is restricted to the allowlisted secondary mirror or Standalone QA; "
+            "primary and arbitrary hosts are never queried."
+        )
+    target_kind = "standalone_qa" if base_url == STANDALONE_QA else "secondary_mirror"
 
     baseline_root = Path.cwd().resolve()
     sys.path.insert(0, str(REPO_ROOT))
@@ -344,7 +351,11 @@ def main() -> int:
     paired_report = evaluate_dataset(fixture)
     report = {
         "report_schema_version": "1.0",
-        "evaluation_mode": "verified_mirror_llm_plus_same_commit_local_deterministic_capture",
+        "evaluation_mode": (
+            "verified_standalone_qa_llm_plus_same_commit_local_deterministic_capture"
+            if target_kind == "standalone_qa"
+            else "verified_secondary_mirror_llm_plus_same_commit_local_deterministic_capture"
+        ),
         "semantic_certification": False,
         "runtime_identity": runtime,
         "source_code_commit": baseline_commit,
