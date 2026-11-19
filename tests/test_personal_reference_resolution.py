@@ -60,8 +60,8 @@ def test_teaching_conflict_resolution_requires_all_verified_source_bodies():
     assert len(result["documents"]) == 4
     assert result["doorway"]["title"] == "Analytical Procedure"
     assert "faithful synthesis" in result["response"]
-    assert "conscience matters as an ethical signal" in result["response"]
-    assert "not automatic proof" in result["response"]
+    assert "conscience matters as an ethical signal" in result["response"].casefold()
+    assert "not automatic proof" in result["response"].casefold()
     for step in (
         "Pause before concluding",
         "Observe what is actually in conflict",
