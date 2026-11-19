@@ -1257,7 +1257,7 @@ def test_ai_staffing_successor_is_elevated_gold_star_and_preserves_legacy_record
     assert old["expected_response"].startswith("For a question like this, the first task is to make the decision visible.")
     assert old["runtime_exact_query_successor"] == successor_id
     assert old["gold_star_capabilities"]["active_quality_contributor"] is True
-    assert old["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert old["gold_star_capabilities"]["exact_answer_authority"] is True
     assert old["runtime_exact_answer_authority_delegated"] is True
     assert successor["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert successor["rating_out_of_10"] == 9.5
@@ -1293,7 +1293,7 @@ def test_ai_workforce_gold_star_has_bounded_active_transfer_review_and_no_serial
     entry = next(r for r in review["entries"] if r["benchmark_id"] == benchmark_id)
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["runtime_transfer"] is True
-    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is True
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
     assert record["numbering_status"] == "UNASSIGNED"
@@ -1404,7 +1404,7 @@ def test_personal_decision_agency_gold_star_93_preserves_exact_live_answer_and_d
     assert record["user_reviewed_response"] is True
     assert record["explicit_user_elevation_approval"] is True
     assert record["runtime_transfer"] is True
-    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is True
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
     assert len(record["expected_response"].split(chr(10) * 2)) == 3
