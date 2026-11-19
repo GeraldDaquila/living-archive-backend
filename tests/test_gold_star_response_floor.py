@@ -237,3 +237,53 @@ def test_shared_finalizer_replaces_generic_definition_failure_for_personal_refer
     assert "I can help recover your protocol" in result["response"]
     assert "dictionary" not in result["response"].casefold()
     assert result["personal_reference_resolution"]["source_verified"] is False
+
+
+
+def test_teaching_conflict_personal_reference_requires_verified_source_bodies():
+    from personal_reference_resolution import (
+        compose_teaching_conflict_protocol,
+        teaching_conflict_source_urls,
+    )
+
+    query = (
+        "What is my protocol when a teaching conflicts with my conscience, "
+        "lived experience, or care for others?"
+    )
+    urls = teaching_conflict_source_urls()
+    titles = (
+        "Analytical Procedure",
+        "Discernment Foundations",
+        "Discernment, Authority, and Ethical Access",
+        "Revision Protocol",
+    )
+    markers = {
+        "Analytical Procedure": (
+            "Observe. Clarify the question. Gather appropriate evidence. "
+            "Develop explanations. Locate the level of claim. Examine the boundaries. "
+            "Reflect upon implications. Remain open to revision. " + "Method. " * 60
+        ),
+        "Discernment Foundations": (
+            "Separate Events From Interpretation. Slow Down Before Concluding. "
+            "Ethical responsibility. Open to revision. " + "Discernment. " * 60
+        ),
+        "Discernment, Authority, and Ethical Access": (
+            "Pause, differentiate, and refrain. Consent of those affected. "
+            "Willingness to be corrected. Transparency about limits. " + "Ethics. " * 60
+        ),
+        "Revision Protocol": (
+            "Revision follows understanding. Revision welcomes criticism. "
+            "Better evidence. " + "Revision. " * 60
+        ),
+    }
+    docs = [
+        {"title": title, "url": url, "text": markers[title]}
+        for title, url in zip(titles, urls)
+    ]
+    result = compose_teaching_conflict_protocol(query, docs)
+    assert result is not None
+    assert len(result["documents"]) == 4
+    assert result["doorway"]["title"] == "Analytical Procedure"
+    assert "faithful synthesis" in result["response"]
+    assert "remain correctable" in result["response"].casefold()
+    assert compose_teaching_conflict_protocol(query, docs[:-1]) is None
