@@ -126,3 +126,17 @@ def test_water_boiling_point_uses_a_query_matched_registered_fact():
     assert result["fact_id"] == "water_boiling_point_sea_level"
     assert "100°C" in result["response"]
     assert "212°F" in result["response"]
+
+
+def test_registered_fact_is_preserved_only_for_its_own_query_at_final_integrity_gate():
+    question = "At standard atmospheric pressure, what temperature does water boil at?"
+    recovery = main._established_general_knowledge_recovery(question)
+
+    assert main._guide_registered_fact_matches_current_response(
+        question, recovery["response"], recovery
+    )
+    assert not main._guide_registered_fact_matches_current_response(
+        question,
+        "A different approved answer that does not answer the boiling-point question.",
+        recovery,
+    )
