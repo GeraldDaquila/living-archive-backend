@@ -10,9 +10,13 @@ from __future__ import annotations
 import re
 from typing import Any, Dict
 
-from personal_reference_resolution import PERSONAL_REFERENCE_VERSION, is_personal_reference_question
+from personal_reference_resolution import (
+    PERSONAL_REFERENCE_VERSION,
+    is_personal_reference_question,
+    is_teaching_conflict_reference,
+)
 
-VERSION = "1.1"
+VERSION = "1.2"
 
 _NO_HANDOFF_PATTERNS = (
     r"\bdo not\b.{0,50}\b(?:recommend|suggest|link|refer|follow[- ]?up)\b",
@@ -42,6 +46,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
     no_external_research = _matches_any(normalized, _NO_EXTERNAL_RESEARCH)
     multi_intent = _matches_any(normalized, _MULTI_INTENT_MARKERS)
     personal_reference = is_personal_reference_question(normalized)
+    teaching_conflict_reference = is_teaching_conflict_reference(normalized)
     has_question = "?" in normalized or bool(
         re.match(r"^(?:who|what|when|where|why|how|which|can|could|should|would|is|are|does|do)\b", normalized, re.I)
     )
@@ -64,6 +69,7 @@ def build_question_contract(query: str) -> Dict[str, Any]:
             "detected": personal_reference,
             "version": PERSONAL_REFERENCE_VERSION,
             "resolution": "retrieve_and_verify_before_answering" if personal_reference else "not_applicable",
+            "route_candidate": "teaching_conflict_discernment" if teaching_conflict_reference else ("general_personal_reference" if personal_reference else "not_applicable"),
             "evidence_scope": "available_conversation_and_retrieved_sources",
             "absence_claim_boundary": "not_found_in_available_context_only",
         },

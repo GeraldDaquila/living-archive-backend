@@ -11006,6 +11006,52 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         # selected, relevant canonical doorway. The doorway is returned as a
         # separate field and is not passed into the composition context.
 
+    # Personal-reference questions must resolve against published source bodies,
+    # not the navigation-only Meta-Net mirror. This route is bounded, provider-
+    # independent, and runs before provider exhaustion can force generic recovery.
+    personal_reference_result = None
+    from personal_reference_resolution import (
+        is_teaching_conflict_reference,
+        teaching_conflict_source_urls,
+        compose_teaching_conflict_protocol,
+    )
+    if is_teaching_conflict_reference(query):
+        _personal_docs = []
+        from concurrent.futures import ThreadPoolExecutor
+        _source_urls = teaching_conflict_source_urls()
+        with ThreadPoolExecutor(max_workers=len(_source_urls)) as _source_pool:
+            _source_results = list(_source_pool.map(_wordpress_fetch_selected_canonical_body, _source_urls))
+        for _source_doc in _source_results:
+            if isinstance(_source_doc, dict) and str(_source_doc.get("text") or "").strip():
+                _personal_docs.append(_source_doc)
+        personal_reference_result = compose_teaching_conflict_protocol(query, _personal_docs)
+        if personal_reference_result:
+            _verified_docs = personal_reference_result["documents"]
+            composition_context["generation_authority_protected_docs"] = _verified_docs
+            composition_context["generation_evidence_docs"] = _verified_docs
+            composition_context["documents"] = _verified_docs
+            composition_context["personal_reference_resolution"] = {
+                "status": "verified_from_published_archive_sources",
+                "source_verified": True,
+                "source_count": len(_verified_docs),
+                "source_urls": [item["url"] for item in _verified_docs],
+            }
+            authoritative_doorway = personal_reference_result["doorway"]
+            composition_context["authoritative_doorway"] = authoritative_doorway
+            composition_context["authoritative_doorway_title"] = authoritative_doorway["title"]
+            archive_evidence_unavailable = False
+            print(
+                "The Guide personal-reference resolution: "
+                "status=verified_from_published_archive_sources; "
+                f"sources={len(_verified_docs)}; provider_independent=True."
+            )
+        else:
+            print(
+                "The Guide personal-reference resolution: "
+                "status=insufficient_verified_source_bodies; "
+                "generic_personal_protocol_not_invented=True."
+            )
+
     # All ordinary questions use the same provider-neutral composition path,
     # including when no suitable Archive evidence is available. The composer
     # is explicitly instructed to answer from general knowledge where suitable
@@ -11029,7 +11075,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # This narrow practical-question class has a bounded, provider-independent
     # answer. Do not send it through the general composition envelope: that
     # envelope can exceed provider token budgets before the fallback is reached.
-    if (
+    if personal_reference_result:
+        llm_output = str(personal_reference_result["response"]).strip()
+        deterministic_result = {
+            "response": llm_output,
+            "provider": "verified_archive_personal_reference_recovery",
+            "model": "deterministic-source-synthesis",
+            "personal_reference_resolution": {
+                "status": "verified_from_published_archive_sources",
+                "source_count": len(personal_reference_result["documents"]),
+            },
+        }
+        print(
+            "The Guide General Composition: "
+            "mode=verified_archive_personal_reference_recovery, "
+            "llm_composer_invoked=false, "
+            f"source_count={len(personal_reference_result['documents'])}."
+        )
+    elif (
         _is_practical_stewardship_question(query)
         and not _is_conceptual_explanatory_request(query)
         and not general_guide_composition.is_conceptual_relationship_question(query)
