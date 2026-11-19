@@ -6,6 +6,7 @@ on:
       - gold-star-v2-complete-architecture
     paths:
       - "scripts/capture_gold_star_wp3_pairs.py"
+      - "tests/test_gold_star_wp3_paired_capture.py"
       - ".github/workflows/gold-star-v2-qa-live-acceptance.yml"
   workflow_dispatch:
 
