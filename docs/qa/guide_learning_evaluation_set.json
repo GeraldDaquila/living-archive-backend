@@ -161,7 +161,7 @@
     {
       "case_id": "heldout-cosmology-life-001",
       "split": "held_out",
-      "query": "What is cosmology, and why does it matter to how people live?",
+      "query": "How do assumptions about reality shape the way people make everyday decisions and cooperate with others?",
       "question_type": "conceptual_explanation",
       "critical_dimensions": [
         "answer_first",
