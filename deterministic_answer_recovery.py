@@ -1208,7 +1208,7 @@ def compose_task_specific_recovery(question):
             "response": (
                 "A policy states the rule, principle, or requirement that guides a decision: what should happen and why. "
                 "A procedure describes the steps people follow to put that policy into practice: how the work is carried out. "
-                "In short, policy sets direction; procedure explains the method.\n\n"
+                "The key difference is that policy sets direction; procedure explains the method.\n\n"
                 "For example, a leave policy may state who is eligible for leave and the conditions that apply. "
                 "The procedure explains how an employee submits a request, who reviews it, how the decision is recorded, "
                 "and how the employee is notified.\n\n"
