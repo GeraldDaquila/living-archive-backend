@@ -115,15 +115,24 @@ def evaluate_held(case, transport):
 def build_human_review_template(rubric, applicable_critical=None):
     """Return an explicitly pending human scorecard; never auto-approve a response."""
     dimensions = rubric.get("dimensions", []) if isinstance(rubric, dict) else []
-    dimension_ids = [item.get("id") for item in dimensions if isinstance(item, dict) and item.get("id")]
-    critical = applicable_critical or (rubric.get("critical_dimensions", []) if isinstance(rubric, dict) else [])
+    dimension_ids = [
+        item.get("id") for item in dimensions
+        if isinstance(item, dict) and item.get("id")
+    ]
+    critical = (
+        list(applicable_critical)
+        if applicable_critical is not None
+        else list(rubric.get("critical_dimensions", [])) if isinstance(rubric, dict) else []
+    )
+    # Case-specific critical dimensions must be scoreable fields too.
+    score_dimension_ids = list(dict.fromkeys([*dimension_ids, *critical]))
     return {
         "status": "PENDING",
         "reviewer": None,
         "reviewed_at": None,
         "decision": "PENDING",
-        "critical_dimensions": list(critical),
-        "scores": {dimension_id: None for dimension_id in dimension_ids},
+        "critical_dimensions": critical,
+        "scores": {dimension_id: None for dimension_id in score_dimension_ids},
         "reviewer_notes": "",
         "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
     }

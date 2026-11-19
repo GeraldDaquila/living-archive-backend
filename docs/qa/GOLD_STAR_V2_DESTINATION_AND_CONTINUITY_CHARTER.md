@@ -293,6 +293,16 @@ If this document and repository state disagree, inspect the source and correct t
 - New tests cover evidence provenance, source tampering, approved reference contracts, temporal uncertainty, and repair eligibility/abstention boundaries.
 - Verified on implementation commit `ec8285e118dfa3faf0ae7a0e1d579a835a127153`. Initial integration tests exposed that protected retrieval documents were not being carried into the evidence envelope; the runtime was corrected to consume those protected document collections rather than treating the doorway as evidence. The bounded-repair executor was then extracted and behaviorally tested for one-attempt enforcement, revalidation, rejection, exception handling, and preservation of the original doorway/evidence.
 
+### WP3 representative evaluation and human calibration (offline contract tests verified; live evidence pending)
+
+- Reconciled the seven held-out question IDs across the evaluation rubric and paired LLM/deterministic capture template.
+- Added positive evaluator-contract coverage for all seven held-out question classes and a negative control for unregistered cases.
+- Verified the rubric's 0/1/2/NA scale and critical-dimension declarations.
+- Fixed a scorecard defect: case-specific critical dimensions were previously listed as critical but absent from the score map. They are now included as unscored fields, so a human reviewer can assess each case's declared critical criteria.
+- Confirmed all scorecards remain pending, unassigned, unreviewed, and unapproved until a human completes them.
+- Confirmed the paired capture template remains honestly empty: seven LLM outputs and seven deterministic outputs are still null. Offline fixture evaluation reports zero paired cases, zero parity claims, and no semantic certification.
+- These tests validate the WP3 evaluation machinery only. They do not constitute real paired runtime captures, blinded human review, or proof of LLM/deterministic parity. Those remain required before WP3 can be closed.
+
 ### CI status
 
 - Verified WP1 source commit: `b19e715e6d213591bcb3aa57e4190e41273fa959`.
@@ -313,7 +323,7 @@ CI success is not proof of semantic answer quality, human calibration, live brow
 
 - WP1: complete. Deterministic and safety orchestration and final visitor boundaries are verified on the exact implementation commit.
 - WP2: complete. Evidence provenance and one-attempt bounded repair are verified on the exact implementation commit.
-- WP3: real paired captures and human/evaluator calibration.
+- WP3: offline evaluation-contract tests committed; attributable paired runtime captures and blinded human/evaluator calibration remain outstanding.
 - WP4: governed learning/elevation loop.
 - WP5: primary/secondary live browser acceptance and controlled release.
 
@@ -323,7 +333,7 @@ No production merge or deployment was performed. PR #1732 remains open and unmer
 
 ### Immediate next action
 
-Begin WP3 representative evaluation and human calibration. Use attributable paired captures on supported routes only; do not fabricate missing captures or claim automated semantic certification. Prepare the held-out review set and human scoring protocol before making parity or quality claims.
+Obtain attributable paired runtime captures for the seven held-out questions only where both named paths are genuinely supported, then conduct blinded human scoring using the versioned rubric. Preserve unsupported path/case combinations as not applicable. Do not fabricate missing captures or claim automated semantic certification.
 
 ## 10. Definition of completion
 
