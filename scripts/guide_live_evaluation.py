@@ -109,7 +109,7 @@ def evaluate_held(case, transport):
     elif cid=="heldout-explicit-no-handoff-001":
         distinction=any(x in low for x in ("policy sets","policy defines","policy establishes","procedure describes","procedure explains","steps for","what must be done","what should be done"))
         no_links=not bool(re.search(r"https?://|www\.",answer,re.I))
-        no_followup=not any(x in low for x in ("would you like","if you want, i can","you may want to explore","next, you could","i recommend reading"))
+        no_followup=not any(x in low for x in ("would you like","if you want, i can","you may want to explore","next, you could","i recommend reading","a useful next question","the next question is","the next step is","a good next step","one useful next step"))
         out += [check("explains_policy_procedure",distinction,"Explain the governing rule versus the steps for carrying it out."),check("no_links_or_doorways",no_links and rec in (None,{}),"Honor the explicit no-resource/no-link instruction."),check("no_unrequested_followup",no_followup,"Do not append a follow-up offer or next step.")]
     else: out.append(check("known_heldout_case",False,f"No evaluator registered for {cid!r}."))
     return out

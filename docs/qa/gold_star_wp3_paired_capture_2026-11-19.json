@@ -871,7 +871,7 @@
     "human_review": "pending",
     "note": "The initial capture runner did not preserve raw response text for unverified live outputs. It preserved status, request IDs, runtime identity, and provenance classification. The runner has been amended to preserve unverified response text in future manually triggered captures."
   },
-  "evaluation_note": "The first live capture established deterministic-only coverage. The original offline semantic results were produced by baseline evaluator v1.0 and are retained only as a historical record. PR evaluator v1.1 strips exact question echoes before task checks; its treatment of the frozen captures is now regression-tested. No LLM output is attributed and no parity or semantic certification is claimed.",
+  "evaluation_note": "The first live capture established deterministic-only coverage. The original offline semantic results were produced by baseline evaluator v1.0 and are retained only as a historical record. PR evaluator v1.1 strips exact question echoes before task checks; its treatment of the frozen captures is now regression-tested. No LLM output is attributed and no parity or semantic certification is claimed. The explicit no-handoff captured response's generic next-question prompt is now flagged by evaluator v1.2.",
   "initial_baseline_contract_evaluation_v1_0": {
     "schema_version": "1.0",
     "evaluation_mode": "offline_fixture_only",
@@ -1148,14 +1148,17 @@
     ],
     "interpretation": "This harness checks observable task-contract failures on supplied fixtures. It does not generate answers, verify factual truth, or replace blinded human review."
   },
-  "current_pr_evaluator_version": "1.1",
+  "current_pr_evaluator_version": "1.2",
   "current_pr_evaluator_revalidation": {
     "status": "covered_by_offline_regression_tests",
     "tests": [
       "test_strategic_question_echo_does_not_count_as_a_comparison_or_recommendation",
       "test_shared_semantic_contract_does_not_credit_echoed_governance_question",
-      "test_frozen_capture_semantic_contract_does_not_credit_echoed_governance_alternatives"
+      "test_frozen_capture_semantic_contract_does_not_credit_echoed_governance_alternatives",
+      "test_explicit_no_handoff_rejects_generic_next_question_prompt",
+      "test_shared_semantic_contract_rejects_generic_next_question_prompt",
+      "test_frozen_explicit_no_handoff_capture_is_flagged_for_unrequested_followup"
     ],
-    "note": "The original v1.0 offline evaluation is retained as a historical baseline only. It credited repeated question wording as evidence of alternatives; evaluator v1.1 strips exact question echoes before substantive checks."
+    "note": "The original v1.0 offline evaluation is retained as a historical baseline only. It credited repeated question wording as evidence of alternatives; evaluator v1.1 strips exact question echoes before substantive checks. Evaluator v1.2 also flags generic 'useful next question' language when a visitor explicitly prohibits follow-up steps."
   }
 }

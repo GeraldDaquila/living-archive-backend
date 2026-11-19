@@ -221,7 +221,7 @@ def test_frozen_live_deterministic_captures_are_scored_without_question_echo_cre
         "heldout-uncertain-causation-001": {
             "calibrates_uncertainty", "names_discriminating_evidence", "offers_investigation"
         },
-        "heldout-explicit-no-handoff-001": {"explains_policy_procedure"},
+        "heldout-explicit-no-handoff-001": {"explains_policy_procedure", "no_unrequested_followup"},
     }
     for case in fixture["cases"]:
         checks = evaluate_held(
@@ -285,3 +285,54 @@ def test_frozen_capture_semantic_contract_does_not_credit_echoed_governance_alte
     assert checks["alternatives_visible"] is False
     assert checks["tradeoffs_visible"] is False
     assert checks["conditional_judgment"] is False
+
+
+def test_explicit_no_handoff_rejects_generic_next_question_prompt():
+    evaluation = _load_json(EVALUATION_SET)
+    case = next(
+        item for item in evaluation["cases"]
+        if item["case_id"] == "heldout-explicit-no-handoff-001"
+    )
+    answer = (
+        "A policy establishes the rule; a procedure describes the steps. "
+        "A useful next question is where this distinction matters most."
+    )
+    checks = evaluate_held(
+        {"case_id": case["case_id"], "query": case["query"]},
+        {"status": 200, "error": None, "body": {
+            "ok": True, "response": answer, "recommendation": None
+        }},
+    )
+    by_name = {item["name"]: item["passed"] for item in checks}
+    assert by_name["explains_policy_procedure"] is True
+    assert by_name["no_unrequested_followup"] is False
+
+
+def test_shared_semantic_contract_rejects_generic_next_question_prompt():
+    from gold_star_semantic_contract import evaluate_semantic_contract
+    evaluation = _load_json(EVALUATION_SET)
+    case = next(
+        item for item in evaluation["cases"]
+        if item["case_id"] == "heldout-explicit-no-handoff-001"
+    )
+    answer = (
+        "A policy establishes the rule; a procedure describes the steps. "
+        "A useful next question is where this distinction matters most."
+    )
+    result = evaluate_semantic_contract(case["query"], {"ok": True, "response": answer})
+    checks = {item["name"]: item["passed"] for item in result["checks"]}
+    assert checks["no_resource_handoff"] is True
+    assert checks["no_unrequested_followup"] is False
+
+
+def test_frozen_explicit_no_handoff_capture_is_flagged_for_unrequested_followup():
+    from gold_star_semantic_contract import evaluate_semantic_contract
+    root = Path(__file__).resolve().parents[1]
+    fixture = _load_json(root / "docs/qa/gold_star_paired_fixture_template.json")
+    case = next(
+        item for item in fixture["cases"]
+        if item["case_id"] == "heldout-explicit-no-handoff-001"
+    )
+    result = evaluate_semantic_contract(case["query"], case["deterministic"])
+    checks = {item["name"]: item["passed"] for item in result["checks"]}
+    assert checks["no_unrequested_followup"] is False
