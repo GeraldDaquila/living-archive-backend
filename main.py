@@ -1920,7 +1920,7 @@ def _mirror_registry_context(query_str):
             orientation_blocks.append(
                 f"[Verified canonical source body — published WordPress content]\n"
                 f"Title: {title}\nURL: {doc.get('url', '')}\n"
-                f"Source text: {text}"
+                f"Content: {text}"
             )
         else:
             orientation_blocks.append(
@@ -1933,7 +1933,7 @@ def _mirror_registry_context(query_str):
     verified_source_count = sum(1 for doc in docs if doc.get("source_body_verified"))
     return {
         "canonical_link_context": context,
-        "context_blocks": "\n\n".join(orientation_blocks),
+        "context_blocks": "\n\n---\n\n".join(orientation_blocks),
         "mirror_registry_active": True,
         "mirror_registry_count": len(docs),
         "mirror_source_body_count": verified_source_count,
