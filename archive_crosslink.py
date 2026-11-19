@@ -50,8 +50,8 @@ _WP_REGISTRY_TIMEOUT_SECONDS = 3.0
 _WP_CONTENT_TIMEOUT_SECONDS = 2.0
 _WP_SEARCH_TIMEOUT_SECONDS = 2.0
 _MAX_WP_SEARCH_RESULTS = 20
-_WP_SOURCE_MAX_BYTES = 524288
 _MAX_WP_SOURCE_ASSETS_PER_QUERY = 4
+_WP_SOURCE_MAX_BYTES = 524288
 _WP_REGISTRY_CACHE_TTL_SECONDS = 21600
 _REFRESH_THREAD: threading.Thread | None = None
 _SNAPSHOT_FILE_ENV = "ARCHIVE_CROSSLINK_SNAPSHOT_PATH"
@@ -824,7 +824,11 @@ def _refresh_worker(index: Any, core: Any) -> None:
 def inventory_snapshot() -> dict[str, Any] | None:
     with _LOCK:
         if _SNAPSHOT is None:
-        def _asset_score(
+            return None
+        return {key: value for key, value in _SNAPSHOT.items() if key != "assets"}
+
+
+def _asset_score(
     query_tokens: set[str],
     seed_tokens: set[str],
     asset: dict[str, Any],
@@ -845,7 +849,6 @@ def inventory_snapshot() -> dict[str, Any] | None:
         return 0.0
     if len(query_tokens) > 5 and not query_overlap:
         return 0.0
-
     score = 0.0
     score += 4.0 * len(query_tokens & title_tokens)
     score += 1.7 * len(query_tokens & summary_tokens)
@@ -862,8 +865,6 @@ def _expanded_query_tokens(query: str) -> set[str]:
     """Add only explicit canonical vocabulary bridges, never inferred claims."""
     tokens = _tokens(query)
     normalized = re.sub(r"\s+", " ", str(query or "").casefold()).strip()
-    # In the Archive's vocabulary, "responsible care" is a direct doorway to
-    # stewardship. Keep this phrase-level bridge narrow and auditable.
     if re.search(r"\bresponsible\s+care\b", normalized):
         tokens.add("stewardship")
     return tokens
@@ -884,7 +885,6 @@ def select_crosslinks(
         return []
     raw_query_token_count = len(re.findall(r"[a-z0-9]+", str(query or "").casefold()))
     natural_language_question = raw_query_token_count >= 7
-
     concept_match = re.match(
         r"^\s*(?:what does|what do)\s+(?:the\s+|this\s+)?(?:living\s+)?archive\s+mean\s+by\s+(.+?)\s*[?!.]*\s*$",
         query or "",
@@ -909,16 +909,10 @@ def select_crosslinks(
         tier = str(asset.get("tier") or "").strip().upper()
         if access_class not in {"public", "open", "open_access"} or tier == "T4":
             continue
-        score = _asset_score(
-            query_tokens,
-            seed_tokens,
-            asset,
-            allow_single_overlap=natural_language_question,
-        )
+        score = _asset_score(query_tokens, seed_tokens, asset, allow_single_overlap=natural_language_question)
         if score >= 3.0:
             ranked.append((score, asset))
     ranked.sort(key=lambda item: (-item[0], str(item[1].get("title") or "")))
-
     normalized_concept = " ".join(sorted(query_tokens))
     if normalized_concept:
         exact_matches = [
@@ -938,8 +932,157 @@ def select_crosslinks(
                 if _normalize_url(item[1].get("url")) != _normalize_url(exact.get("url"))
             ]
             ranked.insert(0, (max(10.0, ranked[0][0] + 0.01 if ranked else 10.0), exact))
-
     return [asset for _, asset in ranked[:max(0, min(int(limit), 8))]]
+
+
+def search_wordpress_canonical_assets(
+    query: str,
+    snapshot: dict[str, Any] | None,
+    *,
+    limit: int = _MAX_WP_SOURCE_ASSETS_PER_QUERY,
+) -> list[dict[str, Any]]:
+    """Use WordPress full-text search when Pinecone is bypassed.
+
+    Candidate results are intersected with the versioned public snapshot by
+    WordPress ID and exact canonical URL. A short content-bearing phrase is
+    searched before the full question so the central concept is not buried by
+    framing words; the full question fills any remaining candidate slots.
+    """
+    if not isinstance(snapshot, dict) or not snapshot.get("crosslink_ready"):
+        return []
+    search_query = _text(query, 300)
+    if not search_query:
+        return []
+    raw_words = re.findall(r"[a-z0-9]+", search_query.casefold())
+    content_words = [word for word in raw_words if len(word) > 2 and word not in _STOPWORDS]
+    variants = []
+    if len(content_words) >= 2:
+        core_phrase = " ".join(content_words[-2:])
+        if core_phrase.casefold() != search_query.casefold():
+            variants.append(core_phrase)
+    variants.append(search_query)
+    assets_by_id = {
+        str(asset.get("wp_id")): asset
+        for asset in snapshot.get("assets", [])
+        if isinstance(asset, dict) and str(asset.get("wp_id") or "").isdigit()
+    }
+    selected: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    for variant in variants:
+        request_url = (
+            "https://geralddaquila.com/wp-json/wp/v2/search?"
+            f"search={quote(variant, safe='')}&per_page={_MAX_WP_SEARCH_RESULTS}"
+            "&_fields=id,url,subtype,title"
+        )
+        request = UrlRequest(request_url, headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"}, method="GET")
+        try:
+            with urlopen(request, timeout=_WP_SEARCH_TIMEOUT_SECONDS) as response:
+                raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
+            if len(raw_bytes) > _WP_SOURCE_MAX_BYTES:
+                raise ValueError("WordPress search response exceeds size bound")
+            payload = json.loads(raw_bytes.decode("utf-8"))
+            if not isinstance(payload, list):
+                continue
+            payload = payload[:_MAX_WP_SEARCH_RESULTS]
+        except Exception as exc:
+            _log(f"USE archive meta-crosslink WordPress search: status=unavailable, error={type(exc).__name__}")
+            continue
+        for result in payload:
+            if not isinstance(result, dict):
+                continue
+            wp_id = str(result.get("id") or "").strip()
+            asset = assets_by_id.get(wp_id)
+            if not asset or wp_id in seen_ids:
+                continue
+            access_class = str(asset.get("access_class") or "public").strip().casefold()
+            tier = str(asset.get("tier") or "").strip().upper()
+            resource_type = str(asset.get("resource_type") or "").strip().casefold()
+            result_subtype = str(result.get("subtype") or "").strip().casefold()
+            if access_class not in {"public", "open", "open_access"} or tier == "T4" or resource_type not in {"page", "post"}:
+                continue
+            if result_subtype and result_subtype != resource_type:
+                continue
+            result_url = _normalize_url(result.get("url"))
+            if not result_url or result_url != _normalize_url(asset.get("url")):
+                continue
+            selected.append(asset)
+            seen_ids.add(wp_id)
+            if len(selected) >= max(0, min(int(limit), _MAX_WP_SOURCE_ASSETS_PER_QUERY)):
+                break
+        if len(selected) >= max(0, min(int(limit), _MAX_WP_SOURCE_ASSETS_PER_QUERY)):
+            break
+    return selected
+
+
+def _wordpress_rendered_text(value: Any) -> str:
+    if isinstance(value, dict):
+        value = value.get("rendered", "")
+    raw = str(value or "")
+    raw = re.sub(r"<!--.*?-->", " ", raw, flags=re.S)
+    raw = re.sub(r"<(script|style)\b[^>]*>.*?</\1\s*>", " ", raw, flags=re.I | re.S)
+    raw = html.unescape(raw)
+    raw = re.sub(r"<[^>]+>", " ", raw)
+    return re.sub(r"\s+", " ", raw).strip()[:12000]
+
+
+def fetch_wordpress_source_documents(
+    assets: list[dict[str, Any]],
+    core: Any,
+    *,
+    limit: int = _MAX_WP_SOURCE_ASSETS_PER_QUERY,
+) -> list[dict[str, Any]]:
+    """Fetch bounded, published source bodies for public snapshot assets."""
+    documents: list[dict[str, Any]] = []
+    for asset in (assets or [])[:max(0, min(int(limit), _MAX_WP_SOURCE_ASSETS_PER_QUERY))]:
+        if not isinstance(asset, dict):
+            continue
+        access_class = str(asset.get("access_class") or "public").strip().casefold()
+        tier = str(asset.get("tier") or "").strip().upper()
+        resource_type = str(asset.get("resource_type") or "").strip().casefold()
+        wp_id = str(asset.get("wp_id") or "").strip()
+        expected_url = _normalize_url(asset.get("url"))
+        if access_class not in {"public", "open", "open_access"} or tier == "T4" or resource_type not in {"page", "post"} or not wp_id.isdigit() or not expected_url:
+            continue
+        wp_endpoint = {"page": "pages", "post": "posts"}[resource_type]
+        request_url = f"https://geralddaquila.com/wp-json/wp/v2/{wp_endpoint}/{quote(wp_id, safe='')}?_fields=id,link,title,excerpt,content,status"
+        request = UrlRequest(request_url, headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"}, method="GET")
+        try:
+            with urlopen(request, timeout=_WP_CONTENT_TIMEOUT_SECONDS) as response:
+                raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
+            if len(raw_bytes) > _WP_SOURCE_MAX_BYTES:
+                raise ValueError("WordPress source response exceeds size bound")
+            payload = json.loads(raw_bytes.decode("utf-8"))
+            if not isinstance(payload, dict) or str(payload.get("status") or "").casefold() != "publish" or str(payload.get("id") or "") != wp_id:
+                continue
+            fetched_url = _normalize_url(payload.get("link"))
+            if not fetched_url or fetched_url != expected_url:
+                continue
+            title = _wordpress_rendered_text(payload.get("title"))[:300]
+            body = _wordpress_rendered_text(payload.get("content"))
+            if not title or len(body) < 120:
+                continue
+            metadata = {
+                "title": title, "url": fetched_url, "text": body, "content": body,
+                "excerpt": _wordpress_rendered_text(payload.get("excerpt"))[:1200],
+                "tier": tier or "T1", "access_class": access_class,
+                "lifecycle": asset.get("lifecycle", ""), "resource_type": resource_type,
+            }
+            if not _eligible(metadata, core):
+                continue
+            usable = getattr(core, "_has_usable_destination", None)
+            navigable = getattr(core, "_is_navigable_canonical_resource", None)
+            if callable(usable) and not usable(metadata):
+                continue
+            if callable(navigable) and not navigable(metadata):
+                continue
+            documents.append({
+                **metadata, "wp_id": wp_id, "summary": metadata["excerpt"],
+                "source_body_verified": True, "crosslink_mode": "wordpress_source_body",
+            })
+        except Exception as exc:
+            _log(f"USE archive meta-crosslink WordPress source fetch: id={wp_id}, status=unavailable, error={type(exc).__name__}")
+            continue
+    return documents
 
 
 def fetch_crosslink_documents(index: Any, core: Any, assets: list[dict[str, Any]]) -> list[dict[str, str]]:
@@ -988,202 +1131,6 @@ def fetch_crosslink_documents(index: Any, core: Any, assets: list[dict[str, Any]
     return documents
 
 
-def _wordpress_rendered_text(value: Any) -> str:
-    if isinstance(value, dict):
-        value = value.get("rendered", "")
-    raw = str(value or "")
-    raw = re.sub(r"<!--.*?-->", " ", raw, flags=re.S)
-    raw = re.sub(r"<(script|style)\b[^>]*>.*?</\1\s*>", " ", raw, flags=re.I | re.S)
-    raw = html.unescape(raw)
-    raw = re.sub(r"<[^>]+>", " ", raw)
-    return re.sub(r"\s+", " ", raw).strip()[:12000]
-
-
-def search_wordpress_canonical_assets(
-    query: str,
-    snapshot: dict[str, Any] | None,
-    *,
-    limit: int = _MAX_WP_SOURCE_ASSETS_PER_QUERY,
-) -> list[dict[str, Any]]:
-    """Use WordPress full-text search when Pinecone is bypassed.
-
-    Candidate results are intersected with the versioned public snapshot by
-    WordPress ID and exact canonical URL. A short content-bearing phrase is
-    searched before the full question so the central concept is not buried by
-    framing words; the full question fills any remaining candidate slots.
-    """
-    if not isinstance(snapshot, dict) or not snapshot.get("crosslink_ready"):
-        return []
-    search_query = _text(query, 300)
-    if not search_query:
-        return []
-
-    raw_words = re.findall(r"[a-z0-9]+", search_query.casefold())
-    content_words = [word for word in raw_words if len(word) > 2 and word not in _STOPWORDS]
-    variants = []
-    if len(content_words) >= 2:
-        core_phrase = " ".join(content_words[-2:])
-        if core_phrase.casefold() != search_query.casefold():
-            variants.append(core_phrase)
-    variants.append(search_query)
-
-    assets_by_id = {
-        str(asset.get("wp_id")): asset
-        for asset in snapshot.get("assets", [])
-        if isinstance(asset, dict) and str(asset.get("wp_id") or "").isdigit()
-    }
-    selected: list[dict[str, Any]] = []
-    seen_ids: set[str] = set()
-    for variant in variants:
-        request_url = (
-            "https://geralddaquila.com/wp-json/wp/v2/search?"
-            f"search={quote(variant, safe='')}&per_page={_MAX_WP_SEARCH_RESULTS}"
-            "&_fields=id,url,subtype,title"
-        )
-        request = UrlRequest(
-            request_url,
-            headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
-            method="GET",
-        )
-        try:
-            with urlopen(request, timeout=_WP_SEARCH_TIMEOUT_SECONDS) as response:
-                raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
-            if len(raw_bytes) > _WP_SOURCE_MAX_BYTES:
-                raise ValueError("WordPress search response exceeds size bound")
-            payload = json.loads(raw_bytes.decode("utf-8"))
-            if not isinstance(payload, list):
-                continue
-            if len(payload) > _MAX_WP_SEARCH_RESULTS:
-                payload = payload[:_MAX_WP_SEARCH_RESULTS]
-        except Exception as exc:
-            _log(
-                "USE archive meta-crosslink WordPress search: "
-                f"status=unavailable, error={type(exc).__name__}"
-            )
-            continue
-
-        for result in payload:
-            if not isinstance(result, dict):
-                continue
-            wp_id = str(result.get("id") or "").strip()
-            asset = assets_by_id.get(wp_id)
-            if not asset or wp_id in seen_ids:
-                continue
-            access_class = str(asset.get("access_class") or "public").strip().casefold()
-            tier = str(asset.get("tier") or "").strip().upper()
-            resource_type = str(asset.get("resource_type") or "").strip().casefold()
-            result_subtype = str(result.get("subtype") or "").strip().casefold()
-            if (
-                access_class not in {"public", "open", "open_access"}
-                or tier == "T4"
-                or resource_type not in {"page", "post"}
-                or (result_subtype and result_subtype != resource_type)
-            ):
-                continue
-            result_url = _normalize_url(result.get("url"))
-            snapshot_url = _normalize_url(asset.get("url"))
-            if not result_url or result_url != snapshot_url:
-                continue
-            selected.append(asset)
-            seen_ids.add(wp_id)
-            if len(selected) >= max(0, min(int(limit), _MAX_WP_SOURCE_ASSETS_PER_QUERY)):
-                break
-        if len(selected) >= max(0, min(int(limit), _MAX_WP_SOURCE_ASSETS_PER_QUERY)):
-            break
-    return selected
-
-
-def fetch_wordpress_source_documents(
-    assets: list[dict[str, Any]],
-    core: Any,
-    *,
-    limit: int = _MAX_WP_SOURCE_ASSETS_PER_QUERY,
-) -> list[dict[str, Any]]:
-    """Fetch bounded, published source bodies for public snapshot assets.
-
-    Both the WordPress ID and canonical URL must match the versioned snapshot.
-    This path is independent of Pinecone and never promotes navigation metadata
-    into factual evidence.
-    """
-    documents: list[dict[str, Any]] = []
-    for asset in (assets or [])[:max(0, min(int(limit), _MAX_WP_SOURCE_ASSETS_PER_QUERY))]:
-        if not isinstance(asset, dict):
-            continue
-        access_class = str(asset.get("access_class") or "public").strip().casefold()
-        tier = str(asset.get("tier") or "").strip().upper()
-        resource_type = str(asset.get("resource_type") or "").strip().casefold()
-        wp_id = str(asset.get("wp_id") or "").strip()
-        expected_url = _normalize_url(asset.get("url"))
-        if (
-            access_class not in {"public", "open", "open_access"}
-            or tier == "T4"
-            or resource_type not in {"page", "post"}
-            or not wp_id.isdigit()
-            or not expected_url
-        ):
-            continue
-        wp_endpoint = {"page": "pages", "post": "posts"}[resource_type]
-        request_url = (
-            f"https://geralddaquila.com/wp-json/wp/v2/{wp_endpoint}/"
-            f"{quote(wp_id, safe='')}?_fields=id,link,title,excerpt,content,status"
-        )
-        request = UrlRequest(
-            request_url,
-            headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
-            method="GET",
-        )
-        try:
-            with urlopen(request, timeout=_WP_CONTENT_TIMEOUT_SECONDS) as response:
-                raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
-            if len(raw_bytes) > _WP_SOURCE_MAX_BYTES:
-                raise ValueError("WordPress source response exceeds size bound")
-            payload = json.loads(raw_bytes.decode("utf-8"))
-            if not isinstance(payload, dict) or str(payload.get("status") or "").casefold() != "publish":
-                continue
-            if str(payload.get("id") or "") != wp_id:
-                continue
-            fetched_url = _normalize_url(payload.get("link"))
-            if not fetched_url or fetched_url != expected_url:
-                continue
-            title = _wordpress_rendered_text(payload.get("title"))[:300]
-            body = _wordpress_rendered_text(payload.get("content"))
-            if not title or len(body) < 120:
-                continue
-            metadata = {
-                "title": title,
-                "url": fetched_url,
-                "text": body,
-                "content": body,
-                "excerpt": _wordpress_rendered_text(payload.get("excerpt"))[:1200],
-                "tier": tier or "T1",
-                "access_class": access_class,
-                "lifecycle": asset.get("lifecycle", ""),
-                "resource_type": resource_type,
-            }
-            if not _eligible(metadata, core):
-                continue
-            usable = getattr(core, "_has_usable_destination", None)
-            navigable = getattr(core, "_is_navigable_canonical_resource", None)
-            if callable(usable) and not usable(metadata):
-                continue
-            if callable(navigable) and not navigable(metadata):
-                continue
-            documents.append({
-                **metadata,
-                "wp_id": wp_id,
-                "summary": metadata["excerpt"],
-                "source_body_verified": True,
-                "crosslink_mode": "wordpress_source_body",
-            })
-        except Exception as exc:
-            _log(
-                "USE archive meta-crosslink WordPress source fetch: "
-                f"id={wp_id}, status=unavailable, error={type(exc).__name__}"
-            )
-            continue
-    return documents
-
-
 def expand_context(
     query: str,
     seed_documents: list[dict[str, Any]],
@@ -1194,29 +1141,16 @@ def expand_context(
     with _LOCK:
         snapshot = _SNAPSHOT
     if snapshot is None:
-        _log(
-            "USE archive meta-crosslink: snapshot_unavailable=true; "
-            "pinecone_fallback=disabled; publisher_required=true"
-        )
+        _log("USE archive meta-crosslink: snapshot_unavailable=true; pinecone_fallback=disabled; publisher_required=true")
         return []
     if not snapshot.get("crosslink_ready"):
         return []
     if snapshot.get("contract") != "archive-crosslink-inventory-v2":
-        _log(
-            "USE archive meta-crosslink: legacy_snapshot_rejected=true; "
-            "pinecone_fallback=disabled; publisher_required=true"
-        )
+        _log("USE archive meta-crosslink: legacy_snapshot_rejected=true; pinecone_fallback=disabled; publisher_required=true")
         return []
-    # WordPress search indexes published page bodies, so it remains a useful
-    # source-grounded retrieval path while Pinecone is intentionally bypassed.
-    # Search results are intersected with the validated public snapshot before
-    # any source body is fetched; the lexical snapshot ranker remains fallback.
     assets = search_wordpress_canonical_assets(query, snapshot)
     if assets:
-        _log(
-            "USE archive meta-crosslink WordPress search: "
-            f"verified_snapshot_candidates={len(assets)}"
-        )
+        _log(f"USE archive meta-crosslink WordPress search: verified_snapshot_candidates={len(assets)}")
     else:
         assets = select_crosslinks(query, seed_documents, snapshot)
     if not assets:
@@ -1224,15 +1158,9 @@ def expand_context(
         return []
     source_documents = fetch_wordpress_source_documents(assets, core)
     if source_documents:
-        _log(
-            "USE archive meta-crosslink WordPress source recovery: "
-            f"selected={len(assets)}, verified_source_bodies={len(source_documents)}"
-        )
+        _log(f"USE archive meta-crosslink WordPress source recovery: selected={len(assets)}, verified_source_bodies={len(source_documents)}")
         return source_documents
-    _log(
-        "USE archive meta-crosslink: source_body_unavailable=true; "
-        "returning_metadata_only_navigation=true"
-    )
+    _log("USE archive meta-crosslink: source_body_unavailable=true; returning_metadata_only_navigation=true")
     return [
         {
             "title": _text(asset.get("title"), 300),
