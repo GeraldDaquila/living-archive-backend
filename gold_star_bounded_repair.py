@@ -56,3 +56,110 @@ def repair_eligibility(
         "max_attempts": MAX_REPAIR_ATTEMPTS,
         "semantic_certification": False,
     }
+
+
+def run_bounded_repair(
+    payload: Dict[str, Any],
+    decision: Dict[str, Any],
+    *,
+    compose_once,
+    sanitize_response,
+    validate_candidate,
+    is_cross_question_leak,
+    contains_unsafe_markup,
+    fallback_provider: str = "",
+    fallback_model: str = "",
+):
+    """Run exactly one composition repair and accept it only after full revalidation."""
+    original = dict(payload) if isinstance(payload, dict) else {}
+    failed_criterion = str((decision or {}).get("failed_criterion") or "")
+    if not isinstance(decision, dict) or not decision.get("eligible"):
+        outcome = {
+            "status": "not_attempted",
+            "attempts": 0,
+            "max_attempts": MAX_REPAIR_ATTEMPTS,
+            "reason": str((decision or {}).get("reason") or "repair_not_eligible"),
+            "failed_criterion": failed_criterion or None,
+        }
+        original["bounded_repair"] = outcome
+        return original, outcome
+
+    try:
+        candidate_result = compose_once()
+    except Exception as exc:
+        outcome = {
+            "status": "failed",
+            "attempts": 1,
+            "max_attempts": MAX_REPAIR_ATTEMPTS,
+            "reason": "composer_exception",
+            "failure_type": type(exc).__name__,
+            "failed_criterion": failed_criterion or None,
+        }
+        original["bounded_repair"] = outcome
+        return original, outcome
+
+    candidate_result = candidate_result if isinstance(candidate_result, dict) else {}
+    try:
+        candidate_response = str(
+            sanitize_response(candidate_result.get("response") or candidate_result.get("answer") or "") or ""
+        ).strip()
+        invalid_candidate = (
+            not candidate_response
+            or bool(is_cross_question_leak(candidate_response))
+            or bool(contains_unsafe_markup(candidate_response))
+        )
+        if invalid_candidate:
+            outcome = {
+                "status": "failed",
+                "attempts": 1,
+                "max_attempts": MAX_REPAIR_ATTEMPTS,
+                "reason": "empty_cross_question_or_unsafe_repair",
+                "failed_criterion": failed_criterion or None,
+            }
+            original["bounded_repair"] = outcome
+            return original, outcome
+
+        candidate_payload = dict(original)
+        candidate_payload["response"] = candidate_response
+        candidate_payload["response_provenance"] = {
+            "class": "bounded_composition_repair",
+            "provider": str(candidate_result.get("provider") or fallback_provider or "") or None,
+            "model": str(candidate_result.get("model") or fallback_model or "") or None,
+            "quality_adjusted_llm_eligible": True,
+            "llm_invoked": True,
+        }
+        validation = validate_candidate(candidate_payload)
+        if not isinstance(validation, dict) or validation.get("status") == "fail":
+            outcome = {
+                "status": "failed",
+                "attempts": 1,
+                "max_attempts": MAX_REPAIR_ATTEMPTS,
+                "reason": "revalidation_failed",
+                "revalidation_reason": (
+                    validation.get("reason") if isinstance(validation, dict) else "invalid_revalidation_result"
+                ),
+                "failed_criterion": failed_criterion or None,
+            }
+            original["bounded_repair"] = outcome
+            return original, outcome
+
+        outcome = {
+            "status": "repaired",
+            "attempts": 1,
+            "max_attempts": MAX_REPAIR_ATTEMPTS,
+            "failed_criterion": failed_criterion or None,
+            "revalidation_status": validation.get("status"),
+        }
+        candidate_payload["bounded_repair"] = outcome
+        return candidate_payload, outcome
+    except Exception as exc:
+        outcome = {
+            "status": "failed",
+            "attempts": 1,
+            "max_attempts": MAX_REPAIR_ATTEMPTS,
+            "reason": "repair_validation_exception",
+            "failure_type": type(exc).__name__,
+            "failed_criterion": failed_criterion or None,
+        }
+        original["bounded_repair"] = outcome
+        return original, outcome

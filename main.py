@@ -25,7 +25,7 @@ from fastapi.responses import JSONResponse
 from gold_star_question_contract import build_question_contract as _build_gold_star_question_contract
 from gold_star_answer_envelope import build_route_context as _build_gold_star_route_context
 from gold_star_evidence_validation import build_evidence_assessment as _build_gold_star_evidence_assessment
-from gold_star_bounded_repair import repair_eligibility as _gold_star_repair_eligibility
+from gold_star_bounded_repair import repair_eligibility as _gold_star_repair_eligibility, run_bounded_repair as _run_gold_star_bounded_repair
 from gold_star_route_capabilities import route_capability as _gold_star_route_capability, specialist_capability as _gold_star_specialist_capability
 
 from hub_contracts import (
@@ -13220,76 +13220,40 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         request_deadline,
         exact_standard=_final_gold_standard is not None,
     )
-    payload["bounded_repair"] = {
-        "status": "not_required" if _floor_preview.get("status") != "fail" else "not_attempted",
-        "attempts": 0,
-        "max_attempts": 1,
-        "eligibility": _repair_decision,
-    }
-    if _repair_decision.get("eligible"):
+    def _compose_bounded_repair_once():
+        return general_guide_composition.compose(
+            use_core=use_core,
+            query=query,
+            context_data=composition_context,
+            history_text=_history_text(history),
+            integrity_recovery=True,
+            deadline_monotonic=request_deadline,
+        )
+
+    payload, _repair_outcome = _run_gold_star_bounded_repair(
+        payload,
+        _repair_decision,
+        compose_once=_compose_bounded_repair_once,
+        sanitize_response=_sanitize_basic_inquiry_response,
+        validate_candidate=lambda candidate: evaluate_response_floor(
+            query, candidate, exact_standard=False
+        ),
+        is_cross_question_leak=lambda candidate: bool(
+            _find_cross_question_standard_response(query, candidate)
+        ),
+        contains_unsafe_markup=_basic_inquiry_contains_html_markup,
+        fallback_provider=_provider_name,
+        fallback_model=_model_name,
+    )
+    if _repair_outcome.get("attempts"):
         composition_repair_attempted = True
-        try:
-            _bounded_retry = general_guide_composition.compose(
-                use_core=use_core,
-                query=query,
-                context_data=composition_context,
-                history_text=_history_text(history),
-                integrity_recovery=True,
-                deadline_monotonic=request_deadline,
-            )
-        except Exception as _repair_exc:
-            _bounded_retry = None
-            print("The Guide bounded repair failed safely: exception=" + type(_repair_exc).__name__)
-        _bounded_response = _sanitize_basic_inquiry_response(
-            str((_bounded_retry or {}).get("response") or "").strip()
+    if _repair_outcome.get("status") == "repaired":
+        response = str(payload.get("response") or response)
+    if _repair_outcome.get("status") == "failed":
+        print(
+            "The Guide bounded repair ended without an accepted candidate: "
+            + str(_repair_outcome.get("reason") or _repair_outcome.get("revalidation_reason") or "unknown")
         )
-        _bounded_cross_question_leak = bool(
-            _bounded_response
-            and _find_cross_question_standard_response(query, _bounded_response)
-        )
-        if (
-            _bounded_response
-            and not _bounded_cross_question_leak
-            and not _basic_inquiry_contains_html_markup(_bounded_response)
-        ):
-            _candidate_payload = dict(payload)
-            _candidate_payload["response"] = _bounded_response
-            _candidate_payload["response_provenance"] = {
-                "class": "bounded_composition_repair",
-                "provider": str((_bounded_retry or {}).get("provider") or _provider_name or "") or None,
-                "model": str((_bounded_retry or {}).get("model") or _model_name or "") or None,
-                "quality_adjusted_llm_eligible": True,
-                "llm_invoked": True,
-            }
-            _candidate_floor = evaluate_response_floor(
-                query, _candidate_payload, exact_standard=False
-            )
-            if _candidate_floor.get("status") != "fail":
-                response = _bounded_response
-                payload = _candidate_payload
-                payload["bounded_repair"] = {
-                    "status": "repaired",
-                    "attempts": 1,
-                    "max_attempts": 1,
-                    "failed_criterion": _repair_decision.get("failed_criterion"),
-                    "revalidation_status": _candidate_floor.get("status"),
-                }
-            else:
-                payload["bounded_repair"] = {
-                    "status": "failed",
-                    "attempts": 1,
-                    "max_attempts": 1,
-                    "failed_criterion": _repair_decision.get("failed_criterion"),
-                    "revalidation_reason": _candidate_floor.get("reason"),
-                }
-        else:
-            payload["bounded_repair"] = {
-                "status": "failed",
-                "attempts": 1,
-                "max_attempts": 1,
-                "failed_criterion": _repair_decision.get("failed_criterion"),
-                "revalidation_reason": "empty_cross_question_or_unsafe_repair",
-            }
     print("The Guide Basic Inquiry: " + f"request_id={request_id}, intent={payload['intent']}, response_chars={len(response)}, elapsed={time.perf_counter() - started:.3f}s, query_chars={len(query)}")
     return payload
 
