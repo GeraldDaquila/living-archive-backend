@@ -106,6 +106,7 @@ def capture_deterministic_payload(main_module, query: str) -> dict:
     """Execute the same provider-independent deterministic path used by visitors."""
     result = None
     capture_path = ""
+    preserve_no_doorway = False
 
     task_recovery_fn = getattr(main_module, "_compose_task_specific_recovery", None)
     task_recovery = task_recovery_fn(query) if callable(task_recovery_fn) else None
@@ -117,6 +118,7 @@ def capture_deterministic_payload(main_module, query: str) -> dict:
             "model": "",
         }
         capture_path = "main._compose_task_specific_recovery"
+        preserve_no_doorway = True
     else:
         fact_recovery_fn = getattr(main_module, "_established_general_knowledge_recovery", None)
         fact_recovery = fact_recovery_fn(query) if callable(fact_recovery_fn) else None
@@ -128,6 +130,7 @@ def capture_deterministic_payload(main_module, query: str) -> dict:
                 "model": "",
             }
             capture_path = "main._established_general_knowledge_recovery"
+            preserve_no_doorway = not bool(fact_recovery.get("doorway"))
         else:
             trust_contract_fn = getattr(main_module, "_trust_community_stewardship_final_contract", None)
             trust_contract = trust_contract_fn(query) if callable(trust_contract_fn) else None
@@ -184,6 +187,15 @@ def capture_deterministic_payload(main_module, query: str) -> dict:
         raise RuntimeError("Deterministic visitor finalizer returned an empty answer.")
     finalized.setdefault("response_provenance", payload["response_provenance"])
     finalized.setdefault("capture", payload["capture"])
+    if preserve_no_doorway:
+        # The visitor's early task/fact routes intentionally return no doorway.
+        # The shared finalizer may infer a broad fallback; do not let the capture
+        # harness invent a doorway that the actual visitor route did not emit.
+        finalized["recommendation"] = None
+        finalized["canonical_doorway"] = None
+        finalized["doorway_title"] = None
+        finalized["doorway_url"] = None
+        finalized["doorway_omission_reason"] = "no_direct_archive_continuation"
     return finalized
 
 
