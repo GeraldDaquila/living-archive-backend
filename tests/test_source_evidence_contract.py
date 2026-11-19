@@ -90,3 +90,10 @@ def test_all_canonical_wordpress_body_retrieval_uses_shared_verification_gate():
     assert source.count("verify_retrieved_source_document(") >= 2
     assert "The Guide canonical body verification rejected a fetched source" in source
     assert "The Guide canonical search source verification rejected a candidate" in source
+
+
+def test_url_identity_rejects_nonstandard_ports_and_preserves_path_case():
+    assert normalize_source_url("https://geralddaquila.com:444/analytical-procedure/") == ""
+    assert normalize_source_url("https://geralddaquila.com/Analytical-Procedure/") != normalize_source_url(
+        "https://geralddaquila.com/analytical-procedure/"
+    )
