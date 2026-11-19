@@ -87,6 +87,7 @@ from general_guide_gold_standards import (
 from guide_fuzzy_relevance import score_resource_fit as _score_guide_fuzzy_relevance_shadow
 from deterministic_answer_recovery import (
     compose_recovery as _compose_provider_exhaustion_recovery,
+    compose_task_specific_recovery as _compose_task_specific_recovery,
     is_harm_repair_question,
     is_community_continuity_revision_question,
     is_oversoul_free_will_question,
@@ -10466,6 +10467,59 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             },
             "visitor_boundary_version": APP_VERSION,
         }
+    # Bounded task-capable deterministic answers run before retrieval/provider
+    # selection. These are complete general-knowledge task handlers, not generic
+    # fallbacks and not transfers of approved exemplar answer text. Exact
+    # approved standards retain precedence.
+    _task_recovery = (
+        None if _resolve_exact_guide_gold_standard(query) is not None
+        else _compose_task_specific_recovery(query)
+    )
+    if isinstance(_task_recovery, dict) and str(_task_recovery.get("response") or "").strip():
+        _task_answer = str(_task_recovery["response"]).strip()
+        _no_handoff = _guide_query_explicitly_forbids_handoff(query)
+        _request_id = "task-recovery-" + hashlib.sha1(
+            (query + "|" + str(_task_recovery.get("recovery_id") or "")).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide early task-capability boundary: "
+            f"recovery={_task_recovery.get('recovery_id')}, retrieval_invoked=false, provider_invoked=false"
+        )
+        return {
+            "ok": True,
+            "version": APP_VERSION,
+            "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "source_sha256": RUNTIME_SOURCE_SHA256,
+            "request_id": _request_id,
+            "query": query,
+            "intent": "TOPICAL_INQUIRY",
+            "response": _task_answer,
+            "recommendation": None,
+            "canonical_doorway": None,
+            "doorway_title": None,
+            "doorway_url": None,
+            "doorway_omission_reason": (
+                "visitor_explicitly_forbids_handoff"
+                if _no_handoff else "no_verified_direct_archive_continuation"
+            ),
+            "answer_basis": {
+                "kind": "general_knowledge",
+                "label": "General knowledge",
+                "explanation": "A bounded task-specific answer; no Living Archive source attribution is implied.",
+            },
+            "response_provenance": {
+                "class": "deterministic_recovery",
+                "provider": str(_task_recovery.get("recovery_id") or "bounded_task_specific_recovery"),
+                "model": None,
+                "quality_adjusted_llm_eligible": False,
+                "llm_invoked": False,
+            },
+            "processing": "task_specific_deterministic_recovery",
+            "route_source": "guide_early_deterministic_boundary",
+            "recovery": str(_task_recovery.get("recovery_id") or "task_specific_recovery"),
+            "visitor_boundary_version": APP_VERSION,
+        }
+
     # Separate the visitor's intent from the resource-search terms. Search
     # wrapper language such as "Where can I find material about..." is useful
     # to the composer but can obscure the actual subject during retrieval.
