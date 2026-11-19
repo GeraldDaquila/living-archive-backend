@@ -2014,22 +2014,19 @@ def _recommendation_first_fetch(query_str):
     canonical_context = str(data.get("canonical_link_context") or "")
     docs = _parse_context_documents(canonical_context) if canonical_context else []
 
-    # The meta-crosslink consults the complete Pinecone inventory only for
-    # navigation/recommendation intent. It adds a small, separately verified
-    # evidence set; it cannot bypass the canonical access or lifecycle gates.
-    # Recovery crosslinking is also allowed when ordinary canonical retrieval
-    # returns no usable context at all. This is a bounded visitor-recovery path
-    # against literal-ranking blind spots: it consults the persisted canonical
-    # snapshot, not a live enumeration of the Pinecone corpus. Existing topical
-    # evidence still passes the normal relevance and authority gates below.
-    # During the temporary Pinecone egress bypass, the persisted Meta-Net /
-    # meta-crosslink registry is the retrieval substrate. Do not let a small
-    # non-empty orientation seed suppress the same registry's broader canonical
-    # relationship expansion; that creates an artificial four-document ceiling.
+    # The mirror registry path above has already performed one bounded
+    # WordPress full-text search and verified source-body fetch. Re-running the
+    # same expansion here would duplicate network work and could exhaust the
+    # visitor latency budget without adding independent evidence.
+    # Outside the bypass path, retain the normal bounded meta-crosslink recovery
+    # for empty retrieval results and navigation/recommendation intent.
     if (
-        not docs
-        or profile.get("action") in {"recommendation", "navigation"}
-        or _PINECONE_RETRIEVAL_BYPASS
+        not data.get("mirror_registry_active")
+        and (
+            not docs
+            or profile.get("action") in {"recommendation", "navigation"}
+            or _PINECONE_RETRIEVAL_BYPASS
+        )
     ):
         try:
             recovery_token_count = len(
