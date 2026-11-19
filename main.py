@@ -7690,6 +7690,28 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "model": "",
         }
 
+    # A visitor asking for one practical act this week needs a provider-independent
+    # action answer grounded in the public Stewardship gateway. This must run
+    # before generic provider exhaustion or terminal abstention can erase it.
+    from deterministic_answer_recovery import (
+        is_weekly_stewardship_action_question,
+        compose_recovery as _compose_weekly_stewardship_action,
+        registered_recovery_recommendation as _weekly_stewardship_doorway,
+    )
+    if is_weekly_stewardship_action_question(query):
+        _weekly_answer = _compose_weekly_stewardship_action(query)
+        _weekly_doorway = _weekly_stewardship_doorway(query)
+        return {
+            "response": _weekly_answer,
+            "doorway_title": str((_weekly_doorway or {}).get("title") or ""),
+            "doorway_url": str((_weekly_doorway or {}).get("url") or ""),
+            "doorway_rationale": str((_weekly_doorway or {}).get("rationale") or ""),
+            "recommendation": _weekly_doorway,
+            "canonical_doorway": _weekly_doorway,
+            "provider": "bounded_weekly_stewardship_action_recovery",
+            "model": "",
+        }
+
     # Personal stewardship-invitation questions ask what calls for care
     # through the visitor's participation; do not misread the full sentence as
     # an unfamiliar term to define.
