@@ -126,12 +126,15 @@ def capture_deterministic_payload(main_module, query: str) -> dict:
 def verify_runtime_identity(base_url: str, expected_commit: str) -> dict:
     audit = _http_json(base_url.rstrip("/") + "/api/integration-audit")
     body = audit.get("body")
-    if audit.get("status") != 200 or not isinstance(body, dict) or body.get("ok") is not True:
+    if audit.get("status") != 200 or not isinstance(body, dict):
         raise RuntimeError(
             "Mirror integration audit unavailable: "
             f"status={audit.get('status')} error={audit.get('error')} "
             f"body={str(audit.get('raw_body') or '')[:1200]}"
         )
+    # Integration health and deployment identity are separate facts. A missing
+    # adapter can make the audit's overall ok flag false without invalidating
+    # its independently reported immutable deployment SHA.
     deployed_commit = str(body.get("deployment_commit_sha") or "").strip()
     if not deployed_commit:
         raise RuntimeError("Mirror did not expose deployment_commit_sha; refusing unaligned capture.")
@@ -146,6 +149,11 @@ def verify_runtime_identity(base_url: str, expected_commit: str) -> dict:
         "fingerprint": body.get("fingerprint"),
         "source_sha256": body.get("source_sha256"),
         "audit_contract": body.get("audit_contract"),
+        "integration_audit_ok": body.get("ok") is True,
+        "integration_audit_warnings": {
+            "available_capabilities_missing_adapters": body.get("available_capabilities_missing_adapters") or [],
+            "adapters_without_capabilities": body.get("adapters_without_capabilities") or [],
+        },
         "verified_at": datetime.now(timezone.utc).isoformat(),
     }
 
