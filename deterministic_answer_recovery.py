@@ -1428,12 +1428,12 @@ def is_orientation_information_contrast_question(question):
     """Recognize common phrasings of the orientation/information conceptual contrast."""
     q = re.sub(r"\s+", " ", _clean(question)).casefold()
     contrast = bool(re.search(
-        r"\b(?:orientation|being oriented|orienting)\b.{0,70}"
+        r"\b(?:orientation|being oriented|orienting|orient)\b.{0,70}"
         r"\b(?:rather than|instead of|over|vs\.?|versus|different from|distinct from|as opposed to)\b"
-        r".{0,40}\b(?:information|being informed|informing)\b"
+        r".{0,40}\b(?:information|being informed|informing|inform)\b"
         r"|\b(?:information|being informed|informing)\b.{0,70}"
         r"\b(?:rather than|instead of|over|vs\.?|versus|different from|distinct from|as opposed to)\b"
-        r".{0,40}\b(?:orientation|being oriented|orienting)\b"
+        r".{0,40}\b(?:orientation|being oriented|orienting|orient)\b"
         r"|\bdifference between (?:orientation and information|being oriented and being informed)\b"
         r"|\bhow (?:is|does) orientation differ(?:ent)? from information\b",
         q,
