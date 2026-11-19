@@ -2064,7 +2064,7 @@ def test_weekly_stewardship_insight_to_action_is_an_immutable_gold_star():
     assert record["expected_doorway"]["title"] == "Stewardship"
     assert record["expected_doorway"]["url"] == "https://geralddaquila.com/stewardship/"
     assert "not a prescribed Archive rule" in expected
-    assert len(expected.split("\\n\\n")) == 3
+    assert len(expected.split("\n\n")) == 3
 
 
 def test_weekly_stewardship_gold_star_has_bounded_qualitative_transfer_review():
