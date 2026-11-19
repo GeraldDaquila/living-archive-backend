@@ -221,3 +221,19 @@ def test_composer_supplies_the_same_contract_as_conservative_planning_input():
     assert "build_question_contract(question)" in source
     assert "question_contract_json" in source
     assert "QUESTION CONTRACT (conservative machine-readable planning input)" in source
+
+
+
+def test_shared_finalizer_replaces_generic_definition_failure_for_personal_reference():
+    import main
+
+    query = "What is my protocol when a teaching conflicts with my conscience, lived experience, or care for others?"
+    payload = {
+        "ok": True,
+        "query": query,
+        "response": "I can't define My protocol reliably. A dictionary or subject reference can establish the ordinary meaning.",
+    }
+    result = main._guide_finalize_visitor_payload(payload, query)
+    assert "I can help recover your protocol" in result["response"]
+    assert "dictionary" not in result["response"].casefold()
+    assert result["personal_reference_resolution"]["source_verified"] is False
