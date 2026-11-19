@@ -205,20 +205,25 @@ def test_recommendation_first_fetch_marks_request_scoped_doorway_search_attempt(
         "URL: https://geralddaquila.com/example-resource/\n"
         "Content: A substantive source body about an unrelated subject."
     )
-    with (
-        patch.object(main, "_PINECONE_RETRIEVAL_BYPASS", False),
-        patch.object(main._base, "_inquiry_profile", return_value={"risk": False, "action": "none", "grief": False}),
-        patch.object(main, "_original_fetch_canonical_context", return_value={
-            "canonical_link_context": canonical_context,
-            "context_blocks": canonical_context,
-        }),
-        patch.object(main, "_parse_context_documents", return_value=[document]),
-        patch.object(main, "_general_guide_authoritative_doorway", return_value=None),
-        patch.object(main, "_verified_archive_doorway_fallback", return_value=None),
-    ):
-        result = main._recommendation_first_fetch(query)
+    token = main._GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.set(False)
+    try:
+        with (
+            patch.object(main, "_PINECONE_RETRIEVAL_BYPASS", False),
+            patch.object(main._base, "_inquiry_profile", return_value={"risk": False, "action": "none", "grief": False}),
+            patch.object(main, "_original_fetch_canonical_context", return_value={
+                "canonical_link_context": canonical_context,
+                "context_blocks": canonical_context,
+            }),
+            patch.object(main, "_parse_context_documents", return_value=[document]),
+            patch.object(main, "_general_guide_authoritative_doorway", return_value=None),
+            patch.object(main, "_verified_archive_doorway_fallback", return_value=None),
+        ):
+            result = main._recommendation_first_fetch(query)
 
-    assert result["canonical_doorway_search_attempted"] is True
+        assert result["canonical_doorway_search_attempted"] is True
+        assert main._GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.get() is True
+    finally:
+        main._GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.reset(token)
 
 
 def test_terminal_doorway_boundary_does_not_repeat_an_attempted_search():
