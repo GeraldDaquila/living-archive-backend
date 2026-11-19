@@ -825,6 +825,22 @@ Promotion should require reproducible improvement on the relevant held-out evalu
 - **Freeze policy:** Preserve the exact approved response and doorway rationale. Changes require explicit user authorization and a separately documented benchmark-version change.
 
 
+
+### Gold Star — Weekly stewardship action from inner insight (2026-11-20)
+
+- **Benchmark:** `gs-2026-11-20-weekly-stewardship-insight-to-action`
+- **Status:** `USER_APPROVED_GOLD_STANDARD`; exact live visitor-facing answer and verified public Stewardship doorway frozen after explicit user elevation.
+- **Question:** “What is one concrete act of stewardship I can complete this week that makes an inner insight real?”
+- **Answer:** The exact three-paragraph visitor-facing response is preserved in `docs/qa/gold_standard_registry.json` and its regression fixture.
+- **Practice discipline:** Begin with one responsibility already entrusted to the visitor's care; use a bounded 20-minute check to distinguish what is theirs to hold from what is theirs to control; choose one proportionate follow-through; review one observable result at week's end.
+- **Stewardship boundary:** Consent, fatigue, boundaries, and sustainability matter. Rest, withdrawal, or relinquishment may be the appropriate act. The 20-minute check is a practical exercise, not a prescribed Archive rule.
+- **Doorway:** **Stewardship** — https://geralddaquila.com/stewardship/
+- **Rating:** 9.7/10.
+- **Approval:** User supplied the live Guide screenshot and explicitly instructed “elevate to gold star!” on 2026-11-20.
+- **Adaptive-learning boundary:** Transfer the bounded insight-to-action discipline only. Do not invent an obligation or external authority, equate stewardship with self-sacrifice, or transfer the exact answer or doorway to unrelated questions.
+- **Numbering:** `UNASSIGNED`; no display serial was separately requested.
+- **Freeze policy:** Preserve the exact approved answer and doorway rationale. Changes require explicit user authorization and a separately documented benchmark-version change.
+
 ## Gold Star Adaptive Intelligence Standard v2.0
 
-The approved additive quality umbrella is [Gold Star Adaptive Intelligence Standard v2.0](GOLD_STAR_ADAPTIVE_INTELLIGENCE_STANDARD_V2.md). It expands the quality expectations while preserving the canonical 112 approved Gold Stars, their benchmark identities and evidence, and the separate 110 active structural-learning contributors. This standard does not grant new transfer or deterministic-fallback authority. Runtime activation requires behavioral evidence; see the v2.0 specification's release gates.
+The approved additive quality umbrella is [Gold Star Adaptive Intelligence Standard v2.0](GOLD_STAR_ADAPTIVE_INTELLIGENCE_STANDARD_V2.md). It expands the quality expectations while preserving the canonical 115 approved Gold Stars, their benchmark identities and evidence, and the separate 113 active structural-learning contributors. This standard does not grant new transfer or deterministic-fallback authority. Runtime activation requires behavioral evidence; see the v2.0 specification's release gates.
