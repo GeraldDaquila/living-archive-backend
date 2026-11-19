@@ -1,0 +1,69 @@
+"""Safety and provenance tests for the one-shot WP3 paired capture runner."""
+from types import SimpleNamespace
+
+from scripts.capture_gold_star_wp3_pairs import (
+    capture_deterministic_payload,
+    classify_llm_payload,
+    verify_runtime_identity,
+)
+
+
+def test_llm_capture_requires_explicit_or_observed_model_provenance():
+    assert classify_llm_payload({
+        "response_provenance": {"class": "llm", "provider": "groq", "model": "model-x"}
+    })[0]
+    assert classify_llm_payload({"provider": "groq", "model": "model-x"})[0]
+    assert not classify_llm_payload({"response": "An answer with no provenance."})[0]
+    assert not classify_llm_payload({
+        "provider": "deterministic_fallback", "model": ""
+    })[0]
+
+
+def test_deterministic_capture_executes_named_function_and_shared_finalizer():
+    calls = []
+    def deterministic(query, interpretation, context, recommendation_available=False):
+        calls.append(("deterministic", query, context, recommendation_available))
+        return {
+            "response": "A deterministic answer.",
+            "recommendation": None,
+            "provider": "bounded_test_recovery",
+            "model": "",
+        }
+    def sanitize(value):
+        return value.strip()
+    def finalize(payload, query):
+        calls.append(("finalizer", query))
+        result = dict(payload)
+        result["response"] = result["response"] + " Finalized."
+        return result
+
+    fake_main = SimpleNamespace(
+        _basic_inquiry_round1_deterministic_response=deterministic,
+        _sanitize_basic_inquiry_response=sanitize,
+        _guide_finalize_visitor_payload=finalize,
+    )
+    payload = capture_deterministic_payload(fake_main, "A held-out question?")
+    assert calls[0][0] == "deterministic"
+    assert calls[1] == ("finalizer", "A held-out question?")
+    assert payload["response"] == "A deterministic answer. Finalized."
+    assert payload["response_provenance"]["class"] == "deterministic_fallback"
+    assert payload["capture"]["raw_response"] == "A deterministic answer."
+
+
+def test_runtime_identity_mismatch_fails_closed(monkeypatch):
+    import scripts.capture_gold_star_wp3_pairs as capture
+    monkeypatch.setattr(capture, "_http_json", lambda url: {
+        "status": 200,
+        "body": {
+            "ok": True,
+            "deployment_commit_sha": "deployed-sha",
+            "version": "test",
+            "fingerprint": "fingerprint",
+        },
+    })
+    try:
+        verify_runtime_identity("https://mirror.example", "different-sha")
+    except RuntimeError as exc:
+        assert "Source mismatch" in str(exc)
+    else:
+        raise AssertionError("Mismatched runtime source must not be paired.")

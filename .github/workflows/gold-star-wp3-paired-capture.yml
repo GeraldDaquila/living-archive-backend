@@ -1,0 +1,50 @@
+name: Gold Star WP3 paired capture (secondary mirror)
+
+on:
+  push:
+    branches: [gold-star-v2-complete-architecture]
+    paths:
+      - "scripts/capture_gold_star_wp3_pairs.py"
+      - "tests/test_gold_star_wp3_paired_capture.py"
+      - ".github/workflows/gold-star-wp3-paired-capture.yml"
+      - "docs/qa/guide_learning_evaluation_set.json"
+      - "scripts/guide_live_evaluation.py"
+      - "scripts/gold_star_paired_offline_evaluation.py"
+
+permissions:
+  contents: read
+
+jobs:
+  paired-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check out the currently deployed main source for deterministic execution
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: baseline
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: baseline/requirements.txt
+      - name: Install baseline runtime dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r baseline/requirements.txt
+      - name: Run same-commit paired capture against secondary mirror
+        working-directory: baseline
+        env:
+          PYTHONPATH: .
+          WP3_CAPTURE_BASE_URL: https://living-archive-backend-mirror.onrender.com
+        run: |
+          python ../scripts/capture_gold_star_wp3_pairs.py \
+            --base-url "$WP3_CAPTURE_BASE_URL" \
+            --output ../artifacts/gold-star-wp3-paired-capture.json
+      - name: Upload attributable capture report
+        uses: actions/upload-artifact@v4
+        with:
+          name: gold-star-wp3-paired-capture
+          path: artifacts/gold-star-wp3-paired-capture.json
+          if-no-files-found: error
+          retention-days: 90
