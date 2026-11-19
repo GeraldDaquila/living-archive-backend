@@ -40,6 +40,15 @@ def _matches_any(text: str, patterns: tuple[str, ...]) -> bool:
     return any(re.search(pattern, text, re.I | re.S) for pattern in patterns)
 
 
+def _is_personal_stewardship_invitation(text: str) -> bool:
+    normalized = re.sub(r"\s+", " ", str(text or "").casefold()).strip()
+    return bool(
+        re.search(r"\bwho\s+or\s+what\s+is\s+(?:asking|calling|inviting|seeking)\b", normalized)
+        and re.search(r"\b(?:responsible\s+care|stewardship|responsibility|care)\b", normalized)
+        and re.search(r"\b(?:through|from|of|within)\s+me\b", normalized)
+    )
+
+
 def build_question_contract(query: str) -> Dict[str, Any]:
     """Build a conservative task contract without pretending to understand more than we do."""
     raw = str(query or "").strip()
@@ -47,7 +56,11 @@ def build_question_contract(query: str) -> Dict[str, Any]:
     no_handoff = _matches_any(normalized, _NO_HANDOFF_PATTERNS)
     no_external_research = _matches_any(normalized, _NO_EXTERNAL_RESEARCH)
     multi_intent = _matches_any(normalized, _MULTI_INTENT_MARKERS)
-    task_candidate = _classify_question_candidate(normalized)
+    task_candidate = (
+        {"type": "reflective_inquiry"}
+        if _is_personal_stewardship_invitation(normalized)
+        else _classify_question_candidate(normalized)
+    )
     personal_reference = is_personal_reference_question(normalized)
     teaching_conflict_reference = is_teaching_conflict_reference(normalized)
     has_question = "?" in normalized or bool(
