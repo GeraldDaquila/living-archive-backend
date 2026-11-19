@@ -54,10 +54,11 @@ def test_explicit_recovery_omission_clears_generic_glossary_from_all_public_fiel
     assert result["authoritative_doorway"] is None
     assert result["canonical_recommendation"] is None
     assert result["archive_doorway"] is None
-    assert "do not substitute a generic glossary link" in result["doorway_omission_reason"]
+    assert "do not substitute a generic fallback" in result["doorway_omission_reason"]
+    assert result["doorway_decision"] == "omit"
 
 
-def test_recovery_omission_is_a_sitewide_terminal_instruction_not_cosmology_only():
+def test_unverified_upstream_recommendation_is_rejected_sitewide_when_no_source_supports_it():
     payload = {
         "response": "A complete answer.",
         "recommendation": {
@@ -80,7 +81,8 @@ def test_recovery_omission_is_a_sitewide_terminal_instruction_not_cosmology_only
 
     assert result["recommendation"] is None
     assert result["canonical_doorway"] is None
-    assert result["doorway_omission_reason"] == payload["doorway_omission_reason"]
+    assert result["doorway_decision"] == "omit"
+    assert result["doorway_omission_reason"]
 
 
 def test_cosmology_lived_question_replaces_generic_glossary_with_direct_canonical_continuation():
