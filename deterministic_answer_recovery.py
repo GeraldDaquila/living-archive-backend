@@ -1424,7 +1424,7 @@ def is_orientation_information_contrast_question(question):
         q,
     ))
     asks_meaning = bool(re.search(
-        r"\b(?:what does|what do|what is|explain|meaning of|mean in practice|"
+        r"\b(?:what does|what do|what is|explain|meaning of|mean in practice|difference between|"
         r"understand|put .* into practice)\b",
         q,
     ))
