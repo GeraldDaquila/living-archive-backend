@@ -7170,7 +7170,7 @@ def _guide_finalize_visitor_payload(payload, query):
         handoff_phrases = (
             r"\b(?:archive material|separately selected resource|resource offers|place to explore|explore further|"
             r"read more|visit the|open the link|follow[- ]?up|next[- ]?step|next question|"
-            r"where would|would you like|if you want,? i can|you may want to)\b"
+            r"where would|would you like|if you want,? i can|you may want to)\b",
         )
         kept_paragraphs = []
         for paragraph in re.split(r"\n\s*\n+", original_response):
