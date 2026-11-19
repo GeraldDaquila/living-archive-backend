@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "gold_star_question_contract.py"
+      - "gold_star_answer_envelope.py"
       - "gold_star_semantic_contract.py"
       - "gold_star_response_floor.py"
       - "specialist_adapters.py"
@@ -39,8 +40,8 @@ jobs:
       - name: Install test dependencies
         run: python -m pip install --upgrade pip pytest -r requirements.txt
       - name: Compile shared Gold Star route contracts
-        run: python -m py_compile gold_star_question_contract.py gold_star_semantic_contract.py gold_star_response_floor.py specialist_adapters.py deterministic_answer_recovery.py general_guide_composition.py
+        run: python -m py_compile gold_star_answer_envelope.py gold_star_question_contract.py gold_star_semantic_contract.py gold_star_response_floor.py specialist_adapters.py deterministic_answer_recovery.py general_guide_composition.py
       - name: Run shared question and specialist contract regressions
         env:
           PYTHONPATH: .
-        run: python -m pytest -q tests/test_gold_star_question_contract.py tests/test_gold_star_response_floor.py tests/test_gold_star_adaptive_intelligence_v2.py
+        run: python -m pytest -q tests/test_gold_star_answer_envelope.py tests/test_gold_star_question_contract.py tests/test_gold_star_response_floor.py tests/test_gold_star_adaptive_intelligence_v2.py
