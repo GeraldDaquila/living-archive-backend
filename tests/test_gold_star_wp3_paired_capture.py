@@ -159,3 +159,67 @@ def test_runtime_identity_does_not_retry_valid_but_mismatched_commit(monkeypatch
         raise AssertionError("Mismatched runtime source must not be paired.")
 
     assert len(calls) == 1
+
+
+def test_deterministic_capture_prefers_live_task_specific_recovery():
+    calls = []
+
+    def task_recovery(query):
+        calls.append(("task", query))
+        return {"recovery_id": "task_test", "response": "Task-specific answer."}
+
+    def should_not_run(*_args, **_kwargs):
+        raise AssertionError("The generic low-level fallback must not bypass task recovery.")
+
+    def finalize(payload, query):
+        calls.append(("finalizer", query))
+        return dict(payload)
+
+    fake_main = SimpleNamespace(
+        _compose_task_specific_recovery=task_recovery,
+        _basic_inquiry_round1_deterministic_response=should_not_run,
+        _sanitize_basic_inquiry_response=lambda value: value.strip(),
+        _guide_finalize_visitor_payload=finalize,
+    )
+
+    payload = capture_deterministic_payload(fake_main, "A supported task question?")
+
+    assert calls == [("task", "A supported task question?"), ("finalizer", "A supported task question?")]
+    assert payload["response"] == "Task-specific answer."
+    assert payload["capture"]["path"] == "main._compose_task_specific_recovery"
+    assert payload["response_provenance"]["llm_invoked"] is False
+
+
+def test_deterministic_capture_uses_registered_fact_before_generic_fallback():
+    calls = []
+
+    def fact_recovery(query):
+        calls.append(("fact", query))
+        return {
+            "fact_id": "water_boiling_point_sea_level",
+            "response": "Water boils at 100°C (212°F) at standard atmospheric pressure.",
+            "doorway": None,
+        }
+
+    def should_not_run(*_args, **_kwargs):
+        raise AssertionError("A query-matched registered fact must precede generic fallback.")
+
+    def finalize(payload, query):
+        calls.append(("finalizer", query))
+        return dict(payload)
+
+    fake_main = SimpleNamespace(
+        _established_general_knowledge_recovery=fact_recovery,
+        _basic_inquiry_round1_deterministic_response=should_not_run,
+        _sanitize_basic_inquiry_response=lambda value: value.strip(),
+        _guide_finalize_visitor_payload=finalize,
+    )
+
+    payload = capture_deterministic_payload(
+        fake_main,
+        "At standard atmospheric pressure, what temperature does water boil at?",
+    )
+
+    assert calls[0] == ("fact", "At standard atmospheric pressure, what temperature does water boil at?")
+    assert payload["response"].startswith("Water boils at 100°C")
+    assert payload["capture"]["path"] == "main._established_general_knowledge_recovery"
