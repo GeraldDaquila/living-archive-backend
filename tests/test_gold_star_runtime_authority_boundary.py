@@ -50,7 +50,7 @@ from gold_star_lessons import active_quality_contribution
 # The exact growth-within-limits question is now an approved Gold Star and must
 # retain its exact-answer authority rather than being treated as a negative case.
 LIVE_CALIBRATION_QUESTION = (
-    "How should a community decide whether a new development exceeds its ecological and social capacity?"
+    "Why does growth become destructive when it outruns ecological and social limits?"
 )
 
 
