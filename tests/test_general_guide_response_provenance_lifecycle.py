@@ -56,8 +56,11 @@ def test_basic_inquiry_preserves_composition_until_an_explicit_deterministic_ove
     assert deterministic_initializers[0] < first_compose
 
     source, _ = _basic_inquiry_ast()
-    override_region = source.split("The Guide final payload boundary: trust-community stewardship", 1)[1]
-    assert "composition_result = None" in override_region[:1200]
+    source_lines = source.splitlines()
+    assert any(
+        "deterministic_result = {" in line
+        for line in source_lines[max(0, explicit_override_clear - 16):explicit_override_clear - 1]
+    ), "The only late composition reset must follow an explicit deterministic result assignment."
 
 
 def test_llm_attribution_requires_the_final_answer_to_match_the_provider_candidate():
