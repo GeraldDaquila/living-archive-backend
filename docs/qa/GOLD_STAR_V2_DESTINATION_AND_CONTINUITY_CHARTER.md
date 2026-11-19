@@ -251,7 +251,7 @@ If this document and repository state disagree, inspect the source and correct t
 - Feature branch: `gold-star-v2-complete-architecture`
 - PR: [#1732 — Gold Star v2: operational question contracts across Guide routes](https://github.com/GeraldDaquila/living-archive-backend/pull/1732)
 - PR state at last check: open, draft, unmerged; mergeable reported true.
-- Last verified branch head before this charter: `c88d9e81eb2cc01f637985fdbeb51975d93ad801`
+- Last verified branch head at this checkpoint: `8302badcd8689d4b619e4508f69978036e139199`
 - Last verified base: `93c2d3a31405ec8b193e8d7a986ed764415ef8d3`
 - Existing checkpoint changed three files; specialist adapter was restored to its protected original content.
 
@@ -261,7 +261,23 @@ If this document and repository state disagree, inspect the source and correct t
 - Explicit no-handoff/no-follow-up/no-external-research constraint detection.
 - Unknown and mixed-intent states preserved; no claim of semantic certification.
 - Shared contract consumed by the ordinary composer and shared response-floor evaluator.
-- CI workflow installs repository requirements and runs targeted Gold Star contract/response-floor/adaptive-intelligence tests.
+- Added `gold_star_answer_envelope.py` v1.0: privacy-conscious answer state, route class, provider/model presence, provenance presence, capability declaration status, doorway separation, and frozen-answer governance metadata.
+- Integrated answer-envelope construction and schema validation into `gold_star_response_floor.py`; completed answers, structured handoffs, errors, and incomplete responses are distinguished.
+- Added `tests/test_gold_star_answer_envelope.py` and extended the Gold Star v2 CI workflow to compile and run the new contract tests.
+- The envelope intentionally reports unregistered routes and undeclared capabilities as unknown; it does not certify semantic competence.
+- Specialist adapter source remains unchanged and hash-protected.
+
+### Verified CI at the current checkpoint head
+
+Against `8302badcd8689d4b619e4508f69978036e139199`:
+- Gold Star v2 shared-contract regressions: PASS (run 44452179930).
+- General Guide Composition Contract: PASS (run 44452179903).
+- v487 production validation, all workflow steps: PASS (run 44452179892).
+- USE Preflight Integrity: PASS (run 44452179949).
+- Provider health regression: PASS (run 44452180087).
+- Guide Woody Mocked UI Continuity Contract: PASS (run 44452179927).
+
+These are CI results, not proof of route-wide capability declarations, semantic answer quality, human calibration, live browser acceptance, or production release.
 
 ### Verified CI at the previous head
 
@@ -275,11 +291,11 @@ These are historical checkpoint results. Recheck CI after any new commit. They d
 
 ### Not yet completed at this checkpoint
 
-- Full WP1 route-wide contract/capability/envelope integration.
+- Remaining WP1 route-wide capability declarations and upstream consumption by deterministic and specialist routes; current envelope reports missing declarations honestly.
 - WP2 evidence-aware validation and bounded repair.
 - WP3 real paired captures and human/evaluator calibration.
 - WP4 governed learning/elevation loop.
-- WP5 primary/secondary browser acceptance and controlled release.
+- WP5 primary/secondary live browser acceptance and controlled release.
 
 ### Production status
 
@@ -287,7 +303,7 @@ No production merge or deployment is authorized by this charter. The previous PR
 
 ### Immediate next action
 
-Inspect the current branch and route map, then design WP1 as a complete end-to-end contract integration across all supported completed-answer routes and specialist handoff boundaries. Before editing, map each route's existing payload shape and protected adapter constraints. Implement WP1 as a coherent package with route-level integration tests and negative controls. Do not proceed to WP2 by merely adding validators to the incomplete initial contract.
+Continue WP1 by completing the verified route inventory and introducing explicit, versioned capability declarations at the Guide-owned route boundaries. Cover deterministic recovery, purpose-built deterministic handlers, and specialist orchestration without changing the protected adapter module. Add route-level tests proving that declarations match actual handler capabilities and that unsupported work is declined or handed off. Only after this is complete should WP1 be marked done and WP2 begin.
 
 ## 10. Definition of completion
 
