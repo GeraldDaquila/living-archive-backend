@@ -39,3 +39,31 @@ def test_provider_exhaustion_uses_the_exact_retrieval_outage_gold_star_without_c
     assert result["provider"] == "gold_standard_registry_deterministic_fallback"
     assert "previously verified source references" in result["response"]
     assert result["recommendation"] is None
+
+
+def test_mirror_registry_passes_verified_wordpress_body_as_evidence_not_metadata():
+    source = (
+        "Stewardship is the practice of responsible care. "
+        "It includes boundaries, conscience, sustainability, and knowing "
+        "what is yours to hold and what is not."
+    )
+    with patch.object(
+        main.archive_crosslink,
+        "expand_context",
+        return_value=[{
+            "title": "Stewardship",
+            "url": "https://geralddaquila.com/stewardship/",
+            "content": source,
+            "text": source,
+            "source_body_verified": True,
+            "wp_id": "21767",
+        }],
+    ):
+        result = main._mirror_registry_context("Who or what is asking for responsible care through me?")
+
+    assert result["mirror_registry_count"] == 1
+    assert result["mirror_source_body_count"] == 1
+    assert result["mirror_orientation_metadata_only"] is False
+    assert source in result["canonical_link_context"]
+    assert "[Verified canonical source body" in result["context_blocks"]
+    assert "metadata only" not in result["context_blocks"]
