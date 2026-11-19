@@ -1895,32 +1895,49 @@ def _mirror_registry_context(query_str):
         title = str(item.get("title") or "").strip()
         url = str(item.get("url") or "").strip()
         summary = str(item.get("summary") or "").strip()
+        content = str(item.get("content") or item.get("text") or "").strip()
+        source_body_verified = bool(item.get("source_body_verified") and content)
         if title and url:
-            # Mirror records are navigation evidence, not full source bodies.
-            docs.append({"title": title, "url": url, "text": summary or title,
-                         "mirror_registry": True})
+            # A source body is usable only when archive_crosslink has verified
+            # both its published WordPress ID and its exact canonical URL.
+            # Otherwise the record remains navigation metadata, never evidence.
+            docs.append({
+                "title": title,
+                "url": url,
+                "text": content if source_body_verified else (summary or title),
+                "mirror_registry": True,
+                "source_body_verified": source_body_verified,
+                "wp_id": str(item.get("wp_id") or ""),
+            })
     context = _serialize_context_documents(docs)
-    # Mirror records are bounded orientation metadata. Passing them into the
-    # composition envelope lets the Guide use discovered territory without
-    # representing a title or summary as full source-body evidence.
     orientation_blocks = []
     for doc in docs:
         title = str(doc.get("title") or "").strip()
-        summary = str(doc.get("text") or "").strip()
-        if title:
+        text = str(doc.get("text") or "").strip()
+        if not title:
+            continue
+        if doc.get("source_body_verified"):
+            orientation_blocks.append(
+                f"[Verified canonical source body — published WordPress content]\n"
+                f"Title: {title}\nURL: {doc.get('url', '')}\n"
+                f"Source text: {text}"
+            )
+        else:
             orientation_blocks.append(
                 f"[Canonical territorial orientation — metadata only]\n"
                 f"Title: {title}\n"
-                f"Summary: {summary}\n"
+                f"Summary: {text}\n"
                 "Use this to orient an original response; do not attribute "
                 "unsupported details to the Archive."
             )
+    verified_source_count = sum(1 for doc in docs if doc.get("source_body_verified"))
     return {
         "canonical_link_context": context,
         "context_blocks": "\n\n".join(orientation_blocks),
         "mirror_registry_active": True,
         "mirror_registry_count": len(docs),
-        "mirror_orientation_metadata_only": True,
+        "mirror_source_body_count": verified_source_count,
+        "mirror_orientation_metadata_only": verified_source_count == 0,
     }
 
 
