@@ -19,11 +19,10 @@ def test_trust_community_stewardship_contract_answers_with_humane_concrete_langu
         "Stewardship is tending the garden together",
     ):
         assert phrase in response
-    assert contract["answer_basis"]["kind"] == "archive_supported"
-    assert contract["answer_basis"]["source_url"] == (
-        "https://geralddaquila.com/2026/09/07/"
-        "trust-architecture-the-missing-infrastructure-behind-functional-societies/"
-    )
+    assert contract["answer_basis"]["kind"] == "general_knowledge"
+    assert contract["answer_basis"]["label"] == "Conceptual explanation"
+    assert "not represented as the source" in contract["answer_basis"]["explanation"]
+    assert "source_url" not in contract["answer_basis"]
 
 
 def test_trust_community_stewardship_contract_has_renderer_ready_verified_doorway():
@@ -32,7 +31,12 @@ def test_trust_community_stewardship_contract_has_renderer_ready_verified_doorwa
     assert doorway["title"] == (
         "Trust Architecture: The Missing Infrastructure Behind Functional Societies"
     )
-    assert doorway["url"] == contract["answer_basis"]["source_url"]
+    assert doorway["url"] == (
+        "https://geralddaquila.com/2026/09/07/"
+        "trust-architecture-the-missing-infrastructure-behind-functional-societies/"
+    )
+    assert doorway["kind"] == "archive_resource"
+    assert "source_url" not in contract["answer_basis"]
     assert doorway["rationale"]
     restored = main._guide_restore_verified_doorway(
         {"response": contract["response"], "recommendation": doorway},
