@@ -1,64 +1,441 @@
 {
   "schema_version": "1.0",
   "dataset_id": "gold-star-heldout-seven-paired-fixture-capture",
-  "purpose": "Capture actual response snapshots from the LLM and deterministic response paths for the seven canonical held-out questions. Null means no verified fixture has been captured; do not replace null with authored or simulated output.",
-  "source_capture_policy": "Populate only from an actual, attributable execution of the named response path. Record runtime identity, commit/fingerprint, timestamp, request identifier where available, and transport outcome. Preserve raw response text. Never infer a missing path output from the other path.",
+  "purpose": "Actual deterministic visitor-finalizer captures for the seven held-out questions, aligned to the currently deployed source commit. LLM outputs remain null until the final response envelope exposes verifiable provider/model provenance.",
+  "source_capture_policy": "Only attributable response-path executions are populated. Seven deterministic fallback executions and shared visitor finalizations were captured from the same deployed source commit as the mirror. All live API outputs returned HTTP 200 but had unresolved final response provenance; therefore they are not labeled or copied as LLM captures. No authored or simulated response is accepted as a capture.",
   "cases": [
     {
       "case_id": "heldout-water-boiling-point-001",
       "question_type": "general_fact",
       "query": "At standard atmospheric pressure, what temperature does water boil at?",
       "llm": null,
-      "deterministic": null,
-      "fixture_status": "awaiting_source_capture"
+      "deterministic": {
+        "ok": true,
+        "response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+        "recommendation": {
+          "title": "Life Under Pressure",
+          "url": "https://geralddaquila.com/life-under-pressure/",
+          "rationale": "Provide a practical territory for navigating stress, overload, uncertainty, destabilization, and decision-making under pressure."
+        },
+        "provider": "deterministic_question_preserving_recovery",
+        "model": "",
+        "response_provenance": {
+          "class": "deterministic_fallback",
+          "provider": "deterministic_question_preserving_recovery",
+          "model": ""
+        },
+        "capture": {
+          "path": "local_deployed_deterministic_fallback",
+          "raw_response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "visitor_sanitized_response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "captured_at": "2026-11-19T04:33:16.758439+00:00",
+          "runtime_identity": {
+            "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+            "version": "v489.311",
+            "fingerprint": "USE-v489.311-source-derived",
+            "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+            "audit_contract": "ecosystem-integration-audit-v1",
+            "integration_audit_ok": false,
+            "integration_audit_warnings": {
+              "available_capabilities_missing_adapters": [
+                "relationship"
+              ],
+              "adapters_without_capabilities": []
+            },
+            "verified_at": "2026-11-19T04:33:10.168007+00:00"
+          },
+          "request_id": null,
+          "transport_status": "local_function_execution",
+          "transport_error": null,
+          "provider_provenance": {
+            "class": "deterministic_fallback",
+            "provider": "deterministic_question_preserving_recovery",
+            "model": ""
+          },
+          "processing": null,
+          "route_source": null
+        },
+        "canonical_doorway": {
+          "title": "Life Under Pressure",
+          "url": "https://geralddaquila.com/life-under-pressure/",
+          "rationale": "Provide a practical territory for navigating stress, overload, uncertainty, destabilization, and decision-making under pressure."
+        },
+        "doorway_title": "Life Under Pressure",
+        "doorway_url": "https://geralddaquila.com/life-under-pressure/",
+        "doorway_rationale": "Provide a practical territory for navigating stress, overload, uncertainty, destabilization, and decision-making under pressure.",
+        "doorway_decision": "selected",
+        "doorway_omission_reason": null,
+        "doorway_omission_exception_reason": null
+      },
+      "fixture_status": "deterministic_captured_llm_unverified",
+      "llm_capture_status": "live_api_200_but_final_provider_provenance_unresolved"
     },
     {
       "case_id": "heldout-cosmology-life-001",
       "question_type": "conceptual_explanation",
-      "query": "What is cosmology, and why does it matter to how people live?",
+      "query": "How do assumptions about reality shape the way people make everyday decisions and cooperate with others?",
       "llm": null,
-      "deterministic": null,
-      "fixture_status": "awaiting_source_capture"
+      "deterministic": {
+        "ok": true,
+        "response": "A useful starting point is to ask how assumptions about reality shape the way people make everyday decisions and cooperate with others works through particular conditions rather than assuming a single direct cause. Repeated signals, incentives, relationships, constraints, and consequences can make some choices feel normal, rewarded, risky, or difficult even when formal rules say something different.\n\nThe next question is what mechanisms are actually operating: what people observe others doing, what behavior is rewarded or tolerated, whose judgment carries authority, and what happens when concerns are raised. Patterns become more consequential when these conditions reinforce one another over time and make correction harder or easier.\n\nThis is a starting explanation rather than a claim about a specific case. A stronger account identifies the relationships and evidence that matter, distinguishes influence from proof of causation, and remains open to other conditions that may change the outcome.",
+        "recommendation": {
+          "title": "The Hidden Assumptions That Quietly Shape Every Life",
+          "url": "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/",
+          "rationale": "This Cornerstone examines how inherited assumptions about reality shape worldview, everyday interpretation, decisions, and the institutions people inhabit. It offers a direct philosophical continuation without presenting the Archive's interpretive framework as a scientific finding."
+        },
+        "provider": "terminal_registered_recovery",
+        "model": "",
+        "response_provenance": {
+          "class": "deterministic_fallback",
+          "provider": "terminal_registered_recovery",
+          "model": ""
+        },
+        "capture": {
+          "path": "local_deployed_deterministic_fallback",
+          "raw_response": "A useful starting point is to ask how assumptions about reality shape the way people make everyday decisions and cooperate with others works through particular conditions rather than assuming a single direct cause. Repeated signals, incentives, relationships, constraints, and consequences can make some choices feel normal, rewarded, risky, or difficult even when formal rules say something different.\n\nThe next question is what mechanisms are actually operating: what people observe others doing, what behavior is rewarded or tolerated, whose judgment carries authority, and what happens when concerns are raised. Patterns become more consequential when these conditions reinforce one another over time and make correction harder or easier.\n\nThis is a starting explanation rather than a claim about a specific case. A stronger account identifies the relationships and evidence that matter, distinguishes influence from proof of causation, and remains open to other conditions that may change the outcome.",
+          "visitor_sanitized_response": "A useful starting point is to ask how assumptions about reality shape the way people make everyday decisions and cooperate with others works through particular conditions rather than assuming a single direct cause. Repeated signals, incentives, relationships, constraints, and consequences can make some choices feel normal, rewarded, risky, or difficult even when formal rules say something different.\n\nThe next question is what mechanisms are actually operating: what people observe others doing, what behavior is rewarded or tolerated, whose judgment carries authority, and what happens when concerns are raised. Patterns become more consequential when these conditions reinforce one another over time and make correction harder or easier.\n\nThis is a starting explanation rather than a claim about a specific case. A stronger account identifies the relationships and evidence that matter, distinguishes influence from proof of causation, and remains open to other conditions that may change the outcome.",
+          "captured_at": "2026-11-19T04:33:25.672748+00:00",
+          "runtime_identity": {
+            "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+            "version": "v489.311",
+            "fingerprint": "USE-v489.311-source-derived",
+            "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+            "audit_contract": "ecosystem-integration-audit-v1",
+            "integration_audit_ok": false,
+            "integration_audit_warnings": {
+              "available_capabilities_missing_adapters": [
+                "relationship"
+              ],
+              "adapters_without_capabilities": []
+            },
+            "verified_at": "2026-11-19T04:33:10.168007+00:00"
+          },
+          "request_id": null,
+          "transport_status": "local_function_execution",
+          "transport_error": null,
+          "provider_provenance": {
+            "class": "deterministic_fallback",
+            "provider": "terminal_registered_recovery",
+            "model": ""
+          },
+          "processing": null,
+          "route_source": null
+        },
+        "canonical_doorway": {
+          "title": "The Hidden Assumptions That Quietly Shape Every Life",
+          "url": "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/",
+          "rationale": "This Cornerstone examines how inherited assumptions about reality shape worldview, everyday interpretation, decisions, and the institutions people inhabit. It offers a direct philosophical continuation without presenting the Archive's interpretive framework as a scientific finding."
+        },
+        "doorway_title": "The Hidden Assumptions That Quietly Shape Every Life",
+        "doorway_url": "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/",
+        "doorway_rationale": "This Cornerstone examines how inherited assumptions about reality shape worldview, everyday interpretation, decisions, and the institutions people inhabit. It offers a direct philosophical continuation without presenting the Archive's interpretive framework as a scientific finding.",
+        "doorway_decision": "selected",
+        "doorway_omission_reason": null,
+        "doorway_omission_exception_reason": null
+      },
+      "fixture_status": "deterministic_captured_llm_unverified",
+      "llm_capture_status": "live_api_200_but_final_provider_provenance_unresolved"
     },
     {
       "case_id": "heldout-practical-trust-001",
       "question_type": "practical_application",
       "query": "How can an organization put trust into practice?",
       "llm": null,
-      "deterministic": null,
-      "fixture_status": "awaiting_source_capture"
+      "deterministic": {
+        "ok": true,
+        "response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+        "recommendation": null,
+        "provider": "deterministic_question_preserving_recovery",
+        "model": "",
+        "response_provenance": {
+          "class": "deterministic_fallback",
+          "provider": "deterministic_question_preserving_recovery",
+          "model": ""
+        },
+        "capture": {
+          "path": "local_deployed_deterministic_fallback",
+          "raw_response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "visitor_sanitized_response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "captured_at": "2026-11-19T04:33:43.634478+00:00",
+          "runtime_identity": {
+            "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+            "version": "v489.311",
+            "fingerprint": "USE-v489.311-source-derived",
+            "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+            "audit_contract": "ecosystem-integration-audit-v1",
+            "integration_audit_ok": false,
+            "integration_audit_warnings": {
+              "available_capabilities_missing_adapters": [
+                "relationship"
+              ],
+              "adapters_without_capabilities": []
+            },
+            "verified_at": "2026-11-19T04:33:10.168007+00:00"
+          },
+          "request_id": null,
+          "transport_status": "local_function_execution",
+          "transport_error": null,
+          "provider_provenance": {
+            "class": "deterministic_fallback",
+            "provider": "deterministic_question_preserving_recovery",
+            "model": ""
+          },
+          "processing": null,
+          "route_source": null
+        },
+        "canonical_doorway": null,
+        "doorway_title": null,
+        "doorway_url": null,
+        "doorway_rationale": null,
+        "doorway_decision": "omit",
+        "doorway_omission_reason": "No verified canonical Archive resource materially advances this inquiry."
+      },
+      "fixture_status": "deterministic_captured_llm_unverified",
+      "llm_capture_status": "live_api_200_but_final_provider_provenance_unresolved"
     },
     {
       "case_id": "heldout-strategic-governance-001",
       "question_type": "strategic_tradeoff",
       "query": "Should a growing nonprofit centralize decisions or distribute authority across its teams?",
       "llm": null,
-      "deterministic": null,
-      "fixture_status": "awaiting_source_capture"
+      "deterministic": {
+        "ok": true,
+        "response": "The question raises a real issue: should a growing nonprofit centralize decisions or distribute authority across its teams.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+        "recommendation": null,
+        "provider": "deterministic_question_preserving_recovery",
+        "model": "",
+        "response_provenance": {
+          "class": "deterministic_fallback",
+          "provider": "deterministic_question_preserving_recovery",
+          "model": ""
+        },
+        "capture": {
+          "path": "local_deployed_deterministic_fallback",
+          "raw_response": "The question raises a real issue: should a growing nonprofit centralize decisions or distribute authority across its teams.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "visitor_sanitized_response": "The question raises a real issue: should a growing nonprofit centralize decisions or distribute authority across its teams.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "captured_at": "2026-11-19T04:33:47.638593+00:00",
+          "runtime_identity": {
+            "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+            "version": "v489.311",
+            "fingerprint": "USE-v489.311-source-derived",
+            "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+            "audit_contract": "ecosystem-integration-audit-v1",
+            "integration_audit_ok": false,
+            "integration_audit_warnings": {
+              "available_capabilities_missing_adapters": [
+                "relationship"
+              ],
+              "adapters_without_capabilities": []
+            },
+            "verified_at": "2026-11-19T04:33:10.168007+00:00"
+          },
+          "request_id": null,
+          "transport_status": "local_function_execution",
+          "transport_error": null,
+          "provider_provenance": {
+            "class": "deterministic_fallback",
+            "provider": "deterministic_question_preserving_recovery",
+            "model": ""
+          },
+          "processing": null,
+          "route_source": null
+        },
+        "canonical_doorway": null,
+        "doorway_title": null,
+        "doorway_url": null,
+        "doorway_rationale": null,
+        "doorway_decision": "omit",
+        "doorway_omission_reason": "No verified canonical Archive resource materially advances this inquiry."
+      },
+      "fixture_status": "deterministic_captured_llm_unverified",
+      "llm_capture_status": "live_api_200_but_final_provider_provenance_unresolved"
     },
     {
       "case_id": "heldout-technical-verification-001",
       "question_type": "technical_verification",
       "query": "How can I verify that a Python service has a required environment variable configured without exposing its secret value?",
       "llm": null,
-      "deterministic": null,
-      "fixture_status": "awaiting_source_capture"
+      "deterministic": {
+        "ok": true,
+        "response": "The question raises a real issue: how can i verify that a python service has a required environment variable configured without exposing its secret value.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+        "recommendation": null,
+        "provider": "bounded_conceptual_relationship_recovery",
+        "model": "",
+        "response_provenance": {
+          "class": "deterministic_fallback",
+          "provider": "bounded_conceptual_relationship_recovery",
+          "model": ""
+        },
+        "capture": {
+          "path": "local_deployed_deterministic_fallback",
+          "raw_response": "The question raises a real issue: how can i verify that a python service has a required environment variable configured without exposing its secret value.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "visitor_sanitized_response": "The question raises a real issue: how can i verify that a python service has a required environment variable configured without exposing its secret value.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "captured_at": "2026-11-19T04:34:02.747702+00:00",
+          "runtime_identity": {
+            "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+            "version": "v489.311",
+            "fingerprint": "USE-v489.311-source-derived",
+            "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+            "audit_contract": "ecosystem-integration-audit-v1",
+            "integration_audit_ok": false,
+            "integration_audit_warnings": {
+              "available_capabilities_missing_adapters": [
+                "relationship"
+              ],
+              "adapters_without_capabilities": []
+            },
+            "verified_at": "2026-11-19T04:33:10.168007+00:00"
+          },
+          "request_id": null,
+          "transport_status": "local_function_execution",
+          "transport_error": null,
+          "provider_provenance": {
+            "class": "deterministic_fallback",
+            "provider": "bounded_conceptual_relationship_recovery",
+            "model": ""
+          },
+          "processing": null,
+          "route_source": null
+        },
+        "canonical_doorway": null,
+        "doorway_title": null,
+        "doorway_url": null,
+        "doorway_rationale": null,
+        "doorway_decision": "omit",
+        "doorway_omission_reason": "No verified canonical Archive resource materially advances this inquiry."
+      },
+      "fixture_status": "deterministic_captured_llm_unverified",
+      "llm_capture_status": "live_api_200_but_final_provider_provenance_unresolved"
     },
     {
       "case_id": "heldout-uncertain-causation-001",
       "question_type": "uncertain_or_insufficient_evidence",
       "query": "What caused the sudden increase in our website traffic last week?",
       "llm": null,
-      "deterministic": null,
-      "fixture_status": "awaiting_source_capture"
+      "deterministic": {
+        "ok": true,
+        "response": "The question raises a real issue: what caused the sudden increase in our website traffic last week.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+        "recommendation": null,
+        "provider": "deterministic_question_preserving_recovery",
+        "model": "",
+        "response_provenance": {
+          "class": "deterministic_fallback",
+          "provider": "deterministic_question_preserving_recovery",
+          "model": ""
+        },
+        "capture": {
+          "path": "local_deployed_deterministic_fallback",
+          "raw_response": "The question raises a real issue: what caused the sudden increase in our website traffic last week.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "visitor_sanitized_response": "The question raises a real issue: what caused the sudden increase in our website traffic last week.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "captured_at": "2026-11-19T04:34:17.542996+00:00",
+          "runtime_identity": {
+            "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+            "version": "v489.311",
+            "fingerprint": "USE-v489.311-source-derived",
+            "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+            "audit_contract": "ecosystem-integration-audit-v1",
+            "integration_audit_ok": false,
+            "integration_audit_warnings": {
+              "available_capabilities_missing_adapters": [
+                "relationship"
+              ],
+              "adapters_without_capabilities": []
+            },
+            "verified_at": "2026-11-19T04:33:10.168007+00:00"
+          },
+          "request_id": null,
+          "transport_status": "local_function_execution",
+          "transport_error": null,
+          "provider_provenance": {
+            "class": "deterministic_fallback",
+            "provider": "deterministic_question_preserving_recovery",
+            "model": ""
+          },
+          "processing": null,
+          "route_source": null
+        },
+        "canonical_doorway": null,
+        "doorway_title": null,
+        "doorway_url": null,
+        "doorway_rationale": null,
+        "doorway_decision": "omit",
+        "doorway_omission_reason": "No verified canonical Archive resource materially advances this inquiry."
+      },
+      "fixture_status": "deterministic_captured_llm_unverified",
+      "llm_capture_status": "live_api_200_but_final_provider_provenance_unresolved"
     },
     {
       "case_id": "heldout-explicit-no-handoff-001",
       "question_type": "explicit_no_handoff",
       "query": "Explain the difference between a policy and a procedure in plain language. Do not recommend resources, links, or follow-up steps.",
       "llm": null,
-      "deterministic": null,
-      "fixture_status": "awaiting_source_capture"
+      "deterministic": {
+        "ok": true,
+        "response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+        "recommendation": null,
+        "provider": "bounded_conceptual_relationship_recovery",
+        "model": "",
+        "response_provenance": {
+          "class": "deterministic_fallback",
+          "provider": "bounded_conceptual_relationship_recovery",
+          "model": ""
+        },
+        "capture": {
+          "path": "local_deployed_deterministic_fallback",
+          "raw_response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "visitor_sanitized_response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "captured_at": "2026-11-19T04:34:40.938619+00:00",
+          "runtime_identity": {
+            "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+            "version": "v489.311",
+            "fingerprint": "USE-v489.311-source-derived",
+            "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+            "audit_contract": "ecosystem-integration-audit-v1",
+            "integration_audit_ok": false,
+            "integration_audit_warnings": {
+              "available_capabilities_missing_adapters": [
+                "relationship"
+              ],
+              "adapters_without_capabilities": []
+            },
+            "verified_at": "2026-11-19T04:33:10.168007+00:00"
+          },
+          "request_id": null,
+          "transport_status": "local_function_execution",
+          "transport_error": null,
+          "provider_provenance": {
+            "class": "deterministic_fallback",
+            "provider": "bounded_conceptual_relationship_recovery",
+            "model": ""
+          },
+          "processing": null,
+          "route_source": null
+        },
+        "canonical_doorway": null,
+        "doorway_title": null,
+        "doorway_url": null,
+        "doorway_rationale": null,
+        "doorway_decision": "omit",
+        "doorway_omission_reason": "No verified canonical Archive resource materially advances this inquiry."
+      },
+      "fixture_status": "deterministic_captured_llm_unverified",
+      "llm_capture_status": "live_api_200_but_final_provider_provenance_unresolved"
     }
-  ]
+  ],
+  "runtime_identity": {
+    "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+    "version": "v489.311",
+    "fingerprint": "USE-v489.311-source-derived",
+    "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+    "audit_contract": "ecosystem-integration-audit-v1",
+    "integration_audit_ok": false,
+    "integration_audit_warnings": {
+      "available_capabilities_missing_adapters": [
+        "relationship"
+      ],
+      "adapters_without_capabilities": []
+    },
+    "verified_at": "2026-11-19T04:33:10.168007+00:00"
+  },
+  "source_code_commit": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3"
 }

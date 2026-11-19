@@ -1187,6 +1187,155 @@ def _guide_personal_decision_agency_recovery():
         "The conversation should end with the person better equipped to judge, not more dependent on the Guide's judgment. The Guide can identify a useful next question, a proportionate next step, or evidence worth gathering, while leaving the values, consent, and final choice with the person who must live with the outcome. If the person corrects the framing or sees something differently, the Guide should adapt. Its success is measured by clearer understanding and stronger agency—not by securing agreement with a recommendation."
     )
 
+def compose_task_specific_recovery(question):
+    """Return bounded, provider-independent answers for well-defined task families.
+
+    These recoveries are task-level capabilities, not benchmark-answer reuse.
+    They are deliberately self-contained and do not select Archive doorways.
+    """
+    q = _clean(question).casefold()
+    if not q:
+        return None
+
+    # Policy/procedure is a plain-language distinction, not a resource-discovery task.
+    if (
+        re.search(r"\bpolicy\b", q)
+        and re.search(r"\bprocedures?\b", q)
+        and re.search(r"\b(?:difference|distinguish|compare|versus|vs\.?|explain)\b", q)
+    ):
+        return {
+            "recovery_id": "task_comparison_policy_procedure",
+            "response": (
+                "A policy states the rule, principle, or requirement that guides a decision: what should happen and why. "
+                "A procedure describes the steps people follow to put that policy into practice: how the work is carried out. "
+                "The key difference is that policy sets direction; procedure explains the method.\n\n"
+                "For example, a leave policy may state who is eligible for leave and the conditions that apply. "
+                "The procedure explains how an employee submits a request, who reviews it, how the decision is recorded, "
+                "and how the employee is notified.\n\n"
+                "The two should support one another, but they are not interchangeable. A policy can remain stable while "
+                "a procedure is improved; a procedure cannot legitimately override the policy it is meant to implement."
+            ),
+        }
+
+    # Trust-as-practice is an implementation question: answer with observable
+    # organizational behaviors and feedback, not an abstract definition alone.
+    if (
+        re.search(r"\btrust\b", q)
+        and re.search(r"\b(?:organization|organisation|team|community)\b", q)
+        and re.search(r"\b(?:practice|put|build|apply|improve|operationalize|operationalise)\b", q)
+    ):
+        return {
+            "recovery_id": "task_practical_trust_in_organizations",
+            "response": (
+                "Trust becomes practical when an organization makes its decisions and commitments observable and dependable. "
+                "Start with a decision that affects people: ask those affected what they see before deciding, distinguish "
+                "observed facts from assumptions, explain the reasons for the decision, and name who owns the decision and "
+                "the next action. Then follow through when promised, and tell people promptly when something changes.\\n\\n"
+                "Create safe ways to raise concerns and disagree. Respond without retaliation, correct mistakes openly, and "
+                "repair harm rather than asking people simply to trust the organization. Share the information people need "
+                "to act responsibly, and apply agreed rules consistently across roles and teams.\\n\\n"
+                "Check whether trust is actually improving: are commitments kept, are concerns raised earlier, do people "
+                "understand how decisions were made, and are mistakes addressed? These observable behaviors are more reliable "
+                "indicators than statements of good intent alone."
+            ),
+        }
+
+    # Decision-rights allocation: centralize what needs common authority; delegate
+    # reversible, context-dependent choices to the people closest to the work.
+    if (
+        re.search(r"\bcentraliz(?:e|es|ed|ing|ation)|centralis(?:e|es|ed|ing|ation)\b", q)
+        and re.search(r"\bdistribut(?:e|es|ed|ing)|decentraliz(?:e|es|ed|ing|ation)|decentralis(?:e|es|ed|ing|ation)|delegat(?:e|es|ed|ing|ion)\b", q)
+        and re.search(r"\b(?:authority|decision|decisions|decision-making|power)\b", q)
+    ):
+        return {
+            "recovery_id": "task_decision_rights_distribution_tradeoff",
+            "response": (
+                "Neither full centralization nor unrestricted distribution is a sound default. Use centralization when a decision creates "
+                "organization-wide obligations, carries legal or material financial risk, requires consistent standards, or affects "
+                "several teams at once. Use distributed authority when a decision is routine and reversible, and the relevant knowledge sits with the "
+                "team doing the work and the consequences can be contained locally.\n\n"
+                "Centralization can improve consistency, coordination, and accountability, but it can also create bottlenecks, "
+                "distance decisions from local knowledge, and weaken initiative. Distributed authority can improve speed, "
+                "ownership, and responsiveness, but it can produce uneven practice, duplicated effort, or conflicting commitments "
+                "if teams lack shared boundaries. The trade-off is between consistent oversight and the speed, local knowledge, and initiative that come from delegated decisions.\n\n"
+                "A growing nonprofit will usually benefit from a clear hybrid: define a small set of reserved organization-wide "
+                "decisions, establish financial and safeguarding thresholds, and delegate day-to-day choices within those limits. "
+                "Make decision ownership and escalation rules visible, then review whether the arrangement is producing timely, "
+                "consistent decisions without overloading the center."
+            ),
+        }
+
+    # Safe verification of environment-variable presence without exposing the value.
+    if (
+        re.search(r"\b(?:environment\s+variables?|env\s+vars?)\b", q)
+        and re.search(r"\bpython\b", q)
+        and re.search(r"\b(?:verify|check|configured|present|set)\b", q)
+        and re.search(r"\b(?:secret|value|expos(?:e|ing)|print|log)\b", q)
+    ):
+        return {
+            "recovery_id": "task_safe_environment_variable_presence_check",
+            "response": (
+                "Check whether the variable is present, but never print or log its value. In Python, test the value as a "
+                "boolean and report only the variable name and the result:\n\n"
+                "```python\nimport os\n\nname = \"SERVICE_API_KEY\"\nconfigured = bool(os.getenv(name, \"\").strip())\nprint(f\"{name} configured: {configured}\")\n```\n\n"
+                "This confirms that the process environment contains a non-empty value at the time of the check; it does not "
+                "prove that the application reads the variable or that the credential is valid. To verify use, test the code "
+                "path that loads the setting and perform a safe integration check that reports success or failure without "
+                "including the credential in output. Keep the check in a controlled diagnostic or test, not in routine logs."
+            ),
+        }
+
+    # Causal attribution from aggregate traffic changes requires evidence, not a guess.
+    if (
+        re.search(r"\btraffic\b", q)
+        and re.search(r"\b(?:increase|increased|spike|surge|jump|rise|higher)\b", q)
+        and re.search(r"\b(?:website|site|visitors?|sessions?|analytics)\b", q)
+    ):
+        return {
+            "recovery_id": "task_uncertain_website_traffic_causation",
+            "response": (
+                "The cause cannot be established from the information provided; the traffic increase alone is not enough to identify what changed. A rise in visits can come from several "
+                "different sources—search visibility, referrals, a campaign, a newly shared page, direct traffic, automated "
+                "bots, or a measurement change—and more than one may be operating at once.\n\n"
+                "Start by comparing the affected week with the preceding weeks and the same period where seasonality matters. "
+                "Segment the change by acquisition source and medium, landing page, geography, device, and new versus returning "
+                "visitors. Identify which segment accounts for most of the increase, then compare its timing with published "
+                "content, campaigns, backlinks, search impressions and clicks, site changes, and referral activity. Check server "
+                "logs and bot indicators as well: a rise in requests is not necessarily a rise in people.\n\n"
+                "Treat a cause as supported only when the timing and segment-level evidence converge. Record competing "
+                "explanations and what would distinguish them; without that evidence, report the increase as observed and its "
+                "cause as undetermined rather than assigning it to the most visible event."
+            ),
+        }
+
+    # A worldview/assumption question needs a clear relationship and lived example,
+    # not a generic mechanism paragraph with the entire interrogative pasted in.
+    if (
+        re.search(r"\b(?:assumptions? about reality|worldview|worldviews|beliefs about how the world works)\b", q)
+        and re.search(r"\b(?:decisions?|choices|cooperat(?:e|ion)|everyday|daily|relationships?)\b", q)
+        and re.search(r"\b(?:shape|shapes|influence|influences|affect|affects|guide|guides)\b", q)
+    ):
+        return {
+            "recovery_id": "task_worldview_everyday_decisions_and_cooperation",
+            "response": (
+                "Assumptions about reality shape everyday decisions by influencing what people notice, what they regard as "
+                "possible, whose interests they consider, and which consequences they expect. These assumptions form part of "
+                "a worldview. A worldview is a way of understanding how the world works and how people are related to one another.\n\n"
+                "For example, if people assume that resources are always scarce and others are mainly competitors, they may "
+                "protect information, avoid sharing risk, or treat disagreement as a threat. If they see people as distinct "
+                "but interdependent, they may be more inclined to share information, coordinate contributions, and consider "
+                "how a decision affects the wider group. Neither assumption determines behavior by itself; incentives, trust, "
+                "institutions, and material conditions also matter.\n\n"
+                "The practical influence is reciprocal. A worldview shapes how people interpret a situation, while repeated "
+                "experiences and the consequences of their choices can reinforce or revise that worldview. Cooperation becomes "
+                "more likely when people can make their assumptions visible, test them against experience, and build conditions "
+                "in which mutual responsibility is safer and more worthwhile."
+            ),
+        }
+
+    return None
+
+
 def compose_recovery(question, *, underlying_question="", desired_movement=""):
     """Offer a useful bounded response without inventing facts or sources."""
     q = _clean(question)

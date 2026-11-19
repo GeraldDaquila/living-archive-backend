@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: living-archive-gold-star-v2-qa
+    runtime: python
+    plan: free
+    region: singapore
+    branch: gold-star-v2-complete-architecture
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    autoDeploy: false

@@ -72,7 +72,7 @@ def test_structured_specialist_handoff_uses_its_own_contract():
     assert result["reason"] == "structured_handoff"
 
 
-def test_shared_json_sender_invokes_floor_before_serialization():
+def test_shared_json_sender_uses_shared_floor_helper_before_serialization():
     import ast
     from pathlib import Path
 
@@ -86,7 +86,7 @@ def test_shared_json_sender_invokes_floor_before_serialization():
         node for node in ast.walk(sender)
         if isinstance(node, ast.Call)
         and isinstance(node.func, ast.Name)
-        and node.func.id == "evaluate_response_floor"
+        and node.func.id == "apply_response_floor_boundary"
     ]
     serializations = [
         node for node in ast.walk(sender)
@@ -113,7 +113,7 @@ def test_shared_json_sender_invokes_floor_before_serialization():
         node for node in ast.walk(outer_sender)
         if isinstance(node, ast.Call)
         and isinstance(node.func, ast.Name)
-        and node.func.id == "evaluate_response_floor"
+        and node.func.id == "apply_response_floor_boundary"
     ]
     outer_serializations = [
         node for node in ast.walk(outer_sender)
@@ -126,6 +126,29 @@ def test_shared_json_sender_invokes_floor_before_serialization():
     assert outer_calls
     assert outer_serializations
     assert min(node.lineno for node in outer_calls) < min(node.lineno for node in outer_serializations)
+
+    outer_boundary = next(
+        node for node in tree.body
+        if isinstance(node, ast.AsyncFunctionDef)
+        and node.name == "_guide_outer_visitor_response_boundary"
+    )
+    terminal_calls = [
+        node for node in ast.walk(outer_boundary)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "apply_response_floor_boundary"
+    ]
+    terminal_serializations = [
+        node for node in ast.walk(outer_boundary)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "json"
+        and node.func.attr == "dumps"
+    ]
+    assert terminal_calls
+    assert terminal_serializations
+    assert min(node.lineno for node in terminal_calls) < min(node.lineno for node in terminal_serializations)
 
 
 def test_shared_sender_e2e_allows_valid_answer_and_attaches_floor(monkeypatch):

@@ -7,7 +7,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-VERSION = "1.0"
+VERSION = "1.2"
 _PATTERNS = {
     "explicit_no_handoff": re.compile(r"\b(?:do not|don't|without|no)\b.{0,80}\b(?:links?|resources?|recommendations?|follow[- ]?up|next steps?|doorways?)\b", re.I),
     "technical_verification": re.compile(r"\b(?:verify|check|confirm|test)\b.{0,100}\b(?:environment variable|secret|configuration|configured|credential)\b", re.I),
@@ -29,6 +29,16 @@ def classify_question(query: str) -> dict[str, Any]:
             return {"version": VERSION, "type": kind, "confidence": "high"}
     return {"version": VERSION, "type": "unknown", "confidence": "none"}
 
+def remove_question_echo(query: str, answer: str) -> str:
+    """Remove one verbatim question echo before scoring substantive answer content."""
+    tokens = re.findall(r"[a-z0-9]+", str(query or "").casefold())
+    if len(tokens) < 4:
+        return str(answer or "")
+    phrase = r"[\W_]+".join(re.escape(token) for token in tokens)
+    pattern = r"(?<![a-z0-9])" + phrase + r"(?![a-z0-9])"
+    return re.sub(pattern, " ", str(answer or ""), count=1, flags=re.I)
+
+
 def _has(text: str, phrases: tuple[str, ...]) -> bool:
     return any(p in text for p in phrases)
 
@@ -44,14 +54,14 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
     kind = classify_question(query)["type"]
     if kind == "unknown":
         return {"version": VERSION, "status": "review_required", "reason": "no_confident_task_contract", "question_type": kind, "checks": []}
-    low = re.sub(r"\s+", " ", answer.casefold())
+    low = re.sub(r"\s+", " ", remove_question_echo(query, answer).casefold())
     checks: list[dict[str, Any]] = []
     def add(name: str, passed: bool, rationale: str, *, hard: bool = False) -> None:
         checks.append({"name": name, "passed": bool(passed), "rationale": rationale,
                        "severity": "hard" if hard else "review"})
     if kind == "explicit_no_handoff":
         add("no_resource_handoff", not payload.get("recommendation") and not re.search(r"https?://|www\.", answer, re.I), "Respect explicit no-resource/no-link instructions.", hard=True)
-        add("no_unrequested_followup", not _has(low, ("would you like", "if you want, i can", "you may want to explore", "next, you could", "i recommend reading")), "Do not append an unrequested next step.")
+        add("no_unrequested_followup", not _has(low, ("would you like", "if you want, i can", "you may want to explore", "next, you could", "i recommend reading", "a useful next question", "the next question is", "the next step is", "a good next step", "one useful next step")), "Do not append an unrequested next step.")
     elif kind == "technical_verification":
         add("presence_not_disclosure", _has(low, ("os.getenv", "os.environ", "environment variable")) and _has(low, ("is not none", "bool(", "presence check", "configured")), "Explain a boolean/presence check.")
         add("secret_not_printed", not _has(low, ("print(os.getenv", "print(os.environ", "logger.info(os.getenv", "logging the secret value")), "Do not expose secret values.")
@@ -63,8 +73,8 @@ def evaluate_semantic_contract(query: str, payload: Any) -> dict[str, Any]:
         add("useful_investigation", _has(low, ("compare", "check", "inspect", "segment", "review", "investigate")), "Offer a practical evidence-gathering step.")
     elif kind == "strategic_tradeoff":
         add("alternatives_visible", _has(low, ("centraliz", "centralis", "distribut", "decentral", "delegate", "delegat")), "Address the alternatives named in the question.")
-        add("tradeoffs_visible", _has(low, ("trade-off", "tradeoff", "however", "risk", "cost", "benefit", "advantage", "disadvantage")), "Make material costs and benefits visible.")
-        add("conditional_judgment", _has(low, ("depends on", "when ", "if ", "recommend", "hybrid", "retain", "delegate")), "Give conditional reasoning rather than a universal slogan.")
+        add("tradeoffs_visible", _has(low, ("trade-off", "tradeoff", "risks", "risk", "costs", "cost", "benefits", "benefit", "advantages", "advantage", "disadvantages", "disadvantage")), "Make material costs and benefits visible.")
+        add("conditional_judgment", _has(low, ("depends on", "when decisions", "when a decision", "if the decision", "routine local decisions", "strategic decisions", "recommend", "hybrid", "retain", "delegate")), "Give conditional reasoning rather than a universal slogan.")
     elif kind == "comparison":
         add("comparative_structure", _has(low, ("whereas", "while", "by contrast", "unlike", "both", "difference", "compared with")), "Make the distinction explicit.")
     elif kind == "practical_application":

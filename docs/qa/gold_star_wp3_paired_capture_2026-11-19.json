@@ -1,0 +1,1233 @@
+{
+  "report_schema_version": "1.0",
+  "evaluation_mode": "same_commit_live_api_attempt_plus_local_deterministic_capture",
+  "semantic_certification": false,
+  "runtime_identity": {
+    "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+    "version": "v489.311",
+    "fingerprint": "USE-v489.311-source-derived",
+    "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+    "audit_contract": "ecosystem-integration-audit-v1",
+    "integration_audit_ok": false,
+    "integration_audit_warnings": {
+      "available_capabilities_missing_adapters": [
+        "relationship"
+      ],
+      "adapters_without_capabilities": []
+    },
+    "verified_at": "2026-11-19T04:33:10.168007+00:00"
+  },
+  "source_code_commit": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+  "paired_summary": {
+    "cases_total": 7,
+    "llm_captured": 0,
+    "deterministic_captured": 7,
+    "paired_cases": 0,
+    "status_parity": 0,
+    "status_disagreement": 0
+  },
+  "cases": [
+    {
+      "case_id": "heldout-water-boiling-point-001",
+      "question_type": "general_fact",
+      "query": "At standard atmospheric pressure, what temperature does water boil at?",
+      "llm": null,
+      "deterministic": {
+        "ok": true,
+        "response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+        "recommendation": {
+          "title": "Life Under Pressure",
+          "url": "https://geralddaquila.com/life-under-pressure/",
+          "rationale": "Provide a practical territory for navigating stress, overload, uncertainty, destabilization, and decision-making under pressure."
+        },
+        "provider": "deterministic_question_preserving_recovery",
+        "model": "",
+        "response_provenance": {
+          "class": "deterministic_fallback",
+          "provider": "deterministic_question_preserving_recovery",
+          "model": ""
+        },
+        "capture": {
+          "path": "local_deployed_deterministic_fallback",
+          "raw_response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "visitor_sanitized_response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "captured_at": "2026-11-19T04:33:16.758439+00:00",
+          "runtime_identity": {
+            "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+            "version": "v489.311",
+            "fingerprint": "USE-v489.311-source-derived",
+            "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+            "audit_contract": "ecosystem-integration-audit-v1",
+            "integration_audit_ok": false,
+            "integration_audit_warnings": {
+              "available_capabilities_missing_adapters": [
+                "relationship"
+              ],
+              "adapters_without_capabilities": []
+            },
+            "verified_at": "2026-11-19T04:33:10.168007+00:00"
+          },
+          "request_id": null,
+          "transport_status": "local_function_execution",
+          "transport_error": null,
+          "provider_provenance": {
+            "class": "deterministic_fallback",
+            "provider": "deterministic_question_preserving_recovery",
+            "model": ""
+          },
+          "processing": null,
+          "route_source": null
+        },
+        "canonical_doorway": {
+          "title": "Life Under Pressure",
+          "url": "https://geralddaquila.com/life-under-pressure/",
+          "rationale": "Provide a practical territory for navigating stress, overload, uncertainty, destabilization, and decision-making under pressure."
+        },
+        "doorway_title": "Life Under Pressure",
+        "doorway_url": "https://geralddaquila.com/life-under-pressure/",
+        "doorway_rationale": "Provide a practical territory for navigating stress, overload, uncertainty, destabilization, and decision-making under pressure.",
+        "doorway_decision": "selected",
+        "doorway_omission_reason": null,
+        "doorway_omission_exception_reason": null
+      },
+      "fixture_status": "deterministic_captured_llm_path_unverified",
+      "llm_capture_status": "not_captured_unverified_path_or_transport",
+      "llm_transport": {
+        "status": 200,
+        "error": null,
+        "request_id": "basic-c00d0864b8b3df6c",
+        "provider_provenance": {
+          "declared_class": "unresolved",
+          "provider": null,
+          "model": null,
+          "verification_basis": "insufficient_or_deterministic_provenance"
+        },
+        "runtime_identity": {
+          "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+          "version": "v489.311",
+          "fingerprint": "USE-v489.311-source-derived",
+          "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+          "audit_contract": "ecosystem-integration-audit-v1",
+          "integration_audit_ok": false,
+          "integration_audit_warnings": {
+            "available_capabilities_missing_adapters": [
+              "relationship"
+            ],
+            "adapters_without_capabilities": []
+          },
+          "verified_at": "2026-11-19T04:33:10.168007+00:00"
+        },
+        "unverified_response_capture_status": "not_recorded_in_initial_capture_run",
+        "response_provenance_status": "unresolved"
+      },
+      "human_review": {
+        "llm": null,
+        "deterministic": {
+          "status": "DELEGATED_REVIEW_COMPLETE",
+          "reviewer": "ChatGPT delegated technical director and stewardship reviewer",
+          "reviewed_at": "2026-11-19",
+          "decision": "REVISE",
+          "critical_dimensions": [
+            "answer_first",
+            "general_knowledge_accuracy",
+            "uncertainty_honesty"
+          ],
+          "scores": {
+            "answer_directness": 0,
+            "factual_accuracy": 0,
+            "archive_grounding_and_provenance": "NA",
+            "cosmology_fidelity": "NA",
+            "human_voice_and_respect": 1,
+            "sentence_coherence": 2,
+            "paragraph_purpose_and_concision": 0,
+            "response_proportionality": 0,
+            "fractal_coherence": "NA",
+            "uncertainty_honesty": 0,
+            "doorway_relevance_and_timing": 0,
+            "visitor_orientation": 0
+          },
+          "reviewer_notes": "Fails to state the established answer (100°C/212°F). It mistakes absence of Archive retrieval for inability to answer general knowledge. The irrelevant Life Under Pressure doorway further distracts. No Archive-specific claim is made, so Archive grounding and cosmology fidelity are not applicable.",
+          "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
+          "reviewer_type": "AI_DELEGATED_TECHNICAL_STEWARDSHIP_REVIEW",
+          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json",
+          "case_specific_scores": {
+            "answer_first": 0,
+            "general_knowledge_accuracy": 0,
+            "uncertainty_honesty": 0
+          }
+        }
+      }
+    },
+    {
+      "case_id": "heldout-cosmology-life-001",
+      "question_type": "conceptual_explanation",
+      "query": "How do assumptions about reality shape the way people make everyday decisions and cooperate with others?",
+      "llm": null,
+      "deterministic": {
+        "ok": true,
+        "response": "A useful starting point is to ask how assumptions about reality shape the way people make everyday decisions and cooperate with others works through particular conditions rather than assuming a single direct cause. Repeated signals, incentives, relationships, constraints, and consequences can make some choices feel normal, rewarded, risky, or difficult even when formal rules say something different.\n\nThe next question is what mechanisms are actually operating: what people observe others doing, what behavior is rewarded or tolerated, whose judgment carries authority, and what happens when concerns are raised. Patterns become more consequential when these conditions reinforce one another over time and make correction harder or easier.\n\nThis is a starting explanation rather than a claim about a specific case. A stronger account identifies the relationships and evidence that matter, distinguishes influence from proof of causation, and remains open to other conditions that may change the outcome.",
+        "recommendation": {
+          "title": "The Hidden Assumptions That Quietly Shape Every Life",
+          "url": "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/",
+          "rationale": "This Cornerstone examines how inherited assumptions about reality shape worldview, everyday interpretation, decisions, and the institutions people inhabit. It offers a direct philosophical continuation without presenting the Archive's interpretive framework as a scientific finding."
+        },
+        "provider": "terminal_registered_recovery",
+        "model": "",
+        "response_provenance": {
+          "class": "deterministic_fallback",
+          "provider": "terminal_registered_recovery",
+          "model": ""
+        },
+        "capture": {
+          "path": "local_deployed_deterministic_fallback",
+          "raw_response": "A useful starting point is to ask how assumptions about reality shape the way people make everyday decisions and cooperate with others works through particular conditions rather than assuming a single direct cause. Repeated signals, incentives, relationships, constraints, and consequences can make some choices feel normal, rewarded, risky, or difficult even when formal rules say something different.\n\nThe next question is what mechanisms are actually operating: what people observe others doing, what behavior is rewarded or tolerated, whose judgment carries authority, and what happens when concerns are raised. Patterns become more consequential when these conditions reinforce one another over time and make correction harder or easier.\n\nThis is a starting explanation rather than a claim about a specific case. A stronger account identifies the relationships and evidence that matter, distinguishes influence from proof of causation, and remains open to other conditions that may change the outcome.",
+          "visitor_sanitized_response": "A useful starting point is to ask how assumptions about reality shape the way people make everyday decisions and cooperate with others works through particular conditions rather than assuming a single direct cause. Repeated signals, incentives, relationships, constraints, and consequences can make some choices feel normal, rewarded, risky, or difficult even when formal rules say something different.\n\nThe next question is what mechanisms are actually operating: what people observe others doing, what behavior is rewarded or tolerated, whose judgment carries authority, and what happens when concerns are raised. Patterns become more consequential when these conditions reinforce one another over time and make correction harder or easier.\n\nThis is a starting explanation rather than a claim about a specific case. A stronger account identifies the relationships and evidence that matter, distinguishes influence from proof of causation, and remains open to other conditions that may change the outcome.",
+          "captured_at": "2026-11-19T04:33:25.672748+00:00",
+          "runtime_identity": {
+            "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+            "version": "v489.311",
+            "fingerprint": "USE-v489.311-source-derived",
+            "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+            "audit_contract": "ecosystem-integration-audit-v1",
+            "integration_audit_ok": false,
+            "integration_audit_warnings": {
+              "available_capabilities_missing_adapters": [
+                "relationship"
+              ],
+              "adapters_without_capabilities": []
+            },
+            "verified_at": "2026-11-19T04:33:10.168007+00:00"
+          },
+          "request_id": null,
+          "transport_status": "local_function_execution",
+          "transport_error": null,
+          "provider_provenance": {
+            "class": "deterministic_fallback",
+            "provider": "terminal_registered_recovery",
+            "model": ""
+          },
+          "processing": null,
+          "route_source": null
+        },
+        "canonical_doorway": {
+          "title": "The Hidden Assumptions That Quietly Shape Every Life",
+          "url": "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/",
+          "rationale": "This Cornerstone examines how inherited assumptions about reality shape worldview, everyday interpretation, decisions, and the institutions people inhabit. It offers a direct philosophical continuation without presenting the Archive's interpretive framework as a scientific finding."
+        },
+        "doorway_title": "The Hidden Assumptions That Quietly Shape Every Life",
+        "doorway_url": "https://geralddaquila.com/2026/08/09/constitutional-ontology-hidden-maps/",
+        "doorway_rationale": "This Cornerstone examines how inherited assumptions about reality shape worldview, everyday interpretation, decisions, and the institutions people inhabit. It offers a direct philosophical continuation without presenting the Archive's interpretive framework as a scientific finding.",
+        "doorway_decision": "selected",
+        "doorway_omission_reason": null,
+        "doorway_omission_exception_reason": null
+      },
+      "fixture_status": "deterministic_captured_llm_path_unverified",
+      "llm_capture_status": "not_captured_unverified_path_or_transport",
+      "llm_transport": {
+        "status": 200,
+        "error": null,
+        "request_id": "basic-9e4443d43e9af6b6",
+        "provider_provenance": {
+          "declared_class": "unresolved",
+          "provider": null,
+          "model": null,
+          "verification_basis": "insufficient_or_deterministic_provenance"
+        },
+        "runtime_identity": {
+          "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+          "version": "v489.311",
+          "fingerprint": "USE-v489.311-source-derived",
+          "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+          "audit_contract": "ecosystem-integration-audit-v1",
+          "integration_audit_ok": false,
+          "integration_audit_warnings": {
+            "available_capabilities_missing_adapters": [
+              "relationship"
+            ],
+            "adapters_without_capabilities": []
+          },
+          "verified_at": "2026-11-19T04:33:10.168007+00:00"
+        },
+        "unverified_response_capture_status": "not_recorded_in_initial_capture_run",
+        "response_provenance_status": "unresolved"
+      },
+      "human_review": {
+        "llm": null,
+        "deterministic": {
+          "status": "DELEGATED_REVIEW_COMPLETE",
+          "reviewer": "ChatGPT delegated technical director and stewardship reviewer",
+          "reviewed_at": "2026-11-19",
+          "decision": "REVISE",
+          "critical_dimensions": [
+            "answer_first",
+            "human_voice",
+            "concrete_clarity",
+            "archive_grounding",
+            "doorway_relevance"
+          ],
+          "scores": {
+            "answer_directness": 1,
+            "factual_accuracy": 1,
+            "archive_grounding_and_provenance": 1,
+            "cosmology_fidelity": 1,
+            "human_voice_and_respect": 1,
+            "sentence_coherence": 0,
+            "paragraph_purpose_and_concision": 1,
+            "response_proportionality": 1,
+            "fractal_coherence": 1,
+            "uncertainty_honesty": 2,
+            "doorway_relevance_and_timing": 2,
+            "visitor_orientation": 1
+          },
+          "reviewer_notes": "Contains a useful high-level observation about incentives and social conditions, but its opening sentence is grammatically malformed and echoes the question rather than defining cosmology/worldview. It does not distinguish scientific cosmology from philosophical worldview or give a concrete example. The doorway is topically relevant and optional, but the answer is not sufficiently developed. No unsupported Archive doctrine is explicitly asserted.",
+          "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
+          "reviewer_type": "AI_DELEGATED_TECHNICAL_STEWARDSHIP_REVIEW",
+          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json",
+          "case_specific_scores": {
+            "answer_first": 1,
+            "human_voice": 1,
+            "concrete_clarity": 0,
+            "archive_grounding": 1,
+            "doorway_relevance": 2
+          }
+        }
+      }
+    },
+    {
+      "case_id": "heldout-practical-trust-001",
+      "question_type": "practical_application",
+      "query": "How can an organization put trust into practice?",
+      "llm": null,
+      "deterministic": {
+        "ok": true,
+        "response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+        "recommendation": null,
+        "provider": "deterministic_question_preserving_recovery",
+        "model": "",
+        "response_provenance": {
+          "class": "deterministic_fallback",
+          "provider": "deterministic_question_preserving_recovery",
+          "model": ""
+        },
+        "capture": {
+          "path": "local_deployed_deterministic_fallback",
+          "raw_response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "visitor_sanitized_response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "captured_at": "2026-11-19T04:33:43.634478+00:00",
+          "runtime_identity": {
+            "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+            "version": "v489.311",
+            "fingerprint": "USE-v489.311-source-derived",
+            "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+            "audit_contract": "ecosystem-integration-audit-v1",
+            "integration_audit_ok": false,
+            "integration_audit_warnings": {
+              "available_capabilities_missing_adapters": [
+                "relationship"
+              ],
+              "adapters_without_capabilities": []
+            },
+            "verified_at": "2026-11-19T04:33:10.168007+00:00"
+          },
+          "request_id": null,
+          "transport_status": "local_function_execution",
+          "transport_error": null,
+          "provider_provenance": {
+            "class": "deterministic_fallback",
+            "provider": "deterministic_question_preserving_recovery",
+            "model": ""
+          },
+          "processing": null,
+          "route_source": null
+        },
+        "canonical_doorway": null,
+        "doorway_title": null,
+        "doorway_url": null,
+        "doorway_rationale": null,
+        "doorway_decision": "omit",
+        "doorway_omission_reason": "No verified canonical Archive resource materially advances this inquiry."
+      },
+      "fixture_status": "deterministic_captured_llm_path_unverified",
+      "llm_capture_status": "not_captured_unverified_path_or_transport",
+      "llm_transport": {
+        "status": 200,
+        "error": null,
+        "request_id": "basic-6f60240675d4d32e",
+        "provider_provenance": {
+          "declared_class": "unresolved",
+          "provider": null,
+          "model": null,
+          "verification_basis": "insufficient_or_deterministic_provenance"
+        },
+        "runtime_identity": {
+          "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+          "version": "v489.311",
+          "fingerprint": "USE-v489.311-source-derived",
+          "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+          "audit_contract": "ecosystem-integration-audit-v1",
+          "integration_audit_ok": false,
+          "integration_audit_warnings": {
+            "available_capabilities_missing_adapters": [
+              "relationship"
+            ],
+            "adapters_without_capabilities": []
+          },
+          "verified_at": "2026-11-19T04:33:10.168007+00:00"
+        },
+        "unverified_response_capture_status": "not_recorded_in_initial_capture_run",
+        "response_provenance_status": "unresolved"
+      },
+      "human_review": {
+        "llm": null,
+        "deterministic": {
+          "status": "DELEGATED_REVIEW_COMPLETE",
+          "reviewer": "ChatGPT delegated technical director and stewardship reviewer",
+          "reviewed_at": "2026-11-19",
+          "decision": "REVISE",
+          "critical_dimensions": [
+            "answer_first",
+            "human_voice",
+            "concrete_clarity",
+            "doorway_relevance"
+          ],
+          "scores": {
+            "answer_directness": 0,
+            "factual_accuracy": 1,
+            "archive_grounding_and_provenance": "NA",
+            "cosmology_fidelity": "NA",
+            "human_voice_and_respect": 1,
+            "sentence_coherence": 2,
+            "paragraph_purpose_and_concision": 0,
+            "response_proportionality": 1,
+            "fractal_coherence": "NA",
+            "uncertainty_honesty": 0,
+            "doorway_relevance_and_timing": 2,
+            "visitor_orientation": 0
+          },
+          "reviewer_notes": "The answer offers no observable organizational practices, despite an approved frozen trust exemplar demonstrating ask affected people, distinguish facts from assumptions, explain reasons, assign responsibility, follow through, and verify effects. No doorway is appropriate for this practical question. Archive grounding and cosmology fidelity are not applicable because the response makes no Archive-specific claims.",
+          "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
+          "reviewer_type": "AI_DELEGATED_TECHNICAL_STEWARDSHIP_REVIEW",
+          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json",
+          "case_specific_scores": {
+            "answer_first": 0,
+            "human_voice": 1,
+            "concrete_clarity": 0,
+            "doorway_relevance": 2
+          }
+        }
+      }
+    },
+    {
+      "case_id": "heldout-strategic-governance-001",
+      "question_type": "strategic_tradeoff",
+      "query": "Should a growing nonprofit centralize decisions or distribute authority across its teams?",
+      "llm": null,
+      "deterministic": {
+        "ok": true,
+        "response": "The question raises a real issue: should a growing nonprofit centralize decisions or distribute authority across its teams.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+        "recommendation": null,
+        "provider": "deterministic_question_preserving_recovery",
+        "model": "",
+        "response_provenance": {
+          "class": "deterministic_fallback",
+          "provider": "deterministic_question_preserving_recovery",
+          "model": ""
+        },
+        "capture": {
+          "path": "local_deployed_deterministic_fallback",
+          "raw_response": "The question raises a real issue: should a growing nonprofit centralize decisions or distribute authority across its teams.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "visitor_sanitized_response": "The question raises a real issue: should a growing nonprofit centralize decisions or distribute authority across its teams.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "captured_at": "2026-11-19T04:33:47.638593+00:00",
+          "runtime_identity": {
+            "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+            "version": "v489.311",
+            "fingerprint": "USE-v489.311-source-derived",
+            "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+            "audit_contract": "ecosystem-integration-audit-v1",
+            "integration_audit_ok": false,
+            "integration_audit_warnings": {
+              "available_capabilities_missing_adapters": [
+                "relationship"
+              ],
+              "adapters_without_capabilities": []
+            },
+            "verified_at": "2026-11-19T04:33:10.168007+00:00"
+          },
+          "request_id": null,
+          "transport_status": "local_function_execution",
+          "transport_error": null,
+          "provider_provenance": {
+            "class": "deterministic_fallback",
+            "provider": "deterministic_question_preserving_recovery",
+            "model": ""
+          },
+          "processing": null,
+          "route_source": null
+        },
+        "canonical_doorway": null,
+        "doorway_title": null,
+        "doorway_url": null,
+        "doorway_rationale": null,
+        "doorway_decision": "omit",
+        "doorway_omission_reason": "No verified canonical Archive resource materially advances this inquiry."
+      },
+      "fixture_status": "deterministic_captured_llm_path_unverified",
+      "llm_capture_status": "not_captured_unverified_path_or_transport",
+      "llm_transport": {
+        "status": 200,
+        "error": null,
+        "request_id": "basic-f0699c8643ecf676",
+        "provider_provenance": {
+          "declared_class": "unresolved",
+          "provider": null,
+          "model": null,
+          "verification_basis": "insufficient_or_deterministic_provenance"
+        },
+        "runtime_identity": {
+          "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+          "version": "v489.311",
+          "fingerprint": "USE-v489.311-source-derived",
+          "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+          "audit_contract": "ecosystem-integration-audit-v1",
+          "integration_audit_ok": false,
+          "integration_audit_warnings": {
+            "available_capabilities_missing_adapters": [
+              "relationship"
+            ],
+            "adapters_without_capabilities": []
+          },
+          "verified_at": "2026-11-19T04:33:10.168007+00:00"
+        },
+        "unverified_response_capture_status": "not_recorded_in_initial_capture_run",
+        "response_provenance_status": "unresolved"
+      },
+      "human_review": {
+        "llm": null,
+        "deterministic": {
+          "status": "DELEGATED_REVIEW_COMPLETE",
+          "reviewer": "ChatGPT delegated technical director and stewardship reviewer",
+          "reviewed_at": "2026-11-19",
+          "decision": "REVISE",
+          "critical_dimensions": [
+            "answer_directness",
+            "tradeoff_visibility",
+            "context_sensitivity",
+            "uncertainty_honesty"
+          ],
+          "scores": {
+            "answer_directness": 0,
+            "factual_accuracy": 1,
+            "archive_grounding_and_provenance": "NA",
+            "cosmology_fidelity": "NA",
+            "human_voice_and_respect": 1,
+            "sentence_coherence": 2,
+            "paragraph_purpose_and_concision": 0,
+            "response_proportionality": 0,
+            "fractal_coherence": "NA",
+            "uncertainty_honesty": 1,
+            "doorway_relevance_and_timing": 2,
+            "visitor_orientation": 0
+          },
+          "reviewer_notes": "It merely echoes the question and supplies generic uncertainty language. It does not compare centralization with distributed authority, explain trade-offs, condition the recommendation on decision type/risk, or identify safeguards. No doorway is appropriate. Archive-specific dimensions are not applicable.",
+          "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
+          "reviewer_type": "AI_DELEGATED_TECHNICAL_STEWARDSHIP_REVIEW",
+          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json",
+          "case_specific_scores": {
+            "answer_directness": 0,
+            "tradeoff_visibility": 0,
+            "context_sensitivity": 0,
+            "uncertainty_honesty": 1
+          }
+        }
+      }
+    },
+    {
+      "case_id": "heldout-technical-verification-001",
+      "question_type": "technical_verification",
+      "query": "How can I verify that a Python service has a required environment variable configured without exposing its secret value?",
+      "llm": null,
+      "deterministic": {
+        "ok": true,
+        "response": "The question raises a real issue: how can i verify that a python service has a required environment variable configured without exposing its secret value.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+        "recommendation": null,
+        "provider": "bounded_conceptual_relationship_recovery",
+        "model": "",
+        "response_provenance": {
+          "class": "deterministic_fallback",
+          "provider": "bounded_conceptual_relationship_recovery",
+          "model": ""
+        },
+        "capture": {
+          "path": "local_deployed_deterministic_fallback",
+          "raw_response": "The question raises a real issue: how can i verify that a python service has a required environment variable configured without exposing its secret value.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "visitor_sanitized_response": "The question raises a real issue: how can i verify that a python service has a required environment variable configured without exposing its secret value.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "captured_at": "2026-11-19T04:34:02.747702+00:00",
+          "runtime_identity": {
+            "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+            "version": "v489.311",
+            "fingerprint": "USE-v489.311-source-derived",
+            "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+            "audit_contract": "ecosystem-integration-audit-v1",
+            "integration_audit_ok": false,
+            "integration_audit_warnings": {
+              "available_capabilities_missing_adapters": [
+                "relationship"
+              ],
+              "adapters_without_capabilities": []
+            },
+            "verified_at": "2026-11-19T04:33:10.168007+00:00"
+          },
+          "request_id": null,
+          "transport_status": "local_function_execution",
+          "transport_error": null,
+          "provider_provenance": {
+            "class": "deterministic_fallback",
+            "provider": "bounded_conceptual_relationship_recovery",
+            "model": ""
+          },
+          "processing": null,
+          "route_source": null
+        },
+        "canonical_doorway": null,
+        "doorway_title": null,
+        "doorway_url": null,
+        "doorway_rationale": null,
+        "doorway_decision": "omit",
+        "doorway_omission_reason": "No verified canonical Archive resource materially advances this inquiry."
+      },
+      "fixture_status": "deterministic_captured_llm_path_unverified",
+      "llm_capture_status": "not_captured_unverified_path_or_transport",
+      "llm_transport": {
+        "status": 200,
+        "error": null,
+        "request_id": null,
+        "provider_provenance": {
+          "declared_class": null,
+          "provider": null,
+          "model": null,
+          "verification_basis": "insufficient_or_deterministic_provenance"
+        },
+        "runtime_identity": {
+          "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+          "version": "v489.311",
+          "fingerprint": "USE-v489.311-source-derived",
+          "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+          "audit_contract": "ecosystem-integration-audit-v1",
+          "integration_audit_ok": false,
+          "integration_audit_warnings": {
+            "available_capabilities_missing_adapters": [
+              "relationship"
+            ],
+            "adapters_without_capabilities": []
+          },
+          "verified_at": "2026-11-19T04:33:10.168007+00:00"
+        },
+        "unverified_response_capture_status": "not_recorded_in_initial_capture_run",
+        "response_provenance_status": "unresolved"
+      },
+      "human_review": {
+        "llm": null,
+        "deterministic": {
+          "status": "DELEGATED_REVIEW_COMPLETE",
+          "reviewer": "ChatGPT delegated technical director and stewardship reviewer",
+          "reviewed_at": "2026-11-19",
+          "decision": "REVISE",
+          "critical_dimensions": [
+            "technical_correctness",
+            "reproducibility",
+            "secret_safety",
+            "answer_directness"
+          ],
+          "scores": {
+            "answer_directness": 0,
+            "factual_accuracy": 1,
+            "archive_grounding_and_provenance": "NA",
+            "cosmology_fidelity": "NA",
+            "human_voice_and_respect": 1,
+            "sentence_coherence": 2,
+            "paragraph_purpose_and_concision": 0,
+            "response_proportionality": 0,
+            "fractal_coherence": "NA",
+            "uncertainty_honesty": 1,
+            "doorway_relevance_and_timing": 2,
+            "visitor_orientation": 0
+          },
+          "reviewer_notes": "Provides no Python method, no boolean presence check, and no warning against logging the secret. It also fails to distinguish configuration presence from proof of runtime use. The correct response can be concise and technically reproducible; no Archive doorway is warranted.",
+          "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
+          "reviewer_type": "AI_DELEGATED_TECHNICAL_STEWARDSHIP_REVIEW",
+          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json",
+          "case_specific_scores": {
+            "technical_correctness": 0,
+            "reproducibility": 0,
+            "secret_safety": 0,
+            "answer_directness": 0
+          }
+        }
+      }
+    },
+    {
+      "case_id": "heldout-uncertain-causation-001",
+      "question_type": "uncertain_or_insufficient_evidence",
+      "query": "What caused the sudden increase in our website traffic last week?",
+      "llm": null,
+      "deterministic": {
+        "ok": true,
+        "response": "The question raises a real issue: what caused the sudden increase in our website traffic last week.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+        "recommendation": null,
+        "provider": "deterministic_question_preserving_recovery",
+        "model": "",
+        "response_provenance": {
+          "class": "deterministic_fallback",
+          "provider": "deterministic_question_preserving_recovery",
+          "model": ""
+        },
+        "capture": {
+          "path": "local_deployed_deterministic_fallback",
+          "raw_response": "The question raises a real issue: what caused the sudden increase in our website traffic last week.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "visitor_sanitized_response": "The question raises a real issue: what caused the sudden increase in our website traffic last week.\n\nI do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "captured_at": "2026-11-19T04:34:17.542996+00:00",
+          "runtime_identity": {
+            "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+            "version": "v489.311",
+            "fingerprint": "USE-v489.311-source-derived",
+            "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+            "audit_contract": "ecosystem-integration-audit-v1",
+            "integration_audit_ok": false,
+            "integration_audit_warnings": {
+              "available_capabilities_missing_adapters": [
+                "relationship"
+              ],
+              "adapters_without_capabilities": []
+            },
+            "verified_at": "2026-11-19T04:33:10.168007+00:00"
+          },
+          "request_id": null,
+          "transport_status": "local_function_execution",
+          "transport_error": null,
+          "provider_provenance": {
+            "class": "deterministic_fallback",
+            "provider": "deterministic_question_preserving_recovery",
+            "model": ""
+          },
+          "processing": null,
+          "route_source": null
+        },
+        "canonical_doorway": null,
+        "doorway_title": null,
+        "doorway_url": null,
+        "doorway_rationale": null,
+        "doorway_decision": "omit",
+        "doorway_omission_reason": "No verified canonical Archive resource materially advances this inquiry."
+      },
+      "fixture_status": "deterministic_captured_llm_path_unverified",
+      "llm_capture_status": "not_captured_unverified_path_or_transport",
+      "llm_transport": {
+        "status": 200,
+        "error": null,
+        "request_id": null,
+        "provider_provenance": {
+          "declared_class": null,
+          "provider": null,
+          "model": null,
+          "verification_basis": "insufficient_or_deterministic_provenance"
+        },
+        "runtime_identity": {
+          "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+          "version": "v489.311",
+          "fingerprint": "USE-v489.311-source-derived",
+          "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+          "audit_contract": "ecosystem-integration-audit-v1",
+          "integration_audit_ok": false,
+          "integration_audit_warnings": {
+            "available_capabilities_missing_adapters": [
+              "relationship"
+            ],
+            "adapters_without_capabilities": []
+          },
+          "verified_at": "2026-11-19T04:33:10.168007+00:00"
+        },
+        "unverified_response_capture_status": "not_recorded_in_initial_capture_run",
+        "response_provenance_status": "unresolved"
+      },
+      "human_review": {
+        "llm": null,
+        "deterministic": {
+          "status": "DELEGATED_REVIEW_COMPLETE",
+          "reviewer": "ChatGPT delegated technical director and stewardship reviewer",
+          "reviewed_at": "2026-11-19",
+          "decision": "REVISE",
+          "critical_dimensions": [
+            "uncertainty_honesty",
+            "evidence_requirements",
+            "useful_next_steps",
+            "no_fabricated_cause"
+          ],
+          "scores": {
+            "answer_directness": 0,
+            "factual_accuracy": 1,
+            "archive_grounding_and_provenance": "NA",
+            "cosmology_fidelity": "NA",
+            "human_voice_and_respect": 1,
+            "sentence_coherence": 2,
+            "paragraph_purpose_and_concision": 0,
+            "response_proportionality": 0,
+            "fractal_coherence": "NA",
+            "uncertainty_honesty": 1,
+            "doorway_relevance_and_timing": 2,
+            "visitor_orientation": 0
+          },
+          "reviewer_notes": "It avoids inventing a cause, which is appropriate, but fails to name the missing evidence or provide a discriminating investigation plan. It substitutes an irrelevant Archive-evidence limitation for the actual need to inspect analytics, referrers, campaign tags, landing pages, Search Console, server logs, and bot traffic. No doorway is appropriate.",
+          "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
+          "reviewer_type": "AI_DELEGATED_TECHNICAL_STEWARDSHIP_REVIEW",
+          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json",
+          "case_specific_scores": {
+            "uncertainty_honesty": 1,
+            "evidence_requirements": 0,
+            "useful_next_steps": 0,
+            "no_fabricated_cause": 2
+          }
+        }
+      }
+    },
+    {
+      "case_id": "heldout-explicit-no-handoff-001",
+      "question_type": "explicit_no_handoff",
+      "query": "Explain the difference between a policy and a procedure in plain language. Do not recommend resources, links, or follow-up steps.",
+      "llm": null,
+      "deterministic": {
+        "ok": true,
+        "response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+        "recommendation": null,
+        "provider": "bounded_conceptual_relationship_recovery",
+        "model": "",
+        "response_provenance": {
+          "class": "deterministic_fallback",
+          "provider": "bounded_conceptual_relationship_recovery",
+          "model": ""
+        },
+        "capture": {
+          "path": "local_deployed_deterministic_fallback",
+          "raw_response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "visitor_sanitized_response": "I do not have enough grounded material here to give a specific Archive-based answer, but the question can still be approached by making its central tension visible: what is at stake, who or what is affected, what responsibilities are involved, and what would change if the situation were understood differently. That is a starting orientation rather than a substitute for evidence or context.\n\nA useful next question is where this distinction matters most: in how the organization makes decisions, measures success, or responds to consequences.",
+          "captured_at": "2026-11-19T04:34:40.938619+00:00",
+          "runtime_identity": {
+            "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+            "version": "v489.311",
+            "fingerprint": "USE-v489.311-source-derived",
+            "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+            "audit_contract": "ecosystem-integration-audit-v1",
+            "integration_audit_ok": false,
+            "integration_audit_warnings": {
+              "available_capabilities_missing_adapters": [
+                "relationship"
+              ],
+              "adapters_without_capabilities": []
+            },
+            "verified_at": "2026-11-19T04:33:10.168007+00:00"
+          },
+          "request_id": null,
+          "transport_status": "local_function_execution",
+          "transport_error": null,
+          "provider_provenance": {
+            "class": "deterministic_fallback",
+            "provider": "bounded_conceptual_relationship_recovery",
+            "model": ""
+          },
+          "processing": null,
+          "route_source": null
+        },
+        "canonical_doorway": null,
+        "doorway_title": null,
+        "doorway_url": null,
+        "doorway_rationale": null,
+        "doorway_decision": "omit",
+        "doorway_omission_reason": "No verified canonical Archive resource materially advances this inquiry."
+      },
+      "fixture_status": "deterministic_captured_llm_path_unverified",
+      "llm_capture_status": "not_captured_unverified_path_or_transport",
+      "llm_transport": {
+        "status": 200,
+        "error": null,
+        "request_id": "basic-dc2ae0d6996a20da",
+        "provider_provenance": {
+          "declared_class": "unresolved",
+          "provider": null,
+          "model": null,
+          "verification_basis": "insufficient_or_deterministic_provenance"
+        },
+        "runtime_identity": {
+          "deployment_commit_sha": "93c2d3a31405ec8b193e8d7a986ed764415ef8d3",
+          "version": "v489.311",
+          "fingerprint": "USE-v489.311-source-derived",
+          "source_sha256": "9a0699ebe829ed178adadb7370550c7e88a2a3d609a2497a2e71f5044a7cde35",
+          "audit_contract": "ecosystem-integration-audit-v1",
+          "integration_audit_ok": false,
+          "integration_audit_warnings": {
+            "available_capabilities_missing_adapters": [
+              "relationship"
+            ],
+            "adapters_without_capabilities": []
+          },
+          "verified_at": "2026-11-19T04:33:10.168007+00:00"
+        },
+        "unverified_response_capture_status": "not_recorded_in_initial_capture_run",
+        "response_provenance_status": "unresolved"
+      },
+      "human_review": {
+        "llm": null,
+        "deterministic": {
+          "status": "DELEGATED_REVIEW_COMPLETE",
+          "reviewer": "ChatGPT delegated technical director and stewardship reviewer",
+          "reviewed_at": "2026-11-19",
+          "decision": "REVISE",
+          "critical_dimensions": [
+            "answer_directness",
+            "conceptual_distinction",
+            "instruction_compliance",
+            "proportionality"
+          ],
+          "scores": {
+            "answer_directness": 0,
+            "factual_accuracy": 1,
+            "archive_grounding_and_provenance": "NA",
+            "cosmology_fidelity": "NA",
+            "human_voice_and_respect": 1,
+            "sentence_coherence": 2,
+            "paragraph_purpose_and_concision": 0,
+            "response_proportionality": 0,
+            "fractal_coherence": "NA",
+            "uncertainty_honesty": 1,
+            "doorway_relevance_and_timing": 1,
+            "visitor_orientation": 0
+          },
+          "reviewer_notes": "The response fails to define policy versus procedure. It does not add a link, but its generic next-question prompt violates the explicit instruction not to provide follow-up steps. A one- or two-sentence definition with a simple example would satisfy the task. Archive-specific dimensions are not applicable.",
+          "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
+          "reviewer_type": "AI_DELEGATED_TECHNICAL_STEWARDSHIP_REVIEW",
+          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json",
+          "case_specific_scores": {
+            "answer_directness": 0,
+            "conceptual_distinction": 0,
+            "instruction_compliance": 0,
+            "proportionality": 0
+          }
+        }
+      }
+    }
+  ],
+  "capture_outcome": {
+    "live_api_requests": 7,
+    "live_api_http_200": 7,
+    "verified_llm_outputs": 0,
+    "live_outputs_with_unresolved_final_provenance": 7,
+    "deterministic_outputs": 7,
+    "paired_outputs": 0,
+    "provider_activity_observed_in_service_logs": true,
+    "provider_activity_is_not_final_output_attribution": true,
+    "semantic_certification": false,
+    "human_review": "pending",
+    "note": "The initial capture runner did not preserve raw response text for unverified live outputs. It preserved status, request IDs, runtime identity, and provenance classification. The runner has been amended to preserve unverified response text in future manually triggered captures."
+  },
+  "evaluation_note": "The first live capture established deterministic-only coverage. The original offline semantic results were produced by baseline evaluator v1.0 and are retained only as a historical record. PR evaluator v1.1 strips exact question echoes before task checks; its treatment of the frozen captures is now regression-tested. No LLM output is attributed and no parity or semantic certification is claimed. The explicit no-handoff captured response's generic next-question prompt is now flagged by evaluator v1.2.",
+  "initial_baseline_contract_evaluation_v1_0": {
+    "schema_version": "1.0",
+    "evaluation_mode": "offline_fixture_only",
+    "semantic_certification": false,
+    "paired_cases": 0,
+    "status_parity": 0,
+    "status_disagreement": 0,
+    "coverage": {
+      "llm": {
+        "applicable": 0,
+        "not_applicable": 7,
+        "contract_violations": 0,
+        "review_required": 0,
+        "heuristic_passes_are_not_certifications": true
+      },
+      "deterministic": {
+        "applicable": 7,
+        "not_applicable": 0,
+        "contract_violations": 0,
+        "review_required": 7,
+        "heuristic_passes_are_not_certifications": true
+      }
+    },
+    "results": [
+      {
+        "case_id": "heldout-water-boiling-point-001",
+        "question_type": "general_fact",
+        "paths": {
+          "llm": {
+            "status": "not_applicable",
+            "reason": "no_supported_fixture"
+          },
+          "deterministic": {
+            "version": "1.0",
+            "status": "review_required",
+            "reason": "fact_accuracy_requires_evidence_or_case_rubric",
+            "question_type": "general_fact",
+            "checks": []
+          }
+        },
+        "parity": null
+      },
+      {
+        "case_id": "heldout-cosmology-life-001",
+        "question_type": "conceptual_explanation",
+        "paths": {
+          "llm": {
+            "status": "not_applicable",
+            "reason": "no_supported_fixture"
+          },
+          "deterministic": {
+            "version": "1.0",
+            "status": "review_required",
+            "reason": "no_confident_task_contract",
+            "question_type": "unknown",
+            "checks": []
+          }
+        },
+        "parity": null
+      },
+      {
+        "case_id": "heldout-practical-trust-001",
+        "question_type": "practical_application",
+        "paths": {
+          "llm": {
+            "status": "not_applicable",
+            "reason": "no_supported_fixture"
+          },
+          "deterministic": {
+            "version": "1.0",
+            "status": "review_required",
+            "reason": "human_review_required",
+            "question_type": "practical_application",
+            "checks": [
+              {
+                "name": "actionable_content",
+                "passed": false,
+                "rationale": "Provide an actionable operation or example.",
+                "severity": "review"
+              }
+            ],
+            "failed_checks": [
+              "actionable_content"
+            ],
+            "hard_failures": [],
+            "review_flags": [
+              "actionable_content"
+            ],
+            "semantic_certification": false
+          }
+        },
+        "parity": null
+      },
+      {
+        "case_id": "heldout-strategic-governance-001",
+        "question_type": "strategic_tradeoff",
+        "paths": {
+          "llm": {
+            "status": "not_applicable",
+            "reason": "no_supported_fixture"
+          },
+          "deterministic": {
+            "version": "1.0",
+            "status": "review_required",
+            "reason": "human_review_required",
+            "question_type": "strategic_tradeoff",
+            "checks": [
+              {
+                "name": "alternatives_visible",
+                "passed": true,
+                "rationale": "Address the alternatives named in the question.",
+                "severity": "review"
+              },
+              {
+                "name": "tradeoffs_visible",
+                "passed": false,
+                "rationale": "Make material costs and benefits visible.",
+                "severity": "review"
+              },
+              {
+                "name": "conditional_judgment",
+                "passed": true,
+                "rationale": "Give conditional reasoning rather than a universal slogan.",
+                "severity": "review"
+              }
+            ],
+            "failed_checks": [
+              "tradeoffs_visible"
+            ],
+            "hard_failures": [],
+            "review_flags": [
+              "tradeoffs_visible"
+            ],
+            "semantic_certification": false
+          }
+        },
+        "parity": null
+      },
+      {
+        "case_id": "heldout-technical-verification-001",
+        "question_type": "technical_verification",
+        "paths": {
+          "llm": {
+            "status": "not_applicable",
+            "reason": "no_supported_fixture"
+          },
+          "deterministic": {
+            "version": "1.0",
+            "status": "review_required",
+            "reason": "human_review_required",
+            "question_type": "technical_verification",
+            "checks": [
+              {
+                "name": "presence_not_disclosure",
+                "passed": true,
+                "rationale": "Explain a boolean/presence check.",
+                "severity": "review"
+              },
+              {
+                "name": "secret_not_printed",
+                "passed": true,
+                "rationale": "Do not expose secret values.",
+                "severity": "review"
+              },
+              {
+                "name": "config_vs_runtime_use",
+                "passed": false,
+                "rationale": "Distinguish configuration presence from application use.",
+                "severity": "review"
+              }
+            ],
+            "failed_checks": [
+              "config_vs_runtime_use"
+            ],
+            "hard_failures": [],
+            "review_flags": [
+              "config_vs_runtime_use"
+            ],
+            "semantic_certification": false
+          }
+        },
+        "parity": null
+      },
+      {
+        "case_id": "heldout-uncertain-causation-001",
+        "question_type": "uncertain_or_insufficient_evidence",
+        "paths": {
+          "llm": {
+            "status": "not_applicable",
+            "reason": "no_supported_fixture"
+          },
+          "deterministic": {
+            "version": "1.0",
+            "status": "review_required",
+            "reason": "human_review_required",
+            "question_type": "uncertain_causation",
+            "checks": [
+              {
+                "name": "no_asserted_cause_without_evidence",
+                "passed": true,
+                "rationale": "Do not state a definite cause without supporting evidence.",
+                "severity": "review"
+              },
+              {
+                "name": "calibrated_uncertainty",
+                "passed": false,
+                "rationale": "Do not invent a cause without evidence.",
+                "severity": "review"
+              },
+              {
+                "name": "discriminating_evidence",
+                "passed": false,
+                "rationale": "Name evidence that distinguishes explanations.",
+                "severity": "review"
+              },
+              {
+                "name": "useful_investigation",
+                "passed": false,
+                "rationale": "Offer a practical evidence-gathering step.",
+                "severity": "review"
+              }
+            ],
+            "failed_checks": [
+              "calibrated_uncertainty",
+              "discriminating_evidence",
+              "useful_investigation"
+            ],
+            "hard_failures": [],
+            "review_flags": [
+              "calibrated_uncertainty",
+              "discriminating_evidence",
+              "useful_investigation"
+            ],
+            "semantic_certification": false
+          }
+        },
+        "parity": null
+      },
+      {
+        "case_id": "heldout-explicit-no-handoff-001",
+        "question_type": "explicit_no_handoff",
+        "paths": {
+          "llm": {
+            "status": "not_applicable",
+            "reason": "no_supported_fixture"
+          },
+          "deterministic": {
+            "version": "1.0",
+            "status": "review_required",
+            "reason": "human_review_required",
+            "question_type": "explicit_no_handoff",
+            "checks": [
+              {
+                "name": "no_resource_handoff",
+                "passed": true,
+                "rationale": "Respect explicit no-resource/no-link instructions.",
+                "severity": "hard"
+              },
+              {
+                "name": "no_unrequested_followup",
+                "passed": true,
+                "rationale": "Do not append an unrequested next step.",
+                "severity": "review"
+              }
+            ],
+            "failed_checks": [],
+            "hard_failures": [],
+            "review_flags": [],
+            "semantic_certification": false
+          }
+        },
+        "parity": null
+      }
+    ],
+    "interpretation": "This harness checks observable task-contract failures on supplied fixtures. It does not generate answers, verify factual truth, or replace blinded human review."
+  },
+  "current_pr_evaluator_version": "1.2",
+  "current_pr_evaluator_revalidation": {
+    "status": "covered_by_offline_regression_tests",
+    "tests": [
+      "test_strategic_question_echo_does_not_count_as_a_comparison_or_recommendation",
+      "test_shared_semantic_contract_does_not_credit_echoed_governance_question",
+      "test_frozen_capture_semantic_contract_does_not_credit_echoed_governance_alternatives",
+      "test_explicit_no_handoff_rejects_generic_next_question_prompt",
+      "test_shared_semantic_contract_rejects_generic_next_question_prompt",
+      "test_frozen_explicit_no_handoff_capture_is_flagged_for_unrequested_followup"
+    ],
+    "note": "The original v1.0 offline evaluation is retained as a historical baseline only. It credited repeated question wording as evidence of alternatives; evaluator v1.1 strips exact question echoes before substantive checks. Evaluator v1.2 also flags generic 'useful next question' language when a visitor explicitly prohibits follow-up steps."
+  },
+  "human_review_summary": {
+    "review_mode": "delegated_evidence_based_technical_stewardship_review",
+    "reviewer": "ChatGPT delegated technical director and stewardship reviewer",
+    "registry_user_approved_gold_standards": 114,
+    "cases_reviewed": 7,
+    "accept": 0,
+    "revise": 7,
+    "reject": 0,
+    "independent_human_review": false,
+    "semantic_certification": false,
+    "disposition": "All seven deterministic captures require revision. Frozen captures remain unchanged; delegated review scores and rationale are recorded in the linked dossier.",
+    "registry_content_sha": "eb972d9e3312011ef90db111dde209a0a4764cd4"
+  }
+}

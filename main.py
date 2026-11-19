@@ -21,6 +21,13 @@ from boundary_resilience import CONTRACT_VERSION as BOUNDARY_RESILIENCE_CONTRACT
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
+# Gold Star v2 route contract is passed through Guide-owned specialist context; adapter source remains protected.
+from gold_star_question_contract import build_question_contract as _build_gold_star_question_contract
+from gold_star_answer_envelope import build_route_context as _build_gold_star_route_context
+from gold_star_evidence_validation import build_evidence_assessment as _build_gold_star_evidence_assessment
+from gold_star_bounded_repair import repair_eligibility as _gold_star_repair_eligibility, run_bounded_repair as _run_gold_star_bounded_repair
+from gold_star_route_capabilities import route_capability as _gold_star_route_capability, specialist_capability as _gold_star_specialist_capability
+
 from hub_contracts import (
     build_hub_request,
     hub_contract_snapshot,
@@ -80,6 +87,7 @@ from general_guide_gold_standards import (
 from guide_fuzzy_relevance import score_resource_fit as _score_guide_fuzzy_relevance_shadow
 from deterministic_answer_recovery import (
     compose_recovery as _compose_provider_exhaustion_recovery,
+    compose_task_specific_recovery as _compose_task_specific_recovery,
     is_harm_repair_question,
     is_community_continuity_revision_question,
     is_oversoul_free_will_question,
@@ -679,12 +687,27 @@ def _guide_query_explicitly_forbids_handoff(query):
     """Recognize direct no-link instructions without mistaking answer-first wording for refusal."""
     value = str(query or "")
     patterns = (
-        r"\b(?:do not|don't|please don't)\s+(?:show|include|provide|offer|give)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
-        r"\bno\s+(?:doorway|links?|pages?|resources?|handoffs?|recommendations)\b",
+        r"\b(?:do not|don't|please don't)\s+(?:show|include|provide|offer|give|recommend|suggest)\b.{0,96}\b(?:doorway|links?|pages?|resources?|handoffs?|recommendations?)\b",
+        r"\b(?:do not|don't|please don't)\s+(?:include|offer|provide|add|recommend|suggest)\b.{0,96}\b(?:follow[- ]?ups?|next[- ]?steps?|further reading)\b",
+        r"\bno\s+(?:doorway|links?|pages?|resources?|handoffs?|recommendations?|follow[- ]?ups?|next[- ]?steps?)\b",
         r"\bwithout\s+(?:a\s+)?(?:doorway|link|page|resource|handoff|recommendation)\b",
         r"\b(?:i|we)\s+(?:do not|don't)\s+(?:want|need|require)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
     )
     return any(re.search(pattern, value, re.I) for pattern in patterns)
+
+
+def _guide_registered_fact_matches_current_response(query, response, recovery):
+    """Allow only the exact fact independently registered for this same query."""
+    if not isinstance(recovery, dict) or not str(recovery.get("fact_id") or "").strip():
+        return False
+    verified = _established_general_knowledge_recovery(query)
+    if not isinstance(verified, dict):
+        return False
+    if str(verified.get("fact_id") or "").strip() != str(recovery.get("fact_id") or "").strip():
+        return False
+    expected = _sanitize_basic_inquiry_response(str(verified.get("response") or "").strip())
+    current = _sanitize_basic_inquiry_response(str(response or "").strip())
+    return bool(expected and current and current == expected)
 
 
 def _guide_enforce_terminal_doorway_policy(payload, query):
@@ -5048,7 +5071,13 @@ def _philippine_systems_specialist_response(query, history, route, request_id):
         original_question=query,
         recognized_territory="Philippine systems",
         processing_purpose="bounded Philippine systems orientation",
-        guide_context={"conversation": _history_text(history), "route_interpretation": interpretation},
+        guide_context={
+            "conversation": _history_text(history),
+            "route_interpretation": interpretation,
+            "gold_star_question_contract": _build_gold_star_question_contract(query),
+            "gold_star_route_capability": _gold_star_route_capability("deterministic-systems-preparation-entry"),
+            "gold_star_specialist_capability": _gold_star_specialist_capability("systems_ph"),
+        },
         safety_state="green",
     )
     contribution = route_spoke(
@@ -5084,6 +5113,9 @@ def _formation_specialist_response(query, history, route, request_id):
         "situation": str(interpretation.get("presenting_situation") or query),
         "possibility": str(interpretation.get("desired_movement") or ""),
         "desired_movement": str(interpretation.get("desired_movement") or ""),
+        "gold_star_question_contract": _build_gold_star_question_contract(query),
+        "gold_star_route_capability": _gold_star_route_capability("deterministic-formation-preparation-entry"),
+        "gold_star_specialist_capability": _gold_star_specialist_capability("formation"),
     }
     hub_request = build_hub_request(
         request_id=request_id,
@@ -5832,8 +5864,9 @@ def _guide_restore_verified_doorway(payload, query):
         and answer_basis.get("kind") == "general_knowledge"
         and not verified_family
         and not registered_candidate
-        and not _normalize_authoritative_recommendation(safe.get("recommendation"))
-        and not _normalize_authoritative_recommendation(safe.get("canonical_doorway"))
+        # An incidental upstream recommendation is not proof of relevance.
+        # Only an independently verified conceptual family, registered recovery
+        # doorway, or canonical source context can authorize navigation here.
         and not str(safe.get("canonical_link_context") or "").strip()
     )
     explicit_general_knowledge_omission = (
@@ -6005,6 +6038,17 @@ def _guide_finalize_visitor_payload(payload, query):
     """Apply shared visitor-facing quality and contamination boundaries to every route."""
     if not isinstance(payload, dict):
         return payload
+    if str(payload.get("intent") or "").strip().upper() in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}:
+        safe = dict(payload)
+        for key in (
+            "recommendation", "canonical_doorway", "doorway_title",
+            "doorway_url", "doorway_rationale",
+        ):
+            safe[key] = None
+        safe["doorway_decision"] = "omit"
+        safe["doorway_omission_reason"] = "safety_intervention_priority"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
     # Frozen exact-query Gold Standards are terminal visitor authority. Resolve
     # them before every broader recovery family so no conceptual contract or
     # deterministic fallback can overwrite an approved calibration exemplar.
@@ -7131,6 +7175,42 @@ def _guide_finalize_visitor_payload(payload, query):
             safe["route_source"] = "guide_final_visitor_boundary"
             safe["visitor_boundary_version"] = APP_VERSION
             return safe
+
+    # Explicit no-handoff instructions constrain both structured navigation
+    # and prose. Remove resource/follow-up sentences after every composer or
+    # recovery path; do not rely on the doorway fields alone.
+    if _guide_query_explicitly_forbids_handoff(query):
+        safe = dict(payload)
+        original_response = str(safe.get("response") or safe.get("answer") or "")
+        handoff_phrases = (
+            r"\b(?:archive material|separately selected resource|resource offers|place to explore|explore further|"
+            r"read more|visit the|open the link|follow[- ]?up|next[- ]?step|next question|"
+            r"where would|would you like|if you want,? i can|you may want to)\b",
+        )
+        kept_paragraphs = []
+        for paragraph in re.split(r"\n\s*\n+", original_response):
+            kept_sentences = [
+                sentence.strip()
+                for sentence in re.split(r"(?<=[.!?])\s+", paragraph)
+                if sentence.strip()
+                and not any(re.search(pattern, sentence, re.I) for pattern in handoff_phrases)
+            ]
+            if kept_sentences:
+                kept_paragraphs.append(" ".join(kept_sentences))
+        bounded_response = "\n\n".join(kept_paragraphs).strip()
+        if not bounded_response:
+            task_recovery = _compose_task_specific_recovery(query)
+            if isinstance(task_recovery, dict):
+                bounded_response = str(task_recovery.get("response") or "").strip()
+        if bounded_response:
+            safe["response"] = bounded_response
+            if "answer" in safe:
+                safe["answer"] = bounded_response
+        safe = _guide_enforce_terminal_doorway_policy(safe, query)
+        safe["processing"] = "final_visitor_boundary_explicit_no_handoff"
+        safe["route_source"] = "guide_final_visitor_boundary"
+        safe["visitor_boundary_version"] = APP_VERSION
+        return safe
 
     # Source/template fragments are a separate contamination class from evidence
     # annotations. Detect them at the shared API boundary so they cannot escape
@@ -10439,6 +10519,59 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
             },
             "visitor_boundary_version": APP_VERSION,
         }
+    # Bounded task-capable deterministic answers run before retrieval/provider
+    # selection. These are complete general-knowledge task handlers, not generic
+    # fallbacks and not transfers of approved exemplar answer text. Exact
+    # approved standards retain precedence.
+    _task_recovery = (
+        None if _resolve_exact_guide_gold_standard(query) is not None
+        else _compose_task_specific_recovery(query)
+    )
+    if isinstance(_task_recovery, dict) and str(_task_recovery.get("response") or "").strip():
+        _task_answer = str(_task_recovery["response"]).strip()
+        _no_handoff = _guide_query_explicitly_forbids_handoff(query)
+        _request_id = "task-recovery-" + hashlib.sha1(
+            (query + "|" + str(_task_recovery.get("recovery_id") or "")).encode("utf-8")
+        ).hexdigest()[:16]
+        print(
+            "The Guide early task-capability boundary: "
+            f"recovery={_task_recovery.get('recovery_id')}, retrieval_invoked=false, provider_invoked=false"
+        )
+        return {
+            "ok": True,
+            "version": APP_VERSION,
+            "fingerprint": DEPLOYMENT_FINGERPRINT,
+            "source_sha256": RUNTIME_SOURCE_SHA256,
+            "request_id": _request_id,
+            "query": query,
+            "intent": "TOPICAL_INQUIRY",
+            "response": _task_answer,
+            "recommendation": None,
+            "canonical_doorway": None,
+            "doorway_title": None,
+            "doorway_url": None,
+            "doorway_omission_reason": (
+                "visitor_explicitly_forbids_handoff"
+                if _no_handoff else "no_verified_direct_archive_continuation"
+            ),
+            "answer_basis": {
+                "kind": "general_knowledge",
+                "label": "General knowledge",
+                "explanation": "A bounded task-specific answer; no Living Archive source attribution is implied.",
+            },
+            "response_provenance": {
+                "class": "deterministic_recovery",
+                "provider": str(_task_recovery.get("recovery_id") or "bounded_task_specific_recovery"),
+                "model": None,
+                "quality_adjusted_llm_eligible": False,
+                "llm_invoked": False,
+            },
+            "processing": "task_specific_deterministic_recovery",
+            "route_source": "guide_early_deterministic_boundary",
+            "recovery": str(_task_recovery.get("recovery_id") or "task_specific_recovery"),
+            "visitor_boundary_version": APP_VERSION,
+        }
+
     # Separate the visitor's intent from the resource-search terms. Search
     # wrapper language such as "Where can I find material about..." is useful
     # to the composer but can obscure the actual subject during retrieval.
@@ -11072,6 +11205,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         reasoning_mode = "deterministic_only"
 
     composition_result = None
+    deterministic_result = None
     # This narrow practical-question class has a bounded, provider-independent
     # answer. Do not send it through the general composition envelope: that
     # envelope can exceed provider token budgets before the fallback is reached.
@@ -11496,10 +11630,9 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         raise RuntimeError("Responsibility-boundary contract failed at final visitor boundary.")
 
     request_id = "basic-" + hashlib.sha1((query + "|" + _history_text(history)).encode("utf-8")).hexdigest()[:16]
-    # Initialize provenance inputs before any branch can consult them at the final metrics boundary.
-    # These defaults are intentionally overwritten later by the actual composition/deterministic path.
-    composition_result = None
-    deterministic_result = None
+    # Provenance inputs were initialized before the composition and deterministic
+    # routing branches above. Preserve their actual results through the final
+    # visitor-boundary checks so successful provider calls remain attributable.
     # Final evidence contract for deterministic relational-burden recovery.
     # This is deliberately enforced at payload assembly, after every composition,
     # sanitization, and discovery path. A broad doorway selected by earlier retrieval
@@ -12561,6 +12694,27 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 "explanation": "The response was recomposed for the visitor’s actual question after a cross-question reference mismatch was detected.",
             }
             print("The Guide response integrity recovery: PASS; retry answer matched the incoming question boundary.")
+        elif (
+            isinstance(general_knowledge_recovery, dict)
+            and str(general_knowledge_recovery.get("fact_id") or "").strip()
+            and str(general_knowledge_recovery.get("response") or "").strip()
+        ):
+            # A query-matched, reviewed public-fact registry entry is independent
+            # of cross-question Gold Star answer authority. Preserve that direct
+            # fact rather than withholding it because an unrelated exemplar leaked
+            # into the rejected draft and the bounded provider repair was unavailable.
+            response = _sanitize_basic_inquiry_response(
+                str(general_knowledge_recovery["response"]).strip()
+            )
+            authoritative_doorway = _normalize_authoritative_recommendation(
+                general_knowledge_recovery.get("doorway")
+            )
+            answer_basis = {
+                "kind": "general_knowledge",
+                "label": "General knowledge",
+                "explanation": "A reviewed, query-matched stable fact was used; it is not attributed to the Living Archive.",
+            }
+            print("The Guide response integrity recovery: restored query-matched registered fact after rejecting cross-question exemplar text.")
         else:
             response = (
                 "I couldn’t produce a reliable answer to that question just now. "
@@ -13022,17 +13176,33 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # question to reach a visitor.
     _last_mile_cross_question_standard = _find_cross_question_standard_response(query, response)
     if _last_mile_cross_question_standard is not None:
-        response = (
-            "I couldn’t produce a reliable answer to that question just now. "
-            "I won’t substitute an approved answer to a different question for the one you asked."
-        )
-        authoritative_doorway = None
-        answer_basis = {
-            "kind": "answer_integrity_failure",
-            "label": "Answer needs recovery",
-            "explanation": "A final integrity check detected that the response belonged to a different approved question.",
-        }
-        print("The Guide final integrity boundary blocked cross-question approved-answer leakage.")
+        if _guide_registered_fact_matches_current_response(
+            query, response, general_knowledge_recovery
+        ):
+            # The same stable fact is independently registered for this exact
+            # query. It is not an exemplar borrowed from another question.
+            response = _sanitize_basic_inquiry_response(
+                str(general_knowledge_recovery.get("response") or "").strip()
+            )
+            authoritative_doorway = None
+            answer_basis = {
+                "kind": "general_knowledge",
+                "label": "General knowledge",
+                "explanation": "A reviewed, query-matched stable fact was retained at the final integrity boundary.",
+            }
+            print("The Guide final integrity boundary: preserved exact query-matched registered fact.")
+        else:
+            response = (
+                "I couldn’t produce a reliable answer to that question just now. "
+                "I won’t substitute an approved answer to a different question for the one you asked."
+            )
+            authoritative_doorway = None
+            answer_basis = {
+                "kind": "answer_integrity_failure",
+                "label": "Answer needs recovery",
+                "explanation": "A final integrity check detected that the response belonged to a different approved question.",
+            }
+            print("The Guide final integrity boundary blocked cross-question approved-answer leakage.")
     if _glossary_answer_basis:
         answer_basis = _glossary_answer_basis
 
@@ -13070,13 +13240,38 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # deterministic answer from an LLM opportunity that fell through to recovery.
     _provider_name = ""
     _model_name = ""
-    _llm_invoked = bool(composition_result)
+    _llm_candidate_text = ""
     if composition_result:
-        _provider_name = str(composition_result.get("provider") or "")
-        _model_name = str(composition_result.get("model") or "")
+        _provider_name = str(composition_result.get("provider") or "").strip()
+        _model_name = str(composition_result.get("model") or "").strip()
+        _llm_candidate_text = _sanitize_basic_inquiry_response(
+            str(composition_result.get("response") or "")
+        )
     elif deterministic_result:
-        _provider_name = str(deterministic_result.get("provider") or "")
-        _model_name = str(deterministic_result.get("model") or "")
+        _provider_name = str(deterministic_result.get("provider") or "").strip()
+        _model_name = str(deterministic_result.get("model") or "").strip()
+
+    # Attribution belongs to the final visitor answer, not merely to an earlier
+    # successful provider attempt. If a later deterministic boundary changed the
+    # answer, do not label that different answer as LLM-generated.
+    # This is the final-response evidence used by the isolated WP3 QA capture.
+    # Deterministic replacements retain their own registered provenance identity.
+    # Standalone QA captures this exact source revision before any release review.
+    _final_response_text = _sanitize_basic_inquiry_response(str(response or ""))
+    _llm_invoked = bool(
+        composition_result
+        and _provider_name
+        and _model_name
+        and _llm_candidate_text
+        and _final_response_text == _llm_candidate_text
+    )
+    if composition_result and not _llm_invoked:
+        if deterministic_result:
+            _provider_name = str(deterministic_result.get("provider") or "deterministic_recovery").strip()
+            _model_name = str(deterministic_result.get("model") or "").strip()
+        else:
+            _provider_name = "deterministic_final_boundary"
+            _model_name = ""
 
     _deterministic_by_design = bool(
         deterministic_result
@@ -13121,6 +13316,38 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         except Exception:
             _visitor_recommendation = None
 
+    try:
+        _evidence_documents = use_core.context_blocks_to_documents(
+            str(context_data.get("context_blocks") or "")
+        )
+    except Exception:
+        _evidence_documents = []
+    for _evidence_key in (
+        "generation_authority_protected_docs",
+        "question_authority_protected_docs",
+        "canonical_evidence_documents",
+        "evidence_documents",
+        "_canonical_glossary_documents",
+    ):
+        _evidence_candidates = context_data.get(_evidence_key)
+        if isinstance(_evidence_candidates, list):
+            _evidence_documents.extend(
+                item for item in _evidence_candidates if isinstance(item, dict)
+            )
+    _approved_reference_id = str(
+        composition_context.get("archive_reference_recovery")
+        or context_data.get("archive_reference_recovery")
+        or ""
+    ).strip()
+    _evidence_references, _evidence_assessment = _build_gold_star_evidence_assessment(
+        query,
+        response,
+        answer_basis,
+        _evidence_documents,
+        approved_reference_id=_approved_reference_id,
+        exact_standard=_final_gold_standard is not None,
+    )
+
     payload = {
         "ok": True,
         "version": APP_VERSION,
@@ -13135,6 +13362,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         "recommendation": _visitor_recommendation,
         "canonical_doorway": _visitor_recommendation,
         "answer_basis": answer_basis,
+        "evidence": _evidence_references,
+        "evidence_validation": _evidence_assessment,
         "response_provenance": {
             "class": _response_provenance,
             "provider": _provider_name or None,
@@ -13146,6 +13375,53 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         "route_source": "guide_basic_inquiry",
         "visitor_boundary_version": APP_VERSION,
     }
+    from gold_star_response_floor import evaluate_response_floor
+    _floor_preview = evaluate_response_floor(
+        query, payload, exact_standard=_final_gold_standard is not None
+    )
+    _repair_decision = _gold_star_repair_eligibility(
+        _floor_preview,
+        payload.get("route_source") or "guide_basic_inquiry",
+        reasoning_mode,
+        bool(composition_result),
+        composition_repair_attempted,
+        request_deadline,
+        exact_standard=_final_gold_standard is not None,
+    )
+    def _compose_bounded_repair_once():
+        return general_guide_composition.compose(
+            use_core=use_core,
+            query=query,
+            context_data=composition_context,
+            history_text=_history_text(history),
+            integrity_recovery=True,
+            deadline_monotonic=request_deadline,
+        )
+
+    payload, _repair_outcome = _run_gold_star_bounded_repair(
+        payload,
+        _repair_decision,
+        compose_once=_compose_bounded_repair_once,
+        sanitize_response=_sanitize_basic_inquiry_response,
+        validate_candidate=lambda candidate: evaluate_response_floor(
+            query, candidate, exact_standard=False
+        ),
+        is_cross_question_leak=lambda candidate: bool(
+            _find_cross_question_standard_response(query, candidate)
+        ),
+        contains_unsafe_markup=_basic_inquiry_contains_html_markup,
+        fallback_provider=_provider_name,
+        fallback_model=_model_name,
+    )
+    if _repair_outcome.get("attempts"):
+        composition_repair_attempted = True
+    if _repair_outcome.get("status") == "repaired":
+        response = str(payload.get("response") or response)
+    if _repair_outcome.get("status") == "failed":
+        print(
+            "The Guide bounded repair ended without an accepted candidate: "
+            + str(_repair_outcome.get("reason") or _repair_outcome.get("revalidation_reason") or "unknown")
+        )
     print("The Guide Basic Inquiry: " + f"request_id={request_id}, intent={payload['intent']}, response_chars={len(response)}, elapsed={time.perf_counter() - started:.3f}s, query_chars={len(query)}")
     return payload
 
@@ -13322,10 +13598,40 @@ def _apply_registered_personal_decision_agency_contract(payload, query):
     return safe
 
 
+def _gold_star_attach_route_context(payload, query, boundary=None):
+    """Attach the shared question/capability contract without exposing visitor text."""
+    if not isinstance(payload, dict):
+        return payload
+    safe = dict(payload)
+    route_source = str(
+        safe.get("origin_route_source") or safe.get("route_source") or ""
+    ).strip()
+    if route_source:
+        safe.setdefault("origin_route_source", route_source)
+        safe.setdefault(
+            "gold_star_v2_route_context",
+            _build_gold_star_route_context(query, route_source),
+        )
+    if boundary:
+        boundaries = list(safe.get("visitor_boundaries") or [])
+        if boundary not in boundaries:
+            boundaries.append(boundary)
+        safe["visitor_boundaries"] = boundaries
+    return safe
+
+
 async def _use_send_json(send, payload, status_code=200):
     # Stamp every visitor-facing JSON payload with the actual Render deployment
     # identity so E2E can reject responses served by a stale instance during rollout.
-    payload = _apply_exact_gold_standard_authority_to_payload(payload)
+    _safety_intervention = (
+        isinstance(payload, dict)
+        and str(payload.get("intent") or "").strip().upper()
+        in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}
+    )
+    payload = (
+        dict(payload) if _safety_intervention
+        else _apply_exact_gold_standard_authority_to_payload(payload)
+    )
     if isinstance(payload, dict):
         payload.setdefault(
             "deployment_commit_sha", os.environ.get("RENDER_GIT_COMMIT", "").strip()
@@ -13337,11 +13643,17 @@ async def _use_send_json(send, payload, status_code=200):
     # override the shared answer-then-doorway contract.
     if isinstance(payload, dict):
         _boundary_query = str(payload.get("query") or "").strip()
-        _boundary_standard = _resolve_exact_guide_gold_standard(_boundary_query)
+        _boundary_safety = str(payload.get("intent") or "").strip().upper() in {
+            "SAFETY_INTERRUPT", "SAFETY_CONVERSATION"
+        }
+        _boundary_standard = (
+            None if _boundary_safety
+            else _resolve_exact_guide_gold_standard(_boundary_query)
+        )
         # Exact approved Gold Stars remain terminal. Otherwise, enforce this
         # registered answer-and-doorway pair at the shared JSON sender so
         # provider exhaustion and early deterministic returns cannot bypass it.
-        if _boundary_query and _boundary_standard is None:
+        if _boundary_query and _boundary_standard is None and not _boundary_safety:
             payload = _apply_registered_personal_decision_agency_contract(
                 payload, _boundary_query
             )
@@ -13350,6 +13662,7 @@ async def _use_send_json(send, payload, status_code=200):
         if (
             _boundary_query
             and _boundary_standard is None
+            and not _boundary_safety
             and is_ai_workforce_restructuring_question(_boundary_query)
         ):
             _answer = str(payload.get("response") or payload.get("answer") or "")
@@ -13499,7 +13812,7 @@ async def _use_send_json(send, payload, status_code=200):
     # Route-specific composers can return before the ordinary ASGI response
     # wrapper. Run the shared policy here for ordinary responses, while frozen
     # exact Gold Stars retain their immutable answer-and-doorway pair.
-    if isinstance(payload, dict) and str(payload.get("intent") or "").upper() != "SAFETY_CONVERSATION":
+    if isinstance(payload, dict) and str(payload.get("intent") or "").upper() not in {"SAFETY_CONVERSATION", "SAFETY_INTERRUPT"}:
         _sender_explicit_no_handoff = _guide_query_explicitly_forbids_handoff(
             _boundary_query
         )
@@ -13527,41 +13840,27 @@ async def _use_send_json(send, payload, status_code=200):
             if _sender_doorway:
                 payload["doorway_omission_reason"] = None
 
-    # Gold Star v2.0 is a source-independent minimum at the single JSON exit.
-    # This conservative gate enforces machine-verifiable integrity; route-specific
-    # contracts remain responsible for substantive question-fit and domain adequacy.
-    # Frozen exact answers are audited identically and never silently rewritten.
-    if isinstance(payload, dict) and str(payload.get("intent") or "").upper() != "SAFETY_CONVERSATION":
-        try:
-            from gold_star_response_floor import evaluate_response_floor
-            _floor_query = str(payload.get("query") or "").strip()
-            _floor_exact = _resolve_exact_guide_gold_standard(_floor_query) is not None
-            _floor_result = evaluate_response_floor(
-                _floor_query, payload, exact_standard=_floor_exact
-            )
-        except Exception as _floor_exc:
-            _floor_result = {
-                "version": "2.0",
-                "status": "fail",
-                "reason": "quality_gate_unavailable",
-            }
-            print("Gold Star v2 response-floor gate unavailable: " + type(_floor_exc).__name__)
-        payload["gold_star_v2_quality_floor"] = _floor_result
-        if _floor_result.get("status") == "fail" and 200 <= int(status_code) < 300:
+    # Deterministic, safety, specialist, and provider routes share one
+    # question/capability context and one integrity-floor implementation.
+    if isinstance(payload, dict):
+        _floor_query = str(payload.get("query") or "").strip()
+        payload = _gold_star_attach_route_context(
+            payload, _floor_query, "guide_json_orchestration_boundary"
+        )
+        from gold_star_response_floor import apply_response_floor_boundary
+        _previous_status = int(status_code)
+        payload, status_code = apply_response_floor_boundary(
+            _floor_query,
+            payload,
+            status_code,
+            exact_standard=_boundary_standard is not None,
+        )
+        _floor_result = payload.get("gold_star_v2_quality_floor") if isinstance(payload, dict) else {}
+        if _floor_result and _floor_result.get("status") == "fail" and 200 <= _previous_status < 300:
             print(
-                "Gold Star v2 response-floor gate withheld response: "
+                "Gold Star v2 orchestration response-floor gate withheld response: "
                 + str(_floor_result.get("reason") or "unknown")
             )
-            payload = {
-                "ok": False,
-                "version": APP_VERSION,
-                "query": str(payload.get("query") or ""),
-                "error_type": "gold_star_v2_quality_floor_rejected",
-                "response": "",
-                "gold_star_v2_quality_floor": _floor_result,
-                "message": "The response did not pass the minimum integrity checks. Please try again.",
-            }
-            status_code = 503
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     await send({"type": "http.response.start", "status": status_code,
                 "headers": [(b"content-type", b"application/json; charset=utf-8"),
@@ -15135,6 +15434,7 @@ async def _use_request_boundary(scope, receive, send):
                     "handoff": "systems_ph", "handoff_mode": "specialist",
                     "systems_delegation": result["systems_delegation"],
                     "visitor_boundary_version": APP_VERSION, "request_id": request_id,
+                    "route_source": "deterministic-systems-preparation-entry",
                 })
             except Exception as exc:
                 print(f"USE Philippine Systems Lens failed safely: exception={type(exc).__name__}")
@@ -15146,6 +15446,7 @@ async def _use_request_boundary(scope, receive, send):
                     "intent": "FORMATION_HANDOFF", "response": result["response"],
                     "formation_delegation": result["formation_delegation"],
                     "visitor_boundary_version": APP_VERSION, "request_id": request_id,
+                    "route_source": "deterministic-formation-preparation-entry",
                 })
             except Exception as exc:
                 print(f"USE Formation specialist failed safely: exception={type(exc).__name__}")
@@ -15199,36 +15500,45 @@ async def _use_request_boundary(scope, receive, send):
             except Exception:
                 payload = None
 
+            _origin_route_source = (
+                payload.get("origin_route_source") or payload.get("route_source")
+                if isinstance(payload, dict) else None
+            )
             safe_payload = _guide_finalize_visitor_payload(payload, query)
-            # The ordinary FastAPI JSON path exits here, not through
-            # _use_send_json. Apply the same source-independent v2.0 gate at
-            # this outer capture boundary so no normal provider route bypasses it.
             _final_status = int((captured_start or {}).get("status") or 200)
-            if isinstance(safe_payload, dict) and str(safe_payload.get("intent") or "").upper() != "SAFETY_CONVERSATION":
-                try:
-                    from gold_star_response_floor import evaluate_response_floor
-                    _floor_exact = _resolve_exact_guide_gold_standard(query) is not None
-                    _floor_result = evaluate_response_floor(query, safe_payload, exact_standard=_floor_exact)
-                except Exception as _floor_exc:
-                    _floor_result = {"version": "2.0", "status": "fail", "reason": "quality_gate_unavailable"}
-                    print("Gold Star v2 outer response-floor gate unavailable: " + type(_floor_exc).__name__)
-                safe_payload["gold_star_v2_quality_floor"] = _floor_result
-                if _floor_result.get("status") == "fail" and 200 <= _final_status < 300:
-                    print("Gold Star v2 outer response-floor gate withheld response: " + str(_floor_result.get("reason") or "unknown"))
-                    safe_payload = {
-                        "ok": False,
-                        "version": APP_VERSION,
-                        "query": query,
-                        "error_type": "gold_star_v2_quality_floor_rejected",
-                        "response": "",
-                        "gold_star_v2_quality_floor": _floor_result,
-                        "message": "The response did not pass the minimum integrity checks. Please try again.",
-                    }
-                    _final_status = 503
+            if isinstance(safe_payload, dict):
+                if _origin_route_source:
+                    safe_payload.setdefault("origin_route_source", _origin_route_source)
+                safe_payload = _gold_star_attach_route_context(
+                    safe_payload, query, "guide_inner_visitor_response_boundary"
+                )
+                from gold_star_response_floor import apply_response_floor_boundary
+                _previous_status = _final_status
+                safe_payload, _final_status = apply_response_floor_boundary(
+                    query,
+                    safe_payload,
+                    _final_status,
+                    exact_standard=(
+                        _resolve_exact_guide_gold_standard(query) is not None
+                        if str(safe_payload.get("intent") or "").upper()
+                        not in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}
+                        else False
+                    ),
+                )
+                _floor_result = safe_payload.get("gold_star_v2_quality_floor") or {}
+                if _floor_result.get("status") == "fail" and 200 <= _previous_status < 300:
+                    print(
+                        "Gold Star v2 inner visitor-boundary gate withheld response: "
+                        + str(_floor_result.get("reason") or "unknown")
+                    )
             # One terminal doorway policy governs ordinary responses and every
             # inner early-return path. Explicit omissions are preserved and cannot
             # be undone by a later generic fallback or compatibility field.
-            if isinstance(safe_payload, dict):
+            if (
+                isinstance(safe_payload, dict)
+                and str(safe_payload.get("intent") or "").upper()
+                not in {"SAFETY_CONVERSATION", "SAFETY_INTERRUPT"}
+            ):
                 safe_payload = _guide_enforce_terminal_doorway_policy(
                     safe_payload, query
                 )
@@ -15712,8 +16022,37 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
                 payload = json.loads(raw_response.decode("utf-8"))
             except Exception:
                 payload = None
+            _origin_route_source = (
+                payload.get("origin_route_source") or payload.get("route_source")
+                if isinstance(payload, dict) else None
+            )
             safe_payload = _guide_finalize_visitor_payload(payload, query)
-            if safe_payload is not payload and isinstance(safe_payload, dict):
+            _outer_status = int((captured_start or {}).get("status") or 200)
+            if isinstance(safe_payload, dict):
+                if _origin_route_source:
+                    safe_payload.setdefault("origin_route_source", _origin_route_source)
+                safe_payload = _gold_star_attach_route_context(
+                    safe_payload, query, "guide_outer_visitor_response_boundary"
+                )
+                from gold_star_response_floor import apply_response_floor_boundary
+                safe_payload, _outer_status = apply_response_floor_boundary(
+                    query,
+                    safe_payload,
+                    _outer_status,
+                    exact_standard=(
+                        _resolve_exact_guide_gold_standard(query) is not None
+                        if str(safe_payload.get("intent") or "").upper()
+                        not in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}
+                        else False
+                    ),
+                )
+                if (
+                    str(safe_payload.get("intent") or "").upper()
+                    not in {"SAFETY_CONVERSATION", "SAFETY_INTERRUPT"}
+                ):
+                    safe_payload = _guide_enforce_terminal_doorway_policy(
+                        safe_payload, query
+                    )
                 encoded = json.dumps(
                     safe_payload, ensure_ascii=False, separators=(",", ":")
                 ).encode("utf-8")
@@ -15726,7 +16065,7 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
                 ]
                 headers.append((b"content-length", str(len(encoded)).encode("ascii")))
                 start = dict(captured_start)
-                start["status"] = 200
+                start["status"] = _outer_status
                 start["headers"] = headers
                 await send(start)
                 await send({
@@ -15881,6 +16220,9 @@ def ecosystem_integration_audit():
     # Native visitor-facing surfaces are available capabilities, but they are
     # deliberately not adapter-backed retrieval spokes.
     direct_handoffs = {
+        # Relationship inquiries are deliberately handled natively by the Guide;
+        # they are not a missing HRN adapter or an adapter-backed retrieval spoke.
+        "relationship": "native_guide_relationship_handling",
         "catalogue": "native_catalogue_search",
         "systems_ph": "native_philippine_systems_landing",
         "navigator": "native_navigator",

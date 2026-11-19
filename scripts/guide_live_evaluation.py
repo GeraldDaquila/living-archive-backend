@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from gold_star_semantic_contract import remove_question_echo as _remove_question_echo
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "docs/qa/gold_standard_registry.json"
@@ -69,7 +70,8 @@ def evaluate_held(case, transport):
     body=transport.get("body") if isinstance(transport.get("body"),dict) else {}
     answer=body.get("response","")
     answer=answer if isinstance(answer,str) else ""
-    low=answer.casefold()
+    scoring_answer = _remove_question_echo(case.get("query", ""), answer)
+    low = scoring_answer.casefold()
     rec=body.get("recommendation")
     out=[check("http_200",transport.get("status")==200,f"HTTP status {transport.get('status')}; {transport.get('error') or ''}"),check("api_ok",body.get("ok") is True,"API must return ok=true."),check("nonempty_answer",bool(answer.strip()),"Answer must be non-empty.")]
     cid=case.get("case_id","")
@@ -88,8 +90,13 @@ def evaluate_held(case, transport):
     elif cid=="heldout-strategic-governance-001":
         central=any(x in low for x in ("centraliz","centralis","consistent direction","coordination","oversight"))
         distributed=any(x in low for x in ("distribut","decentral","delegat","local decision","team-level"))
-        tradeoffs=any(x in low for x in ("trade-off","tradeoff","however","but ","risk","cost","benefit","advantage","disadvantage"))
-        conditions=any(x in low for x in ("when ","if ","depends on","as it grows","decision type","routine","strategic"))
+        tradeoffs=any(x in low for x in ("trade-off","tradeoff","risks","risk","costs","cost","benefits","benefit","advantages","advantage","disadvantages","disadvantage"))
+        conditions=any(x in low for x in (
+            "when decisions", "if the decision", "depends on", "as it grows",
+            "decision type", "routine local decisions", "strategic decisions",
+            "use centralization when", "use centralized authority when",
+            "use distributed authority when", "use decentralization when",
+        ))
         recommendation=any(x in low for x in ("hybrid","balance","retain","delegate","recommend","should"))
         out += [check("compares_both_models",central and distributed,"Address both centralized and distributed authority."),check("makes_tradeoffs_visible",tradeoffs,"Surface meaningful costs, benefits, or risks."),check("uses_conditional_reasoning",conditions,"Explain when each arrangement is appropriate."),check("offers_reasoned_direction",recommendation,"Give a conditional recommendation, not just a list.")]
     elif cid=="heldout-technical-verification-001":
@@ -99,7 +106,11 @@ def evaluate_held(case, transport):
         usage=any(x in low for x in ("runtime","application","read","consume","use the variable","actually uses","actually read"))
         out += [check("safe_presence_check",presence and boolean,"Describe a boolean/presence check, not disclosure of the value."),check("secret_not_printed",secret_safety,"Do not recommend printing or logging the secret."),check("configuration_vs_usage",usage,"Distinguish presence in configuration from application consumption.")]
     elif cid=="heldout-uncertain-causation-001":
-        uncertainty=any(x in low for x in ("can't determine","cannot determine","not enough information","without analytics","without data","would need","not possible to identify","insufficient evidence"))
+        uncertainty=any(x in low for x in (
+            "can't determine", "cannot determine", "cannot be established",
+            "not enough information", "without analytics", "without data",
+            "would need", "not possible to identify", "insufficient evidence",
+        ))
         evidence=any(x in low for x in ("referral","source","utm","search console","analytics","landing page","campaign","bot","server log"))
         steps=any(x in low for x in ("compare","check","inspect","segment","review","investigate","break down"))
         no_fabrication=not any(x in low for x in ("the cause was definitely","this was caused by","the reason is certainly"))
@@ -107,7 +118,7 @@ def evaluate_held(case, transport):
     elif cid=="heldout-explicit-no-handoff-001":
         distinction=any(x in low for x in ("policy sets","policy defines","policy establishes","procedure describes","procedure explains","steps for","what must be done","what should be done"))
         no_links=not bool(re.search(r"https?://|www\.",answer,re.I))
-        no_followup=not any(x in low for x in ("would you like","if you want, i can","you may want to explore","next, you could","i recommend reading"))
+        no_followup=not any(x in low for x in ("would you like","if you want, i can","you may want to explore","next, you could","i recommend reading","a useful next question","the next question is","the next step is","a good next step","one useful next step"))
         out += [check("explains_policy_procedure",distinction,"Explain the governing rule versus the steps for carrying it out."),check("no_links_or_doorways",no_links and rec in (None,{}),"Honor the explicit no-resource/no-link instruction."),check("no_unrequested_followup",no_followup,"Do not append a follow-up offer or next step.")]
     else: out.append(check("known_heldout_case",False,f"No evaluator registered for {cid!r}."))
     return out
@@ -115,15 +126,24 @@ def evaluate_held(case, transport):
 def build_human_review_template(rubric, applicable_critical=None):
     """Return an explicitly pending human scorecard; never auto-approve a response."""
     dimensions = rubric.get("dimensions", []) if isinstance(rubric, dict) else []
-    dimension_ids = [item.get("id") for item in dimensions if isinstance(item, dict) and item.get("id")]
-    critical = applicable_critical or (rubric.get("critical_dimensions", []) if isinstance(rubric, dict) else [])
+    dimension_ids = [
+        item.get("id") for item in dimensions
+        if isinstance(item, dict) and item.get("id")
+    ]
+    critical = (
+        list(applicable_critical)
+        if applicable_critical is not None
+        else list(rubric.get("critical_dimensions", [])) if isinstance(rubric, dict) else []
+    )
+    # Case-specific critical dimensions must be scoreable fields too.
+    score_dimension_ids = list(dict.fromkeys([*dimension_ids, *critical]))
     return {
         "status": "PENDING",
         "reviewer": None,
         "reviewed_at": None,
         "decision": "PENDING",
-        "critical_dimensions": list(critical),
-        "scores": {dimension_id: None for dimension_id in dimension_ids},
+        "critical_dimensions": critical,
+        "scores": {dimension_id: None for dimension_id in score_dimension_ids},
         "reviewer_notes": "",
         "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
     }
