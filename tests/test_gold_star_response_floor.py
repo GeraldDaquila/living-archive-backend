@@ -245,11 +245,14 @@ def test_teaching_conflict_personal_reference_requires_verified_source_bodies():
         compose_teaching_conflict_protocol,
         teaching_conflict_source_urls,
     )
+    from gold_star_question_contract import build_question_contract
 
     query = (
         "What is my protocol when a teaching conflicts with my conscience, "
         "lived experience, or care for others?"
     )
+    contract = build_question_contract(query)
+    assert contract["personal_reference"]["route_candidate"] == "teaching_conflict_discernment"
     urls = teaching_conflict_source_urls()
     titles = (
         "Analytical Procedure",
