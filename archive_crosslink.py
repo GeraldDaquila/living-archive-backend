@@ -16,6 +16,7 @@ import threading
 import time
 from collections import Counter
 from typing import Any
+from urllib.parse import quote
 from urllib.request import Request as UrlRequest, urlopen
 
 _PAGE_SIZE = 100
@@ -46,6 +47,8 @@ _INVENTORY_WALL_BUDGET_SECONDS = 600
 _WP_REGISTRY_PAGE_SIZE = 100
 _WP_REGISTRY_MAX_PAGES = 50
 _WP_REGISTRY_TIMEOUT_SECONDS = 3.0
+_WP_CONTENT_TIMEOUT_SECONDS = 2.0
+_MAX_WP_SOURCE_ASSETS_PER_QUERY = 4
 _WP_REGISTRY_CACHE_TTL_SECONDS = 21600
 _REFRESH_THREAD: threading.Thread | None = None
 _SNAPSHOT_FILE_ENV = "ARCHIVE_CROSSLINK_SNAPSHOT_PATH"
@@ -818,26 +821,24 @@ def _refresh_worker(index: Any, core: Any) -> None:
 def inventory_snapshot() -> dict[str, Any] | None:
     with _LOCK:
         if _SNAPSHOT is None:
-            return None
-        return {key: value for key, value in _SNAPSHOT.items() if key != "assets"}
-
-
-def _asset_score(query_tokens: set[str], seed_tokens: set[str], asset: dict[str, Any]) -> float:
+        def _asset_score(
+    query_tokens: set[str],
+    seed_tokens: set[str],
+    asset: dict[str, Any],
+    *,
+    allow_single_overlap: bool = False,
+) -> float:
     title_tokens = _tokens(asset.get("title"))
     summary_tokens = _tokens(asset.get("summary"))
     sample_tokens = _tokens(asset.get("sample"))
     searchable = summary_tokens | sample_tokens | _tokens(asset.get("resource_type"))
-    # A multi-word named concept must have more than one meaningful point of
-    # overlap before the territorial map can surface a destination. Otherwise
-    # a phrase such as "Law of One" degenerates into a generic "Law" link.
     searchable_tokens = title_tokens | summary_tokens | sample_tokens
     query_overlap = query_tokens & searchable_tokens
-    # The two-token overlap rule protects named concepts, but applying it to
-    # ordinary conceptual questions creates a literal-ranking dead end. Keep
-    # the stricter rule for short phrase-like queries; let longer questions
-    # recover semantically adjacent canonical territory through weighted
-    # title/summary/sample evidence.
-    if 2 <= len(query_tokens) <= 5 and len(query_overlap) < 2:
+    # Short phrase-like queries retain the two-point guard against generic
+    # single-word drift (for example, "Law of One" -> "Law"). Full questions
+    # are different: grammar can leave only one or two content tokens after
+    # stop-word removal, so one strong canonical-title match is useful.
+    if not allow_single_overlap and 2 <= len(query_tokens) <= 5 and len(query_overlap) < 2:
         return 0.0
     if len(query_tokens) > 5 and not query_overlap:
         return 0.0
@@ -854,6 +855,17 @@ def _asset_score(query_tokens: set[str], seed_tokens: set[str], asset: dict[str,
     return score
 
 
+def _expanded_query_tokens(query: str) -> set[str]:
+    """Add only explicit canonical vocabulary bridges, never inferred claims."""
+    tokens = _tokens(query)
+    normalized = re.sub(r"\s+", " ", str(query or "").casefold()).strip()
+    # In the Archive's vocabulary, "responsible care" is a direct doorway to
+    # stewardship. Keep this phrase-level bridge narrow and auditable.
+    if re.search(r"\bresponsible\s+care\b", normalized):
+        tokens.add("stewardship")
+    return tokens
+
+
 def select_crosslinks(
     query: str,
     seed_documents: list[dict[str, Any]],
@@ -864,21 +876,19 @@ def select_crosslinks(
     """Rank public canonical assets across the complete inventory."""
     if not isinstance(snapshot, dict) or not snapshot.get("crosslink_ready"):
         return []
-    query_tokens = _tokens(query)
+    query_tokens = _expanded_query_tokens(query)
     if not query_tokens:
         return []
+    raw_query_token_count = len(re.findall(r"[a-z0-9]+", str(query or "").casefold()))
+    natural_language_question = raw_query_token_count >= 7
 
-    # Institutional meaning questions often contain the exact Archive concept
-    # after a long framing prefix ("What does the Archive mean by …?").
-    # Rank the concept itself as a query variant so the territorial map is not
-    # penalized for unrelated framing words.
     concept_match = re.match(
         r"^\s*(?:what does|what do)\s+(?:the\s+|this\s+)?(?:living\s+)?archive\s+mean\s+by\s+(.+?)\s*[?!.]*\s*$",
         query or "",
         re.I,
     )
     if concept_match:
-        concept_tokens = _tokens(concept_match.group(1))
+        concept_tokens = _expanded_query_tokens(concept_match.group(1))
         if concept_tokens:
             query_tokens = concept_tokens
     existing_urls = {
@@ -890,34 +900,44 @@ def select_crosslinks(
         seed_tokens.update(_tokens(doc.get("title")))
     ranked = []
     for asset in snapshot.get("assets", []):
-        if not isinstance(asset, dict) or not asset.get("url") or asset["url"] in existing_urls:
+        if not isinstance(asset, dict) or not asset.get("url") or _normalize_url(asset.get("url")) in existing_urls:
             continue
-        score = _asset_score(query_tokens, seed_tokens, asset)
+        access_class = str(asset.get("access_class") or "public").strip().casefold()
+        tier = str(asset.get("tier") or "").strip().upper()
+        if access_class not in {"public", "open", "open_access"} or tier == "T4":
+            continue
+        score = _asset_score(
+            query_tokens,
+            seed_tokens,
+            asset,
+            allow_single_overlap=natural_language_question,
+        )
         if score >= 3.0:
             ranked.append((score, asset))
     ranked.sort(key=lambda item: (-item[0], str(item[1].get("title") or "")))
 
-    # When the visitor asks for an Archive meaning, preserve an exact canonical
-    # concept-title match as the leading territorial doorway. The snapshot may
-    # legitimately contain title-only records, so discovery must not discard an
-    # exact concept simply because no source-body summary is stored here.
-    normalized_concept = " ".join(query_tokens)
+    normalized_concept = " ".join(sorted(query_tokens))
     if normalized_concept:
         exact_matches = [
             asset for asset in snapshot.get("assets", [])
             if isinstance(asset, dict)
             and asset.get("url")
-            and asset.get("url") not in existing_urls
-            and normalized_concept in " ".join(_tokens(str(asset.get("title") or "")))
+            and _normalize_url(asset.get("url")) not in existing_urls
+            and str(asset.get("access_class") or "public").strip().casefold() in {"public", "open", "open_access"}
+            and str(asset.get("tier") or "").strip().upper() != "T4"
+            and normalized_concept in " ".join(sorted(_tokens(str(asset.get("title") or ""))))
         ]
         if exact_matches:
             exact_matches.sort(key=lambda item: str(item.get("title") or ""))
             exact = exact_matches[0]
             ranked = [
                 item for item in ranked
-                if str(item[1].get("url") or "") != str(exact.get("url") or "")
+                if _normalize_url(item[1].get("url")) != _normalize_url(exact.get("url"))
             ]
             ranked.insert(0, (max(10.0, ranked[0][0] + 0.01 if ranked else 10.0), exact))
+
+    return [asset for _, asset in ranked[:max(0, min(int(limit), 8))]]
+f ranked else 10.0), exact))
 
     return [asset for _, asset in ranked[:max(0, min(int(limit), 8))]]
 
@@ -968,18 +988,114 @@ def fetch_crosslink_documents(index: Any, core: Any, assets: list[dict[str, Any]
     return documents
 
 
+def _wordpress_rendered_text(value: Any) -> str:
+    if isinstance(value, dict):
+        value = value.get("rendered", "")
+    raw = str(value or "")
+    raw = re.sub(r"<!--.*?-->", " ", raw, flags=re.S)
+    raw = re.sub(r"<(script|style)\b[^>]*>.*?</\1\s*>", " ", raw, flags=re.I | re.S)
+    raw = html.unescape(raw)
+    raw = re.sub(r"<[^>]+>", " ", raw)
+    return re.sub(r"\s+", " ", raw).strip()[:12000]
+
+
+def fetch_wordpress_source_documents(
+    assets: list[dict[str, Any]],
+    core: Any,
+    *,
+    limit: int = _MAX_WP_SOURCE_ASSETS_PER_QUERY,
+) -> list[dict[str, Any]]:
+    """Fetch bounded, published source bodies for public snapshot assets.
+
+    Both the WordPress ID and canonical URL must match the versioned snapshot.
+    This path is independent of Pinecone and never promotes navigation metadata
+    into factual evidence.
+    """
+    documents: list[dict[str, Any]] = []
+    for asset in (assets or [])[:max(0, min(int(limit), _MAX_WP_SOURCE_ASSETS_PER_QUERY))]:
+        if not isinstance(asset, dict):
+            continue
+        access_class = str(asset.get("access_class") or "public").strip().casefold()
+        tier = str(asset.get("tier") or "").strip().upper()
+        resource_type = str(asset.get("resource_type") or "").strip().casefold()
+        wp_id = str(asset.get("wp_id") or "").strip()
+        expected_url = _normalize_url(asset.get("url"))
+        if (
+            access_class not in {"public", "open", "open_access"}
+            or tier == "T4"
+            or resource_type not in {"page", "post"}
+            or not wp_id.isdigit()
+            or not expected_url
+        ):
+            continue
+        request_url = (
+            f"https://geralddaquila.com/wp-json/wp/v2/{resource_type}/"
+            f"{quote(wp_id, safe='')}?_fields=id,link,title,excerpt,content,status"
+        )
+        request = UrlRequest(
+            request_url,
+            headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
+            method="GET",
+        )
+        try:
+            with urlopen(request, timeout=_WP_CONTENT_TIMEOUT_SECONDS) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            if not isinstance(payload, dict) or str(payload.get("status") or "").casefold() != "publish":
+                continue
+            if str(payload.get("id") or "") != wp_id:
+                continue
+            fetched_url = _normalize_url(payload.get("link"))
+            if not fetched_url or fetched_url != expected_url:
+                continue
+            title = _text(_field(payload.get("title"), "rendered", ""), 300)
+            body = _wordpress_rendered_text(payload.get("content"))
+            if not title or len(body) < 120:
+                continue
+            metadata = {
+                "title": title,
+                "url": fetched_url,
+                "text": body,
+                "content": body,
+                "excerpt": _wordpress_rendered_text(payload.get("excerpt"))[:1200],
+                "tier": tier or "T1",
+                "access_class": access_class,
+                "lifecycle": asset.get("lifecycle", ""),
+                "resource_type": resource_type,
+            }
+            if not _eligible(metadata, core):
+                continue
+            usable = getattr(core, "_has_usable_destination", None)
+            navigable = getattr(core, "_is_navigable_canonical_resource", None)
+            if callable(usable) and not usable(metadata):
+                continue
+            if callable(navigable) and not navigable(metadata):
+                continue
+            documents.append({
+                **metadata,
+                "wp_id": wp_id,
+                "summary": metadata["excerpt"],
+                "source_body_verified": True,
+                "crosslink_mode": "wordpress_source_body",
+            })
+        except Exception as exc:
+            _log(
+                "USE archive meta-crosslink WordPress source fetch: "
+                f"id={wp_id}, status=unavailable, error={type(exc).__name__}"
+            )
+            continue
+    return documents
+
+
 def expand_context(
     query: str,
     seed_documents: list[dict[str, Any]],
     index: Any,
     core: Any,
-) -> list[dict[str, str]]:
-    """Return canonical territorial links from the published snapshot only."""
+) -> list[dict[str, Any]]:
+    """Return canonical source bodies or metadata-only territorial links."""
     with _LOCK:
         snapshot = _SNAPSHOT
     if snapshot is None:
-        # Missing/unavailable snapshots are a publishing problem, never a reason
-        # to reconstruct the corpus through visitor-time Pinecone enumeration.
         _log(
             "USE archive meta-crosslink: snapshot_unavailable=true; "
             "pinecone_fallback=disabled; publisher_required=true"
@@ -987,9 +1103,6 @@ def expand_context(
         return []
     if not snapshot.get("crosslink_ready"):
         return []
-    # Only the WordPress-published v2 territorial map is valid at runtime.
-    # Legacy v1 inventories contain Pinecone vector references and must not
-    # trigger per-visitor vector fetches.
     if snapshot.get("contract") != "archive-crosslink-inventory-v2":
         _log(
             "USE archive meta-crosslink: legacy_snapshot_rejected=true; "
@@ -997,8 +1110,20 @@ def expand_context(
         )
         return []
     assets = select_crosslinks(query, seed_documents, snapshot)
-    # v2 is a territorial navigation map, not a substitute corpus. Its
-    # canonical WordPress records supply destination links without Pinecone.
+    if not assets:
+        _log("USE archive meta-crosslink: no_canonical_candidates=true")
+        return []
+    source_documents = fetch_wordpress_source_documents(assets, core)
+    if source_documents:
+        _log(
+            "USE archive meta-crosslink WordPress source recovery: "
+            f"selected={len(assets)}, verified_source_bodies={len(source_documents)}"
+        )
+        return source_documents
+    _log(
+        "USE archive meta-crosslink: source_body_unavailable=true; "
+        "returning_metadata_only_navigation=true"
+    )
     return [
         {
             "title": _text(asset.get("title"), 300),
@@ -1008,6 +1133,8 @@ def expand_context(
             "resource_type": _text(asset.get("resource_type"), 120),
             "tier": _text(asset.get("tier"), 40),
             "access_class": _text(asset.get("access_class"), 40),
+            "wp_id": _text(asset.get("wp_id"), 32),
+            "source_body_verified": False,
             "crosslink_mode": "territorial_navigation",
         }
         for asset in assets
@@ -1019,6 +1146,7 @@ __all__ = [
     "build_inventory",
     "expand_context",
     "fetch_crosslink_documents",
+    "fetch_wordpress_source_documents",
     "inventory_snapshot",
     "select_crosslinks",
     "should_start_refresh",
