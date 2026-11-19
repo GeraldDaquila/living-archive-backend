@@ -3,7 +3,7 @@ import ast
 from pathlib import Path
 
 
-def test_basic_inquiry_initializes_provenance_once_before_routing_and_never_resets_it():
+def _basic_inquiry_ast():
     source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
     module = ast.parse(source)
     function = next(
@@ -11,29 +11,30 @@ def test_basic_inquiry_initializes_provenance_once_before_routing_and_never_rese
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
         and node.name == "_basic_inquiry_response"
     )
+    return source, function
 
+
+def test_basic_inquiry_preserves_composition_until_an_explicit_deterministic_override():
+    _, function = _basic_inquiry_ast()
     assignments = {"composition_result": [], "deterministic_result": []}
     for node in ast.walk(function):
         if not isinstance(node, (ast.Assign, ast.AnnAssign)):
             continue
-        value = node.value
-        if isinstance(node, ast.Assign):
-            targets = node.targets
-        else:
-            targets = [node.target]
+        targets = node.targets if isinstance(node, ast.Assign) else [node.target]
         for target in targets:
             if isinstance(target, ast.Name) and target.id in assignments:
-                assignments[target.id].append((node.lineno, value))
+                if isinstance(node.value, ast.Constant) and node.value.value is None:
+                    assignments[target.id].append(node.lineno)
 
-    for name, entries in assignments.items():
-        none_initializers = [
-            lineno for lineno, value in entries
-            if isinstance(value, ast.Constant) and value.value is None
-        ]
-        assert len(none_initializers) == 1, (
-            f"{name} must have exactly one initialization; later resets erase "
-            "the actual provider/deterministic result before provenance is emitted."
-        )
+    composition_initializers = assignments["composition_result"]
+    deterministic_initializers = assignments["deterministic_result"]
+    assert len(composition_initializers) == 2, (
+        "Composition may be initialized once and cleared only at the explicit "
+        "trust/community deterministic override."
+    )
+    assert len(deterministic_initializers) == 1, (
+        "The deterministic result must be initialized once before routing."
+    )
 
     first_compose = min(
         node.lineno for node in ast.walk(function)
@@ -41,7 +42,7 @@ def test_basic_inquiry_initializes_provenance_once_before_routing_and_never_rese
         and isinstance(node.func, ast.Attribute)
         and node.func.attr == "compose"
     )
-    first_metric = next(
+    metric_line = next(
         node.lineno for node in ast.walk(function)
         if isinstance(node, ast.Call)
         and isinstance(node.func, ast.Name)
@@ -50,16 +51,18 @@ def test_basic_inquiry_initializes_provenance_once_before_routing_and_never_rese
         and isinstance(node.args[0].value, str)
         and "USE RESPONSE METRIC:" in node.args[0].value
     )
-    for name, entries in assignments.items():
-        initializer = next(
-            lineno for lineno, value in entries
-            if isinstance(value, ast.Constant) and value.value is None
-        )
-        assert initializer < first_compose < first_metric
+    first_init, explicit_override_clear = sorted(composition_initializers)
+    assert first_init < first_compose < explicit_override_clear < metric_line
+    assert deterministic_initializers[0] < first_compose
+
+    source, _ = _basic_inquiry_ast()
+    override_region = source.split("The Guide final payload boundary: trust-community stewardship", 1)[1]
+    assert "composition_result = None" in override_region[:1200]
+
 
 def test_llm_attribution_requires_the_final_answer_to_match_the_provider_candidate():
-    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    source, _ = _basic_inquiry_ast()
     assert "_llm_candidate_text = _sanitize_basic_inquiry_response(" in source
     assert "_final_response_text = _sanitize_basic_inquiry_response(str(response or \"\")" in source
     assert "_final_response_text == _llm_candidate_text" in source
-    assert ' _provider_name = "deterministic_final_boundary"' in source
+    assert '_provider_name = "deterministic_final_boundary"' in source
