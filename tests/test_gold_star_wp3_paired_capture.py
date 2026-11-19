@@ -95,3 +95,67 @@ def test_persisted_capture_fixture_keeps_unverified_llm_outputs_null():
     assert all(case["llm"] is None for case in dataset["cases"])
     assert all(case["deterministic"] for case in dataset["cases"])
     assert all(case["fixture_status"] == "deterministic_captured_llm_unverified" for case in dataset["cases"])
+
+
+def test_runtime_identity_retries_transient_server_failure(monkeypatch):
+    import scripts.capture_gold_star_wp3_pairs as capture
+
+    calls = []
+    responses = [
+        {"status": 503, "body": None, "error": None},
+        {"status": 200, "body": {
+            "deployment_commit_sha": "candidate-sha",
+            "version": "test",
+            "fingerprint": "fingerprint",
+        }},
+    ]
+    monkeypatch.setattr(capture, "_http_json", lambda url, **kwargs: (calls.append(kwargs) or responses.pop(0)))
+    monkeypatch.setattr(capture.time, "sleep", lambda seconds: None)
+
+    identity = verify_runtime_identity("https://mirror.example", "candidate-sha")
+
+    assert len(calls) == 2
+    assert all(call["timeout"] == 90 for call in calls)
+    assert identity["deployment_commit_sha"] == "candidate-sha"
+
+
+def test_runtime_identity_retries_transport_timeout_but_still_requires_matching_sha(monkeypatch):
+    import scripts.capture_gold_star_wp3_pairs as capture
+
+    calls = []
+    responses = [
+        {"status": None, "body": None, "error": "TimeoutError"},
+        {"status": 200, "body": {
+            "deployment_commit_sha": "candidate-sha",
+            "version": "test",
+            "fingerprint": "fingerprint",
+        }},
+    ]
+    monkeypatch.setattr(capture, "_http_json", lambda url, **kwargs: (calls.append(kwargs) or responses.pop(0)))
+    monkeypatch.setattr(capture.time, "sleep", lambda seconds: None)
+
+    identity = verify_runtime_identity("https://mirror.example", "candidate-sha")
+
+    assert len(calls) == 2
+    assert identity["deployment_commit_sha"] == "candidate-sha"
+
+
+def test_runtime_identity_does_not_retry_valid_but_mismatched_commit(monkeypatch):
+    import scripts.capture_gold_star_wp3_pairs as capture
+
+    calls = []
+    monkeypatch.setattr(capture, "_http_json", lambda url, **kwargs: (
+        calls.append(kwargs) or {
+            "status": 200,
+            "body": {"deployment_commit_sha": "other-sha"},
+        }
+    ))
+
+    try:
+        verify_runtime_identity("https://mirror.example", "candidate-sha")
+    except RuntimeError as exc:
+        assert "Source mismatch" in str(exc)
+    else:
+        raise AssertionError("Mismatched runtime source must not be paired.")
+
+    assert len(calls) == 1
