@@ -696,6 +696,20 @@ def _guide_query_explicitly_forbids_handoff(query):
     return any(re.search(pattern, value, re.I) for pattern in patterns)
 
 
+def _guide_registered_fact_matches_current_response(query, response, recovery):
+    """Allow only the exact fact independently registered for this same query."""
+    if not isinstance(recovery, dict) or not str(recovery.get("fact_id") or "").strip():
+        return False
+    verified = _established_general_knowledge_recovery(query)
+    if not isinstance(verified, dict):
+        return False
+    if str(verified.get("fact_id") or "").strip() != str(recovery.get("fact_id") or "").strip():
+        return False
+    expected = _sanitize_basic_inquiry_response(str(verified.get("response") or "").strip())
+    current = _sanitize_basic_inquiry_response(str(response or "").strip())
+    return bool(expected and current and current == expected)
+
+
 def _guide_enforce_terminal_doorway_policy(payload, query):
     """Make an explicit no-doorway decision terminal across every response path.
 
@@ -13161,17 +13175,33 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # question to reach a visitor.
     _last_mile_cross_question_standard = _find_cross_question_standard_response(query, response)
     if _last_mile_cross_question_standard is not None:
-        response = (
-            "I couldn’t produce a reliable answer to that question just now. "
-            "I won’t substitute an approved answer to a different question for the one you asked."
-        )
-        authoritative_doorway = None
-        answer_basis = {
-            "kind": "answer_integrity_failure",
-            "label": "Answer needs recovery",
-            "explanation": "A final integrity check detected that the response belonged to a different approved question.",
-        }
-        print("The Guide final integrity boundary blocked cross-question approved-answer leakage.")
+        if _guide_registered_fact_matches_current_response(
+            query, response, general_knowledge_recovery
+        ):
+            # The same stable fact is independently registered for this exact
+            # query. It is not an exemplar borrowed from another question.
+            response = _sanitize_basic_inquiry_response(
+                str(general_knowledge_recovery.get("response") or "").strip()
+            )
+            authoritative_doorway = None
+            answer_basis = {
+                "kind": "general_knowledge",
+                "label": "General knowledge",
+                "explanation": "A reviewed, query-matched stable fact was retained at the final integrity boundary.",
+            }
+            print("The Guide final integrity boundary: preserved exact query-matched registered fact.")
+        else:
+            response = (
+                "I couldn’t produce a reliable answer to that question just now. "
+                "I won’t substitute an approved answer to a different question for the one you asked."
+            )
+            authoritative_doorway = None
+            answer_basis = {
+                "kind": "answer_integrity_failure",
+                "label": "Answer needs recovery",
+                "explanation": "A final integrity check detected that the response belonged to a different approved question.",
+            }
+            print("The Guide final integrity boundary blocked cross-question approved-answer leakage.")
     if _glossary_answer_basis:
         answer_basis = _glossary_answer_basis
 
