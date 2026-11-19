@@ -181,3 +181,43 @@ def test_shared_sender_e2e_withholds_invalid_completed_answer(monkeypatch):
     assert next(item["status"] for item in sent if item["type"] == "http.response.start") == 503
     assert body["error_type"] == "gold_star_v2_quality_floor_rejected"
     assert body["gold_star_v2_quality_floor"]["reason"] == "missing_answer"
+
+
+
+def test_response_floor_emits_the_shared_question_contract_for_all_answer_sources():
+    query = "Explain policy versus procedure. Do not recommend links or resources."
+    for source in ("llm", "deterministic_fallback", "specialist", "exact_gold_star"):
+        payload = {
+            "ok": True,
+            "query": query,
+            "response": "A policy sets the rule; a procedure explains the steps.",
+            "response_provenance": {"class": source},
+        }
+        result = evaluate_response_floor(
+            query, payload, exact_standard=(source == "exact_gold_star")
+        )
+        contract = result["question_contract"]
+        assert result["status"] == "pass"
+        assert result["question_contract_validation"]["valid"] is True
+        assert contract["constraints"]["no_handoff"] is True
+        assert contract["resolution"]["handoff"] == "prohibited"
+
+
+def test_response_floor_keeps_mixed_intent_unresolved_for_route_specific_interpretation():
+    query = "Explain the policy, then compare it with our procedure."
+    result = evaluate_response_floor(
+        query,
+        {"ok": True, "query": query, "response": "A policy sets direction; a procedure defines steps."},
+    )
+    assert result["question_contract"]["state"] == "multi_intent_candidate"
+    assert result["question_contract"]["task"]["primary"] == "unresolved"
+    assert result["question_contract"]["uncertainty"]["classification_confidence"] == "not_scored"
+
+
+def test_composer_supplies_the_same_contract_as_conservative_planning_input():
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
+    assert "build_question_contract(question)" in source
+    assert "question_contract_json" in source
+    assert "QUESTION CONTRACT (conservative machine-readable planning input)" in source
