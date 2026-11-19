@@ -11034,15 +11034,11 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     )
     if is_teaching_conflict_reference(query):
         _personal_docs = []
-        for _source_url in teaching_conflict_source_urls():
-            try:
-                _source_doc = _wordpress_fetch_selected_canonical_body(_source_url)
-            except Exception as _source_exc:
-                _source_doc = None
-                print(
-                    "The Guide personal-reference source fetch failed safely: "
-                    f"exception={type(_source_exc).__name__}."
-                )
+        from concurrent.futures import ThreadPoolExecutor
+        _source_urls = teaching_conflict_source_urls()
+        with ThreadPoolExecutor(max_workers=len(_source_urls)) as _source_pool:
+            _source_results = list(_source_pool.map(_wordpress_fetch_selected_canonical_body, _source_urls))
+        for _source_doc in _source_results:
             if isinstance(_source_doc, dict) and str(_source_doc.get("text") or "").strip():
                 _personal_docs.append(_source_doc)
         personal_reference_result = compose_teaching_conflict_protocol(query, _personal_docs)
