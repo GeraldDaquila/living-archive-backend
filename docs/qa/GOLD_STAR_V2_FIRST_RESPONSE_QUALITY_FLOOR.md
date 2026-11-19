@@ -70,6 +70,21 @@ The following are known gaps to close:
 7. **The repair loop is not yet a governed universal mechanism.** Corrections have often been made as isolated question-specific patches. Promote only reusable, evidence-supported contracts with positive and negative boundary tests.
 8. **Quality evidence needs separation.** Runtime integrity checks, heuristic semantic signals, source-grounded factual verification, blind human review, and user-approved Gold Star elevation are distinct evidence classes and must not be conflated.
 
+## 3.1 Verified route-map findings from the current main branch
+
+The Basic Inquiry path currently has materially different answer-generation paths:
+
+- **Provider-bank composition:** `general_guide_composition.compose(...)` supplies the eight-dimension v2.0 quality contract to the LLM route.
+- **Deterministic-only mode:** `USE_REASONING_PROVIDER_MODE=deterministic_only` bypasses the composer and calls deterministic recovery directly.
+- **Purpose-built deterministic paths:** practical stewardship and selected public-concept recoveries bypass the general LLM composer by design.
+- **Provider-exhaustion/exception recovery:** a separate deterministic fallback answers after the provider bank is exhausted or composition fails.
+- **Specialist and early-return routes:** safety, formation, catalogue, Navigator, Atlas, glossary, Philippine Systems, and other bounded surfaces can return before ordinary Basic Inquiry composition.
+- **Final visitor-boundary recoveries:** `_guide_finalize_visitor_payload` contains multiple query-family-specific recovery and doorway contracts. These protect important cases across answer sources, but the growing sequence of independent detectors and early returns creates ordering, overlap, and maintenance risk.
+
+Both visitor JSON exits call the v2.0 response-floor gate. That is valuable shared protection, but the gate does not yet receive or enforce one complete structured question contract. Therefore identical minimum envelope validation must not be mistaken for equivalent task understanding, evidence standards, or answer competence across the paths.
+
+The route map makes the core v2 target explicit: upstream composition, deterministic handlers, specialist adapters, and final boundaries must share a governed question/answer contract while retaining each route's legitimate capability boundary. The work should consolidate policy without flattening specialist expertise or forcing all requests through one generic composer.
+
 ## 4. Runtime design requirements
 
 ### 4.1 One shared question contract
