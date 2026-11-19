@@ -56,3 +56,10 @@ def test_basic_inquiry_initializes_provenance_once_before_routing_and_never_rese
             if isinstance(value, ast.Constant) and value.value is None
         )
         assert initializer < first_compose < first_metric
+
+def test_llm_attribution_requires_the_final_answer_to_match_the_provider_candidate():
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    assert "_llm_candidate_text = _sanitize_basic_inquiry_response(" in source
+    assert "_final_response_text = _sanitize_basic_inquiry_response(str(response or \"\")" in source
+    assert "_final_response_text == _llm_candidate_text" in source
+    assert ' _provider_name = "deterministic_final_boundary"' in source
