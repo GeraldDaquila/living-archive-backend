@@ -7360,7 +7360,7 @@
       "known_theme": "stewardship, insight to action, weekly practice, entrusted responsibility, sustainable care, consent, boundaries, rest, correctability",
       "gold_star_capabilities": {
         "generation_class": "user_approved_live_exemplar",
-        "exact_answer_authority": true,
+        "exact_answer_authority": false,
         "active_quality_contributor": true,
         "deterministic_fallback_eligible": false,
         "reasoning_family": "bounded_weekly_stewardship_action_and_insight_application",
