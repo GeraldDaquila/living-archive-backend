@@ -4,6 +4,7 @@ from deterministic_answer_recovery import (
     compose_recovery,
     has_orientation_information_explanation,
     is_orientation_information_contrast_question,
+    registered_recovery_recommendation,
 )
 
 
@@ -33,8 +34,12 @@ def test_deterministic_recovery_answers_the_contrast_with_a_practical_example():
     answer = compose_recovery(QUESTION)
     assert has_orientation_information_explanation(answer)
     assert "Information gives you facts" in answer
-    assert "The scores are information" in answer
-    assert "orientation depends on information" in answer.casefold()
+    assert "an AI system may give you a fluent" in answer
+    assert "orientation uses information" in answer.casefold()
+    assert "When Knowledge Is Everywhere" in answer
+    doorway = registered_recovery_recommendation(QUESTION)
+    assert doorway["title"] == "When Knowledge Is Everywhere"
+    assert doorway["url"] == "https://geralddaquila.com/when-knowledge-is-everywhere/"
 
 
 def test_architectural_boundary_replaces_abstention_after_provider_composition():
