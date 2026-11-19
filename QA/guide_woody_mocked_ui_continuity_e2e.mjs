@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 
-const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_verify=guide-continuity-20261018c";
+const GUIDE_URL = "https://geralddaquila.com/the-guide-find-your-way2/?qa_verify=guide-continuity-20261018c&qa_run=20261119b";
 const API_PATTERN = /\/api\/query(?:\/|\?|$)/;
 const EXPECTED_CONTROLLER_ARTIFACT = "living-archive-guide-v489.249-payload-integrity-doorway.js";
 const ROOT = ".archive-stage-wrapper[data-guide-instance='woody']";
@@ -43,6 +43,7 @@ page.on("request", request => {
 });
 page.on("response", response => {
   if (response.url().includes("/api/query")) mark("api_response_event", { status: response.status(), url: response.url(), method: response.request().method() });
+  if (response.status() >= 400) mark("http_resource_error", { status: response.status(), url: response.url(), resourceType: response.request().resourceType() });
 });
 page.on("requestfinished", request => {
   if (request.url().includes("/api/query")) mark("api_request_finished_event", { method: request.method(), url: request.url() });
@@ -74,6 +75,18 @@ page.on("pageerror", error => {
   const entry = { message: error.message, stack: error.stack || "", url: "", line: null, column: null };
   pageErrors.push(entry);
   if ((entry.stack || "").includes("living-archive-guide-v489.318-edge-confirmation.js")) guideControllerErrors.push(entry);
+});
+
+await page.addInitScript(() => {
+  window.addEventListener("error", event => {
+    console.log("[Guide QA WINDOW ERROR] " + JSON.stringify({
+      message: event.message || "",
+      filename: event.filename || "",
+      line: event.lineno || null,
+      column: event.colno || null,
+      target: event.target && event.target.src ? event.target.src : ""
+    }));
+  }, true);
 });
 
 await page.route("**/*", async route => {
@@ -181,6 +194,27 @@ try {
   await input.waitFor({ state: "visible" });
   await submit.waitFor({ state: "visible" });
   await page.waitForTimeout(1500);
+  const syntaxDiagnostics = await page.evaluate(async () => {
+    const results = [];
+    for (const [index, node] of Array.from(document.scripts).entries()) {
+      if (["application/ld+json", "application/json", "importmap", "speculationrules", "module"].includes(node.type)) continue;
+      if (node.src) {
+        try {
+          const response = await fetch(node.src, { cache: "no-store" });
+          const source = await response.text();
+          try { new Function(source); results.push({ index, src: node.src, status: response.status, syntax: "pass", length: source.length }); }
+          catch (error) { results.push({ index, src: node.src, status: response.status, syntax: "fail", name: error.name, message: error.message, length: source.length, excerpt: source.slice(0, 180) }); }
+        } catch (error) { results.push({ index, src: node.src, syntax: "fetch-fail", message: error.message }); }
+      } else if (node.textContent.trim()) {
+        try { new Function(node.textContent); results.push({ index, inline: true, syntax: "pass", length: node.textContent.length }); }
+        catch (error) { results.push({ index, inline: true, syntax: "fail", name: error.name, message: error.message, length: node.textContent.length, excerpt: node.textContent.slice(0, 180) }); }
+      }
+    }
+    return results;
+  });
+  mark("script_syntax_diagnostics", { scripts: syntaxDiagnostics });
+  const syntaxFailures = syntaxDiagnostics.filter(item => item.syntax === "fail");
+  if (syntaxFailures.length) throw new Error("Browser script syntax failures: " + JSON.stringify(syntaxFailures.map(item => ({ index: item.index, src: item.src || "", message: item.message }))));
   mark("controller_ready_diagnostics", {
     rootCount: await root.count(),
     inputCount: await input.count(),
@@ -241,16 +275,13 @@ try {
       // but the browser stopped processing all tasks before that Promise settled.
       // This mock tests the controller/UI continuity without testing the browser's
       // ReadableStream implementation.
-      const result = Promise.resolve({
+      const makeResponse = () => ({
         ok: Boolean(answer),
         status: answer ? 200 : 400,
-        json: function() {
-              return Promise.resolve(payload).then(value => {
-              return value;
-          });
-        }
+        json: () => Promise.resolve(payload),
+        clone: () => makeResponse()
       });
-      return result;
+      return Promise.resolve(makeResponse());
     };
   });
   mark("submit_trace_installed", { note: "Capture click, form-submit, fetch and XHR before first interaction." });
@@ -375,6 +406,7 @@ try {
   if (apiRequests.length !== 5) throw new Error("Expected exactly 5 intercepted API requests, got " + apiRequests.length);
   if (!continuityPassed) throw new Error("Ordinary Reply request did not carry the expected prior conversation history.");
   if (guideControllerErrors.length) throw new Error("Guide controller browser errors: " + JSON.stringify(guideControllerErrors));
+  if (pageErrors.length) throw new Error("Uncaught browser errors: " + JSON.stringify(pageErrors));
   mark("test_passed", { requestCount: apiRequests.length, continuityPassed, consoleErrors, failedRequests });
 } catch (error) {
   mark("test_failed", { message: error.message, requestCount: apiRequests.length, pageErrors });

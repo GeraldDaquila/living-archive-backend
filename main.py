@@ -3,6 +3,7 @@
 # USE Relationship specialist failed safely: exception={type(exc).__name__}
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
+from contextvars import ContextVar
 import hashlib
 from html import unescape
 import ipaddress
@@ -75,6 +76,10 @@ from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_a
 import general_guide_composition
 import comparative_traditions_contract
 import archive_crosslink
+_GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED = ContextVar(
+    "guide_canonical_doorway_search_attempted",
+    default=False,
+)
 from pinecone_retrieval_budget import install_pinecone_retrieval_budget, PineconeRequestBudgetMiddleware
 from guide_request_budget import (
     REQUEST_BUDGET_SECONDS as GUIDE_REQUEST_BUDGET_SECONDS,
@@ -1895,32 +1900,49 @@ def _mirror_registry_context(query_str):
         title = str(item.get("title") or "").strip()
         url = str(item.get("url") or "").strip()
         summary = str(item.get("summary") or "").strip()
+        content = str(item.get("content") or item.get("text") or "").strip()
+        source_body_verified = bool(item.get("source_body_verified") and content)
         if title and url:
-            # Mirror records are navigation evidence, not full source bodies.
-            docs.append({"title": title, "url": url, "text": summary or title,
-                         "mirror_registry": True})
+            # A source body is usable only when archive_crosslink has verified
+            # both its published WordPress ID and its exact canonical URL.
+            # Otherwise the record remains navigation metadata, never evidence.
+            docs.append({
+                "title": title,
+                "url": url,
+                "text": content if source_body_verified else (summary or title),
+                "mirror_registry": True,
+                "source_body_verified": source_body_verified,
+                "wp_id": str(item.get("wp_id") or ""),
+            })
     context = _serialize_context_documents(docs)
-    # Mirror records are bounded orientation metadata. Passing them into the
-    # composition envelope lets the Guide use discovered territory without
-    # representing a title or summary as full source-body evidence.
     orientation_blocks = []
     for doc in docs:
         title = str(doc.get("title") or "").strip()
-        summary = str(doc.get("text") or "").strip()
-        if title:
+        text = str(doc.get("text") or "").strip()
+        if not title:
+            continue
+        if doc.get("source_body_verified"):
+            orientation_blocks.append(
+                f"[Verified canonical source body — published WordPress content]\n"
+                f"Title: {title}\nURL: {doc.get('url', '')}\n"
+                f"Content: {text}"
+            )
+        else:
             orientation_blocks.append(
                 f"[Canonical territorial orientation — metadata only]\n"
                 f"Title: {title}\n"
-                f"Summary: {summary}\n"
+                f"Summary: {text}\n"
                 "Use this to orient an original response; do not attribute "
                 "unsupported details to the Archive."
             )
+    verified_source_count = sum(1 for doc in docs if doc.get("source_body_verified"))
     return {
         "canonical_link_context": context,
-        "context_blocks": "\n\n".join(orientation_blocks),
+        "context_blocks": "\n\n---\n\n".join(orientation_blocks),
         "mirror_registry_active": True,
         "mirror_registry_count": len(docs),
-        "mirror_orientation_metadata_only": True,
+        "mirror_source_body_count": verified_source_count,
+        "mirror_orientation_metadata_only": verified_source_count == 0,
     }
 
 
@@ -1997,22 +2019,19 @@ def _recommendation_first_fetch(query_str):
     canonical_context = str(data.get("canonical_link_context") or "")
     docs = _parse_context_documents(canonical_context) if canonical_context else []
 
-    # The meta-crosslink consults the complete Pinecone inventory only for
-    # navigation/recommendation intent. It adds a small, separately verified
-    # evidence set; it cannot bypass the canonical access or lifecycle gates.
-    # Recovery crosslinking is also allowed when ordinary canonical retrieval
-    # returns no usable context at all. This is a bounded visitor-recovery path
-    # against literal-ranking blind spots: it consults the persisted canonical
-    # snapshot, not a live enumeration of the Pinecone corpus. Existing topical
-    # evidence still passes the normal relevance and authority gates below.
-    # During the temporary Pinecone egress bypass, the persisted Meta-Net /
-    # meta-crosslink registry is the retrieval substrate. Do not let a small
-    # non-empty orientation seed suppress the same registry's broader canonical
-    # relationship expansion; that creates an artificial four-document ceiling.
+    # The mirror registry path above has already performed one bounded
+    # WordPress full-text search and verified source-body fetch. Re-running the
+    # same expansion here would duplicate network work and could exhaust the
+    # visitor latency budget without adding independent evidence.
+    # Outside the bypass path, retain the normal bounded meta-crosslink recovery
+    # for empty retrieval results and navigation/recommendation intent.
     if (
-        not docs
-        or profile.get("action") in {"recommendation", "navigation"}
-        or _PINECONE_RETRIEVAL_BYPASS
+        not data.get("mirror_registry_active")
+        and (
+            not docs
+            or profile.get("action") in {"recommendation", "navigation"}
+            or _PINECONE_RETRIEVAL_BYPASS
+        )
     ):
         try:
             recovery_token_count = len(
@@ -2116,6 +2135,12 @@ def _recommendation_first_fetch(query_str):
                     "The Guide outward navigation boundary: no verifiable "
                     "canonical doorway available; recommendation suppressed."
                 )
+
+        # Mark the attempt only after the initial selector and its bounded
+        # evidence fallback have completed. Subsequent selector calls in this
+        # same request must reuse this decision instead of repeating WordPress.
+        data["canonical_doorway_search_attempted"] = True
+        _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.set(True)
 
         if selected_doorway:
             target_url = str(selected_doorway.get("url") or "").rstrip("/").casefold()
@@ -5752,7 +5777,9 @@ def _boundary_canonical_doorway(payload, query):
     # Final-boundary recoveries can receive a deliberately slim visitor payload
     # after retrieval context has been consumed upstream. In that case, perform
     # one bounded canonical lookup rather than silently losing the doorway.
-    if not docs:
+    # If the request already attempted canonical selection upstream, do not
+    # repeat the same network retrieval at the terminal visitor boundary.
+    if not docs and not _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.get():
         # First recover against the visitor's own wording. If a specialized
         # reasoning boundary has consumed the original retrieval context, make
         # one narrowly expanded canonical pass using the intellectual object of
@@ -7663,6 +7690,28 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
             "model": "",
         }
 
+    # Personal stewardship-invitation questions ask what calls for care
+    # through the visitor's participation; do not misread the full sentence as
+    # an unfamiliar term to define.
+    from deterministic_answer_recovery import (
+        is_personal_stewardship_invitation_question,
+        compose_recovery as _compose_personal_stewardship_invitation_recovery,
+        registered_recovery_recommendation as _personal_stewardship_recommendation,
+    )
+    if is_personal_stewardship_invitation_question(query):
+        _personal_stewardship_answer = _compose_personal_stewardship_invitation_recovery(query)
+        _personal_stewardship_doorway = _personal_stewardship_recommendation(query)
+        return {
+            "response": _personal_stewardship_answer,
+            "doorway_title": str((_personal_stewardship_doorway or {}).get("title") or ""),
+            "doorway_url": str((_personal_stewardship_doorway or {}).get("url") or ""),
+            "doorway_rationale": str((_personal_stewardship_doorway or {}).get("rationale") or ""),
+            "recommendation": _personal_stewardship_doorway,
+            "canonical_doorway": _personal_stewardship_doorway,
+            "provider": "bounded_personal_stewardship_invitation_recovery",
+            "model": "",
+        }
+
     # Trust-in-community-stewardship is a narrower question family than
     # generic stewardship. Resolve it before the broader stewardship recovery
     # can capture the query and replace the visitor's actual question.
@@ -8907,6 +8956,8 @@ def _general_guide_authoritative_doorway(query, context_data):
     """
     if not isinstance(context_data, dict):
         return None
+    if context_data.get("canonical_doorway_search_attempted"):
+        return None
     try:
         profile = _base._inquiry_profile(query)
         if profile.get("risk") or profile.get("action") == "risk":
@@ -9013,9 +9064,12 @@ def _general_guide_authoritative_doorway(query, context_data):
                         if isinstance(_bridge_doc, dict):
                             _bridge_doc["_conceptual_bridge_query"] = _bridge_query
                     fallback_docs.extend(_bridge_docs)
-            if comparative_subjects:
-                # Broaden discovery by each compared subject, then retain the
-                # same direct-fit gates below before any doorway is selected.
+            if comparative_subjects and relationship_query:
+                # A direct comparison requires a candidate that covers both
+                # subjects, so separate one-subject searches cannot qualify and
+                # only add serial WordPress latency. Keep subject-specific
+                # discovery for relationship questions, where a one-sided
+                # doorway can legitimately illuminate one side of the relation.
                 for _subject in comparative_subjects:
                     fallback_docs.extend(
                         _wordpress_search_canonical_candidates(_subject, limit=10)
@@ -11016,6 +11070,7 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         and not discovery_subject
         and not authoritative_doorway
         and not recovered_docs
+        and not context_data.get("canonical_doorway_search_attempted")
     ):
         try:
             recovered_docs = _wordpress_search_canonical_candidates(
@@ -16095,9 +16150,13 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
 
         await send(message)
 
-    await _use_request_boundary(
-        scope, _use_replay_receive(raw_body), _capture_json_response
-    )
+    _doorway_search_token = _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.set(False)
+    try:
+        await _use_request_boundary(
+            scope, _use_replay_receive(raw_body), _capture_json_response
+        )
+    finally:
+        _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.reset(_doorway_search_token)
 
 
 app = streaming_entry(_guide_outer_visitor_response_boundary)

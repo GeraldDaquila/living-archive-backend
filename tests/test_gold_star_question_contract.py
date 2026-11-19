@@ -127,3 +127,14 @@ def test_teaching_conflict_personal_reference_receives_specific_retrieval_route_
     )
     assert contract["personal_reference"]["route_candidate"] == "teaching_conflict_discernment"
     assert contract["personal_reference"]["resolution"] == "retrieve_and_verify_before_answering"
+
+
+def test_personal_stewardship_invitation_is_reflective_inquiry_not_definition_candidate():
+    contract = build_question_contract(
+        "Who or what is asking for responsible care through me?"
+    )
+    assert contract["task"]["primary"] == "reflective_inquiry_candidate"
+    assert contract["task"]["semantic_resolution"] == "required"
+    assert contract["task"]["candidate_source"] == "conservative_surface_signal"
+    assert contract["domain"]["primary"] == "unknown"
+    assert contract["uncertainty"]["classification_confidence"] == "not_scored"

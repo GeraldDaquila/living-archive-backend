@@ -727,6 +727,35 @@ def is_trust_community_stewardship_question(question):
     )
 
 
+def is_personal_stewardship_invitation_question(question):
+    """Recognize a personal agency question about what calls for responsible care."""
+    q = _clean(question).casefold()
+    agency_invitation = bool(re.search(
+        r"\bwho\s+or\s+what\s+is\s+(?:asking|calling|inviting|seeking)\b", q
+    ))
+    care_responsibility = bool(re.search(
+        r"\b(?:responsible\s+care|stewardship|responsibility|care)\b", q
+    ))
+    personal_participation = bool(re.search(
+        r"\b(?:through|from|of|within)\s+me\b", q
+    ))
+    return agency_invitation and care_responsibility and personal_participation
+
+
+def _personal_stewardship_invitation_recovery():
+    """Answer the agency question without inventing an external caller or unlimited duty."""
+    return (
+        "The question does not establish that a separate person, force, or hidden authority is making a request. "
+        "It can be read more carefully as asking what, in your actual relationships and circumstances, may be calling for a responsible response through your participation. "
+        "That may be a person, a commitment, a shared place, a community, a living system, or a consequence of a choice; it does not have to be a single voice or entity.\n\n"
+        "In the Living Archive's use, stewardship is responsible care for what is entrusted to you, with attention to the people and systems affected and to what your choices make possible over time. "
+        "The important distinction is between what is genuinely yours to hold and what is not yours to control or carry. "
+        "A sense of responsibility is worth examining, but it is not proof that every demand placed on you is legitimate.\n\n"
+        "Begin with what is actually entrusted to your care: who or what is affected, what has been agreed or placed in your hands, what response is within your authority, and what limits or support are needed. "
+        "Care is not self-erasure or unlimited obligation. A responsible response may mean tending, repairing, protecting, asking for help, setting a boundary, or declining a burden that was never yours."
+    )
+
+
 def _trust_community_stewardship_recovery():
     """Explain trust as enabling infrastructure for accountable shared care."""
     return (
@@ -920,6 +949,7 @@ def has_registered_recovery(question):
     """True only when a bounded deterministic recovery is explicitly registered."""
     return bool(
         is_guide_personal_decision_agency_question(question)
+        or is_personal_stewardship_invitation_question(question)
         or is_interpretation_revision_evidence_question(question)
         or is_resonance_confirmation_bias_question(question)
         or is_felt_truth_claim_discernment_question(question)
@@ -991,6 +1021,12 @@ def registered_recovery_recommendation(question):
             "title": "Being in the Driver's Seat (Without Pretending You Control the Road)",
             "url": "https://geralddaquila.com/being-in-the-drivers-seat-without-pretending-you-control-the-road/",
             "rationale": "This essay offers a grounded continuation on exercising personal agency within real conditions and limits. It supports the distinction between receiving orientation and surrendering responsibility for one's own choices; it does not prescribe the decision a visitor should make.",
+        }
+    if is_personal_stewardship_invitation_question(question):
+        return {
+            "title": "Stewardship",
+            "url": "https://geralddaquila.com/stewardship/",
+            "rationale": "This canonical public page grounds stewardship as responsible care for what is entrusted to a person. It offers a direct starting point for distinguishing genuine responsibility from control, overreach, or an obligation that was never yours.",
         }
     if is_regeneration_participation_question(question):
         return {
@@ -1343,6 +1379,11 @@ def compose_recovery(question, *, underlying_question="", desired_movement=""):
         return "What would you like to understand or work through?"
     subject = _clean(underlying_question) or _subject(q)
     lower = q.casefold()
+
+    # Personal stewardship-invitation questions ask about agency and bounded
+    # responsibility, not for a dictionary definition of the entire sentence.
+    if is_personal_stewardship_invitation_question(q):
+        return _personal_stewardship_invitation_recovery()
 
     # Belief/interpretation revision questions need a proportionate, claim-sensitive evidence standard.
     if is_interpretation_revision_evidence_question(q):

@@ -2950,6 +2950,30 @@ def _conceptual_relationship_recovery(question: str) -> Optional[str]:
             "A useful comparison holds the same dimensions constant: the source of authority, the scope of responsibility, the time horizon, and whose interests or consequences count. Ask who has the right to decide, who organizes the daily work, who must account for long-term effects, and who bears the costs if the asset or relationship is diminished. That makes it possible to see where ownership, management, and stewardship reinforce one another—and where they pull in different directions."
         )
 
+    if (
+        re.search(r"\b(?:difference|distinction|differ|distinguish)\b", normalized)
+        and re.search(r"\befficien(?:cy|t)\b", normalized)
+        and re.search(r"\beffectiveness\b", normalized)
+    ):
+        return (
+            "Efficiency is how economically a process uses resources—time, effort, "
+            "money, or materials—to produce an output. Effectiveness is whether the "
+            "action produces the intended result. Efficiency asks how well the work "
+            "is done; effectiveness asks whether it is the right work and whether it "
+            "achieves what matters.\n\n"
+            "For example, a team can process applications quickly and use little staff "
+            "time, yet still be ineffective because many cases remain unresolved or "
+            "errors rise. Another team may resolve cases accurately but use more time "
+            "and effort than necessary. The first needs to improve its aim or outcome; "
+            "the second needs to improve its process.\n\n"
+            "The two qualities are complementary, not interchangeable. Effectiveness "
+            "establishes whether the outcome is worth achieving; efficiency improves "
+            "how well resources are used to achieve it. Improving efficiency without "
+            "checking effectiveness can make an unhelpful activity faster, while "
+            "pursuing effectiveness without regard to efficiency can waste resources "
+            "that could support other important work."
+        )
+
     _open_question_recovery = _open_question_orientation_recovery(question)
     if _open_question_recovery:
         return _open_question_recovery
