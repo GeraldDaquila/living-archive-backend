@@ -30,7 +30,7 @@ def test_trust_community_stewardship_contract_answers_with_humane_concrete_langu
     contract = main._trust_community_stewardship_final_contract(QUERY)
     assert contract is not None
     response = contract["response"]
-    assert len(response.split("\\n\\n")) == 3
+    assert len(response.split("\n\n")) == 3
     for phrase in (
         "Trust is what lets a community share responsibility",
         "confidence built through conduct",
