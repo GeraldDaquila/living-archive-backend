@@ -62,3 +62,22 @@ def test_capture_report_retains_original_outputs_and_attaches_review_without_cla
         assert case["human_review"]["deterministic"]["decision"] == review["decision"]
         assert case["human_review"]["deterministic"]["case_specific_scores"] == review["case_specific_scores"]
         assert case["llm"] is None
+
+def test_every_review_includes_a_task_specific_correction_without_creating_new_gold_stars():
+    dossier = _load(DOSSIER)
+    for case in dossier["cases"]:
+        assert case["corrective_direction"].strip()
+        assert case["corrective_direction_is_new_gold_star_text"] is False
+        assert isinstance(case["supporting_benchmarks"], list)
+    technical = next(
+        case for case in dossier["cases"]
+        if case["case_id"] == "heldout-technical-verification-001"
+    )
+    assert technical["supporting_benchmarks"] == []
+    assert "general Python guidance" in technical["corrective_direction"]
+    no_handoff = next(
+        case for case in dossier["cases"]
+        if case["case_id"] == "heldout-explicit-no-handoff-001"
+    )
+    assert no_handoff["supporting_benchmarks"] == []
+    assert "follow-up question" in no_handoff["corrective_direction"]
