@@ -124,3 +124,54 @@ def test_personal_stewardship_invitation_uses_bounded_answer_and_canonical_doorw
     assert result["recommendation"]["title"] == "Stewardship"
     assert result["recommendation"]["url"] == "https://geralddaquila.com/stewardship/"
     assert result["response"] == answer
+
+
+def test_direct_comparison_doorway_search_does_not_fan_out_per_subject():
+    query = "What is the difference between efficiency and effectiveness?"
+    calls = []
+
+    def search(candidate_query, *, limit=3):
+        calls.append((candidate_query, limit))
+        return []
+
+    assert main._comparative_subject_terms(query) == ["efficiency", "effectiveness"]
+    with (
+        patch.object(main._base, "_inquiry_profile", return_value={"risk": False, "action": "none", "grief": False}),
+        patch.object(main, "_wordpress_search_canonical_candidates", side_effect=search),
+        patch.object(main, "_canonical_primary_from_docs", return_value=None),
+        patch.object(main, "_is_conceptual_explanatory_request", return_value=False),
+        patch.object(main, "_record_guide_fuzzy_shadow_comparison"),
+    ):
+        result = main._general_guide_authoritative_doorway(query, {})
+
+    assert result is None
+    # The original two-subject query is sufficient: single-subject results
+    # would fail the direct-comparison evidence-fit gate and only add latency.
+    assert calls == [(query, 3)]
+
+
+def test_relationship_doorway_search_keeps_one_sided_subject_discovery():
+    query = "What is the relationship between efficiency and effectiveness?"
+    calls = []
+
+    def search(candidate_query, *, limit=3):
+        calls.append((candidate_query, limit))
+        return []
+
+    assert main._comparative_subject_terms(query) == ["efficiency", "effectiveness"]
+    with (
+        patch.object(main._base, "_inquiry_profile", return_value={"risk": False, "action": "none", "grief": False}),
+        patch.object(main, "_wordpress_search_canonical_candidates", side_effect=search),
+        patch.object(main, "_canonical_primary_from_docs", return_value=None),
+        patch.object(main, "_is_conceptual_explanatory_request", return_value=False),
+        patch.object(main, "_record_guide_fuzzy_shadow_comparison"),
+    ):
+        result = main._general_guide_authoritative_doorway(query, {})
+
+    assert result is None
+    # A relationship may be illuminated by a source that develops either side.
+    assert calls == [
+        (query, 3),
+        ("efficiency", 10),
+        ("effectiveness", 10),
+    ]
