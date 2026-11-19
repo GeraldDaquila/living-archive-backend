@@ -65,7 +65,7 @@ def test_teaching_conflict_resolution_requires_all_verified_source_bodies():
     assert result is not None
     assert len(result["documents"]) == 5
     assert result["doorway"]["title"] == "Analytical Procedure"
-    assert "faithful synthesis" in result["response"]
+    assert "source-grounded synthesis" in result["response"]
     assert "conscience matters as an ethical signal" in result["response"].casefold()
     assert "not automatic proof" in result["response"].casefold()
     for step in (
