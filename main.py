@@ -5889,12 +5889,10 @@ def _guide_restore_verified_doorway(payload, query):
         except Exception:
             evidence_candidate = None
         doorway = _normalize_authoritative_recommendation(evidence_candidate)
-    if not doorway and registered_candidate:
-        doorway = registered_candidate
     if not doorway:
-        # Preserve reviewed, query-specific selectors that are authoritative
-        # but are not represented as ordinary Guide Node records. They remain
-        # subject to the same canonical URL/rationale normalization.
+        # Reviewed query-specific selectors are more precise than generic
+        # registered recovery candidates. Give them priority so their
+        # question-calibrated rationale is preserved for the visitor.
         for selector_name in (
             "_healthy_community_canonical_recommendation",
             "_trust_community_stewardship_canonical_recommendation",
@@ -5911,6 +5909,8 @@ def _guide_restore_verified_doorway(payload, query):
             if specialized:
                 doorway = specialized
                 break
+    if not doorway and registered_candidate:
+        doorway = registered_candidate
     if not doorway:
         upstream_candidate = _normalize_authoritative_recommendation(safe.get("recommendation"))
         if not upstream_candidate:
