@@ -643,13 +643,13 @@ def test_wordpress_search_recovers_full_text_candidates_without_pinecone(monkeyp
         calls.append((request.full_url, timeout))
         if "/wp/v2/search?" in request.full_url:
             return Response([{
-                "id": 75307,
-                "url": "https://geralddaquila.com/2026/08/10/why-stewardship/",
-                "subtype": "post",
-                "title": "Why Stewardship?",
+                "id": 21767,
+                "url": "https://geralddaquila.com/stewardship/",
+                "subtype": "page",
+                "title": "Stewardship",
             }])
         return Response({
-            "id": 75307,
+            "id": 21767,
             "status": "publish",
             "link": "https://geralddaquila.com/2026/08/10/why-stewardship/",
             "title": {"rendered": "Why Stewardship?"},
@@ -662,9 +662,9 @@ def test_wordpress_search_recovers_full_text_candidates_without_pinecone(monkeyp
         "crosslink_ready": True,
         "assets": [{
             "title": "Why Stewardship?",
-            "url": "https://geralddaquila.com/2026/08/10/why-stewardship/",
-            "wp_id": "75307",
-            "resource_type": "post",
+            "url": "https://geralddaquila.com/stewardship/",
+            "wp_id": "21767",
+            "resource_type": "page",
             "tier": "T1",
             "access_class": "public",
         }],
@@ -680,13 +680,16 @@ def test_wordpress_search_recovers_full_text_candidates_without_pinecone(monkeyp
     )
 
     assert len(docs) == 1
-    assert docs[0]["wp_id"] == "75307"
+    assert docs[0]["wp_id"] == "21767"
     assert docs[0]["source_body_verified"] is True
     assert source_text in docs[0]["content"]
-    assert len(calls) == 2
+    assert len(calls) == 3
     assert "/wp/v2/search?" in calls[0][0]
+    assert "search=responsible%20care" in calls[0][0]
+    assert "/wp/v2/search?" in calls[1][0]
     assert calls[0][1] == 2.0
     assert calls[1][1] == 2.0
+    assert calls[2][1] == 2.0
 
 
 def test_wordpress_search_intersects_results_with_public_snapshot_identity(monkeypatch):
