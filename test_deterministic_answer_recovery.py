@@ -371,3 +371,15 @@ def test_weekly_stewardship_action_matcher_does_not_capture_generic_stewardship_
     assert not is_weekly_stewardship_action_question("What is stewardship?")
     assert not is_weekly_stewardship_action_question("What is one act of kindness I can do today?")
     assert not is_weekly_stewardship_action_question("What is one concrete act of stewardship I can complete this month?")
+
+
+def test_weekly_stewardship_action_uses_api_deterministic_boundary():
+    import main
+    query = "What is one concrete act of stewardship I can complete this week that makes an inner insight real?"
+    result = main._basic_inquiry_round1_deterministic_response(
+        query, {}, {"context_blocks": ""}, recommendation_available=False
+    )
+    assert result["provider"] == "bounded_weekly_stewardship_action_recovery"
+    assert "One concrete act you can complete this week" in result["response"]
+    assert result["recommendation"]["title"] == "Stewardship"
+    assert result["recommendation"]["url"] == "https://geralddaquila.com/stewardship/"
