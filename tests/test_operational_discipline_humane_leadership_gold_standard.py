@@ -109,7 +109,7 @@ class OperationalDisciplineGoldStandardTests(unittest.TestCase):
         messages = []
         payload = {
             "ok": True,
-            "query": "How can I practice stewardship in everyday decisions and shared resources? Do not send me to another page yet.",
+            "query": "A previous conversation included the sentence, 'Do not send me to another page yet.' For this new question, how can I practice stewardship in everyday decisions and shared resources?",
             "response": "A substantive answer.",
             "generation_authority_protected_docs": [{
                 "title": "Applied Stewardship Toolkit",
