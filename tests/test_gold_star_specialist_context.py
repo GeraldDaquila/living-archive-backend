@@ -59,3 +59,15 @@ def test_specialist_context_is_not_mislabeled_as_visitor_ready_answer():
     assert request.guide_context["gold_star_specialist_capability"]["scope"].startswith("Bounded formation")
     # Hub contribution remains an internal contribution; visitor readiness is
     # not asserted by the hub or by capability metadata.
+
+
+
+def test_guide_runtime_supplies_contracts_to_both_active_specialist_hub_paths():
+    from pathlib import Path
+
+    source = Path(__file__).resolve().parents[1].joinpath("main.py").read_text(encoding="utf-8")
+    assert '_gold_star_specialist_capability("systems_ph")' in source
+    assert '_gold_star_specialist_capability("formation")' in source
+    assert '_build_gold_star_question_contract(query)' in source
+    assert '"route_source": "deterministic-systems-preparation-entry"' in source
+    assert '"route_source": "deterministic-formation-preparation-entry"' in source
