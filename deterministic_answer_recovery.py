@@ -1234,7 +1234,7 @@ def compose_task_specific_recovery(question):
                 "Centralization can improve consistency, coordination, and accountability, but it can also create bottlenecks, "
                 "distance decisions from local knowledge, and weaken initiative. Distributed authority can improve speed, "
                 "ownership, and responsiveness, but it can produce uneven practice, duplicated effort, or conflicting commitments "
-                "if teams lack shared boundaries.\n\n"
+                "if teams lack shared boundaries. The trade-off is between consistent oversight and the speed, local knowledge, and initiative that come from delegated decisions.\n\n"
                 "A growing nonprofit will usually benefit from a clear hybrid: define a small set of reserved organization-wide "
                 "decisions, establish financial and safeguarding thresholds, and delegate day-to-day choices within those limits. "
                 "Make decision ownership and escalation rules visible, then review whether the arrangement is producing timely, "
@@ -1297,7 +1297,7 @@ def compose_task_specific_recovery(question):
             "response": (
                 "Assumptions about reality shape everyday decisions by influencing what people notice, what they regard as "
                 "possible, whose interests they consider, and which consequences they expect. These assumptions form part of "
-                "a worldview: a background picture of how the world works and how people are related to one another.\n\n"
+                "a worldview. A worldview is a way of understanding how the world works and how people are related to one another.\n\n"
                 "For example, if people assume that resources are always scarce and others are mainly competitors, they may "
                 "protect information, avoid sharing risk, or treat disagreement as a threat. If they see people as distinct "
                 "but interdependent, they may be more inclined to share information, coordinate contributions, and consider "
