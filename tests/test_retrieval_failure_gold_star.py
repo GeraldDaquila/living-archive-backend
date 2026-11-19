@@ -222,6 +222,12 @@ def test_recommendation_first_fetch_marks_request_scoped_doorway_search_attempt(
 
         assert result["canonical_doorway_search_attempted"] is True
         assert main._GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.get() is True
+        with patch.object(
+            main,
+            "_wordpress_search_canonical_candidates",
+            side_effect=AssertionError("duplicate canonical search attempted"),
+        ):
+            assert main._general_guide_authoritative_doorway(query, result) is None
     finally:
         main._GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.reset(token)
 
