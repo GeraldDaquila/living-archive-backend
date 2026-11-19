@@ -362,9 +362,9 @@ def _select_verified_doorway_conceptual_family(query):
     if (
         general_guide_composition._requires_formal_informal_institutional_dynamics(text)
         or (
-            re.search(r"\\bformal rules\\b", text, re.I)
-            and re.search(r"\\binformal norms\\b", text, re.I)
-            and re.search(r"\\borganizational behavior\\b", text, re.I)
+            re.search(r"\bformal rules\b", text, re.I)
+            and re.search(r"\binformal norms\b", text, re.I)
+            and re.search(r"\borganizational behavior\b", text, re.I)
         )
     ):
         return "formal_informal_institutional_dynamics"
