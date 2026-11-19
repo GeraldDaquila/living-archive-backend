@@ -172,7 +172,8 @@ def personal_reference_fallback(query: str) -> str:
     return (
         "I can help recover your protocol or previously established reference, but I could "
         "not verify its exact wording or steps from the conversation and published sources "
-        "available to this response. I will not replace it with a procedure I invent.\n\n"
+        "available to this response. I won't replace your established position with a "
+        "protocol I invent.\n\n"
         "If you can point me to the source or record where it was established, I can "
         "recover and distinguish its actual wording from any later interpretation."
     )
