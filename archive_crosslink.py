@@ -1008,43 +1008,27 @@ def search_wordpress_canonical_assets(
     *,
     limit: int = _MAX_WP_SOURCE_ASSETS_PER_QUERY,
 ) -> list[dict[str, Any]]:
-    """Use WordPress' own published-content search when Pinecone is bypassed.
+    """Use WordPress full-text search when Pinecone is bypassed.
 
-    Search results are only candidate identifiers. A result is accepted only
-    when its ID and canonical URL match a public asset in the validated
-    versioned snapshot; source content is fetched and checked separately.
+    Candidate results are intersected with the versioned public snapshot by
+    WordPress ID and exact canonical URL. A short content-bearing phrase is
+    searched before the full question so the central concept is not buried by
+    framing words; the full question fills any remaining candidate slots.
     """
     if not isinstance(snapshot, dict) or not snapshot.get("crosslink_ready"):
         return []
     search_query = _text(query, 300)
     if not search_query:
         return []
-    request_url = (
-        "https://geralddaquila.com/wp-json/wp/v2/search?"
-        f"search={quote(search_query, safe='')}&per_page={_MAX_WP_SEARCH_RESULTS}"
-        "&_fields=id,url,subtype,title"
-    )
-    request = UrlRequest(
-        request_url,
-        headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
-        method="GET",
-    )
-    try:
-        with urlopen(request, timeout=_WP_SEARCH_TIMEOUT_SECONDS) as response:
-            raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
-        if len(raw_bytes) > _WP_SOURCE_MAX_BYTES:
-            raise ValueError("WordPress search response exceeds size bound")
-        payload = json.loads(raw_bytes.decode("utf-8"))
-        if not isinstance(payload, list):
-            return []
-        if len(payload) > _MAX_WP_SEARCH_RESULTS:
-            payload = payload[:_MAX_WP_SEARCH_RESULTS]
-    except Exception as exc:
-        _log(
-            "USE archive meta-crosslink WordPress search: "
-            f"status=unavailable, error={type(exc).__name__}"
-        )
-        return []
+
+    raw_words = re.findall(r"[a-z0-9]+", search_query.casefold())
+    content_words = [word for word in raw_words if len(word) > 2 and word not in _STOPWORDS]
+    variants = []
+    if len(content_words) >= 2:
+        core_phrase = " ".join(content_words[-2:])
+        if core_phrase.casefold() != search_query.casefold():
+            variants.append(core_phrase)
+    variants.append(search_query)
 
     assets_by_id = {
         str(asset.get("wp_id")): asset
@@ -1053,30 +1037,60 @@ def search_wordpress_canonical_assets(
     }
     selected: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
-    for result in payload:
-        if not isinstance(result, dict):
+    for variant in variants:
+        request_url = (
+            "https://geralddaquila.com/wp-json/wp/v2/search?"
+            f"search={quote(variant, safe='')}&per_page={_MAX_WP_SEARCH_RESULTS}"
+            "&_fields=id,url,subtype,title"
+        )
+        request = UrlRequest(
+            request_url,
+            headers={"Accept": "application/json", "User-Agent": "LivingArchiveGuide/1.0"},
+            method="GET",
+        )
+        try:
+            with urlopen(request, timeout=_WP_SEARCH_TIMEOUT_SECONDS) as response:
+                raw_bytes = response.read(_WP_SOURCE_MAX_BYTES + 1)
+            if len(raw_bytes) > _WP_SOURCE_MAX_BYTES:
+                raise ValueError("WordPress search response exceeds size bound")
+            payload = json.loads(raw_bytes.decode("utf-8"))
+            if not isinstance(payload, list):
+                continue
+            if len(payload) > _MAX_WP_SEARCH_RESULTS:
+                payload = payload[:_MAX_WP_SEARCH_RESULTS]
+        except Exception as exc:
+            _log(
+                "USE archive meta-crosslink WordPress search: "
+                f"status=unavailable, error={type(exc).__name__}"
+            )
             continue
-        wp_id = str(result.get("id") or "").strip()
-        asset = assets_by_id.get(wp_id)
-        if not asset or wp_id in seen_ids:
-            continue
-        access_class = str(asset.get("access_class") or "public").strip().casefold()
-        tier = str(asset.get("tier") or "").strip().upper()
-        resource_type = str(asset.get("resource_type") or "").strip().casefold()
-        result_subtype = str(result.get("subtype") or "").strip().casefold()
-        if (
-            access_class not in {"public", "open", "open_access"}
-            or tier == "T4"
-            or resource_type not in {"page", "post"}
-            or (result_subtype and result_subtype != resource_type)
-        ):
-            continue
-        result_url = _normalize_url(result.get("url"))
-        snapshot_url = _normalize_url(asset.get("url"))
-        if not result_url or result_url != snapshot_url:
-            continue
-        selected.append(asset)
-        seen_ids.add(wp_id)
+
+        for result in payload:
+            if not isinstance(result, dict):
+                continue
+            wp_id = str(result.get("id") or "").strip()
+            asset = assets_by_id.get(wp_id)
+            if not asset or wp_id in seen_ids:
+                continue
+            access_class = str(asset.get("access_class") or "public").strip().casefold()
+            tier = str(asset.get("tier") or "").strip().upper()
+            resource_type = str(asset.get("resource_type") or "").strip().casefold()
+            result_subtype = str(result.get("subtype") or "").strip().casefold()
+            if (
+                access_class not in {"public", "open", "open_access"}
+                or tier == "T4"
+                or resource_type not in {"page", "post"}
+                or (result_subtype and result_subtype != resource_type)
+            ):
+                continue
+            result_url = _normalize_url(result.get("url"))
+            snapshot_url = _normalize_url(asset.get("url"))
+            if not result_url or result_url != snapshot_url:
+                continue
+            selected.append(asset)
+            seen_ids.add(wp_id)
+            if len(selected) >= max(0, min(int(limit), _MAX_WP_SOURCE_ASSETS_PER_QUERY)):
+                break
         if len(selected) >= max(0, min(int(limit), _MAX_WP_SOURCE_ASSETS_PER_QUERY)):
             break
     return selected
