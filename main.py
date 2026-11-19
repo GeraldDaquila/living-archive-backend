@@ -7891,24 +7891,7 @@ def _basic_inquiry_round1_deterministic_response(query, interpretation, context_
         }
 
 
-    if personal_reference_result:
-        llm_output = str(personal_reference_result["response"]).strip()
-        deterministic_result = {
-            "response": llm_output,
-            "provider": "verified_archive_personal_reference_recovery",
-            "model": "deterministic-source-synthesis",
-            "personal_reference_resolution": {
-                "status": "verified_from_published_archive_sources",
-                "source_count": len(personal_reference_result["documents"]),
-            },
-        }
-        print(
-            "The Guide General Composition: "
-            "mode=verified_archive_personal_reference_recovery, "
-            "llm_composer_invoked=false, "
-            f"source_count={len(personal_reference_result['documents'])}."
-        )
-    elif (
+    if (
         _is_practical_stewardship_question(query)
         and not _is_conceptual_explanatory_request(query)
         and not general_guide_composition.is_conceptual_relationship_question(query)
@@ -11092,7 +11075,24 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
     # This narrow practical-question class has a bounded, provider-independent
     # answer. Do not send it through the general composition envelope: that
     # envelope can exceed provider token budgets before the fallback is reached.
-    if (
+    if personal_reference_result:
+        llm_output = str(personal_reference_result["response"]).strip()
+        deterministic_result = {
+            "response": llm_output,
+            "provider": "verified_archive_personal_reference_recovery",
+            "model": "deterministic-source-synthesis",
+            "personal_reference_resolution": {
+                "status": "verified_from_published_archive_sources",
+                "source_count": len(personal_reference_result["documents"]),
+            },
+        }
+        print(
+            "The Guide General Composition: "
+            "mode=verified_archive_personal_reference_recovery, "
+            "llm_composer_invoked=false, "
+            f"source_count={len(personal_reference_result['documents'])}."
+        )
+    elif (
         _is_practical_stewardship_question(query)
         and not _is_conceptual_explanatory_request(query)
         and not general_guide_composition.is_conceptual_relationship_question(query)
