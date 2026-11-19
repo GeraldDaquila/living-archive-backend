@@ -4457,14 +4457,17 @@ def _trust_community_stewardship_final_contract(query):
     return {
         "response": _trust_community_stewardship_recovery(),
         "answer_basis": {
-            "kind": "archive_supported",
-            "label": "Informed by the Living Archive",
+            # This deterministic explanation is a bounded conceptual recovery,
+            # not a quotation or synthesis of verified source text. The Archive
+            # essay is offered separately as a related doorway, so do not claim
+            # Archive provenance unless its content is actually in evidence.
+            "kind": "general_knowledge",
+            "label": "Conceptual explanation",
             "explanation": (
-                "The Archive's Trust Architecture essay grounds the framing of trust "
-                "as social infrastructure that enables coordination and cooperation "
-                "while retaining accountability."
+                "This is a general conceptual explanation. The Trust Architecture "
+                "essay is offered as a related Living Archive resource, not represented "
+                "as the source of this answer."
             ),
-            "source_url": doorway["url"] if doorway else None,
         },
         "recommendation": doorway,
     }
