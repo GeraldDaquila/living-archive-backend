@@ -749,3 +749,27 @@ def test_live_wordpress_full_text_recovery_for_responsible_care_question():
     assert stewardship
     assert stewardship[0]["source_body_verified"] is True
     assert "care" in stewardship[0]["text"].casefold()
+
+
+def test_wordpress_source_fetch_logs_http_status_for_http_error(monkeypatch):
+    import io
+    from urllib.error import HTTPError
+
+    logs = []
+
+    def blocked_urlopen(request, timeout):
+        raise HTTPError(request.full_url, 403, "Forbidden", {}, io.BytesIO(b"blocked"))
+
+    monkeypatch.setattr(archive_crosslink, "urlopen", blocked_urlopen)
+    monkeypatch.setattr(archive_crosslink, "_log", logs.append)
+    asset = {
+        "title": "Stewardship",
+        "url": "https://geralddaquila.com/stewardship",
+        "wp_id": "21767",
+        "resource_type": "page",
+        "tier": "T1",
+        "access_class": "public",
+    }
+
+    assert archive_crosslink.fetch_wordpress_source_documents([asset], FakeCore()) == []
+    assert any("http_status=403" in entry for entry in logs)
