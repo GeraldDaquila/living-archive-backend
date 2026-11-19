@@ -11,8 +11,6 @@ Every response should demonstrate question-appropriate intellectual competence, 
 
 The standard evaluates the quality of the response, not conformity to a universal answer template. Its dimensions are universal expectations whose expression must be selected according to the visitor's actual question, domain, intent, complexity, stakes, and requested outcome.
 
-
-
 ## 1.1 Capability Accumulation Principle
 
 **Governing principle:** Every proposed code change must first be evaluated for its capacity to improve a reusable architectural capability.
