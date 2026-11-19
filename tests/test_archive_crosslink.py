@@ -773,3 +773,49 @@ def test_wordpress_source_fetch_logs_http_status_for_http_error(monkeypatch):
 
     assert archive_crosslink.fetch_wordpress_source_documents([asset], FakeCore()) == []
     assert any("http_status=403" in entry for entry in logs)
+
+
+def test_wordpress_source_fetch_falls_back_to_public_api_after_site_edge_http_error(monkeypatch):
+    import io
+    import json
+    from urllib.error import HTTPError
+
+    calls = []
+    body = "<p>" + ("Published stewardship source content. " * 20) + "</p>"
+    payload = {
+        "id": 21767,
+        "status": "publish",
+        "link": "https://geralddaquila.com/stewardship/",
+        "title": {"rendered": "Stewardship"},
+        "excerpt": {"rendered": "<p>Published excerpt.</p>"},
+        "content": {"rendered": body},
+    }
+
+    def routed_urlopen(request, timeout):
+        calls.append(request.full_url)
+        if len(calls) == 1:
+            raise HTTPError(request.full_url, 403, "Forbidden", {}, io.BytesIO(b"edge blocked"))
+        return io.BytesIO(json.dumps(payload).encode("utf-8"))
+
+    logs = []
+    monkeypatch.setattr(archive_crosslink, "urlopen", routed_urlopen)
+    monkeypatch.setattr(archive_crosslink, "_log", logs.append)
+    asset = {
+        "title": "Stewardship",
+        "url": "https://geralddaquila.com/stewardship",
+        "wp_id": "21767",
+        "resource_type": "page",
+        "tier": "T1",
+        "access_class": "public",
+    }
+
+    documents = archive_crosslink.fetch_wordpress_source_documents([asset], FakeCore())
+
+    assert len(calls) == 2
+    assert "geralddaquila.com/wp-json/wp/v2/pages/21767" in calls[0]
+    assert "public-api.wordpress.com/wp/v2/sites/geralddaquila.com/pages/21767" in calls[1]
+    assert len(documents) == 1
+    assert documents[0]["wp_id"] == "21767"
+    assert documents[0]["source_body_verified"] is True
+    assert documents[0]["url"] == "https://geralddaquila.com/stewardship/"
+    assert any("wordpress_com_public_api_fallback" in entry for entry in logs)
