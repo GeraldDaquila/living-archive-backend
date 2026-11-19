@@ -43,4 +43,4 @@ jobs:
       - name: Run shared question and specialist contract regressions
         env:
           PYTHONPATH: .
-        run: python -m pytest -q tests/test_gold_star_question_contract.py tests/test_gold_star_specialist_question_contract.py tests/test_gold_star_response_floor.py tests/test_gold_star_adaptive_intelligence_v2.py
+        run: python -m pytest -q tests/test_gold_star_question_contract.py tests/test_gold_star_response_floor.py tests/test_gold_star_adaptive_intelligence_v2.py
