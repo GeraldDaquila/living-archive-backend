@@ -8,14 +8,27 @@ from scripts.capture_gold_star_wp3_pairs import (
 )
 
 
-def test_llm_capture_requires_explicit_or_observed_model_provenance():
+def test_llm_capture_requires_final_output_provenance_not_provider_attempts():
     assert classify_llm_payload({
-        "response_provenance": {"class": "llm", "provider": "groq", "model": "model-x"}
+        "response_provenance": {
+            "class": "llm", "provider": "groq", "model": "model-x", "llm_invoked": True
+        }
     })[0]
-    assert classify_llm_payload({"provider": "groq", "model": "model-x"})[0]
+    assert classify_llm_payload({
+        "answer_envelope": {
+            "evidence": {"provenance_class": "llm"},
+            "route": {"provider_present": True, "model_present": True},
+        }
+    })[0]
+    assert not classify_llm_payload({"provider": "groq", "model": "model-x"})[0]
+    assert not classify_llm_payload({
+        "provider": "groq", "model": "model-x",
+        "response_provenance": {"class": "unresolved"},
+    })[0]
     assert not classify_llm_payload({"response": "An answer with no provenance."})[0]
     assert not classify_llm_payload({
-        "provider": "deterministic_fallback", "model": ""
+        "provider": "deterministic_fallback", "model": "",
+        "response_provenance": {"class": "deterministic_recovery"},
     })[0]
 
 

@@ -51,28 +51,49 @@ def _http_json(url: str, *, payload: dict | None = None, timeout: int = 45) -> d
 
 
 def classify_llm_payload(body: dict | None) -> tuple[bool, dict]:
-    """Accept only explicit LLM provenance or observed provider+model metadata."""
+    """Require explicit final-answer LLM provenance; provider attempts alone are insufficient."""
     body = body if isinstance(body, dict) else {}
     provenance = body.get("response_provenance")
     provenance = provenance if isinstance(provenance, dict) else {}
     declared_class = str(provenance.get("class") or "").strip().casefold()
     provider = str(body.get("provider") or provenance.get("provider") or "").strip()
     model = str(body.get("model") or provenance.get("model") or "").strip()
+    envelope = body.get("answer_envelope")
+    envelope = envelope if isinstance(envelope, dict) else {}
+    envelope_evidence = envelope.get("evidence")
+    envelope_evidence = envelope_evidence if isinstance(envelope_evidence, dict) else {}
+    envelope_route = envelope.get("route")
+    envelope_route = envelope_route if isinstance(envelope_route, dict) else {}
+    envelope_class = str(envelope_evidence.get("provenance_class") or "").strip().casefold()
+    provider_present = envelope_route.get("provider_present") is True
+    model_present = envelope_route.get("model_present") is True
+    llm_invoked = provenance.get("llm_invoked") is True
+
     deterministic_markers = ("deterministic", "fallback", "recovery", "gold_standard_registry")
-    is_deterministic = any(marker in (provider + " " + model).casefold() for marker in deterministic_markers)
-    explicit_llm = declared_class in {"llm", "language_model", "model_generation"}
-    observed_model_path = bool(provider and model and not is_deterministic)
-    verified = bool((explicit_llm or observed_model_path) and not is_deterministic)
+    is_deterministic = any(
+        marker in (provider + " " + model + " " + declared_class + " " + envelope_class).casefold()
+        for marker in deterministic_markers
+    )
+    explicit_llm = (
+        declared_class in {"llm", "language_model", "model_generation"}
+        and (llm_invoked or bool(provider and model))
+    )
+    envelope_llm = envelope_class in {"llm", "language_model", "model_generation"} and provider_present and model_present
+    verified = bool((explicit_llm or envelope_llm) and not is_deterministic)
     metadata = {
         "declared_class": declared_class or None,
+        "envelope_class": envelope_class or None,
         "provider": provider or None,
         "model": model or None,
+        "provider_present": provider_present,
+        "model_present": model_present,
+        "llm_invoked": llm_invoked,
         "verification_basis": (
             "explicit_response_provenance"
             if explicit_llm else
-            "observed_provider_and_model_fields"
-            if observed_model_path and verified else
-            "insufficient_or_deterministic_provenance"
+            "answer_envelope_provenance"
+            if envelope_llm and verified else
+            "insufficient_or_deterministic_final_output_provenance"
         ),
     }
     return verified, metadata
@@ -275,6 +296,7 @@ def main() -> int:
                 "request_id": live_body.get("request_id"),
                 "provider_provenance": llm_provenance,
                 "response_provenance": live_body.get("response_provenance"),
+                "answer_envelope": live_body.get("answer_envelope"),
                 "unverified_response": live_body.get("response") if llm_payload is None else None,
                 "unverified_recommendation": live_body.get("recommendation") if llm_payload is None else None,
                 "answer_basis": live_body.get("answer_basis"),
