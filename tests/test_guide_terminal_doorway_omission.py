@@ -3,7 +3,7 @@
 import main
 
 
-def test_explicit_recovery_omission_clears_generic_glossary_from_all_public_fields():
+def test_explicit_visitor_no_handoff_request_clears_all_public_doorway_aliases():
     payload = {
         "response": "A complete conceptual explanation.",
         "recommendation": {
@@ -42,7 +42,7 @@ def test_explicit_recovery_omission_clears_generic_glossary_from_all_public_fiel
 
     result = main._guide_enforce_terminal_doorway_policy(
         payload,
-        "What is cosmology, and why does it matter to how people live?",
+        "What is cosmology, and why does it matter to how people live? Please do not show a doorway or link.",
     )
 
     assert result["response"] == payload["response"]
