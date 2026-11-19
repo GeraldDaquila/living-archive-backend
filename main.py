@@ -24,6 +24,8 @@ from fastapi.responses import JSONResponse
 # Gold Star v2 route contract is passed through Guide-owned specialist context; adapter source remains protected.
 from gold_star_question_contract import build_question_contract as _build_gold_star_question_contract
 from gold_star_answer_envelope import build_route_context as _build_gold_star_route_context
+from gold_star_evidence_validation import build_evidence_assessment as _build_gold_star_evidence_assessment
+from gold_star_bounded_repair import repair_eligibility as _gold_star_repair_eligibility
 from gold_star_route_capabilities import route_capability as _gold_star_route_capability, specialist_capability as _gold_star_specialist_capability
 
 from hub_contracts import (
@@ -13146,6 +13148,31 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         except Exception:
             _visitor_recommendation = None
 
+    try:
+        _evidence_documents = use_core.context_blocks_to_documents(
+            str(context_data.get("context_blocks") or "")
+        )
+    except Exception:
+        _evidence_documents = []
+    _glossary_evidence_documents = context_data.get("_canonical_glossary_documents")
+    if isinstance(_glossary_evidence_documents, list):
+        _evidence_documents.extend(
+            item for item in _glossary_evidence_documents if isinstance(item, dict)
+        )
+    _approved_reference_id = str(
+        composition_context.get("archive_reference_recovery")
+        or context_data.get("archive_reference_recovery")
+        or ""
+    ).strip()
+    _evidence_references, _evidence_assessment = _build_gold_star_evidence_assessment(
+        query,
+        response,
+        answer_basis,
+        _evidence_documents,
+        approved_reference_id=_approved_reference_id,
+        exact_standard=_final_gold_standard is not None,
+    )
+
     payload = {
         "ok": True,
         "version": APP_VERSION,
@@ -13160,6 +13187,8 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         "recommendation": _visitor_recommendation,
         "canonical_doorway": _visitor_recommendation,
         "answer_basis": answer_basis,
+        "evidence": _evidence_references,
+        "evidence_validation": _evidence_assessment,
         "response_provenance": {
             "class": _response_provenance,
             "provider": _provider_name or None,
@@ -13171,6 +13200,89 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         "route_source": "guide_basic_inquiry",
         "visitor_boundary_version": APP_VERSION,
     }
+    from gold_star_response_floor import evaluate_response_floor
+    _floor_preview = evaluate_response_floor(
+        query, payload, exact_standard=_final_gold_standard is not None
+    )
+    _repair_decision = _gold_star_repair_eligibility(
+        _floor_preview,
+        payload.get("route_source") or "guide_basic_inquiry",
+        reasoning_mode,
+        bool(composition_result),
+        composition_repair_attempted,
+        request_deadline,
+        exact_standard=_final_gold_standard is not None,
+    )
+    payload["bounded_repair"] = {
+        "status": "not_required" if _floor_preview.get("status") != "fail" else "not_attempted",
+        "attempts": 0,
+        "max_attempts": 1,
+        "eligibility": _repair_decision,
+    }
+    if _repair_decision.get("eligible"):
+        composition_repair_attempted = True
+        try:
+            _bounded_retry = general_guide_composition.compose(
+                use_core=use_core,
+                query=query,
+                context_data=composition_context,
+                history_text=_history_text(history),
+                integrity_recovery=True,
+                deadline_monotonic=request_deadline,
+            )
+        except Exception as _repair_exc:
+            _bounded_retry = None
+            print("The Guide bounded repair failed safely: exception=" + type(_repair_exc).__name__)
+        _bounded_response = _sanitize_basic_inquiry_response(
+            str((_bounded_retry or {}).get("response") or "").strip()
+        )
+        _bounded_cross_question_leak = bool(
+            _bounded_response
+            and _find_cross_question_standard_response(query, _bounded_response)
+        )
+        if (
+            _bounded_response
+            and not _bounded_cross_question_leak
+            and not _basic_inquiry_contains_html_markup(_bounded_response)
+        ):
+            _candidate_payload = dict(payload)
+            _candidate_payload["response"] = _bounded_response
+            _candidate_payload["response_provenance"] = {
+                "class": "bounded_composition_repair",
+                "provider": str((_bounded_retry or {}).get("provider") or _provider_name or "") or None,
+                "model": str((_bounded_retry or {}).get("model") or _model_name or "") or None,
+                "quality_adjusted_llm_eligible": True,
+                "llm_invoked": True,
+            }
+            _candidate_floor = evaluate_response_floor(
+                query, _candidate_payload, exact_standard=False
+            )
+            if _candidate_floor.get("status") != "fail":
+                response = _bounded_response
+                payload = _candidate_payload
+                payload["bounded_repair"] = {
+                    "status": "repaired",
+                    "attempts": 1,
+                    "max_attempts": 1,
+                    "failed_criterion": _repair_decision.get("failed_criterion"),
+                    "revalidation_status": _candidate_floor.get("status"),
+                }
+            else:
+                payload["bounded_repair"] = {
+                    "status": "failed",
+                    "attempts": 1,
+                    "max_attempts": 1,
+                    "failed_criterion": _repair_decision.get("failed_criterion"),
+                    "revalidation_reason": _candidate_floor.get("reason"),
+                }
+        else:
+            payload["bounded_repair"] = {
+                "status": "failed",
+                "attempts": 1,
+                "max_attempts": 1,
+                "failed_criterion": _repair_decision.get("failed_criterion"),
+                "revalidation_reason": "empty_cross_question_or_unsafe_repair",
+            }
     print("The Guide Basic Inquiry: " + f"request_id={request_id}, intent={payload['intent']}, response_chars={len(response)}, elapsed={time.perf_counter() - started:.3f}s, query_chars={len(query)}")
     return payload
 

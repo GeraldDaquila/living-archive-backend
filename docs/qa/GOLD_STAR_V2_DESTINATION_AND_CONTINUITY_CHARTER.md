@@ -281,6 +281,17 @@ If this document and repository state disagree, inspect the source and correct t
 - Added cross-boundary tests for deterministic success/failure, safety-interruption preservation, bounded safety conversation, hypothetical calibration, handoff/error distinction, route attribution, all three runtime wiring points, and actual ASGI outer-boundary visitor responses.
 - Verified on implementation commit `b19e715e6d213591bcb3aa57e4190e41273fa959`. The same source commit passed the complete observed CI set. No merge or deployment was performed.
 
+
+### WP2 evidence-aware validation and bounded repair (candidate)
+
+- Added canonical-source evidence references with HTTPS/domain validation, title/body requirements, content digests, duplicate suppression, and a strict distinction between source provenance and claim entailment.
+- Archive-attributed answers now require verified evidence references. General-knowledge answers and immutable exact standards are not forced to fabricate Archive citations. Approved deterministic Archive-reference contracts can be represented without inventing a public URL.
+- Claim support remains review-required; lexical overlap is not treated as proof. Time-sensitive questions without a retrieval timestamp are explicitly flagged for review.
+- Added a single bounded composition-repair eligibility contract: one attempt maximum, only for observable composition defects, only on the capable provider-composition route, never for deterministic-only or frozen exact answers, and only when the shared request deadline preserves its repair reserve.
+- Integrated the bounded attempt into Basic Inquiry before payload return. It revalidates the candidate against the same response floor and preserves the original doorway; failed repairs remain withheld by the final visitor floor.
+- New tests cover evidence provenance, source tampering, approved reference contracts, temporal uncertainty, and repair eligibility/abstention boundaries.
+- Candidate only until the exact WP2 implementation commit passes the complete relevant CI suite.
+
 ### CI status
 
 - Verified source commit: `b19e715e6d213591bcb3aa57e4190e41273fa959`.
@@ -309,7 +320,7 @@ No production merge or deployment was performed. PR #1732 remains open and unmer
 
 ### Immediate next action
 
-Begin WP2: implement evidence-aware validation and bounded repair as one integrated work package. Preserve WP1's verified baseline and do not reopen route-specific answer polishing unless a WP2 regression demonstrates a structural dependency.
+Complete WP2 tests on the exact candidate commit. Repair failures without weakening evidence or bounded-repair constraints. Only then mark WP2 complete and proceed to WP3 representative evaluation and human calibration.
 
 ## 10. Definition of completion
 

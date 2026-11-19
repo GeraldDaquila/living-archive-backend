@@ -16,6 +16,7 @@ from typing import Any, Dict
 
 from gold_star_question_contract import build_question_contract, validate_question_contract
 from gold_star_answer_envelope import build_answer_envelope, validate_answer_envelope
+from gold_star_evidence_validation import validate_evidence_payload
 
 VERSION = "2.0"
 SEMANTIC_SHADOW_VERSION = "1.0"
@@ -125,6 +126,22 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
     if not envelope_validation.get("valid"):
         return {"version": VERSION, "status": "fail", "reason": "answer_envelope_invalid"}
 
+    evidence_validation = validate_evidence_payload(
+        query, payload, exact_standard=exact_standard
+    )
+    if evidence_validation.get("status") == "fail":
+        return {
+            "version": VERSION,
+            "status": "fail",
+            "reason": evidence_validation.get("reason") or "evidence_validation_failed",
+            "question_contract": question_contract,
+            "question_contract_validation": contract_validation,
+            "answer_envelope": answer_envelope,
+            "answer_envelope_validation": envelope_validation,
+            "evidence_validation": evidence_validation,
+            "semantic_certification": False,
+        }
+
     result = {
         "version": VERSION,
         "status": "pass",
@@ -135,6 +152,10 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
         "question_contract_validation": contract_validation,
         "answer_envelope": answer_envelope,
         "answer_envelope_validation": envelope_validation,
+        "evidence_validation": evidence_validation,
+        "bounded_repair": payload.get("bounded_repair") or {
+            "status": "not_attempted", "attempts": 0, "max_attempts": 1
+        },
         "personal_reference_resolution": question_contract.get("personal_reference"),
     }
     # Shadow diagnostics are metadata only. A semantic hard failure is not

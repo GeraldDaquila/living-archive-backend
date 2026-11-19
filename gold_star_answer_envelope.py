@@ -63,6 +63,7 @@ def build_answer_envelope(
         "semantic_competence_certified": False,
     }
 
+    evidence_validation = _mapping(body.get("evidence_validation"))
     doorway = body.get("recommendation") or body.get("doorway")
     if isinstance(doorway, Mapping) and str(doorway.get("url") or "").strip():
         doorway_state = "present_requires_canonical_validation"
@@ -96,6 +97,9 @@ def build_answer_envelope(
         "evidence": {
             "provenance_class": str(provenance.get("class") or "not_declared"),
             "references_present": bool(body.get("evidence") or body.get("sources") or body.get("source_documents")),
+            "validation_status": str(evidence_validation.get("status") or "not_declared"),
+            "claim_support_status": str(_mapping(evidence_validation.get("claim_support")).get("status") or "not_declared"),
+            "semantic_certification": False,
         },
         "specialist": {
             "id": specialist_declaration.get("specialist_id", "not_declared"),
