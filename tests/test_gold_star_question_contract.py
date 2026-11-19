@@ -99,3 +99,16 @@ def test_composer_has_explicit_personal_reference_retrieval_instructions():
     source = (Path(__file__).resolve().parents[1] / "general_guide_composition.py").read_text(encoding="utf-8")
     assert "PERSONAL-REFERENCE RESOLUTION" in source
     assert "Do not infer that a personal protocol exists" in source
+
+
+
+def test_personal_reference_contract_is_exposed_to_the_shared_response_floor():
+    from gold_star_response_floor import evaluate_response_floor
+
+    query = "What is my protocol when a teaching conflicts with my conscience?"
+    result = evaluate_response_floor(
+        query,
+        {"ok": True, "query": query, "response": "A protocol is a set of rules."},
+    )
+    assert result["personal_reference_resolution"]["detected"] is True
+    assert result["personal_reference_resolution"]["resolution"] == "retrieve_and_verify_before_answering"
