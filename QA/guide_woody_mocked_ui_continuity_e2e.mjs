@@ -43,6 +43,7 @@ page.on("request", request => {
 });
 page.on("response", response => {
   if (response.url().includes("/api/query")) mark("api_response_event", { status: response.status(), url: response.url(), method: response.request().method() });
+  if (response.status() >= 400) mark("http_resource_error", { status: response.status(), url: response.url(), resourceType: response.request().resourceType() });
 });
 page.on("requestfinished", request => {
   if (request.url().includes("/api/query")) mark("api_request_finished_event", { method: request.method(), url: request.url() });
@@ -181,6 +182,25 @@ try {
   await input.waitFor({ state: "visible" });
   await submit.waitFor({ state: "visible" });
   await page.waitForTimeout(1500);
+  const syntaxDiagnostics = await page.evaluate(async () => {
+    const results = [];
+    for (const [index, node] of Array.from(document.scripts).entries()) {
+      if (node.type === "application/ld+json" || node.type === "application/json") continue;
+      if (node.src) {
+        try {
+          const response = await fetch(node.src, { cache: "no-store" });
+          const source = await response.text();
+          try { new Function(source); results.push({ index, src: node.src, status: response.status, syntax: "pass", length: source.length }); }
+          catch (error) { results.push({ index, src: node.src, status: response.status, syntax: "fail", name: error.name, message: error.message, length: source.length, excerpt: source.slice(0, 180) }); }
+        } catch (error) { results.push({ index, src: node.src, syntax: "fetch-fail", message: error.message }); }
+      } else if (node.textContent.trim()) {
+        try { new Function(node.textContent); results.push({ index, inline: true, syntax: "pass", length: node.textContent.length }); }
+        catch (error) { results.push({ index, inline: true, syntax: "fail", name: error.name, message: error.message, length: node.textContent.length, excerpt: node.textContent.slice(0, 180) }); }
+      }
+    }
+    return results;
+  });
+  mark("script_syntax_diagnostics", { scripts: syntaxDiagnostics });
   mark("controller_ready_diagnostics", {
     rootCount: await root.count(),
     inputCount: await input.count(),
