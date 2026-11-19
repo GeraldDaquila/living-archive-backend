@@ -152,6 +152,10 @@ def test_compound_stewardship_question_completes_request_composition_and_recomme
     assert payload["recommendation"]["title"] == CANONICAL_TITLE
     assert payload["recommendation"]["url"] == CANONICAL_URL
     assert payload["recommendation"].get("rationale")
+    assert payload["evidence"]
+    assert payload["evidence_validation"]["status"] == "pass"
+    assert payload["gold_star_v2_quality_floor"]["evidence_validation"]["status"] == "pass"
+    assert payload["gold_star_v2_quality_floor"]["evidence_validation"]["claim_support"]["status"] == "review_required"
     assert payload["answer_basis"] == {
         "kind": "archive_supported",
         "label": "Informed by the Living Archive",

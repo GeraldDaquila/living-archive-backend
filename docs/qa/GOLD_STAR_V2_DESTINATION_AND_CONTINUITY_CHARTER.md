@@ -284,13 +284,13 @@ If this document and repository state disagree, inspect the source and correct t
 
 ### WP2 evidence-aware validation and bounded repair (candidate)
 
-- Added canonical-source evidence references with HTTPS/domain validation, title/body requirements, content digests, duplicate suppression, and a strict distinction between source provenance and claim entailment.
+- Added canonical-source evidence references from the actual protected retrieval document collections and context blocks, with HTTPS/domain validation, title/body requirements, content digests, duplicate suppression, and a strict distinction between source provenance and claim entailment.
 - Archive-attributed answers now require verified evidence references. General-knowledge answers and immutable exact standards are not forced to fabricate Archive citations. Approved deterministic Archive-reference contracts can be represented without inventing a public URL.
 - Claim support remains review-required; lexical overlap is not treated as proof. Time-sensitive questions without a retrieval timestamp are explicitly flagged for review.
 - Added a single bounded composition-repair eligibility contract: one attempt maximum, only for observable composition defects, only on the capable provider-composition route, never for deterministic-only or frozen exact answers, and only when the shared request deadline preserves its repair reserve.
 - Integrated the bounded attempt into Basic Inquiry before payload return. It revalidates the candidate against the same response floor and preserves the original doorway; failed repairs remain withheld by the final visitor floor.
 - New tests cover evidence provenance, source tampering, approved reference contracts, temporal uncertainty, and repair eligibility/abstention boundaries.
-- Candidate only until the exact WP2 implementation commit passes the complete relevant CI suite.
+- Candidate only until the exact WP2 implementation commit passes the complete relevant CI suite. Initial integration tests exposed that protected retrieval documents were not being carried into the evidence envelope; the runtime now consumes those protected document collections rather than treating the doorway as evidence.
 
 ### CI status
 

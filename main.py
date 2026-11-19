@@ -13154,11 +13154,18 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
         )
     except Exception:
         _evidence_documents = []
-    _glossary_evidence_documents = context_data.get("_canonical_glossary_documents")
-    if isinstance(_glossary_evidence_documents, list):
-        _evidence_documents.extend(
-            item for item in _glossary_evidence_documents if isinstance(item, dict)
-        )
+    for _evidence_key in (
+        "generation_authority_protected_docs",
+        "question_authority_protected_docs",
+        "canonical_evidence_documents",
+        "evidence_documents",
+        "_canonical_glossary_documents",
+    ):
+        _evidence_candidates = context_data.get(_evidence_key)
+        if isinstance(_evidence_candidates, list):
+            _evidence_documents.extend(
+                item for item in _evidence_candidates if isinstance(item, dict)
+            )
     _approved_reference_id = str(
         composition_context.get("archive_reference_recovery")
         or context_data.get("archive_reference_recovery")

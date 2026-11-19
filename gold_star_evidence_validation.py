@@ -169,10 +169,14 @@ def validate_evidence_payload(
             return {"version": VERSION, "status": "fail", "reason": "invalid_evidence_reference"}
         source_type = str(reference.get("source_type") or "")
         if source_type == "canonical_archive":
+            try:
+                content_chars = int(reference.get("content_chars") or 0)
+            except (TypeError, ValueError):
+                content_chars = 0
             if (
                 not _canonical_https_url(reference.get("url"))
                 or not re.fullmatch(r"[0-9a-f]{64}", str(reference.get("content_sha256") or ""))
-                or int(reference.get("content_chars") or 0) <= 0
+                or content_chars <= 0
             ):
                 return {"version": VERSION, "status": "fail", "reason": "invalid_evidence_reference"}
         elif source_type == "approved_reference_contract":
@@ -181,7 +185,11 @@ def validate_evidence_payload(
         else:
             return {"version": VERSION, "status": "fail", "reason": "unknown_evidence_source_type"}
 
-    if int(assessment.get("reference_count") or 0) != len(references):
+    try:
+        declared_reference_count = int(assessment.get("reference_count") or 0)
+    except (TypeError, ValueError):
+        declared_reference_count = -1
+    if declared_reference_count != len(references):
         return {"version": VERSION, "status": "fail", "reason": "evidence_reference_count_mismatch"}
     claim_support = assessment.get("claim_support")
     if not isinstance(claim_support, Mapping) or claim_support.get("semantic_certification") is not False:
