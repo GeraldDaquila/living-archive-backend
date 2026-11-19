@@ -81,3 +81,12 @@ def test_required_source_gate_is_explicit_and_independent_of_optional_sources():
     )
     assert result["verified"] is True
     assert result["status"] == "partial"
+
+
+def test_all_canonical_wordpress_body_retrieval_uses_shared_verification_gate():
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "main.py").read_text(encoding="utf-8")
+    assert source.count("verify_retrieved_source_document(") >= 2
+    assert "The Guide canonical body verification rejected a fetched source" in source
+    assert "The Guide canonical search source verification rejected a candidate" in source
