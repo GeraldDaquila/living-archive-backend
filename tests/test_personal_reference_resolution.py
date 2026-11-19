@@ -39,6 +39,7 @@ def _documents():
         "Analytical Procedure",
         "Discernment Foundations",
         "Discernment, Authority, and Ethical Access",
+        "My Approach",
         "Revision Protocol",
     )
     return [
