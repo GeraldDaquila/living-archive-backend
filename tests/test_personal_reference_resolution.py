@@ -147,3 +147,16 @@ def test_main_routes_verified_personal_references_before_provider_fallback():
     assert "_wordpress_fetch_selected_canonical_body, _source_urls" in source
     assert "if personal_reference_result:" in source
     assert "provider_independent=True" in source
+
+
+def test_missing_nonessential_discernment_foundations_does_not_block_core_synthesis():
+    docs = _documents()
+    result = compose_teaching_conflict_protocol(QUERY, docs[:1] + docs[2:])
+    assert result is not None
+    assert len(result["documents"]) == 4
+    assert "Discernment Foundations" not in result["response"]
+
+
+def test_missing_ethical_authority_source_fails_closed():
+    docs = _documents()
+    assert compose_teaching_conflict_protocol(QUERY, docs[:2] + docs[3:]) is None
