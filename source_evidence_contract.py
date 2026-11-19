@@ -23,11 +23,13 @@ def normalize_source_url(value: Any) -> str:
             return ""
         if parsed.username or parsed.password:
             return ""
+        if parsed.port not in (None, 443):
+            return ""
         host = parsed.hostname.casefold()
         if host.startswith("www."):
             host = host[4:]
         path = re.sub(r"/+", "/", parsed.path or "/").rstrip("/")
-        return urlunsplit(("https", host, path, "", "")).casefold()
+        return urlunsplit(("https", host, path, "", ""))
     except Exception:
         return ""
 
