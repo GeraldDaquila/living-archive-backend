@@ -1435,10 +1435,14 @@ def has_orientation_information_explanation(response):
     """Check that both terms, their relationship, and practical application are explained."""
     text = _clean(response).casefold()
     return bool(
-        re.search(r"\binformation\b", text)
-        and re.search(r"\borientation\b", text)
-        and re.search(r"\b(?:facts|data|details|knowledge)\b", text)
-        and re.search(r"\b(?:context|relationships|stakes|conditions)\b", text)
+        re.search(r"\binformation\b.{0,100}\b(?:facts|data|details|knowledge)\b", text)
+        and re.search(r"\borientation\b.{0,180}\b(?:context|relationships|stakes|conditions)\b", text)
+        and re.search(
+            r"\b(?:orientation|it)\b.{0,100}\b(?:depends on|uses|places|organizes|organises|"
+            r"puts|situates|connects)\b.{0,100}\binformation\b"
+            r"|\binformation\b.{0,100}\b(?:is placed|is put|is situated|is organized|is organised)\b",
+            text,
+        )
         and re.search(r"\b(?:decide|judg|act|navigate|prioriti[sz])\w*\b", text)
         and re.search(r"\b(?:for example|in practice|imagine|suppose)\b", text)
     )
