@@ -10,6 +10,7 @@ from gold_star_route_capabilities import (
 OBSERVED_GUIDE_ROUTES = (
     "bounded_safety_conversation",
     "deterministic-formation-preparation-entry",
+    "deterministic-systems-preparation-entry",
     "guide_basic_inquiry",
     "guide_basic_inquiry_recovery",
     "guide_broad_conceptual_boundary",
@@ -65,5 +66,14 @@ def test_specialist_entry_is_bounded_and_guide_owned():
     declaration = route_capability("deterministic-formation-preparation-entry")
     assert declaration["route_class"] == "specialist_handoff"
     assert declaration["supported_task_families"] == ["stewardship_formation_orientation"]
+    assert "specialist_unavailable" in declaration["abstention_modes"]
+    assert "Guide retains final visitor-response authority" in declaration["scope"]
+
+
+
+def test_systems_specialist_entry_is_bounded_and_guide_owned():
+    declaration = route_capability("deterministic-systems-preparation-entry")
+    assert declaration["route_class"] == "specialist_handoff"
+    assert declaration["supported_task_families"] == ["bounded_philippine_systems_orientation"]
     assert "specialist_unavailable" in declaration["abstention_modes"]
     assert "Guide retains final visitor-response authority" in declaration["scope"]
