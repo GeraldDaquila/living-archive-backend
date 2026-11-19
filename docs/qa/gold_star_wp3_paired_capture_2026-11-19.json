@@ -149,7 +149,12 @@
           "reviewer_notes": "Fails to state the established answer (100°C/212°F). It mistakes absence of Archive retrieval for inability to answer general knowledge. The irrelevant Life Under Pressure doorway further distracts. No Archive-specific claim is made, so Archive grounding and cosmology fidelity are not applicable.",
           "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
           "reviewer_type": "AI_DELEGATED_TECHNICAL_STEWARDSHIP_REVIEW",
-          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json"
+          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json",
+          "case_specific_scores": {
+            "answer_first": 0,
+            "general_knowledge_accuracy": 0,
+            "uncertainty_honesty": 0
+          }
         }
       }
     },
@@ -277,7 +282,14 @@
           "reviewer_notes": "Contains a useful high-level observation about incentives and social conditions, but its opening sentence is grammatically malformed and echoes the question rather than defining cosmology/worldview. It does not distinguish scientific cosmology from philosophical worldview or give a concrete example. The doorway is topically relevant and optional, but the answer is not sufficiently developed. No unsupported Archive doctrine is explicitly asserted.",
           "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
           "reviewer_type": "AI_DELEGATED_TECHNICAL_STEWARDSHIP_REVIEW",
-          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json"
+          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json",
+          "case_specific_scores": {
+            "answer_first": 1,
+            "human_voice": 1,
+            "concrete_clarity": 0,
+            "archive_grounding": 1,
+            "doorway_relevance": 2
+          }
         }
       }
     },
@@ -395,7 +407,13 @@
           "reviewer_notes": "The answer offers no observable organizational practices, despite an approved frozen trust exemplar demonstrating ask affected people, distinguish facts from assumptions, explain reasons, assign responsibility, follow through, and verify effects. No doorway is appropriate for this practical question. Archive grounding and cosmology fidelity are not applicable because the response makes no Archive-specific claims.",
           "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
           "reviewer_type": "AI_DELEGATED_TECHNICAL_STEWARDSHIP_REVIEW",
-          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json"
+          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json",
+          "case_specific_scores": {
+            "answer_first": 0,
+            "human_voice": 1,
+            "concrete_clarity": 0,
+            "doorway_relevance": 2
+          }
         }
       }
     },
@@ -513,7 +531,13 @@
           "reviewer_notes": "It merely echoes the question and supplies generic uncertainty language. It does not compare centralization with distributed authority, explain trade-offs, condition the recommendation on decision type/risk, or identify safeguards. No doorway is appropriate. Archive-specific dimensions are not applicable.",
           "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
           "reviewer_type": "AI_DELEGATED_TECHNICAL_STEWARDSHIP_REVIEW",
-          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json"
+          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json",
+          "case_specific_scores": {
+            "answer_directness": 0,
+            "tradeoff_visibility": 0,
+            "context_sensitivity": 0,
+            "uncertainty_honesty": 1
+          }
         }
       }
     },
@@ -631,7 +655,13 @@
           "reviewer_notes": "Provides no Python method, no boolean presence check, and no warning against logging the secret. It also fails to distinguish configuration presence from proof of runtime use. The correct response can be concise and technically reproducible; no Archive doorway is warranted.",
           "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
           "reviewer_type": "AI_DELEGATED_TECHNICAL_STEWARDSHIP_REVIEW",
-          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json"
+          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json",
+          "case_specific_scores": {
+            "technical_correctness": 0,
+            "reproducibility": 0,
+            "secret_safety": 0,
+            "answer_directness": 0
+          }
         }
       }
     },
@@ -749,7 +779,13 @@
           "reviewer_notes": "It avoids inventing a cause, which is appropriate, but fails to name the missing evidence or provide a discriminating investigation plan. It substitutes an irrelevant Archive-evidence limitation for the actual need to inspect analytics, referrers, campaign tags, landing pages, Search Console, server logs, and bot traffic. No doorway is appropriate.",
           "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
           "reviewer_type": "AI_DELEGATED_TECHNICAL_STEWARDSHIP_REVIEW",
-          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json"
+          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json",
+          "case_specific_scores": {
+            "uncertainty_honesty": 1,
+            "evidence_requirements": 0,
+            "useful_next_steps": 0,
+            "no_fabricated_cause": 2
+          }
         }
       }
     },
@@ -867,7 +903,13 @@
           "reviewer_notes": "The response fails to define policy versus procedure. It does not add a link, but its generic next-question prompt violates the explicit instruction not to provide follow-up steps. A one- or two-sentence definition with a simple example would satisfy the task. Archive-specific dimensions are not applicable.",
           "instruction": "Complete every applicable dimension; use NA only with a reason. Automated checks cannot approve a lesson.",
           "reviewer_type": "AI_DELEGATED_TECHNICAL_STEWARDSHIP_REVIEW",
-          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json"
+          "authorization": "Explicit project-owner authorization recorded in docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json",
+          "case_specific_scores": {
+            "answer_directness": 0,
+            "conceptual_distinction": 0,
+            "instruction_compliance": 0,
+            "proportionality": 0
+          }
         }
       }
     }
