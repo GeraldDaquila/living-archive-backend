@@ -302,7 +302,7 @@ If this document and repository state disagree, inspect the source and correct t
 - A bounded one-time capture run queried the secondary mirror once per held-out question. All seven API requests returned HTTP 200, but none had verifiable final provider/model provenance. The seven live API outputs therefore remain unclassified as LLM answers; the deterministic path has seven attributable frozen captures.
 - The deterministic captures are preserved unchanged in `docs/qa/gold_star_wp3_paired_capture_2026-11-19.json`. Their source runtime was deployment commit `93c2d3a31405ec8b193e8d7a986ed764415ef8d3`, version `v489.311`, fingerprint `USE-v489.311-source-derived`.
 - On 2026-11-19, the project owner explicitly authorized a delegated evidence-based technical and stewardship review using the canonical Gold Star registry. The review is recorded in `docs/qa/gold_star_wp3_deterministic_review_2026-11-19.json` and attached to each case in the capture report. It is expressly identified as delegated AI review, not independent human review.
-- The review pins registry commit `eb972d9e3312011ef90db111dde209a0a4764cd4`: 152 total registry records, 114 `USER_APPROVED_GOLD_STANDARD` records, four `FROZEN_REFERENCE_ONLY` records, and 34 records in other statuses. The 114 approved standards are not conflated with the four frozen references.
+- The review pins registry content SHA `eb972d9e3312011ef90db111dde209a0a4764cd4` (a Git blob/content SHA, not a commit): 152 total registry records, 114 `USER_APPROVED_GOLD_STANDARD` records, four `FROZEN_REFERENCE_ONLY` records, and 34 records in other statuses. The 114 approved standards are not conflated with the four frozen references.
 - All seven deterministic answers were assessed across the 12 shared quality dimensions and their case-specific critical criteria. Result: 0 ACCEPT, 7 REVISE, 0 REJECT. Every case has at least one critical failure. The common defect is substitution of generic Archive-limitation language for task completion; the cosmology answer also contains a malformed opening sentence, and the explicit no-handoff answer violates its no-follow-up constraint.
 - Added `tests/test_gold_star_wp3_delegated_review.py` to verify complete seven-case coverage, score integrity, consistency between dossier and capture report, preservation of frozen response text, and honest zero-LLM/zero-pair reporting.
 - The dossier is complete under the owner's delegation, includes benchmark-linked corrective directions where supported, and pins the registry content SHA consistently in both review artifacts; it is not an independent human calibration sample. The separate WP3 requirement for human/evaluator agreement and false-positive/false-negative calibration is therefore not certified.
@@ -311,14 +311,13 @@ If this document and repository state disagree, inspect the source and correct t
 
 
 
-### CI status
+### CI status — exact candidate head verified
 
-- Latest code/test head: `4b63bbfe19d2879d4322d054c83ed85752e89348`; the dossier/capture now pin the registry by content SHA, not by mislabeling a Git blob SHA as a commit.
-- The Gold Star v2 shared-contract workflow compiles `gold_star_pattern_detection.py` and runs the WP3 delegated-review test plus the WP4 lesson, cross-question, multi-candidate, transfer-review, transferability-map, scope-governance, runtime-authority, selector-equivalence, and pattern-detection tests.
-- Exact-head shared-contract push run #44465318541 is queued. The prior full PR regression set for head `9d0385e18890f1fdabcb694822604d6b77503938` contained 30 queued runs and one skipped live-browser workflow. No exact-head workflow has yet completed successfully. The current code/test head is not yet test-passed.
-- Earlier verified implementation checkpoints remain as recorded above, including WP1/WP2 verification and the previous 30-success/one-skipped workflow set on head `7c0b9fcf471a37b4d27c7177c4ee273fcca0ee0d`. Those earlier results do not substitute for exact-head verification.
-- Live browser acceptance workflow #44465208108 was skipped. Its workflow condition explicitly excludes pull requests; the real-browser job runs only after a commit reaches `main`. The PR's mocked UI continuity workflow is not a substitute for WP5 live visitor acceptance.
-- CI success will not establish semantic answer quality, LLM parity, independent human calibration, actual visitor/browser acceptance, or production release.
+- Latest code/test head: `5b8f3b2456ae2792b2863e60b5561de9f5749c64`.
+- Gold Star v2 shared-contract push run #44466370939 passed: dependency installation, Python compilation, and the full registered WP3/WP4 shared-contract regression command all succeeded.
+- The exact-head PR regression set contains 30 workflows: 29 succeeded and the live-browser acceptance workflow was skipped by its pull-request condition. The mocked UI continuity workflow passed, including Playwright installation and its mocked WordPress-controller interaction test. This is not live visitor acceptance.
+- The exact-head Gold Star v2 shared-contract run and full PR regression set both report success for all executed tests. No failed or still-running PR workflow remains on this head.
+- CI success does not establish semantic answer quality, LLM parity, independent human calibration, actual live visitor/browser acceptance, or production release.
 
 
 
@@ -327,8 +326,8 @@ If this document and repository state disagree, inspect the source and correct t
 - WP1: complete and verified on its implementation checkpoint, including deterministic/safety orchestration and final visitor boundaries.
 - WP2: complete and verified on its implementation checkpoint, including evidence provenance and one-attempt bounded repair.
 - WP3: delegated deterministic review completed and recorded; same-source attributable LLM capture, paired evaluation, and independent human/evaluator calibration remain outstanding.
-- WP4: governed learning architecture, registry/review reconciliation, bounded selection/adjudication, and consent/evidence-gated pattern-candidate intake are implemented. Exact-head CI is pending. No real consented cross-visitor evidence cohort was available; no new lesson was detected or elevated.
-- WP5: controlled secondary-mirror deployment of the PR branch, exact runtime identity verification, actual visitor/browser acceptance, primary/secondary acceptance, release authorization, and rollback verification remain outstanding. The mirror is currently configured to deploy `main`; the connected Render actions expose no service-branch update operation. Do not trigger a mirror deploy until the branch target is safely changed and verified.
+- WP4: governed learning architecture, registry/review reconciliation, bounded selection/adjudication, and consent/evidence-gated pattern-candidate intake are implemented and exact-head CI passed. The transferability map now covers all 108 general-purpose-guide Gold Stars with `runtime_transfer: true`, each reconciled to its qualitative review; superseded historical and exact-answer-only records remain excluded. The new map-coverage regression enforces exact parity. No real consented cross-visitor evidence cohort was available; no new lesson was detected or elevated.
+- WP5: controlled secondary-mirror deployment of the PR branch, exact runtime identity verification, same-source LLM capture, paired evaluation, independent human/evaluator calibration, actual visitor/browser acceptance, release authorization, and rollback verification remain outstanding. The confirmed `USE2-Mirror` service is a direct Render web service, not Blueprint-managed; its current branch is `main`. The Render connector exposes no direct service-branch update operation. A safe Blueprint-adoption route is being evaluated; do not trigger a deploy until the branch target is safely changed and verified.
 
 
 
@@ -340,11 +339,11 @@ No merge or production deployment was performed. The secondary mirror remains co
 
 ### Immediate next action
 
-1. Allow exact-head GitHub Actions for `366e24c75e498566750d7a92fadc8216882ab5c1` to complete. Inspect and repair any failure without weakening governance or skipping tests.
-2. If WP3/WP4 contract CI passes, preserve that exact tested checkpoint and reconcile all test/workflow results in this charter.
-3. Resolve the secondary-mirror branch-control limitation through a supported Render service-branch operation. The current connector does not expose one; do not use `trigger_deploy` while the mirror points at `main`.
-4. Once the mirror is safely configured to the PR branch, deploy the exact tested head, verify runtime SHA and integration audit, then run one bounded same-source LLM capture batch.
-5. Complete paired evaluation, independent human/evaluator calibration, and WP5 browser acceptance. Seek the separate release gate before merge or primary production promotion.
+1. Establish a controlled, reversible branch-target change for the existing `USE2-Mirror` service. The service is not currently Blueprint-managed; any Blueprint adoption plan must be reviewed before approval and must match the existing service without creating a replacement.
+2. Deploy exact tested head `5b8f3b2456ae2792b2863e60b5561de9f5749c64` to the secondary mirror only after the branch target is verified. Confirm Render's deployed commit and runtime fingerprint before issuing any test requests.
+3. Run one bounded same-source LLM capture batch, verify provider/model provenance for every result, then complete paired evaluation and independent human/evaluator calibration.
+4. Complete actual visitor/browser acceptance against the secondary mirror, including the seven held-out cases and representative route/constraint/safety checks.
+5. Obtain the separate release gate before any merge or primary production promotion; retain rollback evidence.
 
 
 
