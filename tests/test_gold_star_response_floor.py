@@ -258,6 +258,7 @@ def test_teaching_conflict_personal_reference_requires_verified_source_bodies():
         "Analytical Procedure",
         "Discernment Foundations",
         "Discernment, Authority, and Ethical Access",
+        "My Approach",
         "Revision Protocol",
     )
     markers = {
@@ -273,6 +274,11 @@ def test_teaching_conflict_personal_reference_requires_verified_source_bodies():
         "Discernment, Authority, and Ethical Access": (
             "Pause, differentiate, and refrain. Consent of those affected. "
             "Willingness to be corrected. Transparency about limits. " + "Ethics. " * 60
+        ),
+        "My Approach": (
+            "Different questions require different methods of inquiry. "
+            "I do not present contemplative work as scientific proof. "
+            "The goal is never to replace a person's judgment. " + "Inquiry. " * 60
         ),
         "Revision Protocol": (
             "Revision follows understanding. Revision welcomes criticism. "
