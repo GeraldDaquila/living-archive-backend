@@ -32,3 +32,15 @@ def test_browser_acceptance_keeps_safety_interrupt_outside_llm_and_doorway_paths
     }
     result = evaluate_case("browser-safety-interrupt", 200, body)
     assert result["passed"] is True
+
+
+
+def test_integration_audit_recognizes_native_relationship_handling_without_adapter():
+    from main import ecosystem_integration_audit
+
+    audit = ecosystem_integration_audit()
+
+    assert audit["ok"] is True
+    assert audit["available_capabilities_missing_adapters"] == []
+    assert audit["adapters_without_capabilities"] == []
+    assert audit["direct_handoffs"]["relationship"] == "native_guide_relationship_handling"

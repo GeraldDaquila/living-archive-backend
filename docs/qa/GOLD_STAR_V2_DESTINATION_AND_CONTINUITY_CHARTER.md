@@ -470,3 +470,11 @@ This addendum supersedes the earlier WP5 deployment-target and immediate-next-ac
 
 - The Chromium harness's unit tests are included in the shared Gold Star contract workflow and the browser script is syntax-compiled in CI.
 - Browser acceptance now writes a machine-readable failure report even when the QA identity, root transport, or browser startup fails before any case executes. This prevents a missing artifact from hiding the reason a browser gate did not complete.
+
+
+
+### Integration-audit native relationship classification (2026-11-19)
+
+- The QA integration warning `available_capabilities_missing_adapters=["relationship"]` was a diagnostic classification error, not a missing runtime adapter. The Guide explicitly handles relationship inquiries natively; main.py already states that no separate HRN specialist is registered.
+- The integration audit now records `relationship` as `native_guide_relationship_handling` in its direct-handoff inventory. This keeps the distinction between native Guide handling and adapter-backed specialists explicit without inventing or registering an adapter.
+- Added a regression that calls the actual integration-audit function and requires no missing capabilities or unregistered adapters. The Chromium browser acceptance now fails closed if the audit is not healthy.

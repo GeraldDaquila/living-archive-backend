@@ -99,6 +99,12 @@ def run_browser_acceptance(base_url: str, expected_commit: str) -> dict:
             raise RuntimeError(f"QA integration audit returned HTTP {audit_response.status}.")
         audit = audit_response.json()
         actual_commit = str(audit.get("deployment_commit_sha") or "").strip()
+        if audit.get("ok") is not True:
+            raise RuntimeError(
+                "QA integration audit is not healthy: "
+                f"missing_adapters={audit.get('available_capabilities_missing_adapters') or []}; "
+                f"unregistered_adapters={audit.get('adapters_without_capabilities') or []}"
+            )
         if actual_commit != expected_commit:
             raise RuntimeError(
                 f"Browser acceptance refused: QA serves {actual_commit or 'no SHA'}, "

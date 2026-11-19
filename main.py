@@ -16195,6 +16195,9 @@ def ecosystem_integration_audit():
     # Native visitor-facing surfaces are available capabilities, but they are
     # deliberately not adapter-backed retrieval spokes.
     direct_handoffs = {
+        # Relationship inquiries are deliberately handled natively by the Guide;
+        # they are not a missing HRN adapter or an adapter-backed retrieval spoke.
+        "relationship": "native_guide_relationship_handling",
         "catalogue": "native_catalogue_search",
         "systems_ph": "native_philippine_systems_landing",
         "navigator": "native_navigator",
