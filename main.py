@@ -13336,7 +13336,7 @@ async def _use_send_json(send, payload, status_code=200):
             _boundary_standard
         )
         _sender_explicit_omission = bool(re.search(
-            r"\\b(?:do not|don't|without|no)\\b.{0,48}\\b(?:doorway|link|page|resource|handoff|recommendation)\\b",
+            r"\b(?:do not|don't|without|no)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
             _boundary_query,
             re.I,
         ))
