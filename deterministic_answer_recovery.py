@@ -1201,7 +1201,7 @@ def compose_task_specific_recovery(question):
     if (
         re.search(r"\bpolicy\b", q)
         and re.search(r"\bprocedures?\b", q)
-        and re.search(r"\b(?:difference|distinguish|compare|versus|vs\\.?|explain)\b", q)
+        and re.search(r"\b(?:difference|distinguish|compare|versus|vs\.?|explain)\b", q)
     ):
         return {
             "recovery_id": "task_comparison_policy_procedure",
@@ -1244,7 +1244,7 @@ def compose_task_specific_recovery(question):
 
     # Safe verification of environment-variable presence without exposing the value.
     if (
-        re.search(r"\b(?:environment\\s+variables?|env\\s+vars?)\b", q)
+        re.search(r"\b(?:environment\s+variables?|env\s+vars?)\b", q)
         and re.search(r"\bpython\b", q)
         and re.search(r"\b(?:verify|check|configured|present|set)\b", q)
         and re.search(r"\b(?:secret|value|expos(?:e|ing)|print|log)\b", q)
