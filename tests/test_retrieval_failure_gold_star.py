@@ -117,7 +117,7 @@ def test_personal_stewardship_invitation_uses_bounded_answer_and_canonical_doorw
     assert "does not establish that a separate person" in answer
     assert "responsible care for what is entrusted to you" in answer
     assert "Care is not self-erasure or unlimited obligation" in answer
-    assert len([part for part in answer.split("\\n\\n") if part.strip()]) == 3
+    assert len([part for part in answer.split("\n\n") if part.strip()]) == 3
 
     result = main._basic_inquiry_round1_deterministic_response(query, {}, {})
     assert result["provider"] == "bounded_personal_stewardship_invitation_recovery"
