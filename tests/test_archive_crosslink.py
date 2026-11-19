@@ -725,3 +725,27 @@ def test_wordpress_search_intersects_results_with_public_snapshot_identity(monke
     assert archive_crosslink.search_wordpress_canonical_assets(
         "responsible care", snapshot
     ) == []
+
+
+def test_live_wordpress_full_text_recovery_for_responsible_care_question():
+    import json
+    import os
+    from pathlib import Path
+
+    if os.getenv("RUN_WORDPRESS_LIVE_INTEGRATION") != "1":
+        pytest.skip("live WordPress integration is enabled only in isolated QA")
+
+    snapshot_path = Path(__file__).resolve().parents[1] / "archive_crosslink_snapshot.json"
+    snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    query = "Who or what is asking for responsible care through me?"
+    assets = archive_crosslink.search_wordpress_canonical_assets(query, snapshot)
+    assert any(str(asset.get("wp_id")) == "21767" for asset in assets)
+
+    documents = archive_crosslink.fetch_wordpress_source_documents(assets, FakeCore())
+    stewardship = [
+        document for document in documents
+        if str(document.get("wp_id")) == "21767"
+    ]
+    assert stewardship
+    assert stewardship[0]["source_body_verified"] is True
+    assert "care" in stewardship[0]["text"].casefold()
