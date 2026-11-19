@@ -1080,7 +1080,20 @@ def fetch_wordpress_source_documents(
                 "source_body_verified": True, "crosslink_mode": "wordpress_source_body",
             })
         except Exception as exc:
-            _log(f"USE archive meta-crosslink WordPress source fetch: id={wp_id}, status=unavailable, error={type(exc).__name__}")
+            http_status = getattr(exc, "code", None)
+            if http_status is not None:
+                headers = getattr(exc, "headers", None)
+                server = headers.get("Server", "") if hasattr(headers, "get") else ""
+                retry_after = headers.get("Retry-After", "") if hasattr(headers, "get") else ""
+                reason = re.sub(r"\\s+", " ", str(getattr(exc, "reason", "") or ""))[:120]
+                _log(
+                    "USE archive meta-crosslink WordPress source fetch: "
+                    f"id={wp_id}, status=http_error, http_status={http_status}, "
+                    f"reason={reason}, server={str(server)[:80]}, "
+                    f"retry_after={str(retry_after)[:40]}"
+                )
+            else:
+                _log(f"USE archive meta-crosslink WordPress source fetch: id={wp_id}, status=unavailable, error={type(exc).__name__}")
             continue
     return documents
 
