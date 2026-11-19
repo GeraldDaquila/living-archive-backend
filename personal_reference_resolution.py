@@ -56,6 +56,15 @@ _TEACHING_CONFLICT_SOURCES = (
         ),
     },
     {
+        "title": "My Approach",
+        "url": "https://geralddaquila.com/how-i-work/",
+        "required_markers": (
+            "different questions require different methods of inquiry",
+            "i do not present contemplative work as scientific proof",
+            "the goal is never to replace a person's judgment",
+        ),
+    },
+    {
         "title": "Revision Protocol",
         "url": "https://geralddaquila.com/revision-protocol/",
         "required_markers": (
@@ -114,9 +123,10 @@ def compose_teaching_conflict_protocol(
         verified.append({"title": title, "url": source["url"], "text": body[:6000]})
 
     response = (
-        "Your published method does not reduce this conflict to “trust your conscience” "
+        "Your published approach explicitly says that different questions require different "
+        "methods of inquiry. It does not reduce this conflict to “trust your conscience” "
         "or “obey the teaching.” The closest explicit procedure is the Living Archive’s "
-        "**Analytical Procedure**, supported by **Discernment Foundations**, "
+        "**Analytical Procedure**, supported by **My Approach**, **Discernment Foundations**, "
         "**Discernment, Authority, and Ethical Access**, and the **Revision Protocol**. "
         "I do not find a separate document naming this exact situation as a standalone "
         "personal protocol, so the sequence below is a faithful synthesis of those "
