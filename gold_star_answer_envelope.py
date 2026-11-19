@@ -28,6 +28,8 @@ def build_answer_envelope(
     body = _mapping(payload)
     if body.get("ok") is False:
         state = "error"
+    elif str(body.get("intent") or "").strip().upper() in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"}:
+        state = "safety_intervention"
     elif body.get("handoff_pending") is True or (
         body.get("handoff")
         and not str(body.get("response") or body.get("answer") or "").strip()
@@ -38,7 +40,7 @@ def build_answer_envelope(
     else:
         state = "incomplete"
 
-    route_source = str(body.get("route_source") or "").strip()
+    route_source = str(body.get("origin_route_source") or body.get("route_source") or "").strip()
     declared_capability = route_capability(route_source)
     route_class = str(declared_capability.get("route_class") or "unclassified")
     provenance = _mapping(body.get("response_provenance"))
@@ -75,6 +77,8 @@ def build_answer_envelope(
         "question_contract_version": str(question_contract.get("version") or ""),
         "route": {
             "source": route_source or "not_declared",
+            "boundary_source": str(body.get("route_source") or "not_declared"),
+            "visitor_boundaries": list(body.get("visitor_boundaries") or []),
             "class": route_class,
             "provider_present": bool(provider),
             "model_present": bool(model),
@@ -118,6 +122,22 @@ def build_answer_envelope(
     }
 
 
+
+
+def build_route_context(query: str, route_source: str) -> Dict[str, Any]:
+    """Build the same conservative question/capability context for any Guide route."""
+    from gold_star_question_contract import build_question_contract
+
+    source = str(route_source or "").strip()
+    return {
+        "version": VERSION,
+        "route_source": source or "not_declared",
+        "question_contract": build_question_contract(str(query or "")),
+        "route_capability": route_capability(source),
+        "semantic_competence_certified": False,
+    }
+
+
 def validate_answer_envelope(envelope: Any) -> Dict[str, Any]:
     """Validate metadata shape only; never certify answer quality."""
     if not isinstance(envelope, dict):
@@ -130,7 +150,7 @@ def validate_answer_envelope(envelope: Any) -> Dict[str, Any]:
     if envelope.get("version") != VERSION:
         return {"valid": False, "reason": "unsupported_version"}
     if envelope.get("state") not in {
-        "completed_answer", "structured_handoff", "error", "incomplete"
+        "completed_answer", "structured_handoff", "safety_intervention", "error", "incomplete"
     }:
         return {"valid": False, "reason": "invalid_state"}
     return {"valid": True, "reason": "schema_valid_not_quality_certified"}

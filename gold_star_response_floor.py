@@ -66,6 +66,34 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
         return {"version": VERSION, "status": "not_applicable", "reason": "non_object_payload"}
     if payload.get("ok") is False:
         return {"version": VERSION, "status": "not_applicable", "reason": "explicit_error_payload"}
+    intent = str(payload.get("intent") or "").strip().upper()
+    route_source = str(payload.get("origin_route_source") or payload.get("route_source") or "").strip()
+    if intent in {"SAFETY_INTERRUPT", "SAFETY_CONVERSATION"} or route_source == "bounded_safety_conversation":
+        question_contract = build_question_contract(query)
+        answer_envelope = build_answer_envelope(
+            query, payload, question_contract, exact_standard=exact_standard
+        )
+        envelope_validation = validate_answer_envelope(answer_envelope)
+        if not envelope_validation.get("valid"):
+            return {"version": VERSION, "status": "fail", "reason": "safety_envelope_invalid"}
+        return {
+            "version": VERSION,
+            "status": "not_applicable",
+            "reason": "safety_intervention_route",
+            "source_independent": True,
+            "exact_standard_immutable": bool(exact_standard),
+            "question_contract": question_contract,
+            "question_contract_validation": validate_question_contract(question_contract),
+            "answer_envelope": answer_envelope,
+            "answer_envelope_validation": envelope_validation,
+            "semantic_shadow": {
+                "version": SEMANTIC_SHADOW_VERSION,
+                "mode": "not_applicable",
+                "status": "safety_intervention_exempt",
+                "semantic_certification": False,
+                "enforced": False,
+            },
+        }
     if payload.get("handoff_pending") is True or (
         payload.get("handoff") and not any(str(payload.get(key) or "").strip() for key in ANSWER_KEYS)
     ):
@@ -113,3 +141,41 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
     # promoted into the v2 enforcement status and cannot change the answer.
     result["semantic_shadow"] = _semantic_shadow(query, payload)
     return result
+
+
+def apply_response_floor_boundary(
+    query: str,
+    payload: Any,
+    status_code: int = 200,
+    *,
+    exact_standard: bool = False,
+) -> tuple[Any, int]:
+    """Apply the same fail-closed v2 integrity gate at every JSON boundary."""
+    if not isinstance(payload, dict):
+        return payload, int(status_code)
+    try:
+        floor_result = evaluate_response_floor(
+            query, payload, exact_standard=exact_standard
+        )
+    except Exception as exc:
+        floor_result = {
+            "version": VERSION,
+            "status": "fail",
+            "reason": "quality_gate_unavailable",
+            "failure_type": type(exc).__name__,
+        }
+    safe_payload = dict(payload)
+    safe_payload["gold_star_v2_quality_floor"] = floor_result
+    final_status = int(status_code)
+    if floor_result.get("status") == "fail" and 200 <= final_status < 300:
+        safe_payload = {
+            "ok": False,
+            "version": safe_payload.get("version"),
+            "query": str(query or ""),
+            "error_type": "gold_star_v2_quality_floor_rejected",
+            "response": "",
+            "gold_star_v2_quality_floor": floor_result,
+            "message": "The response did not pass the minimum integrity checks. Please try again.",
+        }
+        final_status = 503
+    return safe_payload, final_status

@@ -270,6 +270,17 @@ If this document and repository state disagree, inspect the source and correct t
 - Regression tests cover route-registry reconciliation, specialist declarations, hub-context preservation, Guide runtime wiring, unknown capabilities, fail-closed routes, and envelope attribution.
 - The specialist adapter implementation itself was not modified.
 
+
+### WP1 deterministic and safety boundary hardening (candidate implementation)
+
+- Added a shared route-context attachment helper so deterministic, safety, specialist, and provider JSON exits carry the same versioned question contract and route capability declaration at the orchestration sender.
+- Preserved originating route identity separately when final visitor finalizers record their own boundary route; answer-envelope attribution records originating route and visitor-boundary traversal separately.
+- Unified response-floor application in one reusable helper and wired it at the orchestration JSON sender, inner FastAPI response capture, and outer visitor-response capture.
+- Safety interrupts and bounded safety-conversation responses are represented as safety-intervention envelopes and are not subjected to the ordinary completed-answer floor. Hypothetical safety calibration remains an informational answer and continues through the floor.
+- Active safety interventions bypass ordinary exact-answer recovery and generic canonical-doorway restoration.
+- Added cross-boundary tests for deterministic success/failure, safety-interruption preservation, bounded safety conversation, hypothetical calibration, handoff/error distinction, route attribution, and all three runtime wiring points.
+- Candidate only until the exact commit's CI completes. Production remains untouched; no merge or deployment is authorized.
+
 ### CI status
 
 - Previous answer-envelope checkpoint `8302badcd8689d4b619e4508f69978036e139199` passed its six listed CI workflows.
@@ -280,7 +291,7 @@ CI success is not proof of semantic answer quality, human calibration, live brow
 
 ### Not yet completed
 
-- Remaining WP1: verify shared-contract/capability consumption for every deterministic and safety route at both orchestration and final visitor boundaries; test actual answer/handoff state and route/specialist provenance.
+- WP1 deterministic and safety boundary integration is implemented as a candidate; awaiting complete CI verification on the candidate commit.
 - WP2: evidence-aware validation and bounded repair.
 - WP3: real paired captures and human/evaluator calibration.
 - WP4: governed learning/elevation loop.
@@ -292,7 +303,7 @@ No production merge or deployment is authorized. The PR remains open and unmerge
 
 ### Immediate next action
 
-First allow the current CI queue to complete. Repair any failing test or integration before further code expansion. Then finish WP1 by verifying all deterministic and safety route paths, ensuring that handoffs remain handoffs, fail-closed paths do not claim answer capability, and every completed answer carries correct route/specialist provenance. Only after these checks pass should WP1 close and WP2 begin.
+Run all relevant CI and regression suites on the exact candidate commit. Repair any failure and rerun. Close WP1 only after orchestration and final visitor-boundary acceptance passes for deterministic and safety routes, then proceed directly to WP2.
 
 ## 10. Definition of completion
 
