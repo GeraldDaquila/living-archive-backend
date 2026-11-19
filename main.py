@@ -5789,6 +5789,22 @@ def _guide_restore_verified_doorway(payload, query):
         exact_standard is not None
         and _gold_star_doorway_omission_is_justified(exact_standard)
     )
+    if exact_standard is not None and not exact_gold_star_omission:
+        exact_doorway = _normalize_authoritative_recommendation({
+            "title": exact_standard.get("doorway_title"),
+            "url": exact_standard.get("doorway_url"),
+            "rationale": exact_standard.get("doorway_rationale"),
+        })
+        if exact_doorway:
+            # A frozen exact Gold Star owns its canonical answer-and-doorway pair.
+            safe["recommendation"] = exact_doorway
+            safe["canonical_doorway"] = exact_doorway
+            safe["doorway_title"] = exact_doorway.get("title")
+            safe["doorway_url"] = exact_doorway.get("url")
+            safe["doorway_rationale"] = exact_doorway.get("rationale")
+            safe["doorway_decision"] = "selected"
+            safe["doorway_omission_reason"] = None
+            return safe
     answer_basis = safe.get("answer_basis")
     response_provenance = safe.get("response_provenance")
     explicit_general_knowledge_omission = (
@@ -13326,33 +13342,25 @@ async def _use_send_json(send, payload, status_code=200):
                     payload["doorway_title"] = _required_title
                     payload["doorway_url"] = _required_url
                     payload["doorway_rationale"] = _required_rationale or None
-    # Every JSON route must expose the same explicit terminal doorway decision.
-    # Exact Gold Stars can bypass the ordinary outer response wrapper, so stamp
-    # the final decision here as well. This does not choose a destination: it
-    # records the already-final recommendation/omission after all route-specific
-    # and canonical boundary work above has completed.
+    # Route-specific composers can return before the ordinary ASGI response
+    # wrapper. Run the same shared doorway policy at this final JSON exit so
+    # exact standards, ordinary provider answers, and deterministic recoveries
+    # cannot diverge in their selected/omit decision.
     if isinstance(payload, dict) and str(payload.get("intent") or "").upper() != "SAFETY_CONVERSATION":
-        _sender_reviewed_omission = _gold_star_doorway_omission_is_justified(
-            _boundary_standard
-        )
-        _sender_explicit_omission = bool(re.search(
-            r"\b(?:do not|don't|without|no)\b.{0,48}\b(?:doorway|link|page|resource|handoff|recommendation)\b",
-            _boundary_query,
-            re.I,
-        ))
-        if _sender_reviewed_omission or _sender_explicit_omission:
-            payload["doorway_decision"] = "omit"
+        if _archive_claim_final:
+            _sender_doorway = _normalize_authoritative_recommendation(
+                payload.get("recommendation")
+            )
+            payload["doorway_decision"] = "selected" if _sender_doorway else "omit"
+        elif _boundary_query:
+            payload = _guide_enforce_terminal_doorway_policy(
+                payload, _boundary_query
+            )
         else:
             _sender_doorway = _normalize_authoritative_recommendation(
                 payload.get("recommendation")
             )
             payload["doorway_decision"] = "selected" if _sender_doorway else "omit"
-            if _sender_doorway:
-                payload["doorway_omission_reason"] = None
-            elif not str(payload.get("doorway_omission_reason") or "").strip():
-                payload["doorway_omission_reason"] = (
-                    "No verified canonical Archive resource materially advances this inquiry."
-                )
 
     # Gold Star v2.0 is a source-independent minimum at the single JSON exit.
     # This conservative gate enforces machine-verifiable integrity; route-specific
