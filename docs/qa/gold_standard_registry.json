@@ -7335,9 +7335,68 @@
       "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
       "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately request a display serial. Preserve the benchmark ID as the stable identity; serial allocation remains independent.",
       "legacy_approval_grandfathered": false
+    },
+    {
+      "benchmark_id": "gs-2026-11-20-weekly-stewardship-insight-to-action",
+      "status": "USER_APPROVED_GOLD_STANDARD",
+      "subsystem": "general-purpose-guide",
+      "query": "What is one concrete act of stewardship I can complete this week that makes an inner insight real?",
+      "expected_response": "One concrete act you can complete this week is to choose one responsibility already entrusted to your care and carry out a short stewardship check before acting. Set aside 20 minutes: name what you are holding, who or what is affected, and what is genuinely yours to hold rather than yours to control. Then complete one proportionate follow-through—clarify a commitment, ask for consent, repair a small neglect, protect something vulnerable, or set a needed boundary. Choose the action that fits the real responsibility in front of you; do not invent a duty just to prove an insight.\n\nThis applies the Stewardship page’s emphasis on what is entrusted to your care, quiet and repeated responsibility, and the need to distinguish sustainable care from sacrifice. Restraint can be the act: rest, withdraw, or relinquish what is not yours to carry.\n\nAt the end of the week, review one observable result: did your action support the person, relationship, knowledge, place, or system affected without overreach or depletion? Keep, revise, or stop the practice based on that result. The 20-minute check is a practical exercise, not a prescribed Archive rule.",
+      "expected_doorway": {
+        "title": "Stewardship",
+        "url": "https://geralddaquila.com/stewardship/",
+        "rationale": "The public Stewardship gateway grounds the response in what is entrusted to a person's care, sustainable responsibility, consent, boundaries, and the distinction between stewardship and self-sacrifice. It provides the canonical continuation without presenting the Guide's practical exercise as a prescribed Archive rule."
+      },
+      "doorway_status": "VERIFIED_CANONICAL_DESTINATION",
+      "rating_out_of_10": 9.7,
+      "user_reviewed_response": true,
+      "explicit_user_elevation_approval": true,
+      "approval_state": "User reviewed the live visitor-facing Guide response and explicitly instructed Gold Star elevation on 2026-11-20.",
+      "freeze_policy": "immutable_user_approved_gold_standard",
+      "runtime_transfer": true,
+      "reasoning_family": "bounded_weekly_stewardship_action_and_insight_application",
+      "transferable_lesson": "Translate a visitor's inner insight into one proportionate, time-bounded act grounded in a responsibility already entrusted to their care. Help them distinguish what is theirs to hold from what is theirs to control; include consent, repair, protection, and boundaries as possible actions; recognize rest, withdrawal, or relinquishment as legitimate stewardship; and use an observable end-of-week review to keep, revise, or stop the practice.",
+      "transfer_boundary": "Apply only when a visitor asks for a concrete stewardship action within a near-term horizon that connects insight to practice. Do not invent personal obligations, infer a supernatural caller or external authority, prescribe unlimited duty, equate stewardship with self-sacrifice, or transfer this exact answer or doorway to unrelated questions. Preserve consent, fatigue, boundaries, sustainability, and the possibility of rest or relinquishment.",
+      "known_theme": "stewardship, insight to action, weekly practice, entrusted responsibility, sustainable care, consent, boundaries, rest, correctability",
+      "gold_star_capabilities": {
+        "generation_class": "user_approved_live_exemplar",
+        "exact_answer_authority": true,
+        "active_quality_contributor": true,
+        "deterministic_fallback_eligible": false,
+        "reasoning_family": "bounded_weekly_stewardship_action_and_insight_application",
+        "transferable_discipline": "Convert insight into one proportionate action within an already entrusted responsibility; distinguish care from control and sacrifice; preserve consent, boundaries, sustainability, and rest; review an observable result and adjust.",
+        "abstention_boundary": "Do not create a duty, external authority, supernatural instruction, or unlimited obligation. Do not treat self-sacrifice as stewardship or transfer this exact answer and doorway outside its question family."
+      },
+      "assertions": [
+        "Begins with one responsibility already entrusted to the visitor's care rather than an invented obligation.",
+        "Offers a bounded 20-minute stewardship check and proportionate examples: clarify a commitment, ask for consent, repair a small neglect, protect something vulnerable, or set a needed boundary.",
+        "Distinguishes what the visitor is responsible to hold from what they can control.",
+        "Recognizes rest, withdrawal, and relinquishment as legitimate when something is not theirs to carry.",
+        "Uses one observable end-of-week result to decide whether to keep, revise, or stop the practice.",
+        "Clearly labels the 20-minute exercise as a practical application, not a prescribed Archive rule.",
+        "Provides the separately verified public Stewardship gateway as the canonical continuation."
+      ],
+      "user_approved_at": "2026-11-20",
+      "elevation_approval_evidence": "The user supplied a screenshot of the live Guide after submitting the exact question and then explicitly instructed: “elevate to gold star!” The screenshot establishes the rendered three-paragraph answer and separate Continue Exploring card. The exact visible answer is preserved verbatim; the public Stewardship doorway is shown separately.",
+      "provenance": {
+        "source": "User-provided screenshot of the live visitor-facing Guide response and explicit Gold Star elevation instruction.",
+        "source_date": "2026-11-20",
+        "live_surface": "The Guide visitor-facing search response",
+        "evidence_boundary": "The screenshot establishes the exact three-paragraph visitor-facing answer, its practical-application qualification, and the separate public Stewardship doorway. This freezes the observed answer and its bounded transferable discipline; it does not certify unrelated question families or system-wide quality-floor performance.",
+        "doorway_verification": {
+          "title": "Stewardship",
+          "url": "https://geralddaquila.com/stewardship/",
+          "source_page_id": 21767,
+          "source_status": "published",
+          "verified_by": "Production recovery evidence and the live visitor-facing Continue Exploring card; public Stewardship gateway."
+        }
+      },
+      "numbering_status": "UNASSIGNED",
+      "numbering_unassigned_reason_code": "NO_SERIAL_ALLOCATION_REQUESTED",
+      "numbering_unassigned_reason": "The user approved Gold Star elevation but did not separately request a display serial. Preserve the benchmark ID as the stable identity; serial allocation remains independent."
     }
   ],
-  "last_reconciliation_note": "2026-11-19: Added gs-2026-11-19-cosmology-worldview-human-life as an approved, immutable exact-query Gold Star with a verified philosophical Cornerstone continuation and explicit science/worldview boundaries. Canonical inventory: 114 approved Gold Stars across 152 registry records; 112 active runtime-transfer contributors, 39 numbered, 75 UNASSIGNED. No existing serial changed; the cosmology/worldview benchmark remains unnumbered.",
+  "last_reconciliation_note": "Added user-approved weekly stewardship insight-to-action Gold Star on 2026-11-20. The exact live three-paragraph response and verified public Stewardship doorway are frozen; transfer is limited to proportionate action within entrusted responsibility, sustainable care, boundaries, consent, rest, and end-of-week review. No display serial was allocated.",
   "learning_contract": {
     "contract_id": "living-archive-guide-continuous-learning-loop",
     "contract_version": "1.0.0",
@@ -7466,16 +7525,16 @@
     "gold_star_contract": "Gold Star means one thing only: a fully validated, frozen exemplar that actively contributes to adaptive learning. The canonical registry may retain non-Gold-Star evidence and candidate records, but they are excluded from the Gold Star count and runtime Gold Star authority."
   },
   "integrity_audit": {
-    "last_audit_date": "2026-11-19",
-    "approved_gold_star_count": 114,
-    "registry_record_count": 152,
-    "review_reconciliation": "Canonical inventory reconciled on 2026-11-19: 114 approved-status records across 152 registry records. 112 are active structural-learning contributors with matching qualitative-transfer reviews; 1 is an approved exact-query-only successor and 1 is a superseded historical duplicate retained for provenance. 1 recovered response is pending approval evidence and is excluded from every Gold Star count.",
+    "last_audit_date": "2026-11-20",
+    "approved_gold_star_count": 115,
+    "registry_record_count": 153,
+    "review_reconciliation": "Canonical inventory reconciled on 2026-11-20: 115 approved-status records across 153 registry records. 113 are active structural-learning contributors with matching qualitative-transfer reviews; 1 is an approved exact-query-only successor and 1 is a superseded historical duplicate retained for provenance. 1 recovered response is pending approval evidence and is excluded from every Gold Star count.",
     "numbered_gold_star_record_count": 39,
     "highest_assigned_gold_star_number": 94,
-    "numbering_reconciliation": "Record-level reconciliation on 2026-11-19: 114 approved Gold Stars; 39 assigned display serials #56–#94; 75 approved records explicitly UNASSIGNED with reasons. No existing serial changed; the cosmology/worldview Gold Star remains unnumbered.",
-    "unassigned_approved_gold_star_count": 75,
+    "numbering_reconciliation": "Record-level reconciliation on 2026-11-20: 115 approved Gold Stars; 39 assigned display serials #56–#94; 76 approved records explicitly UNASSIGNED with reasons. No existing serial changed; the new weekly stewardship exemplar remains unnumbered.",
+    "unassigned_approved_gold_star_count": 76,
     "documented_numbering_gap_count": 0,
-    "active_quality_contributor_count": 112,
+    "active_quality_contributor_count": 113,
     "exact_query_only_successor_count": 1,
     "superseded_historical_reference_count": 1,
     "pending_approval_evidence_count": 1
