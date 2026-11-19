@@ -1,6 +1,6 @@
 # Gold Star v2 — First-Response Quality Floor
 **Document type:** Engineering implementation charter  
-**Status:** Active implementation target; not a production release authorization  
+**Status:** Active implementation; isolated branch; not a production release authorization  
 **Authority:** User direction, 2026-11-19  
 **Applies to:** The Guide / USE, every completed visitor-facing answer, every answer-generation source
 
@@ -188,6 +188,16 @@ Do not claim universal Gold Star performance from seven cases, a clean CI run, a
 - Do not expose visitor query/answer content in diagnostic logs merely to prove activation.
 - Do not make production changes, trigger duplicate deployments, or promote a branch before full CI, regression, and browser acceptance.
 - Keep evaluation provider-free/offline where possible. Live captures must use existing primary/secondary services only after an explicit, bounded test plan; do not create new Render services or incur unnecessary provider/Pinecone usage.
+
+### 8.0 Phase 1 implementation checkpoint — shared question-contract foundation
+
+The isolated implementation branch now contains `gold_star_question_contract.py` (v1.0), consumed by:
+- `general_guide_composition.compose(...)`, which supplies the structured contract to the provider-neutral LLM composer as conservative planning input;
+- `gold_star_response_floor.evaluate_response_floor(...)`, which constructs and schema-validates the same contract at the shared source-independent response floor. Both visitor JSON exits already invoke this floor, so ordinary and outer-boundary paths receive the same contract treatment; deterministic and specialist outputs are therefore covered at the final boundary even when they bypass the composer.
+
+The initial contract deliberately leaves semantic task, domain, stakes, requested outcome, reasoning mode, and evidence standard unresolved. It records explicit no-handoff/no-web constraints where detected, preserves possible mixed intent as a candidate state, and never claims semantic confidence from phrase matching. Schema validity is not semantic adequacy. This is the foundation, not completion of Phases 1–6: deterministic handlers and specialist adapters still need explicit upstream capability contracts; evidence-aware validation, bounded repair, paired captures, human calibration, and browser acceptance remain outstanding.
+
+New tests cover schema/version integrity, unknown and mixed-intent handling, explicit constraints, and actual composer/response-floor consumption. The repository CI run is the execution authority for these tests; no local test execution or production deployment is claimed here.
 
 ## 8. Implementation sequence
 
