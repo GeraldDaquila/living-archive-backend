@@ -103,3 +103,32 @@ def test_answer_envelope_uses_route_owned_capability_declaration():
     assert capability["registry_version"] == "1.0"
     assert capability["supported_task_families"] == ["bounded_conceptual_definition"]
     assert capability["semantic_competence_certified"] is False
+
+
+
+def test_specialist_capability_is_recorded_separately_from_route_capability():
+    query = "How can Philippine systems reinforce one another?"
+    payload = {
+        "ok": True,
+        "response": "This is a bounded systems orientation.",
+        "route_source": "deterministic-systems-preparation-entry",
+        "systems_delegation": {
+            "specialist_id": "systems_ph",
+            "state": "available",
+        },
+    }
+    envelope = build_answer_envelope(query, payload, build_question_contract(query))
+    assert envelope["capability"]["declaration_status"] == "declared"
+    assert envelope["specialist"]["id"] == "systems_ph"
+    assert envelope["specialist"]["declaration_status"] == "declared"
+    assert envelope["specialist"]["semantic_competence_certified"] is False
+
+
+def test_answer_without_specialist_contribution_does_not_infer_specialist():
+    envelope = build_answer_envelope(
+        "What is photosynthesis?",
+        {"ok": True, "response": "A concise explanation.", "route_source": "guide_basic_inquiry"},
+        build_question_contract("What is photosynthesis?"),
+    )
+    assert envelope["specialist"]["id"] == "not_declared"
+    assert envelope["specialist"]["declaration_status"] == "not_declared"
