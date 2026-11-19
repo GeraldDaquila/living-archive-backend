@@ -219,3 +219,15 @@ def test_recommendation_first_fetch_marks_request_scoped_doorway_search_attempt(
         result = main._recommendation_first_fetch(query)
 
     assert result["canonical_doorway_search_attempted"] is True
+
+
+def test_terminal_doorway_boundary_does_not_repeat_an_attempted_search():
+    query = "What is the difference between efficiency and effectiveness?"
+    token = main._GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.set(True)
+    try:
+        with patch.object(main.use_core, "fetch_canonical_context") as fetch:
+            result = main._boundary_canonical_doorway({"recommendation": None}, query)
+        assert result is None
+        fetch.assert_not_called()
+    finally:
+        main._GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.reset(token)
