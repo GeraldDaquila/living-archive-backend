@@ -15,6 +15,7 @@ import re
 from typing import Any, Dict
 
 from gold_star_question_contract import build_question_contract, validate_question_contract
+from gold_star_answer_envelope import build_answer_envelope, validate_answer_envelope
 
 VERSION = "2.0"
 SEMANTIC_SHADOW_VERSION = "1.0"
@@ -89,6 +90,13 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
     if not str(query or "").strip():
         return {"version": VERSION, "status": "fail", "reason": "missing_query_context"}
 
+    answer_envelope = build_answer_envelope(
+        query, payload, question_contract, exact_standard=exact_standard
+    )
+    envelope_validation = validate_answer_envelope(answer_envelope)
+    if not envelope_validation.get("valid"):
+        return {"version": VERSION, "status": "fail", "reason": "answer_envelope_invalid"}
+
     result = {
         "version": VERSION,
         "status": "pass",
@@ -97,6 +105,8 @@ def evaluate_response_floor(query: str, payload: Any, *, exact_standard: bool = 
         "exact_standard_immutable": bool(exact_standard),
         "question_contract": question_contract,
         "question_contract_validation": contract_validation,
+        "answer_envelope": answer_envelope,
+        "answer_envelope_validation": envelope_validation,
         "personal_reference_resolution": question_contract.get("personal_reference"),
     }
     # Shadow diagnostics are metadata only. A semantic hard failure is not
