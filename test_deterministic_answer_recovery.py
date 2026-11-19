@@ -344,27 +344,30 @@ def test_authoritative_recommendation_rejects_markup_in_rationale():
     }
     assert main._normalize_authoritative_recommendation(candidate) is None
 
-    def test_weekly_stewardship_action_question_gets_bounded_concrete_practice(self):
-        from deterministic_answer_recovery import (
-            has_registered_recovery,
-            is_weekly_stewardship_action_question,
-            registered_recovery_recommendation,
-        )
-        question = "What is one concrete act of stewardship I can complete this week that makes an inner insight real?"
-        self.assertTrue(is_weekly_stewardship_action_question(question))
-        self.assertTrue(has_registered_recovery(question))
-        answer = compose_recovery(question)
-        self.assertIn("choose one responsibility already entrusted to you", answer)
-        self.assertIn("20 minutes", answer)
-        self.assertIn("ask for consent", answer)
-        self.assertIn("rest, withdraw, or relinquish", answer)
-        self.assertIn("not a prescribed Archive rule", answer)
-        doorway = registered_recovery_recommendation(question)
-        self.assertEqual(doorway["title"], "Stewardship")
-        self.assertEqual(doorway["url"], "https://geralddaquila.com/stewardship/")
 
-    def test_weekly_stewardship_action_matcher_does_not_capture_generic_stewardship_questions(self):
-        from deterministic_answer_recovery import is_weekly_stewardship_action_question
-        self.assertFalse(is_weekly_stewardship_action_question("What is stewardship?"))
-        self.assertFalse(is_weekly_stewardship_action_question("What is one act of kindness I can do today?"))
-        self.assertFalse(is_weekly_stewardship_action_question("What is one concrete act of stewardship I can complete this month?"))
+def test_weekly_stewardship_action_question_gets_bounded_concrete_practice():
+    from deterministic_answer_recovery import (
+        compose_recovery,
+        has_registered_recovery,
+        is_weekly_stewardship_action_question,
+        registered_recovery_recommendation,
+    )
+    question = "What is one concrete act of stewardship I can complete this week that makes an inner insight real?"
+    assert is_weekly_stewardship_action_question(question)
+    assert has_registered_recovery(question)
+    answer = compose_recovery(question)
+    assert "choose one responsibility already entrusted to you" in answer
+    assert "20 minutes" in answer
+    assert "ask for consent" in answer
+    assert "rest, withdraw, or relinquish" in answer
+    assert "not a prescribed Archive rule" in answer
+    doorway = registered_recovery_recommendation(question)
+    assert doorway["title"] == "Stewardship"
+    assert doorway["url"] == "https://geralddaquila.com/stewardship/"
+
+
+def test_weekly_stewardship_action_matcher_does_not_capture_generic_stewardship_questions():
+    from deterministic_answer_recovery import is_weekly_stewardship_action_question
+    assert not is_weekly_stewardship_action_question("What is stewardship?")
+    assert not is_weekly_stewardship_action_question("What is one act of kindness I can do today?")
+    assert not is_weekly_stewardship_action_question("What is one concrete act of stewardship I can complete this month?")
