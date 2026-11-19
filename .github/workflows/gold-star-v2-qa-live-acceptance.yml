@@ -16,15 +16,12 @@ jobs:
   standalone-qa-live-capture:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      QA_DEPLOYED_COMMIT: 2918ae960e83bc87dcc54380c7ce5c8c530ec3df
-      QA_BASE_URL: https://living-archive-gold-star-v2-qa.onrender.com
     steps:
       - uses: actions/checkout@v4
       - name: Check out the exact commit currently deployed to Standalone QA
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.QA_DEPLOYED_COMMIT }}
+          ref: 2918ae960e83bc87dcc54380c7ce5c8c530ec3df
           path: baseline
       - uses: actions/setup-python@v5
         with:
@@ -37,7 +34,7 @@ jobs:
         working-directory: baseline
         env:
           PYTHONPATH: .
-          WP3_CAPTURE_BASE_URL: ${{ env.QA_BASE_URL }}
+          WP3_CAPTURE_BASE_URL: https://living-archive-gold-star-v2-qa.onrender.com
         run: |
           python ../scripts/capture_gold_star_wp3_pairs.py \
             --base-url "$WP3_CAPTURE_BASE_URL" \
