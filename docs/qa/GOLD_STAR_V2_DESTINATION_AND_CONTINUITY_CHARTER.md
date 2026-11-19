@@ -402,3 +402,17 @@ This addendum supersedes the earlier WP5 deployment-target and immediate-next-ac
 - Production protection rechecked: USE2-Mirror remains on `main` with auto-deploy enabled; no branch, environment, deployment, or traffic change was made there. Primary production remains untouched.
 
 **Next:** Use a real browser/HTTP-capable test harness against the Standalone QA URL to exercise `POST /api/query` with deterministic, safety, and LLM-capable cases. Capture exact request/response, route, provider/model provenance, runtime commit and fingerprint. Do not route the live WordPress visitor UI to QA and do not treat a root HEAD 200 as semantic acceptance.
+
+
+### Offline simulation execution update (2026-11-19)
+
+- Added `scripts/gold_star_wp3_simulation.py` and `tests/test_gold_star_wp3_simulation.py`.
+- The simulation exercises the same seven held-out questions and the registered task-specific evaluator using explicit authored answer fixtures. It makes zero HTTP requests and zero provider calls.
+- Simulation output is deliberately segregated as `offline_simulation_only`; each answer is labeled `simulated_fixture`, with `not_live_capture=true`. It reports zero attributable LLM captures, zero paired live cases, and no semantic certification.
+- Human review scorecards remain `PENDING`. A passing simulation verifies evaluator wiring and fixture coverage only. It is not evidence of actual provider attribution, live visitor behavior, independent evaluator calibration, or browser acceptance.
+- The Gold Star v2 shared-contract workflow now compiles the simulation harness, runs its dedicated tests alongside the existing shared-contract suite, generates the simulation report, and uploads it as a 90-day artifact.
+- The paired live-capture workflow was corrected to target Standalone QA only and to check out the exact deployed QA commit `de2cb3d858f300053578f3065dc581d43decb007`. It verifies runtime identity before any request. This workflow has not been represented as executed by the offline simulation.
+- Latest feature branch commit before this charter update: `d2b8ef68d7ffbfe975d7b2b701e0193b457092bf`. Its shared-contract CI run is `44476589320` and was still running when this note was written.
+- Production primary and USE2-Mirror remain outside the test path. No production deployment, service configuration change, traffic change, or Pinecone mutation is authorized or performed by this simulation.
+
+**Acceptance interpretation:** The seven-case simulated evaluator run is a valid offline test milestone. It does not close the outstanding live paired capture, attributable LLM evaluation, live-browser acceptance, or independent human calibration gates. Keep PR #1732 in draft until those separate gates are satisfied.
