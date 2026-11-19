@@ -67,3 +67,33 @@ def test_mirror_registry_passes_verified_wordpress_body_as_evidence_not_metadata
     assert source in result["canonical_link_context"]
     assert "[Verified canonical source body" in result["context_blocks"]
     assert "metadata only" not in result["context_blocks"]
+
+
+def test_mirror_registry_request_does_not_repeat_wordpress_retrieval():
+    doc = {
+        "title": "Stewardship",
+        "url": "https://geralddaquila.com/stewardship/",
+        "text": "Verified published source body about responsibility and care.",
+    }
+    data = {
+        "canonical_link_context": "Title: Stewardship\\nURL: https://geralddaquila.com/stewardship/\\nContent: Verified published source body about responsibility and care.",
+        "context_blocks": "[Verified canonical source body]",
+        "mirror_registry_active": True,
+        "mirror_registry_count": 1,
+        "mirror_source_body_count": 1,
+        "mirror_orientation_metadata_only": False,
+    }
+    profile = {"risk": False, "action": "navigation", "grief": False}
+    with (
+        patch.object(main, "_PINECONE_RETRIEVAL_BYPASS", True),
+        patch.object(main._base, "_inquiry_profile", return_value=profile),
+        patch.object(main, "_mirror_registry_context", return_value=data),
+        patch.object(main, "_parse_context_documents", return_value=[doc]),
+        patch.object(main.archive_crosslink, "expand_context", side_effect=AssertionError("duplicate retrieval")),
+        patch.object(main, "_general_guide_authoritative_doorway", return_value=None),
+        patch.object(main, "_verified_archive_doorway_fallback", return_value=None),
+    ):
+        result = main._recommendation_first_fetch("Who or what is asking for responsible care through me?")
+
+    assert result["mirror_source_body_count"] == 1
+    assert result["mirror_orientation_metadata_only"] is False
