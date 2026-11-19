@@ -74,7 +74,7 @@ def test_cosmology_provider_exhaustion_fallback_uses_the_approved_gold_star():
     assert standard["benchmark_id"] == "gs-2026-11-19-cosmology-worldview-human-life"
     assert result["provider"] == "gold_standard_registry_deterministic_fallback"
     assert result["response"] == standard["expected_response"]
-    assert len(result["response"].split("\\n\\n")) == 4
+    assert len(result["response"].split("\n\n")) == 4
     assert "In science, it is the study of the universe as a whole" in result["response"]
     assert "A worldview is not the same thing as scientific cosmology" in result["response"]
     assert "not scientific findings that prove one worldview correct" in result["response"]
