@@ -428,3 +428,15 @@ This addendum supersedes the earlier WP5 deployment-target and immediate-next-ac
 - The paired capture makes seven bounded visitor requests to Standalone QA and performs same-commit deterministic execution locally. It does not query the primary or USE2-Mirror, alter service settings, or change visitor traffic.
 - Human scorecards remain pending. Automated held-out checks are triage only; no semantic certification or independent human calibration is implied by a passing workflow.
 - No primary production, USE2-Mirror, WordPress, Pinecone, or traffic configuration has been modified.
+
+
+
+### Live visitor-boundary capture correction (2026-11-19)
+
+- The first real seven-case Standalone QA capture verified the exact deployed SHA `a0be557d557502709be70f481361dafda07c1c2f` and captured seven HTTP 200 visitor responses. All seven explicitly reported `llm_invoked=false`; zero attributable LLM outputs and zero paired live LLM cases were present.
+- The first report exposed a capture-harness defect: it evaluated a local generic deterministic fallback instead of the exact task-specific deterministic response returned by the live visitor boundary. This caused two false heuristic failures (strategic conditional recommendation and uncertainty statement) even though the actual visitor responses met those checks.
+- The harness is corrected to accept the actual visitor response as deterministic only when final response provenance explicitly states `llm_invoked=false`. It now scores that exact visitor response and preserves route, processing, request ID, source commit, and original provenance. A local same-commit fallback is used only when the visitor response lacks sufficient deterministic provenance.
+- A separate provider-probe question is added because the seven held-out cases are deliberately intercepted by deterministic task routes and cannot by themselves establish LLM quality. The probe is separately labeled and does not inflate the seven-case paired-evaluation denominator.
+- At least one attributable LLM response across held-out cases and the separate provider probe is required for the QA workflow to pass. Provider attempts, deterministic fallbacks, and unverified responses do not count.
+- First-capture report artifact: `gold-star-v2-standalone-qa-paired-capture`, run `44478366617`, artifact ID `14506304550`, SHA-256 `2ce373f89f71766d6808cf417e9db9fd55ac559c0335ef44de950a4a21dc17c6`. It remains evidence of seven deterministic visitor responses and zero LLM captures only; its two local-fallback heuristic failures are superseded by the corrected visitor-boundary evaluation, not silently erased.
+- The first capture's runtime integration audit reported `ok=false` with `available_capabilities_missing_adapters=["relationship"]`. This remains a separate integration warning to investigate; source identity was still verified independently.

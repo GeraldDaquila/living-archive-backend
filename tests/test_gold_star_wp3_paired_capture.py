@@ -3,6 +3,8 @@ from types import SimpleNamespace
 
 from scripts.capture_gold_star_wp3_pairs import (
     capture_deterministic_payload,
+    capture_live_deterministic_payload,
+    classify_deterministic_payload,
     classify_llm_payload,
     verify_runtime_identity,
     wait_for_runtime_identity,
@@ -284,3 +286,52 @@ def test_wait_for_runtime_identity_fails_closed_when_qa_never_reaches_candidate(
         assert "Source mismatch" in str(exc) or "Timed out waiting" in str(exc)
     else:
         raise AssertionError("Capture must not proceed while QA serves an older commit.")
+
+
+
+def test_live_deterministic_capture_uses_actual_visitor_response_and_no_llm_provenance():
+    body = {
+        "ok": True,
+        "response": "The exact answer returned to the visitor.",
+        "recommendation": None,
+        "response_provenance": {
+            "class": "deterministic_recovery",
+            "provider": "task_specific_recovery",
+            "model": None,
+            "llm_invoked": False,
+        },
+        "route_source": "guide_early_deterministic_boundary",
+        "processing": "early_deterministic_boundary",
+    }
+    transport = {"status": 200, "body": body}
+    runtime = {"deployment_commit_sha": "candidate-sha"}
+
+    verified, provenance = classify_deterministic_payload(body)
+    captured = capture_live_deterministic_payload(body, runtime, transport)
+
+    assert verified is True
+    assert provenance["verification_basis"] == "explicit_no_llm_invocation_at_visitor_boundary"
+    assert captured["response"] == body["response"]
+    assert captured["capture"]["path"] == "standalone_qa_POST_api_query_deterministic_visitor_output"
+    assert captured["route_source"] == "guide_early_deterministic_boundary"
+
+
+def test_unresolved_provenance_with_explicit_no_llm_invocation_is_deterministic():
+    body = {
+        "ok": True,
+        "response": "A bounded registered-fact answer.",
+        "response_provenance": {
+            "class": "unresolved",
+            "llm_invoked": False,
+        },
+    }
+    assert classify_deterministic_payload(body)[0] is True
+
+
+def test_missing_llm_invocation_flag_is_not_accepted_as_deterministic():
+    body = {
+        "ok": True,
+        "response": "An answer with incomplete provenance.",
+        "response_provenance": {"class": "unresolved"},
+    }
+    assert classify_deterministic_payload(body)[0] is False
