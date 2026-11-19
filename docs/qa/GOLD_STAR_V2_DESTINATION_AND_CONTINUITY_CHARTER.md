@@ -354,3 +354,38 @@ Gold Star v2 is complete only when WP0–WP5 have passed their acceptance criter
 A green CI run, a functioning response-floor check, a successful single browser question, or a high-quality individual answer is not sufficient by itself.
 
 **Governing principle: Fix the generator, not just the generated answer. Design the whole destination, implement coherent dependency-complete work packages, and promote only verified releases.**
+
+---
+
+## 11. Standalone QA laboratory and live-service protection addendum (2026-11-19)
+
+This addendum supersedes the earlier WP5 deployment-target and immediate-next-action references above wherever they name USE2-Mirror as the first candidate test host.
+
+### Operating decision
+
+- The Guide is a live, actively used visitor tool. The primary service in Gerald's Workspace and the existing USE2-Mirror are protected production infrastructure. No disruption is acceptable.
+- The production traffic distribution remains the owner's stated 70:30 primary-to-mirror arrangement. No traffic-routing, weighting, failover, environment, restart, branch, or deployment changes are authorized on either production service by this QA work.
+- Standalone QA is the designated laboratory for Gold Star v2. Use its existing dedicated service `living-archive-gold-star-v2-qa` (`srv-dbumbd2fngtc73d7s1ag`) rather than modifying USE2-Mirror or creating unnecessary new services.
+- The QA service has automatic deployment disabled. Its configured branch is now `gold-star-v2-complete-architecture`, controlled by the Render Blueprint `exs-dbv8tuetlv9c73864jig` using `render-qa.yaml`. Blueprint auto-sync remains disabled.
+- The approved Blueprint sync changed the QA service's branch target and cleared a stale static-publish-path field on this Python web service. No deployment was triggered by the sync. The service remains on its previously deployed commit until a separately triggered QA deployment.
+- QA service URL: `https://living-archive-gold-star-v2-qa.onrender.com`.
+- The USE2-Mirror service (`srv-db2s2bid0e5s73c3qa2g`) remains on `main`, auto-deploy enabled, and untouched. The separate mirror Blueprint plan is unapproved and must not be applied.
+- No primary or mirror service configuration, environment variables, Pinecone state, or production deployment has been changed.
+
+### Candidate and verification checkpoint
+
+- Gold Star feature branch latest recorded commit after the QA blueprint cleanup: `2918ae960e83bc87dcc54380c7ce5c8c530ec3df`.
+- Latest full PR test batch observed immediately before the cleanup-only commit was associated with `04cef8d306271eaed22688aebb334dc26ae438ae`: 16 succeeded, 7 queued, 5 in progress, 1 skipped, and 1 cancelled at the last poll. This is not a completed exact-head CI result. Re-query CI for the exact current branch head before deploying.
+- The cancelled mocked UI continuity run must be reconciled or rerun if required; do not silently count it as success.
+- A second experimental Blueprint file `render-qa-preserve.yaml` was rejected by Render validation and removed. The active QA Blueprint path is only `render-qa.yaml`. The unapproved USE2-Mirror Blueprint remains separate.
+
+### Required next actions
+
+1. Reconcile CI on the exact latest feature-branch head; resolve any failures and ensure all required checks complete. Do not treat skipped live-browser PR workflows as visitor acceptance.
+2. Inspect QA service details and its current deployment before release. Confirm the service still has auto-deploy disabled and that no deployment occurred during branch-target synchronization.
+3. Only after exact-head CI passes, manually deploy that exact candidate to the Standalone QA service. Verify deployed commit SHA, application version/fingerprint, health, and startup logs before any visitor-like test.
+4. Run bounded deterministic/safety visitor-boundary tests and same-source attributable LLM captures on QA. Verify provider/model provenance; no LLM parity claim without it.
+5. Complete paired evaluation and independent human/evaluator calibration, then real browser acceptance on QA.
+6. Keep production primary and USE2-Mirror untouched throughout this work. Any later production release requires its own explicit release gate, rollback evidence, and controlled deployment plan.
+
+**Safety invariant:** Standalone QA may be changed for experimentation; the live primary and USE2-Mirror must not be used as laboratories. A QA deployment is not a production release and must never be routed into live visitor traffic.
