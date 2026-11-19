@@ -67,7 +67,7 @@ Examples:
 
 No exemplar's surface structure, wording, claims, examples, citations, or doorway may be copied into an unrelated response. A structural pattern is transferable only within its reviewed qualifying context and abstention boundary.
 
-## 4. Relationship to the existing 112 approved Gold Stars
+## 4. Relationship to the existing 115 approved Gold Stars
 
 This specification does not amend, invalidate, renumber, rewrite, downgrade, or retroactively reinterpret any existing approved Gold Star.
 
@@ -79,7 +79,7 @@ The canonical registry remains the sole authority:
 - Existing qualitative transfer review remains governed by `docs/qa/gold_star_qualitative_transfer_review.json`.
 - No new transfer permission is inferred from this umbrella elevation.
 - No existing benchmark is automatically granted deterministic-fallback eligibility.
-- The authoritative approved inventory remains status-based. The current 112 approved records and 110 active structural contributors must not be conflated.
+- The authoritative approved inventory remains status-based. The current 115 approved records and 113 active structural contributors must not be conflated.
 - Display serials are not adaptive-learning identities or eligibility criteria.
 
 Any future change to an individual benchmark requires its own evidence, review, and explicit approval under the existing constitutional gate.
@@ -125,13 +125,13 @@ Tests must establish both positive behavior and negative boundaries.
 - Cross-question transfer uses reviewed discipline only and respects qualifying context and abstention boundaries.
 - No exemplar-specific answer text, facts, examples, citations, or doorways leak into unrelated questions.
 - Missing adaptive guidance does not cause unsafe or misleading behavior.
-- Existing registry integrity, approval, numbering, provenance, and 112/110 count invariants remain unchanged.
+- Existing registry integrity, approval, numbering, provenance, and 115/113 count invariants remain unchanged.
 
 ### Release rule
 No production promotion until:
 1. Specification and runtime contracts are reviewed together.
 2. Targeted unit, contract, regression, and adversarial tests pass.
-3. The existing 112 approved records and 110 active contributors reconcile unchanged.
+3. The existing 115 approved records and 110 active contributors reconcile unchanged.
 4. Tests demonstrate actual runtime consumption and observable behavior, not merely document/schema presence.
 5. Full CI for the change passes.
 6. A reviewer audits representative outputs across the required question classes and verifies negative boundaries.
