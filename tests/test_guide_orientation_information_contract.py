@@ -2,6 +2,7 @@
 import general_guide_composition as guide
 from deterministic_answer_recovery import (
     compose_recovery,
+    has_registered_recovery,
     has_orientation_information_explanation,
     is_orientation_information_contrast_question,
     registered_recovery_recommendation,
@@ -13,6 +14,7 @@ QUESTION = "What does “orientation rather than information” mean in practice
 
 def test_query_level_recognizes_the_original_question_and_paraphrases():
     assert is_orientation_information_contrast_question(QUESTION)
+    assert has_registered_recovery(QUESTION)
     assert is_orientation_information_contrast_question(
         "What is the difference between orientation and information?"
     )
@@ -37,6 +39,7 @@ def test_query_classifier_does_not_capture_unrelated_information_questions():
     assert not is_orientation_information_contrast_question(
         "How do I organize information for a report?"
     )
+    assert registered_recovery_recommendation("How do I organize information for a report?") is None
 
 
 def test_deterministic_recovery_answers_the_contrast_with_a_practical_example():
