@@ -1125,8 +1125,9 @@ def fetch_wordpress_source_documents(
             or not expected_url
         ):
             continue
+        wp_endpoint = {"page": "pages", "post": "posts"}[resource_type]
         request_url = (
-            f"https://geralddaquila.com/wp-json/wp/v2/{resource_type}/"
+            f"https://geralddaquila.com/wp-json/wp/v2/{wp_endpoint}/"
             f"{quote(wp_id, safe='')}?_fields=id,link,title,excerpt,content,status"
         )
         request = UrlRequest(
