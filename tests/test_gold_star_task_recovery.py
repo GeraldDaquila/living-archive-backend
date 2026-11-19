@@ -12,6 +12,11 @@ CASES = [
         ("policy sets direction", "procedure explains the method"),
     ),
     (
+        "How can an organization put trust into practice?",
+        "task_practical_trust_in_organizations",
+        ("ask those affected", "explain the reasons", "follow through", "check whether trust is actually improving"),
+    ),
+    (
         "Should a growing nonprofit centralize decisions or distribute authority across its teams?",
         "task_decision_rights_distribution_tradeoff",
         ("centralization", "distributed authority", "hybrid"),
