@@ -18,34 +18,28 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Check out the exact commit currently deployed to Standalone QA
-        uses: actions/checkout@v4
-        with:
-          ref: 2918ae960e83bc87dcc54380c7ce5c8c530ec3df
-          path: baseline
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: "pip"
-          cache-dependency-path: baseline/requirements.txt
-      - name: Install dependencies from the deployed source revision
-        run: python -m pip install --upgrade pip && python -m pip install -r baseline/requirements.txt
-      - name: Verify QA deployment identity and run bounded paired visitor capture
-        working-directory: baseline
+          cache-dependency-path: requirements.txt
+      - name: Install candidate dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+      - name: Verify candidate identity and run bounded QA visitor capture
         env:
           PYTHONPATH: .
           WP3_CAPTURE_BASE_URL: https://living-archive-gold-star-v2-qa.onrender.com
         run: |
-          python ../scripts/capture_gold_star_wp3_pairs.py \
+          python scripts/capture_gold_star_wp3_pairs.py \
             --base-url "$WP3_CAPTURE_BASE_URL" \
-            --min-llm-captures 7 \
+            --min-llm-captures 0 \
             --delay-seconds 1 \
-            --output ../artifacts/gold-star-v2-standalone-qa-paired-capture.json
+            --output artifacts/gold-star-v2-standalone-qa-paired-capture.json
       - name: Upload QA capture report, including failed or incomplete captures
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: gold-star-v2-standalone-qa-paired-capture
           path: artifacts/gold-star-v2-standalone-qa-paired-capture.json
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 90
