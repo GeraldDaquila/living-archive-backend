@@ -85,7 +85,12 @@
         "visitor_orientation": 0
       },
       "na_reasons": "NA is used only for Archive grounding/cosmology/fractal dimensions where the captured answer makes no relevant Archive-specific claim or systems-level argument; the question does not call for it.",
-      "reviewer_notes": "Fails to state the established answer (100°C/212°F). It mistakes absence of Archive retrieval for inability to answer general knowledge. The irrelevant Life Under Pressure doorway further distracts. No Archive-specific claim is made, so Archive grounding and cosmology fidelity are not applicable."
+      "reviewer_notes": "Fails to state the established answer (100°C/212°F). It mistakes absence of Archive retrieval for inability to answer general knowledge. The irrelevant Life Under Pressure doorway further distracts. No Archive-specific claim is made, so Archive grounding and cosmology fidelity are not applicable.",
+      "case_specific_scores": {
+        "answer_first": 0,
+        "general_knowledge_accuracy": 0,
+        "uncertainty_honesty": 0
+      }
     },
     {
       "case_id": "heldout-cosmology-life-001",
@@ -117,7 +122,14 @@
         "visitor_orientation": 1
       },
       "na_reasons": "NA is used only for Archive grounding/cosmology/fractal dimensions where the captured answer makes no relevant Archive-specific claim or systems-level argument; the question does not call for it.",
-      "reviewer_notes": "Contains a useful high-level observation about incentives and social conditions, but its opening sentence is grammatically malformed and echoes the question rather than defining cosmology/worldview. It does not distinguish scientific cosmology from philosophical worldview or give a concrete example. The doorway is topically relevant and optional, but the answer is not sufficiently developed. No unsupported Archive doctrine is explicitly asserted."
+      "reviewer_notes": "Contains a useful high-level observation about incentives and social conditions, but its opening sentence is grammatically malformed and echoes the question rather than defining cosmology/worldview. It does not distinguish scientific cosmology from philosophical worldview or give a concrete example. The doorway is topically relevant and optional, but the answer is not sufficiently developed. No unsupported Archive doctrine is explicitly asserted.",
+      "case_specific_scores": {
+        "answer_first": 1,
+        "human_voice": 1,
+        "concrete_clarity": 0,
+        "archive_grounding": 1,
+        "doorway_relevance": 2
+      }
     },
     {
       "case_id": "heldout-practical-trust-001",
@@ -147,7 +159,13 @@
         "visitor_orientation": 0
       },
       "na_reasons": "NA is used only for Archive grounding/cosmology/fractal dimensions where the captured answer makes no relevant Archive-specific claim or systems-level argument; the question does not call for it.",
-      "reviewer_notes": "The answer offers no observable organizational practices, despite an approved frozen trust exemplar demonstrating ask affected people, distinguish facts from assumptions, explain reasons, assign responsibility, follow through, and verify effects. No doorway is appropriate for this practical question. Archive grounding and cosmology fidelity are not applicable because the response makes no Archive-specific claims."
+      "reviewer_notes": "The answer offers no observable organizational practices, despite an approved frozen trust exemplar demonstrating ask affected people, distinguish facts from assumptions, explain reasons, assign responsibility, follow through, and verify effects. No doorway is appropriate for this practical question. Archive grounding and cosmology fidelity are not applicable because the response makes no Archive-specific claims.",
+      "case_specific_scores": {
+        "answer_first": 0,
+        "human_voice": 1,
+        "concrete_clarity": 0,
+        "doorway_relevance": 2
+      }
     },
     {
       "case_id": "heldout-strategic-governance-001",
@@ -177,7 +195,13 @@
         "visitor_orientation": 0
       },
       "na_reasons": "NA is used only for Archive grounding/cosmology/fractal dimensions where the captured answer makes no relevant Archive-specific claim or systems-level argument; the question does not call for it.",
-      "reviewer_notes": "It merely echoes the question and supplies generic uncertainty language. It does not compare centralization with distributed authority, explain trade-offs, condition the recommendation on decision type/risk, or identify safeguards. No doorway is appropriate. Archive-specific dimensions are not applicable."
+      "reviewer_notes": "It merely echoes the question and supplies generic uncertainty language. It does not compare centralization with distributed authority, explain trade-offs, condition the recommendation on decision type/risk, or identify safeguards. No doorway is appropriate. Archive-specific dimensions are not applicable.",
+      "case_specific_scores": {
+        "answer_directness": 0,
+        "tradeoff_visibility": 0,
+        "context_sensitivity": 0,
+        "uncertainty_honesty": 1
+      }
     },
     {
       "case_id": "heldout-technical-verification-001",
@@ -207,7 +231,13 @@
         "visitor_orientation": 0
       },
       "na_reasons": "NA is used only for Archive grounding/cosmology/fractal dimensions where the captured answer makes no relevant Archive-specific claim or systems-level argument; the question does not call for it.",
-      "reviewer_notes": "Provides no Python method, no boolean presence check, and no warning against logging the secret. It also fails to distinguish configuration presence from proof of runtime use. The correct response can be concise and technically reproducible; no Archive doorway is warranted."
+      "reviewer_notes": "Provides no Python method, no boolean presence check, and no warning against logging the secret. It also fails to distinguish configuration presence from proof of runtime use. The correct response can be concise and technically reproducible; no Archive doorway is warranted.",
+      "case_specific_scores": {
+        "technical_correctness": 0,
+        "reproducibility": 0,
+        "secret_safety": 0,
+        "answer_directness": 0
+      }
     },
     {
       "case_id": "heldout-uncertain-causation-001",
@@ -237,7 +267,13 @@
         "visitor_orientation": 0
       },
       "na_reasons": "NA is used only for Archive grounding/cosmology/fractal dimensions where the captured answer makes no relevant Archive-specific claim or systems-level argument; the question does not call for it.",
-      "reviewer_notes": "It avoids inventing a cause, which is appropriate, but fails to name the missing evidence or provide a discriminating investigation plan. It substitutes an irrelevant Archive-evidence limitation for the actual need to inspect analytics, referrers, campaign tags, landing pages, Search Console, server logs, and bot traffic. No doorway is appropriate."
+      "reviewer_notes": "It avoids inventing a cause, which is appropriate, but fails to name the missing evidence or provide a discriminating investigation plan. It substitutes an irrelevant Archive-evidence limitation for the actual need to inspect analytics, referrers, campaign tags, landing pages, Search Console, server logs, and bot traffic. No doorway is appropriate.",
+      "case_specific_scores": {
+        "uncertainty_honesty": 1,
+        "evidence_requirements": 0,
+        "useful_next_steps": 0,
+        "no_fabricated_cause": 2
+      }
     },
     {
       "case_id": "heldout-explicit-no-handoff-001",
@@ -269,7 +305,13 @@
         "visitor_orientation": 0
       },
       "na_reasons": "NA is used only for Archive grounding/cosmology/fractal dimensions where the captured answer makes no relevant Archive-specific claim or systems-level argument; the question does not call for it.",
-      "reviewer_notes": "The response fails to define policy versus procedure. It does not add a link, but its generic next-question prompt violates the explicit instruction not to provide follow-up steps. A one- or two-sentence definition with a simple example would satisfy the task. Archive-specific dimensions are not applicable."
+      "reviewer_notes": "The response fails to define policy versus procedure. It does not add a link, but its generic next-question prompt violates the explicit instruction not to provide follow-up steps. A one- or two-sentence definition with a simple example would satisfy the task. Archive-specific dimensions are not applicable.",
+      "case_specific_scores": {
+        "answer_directness": 0,
+        "conceptual_distinction": 0,
+        "instruction_compliance": 0,
+        "proportionality": 0
+      }
     }
   ]
 }
