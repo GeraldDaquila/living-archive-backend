@@ -1293,7 +1293,7 @@ def test_ai_workforce_gold_star_has_bounded_active_transfer_review_and_no_serial
     entry = next(r for r in review["entries"] if r["benchmark_id"] == benchmark_id)
     assert record["status"] == "USER_APPROVED_GOLD_STANDARD"
     assert record["runtime_transfer"] is True
-    assert record["gold_star_capabilities"]["exact_answer_authority"] is True
+    assert record["gold_star_capabilities"]["exact_answer_authority"] is False
     assert record["gold_star_capabilities"]["active_quality_contributor"] is True
     assert record["gold_star_capabilities"]["deterministic_fallback_eligible"] is True
     assert record["numbering_status"] == "UNASSIGNED"
