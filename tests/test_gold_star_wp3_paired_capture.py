@@ -65,7 +65,7 @@ def test_deterministic_capture_executes_named_function_and_shared_finalizer():
 
 def test_runtime_identity_mismatch_fails_closed(monkeypatch):
     import scripts.capture_gold_star_wp3_pairs as capture
-    monkeypatch.setattr(capture, "_http_json", lambda url: {
+    monkeypatch.setattr(capture, "_http_json", lambda url, **kwargs: {
         "status": 200,
         "body": {
             "ok": True,
