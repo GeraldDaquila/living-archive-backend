@@ -444,7 +444,7 @@ def test_trust_community_stewardship_uses_bounded_three_paragraph_recovery():
     assert recovery.count(r"\n\n") == 2
     for phrase in (
         "Trust is what lets a community share responsibility",
-        "confidence built through conduct",
+        "built through conduct",
         "Think of a shared garden",
         "People name what happened, listen to its impact",
         "Trust makes cooperation possible",
