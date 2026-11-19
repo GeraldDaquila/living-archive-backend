@@ -940,9 +940,6 @@ def select_crosslinks(
             ranked.insert(0, (max(10.0, ranked[0][0] + 0.01 if ranked else 10.0), exact))
 
     return [asset for _, asset in ranked[:max(0, min(int(limit), 8))]]
-f ranked else 10.0), exact))
-
-    return [asset for _, asset in ranked[:max(0, min(int(limit), 8))]]
 
 
 def fetch_crosslink_documents(index: Any, core: Any, assets: list[dict[str, Any]]) -> list[dict[str, str]]:
