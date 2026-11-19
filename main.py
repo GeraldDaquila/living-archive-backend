@@ -3,6 +3,7 @@
 # USE Relationship specialist failed safely: exception={type(exc).__name__}
 # Isolated candidate patch: direct-attribute evidence boundary
 import asyncio
+from contextvars import ContextVar
 import hashlib
 from html import unescape
 import ipaddress
@@ -75,6 +76,10 @@ from guide_direct_attribute_evidence import direct_attribute_phrase as _direct_a
 import general_guide_composition
 import comparative_traditions_contract
 import archive_crosslink
+_GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED = ContextVar(
+    "guide_canonical_doorway_search_attempted",
+    default=False,
+)
 from pinecone_retrieval_budget import install_pinecone_retrieval_budget, PineconeRequestBudgetMiddleware
 from guide_request_budget import (
     REQUEST_BUDGET_SECONDS as GUIDE_REQUEST_BUDGET_SECONDS,
@@ -2105,6 +2110,7 @@ def _recommendation_first_fetch(query_str):
         # recovery must reuse that result rather than repeat the same WordPress
         # search when no doorway was found.
         data["canonical_doorway_search_attempted"] = True
+        _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.set(True)
         try:
             selected_doorway = _normalize_authoritative_recommendation(
                 _general_guide_authoritative_doorway(query_str, data)
@@ -5771,7 +5777,9 @@ def _boundary_canonical_doorway(payload, query):
     # Final-boundary recoveries can receive a deliberately slim visitor payload
     # after retrieval context has been consumed upstream. In that case, perform
     # one bounded canonical lookup rather than silently losing the doorway.
-    if not docs:
+    # If the request already attempted canonical selection upstream, do not
+    # repeat the same network retrieval at the terminal visitor boundary.
+    if not docs and not _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.get():
         # First recover against the visitor's own wording. If a specialized
         # reasoning boundary has consumed the original retrieval context, make
         # one narrowly expanded canonical pass using the intellectual object of
@@ -16140,9 +16148,13 @@ async def _guide_outer_visitor_response_boundary(scope, receive, send):
 
         await send(message)
 
-    await _use_request_boundary(
-        scope, _use_replay_receive(raw_body), _capture_json_response
-    )
+    _doorway_search_token = _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.set(False)
+    try:
+        await _use_request_boundary(
+            scope, _use_replay_receive(raw_body), _capture_json_response
+        )
+    finally:
+        _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.reset(_doorway_search_token)
 
 
 app = streaming_entry(_guide_outer_visitor_response_boundary)
