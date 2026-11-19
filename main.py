@@ -5826,6 +5826,26 @@ def _guide_restore_verified_doorway(payload, query):
     family_candidate = _VERIFIED_CONCEPTUAL_FAMILY_DOORWAYS.get(family)
     doorway = _normalize_authoritative_recommendation(family_candidate) if family_candidate else None
     if not doorway:
+        # Preserve reviewed, query-specific selectors that are authoritative
+        # but are not represented as ordinary Guide Node records. They remain
+        # subject to the same canonical URL/rationale normalization.
+        for selector_name in (
+            "_healthy_community_canonical_recommendation",
+            "_trust_community_stewardship_canonical_recommendation",
+        ):
+            selector = globals().get(selector_name)
+            if not callable(selector):
+                continue
+            try:
+                specialized = _normalize_authoritative_recommendation(
+                    selector(query, safe)
+                )
+            except Exception:
+                specialized = None
+            if specialized:
+                doorway = specialized
+                break
+    if not doorway:
         upstream_candidate = _normalize_authoritative_recommendation(safe.get("recommendation"))
         if not upstream_candidate:
             upstream_candidate = _normalize_authoritative_recommendation(
