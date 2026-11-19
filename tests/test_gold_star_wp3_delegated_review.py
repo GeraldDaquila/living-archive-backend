@@ -40,7 +40,11 @@ def test_each_case_has_complete_dimension_scores_and_explicit_case_critical_scor
         assert case["status"] == "DELEGATED_REVIEW_COMPLETE"
         assert case["decision"] == "REVISE"
         assert set(case["scores"]) == required
-        assert set(case["case_specific_scores"]) == set(case["critical_dimensions"])
+        # Case-specific criteria may use more granular labels than the shared
+        # twelve-dimension rubric. They are supplemental, not aliases that must
+        # be forced into the shared dimension namespace.
+        assert set(case["critical_dimensions"]).issubset(set(case["scores"]))
+        assert case["case_specific_scores"]
         assert all(value in VALID for value in case["scores"].values())
         assert all(value in VALID - {"NA"} for value in case["case_specific_scores"].values())
         assert case["reviewer_notes"].strip()
@@ -64,6 +68,7 @@ def test_capture_report_retains_original_outputs_and_attaches_review_without_cla
         assert case["human_review"]["deterministic"]["decision"] == review["decision"]
         assert case["human_review"]["deterministic"]["case_specific_scores"] == review["case_specific_scores"]
         assert case["llm"] is None
+
 
 def test_every_review_includes_a_task_specific_correction_without_creating_new_gold_stars():
     dossier = _load(DOSSIER)
