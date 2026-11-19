@@ -12679,6 +12679,27 @@ def _basic_inquiry_response(query, history=None, raw_body=None):
                 "explanation": "The response was recomposed for the visitor’s actual question after a cross-question reference mismatch was detected.",
             }
             print("The Guide response integrity recovery: PASS; retry answer matched the incoming question boundary.")
+        elif (
+            isinstance(general_knowledge_recovery, dict)
+            and str(general_knowledge_recovery.get("fact_id") or "").strip()
+            and str(general_knowledge_recovery.get("response") or "").strip()
+        ):
+            # A query-matched, reviewed public-fact registry entry is independent
+            # of cross-question Gold Star answer authority. Preserve that direct
+            # fact rather than withholding it because an unrelated exemplar leaked
+            # into the rejected draft and the bounded provider repair was unavailable.
+            response = _sanitize_basic_inquiry_response(
+                str(general_knowledge_recovery["response"]).strip()
+            )
+            authoritative_doorway = _normalize_authoritative_recommendation(
+                general_knowledge_recovery.get("doorway")
+            )
+            answer_basis = {
+                "kind": "general_knowledge",
+                "label": "General knowledge",
+                "explanation": "A reviewed, query-matched stable fact was used; it is not attributed to the Living Archive.",
+            }
+            print("The Guide response integrity recovery: restored query-matched registered fact after rejecting cross-question exemplar text.")
         else:
             response = (
                 "I couldn’t produce a reliable answer to that question just now. "
