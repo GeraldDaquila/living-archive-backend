@@ -2105,12 +2105,6 @@ def _recommendation_first_fetch(query_str):
     authoritative = []
     selected_doorway = None
     if not profile.get("grief"):
-        # Record that this request has already attempted canonical doorway
-        # selection against its complete retrieved context. Later composition
-        # recovery must reuse that result rather than repeat the same WordPress
-        # search when no doorway was found.
-        data["canonical_doorway_search_attempted"] = True
-        _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.set(True)
         try:
             selected_doorway = _normalize_authoritative_recommendation(
                 _general_guide_authoritative_doorway(query_str, data)
@@ -2141,6 +2135,12 @@ def _recommendation_first_fetch(query_str):
                     "The Guide outward navigation boundary: no verifiable "
                     "canonical doorway available; recommendation suppressed."
                 )
+
+        # Mark the attempt only after the initial selector and its bounded
+        # evidence fallback have completed. Subsequent selector calls in this
+        # same request must reuse this decision instead of repeating WordPress.
+        data["canonical_doorway_search_attempted"] = True
+        _GUIDE_CANONICAL_DOORWAY_SEARCH_ATTEMPTED.set(True)
 
         if selected_doorway:
             target_url = str(selected_doorway.get("url") or "").rstrip("/").casefold()
@@ -8955,6 +8955,8 @@ def _general_guide_authoritative_doorway(query, context_data):
     keeps this selection independent of provider-generated text and fallback URLs.
     """
     if not isinstance(context_data, dict):
+        return None
+    if context_data.get("canonical_doorway_search_attempted"):
         return None
     try:
         profile = _base._inquiry_profile(query)
